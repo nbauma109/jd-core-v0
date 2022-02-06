@@ -10,4 +10,23 @@
 		<maven.compiler.source>8</maven.compiler.source>
 		<maven.compiler.target>8</maven.compiler.target>
 	</properties>
+	<scm>
+		<connection>scm:git:https://github.com/nbauma109/jd-util.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/nbauma109/jd-util.git</developerConnection>
+		<url>https://github.com/nbauma109/jd-util</url>
+		<tag>HEAD</tag>
+	</scm>
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>3.0.0-M5</version>
+				<configuration>
+					<goals>install</goals>
+					<tagNameFormat>@{project.version}</tagNameFormat>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
 </project>
