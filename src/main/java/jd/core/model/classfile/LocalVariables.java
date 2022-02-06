@@ -1,178 +1,203 @@
+/*******************************************************************************
+ * Copyright (C) 2007-2019 Emmanuel Dupuy GPLv3
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ ******************************************************************************/
 package jd.core.model.classfile;
 
 import java.util.ArrayList;
+import java.util.List;
 
-public class LocalVariables 
+public class LocalVariables
 {
-	private ArrayList<LocalVariable> listOfLocalVariables;
+    private final List<LocalVariable> listOfLocalVariables;
 
-	private int indexOfFirstLocalVariable = 0;
+    private int indexOfFirstLocalVariable;
 
-	public LocalVariables() 
-	{
-		this.listOfLocalVariables = new ArrayList<LocalVariable>(1);
-	}
+    public LocalVariables()
+    {
+        this.listOfLocalVariables = new ArrayList<>(1);
+    }
 
-	public LocalVariables(
-		LocalVariable[] localVariableTable, 
-		LocalVariable[] localVariableTypeTable) 
-	{
-		int length = localVariableTable.length;
+    public LocalVariables(
+        LocalVariable[] localVariableTable,
+        LocalVariable[] localVariableTypeTable)
+    {
+        int length = localVariableTable.length;
 
-		this.listOfLocalVariables = new ArrayList<LocalVariable>(length);
+        this.listOfLocalVariables = new ArrayList<>(length);
 
-		for (int i = 0; i < length; i++)
-		{
-			LocalVariable localVariable = localVariableTable[i];
-					
-			// Search local variable in 'localVariableTypeTable'
-			if (localVariableTypeTable != null)
-			{
-				int typeLength = localVariableTypeTable.length;
+        for (int i = 0; i < length; i++)
+        {
+            LocalVariable localVariable = localVariableTable[i];
 
-				for (int j=0; j<typeLength; j++)
-				{
-					LocalVariable typeLocalVariable = localVariableTypeTable[j];
+            // Search local variable in 'localVariableTypeTable'
+            if (localVariableTypeTable != null)
+            {
+                int typeLength = localVariableTypeTable.length;
 
-					if ((typeLocalVariable != null) &&
-						localVariable.compareTo(typeLocalVariable) == 0)
-					{
-						localVariableTypeTable[j] = null;
-						localVariable = typeLocalVariable;
-						break;
-					}
-				}
-			}
-			
-			add(localVariable);
-		}
-	}
+                for (int j=0; j<typeLength; j++)
+                {
+                    LocalVariable typeLocalVariable = localVariableTypeTable[j];
 
-	public void add(LocalVariable localVariable) 
-	{
-		final int length = this.listOfLocalVariables.size();
-		final int index = localVariable.index;
+                    if (typeLocalVariable != null &&
+                        localVariable.compareTo(typeLocalVariable) == 0)
+                    {
+                        localVariableTypeTable[j] = null;
+                        localVariable = typeLocalVariable;
+                        break;
+                    }
+                }
+            }
 
-		for (int i = 0; i < length; ++i) 
-		{
-			LocalVariable lv = this.listOfLocalVariables.get(i);
+            add(localVariable);
+        }
+    }
 
-			if (
-				((lv.index == index) && (lv.start_pc > localVariable.start_pc)) ||					
-				(lv.index > index)
-				)
-			{
-				this.listOfLocalVariables.add(i, localVariable);
-				return;
-			}
-		}
+    public void add(LocalVariable localVariable)
+    {
+        final int length = this.listOfLocalVariables.size();
+        final int index = localVariable.getIndex();
 
-		this.listOfLocalVariables.add(localVariable);
-	}
+        for (int i = 0; i < length; ++i)
+        {
+            LocalVariable lv = this.listOfLocalVariables.get(i);
 
-	public LocalVariable get(int i) 
-	{
-		return this.listOfLocalVariables.get(i);
-	}
-	
-	public void remove(int i) 
-	{
-		this.listOfLocalVariables.remove(i);
-	}
+            if (
+                lv.getIndex() == index && lv.getStartPc() > localVariable.getStartPc() ||
+                lv.getIndex() > index
+                )
+            {
+                this.listOfLocalVariables.add(i, localVariable);
+                return;
+            }
+        }
 
-	public String toString() 
-	{
-		return this.listOfLocalVariables.toString();
-	}
+        this.listOfLocalVariables.add(localVariable);
+    }
 
-	public LocalVariable getLocalVariableAt(int i) 
-	{
-		return (i >= this.listOfLocalVariables.size()) ? null
-				: this.listOfLocalVariables.get(i);
-	}
+    @Override
+    public String toString()
+    {
+        return this.listOfLocalVariables.toString();
+    }
 
-	public LocalVariable getLocalVariableWithIndexAndOffset(int index,
-			int offset) 
-	{
-		int length = this.listOfLocalVariables.size();
+    public LocalVariable getLocalVariableAt(int i)
+    {
+        return i >= this.listOfLocalVariables.size() ? null
+                : this.listOfLocalVariables.get(i);
+    }
 
-		for (int i = length - 1; i >= 0; --i) {
-			LocalVariable lv = this.listOfLocalVariables.get(i);
+    public LocalVariable getLocalVariableWithIndexAndOffset(int index,
+            int offset)
+    {
+        int length = this.listOfLocalVariables.size();
 
-			if ((lv.index == index) && (lv.start_pc <= offset)
-					&& (offset < lv.start_pc + lv.length))
-				return lv;
-		}
+        for (int i = length - 1; i >= 0; --i) {
+            LocalVariable lv = this.listOfLocalVariables.get(i);
 
-		return null;
-	}
+            if (lv.getIndex() == index && lv.getStartPc() <= offset
+                    && offset < lv.getStartPc() + lv.getLength()) {
+                return lv;
+            }
+        }
 
-	public boolean containsLocalVariableWithNameIndex(int nameIndex) 
-	{
-		int length = this.listOfLocalVariables.size();
+        return null;
+    }
 
-		for (int i = length - 1; i >= 0; --i) {
-			LocalVariable lv = this.listOfLocalVariables.get(i);
+    public boolean containsLocalVariableWithNameIndex(int nameIndex)
+    {
+        int length = this.listOfLocalVariables.size();
 
-			if (lv.name_index == nameIndex)
-				return true;
-		}
+        for (int i = length - 1; i >= 0; --i) {
+            LocalVariable lv = this.listOfLocalVariables.get(i);
 
-		return false;
-	}
+            if (lv.getNameIndex() == nameIndex) {
+                return true;
+            }
+        }
 
-	public void removeLocalVariableWithIndexAndOffset(int index, int offset) 
-	{
-		int length = this.listOfLocalVariables.size();
+        return false;
+    }
 
-		for (int i = length - 1; i >= 0; --i) {
-			LocalVariable lv = this.listOfLocalVariables.get(i);
+    public void removeLocalVariableWithIndexAndOffset(int index, int offset)
+    {
+        int length = this.listOfLocalVariables.size();
 
-			if ((lv.index == index) && (lv.start_pc <= offset)
-					&& (offset < lv.start_pc + lv.length))
-			{
-				this.listOfLocalVariables.remove(i);
-				break;
-			}
-		}
-	}
-	
-	public LocalVariable searchLocalVariableWithIndexAndOffset(int index,
-			int offset) 
-	{
-		int length = this.listOfLocalVariables.size();
+        for (int i = length - 1; i >= 0; --i) {
+            LocalVariable lv = this.listOfLocalVariables.get(i);
 
-		for (int i = length - 1; i >= 0; --i) 
-		{
-			LocalVariable lv = this.listOfLocalVariables.get(i);
+            if (lv.getIndex() == index && lv.getStartPc() <= offset
+                    && offset < lv.getStartPc() + lv.getLength())
+            {
+                this.listOfLocalVariables.remove(i);
+                break;
+            }
+        }
+    }
 
-			if ((lv.index == index) && (lv.start_pc <= offset))
-				return lv;
-		}
+    public LocalVariable searchLocalVariableWithIndexAndOffset(int index,
+            int offset)
+    {
+        int length = this.listOfLocalVariables.size();
 
-		return null;
-	}
+        for (int i = length - 1; i >= 0; --i)
+        {
+            LocalVariable lv = this.listOfLocalVariables.get(i);
 
-	public int size() 
-	{
-		return this.listOfLocalVariables.size();
-	}
+            if (lv.getIndex() == index && lv.getStartPc() <= offset) {
+                return lv;
+            }
+        }
 
-	public int getIndexOfFirstLocalVariable() 
-	{
-		return indexOfFirstLocalVariable;
-	}
+        return null;
+    }
 
-	public void setIndexOfFirstLocalVariable(int indexOfFirstLocalVariable) 
-	{
-		this.indexOfFirstLocalVariable = indexOfFirstLocalVariable;
-	}
+    public void removeUselessLocalVariables()
+    {
+        for (int i = this.listOfLocalVariables.size() - 1; i >= 0; i--) {
+            LocalVariable lv = this.listOfLocalVariables.get(i);
+            if (lv.isToBeRemoved()) {
+                this.listOfLocalVariables.remove(i);
+            }
+        }
+    }
 
-	public int getMaxLocalVariableIndex() 
-	{
-		int length = this.listOfLocalVariables.size();
+    public int size()
+    {
+        return this.listOfLocalVariables.size();
+    }
 
-		return (length == 0) ? 
-			-1 : this.listOfLocalVariables.get(length-1).index;
-	}
+    public int getIndexOfFirstLocalVariable()
+    {
+        return indexOfFirstLocalVariable;
+    }
+
+    public void setIndexOfFirstLocalVariable(int indexOfFirstLocalVariable)
+    {
+        this.indexOfFirstLocalVariable = indexOfFirstLocalVariable;
+    }
+
+    public int getMaxLocalVariableIndex()
+    {
+        int length = this.listOfLocalVariables.size();
+
+        return length == 0 ?
+            -1 : this.listOfLocalVariables.get(length-1).getIndex();
+    }
+    
+    public List<String> getNames(ConstantPool constantPool) {
+        return this.listOfLocalVariables.stream().map(constantPool::getLocalVariableName).toList();
+    }
 }

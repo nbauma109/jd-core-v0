@@ -5,8 +5,8 @@
 	<version>0.7.1-SNAPSHOT</version>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.compiler.source>8</maven.compiler.source>
-		<maven.compiler.target>8</maven.compiler.target>
+		<maven.compiler.source>17</maven.compiler.source>
+		<maven.compiler.target>17</maven.compiler.target>
 	</properties>
 	<scm>
 		<connection>scm:git:https://github.com/nbauma109/jd-core-v0.git</connection>
@@ -27,4 +27,18 @@
 			</plugin>
 		</plugins>
 	</build>
+	<repositories>
+		<repository>
+			<id>jitpack.io</id>
+			<url>https://jitpack.io</url>
+		</repository>
+	</repositories>
+	<dependencies>
+		<dependency>
+			<!-- jd-core-v0 relies a bit on jd-core to support lambdas -->
+			<groupId>com.github.nbauma109</groupId>
+			<artifactId>jd-core</artifactId>
+			<version>1.2.0</version>
+		</dependency>
+	</dependencies>
 </project>

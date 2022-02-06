@@ -1,4 +1,22 @@
+/*******************************************************************************
+ * Copyright (C) 2007-2019 Emmanuel Dupuy GPLv3
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ ******************************************************************************/
 package jd.core.process.analyzer.classfile.visitor;
+
+import org.apache.bcel.Const;
 
 import java.util.List;
 
@@ -38,222 +56,243 @@ import jd.core.model.instruction.bytecode.instruction.TableSwitch;
 import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
 
-
 /*
- * Utilisé par TernaryOpReconstructor
+ * utilisÃ© par TernaryOpReconstructor
  */
-public class SearchDupLoadInstructionVisitor 
+public final class SearchDupLoadInstructionVisitor
 {
-	public static DupLoad visit(Instruction instruction, DupStore dupStore)
-	{		
-		switch (instruction.opcode)
-		{
-		case ByteCodeConstants.ARRAYLENGTH:
-			return visit(((ArrayLength)instruction).arrayref, dupStore);
-		case ByteCodeConstants.ARRAYLOAD:
-			{
-				ArrayLoadInstruction ali = (ArrayLoadInstruction)instruction;
-				DupLoad dupLoad = visit(ali.arrayref, dupStore);
-				if (dupLoad != null)
-					return dupLoad;
-				return visit(ali.indexref, dupStore);
-			}
-		case ByteCodeConstants.AASTORE:
-		case ByteCodeConstants.ARRAYSTORE:
-			{
-				ArrayStoreInstruction asi = (ArrayStoreInstruction)instruction;
-				DupLoad dupLoad = visit(asi.arrayref, dupStore);
-				if (dupLoad != null)
-					return dupLoad;
-				dupLoad = visit(asi.indexref, dupStore);
-				if (dupLoad != null)
-					return dupLoad;
-				return visit(asi.valueref, dupStore);
-			}
-		case ByteCodeConstants.ASSERT:
-			{
-				AssertInstruction ai = (AssertInstruction)instruction;
-				DupLoad dupLoad = visit(ai.test, dupStore);
-				if (dupLoad != null)
-					return dupLoad;
-				if (ai.msg == null)
-					return null;
-				return visit(ai.msg, dupStore);
-			}
-		case ByteCodeConstants.ATHROW:
-			return visit(((AThrow)instruction).value, dupStore);
-		case ByteCodeConstants.UNARYOP:
-			return visit(((UnaryOperatorInstruction)instruction).value, dupStore);
-		case ByteCodeConstants.BINARYOP:
-		case ByteCodeConstants.ASSIGNMENT:
-			{
-				BinaryOperatorInstruction boi = 
-					(BinaryOperatorInstruction)instruction;
-				DupLoad dupLoad = visit(boi.value1, dupStore);
-				if (dupLoad != null)
-					return dupLoad;
-				return visit(boi.value2, dupStore);
-			}
-		case ByteCodeConstants.CHECKCAST:
-			return visit(((CheckCast)instruction).objectref, dupStore);
-		case ByteCodeConstants.STORE:
-		case ByteCodeConstants.ASTORE:
-		case ByteCodeConstants.ISTORE:
-			return visit(((StoreInstruction)instruction).valueref, dupStore);
-		case ByteCodeConstants.DUPLOAD:
-			if (((DupLoad)instruction).dupStore == dupStore)
-				return (DupLoad)instruction;
-			break;
-		case ByteCodeConstants.DUPSTORE:
-			return visit(((DupStore)instruction).objectref, dupStore);
-		case ByteCodeConstants.CONVERT:
-		case ByteCodeConstants.IMPLICITCONVERT:
-			return visit(((ConvertInstruction)instruction).value, dupStore);
-		case ByteCodeConstants.IFCMP:
-			{
-				IfCmp ifCmp = (IfCmp)instruction;
-				DupLoad dupLoad = visit(ifCmp.value1, dupStore);
-				if (dupLoad != null)
-					return dupLoad;
-				return visit(ifCmp.value2, dupStore);
-			}
-		case ByteCodeConstants.IF:
-		case ByteCodeConstants.IFXNULL:
-			return visit(((IfInstruction)instruction).value, dupStore);
-		case ByteCodeConstants.COMPLEXIF:
-			{
-				List<Instruction> branchList = 
-					((ComplexConditionalBranchInstruction)instruction).instructions;
-				for (int i=branchList.size()-1; i>=0; --i)
-				{
-					DupLoad dupLoad = visit(branchList.get(i), dupStore);
-					if (dupLoad != null)
-						return dupLoad;
-				}
-			}
-			break;
-		case ByteCodeConstants.INSTANCEOF:
-			return visit(((InstanceOf)instruction).objectref, dupStore);
-		case ByteCodeConstants.INVOKEINTERFACE:
-		case ByteCodeConstants.INVOKESPECIAL:
-		case ByteCodeConstants.INVOKEVIRTUAL:
-			{
-				DupLoad dupLoad = visit(
-					((InvokeNoStaticInstruction)instruction).objectref, dupStore);
-				if (dupLoad != null)
-					return dupLoad;
-			}
-		case ByteCodeConstants.INVOKESTATIC:
-		case ByteCodeConstants.INVOKENEW:
-			{
-				List<Instruction> list = ((InvokeInstruction)instruction).args;
-				for (int i=list.size()-1; i>=0; --i)
-				{
-					DupLoad dupLoad = visit(list.get(i), dupStore);
-					if (dupLoad != null)
-						return dupLoad;
-				}
-			}
-			break;
-		case ByteCodeConstants.LOOKUPSWITCH:
-			return visit(((LookupSwitch)instruction).key, dupStore);
-		case ByteCodeConstants.MONITORENTER:
-			return visit(((MonitorEnter)instruction).objectref, dupStore);
-		case ByteCodeConstants.MONITOREXIT:
-			return visit(((MonitorExit)instruction).objectref, dupStore);
-		case ByteCodeConstants.MULTIANEWARRAY:
-			{
-				Instruction[] dimensions = ((MultiANewArray)instruction).dimensions;
-				for (int i=dimensions.length-1; i>=0; --i)
-				{
-					DupLoad dupLoad = visit(dimensions[i], dupStore);
-					if (dupLoad != null)
-						return dupLoad;
-				}
-			}
-			break;
-		case ByteCodeConstants.NEWARRAY:
-			return visit(((NewArray)instruction).dimension, dupStore);
-		case ByteCodeConstants.ANEWARRAY:
-			return visit(((ANewArray)instruction).dimension, dupStore);
-		case ByteCodeConstants.POP:
-			return visit(((Pop)instruction).objectref, dupStore);
-		case ByteCodeConstants.PUTFIELD: 
-			{
-				PutField putField = (PutField)instruction;
-				DupLoad dupLoad = visit(putField.objectref, dupStore);
-				if (dupLoad != null)
-					return dupLoad;
-				return visit(putField.valueref, dupStore);
-			}
-		case ByteCodeConstants.PUTSTATIC:
-			return visit(((PutStatic)instruction).valueref, dupStore);
-		case ByteCodeConstants.XRETURN:
-			return visit(((ReturnInstruction)instruction).valueref, dupStore);
-		case ByteCodeConstants.TABLESWITCH:
-			return visit(((TableSwitch)instruction).key, dupStore);
-		case ByteCodeConstants.TERNARYOPSTORE:
-			return visit(((TernaryOpStore)instruction).objectref, dupStore);
-		case ByteCodeConstants.PREINC:			
-		case ByteCodeConstants.POSTINC:	
-			return visit(((IncInstruction)instruction).value, dupStore);
-		case ByteCodeConstants.GETFIELD:
-			return visit(((GetField)instruction).objectref, dupStore);
-		case ByteCodeConstants.INITARRAY:
-		case ByteCodeConstants.NEWANDINITARRAY:
-			{
-				InitArrayInstruction iai = (InitArrayInstruction)instruction;
-				DupLoad dupLoad = visit(iai.newArray, dupStore);
-				if (dupLoad != null)
-					return dupLoad;
-				if (iai.values != null)
-					return visit(iai.values, dupStore);
-			}
-			break;
-		case ByteCodeConstants.ACONST_NULL:
-		case ByteCodeConstants.LOAD:
-		case ByteCodeConstants.ALOAD:
-		case ByteCodeConstants.ILOAD:
-		case ByteCodeConstants.BIPUSH:
-		case ByteCodeConstants.ICONST:
-		case ByteCodeConstants.LCONST:
-		case ByteCodeConstants.FCONST:
-		case ByteCodeConstants.DCONST:
-		case ByteCodeConstants.GETSTATIC:
-		case ByteCodeConstants.OUTERTHIS:
-		case ByteCodeConstants.GOTO:
-		case ByteCodeConstants.IINC:			
-		case ByteCodeConstants.JSR:			
-		case ByteCodeConstants.LDC:
-		case ByteCodeConstants.LDC2_W:
-		case ByteCodeConstants.NEW:
-		case ByteCodeConstants.NOP:
-		case ByteCodeConstants.SIPUSH:
-		case ByteCodeConstants.RET:
-		case ByteCodeConstants.RETURN:
-		case ByteCodeConstants.EXCEPTIONLOAD:
-		case ByteCodeConstants.RETURNADDRESSLOAD:
-			break;
-		default:
-			System.err.println(
-					"Can not search DupLoad instruction in " + 
-					instruction.getClass().getName() + 
-					", opcode=" + instruction.opcode);
-		}
-		
-		return null;
-	}
+    private SearchDupLoadInstructionVisitor() {
+        super();
+    }
 
-	private static DupLoad visit(
-		List<Instruction> instructions, DupStore dupStore)
-	{
-		for (int i=instructions.size()-1; i>=0; --i)
-		{
-			DupLoad dupLoad = visit(instructions.get(i), dupStore);
-			if (dupLoad != null)
-				return dupLoad;
-		}
-		
-		return null;
-	}
+    public static DupLoad visit(Instruction instruction, DupStore dupStore)
+    {
+        switch (instruction.getOpcode())
+        {
+        case Const.ARRAYLENGTH:
+            return visit(((ArrayLength)instruction).getArrayref(), dupStore);
+        case ByteCodeConstants.ARRAYLOAD:
+            {
+                ArrayLoadInstruction ali = (ArrayLoadInstruction)instruction;
+                DupLoad dupLoad = visit(ali.getArrayref(), dupStore);
+                if (dupLoad != null) {
+                    return dupLoad;
+                }
+                return visit(ali.getIndexref(), dupStore);
+            }
+        case Const.AASTORE,
+             ByteCodeConstants.ARRAYSTORE:
+            {
+                ArrayStoreInstruction asi = (ArrayStoreInstruction)instruction;
+                DupLoad dupLoad = visit(asi.getArrayref(), dupStore);
+                if (dupLoad != null) {
+                    return dupLoad;
+                }
+                dupLoad = visit(asi.getIndexref(), dupStore);
+                if (dupLoad != null) {
+                    return dupLoad;
+                }
+                return visit(asi.getValueref(), dupStore);
+            }
+        case ByteCodeConstants.ASSERT:
+            {
+                AssertInstruction ai = (AssertInstruction)instruction;
+                DupLoad dupLoad = visit(ai.getTest(), dupStore);
+                if (dupLoad != null) {
+                    return dupLoad;
+                }
+                if (ai.getMsg() == null) {
+                    return null;
+                }
+                return visit(ai.getMsg(), dupStore);
+            }
+        case Const.ATHROW:
+            return visit(((AThrow)instruction).getValue(), dupStore);
+        case ByteCodeConstants.UNARYOP:
+            return visit(((UnaryOperatorInstruction)instruction).getValue(), dupStore);
+        case ByteCodeConstants.BINARYOP,
+             ByteCodeConstants.ASSIGNMENT:
+            {
+                BinaryOperatorInstruction boi =
+                    (BinaryOperatorInstruction)instruction;
+                DupLoad dupLoad = visit(boi.getValue1(), dupStore);
+                if (dupLoad != null) {
+                    return dupLoad;
+                }
+                return visit(boi.getValue2(), dupStore);
+            }
+        case Const.CHECKCAST:
+            return visit(((CheckCast)instruction).getObjectref(), dupStore);
+        case ByteCodeConstants.STORE,
+             Const.ASTORE,
+             Const.ISTORE:
+            return visit(((StoreInstruction)instruction).getValueref(), dupStore);
+        case ByteCodeConstants.DUPLOAD:
+            if (((DupLoad)instruction).getDupStore() == dupStore) {
+                return (DupLoad)instruction;
+            }
+            break;
+        case ByteCodeConstants.DUPSTORE:
+            return visit(((DupStore)instruction).getObjectref(), dupStore);
+        case ByteCodeConstants.CONVERT,
+             ByteCodeConstants.IMPLICITCONVERT:
+            return visit(((ConvertInstruction)instruction).getValue(), dupStore);
+        case ByteCodeConstants.IFCMP:
+            {
+                IfCmp ifCmp = (IfCmp)instruction;
+                DupLoad dupLoad = visit(ifCmp.getValue1(), dupStore);
+                if (dupLoad != null) {
+                    return dupLoad;
+                }
+                return visit(ifCmp.getValue2(), dupStore);
+            }
+        case ByteCodeConstants.IF,
+             ByteCodeConstants.IFXNULL:
+            return visit(((IfInstruction)instruction).getValue(), dupStore);
+        case ByteCodeConstants.COMPLEXIF:
+            {
+                List<Instruction> branchList =
+                    ((ComplexConditionalBranchInstruction)instruction).getInstructions();
+                for (int i=branchList.size()-1; i>=0; --i)
+                {
+                    DupLoad dupLoad = visit(branchList.get(i), dupStore);
+                    if (dupLoad != null) {
+                        return dupLoad;
+                    }
+                }
+            }
+            break;
+        case Const.INSTANCEOF:
+            return visit(((InstanceOf)instruction).getObjectref(), dupStore);
+        case Const.INVOKEINTERFACE,
+             Const.INVOKESPECIAL,
+             Const.INVOKEVIRTUAL:
+            {
+                DupLoad dupLoad = visit(
+                    ((InvokeNoStaticInstruction)instruction).getObjectref(), dupStore);
+                if (dupLoad != null) {
+                    return dupLoad;
+                }
+            }
+            // intended fall through
+        case Const.INVOKESTATIC,
+             ByteCodeConstants.INVOKENEW:
+            {
+                List<Instruction> list = ((InvokeInstruction)instruction).getArgs();
+                for (int i=list.size()-1; i>=0; --i)
+                {
+                    DupLoad dupLoad = visit(list.get(i), dupStore);
+                    if (dupLoad != null) {
+                        return dupLoad;
+                    }
+                }
+            }
+            break;
+        case Const.LOOKUPSWITCH:
+            return visit(((LookupSwitch)instruction).getKey(), dupStore);
+        case Const.MONITORENTER:
+            return visit(((MonitorEnter)instruction).getObjectref(), dupStore);
+        case Const.MONITOREXIT:
+            return visit(((MonitorExit)instruction).getObjectref(), dupStore);
+        case Const.MULTIANEWARRAY:
+            {
+                Instruction[] dimensions = ((MultiANewArray)instruction).getDimensions();
+                for (int i=dimensions.length-1; i>=0; --i)
+                {
+                    DupLoad dupLoad = visit(dimensions[i], dupStore);
+                    if (dupLoad != null) {
+                        return dupLoad;
+                    }
+                }
+            }
+            break;
+        case Const.NEWARRAY:
+            return visit(((NewArray)instruction).getDimension(), dupStore);
+        case Const.ANEWARRAY:
+            return visit(((ANewArray)instruction).getDimension(), dupStore);
+        case Const.POP:
+            return visit(((Pop)instruction).getObjectref(), dupStore);
+        case Const.PUTFIELD:
+            {
+                PutField putField = (PutField)instruction;
+                DupLoad dupLoad = visit(putField.getObjectref(), dupStore);
+                if (dupLoad != null) {
+                    return dupLoad;
+                }
+                return visit(putField.getValueref(), dupStore);
+            }
+        case Const.PUTSTATIC:
+            return visit(((PutStatic)instruction).getValueref(), dupStore);
+        case ByteCodeConstants.XRETURN:
+            return visit(((ReturnInstruction)instruction).getValueref(), dupStore);
+        case Const.TABLESWITCH:
+            return visit(((TableSwitch)instruction).getKey(), dupStore);
+        case ByteCodeConstants.TERNARYOPSTORE:
+            return visit(((TernaryOpStore)instruction).getObjectref(), dupStore);
+        case ByteCodeConstants.PREINC,
+             ByteCodeConstants.POSTINC:
+            return visit(((IncInstruction)instruction).getValue(), dupStore);
+        case Const.GETFIELD:
+            return visit(((GetField)instruction).getObjectref(), dupStore);
+        case ByteCodeConstants.INITARRAY,
+             ByteCodeConstants.NEWANDINITARRAY:
+            {
+                InitArrayInstruction iai = (InitArrayInstruction)instruction;
+                DupLoad dupLoad = visit(iai.getNewArray(), dupStore);
+                if (dupLoad != null) {
+                    return dupLoad;
+                }
+                if (iai.getValues() != null) {
+                    return visit(iai.getValues(), dupStore);
+                }
+            }
+            break;
+        case Const.ACONST_NULL,
+             ByteCodeConstants.LOAD,
+             Const.ALOAD,
+             Const.ILOAD,
+             Const.BIPUSH,
+             ByteCodeConstants.ICONST,
+             ByteCodeConstants.LCONST,
+             ByteCodeConstants.FCONST,
+             ByteCodeConstants.DCONST,
+             Const.GETSTATIC,
+             ByteCodeConstants.OUTERTHIS,
+             Const.GOTO,
+             Const.IINC,
+             Const.JSR,
+             Const.LDC,
+             Const.LDC2_W,
+             Const.NEW,
+             Const.NOP,
+             Const.SIPUSH,
+             Const.RET,
+             Const.RETURN,
+             Const.INVOKEDYNAMIC,
+             ByteCodeConstants.EXCEPTIONLOAD,
+             ByteCodeConstants.RETURNADDRESSLOAD:
+            break;
+        default:
+            System.err.println(
+                    "Can not search DupLoad instruction in " +
+                    instruction.getClass().getName() +
+                    ", opcode=" + instruction.getOpcode());
+        }
+
+        return null;
+    }
+
+    private static DupLoad visit(
+        List<Instruction> instructions, DupStore dupStore)
+    {
+        for (int i=instructions.size()-1; i>=0; --i)
+        {
+            DupLoad dupLoad = visit(instructions.get(i), dupStore);
+            if (dupLoad != null) {
+                return dupLoad;
+            }
+        }
+
+        return null;
+    }
 }

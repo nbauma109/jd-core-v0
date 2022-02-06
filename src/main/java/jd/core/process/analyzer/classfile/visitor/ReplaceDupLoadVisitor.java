@@ -1,4 +1,22 @@
+/*******************************************************************************
+ * Copyright (C) 2007-2019 Emmanuel Dupuy GPLv3
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ ******************************************************************************/
 package jd.core.process.analyzer.classfile.visitor;
+
+import org.apache.bcel.Const;
 
 import java.util.List;
 
@@ -52,695 +70,745 @@ import jd.core.model.instruction.fast.instruction.FastTestList;
 import jd.core.model.instruction.fast.instruction.FastTry;
 import jd.core.model.instruction.fast.instruction.FastTry.FastCatch;
 
-
-public class ReplaceDupLoadVisitor 
+public class ReplaceDupLoadVisitor
 {
-	private DupStore dupStore;
-	private Instruction newInstruction;
-	private Instruction parentFound;
+    private DupStore dupStore;
+    private Instruction newInstruction;
+    private Instruction parentFound;
 
-	public ReplaceDupLoadVisitor()
-	{
-		this.dupStore = null;
-		this.newInstruction = null;
-		this.parentFound = null;
-	}
-	
-	public ReplaceDupLoadVisitor(DupStore dupStore, Instruction newInstruction)
-	{
-		init(dupStore, newInstruction);
-	}
-	
-	public void init(DupStore dupStore, Instruction newInstruction)
-	{
-		this.dupStore = dupStore;
-		this.newInstruction = newInstruction;
-		this.parentFound = null;
-	}
-	
-	public void visit(Instruction instruction)
-	{
-		switch (instruction.opcode)
-		{
-		case ByteCodeConstants.ARRAYLENGTH:
-			{
-				ArrayLength al = (ArrayLength)instruction;
-				if (match(al, al.arrayref))
-					al.arrayref = this.newInstruction;
-				else
-					visit(al.arrayref);
-			}
-			break;
-		case ByteCodeConstants.AASTORE:
-		case ByteCodeConstants.ARRAYSTORE:
-			{
-				ArrayStoreInstruction asi = (ArrayStoreInstruction)instruction;
-				if (match(asi, asi.arrayref))
-				{
-					asi.arrayref = this.newInstruction;
-				}
-				else
-				{
-					visit(asi.arrayref);
-					
-					if (this.parentFound == null)
-					{
-						if (match(asi, asi.indexref))
-						{
-							asi.indexref = this.newInstruction;
-						}
-						else
-						{
-							visit(asi.indexref);
-							
-							if (this.parentFound == null)
-							{
-								if (match(asi, asi.valueref))
-									asi.valueref = this.newInstruction;
-								else
-									visit(asi.valueref);
-							}
-						}
-					}
-				}
-			}
-			break;
-		case ByteCodeConstants.ATHROW:
-			{
-				AThrow aThrow = (AThrow)instruction;
-				if (match(aThrow, aThrow.value))
-					aThrow.value = this.newInstruction;
-				else
-					visit(aThrow.value);
-			}
-			break;
-		case ByteCodeConstants.UNARYOP:
-			{
-				UnaryOperatorInstruction uoi = (UnaryOperatorInstruction)instruction;
-				if (match(uoi, uoi.value))
-					uoi.value = this.newInstruction;
-				else
-					visit(uoi.value);
-			}
-			break;
-		case ByteCodeConstants.BINARYOP:
-			{
-				BinaryOperatorInstruction boi = (BinaryOperatorInstruction)instruction;
-				if (match(boi, boi.value1))
-				{
-					boi.value1 = this.newInstruction;
-				}
-				else
-				{
-					visit(boi.value1);
-				
-					if (this.parentFound == null)
-					{
-						if (match(boi, boi.value2))
-							boi.value2 = this.newInstruction;
-						else
-							visit(boi.value2);
-					}
-				}
-			}
-			break;
-		case ByteCodeConstants.CHECKCAST:
-			{
-				CheckCast checkCast = (CheckCast)instruction;
-				if (match(checkCast, checkCast.objectref))
-					checkCast.objectref = this.newInstruction;
-				else
-					visit(checkCast.objectref);
-			}
-			break;
-		case ByteCodeConstants.STORE:
-		case ByteCodeConstants.ASTORE:
-		case ByteCodeConstants.ISTORE:
-			{
-				StoreInstruction storeInstruction = (StoreInstruction)instruction;
-				if (match(storeInstruction, storeInstruction.valueref))
-					storeInstruction.valueref = this.newInstruction;
-				else
-					visit(storeInstruction.valueref);
-			}
-			break;
-		case ByteCodeConstants.DUPSTORE:
-			{
-				DupStore dupStore = (DupStore)instruction;
-				if (match(dupStore, dupStore.objectref))
-					dupStore.objectref = this.newInstruction;
-				else
-					visit(dupStore.objectref);
-			}
-			break;
-		case ByteCodeConstants.CONVERT:
-		case ByteCodeConstants.IMPLICITCONVERT:
-			{
-				ConvertInstruction ci = (ConvertInstruction)instruction;
-				if (match(ci, ci.value))
-					ci.value = this.newInstruction;
-				else
-					visit(ci.value);
-			}
-			break;
-		case ByteCodeConstants.IFCMP:
-			{
-				IfCmp ifCmp = (IfCmp)instruction;
-				if (match(ifCmp, ifCmp.value1))
-				{
-					ifCmp.value1 = this.newInstruction;
-				}
-				else
-				{
-					visit(ifCmp.value1);
-					
-					if (this.parentFound == null)
-					{
-						if (match(ifCmp, ifCmp.value2))
-							ifCmp.value2 = this.newInstruction;
-						else
-							visit(ifCmp.value2);
-					}
-				}
-			}
-			break;
-		case ByteCodeConstants.IF:
-		case ByteCodeConstants.IFXNULL:
-			{
-				IfInstruction iff = (IfInstruction)instruction;
-				if (match(iff, iff.value))
-					iff.value = this.newInstruction;
-				else
-					visit(iff.value);
-			}
-			break;			
-		case ByteCodeConstants.COMPLEXIF:
-			{
-				List<Instruction> branchList = 
-					((ComplexConditionalBranchInstruction)instruction).instructions;
-				for (int i=branchList.size()-1; (i>=0) && (this.parentFound == null); --i)
-				{
-					visit(branchList.get(i));
-				}
-			}
-			break;
-		case ByteCodeConstants.INSTANCEOF:
-			{
-				InstanceOf instanceOf = (InstanceOf)instruction;
-				if (match(instanceOf, instanceOf.objectref))
-					instanceOf.objectref = this.newInstruction;
-				else
-					visit(instanceOf.objectref);
-			}
-			break;
-		case ByteCodeConstants.INVOKEINTERFACE:
-		case ByteCodeConstants.INVOKESPECIAL:
-		case ByteCodeConstants.INVOKEVIRTUAL:
-			{
-				InvokeNoStaticInstruction insi = 
-					(InvokeNoStaticInstruction)instruction;
-				if (match(insi, insi.objectref))
-					insi.objectref = this.newInstruction;
-				else
-					visit(insi.objectref);
-			}
-		case ByteCodeConstants.INVOKESTATIC:
-		case ByteCodeConstants.INVOKENEW:
-			{
-				List<Instruction> list = ((InvokeInstruction)instruction).args;
-				for (int i=list.size()-1; (i>=0) && (this.parentFound == null); --i)
-				{
-					if (match(instruction, list.get(i)))
-						list.set(i, this.newInstruction);
-					else
-						visit(list.get(i));
-				}
-			}
-			break;
-		case ByteCodeConstants.LOOKUPSWITCH:
-			{
-				LookupSwitch ls = (LookupSwitch)instruction;
-				if (match(ls, ls.key))
-					ls.key = this.newInstruction;
-				else
-					visit(ls.key);
-			}
-			break;			
-		case ByteCodeConstants.MONITORENTER:
-			{
-				MonitorEnter monitorEnter = (MonitorEnter)instruction;
-				if (match(monitorEnter, monitorEnter.objectref))
-					monitorEnter.objectref = this.newInstruction;
-				else
-					visit(monitorEnter.objectref);
-			}
-			break;
-		case ByteCodeConstants.MONITOREXIT:
-			{
-				MonitorExit monitorExit = (MonitorExit)instruction;
-				if (match(monitorExit, monitorExit.objectref))
-					monitorExit.objectref = this.newInstruction;
-				else
-					visit(monitorExit.objectref);
-			}
-			break;
-		case ByteCodeConstants.MULTIANEWARRAY:
-			{
-				Instruction[] dimensions = ((MultiANewArray)instruction).dimensions;
-				for (int i=dimensions.length-1; (i>=0) && (this.parentFound == null); --i)
-				{
-					if (match(instruction, dimensions[i]))
-						dimensions[i] = this.newInstruction;
-					else
-						visit(dimensions[i]);
-				}
-			}
-			break;
-		case ByteCodeConstants.NEWARRAY:
-			{
-				NewArray newArray = (NewArray)instruction;
-				if (match(newArray, newArray.dimension))
-					newArray.dimension = this.newInstruction;
-				else
-					visit(newArray.dimension);
-			}
-			break;
-		case ByteCodeConstants.ANEWARRAY:
-			{
-				ANewArray aNewArray = (ANewArray)instruction;
-				if (match(aNewArray, aNewArray.dimension))
-					aNewArray.dimension = this.newInstruction;
-				else
-					visit(aNewArray.dimension);
-			}
-			break;
-		case ByteCodeConstants.POP:
-			{
-				Pop pop = (Pop)instruction;
-				if (match(pop, pop.objectref))
-					pop.objectref = this.newInstruction;
-				else
-					visit(pop.objectref);
-			}
-			break;
-		case ByteCodeConstants.PUTFIELD:
-			{
-				PutField putField = (PutField)instruction;
-				if (match(putField, putField.objectref))
-				{
-					putField.objectref = this.newInstruction;
-				}
-				else
-				{
-					visit(putField.objectref);
-					
-					if (this.parentFound == null)
-					{
-						if (match(putField, putField.valueref))
-							putField.valueref = this.newInstruction;
-						else
-							visit(putField.valueref);
-					}
-				}
-			}
-			break;
-		case ByteCodeConstants.PUTSTATIC:
-			{
-				PutStatic putStatic = (PutStatic)instruction;
-				if (match(putStatic, putStatic.valueref))
-					putStatic.valueref = this.newInstruction;
-				else
-					visit(putStatic.valueref);
-			}
-			break;
-		case ByteCodeConstants.XRETURN:
-			{
-				ReturnInstruction ri = (ReturnInstruction)instruction;
-				if (match(ri, ri.valueref))
-					ri.valueref = this.newInstruction;
-				else
-					visit(ri.valueref);
-			}
-			break;			
-		case ByteCodeConstants.TABLESWITCH:
-			{
-				TableSwitch ts = (TableSwitch)instruction;
-				if (match(ts, ts.key))
-					ts.key = this.newInstruction;
-				else
-					visit(ts.key);
-			}
-			break;			
-		case ByteCodeConstants.TERNARYOPSTORE:
-			{
-				TernaryOpStore tos = (TernaryOpStore)instruction;
-				if (match(tos, tos.objectref))
-					tos.objectref = this.newInstruction;
-				else
-					visit(tos.objectref);	
-			}
-			break;		
-		case ByteCodeConstants.TERNARYOP:	
-			{
-				TernaryOperator to = (TernaryOperator)instruction;
-				if (match(to, to.value1))
-				{
-					to.value1 = this.newInstruction;
-				}
-				else
-				{
-					visit(to.value1);
-	
-					if (this.parentFound == null)
-					{
-						if (match(to, to.value2))
-							to.value2 = this.newInstruction;
-						else
-							visit(to.value2);
-					}
-				}
-			}
-			break;	
-		case ByteCodeConstants.ASSIGNMENT:
-			{
-				AssignmentInstruction ai = (AssignmentInstruction)instruction;
-				if (match(ai, ai.value1))
-				{
-					ai.value1 = this.newInstruction;
-				}
-				else
-				{
-					visit(ai.value1);
-	
-					if (this.parentFound == null)
-					{
-						if (match(ai, ai.value2))
-							ai.value2 = this.newInstruction;
-						else
-							visit(ai.value2);
-					}
-				}
-			}
-			break;
-		case ByteCodeConstants.ARRAYLOAD:
-			{
-				ArrayLoadInstruction ali = (ArrayLoadInstruction)instruction;
-				if (match(ali, ali.arrayref))
-				{
-					ali.arrayref = this.newInstruction;
-				}
-				else
-				{
-					visit(ali.arrayref);
-	
-					if (this.parentFound == null)
-					{
-						if (match(ali, ali.indexref))
-							ali.indexref = this.newInstruction;
-						else
-							visit(ali.indexref);
-					}
-				}
-			}
-			break;
-		case ByteCodeConstants.PREINC:			
-		case ByteCodeConstants.POSTINC:		
-			{
-				IncInstruction ii = (IncInstruction)instruction;
-				if (match(ii, ii.value))
-					ii.value = this.newInstruction;
-				else
-					visit(ii.value);
-			}
-			break;
-		case ByteCodeConstants.GETFIELD:
-			{
-				GetField gf = (GetField)instruction;
-				if (match(gf, gf.objectref))
-					gf.objectref = this.newInstruction;
-				else
-					visit(gf.objectref);
-			}
-			break;
-		case ByteCodeConstants.INITARRAY:
-		case ByteCodeConstants.NEWANDINITARRAY:
-			{
-				InitArrayInstruction iai = (InitArrayInstruction)instruction;
-				if (match(iai, iai.newArray))
-				{
-					iai.newArray = this.newInstruction;
-				}
-				else
-				{
-					visit(iai.newArray);
-					
-					if ((this.parentFound == null) && (iai.values != null))
-						visit(iai.values);
-				}
-			}
-			break;
-		case FastConstants.FOR:
-			{
-				FastFor ff = (FastFor)instruction;
-				
-				if (ff.init != null)
-				{
-					if (match(ff, ff.init))
-						ff.init = this.newInstruction;
-					else
-						visit(ff.init);
-				}
-				
-				if ((this.parentFound == null) && (ff.inc != null))
-				{
-					if (match(ff, ff.inc))
-						ff.inc = this.newInstruction;
-					else
-						visit(ff.inc);
-				}
-			}
-		case FastConstants.WHILE:
-		case FastConstants.DO_WHILE:
-		case FastConstants.IF_:
-			{
-				FastTestList ftl = (FastTestList)instruction;
-				if (ftl.test != null)
-				{
-					if (match(ftl, ftl.test))
-						ftl.test = this.newInstruction;
-					else
-						visit(ftl.test);
-				}
-			}
-		case FastConstants.INFINITE_LOOP:
-			{
-				List<Instruction> instructions = 
-						((FastList)instruction).instructions;
-				if (instructions != null)
-					visit(instructions);
-			}
-			break;
-		case FastConstants.FOREACH:
-			{
-				FastForEach ffe = (FastForEach)instruction;
-				if (match(ffe, ffe.variable))
-				{
-					ffe.variable = this.newInstruction;
-				}
-				else
-				{
-					visit(ffe.variable);
-					
-					if (this.parentFound == null)
-					{
-						if (match(ffe, ffe.values))
-						{
-							ffe.values = this.newInstruction;
-						}
-						else
-						{
-							visit(ffe.values);
-		
-							if (this.parentFound == null)
-								visit(ffe.instructions);
-						}
-					}
-				}
-			}
-			break;
-		case FastConstants.IF_ELSE:
-			{
-				FastTest2Lists ft2l = (FastTest2Lists)instruction;
-				if (match(ft2l, ft2l.test))
-				{
-					ft2l.test = this.newInstruction;
-				}
-				else
-				{
-					visit(ft2l.test);
-					
-					if (this.parentFound == null)
-					{
-						visit(ft2l.instructions);
-						
-						if (this.parentFound == null)
-							visit(ft2l.instructions2);
-					}
-				}
-			}
-			break;
-		case FastConstants.IF_CONTINUE:
-		case FastConstants.IF_BREAK:
-		case FastConstants.IF_LABELED_BREAK:
-		case FastConstants.GOTO_CONTINUE:
-		case FastConstants.GOTO_BREAK:
-		case FastConstants.GOTO_LABELED_BREAK:
-			{
-				FastInstruction fi = (FastInstruction)instruction;
-				if (fi.instruction != null)
-				{
-					if (match(fi, fi.instruction))
-						fi.instruction = this.newInstruction;
-					else
-						visit(fi.instruction);
-				}
-			}
-			break;
-		case FastConstants.SWITCH:
-		case FastConstants.SWITCH_ENUM:
-		case FastConstants.SWITCH_STRING:
-			{
-				FastSwitch fs = (FastSwitch)instruction;
-				if (match(fs, fs.test))
-				{
-					fs.test = this.newInstruction;
-				}
-				else
-				{
-					visit(fs.test);
-						
-					FastSwitch.Pair[] pairs = fs.pairs;
-					for (int i=pairs.length-1; (i>=0) && (this.parentFound == null); --i)
-						visit(pairs[i].getInstructions());
-				}
-			}
-			break;
-		case FastConstants.TRY:
-			{
-				FastTry ft = (FastTry)instruction;
-				visit(ft.instructions);	
-				
-				if (this.parentFound == null)
-				{
-					if (ft.finallyInstructions != null)
-						visit(ft.finallyInstructions);	
-				
-					List<FastCatch> catchs = ft.catches;
-					for (int i=catchs.size()-1; (i>=0) && (this.parentFound == null); --i)
-						visit(catchs.get(i).instructions);
-				}
-			}
-			break;
-		case FastConstants.SYNCHRONIZED:
-			{
-				FastSynchronized fsd = (FastSynchronized)instruction;
-				if (match(fsd, fsd.monitor))
-				{
-					fsd.monitor = this.newInstruction;
-				}
-				else
-				{
-					visit(fsd.monitor);
-					
-					if (this.parentFound == null)
-						visit(fsd.instructions);
-				}
-			}
-			break;
-		case FastConstants.LABEL:
-			{
-				FastLabel fl = (FastLabel)instruction;
-				if (fl.instruction != null)
-				{
-					if (match(fl, fl.instruction))
-						fl.instruction = this.newInstruction;
-					else
-						visit(fl.instruction);
-				}
-			}
-			break;
-		case FastConstants.DECLARE:
-			{
-				FastDeclaration fd = (FastDeclaration)instruction;
-				if (fd.instruction != null)
-				{
-					if (match(fd, fd.instruction))
-						fd.instruction = this.newInstruction;
-					else
-						visit(fd.instruction);
-				}
-			}
-			break;
-		case ByteCodeConstants.ACONST_NULL:
-		case ByteCodeConstants.LOAD:
-		case ByteCodeConstants.ALOAD:
-		case ByteCodeConstants.ILOAD:
-		case ByteCodeConstants.BIPUSH:
-		case ByteCodeConstants.ICONST:
-		case ByteCodeConstants.LCONST:
-		case ByteCodeConstants.FCONST:
-		case ByteCodeConstants.DCONST:
-		case ByteCodeConstants.DUPLOAD:
-		case ByteCodeConstants.GETSTATIC:
-		case ByteCodeConstants.OUTERTHIS:
-		case ByteCodeConstants.GOTO:
-		case ByteCodeConstants.IINC:			
-		case ByteCodeConstants.JSR:			
-		case ByteCodeConstants.LDC:
-		case ByteCodeConstants.LDC2_W:
-		case ByteCodeConstants.NEW:
-		case ByteCodeConstants.NOP:
-		case ByteCodeConstants.SIPUSH:
-		case ByteCodeConstants.RET:
-		case ByteCodeConstants.RETURN:
-		case ByteCodeConstants.EXCEPTIONLOAD:
-		case ByteCodeConstants.RETURNADDRESSLOAD:
-			break;
-		default:
-			System.err.println(
-					"Can not replace DupLoad in " + 
-					instruction.getClass().getName() + 
-					", opcode=" + instruction.opcode);
-		}
-	}
-	
-	private void visit(List<Instruction> instructions)
-	{
-		for (int i=instructions.size()-1; i>=0; --i)
-			visit(instructions.get(i));
-	}
-	
-	/**
-	 * @return le dernier parent sur lequel une substitution a été faite
-	 */
-	public Instruction getParentFound() 
-	{
-		return this.parentFound;
-	}
+    public ReplaceDupLoadVisitor()
+    {
+        this.dupStore = null;
+        this.newInstruction = null;
+        this.parentFound = null;
+    }
 
-	private boolean match(Instruction parent, Instruction i)
-	{
-		if (i.opcode != ByteCodeConstants.DUPLOAD)
-			return false;
-		
-		DupLoad dupload = (DupLoad)i;
-		
-		if (dupload.dupStore == this.dupStore)
-		{
-			this.parentFound = parent;
-			return true;
-		}
-		
-		return false;
-	}
+    public ReplaceDupLoadVisitor(DupStore dupStore, Instruction newInstruction)
+    {
+        init(dupStore, newInstruction);
+    }
+
+    public void init(DupStore dupStore, Instruction newInstruction)
+    {
+        this.dupStore = dupStore;
+        this.newInstruction = newInstruction;
+        this.parentFound = null;
+    }
+
+    public void visit(Instruction instruction)
+    {
+        switch (instruction.getOpcode())
+        {
+        case Const.ARRAYLENGTH:
+            {
+                ArrayLength al = (ArrayLength)instruction;
+                if (match(al, al.getArrayref())) {
+                    al.setArrayref(this.newInstruction);
+                } else {
+                    visit(al.getArrayref());
+                }
+            }
+            break;
+        case Const.AASTORE,
+             ByteCodeConstants.ARRAYSTORE:
+            {
+                ArrayStoreInstruction asi = (ArrayStoreInstruction)instruction;
+                if (match(asi, asi.getArrayref()))
+                {
+                    asi.setArrayref(this.newInstruction);
+                }
+                else
+                {
+                    visit(asi.getArrayref());
+
+                    if (this.parentFound == null)
+                    {
+                        if (match(asi, asi.getIndexref()))
+                        {
+                            asi.setIndexref(this.newInstruction);
+                        }
+                        else
+                        {
+                            visit(asi.getIndexref());
+
+                            if (this.parentFound == null)
+                            {
+                                if (match(asi, asi.getValueref())) {
+                                    asi.setValueref(this.newInstruction);
+                                } else {
+                                    visit(asi.getValueref());
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            break;
+        case Const.ATHROW:
+            {
+                AThrow aThrow = (AThrow)instruction;
+                if (match(aThrow, aThrow.getValue())) {
+                    aThrow.setValue(this.newInstruction);
+                } else {
+                    visit(aThrow.getValue());
+                }
+            }
+            break;
+        case ByteCodeConstants.UNARYOP:
+            {
+                UnaryOperatorInstruction uoi = (UnaryOperatorInstruction)instruction;
+                if (match(uoi, uoi.getValue())) {
+                    uoi.setValue(this.newInstruction);
+                } else {
+                    visit(uoi.getValue());
+                }
+            }
+            break;
+        case ByteCodeConstants.BINARYOP:
+            {
+                BinaryOperatorInstruction boi = (BinaryOperatorInstruction)instruction;
+                if (match(boi, boi.getValue1()))
+                {
+                    boi.setValue1(this.newInstruction);
+                }
+                else
+                {
+                    visit(boi.getValue1());
+
+                    if (this.parentFound == null)
+                    {
+                        if (match(boi, boi.getValue2())) {
+                            boi.setValue2(this.newInstruction);
+                        } else {
+                            visit(boi.getValue2());
+                        }
+                    }
+                }
+            }
+            break;
+        case Const.CHECKCAST:
+            {
+                CheckCast checkCast = (CheckCast)instruction;
+                if (match(checkCast, checkCast.getObjectref())) {
+                    checkCast.setObjectref(this.newInstruction);
+                } else {
+                    visit(checkCast.getObjectref());
+                }
+            }
+            break;
+        case ByteCodeConstants.STORE,
+             Const.ASTORE,
+             Const.ISTORE:
+            {
+                StoreInstruction storeInstruction = (StoreInstruction)instruction;
+                if (match(storeInstruction, storeInstruction.getValueref())) {
+                    storeInstruction.setValueref(this.newInstruction);
+                } else {
+                    visit(storeInstruction.getValueref());
+                }
+            }
+            break;
+        case ByteCodeConstants.DUPSTORE:
+            {
+                DupStore localDupStore = (DupStore)instruction;
+                if (match(localDupStore, localDupStore.getObjectref())) {
+                    localDupStore.setObjectref(this.newInstruction);
+                } else {
+                    visit(localDupStore.getObjectref());
+                }
+            }
+            break;
+        case ByteCodeConstants.CONVERT,
+             ByteCodeConstants.IMPLICITCONVERT:
+            {
+                ConvertInstruction ci = (ConvertInstruction)instruction;
+                if (match(ci, ci.getValue())) {
+                    ci.setValue(this.newInstruction);
+                } else {
+                    visit(ci.getValue());
+                }
+            }
+            break;
+        case ByteCodeConstants.IFCMP:
+            {
+                IfCmp ifCmp = (IfCmp)instruction;
+                if (match(ifCmp, ifCmp.getValue1()))
+                {
+                    ifCmp.setValue1(this.newInstruction);
+                }
+                else
+                {
+                    visit(ifCmp.getValue1());
+
+                    if (this.parentFound == null)
+                    {
+                        if (match(ifCmp, ifCmp.getValue2())) {
+                            ifCmp.setValue2(this.newInstruction);
+                        } else {
+                            visit(ifCmp.getValue2());
+                        }
+                    }
+                }
+            }
+            break;
+        case ByteCodeConstants.IF,
+             ByteCodeConstants.IFXNULL:
+            {
+                IfInstruction iff = (IfInstruction)instruction;
+                if (match(iff, iff.getValue())) {
+                    iff.setValue(this.newInstruction);
+                } else {
+                    visit(iff.getValue());
+                }
+            }
+            break;
+        case ByteCodeConstants.COMPLEXIF:
+            {
+                List<Instruction> branchList =
+                    ((ComplexConditionalBranchInstruction)instruction).getInstructions();
+                for (int i=branchList.size()-1; i>=0 && this.parentFound == null; --i)
+                {
+                    visit(branchList.get(i));
+                }
+            }
+            break;
+        case Const.INSTANCEOF:
+            {
+                InstanceOf instanceOf = (InstanceOf)instruction;
+                if (match(instanceOf, instanceOf.getObjectref())) {
+                    instanceOf.setObjectref(this.newInstruction);
+                } else {
+                    visit(instanceOf.getObjectref());
+                }
+            }
+            break;
+        case Const.INVOKEINTERFACE,
+             Const.INVOKESPECIAL,
+             Const.INVOKEVIRTUAL:
+            {
+                InvokeNoStaticInstruction insi =
+                    (InvokeNoStaticInstruction)instruction;
+                if (match(insi, insi.getObjectref())) {
+                    insi.setObjectref(this.newInstruction);
+                } else {
+                    visit(insi.getObjectref());
+                }
+            }
+            // intended fall through
+        case Const.INVOKESTATIC,
+             ByteCodeConstants.INVOKENEW:
+            {
+                List<Instruction> list = ((InvokeInstruction)instruction).getArgs();
+                for (int i=list.size()-1; i>=0 && this.parentFound == null; --i)
+                {
+                    if (match(instruction, list.get(i))) {
+                        list.set(i, this.newInstruction);
+                    } else {
+                        visit(list.get(i));
+                    }
+                }
+            }
+            break;
+        case Const.LOOKUPSWITCH:
+            {
+                LookupSwitch ls = (LookupSwitch)instruction;
+                if (match(ls, ls.getKey())) {
+                    ls.setKey(this.newInstruction);
+                } else {
+                    visit(ls.getKey());
+                }
+            }
+            break;
+        case Const.MONITORENTER:
+            {
+                MonitorEnter monitorEnter = (MonitorEnter)instruction;
+                if (match(monitorEnter, monitorEnter.getObjectref())) {
+                    monitorEnter.setObjectref(this.newInstruction);
+                } else {
+                    visit(monitorEnter.getObjectref());
+                }
+            }
+            break;
+        case Const.MONITOREXIT:
+            {
+                MonitorExit monitorExit = (MonitorExit)instruction;
+                if (match(monitorExit, monitorExit.getObjectref())) {
+                    monitorExit.setObjectref(this.newInstruction);
+                } else {
+                    visit(monitorExit.getObjectref());
+                }
+            }
+            break;
+        case Const.MULTIANEWARRAY:
+            {
+                Instruction[] dimensions = ((MultiANewArray)instruction).getDimensions();
+                for (int i=dimensions.length-1; i>=0 && this.parentFound == null; --i)
+                {
+                    if (match(instruction, dimensions[i])) {
+                        dimensions[i] = this.newInstruction;
+                    } else {
+                        visit(dimensions[i]);
+                    }
+                }
+            }
+            break;
+        case Const.NEWARRAY:
+            {
+                NewArray newArray = (NewArray)instruction;
+                if (match(newArray, newArray.getDimension())) {
+                    newArray.setDimension(this.newInstruction);
+                } else {
+                    visit(newArray.getDimension());
+                }
+            }
+            break;
+        case Const.ANEWARRAY:
+            {
+                ANewArray aNewArray = (ANewArray)instruction;
+                if (match(aNewArray, aNewArray.getDimension())) {
+                    aNewArray.setDimension(this.newInstruction);
+                } else {
+                    visit(aNewArray.getDimension());
+                }
+            }
+            break;
+        case Const.POP:
+            {
+                Pop pop = (Pop)instruction;
+                if (match(pop, pop.getObjectref())) {
+                    pop.setObjectref(this.newInstruction);
+                } else {
+                    visit(pop.getObjectref());
+                }
+            }
+            break;
+        case Const.PUTFIELD:
+            {
+                PutField putField = (PutField)instruction;
+                if (match(putField, putField.getObjectref()))
+                {
+                    putField.setObjectref(this.newInstruction);
+                }
+                else
+                {
+                    visit(putField.getObjectref());
+
+                    if (this.parentFound == null)
+                    {
+                        if (match(putField, putField.getValueref())) {
+                            putField.setValueref(this.newInstruction);
+                        } else {
+                            visit(putField.getValueref());
+                        }
+                    }
+                }
+            }
+            break;
+        case Const.PUTSTATIC:
+            {
+                PutStatic putStatic = (PutStatic)instruction;
+                if (match(putStatic, putStatic.getValueref())) {
+                    putStatic.setValueref(this.newInstruction);
+                } else {
+                    visit(putStatic.getValueref());
+                }
+            }
+            break;
+        case ByteCodeConstants.XRETURN:
+            {
+                ReturnInstruction ri = (ReturnInstruction)instruction;
+                if (match(ri, ri.getValueref())) {
+                    ri.setValueref(this.newInstruction);
+                } else {
+                    visit(ri.getValueref());
+                }
+            }
+            break;
+        case Const.TABLESWITCH:
+            {
+                TableSwitch ts = (TableSwitch)instruction;
+                if (match(ts, ts.getKey())) {
+                    ts.setKey(this.newInstruction);
+                } else {
+                    visit(ts.getKey());
+                }
+            }
+            break;
+        case ByteCodeConstants.TERNARYOPSTORE:
+            {
+                TernaryOpStore tos = (TernaryOpStore)instruction;
+                if (match(tos, tos.getObjectref())) {
+                    tos.setObjectref(this.newInstruction);
+                } else {
+                    visit(tos.getObjectref());
+                }
+            }
+            break;
+        case ByteCodeConstants.TERNARYOP:
+            {
+                TernaryOperator to = (TernaryOperator)instruction;
+                if (match(to, to.getValue1()))
+                {
+                    to.setValue1(this.newInstruction);
+                }
+                else
+                {
+                    visit(to.getValue1());
+
+                    if (this.parentFound == null)
+                    {
+                        if (match(to, to.getValue2())) {
+                            to.setValue2(this.newInstruction);
+                        } else {
+                            visit(to.getValue2());
+                        }
+                    }
+                }
+            }
+            break;
+        case ByteCodeConstants.ASSIGNMENT:
+            {
+                AssignmentInstruction ai = (AssignmentInstruction)instruction;
+                if (match(ai, ai.getValue1()))
+                {
+                    ai.setValue1(this.newInstruction);
+                }
+                else
+                {
+                    visit(ai.getValue1());
+
+                    if (this.parentFound == null)
+                    {
+                        if (match(ai, ai.getValue2())) {
+                            ai.setValue2(this.newInstruction);
+                        } else {
+                            visit(ai.getValue2());
+                        }
+                    }
+                }
+            }
+            break;
+        case ByteCodeConstants.ARRAYLOAD:
+            {
+                ArrayLoadInstruction ali = (ArrayLoadInstruction)instruction;
+                if (match(ali, ali.getArrayref()))
+                {
+                    ali.setArrayref(this.newInstruction);
+                }
+                else
+                {
+                    visit(ali.getArrayref());
+
+                    if (this.parentFound == null)
+                    {
+                        if (match(ali, ali.getIndexref())) {
+                            ali.setIndexref(this.newInstruction);
+                        } else {
+                            visit(ali.getIndexref());
+                        }
+                    }
+                }
+            }
+            break;
+        case ByteCodeConstants.PREINC,
+             ByteCodeConstants.POSTINC:
+            {
+                IncInstruction ii = (IncInstruction)instruction;
+                if (match(ii, ii.getValue())) {
+                    ii.setValue(this.newInstruction);
+                } else {
+                    visit(ii.getValue());
+                }
+            }
+            break;
+        case Const.GETFIELD:
+            {
+                GetField gf = (GetField)instruction;
+                if (match(gf, gf.getObjectref())) {
+                    gf.setObjectref(this.newInstruction);
+                } else {
+                    visit(gf.getObjectref());
+                }
+            }
+            break;
+        case ByteCodeConstants.INITARRAY,
+             ByteCodeConstants.NEWANDINITARRAY:
+            {
+                InitArrayInstruction iai = (InitArrayInstruction)instruction;
+                if (match(iai, iai.getNewArray()))
+                {
+                    iai.setNewArray(this.newInstruction);
+                }
+                else
+                {
+                    visit(iai.getNewArray());
+
+                    if (this.parentFound == null && iai.getValues() != null) {
+                        visit(iai.getValues());
+                    }
+                }
+            }
+            break;
+        case FastConstants.FOR:
+            {
+                FastFor ff = (FastFor)instruction;
+
+                if (ff.getInit() != null)
+                {
+                    if (match(ff, ff.getInit())) {
+                        ff.setInit(this.newInstruction);
+                    } else {
+                        visit(ff.getInit());
+                    }
+                }
+
+                if (this.parentFound == null && ff.getInc() != null)
+                {
+                    if (match(ff, ff.getInc())) {
+                        ff.setInc(this.newInstruction);
+                    } else {
+                        visit(ff.getInc());
+                    }
+                }
+            }
+            // intended fall through
+        case FastConstants.WHILE,
+             FastConstants.DO_WHILE,
+             FastConstants.IF_SIMPLE:
+            {
+                FastTestList ftl = (FastTestList)instruction;
+                if (ftl.getTest() != null)
+                {
+                    if (match(ftl, ftl.getTest())) {
+                        ftl.setTest(this.newInstruction);
+                    } else {
+                        visit(ftl.getTest());
+                    }
+                }
+            }
+            // intended fall through
+        case FastConstants.INFINITE_LOOP:
+            {
+                List<Instruction> instructions =
+                        ((FastList)instruction).getInstructions();
+                if (instructions != null) {
+                    visit(instructions);
+                }
+            }
+            break;
+        case FastConstants.FOREACH:
+            {
+                FastForEach ffe = (FastForEach)instruction;
+                if (match(ffe, ffe.getVariable()))
+                {
+                    ffe.setVariable(this.newInstruction);
+                }
+                else
+                {
+                    visit(ffe.getVariable());
+
+                    if (this.parentFound == null)
+                    {
+                        if (match(ffe, ffe.getValues()))
+                        {
+                            ffe.setValues(this.newInstruction);
+                        }
+                        else
+                        {
+                            visit(ffe.getValues());
+
+                            if (this.parentFound == null) {
+                                visit(ffe.getInstructions());
+                            }
+                        }
+                    }
+                }
+            }
+            break;
+        case FastConstants.IF_ELSE:
+            {
+                FastTest2Lists ft2l = (FastTest2Lists)instruction;
+                if (match(ft2l, ft2l.getTest()))
+                {
+                    ft2l.setTest(this.newInstruction);
+                }
+                else
+                {
+                    visit(ft2l.getTest());
+
+                    if (this.parentFound == null)
+                    {
+                        visit(ft2l.getInstructions());
+
+                        if (this.parentFound == null) {
+                            visit(ft2l.getInstructions2());
+                        }
+                    }
+                }
+            }
+            break;
+        case FastConstants.IF_CONTINUE,
+             FastConstants.IF_BREAK,
+             FastConstants.IF_LABELED_BREAK,
+             FastConstants.GOTO_CONTINUE,
+             FastConstants.GOTO_BREAK,
+             FastConstants.GOTO_LABELED_BREAK:
+            {
+                FastInstruction fi = (FastInstruction)instruction;
+                if (fi.getInstruction() != null)
+                {
+                    if (match(fi, fi.getInstruction())) {
+                        fi.setInstruction(this.newInstruction);
+                    } else {
+                        visit(fi.getInstruction());
+                    }
+                }
+            }
+            break;
+        case FastConstants.SWITCH,
+             FastConstants.SWITCH_ENUM,
+             FastConstants.SWITCH_STRING:
+            {
+                FastSwitch fs = (FastSwitch)instruction;
+                if (match(fs, fs.getTest()))
+                {
+                    fs.setTest(this.newInstruction);
+                }
+                else
+                {
+                    visit(fs.getTest());
+
+                    FastSwitch.Pair[] pairs = fs.getPairs();
+                    for (int i=pairs.length-1; i>=0 && this.parentFound == null; --i) {
+                        visit(pairs[i].getInstructions());
+                    }
+                }
+            }
+            break;
+        case FastConstants.TRY:
+            {
+                FastTry ft = (FastTry)instruction;
+                visit(ft.getInstructions());
+
+                if (this.parentFound == null)
+                {
+                    if (ft.getFinallyInstructions() != null) {
+                        visit(ft.getFinallyInstructions());
+                    }
+
+                    List<FastCatch> catchs = ft.getCatches();
+                    for (int i=catchs.size()-1; i>=0 && this.parentFound == null; --i) {
+                        visit(catchs.get(i).instructions());
+                    }
+                }
+            }
+            break;
+        case FastConstants.SYNCHRONIZED:
+            {
+                FastSynchronized fsd = (FastSynchronized)instruction;
+                if (match(fsd, fsd.getMonitor()))
+                {
+                    fsd.setMonitor(this.newInstruction);
+                }
+                else
+                {
+                    visit(fsd.getMonitor());
+
+                    if (this.parentFound == null) {
+                        visit(fsd.getInstructions());
+                    }
+                }
+            }
+            break;
+        case FastConstants.LABEL:
+            {
+                FastLabel fl = (FastLabel)instruction;
+                if (fl.getInstruction() != null)
+                {
+                    if (match(fl, fl.getInstruction())) {
+                        fl.setInstruction(this.newInstruction);
+                    } else {
+                        visit(fl.getInstruction());
+                    }
+                }
+            }
+            break;
+        case FastConstants.DECLARE:
+            {
+                FastDeclaration fd = (FastDeclaration)instruction;
+                if (fd.getInstruction() != null)
+                {
+                    if (match(fd, fd.getInstruction())) {
+                        fd.setInstruction(this.newInstruction);
+                    } else {
+                        visit(fd.getInstruction());
+                    }
+                }
+            }
+            break;
+        case Const.ACONST_NULL,
+             ByteCodeConstants.LOAD,
+             Const.ALOAD,
+             Const.ILOAD,
+             Const.BIPUSH,
+             ByteCodeConstants.ICONST,
+             ByteCodeConstants.LCONST,
+             ByteCodeConstants.FCONST,
+             ByteCodeConstants.DCONST,
+             ByteCodeConstants.DUPLOAD,
+             Const.GETSTATIC,
+             ByteCodeConstants.OUTERTHIS,
+             Const.GOTO,
+             Const.IINC,
+             Const.JSR,
+             Const.LDC,
+             Const.LDC2_W,
+             Const.NEW,
+             Const.NOP,
+             Const.SIPUSH,
+             Const.RET,
+             Const.RETURN,
+             Const.INVOKEDYNAMIC,
+             ByteCodeConstants.EXCEPTIONLOAD,
+             ByteCodeConstants.RETURNADDRESSLOAD:
+            break;
+        default:
+            System.err.println(
+                    "Can not replace DupLoad in " +
+                    instruction.getClass().getName() +
+                    ", opcode=" + instruction.getOpcode());
+        }
+    }
+
+    private void visit(List<Instruction> instructions)
+    {
+        for (int i=instructions.size()-1; i>=0; --i) {
+            visit(instructions.get(i));
+        }
+    }
+
+    /**
+     * @return le dernier parent sur lequel une substitution a Ã©tÃ© faite
+     */
+    public Instruction getParentFound()
+    {
+        return this.parentFound;
+    }
+
+    private boolean match(Instruction parent, Instruction i)
+    {
+        if (i.getOpcode() != ByteCodeConstants.DUPLOAD) {
+            return false;
+        }
+
+        DupLoad dupload = (DupLoad)i;
+
+        if (dupload.getDupStore() == this.dupStore)
+        {
+            this.parentFound = parent;
+            return true;
+        }
+
+        return false;
+    }
 }
