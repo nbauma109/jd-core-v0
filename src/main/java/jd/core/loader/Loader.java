@@ -2,9 +2,11 @@ package jd.core.loader;
 
 import java.io.DataInputStream;
 
+
+
 public interface Loader 
 {
 	public DataInputStream load(String internalPath) throws LoaderException;
 	
-	boolean canLoad(String internalPath);
+	public boolean canLoad(String internalPath);
 }

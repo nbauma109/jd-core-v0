@@ -2,7 +2,7 @@ package jd.core.util;
 
 public class StringToIndexMap 
 {
-    private static final int INITIAL_CAPACITY = 128;
+    private static final int INITIAL_CAPACITY = 128*2;
     
 	private HashEntry[] entries;
 	
