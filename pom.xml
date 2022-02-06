@@ -11,9 +11,9 @@
 		<maven.compiler.target>8</maven.compiler.target>
 	</properties>
 	<scm>
-		<connection>scm:git:https://github.com/nbauma109/jd-util.git</connection>
-		<developerConnection>scm:git:ssh://git@github.com/nbauma109/jd-util.git</developerConnection>
-		<url>https://github.com/nbauma109/jd-util</url>
+		<connection>scm:git:https://github.com/nbauma109/jd-core-v0.git</connection>
+		<developerConnection>scm:git:ssh://git@github.com/nbauma109/jd-core-v0.git</developerConnection>
+		<url>https://github.com/nbauma109/jd-core-v0</url>
 		<tag>HEAD</tag>
 	</scm>
 	<build>
