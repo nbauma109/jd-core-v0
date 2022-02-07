@@ -11,7 +11,7 @@ Original version of jd-core based on byte code pattern matching
 ## Code sample
 
 ```java
-import org.jd.core.v1.api.loader.Loader;
+import org.jd.core.v1.api.loader.Loader; // uses v1 loader for compatibility
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
