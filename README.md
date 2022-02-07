@@ -4,10 +4,11 @@
 [![Maven Release](https://github.com/nbauma109/jd-core-v0/actions/workflows/maven.yml/badge.svg)](https://github.com/nbauma109/jd-core-v0/actions/workflows/maven.yml)
 [![Github Release](https://github.com/nbauma109/jd-core-v0/actions/workflows/release.yml/badge.svg)](https://github.com/nbauma109/jd-core-v0/actions/workflows/release.yml)
 
-# jd-core-v0
+# JD-Core v0
+
 Original version of jd-core based on byte code pattern matching
 
-# Code sample
+## Code sample
 
 ```java
 import org.jd.core.v1.api.loader.Loader;
