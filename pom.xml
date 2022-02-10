@@ -1,4 +1,6 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.github.nbauma109</groupId>
 	<artifactId>jd-core-v0</artifactId>
@@ -35,10 +37,9 @@
 	</repositories>
 	<dependencies>
 		<dependency>
-			<!-- jd-core-v0 relies a bit on jd-core to support lambdas -->
 			<groupId>com.github.nbauma109</groupId>
-			<artifactId>jd-core</artifactId>
-			<version>1.2.0</version>
+			<artifactId>jd-util</artifactId>
+			<version>1.1.2</version>
 		</dependency>
 	</dependencies>
 </project>
