@@ -14,12 +14,12 @@ import java.io.IOException;
 import static org.apache.bcel.Const.MAJOR_1_1;
 import static org.apache.bcel.Const.MAJOR_1_5;
 
-import jd.core.CoreConstants;
 import jd.core.Decompiler;
+import jd.core.VersionAware;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.preferences.Preferences;
 
-public class PlainTextPrinter implements Printer {
+public class PlainTextPrinter implements Printer, VersionAware {
     protected static final String TAB = "  ";
     protected static final String NEWLINE = System.lineSeparator();
 
@@ -412,7 +412,7 @@ public class PlainTextPrinter implements Printer {
             // Add JD-Core version
             println();
             print(" * JD-Core Version:       ");
-            print(CoreConstants.JD_CORE_VERSION);
+            print(getVersion());
             println();
             print(" */");
         }
