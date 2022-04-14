@@ -381,6 +381,10 @@ public class PlainTextPrinter implements Printer, VersionAware {
         return this.sb.toString();
     }
 
+    public int length() {
+        return sb.length();
+    }
+
     public String buildDecompiledOutput(Loader loader, String internalName, Preferences preferences, Decompiler decompiler) throws IOException {
         setPreferences(preferences);
 
