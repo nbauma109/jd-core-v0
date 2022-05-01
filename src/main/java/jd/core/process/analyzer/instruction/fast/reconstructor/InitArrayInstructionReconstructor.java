@@ -210,16 +210,12 @@ public final class InitArrayInstructionReconstructor
 
     private static int getArrayIndex(Instruction i)
     {
-        switch (i.getOpcode())
+        return switch (i.getOpcode())
         {
-        case ByteCodeConstants.ICONST:
-            return ((IConst)i).getValue();
-        case Const.BIPUSH:
-            return ((BIPush)i).getValue();
-        case Const.SIPUSH:
-            return ((SIPush)i).getValue();
-        default:
-            return -1;
-        }
+        case ByteCodeConstants.ICONST -> ((IConst)i).getValue();
+        case Const.BIPUSH             -> ((BIPush)i).getValue();
+        case Const.SIPUSH             -> ((SIPush)i).getValue();
+        default                       -> -1;
+        };
     }
 }

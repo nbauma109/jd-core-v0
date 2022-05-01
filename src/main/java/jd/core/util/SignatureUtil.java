@@ -155,18 +155,18 @@ public final class SignatureUtil
 
     public static String getSignatureFromType(int type)
     {
-        switch (type)
+        return switch (type)
         {
-        case Const.T_BOOLEAN: return "Z";
-        case Const.T_CHAR:    return "C";
-        case Const.T_FLOAT:   return "F";
-        case Const.T_DOUBLE:  return "D";
-        case Const.T_BYTE:    return "B";
-        case Const.T_SHORT:   return "S";
-        case Const.T_INT:     return "I";
-        case Const.T_LONG:    return "J";
-        default:              return null;
-        }
+        case Const.T_BOOLEAN -> "Z";
+        case Const.T_CHAR    -> "C";
+        case Const.T_FLOAT   -> "F";
+        case Const.T_DOUBLE  -> "D";
+        case Const.T_BYTE    -> "B";
+        case Const.T_SHORT   -> "S";
+        case Const.T_INT     -> "I";
+        case Const.T_LONG    -> "J";
+        default              -> null;
+        };
     }
 
     public static int getTypeFromSignature(String signature)
@@ -175,18 +175,18 @@ public final class SignatureUtil
             return 0;
         }
 
-        switch (signature.charAt(0))
+        return switch (signature.charAt(0))
         {
-        case 'Z': return Const.T_BOOLEAN;
-        case 'C': return Const.T_CHAR;
-        case 'F': return Const.T_FLOAT;
-        case 'D': return Const.T_DOUBLE;
-        case 'B': return Const.T_BYTE;
-        case 'S': return Const.T_SHORT;
-        case 'I': return Const.T_INT;
-        case 'J': return Const.T_LONG;
-        default:  return 0;
-        }
+        case 'Z' -> Const.T_BOOLEAN;
+        case 'C' -> Const.T_CHAR;
+        case 'F' -> Const.T_FLOAT;
+        case 'D' -> Const.T_DOUBLE;
+        case 'B' -> Const.T_BYTE;
+        case 'S' -> Const.T_SHORT;
+        case 'I' -> Const.T_INT;
+        case 'J' -> Const.T_LONG;
+        default  -> 0;
+        };
     }
 
     public static boolean isPrimitiveSignature(String signature)
@@ -347,17 +347,17 @@ public final class SignatureUtil
          * Pour une constante de type 'signature', les types de variable
          * possible est retournée.
          */
-        switch (signature.charAt(0))
+        return switch (signature.charAt(0))
         {
-        case 'I': return ByteCodeConstants.TBF_INT_INT;
-        case 'S': return ByteCodeConstants.TBF_INT_INT | ByteCodeConstants.TBF_INT_SHORT;
-        case 'B': return ByteCodeConstants.TBF_INT_INT | ByteCodeConstants.TBF_INT_SHORT | ByteCodeConstants.TBF_INT_BYTE;
-        case 'C': return ByteCodeConstants.TBF_INT_INT | ByteCodeConstants.TBF_INT_SHORT | ByteCodeConstants.TBF_INT_CHAR;
-        case 'X': return ByteCodeConstants.TBF_INT_INT | ByteCodeConstants.TBF_INT_SHORT | ByteCodeConstants.TBF_INT_BYTE | ByteCodeConstants.TBF_INT_CHAR | ByteCodeConstants.TBF_INT_BOOLEAN;
-        case 'Y': return ByteCodeConstants.TBF_INT_INT | ByteCodeConstants.TBF_INT_SHORT | ByteCodeConstants.TBF_INT_BYTE | ByteCodeConstants.TBF_INT_CHAR;
-        case 'Z': return ByteCodeConstants.TBF_INT_BOOLEAN;
-        default:  return 0;
-        }
+        case 'I' -> ByteCodeConstants.TBF_INT_INT;
+        case 'S' -> ByteCodeConstants.TBF_INT_INT | ByteCodeConstants.TBF_INT_SHORT;
+        case 'B' -> ByteCodeConstants.TBF_INT_INT | ByteCodeConstants.TBF_INT_SHORT | ByteCodeConstants.TBF_INT_BYTE;
+        case 'C' -> ByteCodeConstants.TBF_INT_INT | ByteCodeConstants.TBF_INT_SHORT | ByteCodeConstants.TBF_INT_CHAR;
+        case 'X' -> ByteCodeConstants.TBF_INT_INT | ByteCodeConstants.TBF_INT_SHORT | ByteCodeConstants.TBF_INT_BYTE | ByteCodeConstants.TBF_INT_CHAR | ByteCodeConstants.TBF_INT_BOOLEAN;
+        case 'Y' -> ByteCodeConstants.TBF_INT_INT | ByteCodeConstants.TBF_INT_SHORT | ByteCodeConstants.TBF_INT_BYTE | ByteCodeConstants.TBF_INT_CHAR;
+        case 'Z' -> ByteCodeConstants.TBF_INT_BOOLEAN;
+        default -> 0;
+        };
     }
 
     public static int createArgOrReturnBitFields(String signature)
@@ -366,17 +366,17 @@ public final class SignatureUtil
          * Pour un argument de type 'signature', les types de variable possible
          * est retournée.
          */
-        switch (signature.charAt(0))
+        return switch (signature.charAt(0))
         {
-        case 'I': return ByteCodeConstants.TBF_INT_INT | ByteCodeConstants.TBF_INT_SHORT | ByteCodeConstants.TBF_INT_BYTE | ByteCodeConstants.TBF_INT_CHAR;
-        case 'S': return ByteCodeConstants.TBF_INT_SHORT | ByteCodeConstants.TBF_INT_BYTE;
-        case 'B': return ByteCodeConstants.TBF_INT_BYTE;
-        case 'C': return ByteCodeConstants.TBF_INT_CHAR;
-        case 'X': return ByteCodeConstants.TBF_INT_INT | ByteCodeConstants.TBF_INT_SHORT | ByteCodeConstants.TBF_INT_BYTE | ByteCodeConstants.TBF_INT_CHAR | ByteCodeConstants.TBF_INT_BOOLEAN;
-        case 'Y': return ByteCodeConstants.TBF_INT_INT | ByteCodeConstants.TBF_INT_SHORT | ByteCodeConstants.TBF_INT_BYTE | ByteCodeConstants.TBF_INT_CHAR;
-        case 'Z': return ByteCodeConstants.TBF_INT_BOOLEAN;
-        default:  return 0;
-        }
+        case 'I' -> ByteCodeConstants.TBF_INT_INT | ByteCodeConstants.TBF_INT_SHORT | ByteCodeConstants.TBF_INT_BYTE | ByteCodeConstants.TBF_INT_CHAR;
+        case 'S' -> ByteCodeConstants.TBF_INT_SHORT | ByteCodeConstants.TBF_INT_BYTE;
+        case 'B' -> ByteCodeConstants.TBF_INT_BYTE;
+        case 'C' -> ByteCodeConstants.TBF_INT_CHAR;
+        case 'X' -> ByteCodeConstants.TBF_INT_INT | ByteCodeConstants.TBF_INT_SHORT | ByteCodeConstants.TBF_INT_BYTE | ByteCodeConstants.TBF_INT_CHAR | ByteCodeConstants.TBF_INT_BOOLEAN;
+        case 'Y' -> ByteCodeConstants.TBF_INT_INT | ByteCodeConstants.TBF_INT_SHORT | ByteCodeConstants.TBF_INT_BYTE | ByteCodeConstants.TBF_INT_CHAR;
+        case 'Z' -> ByteCodeConstants.TBF_INT_BOOLEAN;
+        default  -> 0;
+        };
     }
 
     public static String getSignatureFromTypesBitField(int typesBitField)

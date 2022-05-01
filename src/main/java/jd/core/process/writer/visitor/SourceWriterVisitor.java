@@ -934,56 +934,53 @@ public class SourceWriterVisitor
             int value = iconst.getValue();
             String signature = iconst.getSignature();
 
-            if ("S".equals(signature))
+            switch (signature)
             {
-                if ((short)value == Short.MIN_VALUE)
-                {
-                    writeBIPushSIPushIConst(
-                        lineNumber, StringConstants.JAVA_LANG_SHORT, StringConstants.MIN_VALUE, "S");
-                }
-                else if ((short)value == Short.MAX_VALUE)
-                {
-                    writeBIPushSIPushIConst(
-                        lineNumber, StringConstants.JAVA_LANG_SHORT, StringConstants.MAX_VALUE, "S");
-                }
-                else
-                {
+                case "S":
+                    if ((short)value == Short.MIN_VALUE)
+                    {
+                        writeBIPushSIPushIConst(
+                            lineNumber, StringConstants.JAVA_LANG_SHORT, StringConstants.MIN_VALUE, "S");
+                    }
+                    else if ((short)value == Short.MAX_VALUE)
+                    {
+                        writeBIPushSIPushIConst(
+                            lineNumber, StringConstants.JAVA_LANG_SHORT, StringConstants.MAX_VALUE, "S");
+                    }
+                    else
+                    {
+                        this.printer.printNumeric(lineNumber, String.valueOf(value));
+                    }
+                    break;
+                case "B":
+                    if (value == Byte.MIN_VALUE)
+                    {
+                        writeBIPushSIPushIConst(
+                            lineNumber, StringConstants.JAVA_LANG_BYTE, StringConstants.MIN_VALUE, "B");
+                    }
+                    else if (value == Byte.MAX_VALUE)
+                    {
+                        writeBIPushSIPushIConst(
+                            lineNumber, StringConstants.JAVA_LANG_BYTE, StringConstants.MAX_VALUE, "B");
+                    }
+                    else
+                    {
+                        this.printer.printNumeric(lineNumber, String.valueOf(value));
+                    }
+                    break;
+                case "C":
+                    String escapedString =
+                        StringUtil.escapeCharAndAppendApostrophe((char)value);
+                    String scopeInternalName =  this.classFile.getThisClassName();
+                    this.printer.printString(
+                        lineNumber, escapedString, scopeInternalName);
+                    break;
+                case "Z":
+                    this.printer.printKeyword(
+                        lineNumber, value == 0 ? "false" : "true");
+                    break;
+                default:
                     this.printer.printNumeric(lineNumber, String.valueOf(value));
-                }
-            }
-            else if ("B".equals(signature))
-            {
-                if (value == Byte.MIN_VALUE)
-                {
-                    writeBIPushSIPushIConst(
-                        lineNumber, StringConstants.JAVA_LANG_BYTE, StringConstants.MIN_VALUE, "B");
-                }
-                else if (value == Byte.MAX_VALUE)
-                {
-                    writeBIPushSIPushIConst(
-                        lineNumber, StringConstants.JAVA_LANG_BYTE, StringConstants.MAX_VALUE, "B");
-                }
-                else
-                {
-                    this.printer.printNumeric(lineNumber, String.valueOf(value));
-                }
-            }
-            else if ("C".equals(signature))
-            {
-                String escapedString =
-                    StringUtil.escapeCharAndAppendApostrophe((char)value);
-                String scopeInternalName =  this.classFile.getThisClassName();
-                this.printer.printString(
-                    lineNumber, escapedString, scopeInternalName);
-            }
-            else if ("Z".equals(signature))
-            {
-                this.printer.printKeyword(
-                    lineNumber, value == 0 ? "false" : "true");
-            }
-            else
-            {
-                this.printer.printNumeric(lineNumber, String.valueOf(value));
             }
         }
 

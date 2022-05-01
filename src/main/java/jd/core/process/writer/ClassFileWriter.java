@@ -373,6 +373,9 @@ public final class ClassFileWriter
             case LayoutBlockConstants.FRAGMENT_TRY:
                 writeTry();
                 break;
+            case LayoutBlockConstants.FRAGMENT_TRY_WITH_RESOURCES:
+                writeTryWithResources();
+                break;
             case LayoutBlockConstants.FRAGMENT_FINALLY:
                 writeFinally();
                 break;
@@ -2495,6 +2498,17 @@ public final class ClassFileWriter
         this.printer.printKeyword("try");
     }
 
+    private void writeTryWithResources()
+    {
+        if (this.addSpace)
+        {
+            this.printer.print(" ");
+            this.addSpace = false;
+        }
+        
+        this.printer.printKeyword("try (");
+    }
+    
     private void writeFinally()
     {
         if (this.addSpace)

@@ -22,7 +22,6 @@ import org.jd.core.v1.model.classfile.attribute.CodeException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
@@ -2020,21 +2019,12 @@ public final class FastCodeExceptionAnalyzer
     private static boolean formatCatchRemoveFirstCatchInstruction(
             Instruction instruction)
     {
-        switch (instruction.getOpcode())
+        return switch (instruction.getOpcode())
         {
-        case Const.POP:
-            return
-                    ((Pop)instruction).getObjectref().getOpcode() ==
-                    ByteCodeConstants.EXCEPTIONLOAD;
-
-        case Const.ASTORE:
-            return
-                    ((AStore)instruction).getValueref().getOpcode() ==
-                    ByteCodeConstants.EXCEPTIONLOAD;
-
-        default:
-            return false;
-        }
+            case Const.POP    ->   ((Pop) instruction).getObjectref().getOpcode() == ByteCodeConstants.EXCEPTIONLOAD;
+            case Const.ASTORE -> ((AStore) instruction).getValueref().getOpcode() == ByteCodeConstants.EXCEPTIONLOAD;
+            default           -> false;
+        };
     }
 
     private static void format118Finally(
@@ -2946,7 +2936,7 @@ public final class FastCodeExceptionAnalyzer
                     fce.setTryToOffset(g.getOffset());
                 }
 
-                removeOutOfBoundsInstructions(fastTry, astore);
+                fastTry.removeOutOfBoundsInstructions(astore.getLineNumber());
                 // Remove finally instructions before 'return' instruction
                 int finallyInstructionsSize = finallyInstructions.size();
                 formatEclipse677FinallyRemoveFinallyInstructionsBeforeReturn(
@@ -2955,27 +2945,6 @@ public final class FastCodeExceptionAnalyzer
                 // Format 'ifxxx' instruction jumping to finally block
                 formatEclipse677FinallyFormatIfInstruction(
                         tryInstructions, athrowOffset, afterAthrowOffset, astore.getOffset());
-            }
-        }
-    }
-
-    private static void removeOutOfBoundsInstructions(FastTry fastTry, Instruction astore) {
-        Instruction tryInstr;
-        // Remove try instructions that are out of bounds and should be found in finally instructions
-        for (Iterator<Instruction> tryIter = fastTry.getInstructions().iterator(); tryIter.hasNext();) {
-            tryInstr = tryIter.next();
-            if (tryInstr.getLineNumber() >= astore.getLineNumber()) {
-                tryIter.remove();
-            }
-        }
-        Instruction catchInstr;
-        // Remove catch instructions that are out of bounds and should be found in finally instructions
-        for (FastCatch fastCatch : fastTry.getCatches()) {
-            for (Iterator<Instruction> catchIter = fastCatch.instructions().iterator(); catchIter.hasNext();) {
-                catchInstr = catchIter.next();
-                if (catchInstr.getLineNumber() >= astore.getLineNumber()) {
-                    catchIter.remove();
-                }
             }
         }
     }
@@ -3070,7 +3039,7 @@ public final class FastCodeExceptionAnalyzer
                 fce.setTryToOffset(g.getOffset());
             }
 
-            removeOutOfBoundsInstructions(fastTry, astore);
+            fastTry.removeOutOfBoundsInstructions(astore.getLineNumber());
 
             // Remove finally instructions before 'return' instruction
             int finallyInstructionsSize = finallyInstructions.size();

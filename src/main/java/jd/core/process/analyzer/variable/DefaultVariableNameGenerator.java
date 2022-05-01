@@ -108,6 +108,7 @@ public class DefaultVariableNameGenerator implements VariableNameGenerator
         case 'J' : return generateValidName("l", appearsOnce);
         case 'S' : return generateValidName("s", appearsOnce);
         case 'Z' : return generateValidName("bool", appearsOnce);
+        case 'T' : return generateValidName("generic", appearsOnce);
         default:
             // DEBUG
             new Throwable(

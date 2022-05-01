@@ -18,6 +18,8 @@ package jd.core.model.classfile;
 
 import java.util.Objects;
 
+import jd.core.model.instruction.fast.instruction.FastTry;
+
 public class LocalVariable
     implements Comparable<LocalVariable>
 {
@@ -37,6 +39,9 @@ public class LocalVariable
     private boolean finalFlag;
 
     private boolean toBeRemoved;
+
+    private FastTry tryResources;
+    private boolean throwableFromTryResources;
 
     public LocalVariable(
             int startPc, int length, int nameIndex, int signatureIndex,
@@ -212,5 +217,27 @@ public class LocalVariable
 
     public void setFinalFlag(boolean finalFlag) {
         this.finalFlag = finalFlag;
+    }
+
+    public boolean isExceptionOrThrowable(ConstantPool cp) {
+        String signature = cp.getConstantUtf8(signatureIndex);
+        String name = cp.getConstantUtf8(nameIndex);
+        return name != null && (("Ljava/lang/Throwable;".equals(signature) && name.startsWith("localThrowable")) || (signature.endsWith("Exception;") && "e".equals(name)));
+    }
+
+    public FastTry getTryResources() {
+        return tryResources;
+    }
+
+    public void setTryResources(FastTry tryResources) {
+        this.tryResources = tryResources;
+    }
+
+    public boolean isThrowableFromTryResources() {
+        return throwableFromTryResources;
+    }
+
+    public void setThrowableFromTryResources(boolean throwableFromTryResources) {
+        this.throwableFromTryResources = throwableFromTryResources;
     }
 }

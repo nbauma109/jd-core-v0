@@ -44,23 +44,18 @@ public class Ldc extends LdcInstruction
             return null;
         }
 
-        switch (c.getTag())
+        return switch (c.getTag())
         {
-        case Const.CONSTANT_Float:
-            return "F";
-        case Const.CONSTANT_Integer:
-            return "I";
-        case Const.CONSTANT_String:
-            return StringConstants.INTERNAL_STRING_SIGNATURE;
-        case Const.CONSTANT_Class:
-            return StringConstants.INTERNAL_CLASS_SIGNATURE;
+        case Const.CONSTANT_Float   -> "F";
+        case Const.CONSTANT_Integer -> "I";
+        case Const.CONSTANT_String  -> StringConstants.INTERNAL_STRING_SIGNATURE;
+        case Const.CONSTANT_Class   -> StringConstants.INTERNAL_CLASS_SIGNATURE;
             /*{
                 int index = ((ConstantClass)c).nameIndex;
                 return SignatureUtil.CreateTypeName(
                     constants.getConstantUtf8(index));
             }*/
-        default:
-            return null;
-        }
+        default -> null;
+        };
     }
 }

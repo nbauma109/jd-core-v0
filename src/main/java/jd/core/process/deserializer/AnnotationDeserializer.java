@@ -78,33 +78,16 @@ public final class AnnotationDeserializer
     {
         byte type = di.readByte();
 
-        switch (type)
+        return switch (type)
         {
-        case 'B', 'D', 'F', 'I', 'J', 'S', 'Z', 'C', 's':
-            return new ElementValuePrimitiveType(
-                    ElementValueContants.EV_PRIMITIVE_TYPE, type,
-                    di.readUnsignedShort());
-        case 'e':
-            return new ElementValueEnumConstValue(
-                    ElementValueContants.EV_ENUM_CONST_VALUE,
-                    di.readUnsignedShort(),
-                    di.readUnsignedShort());
-        case 'c':
-            return new ElementValueClassInfo(
-                    ElementValueContants.EV_CLASS_INFO,
-                    di.readUnsignedShort());
-        case '@':
-            return new ElementValueAnnotationValue(
-                    ElementValueContants.EV_ANNOTATION_VALUE,
-                    new Annotation(di.readUnsignedShort(),
-                               deserializeElementValuePairs(di)));
-        case '[':
-            return new ElementValueArrayValue(
-                    ElementValueContants.EV_ARRAY_VALUE,
-                    deserializeElementValues(di));
-        default:
-            throw new ClassFormatException("Invalid element value type: " + type);
-        }
+            case 'B', 'D', 'F', 'I', 'J', 'S', 'Z', 'C', 's'
+                     -> new ElementValuePrimitiveType(ElementValueContants.EV_PRIMITIVE_TYPE, type, di.readUnsignedShort());
+            case 'e' -> new ElementValueEnumConstValue(ElementValueContants.EV_ENUM_CONST_VALUE, di.readUnsignedShort(), di.readUnsignedShort());
+            case 'c' -> new ElementValueClassInfo(ElementValueContants.EV_CLASS_INFO, di.readUnsignedShort());
+            case '@' -> new ElementValueAnnotationValue(ElementValueContants.EV_ANNOTATION_VALUE, new Annotation(di.readUnsignedShort(), deserializeElementValuePairs(di)));
+            case '[' -> new ElementValueArrayValue(ElementValueContants.EV_ARRAY_VALUE, deserializeElementValues(di));
+            default  -> throw new ClassFormatException("Invalid element value type: " + type);
+        };
     }
 
     private static ElementValue[] deserializeElementValues(DataInput di)

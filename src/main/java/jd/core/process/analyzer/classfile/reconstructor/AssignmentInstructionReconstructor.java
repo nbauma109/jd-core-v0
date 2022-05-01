@@ -217,58 +217,50 @@ public final class AssignmentInstructionReconstructor
     private static Instruction createInstruction(
         Instruction xstorePutfieldPutstatic)
     {
-        switch (xstorePutfieldPutstatic.getOpcode())
+        return switch (xstorePutfieldPutstatic.getOpcode())
         {
-        case Const.ASTORE:
-            return new ALoad(
+        case Const.ASTORE -> new ALoad(
                 Const.ALOAD,
                 xstorePutfieldPutstatic.getOffset(),
                 xstorePutfieldPutstatic.getLineNumber(),
                 ((AStore)xstorePutfieldPutstatic).getIndex());
-        case Const.ISTORE:
-            return new ILoad(
+        case Const.ISTORE -> new ILoad(
                 Const.ILOAD,
                 xstorePutfieldPutstatic.getOffset(),
                 xstorePutfieldPutstatic.getLineNumber(),
                 ((IStore)xstorePutfieldPutstatic).getIndex());
-        case ByteCodeConstants.STORE:
-            return new LoadInstruction(
+        case ByteCodeConstants.STORE -> new LoadInstruction(
                 ByteCodeConstants.LOAD,
                 xstorePutfieldPutstatic.getOffset(),
                 xstorePutfieldPutstatic.getLineNumber(),
                 ((StoreInstruction)xstorePutfieldPutstatic).getIndex(),
                 xstorePutfieldPutstatic.getReturnedSignature(null, null));
-        case Const.PUTFIELD:
-            return new GetField(
+        case Const.PUTFIELD -> new GetField(
                 Const.GETFIELD,
                 xstorePutfieldPutstatic.getOffset(),
                 xstorePutfieldPutstatic.getLineNumber(),
                 ((PutField)xstorePutfieldPutstatic).getIndex(),
                 ((PutField)xstorePutfieldPutstatic).getObjectref());
-        case Const.PUTSTATIC:
-            return new GetStatic(
+        case Const.PUTSTATIC -> new GetStatic(
                 Const.GETSTATIC,
                 xstorePutfieldPutstatic.getOffset(),
                 xstorePutfieldPutstatic.getLineNumber(),
                 ((PutStatic)xstorePutfieldPutstatic).getIndex());
-        case Const.AASTORE:
-            return new AALoad(
+        case Const.AASTORE -> new AALoad(
                 ByteCodeConstants.ARRAYLOAD,
                 xstorePutfieldPutstatic.getOffset(),
                 xstorePutfieldPutstatic.getLineNumber(),
                 ((AAStore)xstorePutfieldPutstatic).getArrayref(),
                 ((AAStore)xstorePutfieldPutstatic).getIndexref());
-        case ByteCodeConstants.ARRAYSTORE:
-            return new ArrayLoadInstruction(
+        case ByteCodeConstants.ARRAYSTORE -> new ArrayLoadInstruction(
                 ByteCodeConstants.ARRAYLOAD,
                 xstorePutfieldPutstatic.getOffset(),
                 xstorePutfieldPutstatic.getLineNumber(),
                 ((ArrayStoreInstruction)xstorePutfieldPutstatic).getArrayref(),
                 ((ArrayStoreInstruction)xstorePutfieldPutstatic).getIndexref(),
                 ((ArrayStoreInstruction)xstorePutfieldPutstatic).getSignature());
-        default:
-            return null;
-        }
+        default -> null;
+        };
     }
 
     private static Instruction createAssignmentInstruction(

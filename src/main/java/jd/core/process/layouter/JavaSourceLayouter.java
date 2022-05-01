@@ -21,6 +21,8 @@ import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import jd.core.model.classfile.ClassFile;
@@ -718,8 +720,25 @@ public class JavaSourceLayouter
             Preferences preferences, List<LayoutBlock> layoutBlockList,
             ClassFile classFile, Method method, FastTry ft)
     {
-        layoutBlockList.add(new FragmentLayoutBlock(
+
+        List<Instruction> resources = ft.getResources();
+        Collections.sort(resources, Comparator.comparing(Instruction::getOffset));
+        if (resources.isEmpty()) {
+            layoutBlockList.add(new FragmentLayoutBlock(
                 LayoutBlockConstants.FRAGMENT_TRY));
+        } else {
+            layoutBlockList.add(new FragmentLayoutBlock(
+                    LayoutBlockConstants.FRAGMENT_TRY_WITH_RESOURCES));
+            if (resources.size() == 1) {
+                Instruction resource = resources.get(0);
+                createBlockForInstruction(preferences, layoutBlockList, classFile, method, resource);
+            } else {
+                createBlockForInstructions(preferences, layoutBlockList, classFile, method, resources, 0);
+            }
+            layoutBlockList.add(new FragmentLayoutBlock(
+                    LayoutBlockConstants.FRAGMENT_RIGHT_ROUND_BRACKET));
+            
+        }
 
         createBlockForSubList(
                 preferences, layoutBlockList, classFile,
@@ -761,7 +780,7 @@ public class JavaSourceLayouter
             }
         }
 
-        if (ft.getFinallyInstructions() != null)
+        if (ft.getFinallyInstructions() != null && !ft.getFinallyInstructions().isEmpty())
         {
             layoutBlockList.add(new FragmentLayoutBlock(
                     LayoutBlockConstants.FRAGMENT_FINALLY));

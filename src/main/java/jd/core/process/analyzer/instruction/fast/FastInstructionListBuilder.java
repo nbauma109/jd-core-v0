@@ -29,6 +29,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -40,6 +41,7 @@ import jd.core.model.classfile.LocalVariables;
 import jd.core.model.classfile.Method;
 import jd.core.model.classfile.attribute.AttributeSignature;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
+import jd.core.model.instruction.bytecode.instruction.AConstNull;
 import jd.core.model.instruction.bytecode.instruction.ALoad;
 import jd.core.model.instruction.bytecode.instruction.AStore;
 import jd.core.model.instruction.bytecode.instruction.AThrow;
@@ -107,6 +109,8 @@ import jd.core.process.analyzer.instruction.fast.reconstructor.RemoveDupConstant
 import jd.core.process.analyzer.instruction.fast.reconstructor.TernaryOpInReturnReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.TernaryOpReconstructor;
 import jd.core.process.analyzer.util.InstructionUtil;
+import jd.core.process.layouter.visitor.MaxLineNumberVisitor;
+import jd.core.process.layouter.visitor.MinLineNumberVisitor;
 import jd.core.util.IntSet;
 import jd.core.util.SignatureUtil;
 
@@ -141,7 +145,7 @@ public final class FastInstructionListBuilder {
             return;
         }
 
-        // Agregation des déclarations CodeException
+        // Aggregation des déclarations CodeException
         List<FastCodeExcepcion> lfce = FastCodeExceptionAnalyzer.aggregateCodeExceptions(method, list);
 
         // Initialyze delaclation flags
@@ -150,7 +154,7 @@ public final class FastInstructionListBuilder {
             initDelcarationFlags(localVariables);
         }
 
-        // Initialisation de l'ensemle des offsets d'etiquette
+        // Initialisation de l'ensemble des offsets d'etiquette
         IntSet offsetLabelSet = new IntSet();
 
         // Initialisation de 'returnOffset' ...
@@ -928,21 +932,29 @@ public final class FastInstructionListBuilder {
                 // Search exception type and local variables index
                 el = searchExceptionLoadInstruction(instructions);
                 if (el == null) {
-                    throw new UnexpectedInstructionException();
+                    Instruction lastInstr = list.get(list.size() - 1);
+                    if (lastInstr instanceof FastTry) {
+                        FastTry fastTry = (FastTry) lastInstr;
+                        fastTry.removeOutOfBounds();
+                        el = searchExceptionLoadInstruction(fastTry.getInstructions());
+                        fastTry.removeIdentityExceptionAssignments();
+                    }
                 }
-                offset = lastInstruction.getOffset();
-                catches.add(0, new FastCatch(el.getOffset(), fcec.getType(), fcec.getOtherTypes(),
-                    el.getIndex(), instructions));
-                // Calcul de l'offset le plus haut pour le block 'try'
-                firstOffset = instructions.get(0).getOffset();
-                minimalJumpOffset = searchMinusJumpOffset(
-                        instructions, 0, instructions.size(),
-                        firstOffset, offset);
-                if (afterListOffset > firstOffset) {
-                    afterListOffset = firstOffset;
-                }
-                if (minimalJumpOffset != -1 && afterListOffset > minimalJumpOffset) {
-                    afterListOffset = minimalJumpOffset;
+                if (el != null) {
+                    offset = lastInstruction.getOffset();
+                    catches.add(0, new FastCatch(el.getOffset(), fcec.getType(), fcec.getOtherTypes(),
+                        el.getIndex(), instructions));
+                    // Calcul de l'offset le plus haut pour le block 'try'
+                    firstOffset = instructions.get(0).getOffset();
+                    minimalJumpOffset = searchMinusJumpOffset(
+                            instructions, 0, instructions.size(),
+                            firstOffset, offset);
+                    if (afterListOffset > firstOffset) {
+                        afterListOffset = firstOffset;
+                    }
+                    if (minimalJumpOffset != -1 && afterListOffset > minimalJumpOffset) {
+                        afterListOffset = minimalJumpOffset;
+                    }
                 }
             }
         }
@@ -1005,15 +1017,70 @@ public final class FastInstructionListBuilder {
                 catchInstructions = fc.instructions();
                 executeReconstructors(referenceMap, classFile, catchInstructions, localVariables);
             }
+            
+            fastTry.removeOutOfBounds();
         }
 
         if (finallyInstructions != null) {
             executeReconstructors(referenceMap, classFile, finallyInstructions, localVariables);
         }
+        ConstantPool cp = classFile.getConstantPool();
+        boolean removedTryResourcesPattern = fastTry.removeTryResourcesPattern(localVariables, cp);
+        boolean processTryResources = fastTry.processTryResources(localVariables, cp);
 
+        if (index >= 1 && removedTryResourcesPattern && !processTryResources && !fastTry.hasCatch() && !fastTry.hasFinally()) {
+            Instruction beforeTry1 = list.get(index - 1);
+            Instruction beforeTry2 = list.get(index);
+            if (beforeTry1 instanceof AStore && beforeTry2 instanceof AStore) {
+                AStore beforeTryAstore1 = (AStore) beforeTry1;
+                AStore beforeTryAstore2 = (AStore) beforeTry2;
+                LocalVariable lv1 = localVariables.getLocalVariableWithIndexAndOffset(beforeTryAstore1.getIndex(), beforeTryAstore1.getOffset());
+                LocalVariable lv2 = localVariables.getLocalVariableWithIndexAndOffset(beforeTryAstore2.getIndex(), beforeTryAstore2.getOffset());
+                if (lv2.isThrowableFromTryResources() && beforeTryAstore2.getValueref() instanceof AConstNull && lv1.getTryResources() == fastTry) {
+                    list.set(index - 1, null);
+                    list.set(index, null);
+                    fastTry.addResource(beforeTryAstore1, lv1);
+                    if (lv2.isExceptionOrThrowable(cp)) {
+                        lv2.setToBeRemoved(true);
+                        if (index >= 2 && list.get(index - 2) instanceof AStore) {
+                            AStore aStore = (AStore) list.get(index - 2);
+                            LocalVariable lv0 = localVariables.getLocalVariableWithIndexAndOffset(aStore.getIndex(), aStore.getOffset());
+                            if (lv0.isExceptionOrThrowable(cp)) {
+                                lv0.setToBeRemoved(true);
+                                list.set(index - 2, null);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        List<Instruction> instructionsToMove = new ArrayList<>();
+        if (fastTry.hasFinally()) {
+            int finallyMinLineNo = Integer.MAX_VALUE;
+            int finallyMaxLineNo = Integer.MIN_VALUE;
+            for (Instruction finallyInstruction : fastTry.getFinallyInstructions()) {
+                finallyMinLineNo = Math.min(finallyMinLineNo, MinLineNumberVisitor.visit(finallyInstruction));
+                finallyMaxLineNo = Math.max(finallyMaxLineNo, MaxLineNumberVisitor.visit(finallyInstruction));
+            }
+            if (finallyMinLineNo != Integer.MAX_VALUE && finallyMaxLineNo != Integer.MIN_VALUE) {
+                for (Instruction tryInstruction : fastTry.getInstructions()) {
+                    if (tryInstruction.getLineNumber() > finallyMaxLineNo) {
+                        instructionsToMove.add(tryInstruction);
+                    }
+                }
+                fastTry.removeOutOfBoundsInstructions(finallyMinLineNo);
+            }
+        }
+        
         // Store new FastTry instruction
         list.set(index + 1, fastTry);
+        list.removeIf(Objects::isNull);
+        if (!instructionsToMove.isEmpty()) {
+            list.addAll(index + 2, instructionsToMove);
+        }
     }
+
 
     private static ExceptionLoad searchExceptionLoadInstruction(List<Instruction> instructions) {
         int length = instructions.size();
@@ -1229,10 +1296,12 @@ public final class FastInstructionListBuilder {
      * instruction | beforeLoopEntryOffset goto à  saut négatif |
      * loopEntryOffset, endLoopOffset, afterListOffset instruction après boucle
      * | afterLoopOffset
+     * @return 
      */
-    private static void analyzeList(ClassFile classFile, Method method, List<Instruction> list,
+    private static Set<FastDeclaration> analyzeList(ClassFile classFile, Method method, List<Instruction> list,
             LocalVariables localVariables, IntSet offsetLabelSet, int beforeLoopEntryOffset, int loopEntryOffset,
-            int afterBodyLoopOffset, int beforeListOffset, int afterListOffset, int breakOffset, int returnOffset)
+            int afterBodyLoopOffset, int beforeListOffset, int afterListOffset, int breakOffset, int returnOffset,
+            boolean addDeclarations)
     {
         // Create loops
         createLoops(classFile, method, list, localVariables, offsetLabelSet, beforeLoopEntryOffset, loopEntryOffset,
@@ -1267,13 +1336,13 @@ public final class FastInstructionListBuilder {
         // // A executer avant l'ajout des déclarations.
         // StoreReturnAnalyzer.Cleanup(list, localVariables);
 
-        // Add local variable déclarations
-        addDeclarations(list, localVariables, beforeListOffset);
+        // Add local variable declarations
+        Set<FastDeclaration> outerDeclarations = addDeclarations(list, localVariables, beforeListOffset, addDeclarations);
 
         // Remove 'goto' jumping on next instruction
         // A VALIDER A LONG TERME.
         // MODIFICATION AJOUTER SUITE A UNE MAUVAISE RECONSTRUCTION
-        // DES BLOCS tyr-catch GENERES PAR LE JDK 1.1.8.
+        // DES BLOCS try-catch GENERES PAR LE JDK 1.1.8.
         // SI CELA PERTURBE LA RECONSTRUCTION DES INSTRUCTIONS if,
         // 1) MODIFIER LES SAUTS DES INSTRUCTIONS goto DANS FormatCatch
         // 2) DEPLACER CETTE METHODE APRES L'APPEL A
@@ -1293,6 +1362,16 @@ public final class FastInstructionListBuilder {
 
         // Add cast instruction on return
         addCastInstructionOnReturn(classFile, method, list);
+        
+        return outerDeclarations;
+    }
+
+    private static void analyzeList(ClassFile classFile, Method method, List<Instruction> list,
+            LocalVariables localVariables, IntSet offsetLabelSet, int beforeLoopEntryOffset, int loopEntryOffset,
+            int afterBodyLoopOffset, int beforeListOffset, int afterListOffset, int breakOffset, int returnOffset)
+    {
+        analyzeList(classFile, method, list, localVariables, offsetLabelSet, beforeLoopEntryOffset, loopEntryOffset,
+                afterBodyLoopOffset, beforeListOffset, afterListOffset, breakOffset, returnOffset, true);
     }
 
     private static void analyzeTryAndSynchronized(ClassFile classFile, Method method, List<Instruction> list,
@@ -1316,10 +1395,23 @@ public final class FastInstructionListBuilder {
 
                 // Catch blocks
                 int length = ft.getCatches().size();
+                Set<String> declaredNames = new HashSet<>();
                 for (int i = 0; i < length; i++) {
-                    analyzeList(classFile, method, ft.getCatches().get(i).instructions(), localVariables, offsetLabelSet,
+                    Set<FastDeclaration> outerDeclarations = analyzeList(classFile, method, ft.getCatches().get(i).instructions(), localVariables, offsetLabelSet,
                             beforeLoopEntryOffset, loopEntryOffset, afterBodyLoopOffset, tmpBeforeListOffset,
-                            afterListOffset, breakOffset, returnOffset);
+                            afterListOffset, breakOffset, returnOffset, false);
+                    for (FastDeclaration outerDeclaration : outerDeclarations) {
+                        String varName = classFile.getConstantPool().getConstantUtf8(outerDeclaration.getLv().getNameIndex());
+                        if (!declaredNames.contains(varName)) {
+                            int indexForNewDeclaration = InstructionUtil.getIndexForOffset(list, outerDeclaration.getLv().getStartPc());
+                            if (indexForNewDeclaration == -1) {
+                                // 'startPc' offset not found
+                                indexForNewDeclaration = 0;
+                            }
+                            list.add(indexForNewDeclaration, outerDeclaration);
+                            declaredNames.add(varName);
+                        }
+                    }
                 }
 
                 // Finally block
@@ -1383,7 +1475,10 @@ public final class FastInstructionListBuilder {
      * non encore déclarées et dont la portée est incluse à  la liste courante,
      * on declare les variables en début de bloc.
      */
-    private static void addDeclarations(List<Instruction> list, LocalVariables localVariables, int beforeListOffset) {
+    private static Set<FastDeclaration> addDeclarations(List<Instruction> list, LocalVariables localVariables, int beforeListOffset, boolean addDeclarations) {
+
+        Set<FastDeclaration> outerDeclarations = new HashSet<>();
+        
         int length = list.size();
 
         if (length > 0) {
@@ -1473,12 +1568,18 @@ public final class FastInstructionListBuilder {
                         // 'startPc' offset not found
                         indexForNewDeclaration = 0;
                     }
-                    list.add(indexForNewDeclaration, new FastDeclaration(FastConstants.DECLARE, lv.getStartPc(),
-                            Instruction.UNKNOWN_LINE_NUMBER, lv, null));
+                    FastDeclaration fastDeclaration = new FastDeclaration(FastConstants.DECLARE, lv.getStartPc(),
+                            Instruction.UNKNOWN_LINE_NUMBER, lv, null);
+                    if (addDeclarations) {
+                        list.add(indexForNewDeclaration, fastDeclaration);
+                    } else {
+                        outerDeclarations.add(fastDeclaration);
+                    }
                     lv.setDeclarationFlag(DECLARED);
                 }
             }
         }
+        return outerDeclarations;
     }
 
     private static ReturnInstruction findReturnInstructionForStore(List<Instruction> list, int length, int i, StoreInstruction si) {
@@ -1704,46 +1805,35 @@ public final class FastInstructionListBuilder {
     private static LoadInstruction duplicateLoadInstruction(
         int opcode, int offset, int lineNumber)
     {
-        switch (opcode)
+        return switch (opcode)
         {
-        case Const.ILOAD:
-            return new ILoad(Const.ILOAD, offset, lineNumber, 0);
-        case Const.LLOAD:
-            return new LoadInstruction(ByteCodeConstants.LOAD, offset, lineNumber, 0, "J");
-        case Const.FLOAD:
-            return new LoadInstruction(ByteCodeConstants.LOAD, offset, lineNumber, 0, "F");
-        case Const.DLOAD:
-            return new LoadInstruction(ByteCodeConstants.LOAD, offset, lineNumber, 0, "D");
-        case Const.ALOAD:
-            return new ALoad(Const.ALOAD, offset, lineNumber, 0);
+        case Const.ILOAD   -> new ILoad(Const.ILOAD, offset, lineNumber, 0);
+        case Const.LLOAD   -> new LoadInstruction(ByteCodeConstants.LOAD, offset, lineNumber, 0, "J");
+        case Const.FLOAD   -> new LoadInstruction(ByteCodeConstants.LOAD, offset, lineNumber, 0, "F");
+        case Const.DLOAD   -> new LoadInstruction(ByteCodeConstants.LOAD, offset, lineNumber, 0, "D");
+        case Const.ALOAD   -> new ALoad(Const.ALOAD, offset, lineNumber, 0);
         case Const.ILOAD_0,
              Const.ILOAD_1,
              Const.ILOAD_2,
-             Const.ILOAD_3:
-            return new ILoad(Const.ILOAD, offset, lineNumber, opcode-Const.ILOAD_0);
+             Const.ILOAD_3 -> new ILoad(Const.ILOAD, offset, lineNumber, opcode-Const.ILOAD_0);
         case Const.LLOAD_0,
              Const.LLOAD_1,
              Const.LLOAD_2,
-             Const.LLOAD_3:
-            return new LoadInstruction(ByteCodeConstants.LOAD, offset, lineNumber, opcode-Const.LLOAD_0, "J");
+             Const.LLOAD_3 -> new LoadInstruction(ByteCodeConstants.LOAD, offset, lineNumber, opcode-Const.LLOAD_0, "J");
         case Const.FLOAD_0,
              Const.FLOAD_1,
              Const.FLOAD_2,
-             Const.FLOAD_3:
-            return new LoadInstruction(ByteCodeConstants.LOAD, offset, lineNumber, opcode-Const.FLOAD_0, "F");
+             Const.FLOAD_3 -> new LoadInstruction(ByteCodeConstants.LOAD, offset, lineNumber, opcode-Const.FLOAD_0, "F");
         case Const.DLOAD_0,
              Const.DLOAD_1,
              Const.DLOAD_2,
-             Const.DLOAD_3:
-            return new LoadInstruction(ByteCodeConstants.LOAD, offset, lineNumber, opcode-Const.DLOAD_0, "D");
+             Const.DLOAD_3 -> new LoadInstruction(ByteCodeConstants.LOAD, offset, lineNumber, opcode-Const.DLOAD_0, "D");
         case Const.ALOAD_0,
              Const.ALOAD_1,
              Const.ALOAD_2,
-             Const.ALOAD_3:
-            return new ALoad(Const.ALOAD, offset, lineNumber, opcode-Const.ALOAD_0);
-        default:
-            return null;
-        }
+             Const.ALOAD_3 -> new ALoad(Const.ALOAD, offset, lineNumber, opcode-Const.ALOAD_0);
+        default            -> null;
+        };
     }
 
     private static ReturnInstruction duplicateReturnInstruction(
