@@ -25,11 +25,13 @@ import org.jd.core.v1.util.StringConstants;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -1057,22 +1059,22 @@ public final class FastInstructionListBuilder {
 
         List<Instruction> instructionsToMove = new ArrayList<>();
         if (fastTry.hasFinally()) {
-            int finallyMinLineNo = Integer.MAX_VALUE;
-            int finallyMaxLineNo = Integer.MIN_VALUE;
-            for (Instruction finallyInstruction : fastTry.getFinallyInstructions()) {
-                finallyMinLineNo = Math.min(finallyMinLineNo, MinLineNumberVisitor.visit(finallyInstruction));
-                finallyMaxLineNo = Math.max(finallyMaxLineNo, MaxLineNumberVisitor.visit(finallyInstruction));
-            }
-            if (finallyMinLineNo != Integer.MAX_VALUE && finallyMaxLineNo != Integer.MIN_VALUE) {
+            Optional<Instruction> finallyMinLineNoInstr = finallyInstructions.stream().min(Comparator.comparing(MinLineNumberVisitor::visit));
+            Optional<Instruction> finallyMaxLineNoInstr = finallyInstructions.stream().max(Comparator.comparing(MaxLineNumberVisitor::visit));
+            if (finallyMinLineNoInstr.isPresent() && finallyMaxLineNoInstr.isPresent()) {
                 for (Instruction tryInstruction : fastTry.getInstructions()) {
-                    if (tryInstruction.getLineNumber() > finallyMaxLineNo) {
+                    if (tryInstruction.getLineNumber() > finallyMaxLineNoInstr.get().getLineNumber()) {
                         instructionsToMove.add(tryInstruction);
                     }
                 }
-                fastTry.removeOutOfBoundsInstructions(finallyMinLineNo);
+                fastTry.removeOutOfBoundsInstructions(finallyMinLineNoInstr.get().getLineNumber());
             }
         }
-        
+
+        // Remove try instructions that are out of bounds and should be found in catch instructions
+        if (fastTry.hasCatch() && fastTry.getInstructions().size() > 1) {
+            fastTry.getInstructions().removeIf(tryInstr -> tryInstr.getLineNumber() >= fastTry.minCatchLineNumber());
+        }
         // Store new FastTry instruction
         list.set(index + 1, fastTry);
         list.removeIf(Objects::isNull);
@@ -2766,15 +2768,16 @@ public final class FastInstructionListBuilder {
         // Is a for-each pattern ?
         if (isAForEachIteratorPattern(classFile, method, beforeWhileLoop, test, subList)) {
             Instruction variable = createForEachVariableInstruction(subList.remove(0));
-
             InvokeNoStaticInstruction insi = (InvokeNoStaticInstruction) ((AStore) beforeWhileLoop).getValueref();
             Instruction values = insi.getObjectref();
 
             // Remove iterator local variable
             removeLocalVariable(method, (StoreInstruction) beforeWhileLoop);
 
+            variable.setLineNumber(values.getLineNumber());
+
             list.set(beforeWhileLoopIndex, new FastForEach(FastConstants.FOREACH, forLoopOffset,
-                    beforeWhileLoop.getLineNumber(), branch, variable, values, subList));
+                    values.getLineNumber(), branch, variable, values, subList));
         } else {
             list.set(beforeWhileLoopIndex, new FastFor(FastConstants.FOR, forLoopOffset, beforeWhileLoop.getLineNumber(),
                     branch, beforeWhileLoop, test, null, subList));

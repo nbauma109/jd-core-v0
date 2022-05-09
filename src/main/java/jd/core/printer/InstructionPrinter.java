@@ -22,7 +22,6 @@ import java.util.List;
 public class InstructionPrinter implements Printer
 {
     private final Printer printer;
-    private int previousLineNumber;
     private boolean newInstruction;
     private boolean multiLineInstruction;
     private boolean active;
@@ -53,7 +52,7 @@ public class InstructionPrinter implements Printer
 
     public void init(int previousLineNumber)
     {
-        this.previousLineNumber = previousLineNumber;
+        setPreviousLineNumber(previousLineNumber);
         this.newInstruction = false;
         this.multiLineInstruction = false;
         this.active = false;
@@ -81,7 +80,7 @@ public class InstructionPrinter implements Printer
         {
             if (this.newInstruction)
             {
-                if (this.previousLineNumber == UNKNOWN_LINE_NUMBER)
+                if (this.getPreviousLineNumber() == UNKNOWN_LINE_NUMBER)
                 {
                     this.printer.endOfLine();
                     this.printer.startOfLine(lineNumber);
@@ -91,12 +90,12 @@ public class InstructionPrinter implements Printer
                     this.printer.print(' ');
                 }
             }
-        } else if (this.previousLineNumber == UNKNOWN_LINE_NUMBER)
+        } else if (this.getPreviousLineNumber() == UNKNOWN_LINE_NUMBER)
         {
-            this.previousLineNumber = lineNumber;
-        } else if (this.previousLineNumber < lineNumber)
+            setPreviousLineNumber(lineNumber);
+        } else if (this.getPreviousLineNumber() < lineNumber)
         {
-            int lineCount = lineNumber - this.previousLineNumber;
+            int lineCount = lineNumber - this.getPreviousLineNumber();
 
             this.printer.endOfLine();
 
@@ -120,7 +119,7 @@ public class InstructionPrinter implements Printer
 
             this.printer.startOfLine(lineNumber);
 
-            this.previousLineNumber = lineNumber;
+            setPreviousLineNumber(lineNumber);
         }
 
         this.newInstruction = false;
@@ -410,4 +409,19 @@ public class InstructionPrinter implements Printer
     @Override
     public void debugStartOfCaseBlockLayoutBlock()
         { this.printer.debugStartOfCaseBlockLayoutBlock(); }
+
+    @Override
+    public String toString() {
+        return printer.toString();
+    }
+
+    @Override
+    public int getPreviousLineNumber() {
+        return printer.getPreviousLineNumber();
+    }
+
+    @Override
+    public void setPreviousLineNumber(int lineNumber) {
+        printer.setPreviousLineNumber(lineNumber);
+    }
 }

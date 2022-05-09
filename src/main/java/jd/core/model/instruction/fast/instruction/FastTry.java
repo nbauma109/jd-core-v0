@@ -21,8 +21,10 @@ import org.apache.bcel.classfile.ConstantNameAndType;
 import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariable;
@@ -36,6 +38,7 @@ import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.model.instruction.fast.FastConstants;
+import jd.core.process.layouter.visitor.MinLineNumberVisitor;
 
 /**
  * try-catch-finally
@@ -64,14 +67,19 @@ public class FastTry extends FastList {
         public boolean removeOutOfBounds(int firstLineNumber) {
             return instructions.removeIf(instr -> instr.getLineNumber() < firstLineNumber);
         }
+
+        public int minLineNumber() {
+            Optional<Instruction> minLineNoInstr = instructions.stream().min(Comparator.comparing(MinLineNumberVisitor::visit));
+            return minLineNoInstr.isPresent() ? minLineNoInstr.get().getLineNumber() : Integer.MAX_VALUE;
+        }
     }
 
     public void removeOutOfBounds() {
         if (getInstructions().isEmpty()) {
             return;
         }
-        int firstLineNumber = getInstructions().get(0).getLineNumber();
-        for (Iterator<Instruction> iterator = getInstructions().iterator(); iterator.hasNext();) {
+        int firstLineNumber = instructions.get(0).getLineNumber();
+        for (Iterator<Instruction> iterator = instructions.iterator(); iterator.hasNext();) {
             Instruction instruction = iterator.next();
             if (instruction instanceof FastTry) {
                 FastTry fastTry = (FastTry) instruction;
@@ -268,11 +276,17 @@ public class FastTry extends FastList {
         if (maxLineNumber <= 0) {
             return;
         }
-        // Remove try instructions that are out of bounds and should be found in finally instructions
-        getInstructions().removeIf(tryInstr -> tryInstr.getLineNumber() >= maxLineNumber);
 
+        // Remove try instructions that are out of bounds and should be found in finally instructions
+        instructions.removeIf(tryInstr -> tryInstr.getLineNumber() >= maxLineNumber);
+        for (Instruction instruction : instructions) {
+            if (instruction instanceof FastTry) {
+                FastTry nestedTry = (FastTry) instruction;
+                nestedTry.removeOutOfBoundsInstructions(maxLineNumber);
+            }
+        }
         // Remove catch instructions that are out of bounds and should be found in finally instructions
-        for (FastCatch fastCatch : this.getCatches()) {
+        for (FastCatch fastCatch : catches) {
             fastCatch.instructions().removeIf(catchInstr -> catchInstr.getLineNumber() >= maxLineNumber);
         }
     }
@@ -289,4 +303,13 @@ public class FastTry extends FastList {
         return catches != null && !catches.isEmpty();
     }
 
+    public int minCatchLineNumber() {
+        int minCatchLineNumber = Integer.MAX_VALUE;
+        if (hasCatch()) {
+            for (FastCatch fastCatch : catches) {
+                minCatchLineNumber = Math.min(minCatchLineNumber, fastCatch.minLineNumber());
+            }
+        }
+        return minCatchLineNumber;
+    }
 }

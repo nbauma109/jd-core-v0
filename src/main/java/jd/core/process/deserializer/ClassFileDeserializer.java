@@ -58,7 +58,6 @@ public final class ClassFileDeserializer
     }
 
     public static ClassFile deserialize(Loader loader, String internalClassPath)
-        throws IOException
     {
         ClassFile classFile = loadSingleClass(loader, internalClassPath);
         if (classFile == null) {
@@ -103,25 +102,18 @@ public final class ClassFileDeserializer
                 }
             }
 
-            try
-            {
-                ClassFile innerClassFile =
-                    deserialize(loader, innerInternalClassPath +
-                    StringConstants.CLASS_FILE_SUFFIX);
+            ClassFile innerClassFile =
+                deserialize(loader, innerInternalClassPath +
+                StringConstants.CLASS_FILE_SUFFIX);
 
-                if (innerClassFile != null)
-                {
-                    // Alter inner class access flag
-                    innerClassFile.setAccessFlags(cs[i].getInnerAccessFlags());
-                    // Setup outer class reference
-                    innerClassFile.setOuterClass(classFile);
-                    // Add inner classes
-                    innerClassFiles.add(innerClassFile);
-                }
-            }
-            catch (IOException e)
+            if (innerClassFile != null)
             {
-                assert ExceptionUtil.printStackTrace(e);
+                // Alter inner class access flag
+                innerClassFile.setAccessFlags(cs[i].getInnerAccessFlags());
+                // Setup outer class reference
+                innerClassFile.setOuterClass(classFile);
+                // Add inner classes
+                innerClassFiles.add(innerClassFile);
             }
         }
 
@@ -133,7 +125,6 @@ public final class ClassFileDeserializer
 
     private static ClassFile loadSingleClass(
             Loader loader, String internalClassPath)
-        throws IOException
     {
         ClassFile classFile = null;
         try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(loader.load(internalClassPath))))
@@ -308,7 +299,8 @@ public final class ClassFileDeserializer
                         di.readUnsignedShort(),
                         di.readUnsignedShort(),
                         di.readUnsignedShort(),
-                        AttributeDeserializer.deserialize(di, constants));
+                        AttributeDeserializer.deserialize(di, constants),
+                        constants);
         }
 
         return methodInfos;

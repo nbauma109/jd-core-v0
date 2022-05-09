@@ -19,7 +19,7 @@ import jd.core.VersionAware;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.preferences.Preferences;
 
-public class PlainTextPrinter implements Printer, VersionAware {
+public abstract class PlainTextPrinter implements Printer, VersionAware {
     protected static final String TAB = "  ";
     protected static final String NEWLINE = System.lineSeparator();
 
@@ -35,6 +35,7 @@ public class PlainTextPrinter implements Printer, VersionAware {
     private String unknownLineNumberPrefix;
     private int indentationCount;
     private boolean display;
+    private int previousLineNumber;
 
     public void setPreferences(Preferences preferences) { this.preferences = preferences; }
 
@@ -214,6 +215,8 @@ public class PlainTextPrinter implements Printer, VersionAware {
         for (int i=0; i<indentationCount; i++) {
             this.sb.append(TAB);
         }
+
+        setPreviousLineNumber(lineNumber);
     }
 
     @Override
@@ -421,5 +424,19 @@ public class PlainTextPrinter implements Printer, VersionAware {
             print(" */");
         }
         return toString();
+    }
+
+    @Override
+    public int getPreviousLineNumber() {
+        return previousLineNumber;
+    }
+
+    @Override
+    public void setPreviousLineNumber(int lineNumber) {
+        if (lineNumber == UNKNOWN_LINE_NUMBER) {
+            previousLineNumber++;
+        } else {
+            previousLineNumber = lineNumber;
+        }
     }
 }

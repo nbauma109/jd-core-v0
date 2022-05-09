@@ -115,4 +115,7 @@ public interface Printer
     void debugMarker(String marker);
     void debugStartOfCaseBlockLayoutBlock();
     void debugEndOfCaseBlockLayoutBlock();
+
+    int getPreviousLineNumber();
+    void setPreviousLineNumber(int lineNumber);
 }

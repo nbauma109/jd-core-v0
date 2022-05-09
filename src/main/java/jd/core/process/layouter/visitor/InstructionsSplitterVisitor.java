@@ -16,6 +16,8 @@
  ******************************************************************************/
 package jd.core.process.layouter.visitor;
 
+import org.apache.bcel.Const;
+
 import java.util.List;
 
 import jd.core.model.classfile.ClassFile;
@@ -111,18 +113,22 @@ public class InstructionsSplitterVisitor extends BaseInstructionSplitterVisitor
 
             if (initialFirstLineNumber != Instruction.UNKNOWN_LINE_NUMBER)
             {
+                int minLineNumber = instruction.getLineNumber();
+                if (instruction.getOpcode() != Const.PUTFIELD) {
+                    minLineNumber = MinLineNumberVisitor.visit(instruction);
+                }
                 // Si la méthode possède des numéros de lignes
                 if (initialFirstLineNumber < instruction.getLineNumber())
                 {
                     // Cas d'un statement qui suit un statement dont la derniere
                     //   instruction est 'AnonymousNewInvoke' ==> on fait
-                    //   commencer le bloc a la ligne precedent.
-                    this.firstLineNumber = instruction.getLineNumber() - 1;
+                    //   commencer le bloc à la ligne précédente.
+                    this.firstLineNumber = minLineNumber - 1;
                 }
                 else
                 {
                     // Cas du 1er statement
-                    this.firstLineNumber = instruction.getLineNumber();
+                    this.firstLineNumber = minLineNumber;
                 }
             }
         }
@@ -141,16 +147,16 @@ public class InstructionsSplitterVisitor extends BaseInstructionSplitterVisitor
         {
             this.maxLineNumber = instruction.getLineNumber();
         }
-        else if (instruction.getLineNumber() < this.maxLineNumber)
-        {
-            // Modification du numéro de ligne fournit dans le fichier CLASS !
-            instruction.setLineNumber(this.maxLineNumber);
-        }
-
-        if (this.firstLineNumber == Instruction.UNKNOWN_LINE_NUMBER)
+        else if (this.firstLineNumber == Instruction.UNKNOWN_LINE_NUMBER)
         {
             // Bloc exécuté si une instruction 'AnonymousNewInvoke' vient
             // d'être traitée.
+
+            if (instruction.getLineNumber() < this.maxLineNumber) {
+                // Modification du numéro de ligne fourni dans le fichier CLASS !
+                instruction.setLineNumber(this.maxLineNumber);
+            }
+
             this.firstLineNumber = instruction.getLineNumber();
         }
 

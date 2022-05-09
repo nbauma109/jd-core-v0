@@ -49,7 +49,7 @@ public class PrinterImpl extends PlainTextPrinter {
     @Override
     public void extraLine(int count) {
         super.extraLine(count);
-        if (realignmentLineNumber) {
+        if (realignmentLineNumber && count > 0) {
             textAreaLineNumber += count;
         }
     }

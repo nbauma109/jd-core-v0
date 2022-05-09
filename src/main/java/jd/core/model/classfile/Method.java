@@ -47,6 +47,7 @@ public class Method extends FieldOrMethod
     private List<Instruction> instructions;
     private List<Instruction> fastNodes;
     private LocalVariables localVariables;
+    private final ConstantPool constants;
     /**
      * Champs permettant l'affichage des parametres des instanciations des
      * classes anonymes.
@@ -54,7 +55,7 @@ public class Method extends FieldOrMethod
     private int superConstructorParameterCount;
 
     public Method(int accessFlags, int nameIndex, int descriptorIndex,
-                  Attribute[] attributes)
+                  Attribute[] attributes, ConstantPool constants)
     {
         super(accessFlags, nameIndex, descriptorIndex, attributes);
 
@@ -68,6 +69,7 @@ public class Method extends FieldOrMethod
         this.invisibleParameterAnnotations = null;
         this.defaultAnnotationValue = null;
         this.superConstructorParameterCount = 0;
+        this.constants = constants;
 
         if (attributes != null)
         {
@@ -207,5 +209,12 @@ public class Method extends FieldOrMethod
     public void setSuperConstructorParameterCount(int count)
     {
         this.superConstructorParameterCount = count;
+    }
+
+    @Override
+    public String toString() {
+        String methodName = constants.getConstantUtf8(getNameIndex());
+        String methodDesc = constants.getConstantUtf8(getDescriptorIndex());
+        return methodName + methodDesc;
     }
 }
