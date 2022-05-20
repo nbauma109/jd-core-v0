@@ -39,6 +39,7 @@ import jd.core.model.instruction.bytecode.instruction.InstanceOf;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeInstruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNew;
+import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
 import jd.core.model.instruction.bytecode.instruction.LookupSwitch;
 import jd.core.model.instruction.bytecode.instruction.MonitorEnter;
 import jd.core.model.instruction.bytecode.instruction.MonitorExit;
@@ -89,7 +90,8 @@ public final class MaxLineNumberVisitor
             break;
         case ByteCodeConstants.BINARYOP,
              ByteCodeConstants.ASSIGNMENT:
-            maxLineNumber = visit(((BinaryOperatorInstruction)instruction).getValue2());
+                BinaryOperatorInstruction boi = (BinaryOperatorInstruction)instruction;
+                maxLineNumber = Math.max(visit(boi.getValue1()), visit(boi.getValue2()));
             break;
         case Const.CHECKCAST:
             maxLineNumber = visit(((CheckCast)instruction).getObjectref());
@@ -141,7 +143,11 @@ public final class MaxLineNumberVisitor
 
                 if (length == 0)
                 {
-                    maxLineNumber = instruction.getLineNumber();
+                    if (instruction instanceof InvokeNoStaticInstruction) {
+                        maxLineNumber = visit(((InvokeNoStaticInstruction) instruction).getObjectref());
+                    } else {
+                        maxLineNumber = instruction.getLineNumber();
+                    }
                 }
                 else
                 {
