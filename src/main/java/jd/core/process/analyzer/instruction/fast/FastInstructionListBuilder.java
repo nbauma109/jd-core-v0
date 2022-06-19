@@ -25,13 +25,11 @@ import org.jd.core.v1.util.StringConstants;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -111,8 +109,8 @@ import jd.core.process.analyzer.instruction.fast.reconstructor.RemoveDupConstant
 import jd.core.process.analyzer.instruction.fast.reconstructor.TernaryOpInReturnReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.TernaryOpReconstructor;
 import jd.core.process.analyzer.util.InstructionUtil;
-import jd.core.process.layouter.visitor.MaxLineNumberVisitor;
-import jd.core.process.layouter.visitor.MinLineNumberVisitor;
+import jd.core.process.layouter.visitor.MinMaxLineNumberVisitor;
+import jd.core.process.layouter.visitor.MinMaxLineNumberVisitor.MinMaxLineNumber;
 import jd.core.util.IntSet;
 import jd.core.util.SignatureUtil;
 
@@ -1059,15 +1057,14 @@ public final class FastInstructionListBuilder {
 
         List<Instruction> instructionsToMove = new ArrayList<>();
         if (fastTry.hasFinally()) {
-            Optional<Instruction> finallyMinLineNoInstr = finallyInstructions.stream().min(Comparator.comparing(MinLineNumberVisitor::visit));
-            Optional<Instruction> finallyMaxLineNoInstr = finallyInstructions.stream().max(Comparator.comparing(MaxLineNumberVisitor::visit));
-            if (finallyMinLineNoInstr.isPresent() && finallyMaxLineNoInstr.isPresent()) {
+            MinMaxLineNumber minMaxLineNumber = MinMaxLineNumberVisitor.visit(finallyInstructions);
+            if (minMaxLineNumber.isValid()) {
                 for (Instruction tryInstruction : fastTry.getInstructions()) {
-                    if (tryInstruction.getLineNumber() > finallyMaxLineNoInstr.get().getLineNumber()) {
+                    if (tryInstruction.getLineNumber() > minMaxLineNumber.maxLineNumber()) {
                         instructionsToMove.add(tryInstruction);
                     }
                 }
-                fastTry.removeOutOfBoundsInstructions(finallyMinLineNoInstr.get().getLineNumber());
+                fastTry.removeOutOfBoundsInstructions(minMaxLineNumber.minLineNumber());
             }
         }
 
@@ -2862,8 +2859,26 @@ public final class FastInstructionListBuilder {
         }
             break;
         default: {
-            list.set(beforeWhileLoopIndex, new FastFor(FastConstants.FOR, forLoopOffset, beforeWhileLoop.getLineNumber(),
-                    branch, beforeWhileLoop, test, lastBodyWhileLoop, subList));
+            MinMaxLineNumber minMaxLineNumber = MinMaxLineNumberVisitor.visit(subList);
+            if (!subList.isEmpty() && lastBodyWhileLoop.getLineNumber() > minMaxLineNumber.maxLineNumber()) {
+                if (lastBodyWhileLoop.getOpcode() != Const.GOTO) {
+                    subList.add(lastBodyWhileLoop);
+                }
+                Instruction variable = createForEachVariableInstruction(subList.remove(0));
+                InvokeNoStaticInstruction insi = (InvokeNoStaticInstruction) ((AStore) beforeWhileLoop).getValueref();
+                Instruction values = insi.getObjectref();
+
+                // Remove iterator local variable
+                removeLocalVariable(method, (StoreInstruction) beforeWhileLoop);
+
+                variable.setLineNumber(values.getLineNumber());
+
+                list.set(beforeWhileLoopIndex, new FastForEach(FastConstants.FOREACH, forLoopOffset,
+                        values.getLineNumber(), branch, variable, values, subList));
+            } else {
+                list.set(beforeWhileLoopIndex, new FastFor(FastConstants.FOR, forLoopOffset, beforeWhileLoop.getLineNumber(),
+                        branch, beforeWhileLoop, test, lastBodyWhileLoop, subList));
+            }
         }
         }
 

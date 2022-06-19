@@ -21,10 +21,8 @@ import org.apache.bcel.classfile.ConstantNameAndType;
 import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariable;
@@ -38,7 +36,7 @@ import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.model.instruction.fast.FastConstants;
-import jd.core.process.layouter.visitor.MinLineNumberVisitor;
+import jd.core.process.layouter.visitor.MinMaxLineNumberVisitor;
 
 /**
  * try-catch-finally
@@ -69,8 +67,7 @@ public class FastTry extends FastList {
         }
 
         public int minLineNumber() {
-            Optional<Instruction> minLineNoInstr = instructions.stream().min(Comparator.comparing(MinLineNumberVisitor::visit));
-            return minLineNoInstr.isPresent() ? minLineNoInstr.get().getLineNumber() : Integer.MAX_VALUE;
+            return MinMaxLineNumberVisitor.visit(instructions).minLineNumber();
         }
     }
 
