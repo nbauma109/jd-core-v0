@@ -3634,8 +3634,13 @@ public final class FastInstructionListBuilder {
                     ComparisonInstructionAnalyzer.inverseComparison(test);
                     index++;
                     if (lastBodyLoop != null) {
-                        list.set(index, new FastFor(FastConstants.FOR, jumpInstruction.getOffset(), lastBodyLoop.getLineNumber(),
-                            branch, null, test, lastBodyLoop, subList));
+                        if (lastBodyLoop instanceof Goto) {
+                            list.set(index, new FastFor(FastConstants.FOR, jumpInstruction.getOffset(), lastBodyLoop.getLineNumber(),
+                                    branch, null, test, null, subList));
+                        } else {
+                            list.set(index, new FastFor(FastConstants.FOR, jumpInstruction.getOffset(), lastBodyLoop.getLineNumber(),
+                                branch, null, test, lastBodyLoop, subList));
+                        }
                     }
                 } else {
                     if (subListLength == 1) {
