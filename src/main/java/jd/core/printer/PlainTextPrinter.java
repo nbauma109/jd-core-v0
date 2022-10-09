@@ -19,7 +19,7 @@ import jd.core.VersionAware;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.preferences.Preferences;
 
-public abstract class PlainTextPrinter implements Printer, VersionAware {
+public class PlainTextPrinter implements Printer, VersionAware {
     protected static final String TAB = "  ";
     protected static final String NEWLINE = System.lineSeparator();
 
