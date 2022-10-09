@@ -11,11 +11,7 @@ Original version of jd-core based on byte code pattern matching
 ## Code sample
 
 ```java
-import org.jd.core.v1.api.loader.Loader; // uses v1 loader for compatibility
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import org.jd.core.v1.loader.ClassPathLoader; // uses v1 loader for compatibility
 
 import jd.core.preferences.Preferences;
 import jd.core.printer.PlainTextPrinter;
@@ -27,33 +23,7 @@ public class Sample {
 
     public static void main(String[] args) {
         try {
-            Loader loader = new Loader() {
-                @Override
-                public byte[] load(String internalName) throws IOException {
-                    InputStream is = this.getClass().getResourceAsStream(internalName);
-
-                    if (is == null) {
-                        return null;
-                    } else {
-                        try (InputStream in = is; ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-                            byte[] buffer = new byte[1024];
-                            int read = in.read(buffer);
-
-                            while (read > 0) {
-                                out.write(buffer, 0, read);
-                                read = in.read(buffer);
-                            }
-
-                            return out.toByteArray();
-                        }
-                    }
-                }
-
-                @Override
-                public boolean canLoad(String internalName) {
-                    return this.getClass().getResource(internalName) != null;
-                }
-            };
+            ClassPathLoader loader = new ClassPathLoader();
 
             PlainTextPrinter printer = new PlainTextPrinter();
 
