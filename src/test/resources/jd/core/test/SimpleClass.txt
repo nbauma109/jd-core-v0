@@ -1,0 +1,37 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.util.List;
+/*    */ 
+/*    */ public class SimpleClass
+/*    */ {
+/*    */   public SimpleClass() {}
+/*    */   
+/*    */   void print(List<String> list) {
+/* 10 */     for (int i = 0; i < list.size(); i++) {
+/* 11 */       System.out.println((String)list.get(i));
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   void printMap(java.util.Map<String, String> map) {
+/* 16 */     for (java.util.Map.Entry<String, String> entry : map.entrySet()) {
+/* 17 */       System.out.println((String)entry.getKey());
+/* 18 */       System.out.println((String)entry.getValue());
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   void printIter(List<String> list) {
+/* 23 */     for (java.util.Iterator<String> iterator = list.iterator(); iterator.hasNext();) {
+/* 24 */       System.out.println((String)iterator.next());
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   void printJDK5(List<String> list) {
+/* 29 */     for (String elem : list) {
+/* 30 */       System.out.println(elem);
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   void printJDK8(List<String> list) {
+/* 35 */     list.forEach(System.out::println);
+/*    */   }
+/*    */ }
