@@ -1,0 +1,24 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.util.Scanner;
+/*    */ 
+/*    */ public class TryCatchFinally
+/*    */ {
+/*    */   void tryCatchFinally(java.io.File file)
+/*    */   {
+/*  9 */     Scanner sc = null;
+/*    */     try {
+/* 11 */       sc = new Scanner(file);
+/* 12 */       while (sc.hasNextLine()) {
+/* 13 */         System.out.println(sc.nextLine());
+/*    */       }
+/*    */     } catch (Exception e) {
+/* 16 */       e.printStackTrace();
+/*    */     } finally {
+/* 18 */       if (sc != null) {
+/* 19 */         sc.close();
+/*    */       }
+/*    */     }
+/*    */   }
+/*    */ }
+
