@@ -14,7 +14,10 @@
 /* 14 */     elements.forEach(ForEach::print);
 /*    */   }
 /*    */   
-/*    */   private static void print(String element) {
-/* 18 */     System.out.println(element);
+/*    */   void forEachWithLambdaMethod(List<String> elements) {
+/* 18 */     elements.forEach( x ->  {  print(x);
+/*    */     } );
 /*    */   }
+/*    */   
+/* 22 */   private static void print(String element) { System.out.println(element); }
 /*    */ }

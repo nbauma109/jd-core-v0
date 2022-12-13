@@ -14,6 +14,10 @@ public class ForEach {
         elements.forEach(ForEach::print);
     }
 
+    void forEachWithLambdaMethod(List<String> elements) {
+        elements.forEach(x -> print(x));
+    }
+
     private static void print(String element) {
         System.out.println(element);
     }
