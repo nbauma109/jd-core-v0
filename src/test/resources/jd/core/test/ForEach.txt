@@ -18,15 +18,19 @@
 /* 18 */     elements.forEach(this::print);
 /*    */   }
 /*    */   
+/*    */   void forEachWithMethodReference(ForEach f, List<String> elements) {
+/* 22 */     elements.forEach(f::print);
+/*    */   }
+/*    */   
 /*    */   void forEachWithLambdaMethod(List<String> elements) {
-/* 22 */     elements.forEach( x ->  {   print(x);
+/* 26 */     elements.forEach( x ->  {   print(x);
 /*    */     } );
 /*    */   }
 /*    */   
-/* 26 */   private static void printStatic(String element) { System.out.println(element); }
+/* 30 */   private static void printStatic(String element) { System.out.println(element); }
 /*    */   
 /*    */   private void print(String element)
 /*    */   {
-/* 30 */     printStatic(element);
+/* 34 */     printStatic(element);
 /*    */   }
 /*    */ }
