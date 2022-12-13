@@ -19,11 +19,11 @@ public class ForEach {
         elements.forEach(this::print);
     }
 
-    static void forEachWithMethodReference(ForEach f, List<String> elements) {
+    void forEachWithMethodReference(ForEach f, List<String> elements) {
         elements.forEach(f::print);
     }
 
-    static void forEachWithAnonymousClass(List<String> elements) {
+    void forEachWithAnonymousClass(List<String> elements) {
         elements.forEach(new Consumer<String>() {
             @Override
             public void accept(String x) {
@@ -32,7 +32,7 @@ public class ForEach {
         });
     }
 
-    static void forEachWithLambdaMethod(List<String> elements) {
+    void forEachWithLambdaMethod(List<String> elements) {
         elements.forEach(x -> printStatic(x));
     }
 

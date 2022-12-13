@@ -19,11 +19,11 @@
 /* 19 */     elements.forEach(this::print);
 /*    */   }
 /*    */   
-/*    */   static void forEachWithMethodReference(ForEach f, List<String> elements) {
+/*    */   void forEachWithMethodReference(ForEach f, List<String> elements) {
 /* 23 */     elements.forEach(f::print);
 /*    */   }
 /*    */   
-/*    */   static void forEachWithAnonymousClass(List<String> elements) {
+/*    */   void forEachWithAnonymousClass(List<String> elements) {
 /* 27 */     elements.forEach(new java.util.function.Consumer()
 /*    */     {
 /*    */       public void accept(String x) {
@@ -32,7 +32,7 @@
 /*    */     });
 /*    */   }
 /*    */   
-/*    */   static void forEachWithLambdaMethod(List<String> elements) {
+/*    */   void forEachWithLambdaMethod(List<String> elements) {
 /* 36 */     elements.forEach( x ->  {  printStatic(x);
 /*    */     } );
 /*    */   }
