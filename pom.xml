@@ -21,6 +21,7 @@
 				<configuration>
 					<compilerId>eclipse</compilerId>
 					<release>17</release>
+					<compilerArgument>-noExit</compilerArgument>
 				</configuration>
 				<dependencies>
 					<dependency>
