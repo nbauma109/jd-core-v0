@@ -1,6 +1,10 @@
-package jd.core.test;
-
-public class SimpleClass
-{
-  public SimpleClass() {}
-}
+/*   */ package jd.core.test;
+/*   */ 
+/*   */ public class SimpleClass extends Throwable
+/*   */ {
+/*   */   private static final long serialVersionUID = 1L;
+/*   */   
+/*   */   public SimpleClass() {
+/* 8 */     super("Hello World");
+/*   */   }
+/*   */ }
