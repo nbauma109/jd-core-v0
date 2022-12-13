@@ -10,15 +10,23 @@ public class ForEach {
         }
     }
 
+    void forEachWithStaticMethodReference(List<String> elements) {
+        elements.forEach(ForEach::printStatic);
+    }
+
     void forEachWithMethodReference(List<String> elements) {
-        elements.forEach(ForEach::print);
+        elements.forEach(this::print);
     }
 
     void forEachWithLambdaMethod(List<String> elements) {
         elements.forEach(x -> print(x));
     }
 
-    private static void print(String element) {
+    private static void printStatic(String element) {
         System.out.println(element);
+    }
+
+    private void print(String element) {
+        printStatic(element);
     }
 }
