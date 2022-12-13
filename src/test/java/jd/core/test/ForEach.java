@@ -18,6 +18,10 @@ public class ForEach {
         elements.forEach(this::print);
     }
 
+    void forEachWithMethodReference(ForEach f, List<String> elements) {
+        elements.forEach(f::print);
+    }
+
     void forEachWithLambdaMethod(List<String> elements) {
         elements.forEach(x -> print(x));
     }
