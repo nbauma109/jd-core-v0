@@ -64,6 +64,10 @@ public class MethodReference extends Instruction implements SourceWriteable {
     public void write(Printer printer, SourceWriterVisitor visitor) {
         if (!parameters.isEmpty()) {
             Instruction parameter = parameters.get(0);
+            if (parameter instanceof ALoad) { // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
+                ALoad aLoad = (ALoad) parameter;
+                visitor.visit(aLoad);
+            }
             if (parameter instanceof DupLoad) { // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
                 DupLoad dupLoad = (DupLoad) parameter;
                 visitor.visit(dupLoad.getDupStore().getObjectref());
