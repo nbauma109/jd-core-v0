@@ -23,6 +23,7 @@ jobs:
     - name: Release
       uses: qcastel/github-actions-maven-release@master
       env:
+        JITCI: true
         JAVA_HOME: /usr/lib/jvm/java-17-openjdk/
       with:
        ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY_JD_CORE_V0 }}
