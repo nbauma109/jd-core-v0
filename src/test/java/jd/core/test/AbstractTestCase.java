@@ -11,16 +11,16 @@ import jd.core.process.DecompilerImpl;
 public abstract class AbstractTestCase {
 
     protected String decompile(String internalTypeName) throws IOException {
-        
+
         DecompilerImpl decompiler = new DecompilerImpl();
-        
+
         ClassPathLoader loader = new ClassPathLoader();
 
         PlainTextPrinter printer = new PlainTextPrinter();
 
         Preferences preferences = new Preferences();
         preferences.setRealignmentLineNumber(true);
-        preferences.setShowDefaultConstructor(true);
+        preferences.setShowDefaultConstructor(showDefaultConstructor());
         preferences.setShowLineNumbers(true);
         preferences.setShowPrefixThis(true);
         preferences.setUnicodeEscape(false);
@@ -28,5 +28,9 @@ public abstract class AbstractTestCase {
 
         return printer.buildDecompiledOutput(loader, internalTypeName, preferences, decompiler);
 
+    }
+
+    protected boolean showDefaultConstructor() {
+        return false;
     }
 }
