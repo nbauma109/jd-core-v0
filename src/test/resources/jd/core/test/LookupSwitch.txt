@@ -1,0 +1,22 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.io.PrintStream;
+/*    */ 
+/*    */ public class LookupSwitch
+/*    */ {
+/*    */   void lookupSwitch(int inputValue) {
+/*  8 */     switch (inputValue) {
+/*    */     case 1: 
+/* 10 */       System.out.println("One");
+/* 11 */       break;
+/*    */     case 1000: 
+/* 13 */       System.out.println("One thousand");
+/* 14 */       break;
+/*    */     case 1000000: 
+/* 16 */       System.out.println("One million");
+/* 17 */       break;
+/*    */     default: 
+/* 19 */       throw new IllegalArgumentException();
+/*    */     }
+/*    */   }
+/*    */ }
