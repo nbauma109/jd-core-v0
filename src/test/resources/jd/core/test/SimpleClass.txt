@@ -1,6 +1,6 @@
-/*    */ package jd.core.test;
-/*    */ 
-/*    */ public class SimpleClass
-/*    */ {
-/*    */   public SimpleClass() {}
-/*    */ }
+package jd.core.test;
+
+public class SimpleClass
+{
+  public SimpleClass() {}
+}
