@@ -1,0 +1,165 @@
+/*     */ package jd.core.test;
+/*     */ 
+/*     */ public class JvmOpCodes {
+/*     */   long l1;
+/*     */   long l2;
+/*     */   
+/*   7 */   void dup2x1() { this.l2 = (this.l1 = 1L); }
+/*     */   
+/*     */   long dup2(long a)
+/*     */   {
+/*  11 */     return ++a;
+/*     */   }
+/*     */   
+/*     */   long dup2x2(long[] array, int i, long l) {
+/*  15 */     return array[i] = l;
+/*     */   }
+/*     */   
+/*     */   int dupx2(int[] array, int i, int l) {
+/*  19 */     return array[i] = l;
+/*     */   }
+/*     */   
+/*     */   int ior(int a, int b) {
+/*  23 */     return a | b;
+/*     */   }
+/*     */   
+/*     */   long lor(long a, long b) {
+/*  27 */     return a | b;
+/*     */   }
+/*     */   
+/*     */   int land(int a, int b) {
+/*  31 */     return a & b;
+/*     */   }
+/*     */   
+/*     */   long land(long a, long b) {
+/*  35 */     return a & b;
+/*     */   }
+/*     */   
+/*     */   long lushr(long a, int b) {
+/*  39 */     return a >>> b;
+/*     */   }
+/*     */   
+/*     */   int iushr(int a, int b) {
+/*  43 */     return a >>> b;
+/*     */   }
+/*     */   
+/*     */   int ishl(int a, int b) {
+/*  47 */     return a << b;
+/*     */   }
+/*     */   
+/*     */   long lshl(long a, int b) {
+/*  51 */     return a << b;
+/*     */   }
+/*     */   
+/*     */   int ishr(int a, int b) {
+/*  55 */     return a >> b;
+/*     */   }
+/*     */   
+/*     */   long lshr(long a, int b) {
+/*  59 */     return a >> b;
+/*     */   }
+/*     */   
+/*     */   float fsub(float a, float b) {
+/*  63 */     return a - b;
+/*     */   }
+/*     */   
+/*     */   double dsub(double a, double b) {
+/*  67 */     return a - b;
+/*     */   }
+/*     */   
+/*     */   int isub(int a, int b) {
+/*  71 */     return a - b;
+/*     */   }
+/*     */   
+/*     */   long lsub(long a, long b) {
+/*  75 */     return a - b;
+/*     */   }
+/*     */   
+/*     */   float fadd(float a, float b) {
+/*  79 */     return a + b;
+/*     */   }
+/*     */   
+/*     */   double dadd(double a, double b) {
+/*  83 */     return a + b;
+/*     */   }
+/*     */   
+/*     */   int iadd(int a, int b) {
+/*  87 */     return a + b;
+/*     */   }
+/*     */   
+/*     */   long ladd(long a, long b) {
+/*  91 */     return a + b;
+/*     */   }
+/*     */   
+/*     */   float fmul(float a, float b) {
+/*  95 */     return a * b;
+/*     */   }
+/*     */   
+/*     */   double dmul(double a, double b) {
+/*  99 */     return a * b;
+/*     */   }
+/*     */   
+/*     */   int imul(int a, int b) {
+/* 103 */     return a * b;
+/*     */   }
+/*     */   
+/*     */   long lmul(long a, long b) {
+/* 107 */     return a * b;
+/*     */   }
+/*     */   
+/*     */   float fdiv(float a, float b) {
+/* 111 */     return a / b;
+/*     */   }
+/*     */   
+/*     */   double ddiv(double a, double b) {
+/* 115 */     return a / b;
+/*     */   }
+/*     */   
+/*     */   int idiv(int a, int b) {
+/* 119 */     return a / b;
+/*     */   }
+/*     */   
+/*     */   long ldiv(long a, long b) {
+/* 123 */     return a / b;
+/*     */   }
+/*     */   
+/*     */   float frem(float a, float b) {
+/* 127 */     return a % b;
+/*     */   }
+/*     */   
+/*     */   double drem(double a, double b) {
+/* 131 */     return a % b;
+/*     */   }
+/*     */   
+/*     */   int irem(int a, int b) {
+/* 135 */     return a % b;
+/*     */   }
+/*     */   
+/*     */   long lrem(long a, long b) {
+/* 139 */     return a % b;
+/*     */   }
+/*     */   
+/*     */   float fneg(float a) {
+/* 143 */     return -a;
+/*     */   }
+/*     */   
+/*     */   double dneg(double a) {
+/* 147 */     return -a;
+/*     */   }
+/*     */   
+/*     */   int ineg(int a) {
+/* 151 */     return -a;
+/*     */   }
+/*     */   
+/*     */   long lneg(long a) {
+/* 155 */     return -a;
+/*     */   }
+/*     */   
+/*     */   void pop() {
+/* 159 */     Math.round(0.5F);
+/*     */   }
+/*     */   
+/*     */   void pop2() {
+/* 163 */     Math.round(0.5D);
+/*     */   }
+/*     */ }
