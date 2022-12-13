@@ -1,5 +1,6 @@
 package jd.core.test;
 
+import org.jd.core.v1.api.loader.Loader;
 import org.jd.core.v1.loader.ClassPathLoader;
 
 import java.io.IOException;
@@ -10,11 +11,9 @@ import jd.core.process.DecompilerImpl;
 
 public abstract class AbstractTestCase {
 
-    protected String decompile(String internalTypeName) throws IOException {
+    protected String decompile(String internalTypeName, Loader loader) throws IOException {
 
         DecompilerImpl decompiler = new DecompilerImpl();
-
-        ClassPathLoader loader = new ClassPathLoader();
 
         PlainTextPrinter printer = new PlainTextPrinter();
 
@@ -30,6 +29,10 @@ public abstract class AbstractTestCase {
 
     }
 
+    protected String decompile(String internalTypeName) throws IOException {
+        return decompile(internalTypeName, new ClassPathLoader());
+    }
+    
     protected boolean showDefaultConstructor() {
         return false;
     }
