@@ -13,7 +13,6 @@ public class SimpleThrowableClassTest extends AbstractTestCase {
     @Test
     public void test() throws IOException {
         String output = decompile("jd/core/test/SimpleThrowableClass");
-        System.out.println(output);
         assertEquals(IOUtils.toString(getClass().getResource("SimpleThrowableClass.txt"), StandardCharsets.UTF_8), output);
     }
 }
