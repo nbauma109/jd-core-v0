@@ -8,16 +8,16 @@ import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.assertEquals;
 
-public class SimpleClassTest extends AbstractTestCase {
+public class ToArrayTest extends AbstractTestCase {
 
     @Test
     public void test() throws IOException {
-        String output = decompile("jd/core/test/SimpleClass");
-        assertEquals(IOUtils.toString(getClass().getResource("SimpleClass.txt"), StandardCharsets.UTF_8), output);
+        String output = decompile("jd/core/test/ToArray");
+        assertEquals(IOUtils.toString(getClass().getResource("ToArray.txt"), StandardCharsets.UTF_8), output);
     }
 
     @Override
     protected boolean showDefaultConstructor() {
-        return true;
+        return false;
     }
 }
