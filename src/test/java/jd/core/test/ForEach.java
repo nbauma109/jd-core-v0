@@ -4,9 +4,17 @@ import java.util.List;
 
 public class ForEach {
 
-    void enhancedFor(List<String> elements) {
+    void enhancedForEachStatement(List<String> elements) {
         for (String element : elements) {
-            System.out.println(element);
+            print(element);
         }
+    }
+
+    void forEachWithMethodReference(List<String> elements) {
+        elements.forEach(ForEach::print);
+    }
+
+    private static void print(String element) {
+        System.out.println(element);
     }
 }

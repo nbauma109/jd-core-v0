@@ -1,12 +1,20 @@
-/*   */ package jd.core.test;
-/*   */ 
-/*   */ import java.util.List;
-/*   */ 
-/*   */ public class ForEach
-/*   */ {
-/*   */   void enhancedFor(List<String> elements) {
-/* 8 */     for (String element : elements) {
-/* 9 */       System.out.println(element);
-/*   */     }
-/*   */   }
-/*   */ }
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.util.List;
+/*    */ 
+/*    */ public class ForEach
+/*    */ {
+/*    */   void enhancedForEachStatement(List<String> elements) {
+/*  8 */     for (String element : elements) {
+/*  9 */       print(element);
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   void forEachWithMethodReference(List<String> elements) {
+/* 14 */     elements.forEach(ForEach::print);
+/*    */   }
+/*    */   
+/*    */   private static void print(String element) {
+/* 18 */     System.out.println(element);
+/*    */   }
+/*    */ }
