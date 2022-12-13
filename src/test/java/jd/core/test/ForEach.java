@@ -1,6 +1,7 @@
 package jd.core.test;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 public class ForEach {
 
@@ -18,12 +19,21 @@ public class ForEach {
         elements.forEach(this::print);
     }
 
-    void forEachWithMethodReference(ForEach f, List<String> elements) {
+    static void forEachWithMethodReference(ForEach f, List<String> elements) {
         elements.forEach(f::print);
     }
 
-    void forEachWithLambdaMethod(List<String> elements) {
-        elements.forEach(x -> print(x));
+    static void forEachWithAnonymousClass(List<String> elements) {
+        elements.forEach(new Consumer<String>() {
+            @Override
+            public void accept(String x) {
+                printStatic(x);
+            }
+        });
+    }
+
+    static void forEachWithLambdaMethod(List<String> elements) {
+        elements.forEach(x -> printStatic(x));
     }
 
     private static void printStatic(String element) {
@@ -32,5 +42,11 @@ public class ForEach {
 
     private void print(String element) {
         printStatic(element);
+    }
+    
+    public static void main(String[] args) {
+        for (int i = 0; i < args.length; i++) {
+            System.out.println(args[i]);
+        }
     }
 }
