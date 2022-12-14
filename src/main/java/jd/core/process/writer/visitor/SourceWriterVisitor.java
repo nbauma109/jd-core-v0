@@ -1800,7 +1800,23 @@ public class SourceWriterVisitor
             if (this.classFile.isAInnerClass())
             {
                 // inner class: firstIndex=1
-                firstIndex = 1;
+                firstIndex = 0;
+                if (!insi.getArgs().isEmpty()) {
+                    Instruction instruction = insi.getArgs().get(0);
+                    if (instruction instanceof GetStatic && instruction.getOpcode() == ByteCodeConstants.OUTERTHIS) {
+                        GetStatic getStatic = (GetStatic) instruction;
+                        ConstantFieldref fieldref = constants.getConstantFieldref(getStatic.getIndex());
+                        ConstantNameAndType nameAndType = constants.getConstantNameAndType(fieldref.getNameAndTypeIndex());
+                        String name = constants.getConstantUtf8(nameAndType.getNameIndex());
+                        String signature = constants.getConstantUtf8(nameAndType.getSignatureIndex());
+                        String suffix = "$" + classFile.getClassName() + ";";
+                        String internalName = classFile.getInternalClassName();
+                        String sig = internalName.substring(0, internalName.lastIndexOf(suffix)) + ";";
+                        if ("this".equals(name) && internalName.endsWith(suffix) && signature.equals(sig)) {
+                            firstIndex = 1;
+                        }
+                    }
+                }
             }
             else
             {

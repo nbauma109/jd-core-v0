@@ -16,14 +16,39 @@
 /* 16 */     this.data = data;
 /*    */   }
 /*    */   
-/*    */   static class MyNode extends Node<Integer> {
-/*    */     public MyNode(Integer data) {
-/* 21 */       super();
+/*    */   static class MyStaticNode extends Node<Integer> {
+/*    */     public MyStaticNode(Integer data) {
+/* 21 */       super(data);
 /*    */     }
 /*    */     
 /*    */     public void setData(Integer data) {
-/* 25 */       System.out.println("MyNode.setData");
+/* 25 */       System.out.println("MyStaticNode.setData");
 /* 26 */       super.setData(data);
+/*    */     }
+/*    */     
+/*    */     class MySubNode extends Node.MyStaticNode
+/*    */     {
+/*    */       public MySubNode(Integer data) {
+/* 32 */         super(data);
+/*    */       }
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   class MyNode extends Node<Integer> {
+/*    */     public MyNode(Integer data) {
+/* 39 */       super(data);
+/*    */     }
+/*    */     
+/*    */     public void setData(Integer data) {
+/* 43 */       System.out.println("MyNode.setData");
+/* 44 */       super.setData(data);
+/*    */     }
+/*    */     
+/*    */     class MySubNode extends Node<Integer>.MyNode
+/*    */     {
+/*    */       public MySubNode(Integer data) {
+/* 50 */         super(data);
+/*    */       }
 /*    */     }
 /*    */   }
 /*    */ }
