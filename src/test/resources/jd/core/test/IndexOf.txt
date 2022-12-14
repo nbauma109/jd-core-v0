@@ -1,0 +1,18 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.io.PrintStream;
+/*    */ 
+/*    */ public class IndexOf {
+/*    */   private static final String TEST = "src/Test.java";
+/*    */   
+/*  8 */   public static void main(String[] args) { System.out.println(getClassSimpleName("src/Test.java")); }
+/*    */   
+/*    */   static String getClassSimpleName(String pathToClassFile)
+/*    */   {
+/* 12 */     int beginIndex = pathToClassFile.lastIndexOf('/');
+/* 13 */     assert (beginIndex != -1) : "Missing '/' in path";
+/* 14 */     int endIndex = pathToClassFile.indexOf('.', beginIndex);
+/* 15 */     assert (endIndex != -1) : "Missing '.' in path";
+/* 16 */     return pathToClassFile.substring(beginIndex + 1, endIndex);
+/*    */   }
+/*    */ }
