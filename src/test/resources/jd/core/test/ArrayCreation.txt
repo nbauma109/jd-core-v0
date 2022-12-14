@@ -1,0 +1,21 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ 
+/*    */ public class ArrayCreation
+/*    */ {
+/*    */   public int[] arrayCreation(boolean initialize)
+/*    */   {
+/*  8 */     if (initialize) {
+/*  9 */       return new int[] { 1, 2, 3 };
+/*    */     }
+/* 11 */     return new int[3];
+/*    */   }
+/*    */   
+/*    */   public int[][] jaggedArrayInitialization() {
+/* 15 */     return new int[][] { { 1, 2, 3 }, { 4, 5, 6 } };
+/*    */   }
+/*    */   
+/*    */   public int[][] multiDimensionalArrayCreation() {
+/* 19 */     return new int[3][2];
+/*    */   }
+/*    */ }
