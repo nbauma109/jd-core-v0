@@ -19,4 +19,14 @@ public class TryCatchFinallyBRTest extends AbstractTestCase {
             assertEquals(IOUtils.toString(getClass().getResource("TryCatchFinallyBR.txt"), StandardCharsets.UTF_8), output);
         }
     }
+
+    @Test
+    public void testJavac() throws Exception {
+        try (InputStream in = getClass().getResourceAsStream("/try-catch-finally-javac-17.0.4.jar")) {
+            ZipLoader loader = new ZipLoader(in);
+            String internalClassName = "jd/core/test/TryCatchFinallyBR";
+            String output = decompile(internalClassName, loader);
+            assertEquals(IOUtils.toString(getClass().getResource("TryCatchFinallyBR.txt"), StandardCharsets.UTF_8), output);
+        }
+    }
 }
