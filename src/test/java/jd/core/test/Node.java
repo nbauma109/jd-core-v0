@@ -16,7 +16,25 @@ class Node<T> {
         this.data = data;
     }
 
-    static class MyNode extends Node<Integer> {
+    static class MyStaticNode extends Node<Integer> {
+        public MyStaticNode(Integer data) {
+            super(data);
+        }
+
+        public void setData(Integer data) {
+            System.out.println("MyStaticNode.setData");
+            super.setData(data);
+        }
+
+        class MySubNode extends MyStaticNode {
+
+            public MySubNode(Integer data) {
+                super(data);
+            }
+        }
+    }
+
+    class MyNode extends Node<Integer> {
         public MyNode(Integer data) {
             super(data);
         }
@@ -24,6 +42,13 @@ class Node<T> {
         public void setData(Integer data) {
             System.out.println("MyNode.setData");
             super.setData(data);
+        }
+
+        class MySubNode extends MyNode {
+
+            public MySubNode(Integer data) {
+                super(data);
+            }
         }
     }
 }
