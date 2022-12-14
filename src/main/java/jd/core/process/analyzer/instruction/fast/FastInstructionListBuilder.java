@@ -574,8 +574,8 @@ public final class FastInstructionListBuilder {
                 case Const.MONITORENTER -> {
                     menter = (MonitorEnter) instruction;
                     AssignmentInstruction ai = (AssignmentInstruction) menter.getObjectref();
-                    AStore astore = (AStore) ai.getValue1();
-                    varMonitorIndex = astore.getIndex();
+                    IndexInstruction indexInstruction = (IndexInstruction) ai.getValue1();
+                    varMonitorIndex = indexInstruction.getIndex();
                     yield ai.getValue2();
                 }
                 default -> throw new UnexpectedInstructionException();
@@ -1336,7 +1336,7 @@ public final class FastInstructionListBuilder {
         // StoreReturnAnalyzer.Cleanup(list, localVariables);
 
         // Add local variable declarations
-        Set<FastDeclaration> outerDeclarations = addDeclarations(list, localVariables, beforeListOffset, addDeclarations);
+        Set<FastDeclaration> outerDeclarations = addDeclarations(list, localVariables, beforeListOffset, addDeclarations, classFile.getConstantPool());
 
         // Remove 'goto' jumping on next instruction
         // A VALIDER A LONG TERME.
@@ -1474,7 +1474,7 @@ public final class FastInstructionListBuilder {
      * non encore déclarées et dont la portée est incluse à  la liste courante,
      * on declare les variables en début de bloc.
      */
-    private static Set<FastDeclaration> addDeclarations(List<Instruction> list, LocalVariables localVariables, int beforeListOffset, boolean addDeclarations) {
+    private static Set<FastDeclaration> addDeclarations(List<Instruction> list, LocalVariables localVariables, int beforeListOffset, boolean addDeclarations, ConstantPool cp) {
 
         Set<FastDeclaration> outerDeclarations = new HashSet<>();
         
@@ -1561,7 +1561,7 @@ public final class FastInstructionListBuilder {
             for (int i = 0; i < lvLength; i++) {
                 lv = localVariables.getLocalVariableAt(i);
                 if (lv.hasDeclarationFlag() == NOT_DECLARED && !lv.isToBeRemoved() && beforeListOffset < lv.getStartPc()
-                        && lv.getStartPc() + lv.getLength() - 1 <= lastOffset) {
+                        && lv.getStartPc() + lv.getLength() - 1 <= lastOffset && !StringConstants.INTERNAL_OBJECT_SIGNATURE.equals(lv.getName(cp))) {
                     int indexForNewDeclaration = InstructionUtil.getIndexForOffset(list, lv.getStartPc());
                     if (indexForNewDeclaration == -1) {
                         // 'startPc' offset not found
