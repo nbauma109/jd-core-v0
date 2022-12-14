@@ -15,9 +15,4 @@ public class ForEachTest extends AbstractTestCase {
         String output = decompile("jd/core/test/ForEach");
         assertEquals(IOUtils.toString(getClass().getResource("ForEach.txt"), StandardCharsets.UTF_8), output);
     }
-
-    @Override
-    protected boolean showDefaultConstructor() {
-        return false;
-    }
 }
