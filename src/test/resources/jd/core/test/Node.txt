@@ -1,0 +1,29 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.io.PrintStream;
+/*    */ 
+/*    */ class Node<T>
+/*    */ {
+/*    */   public T data;
+/*    */   
+/*    */   public Node(T data)
+/*    */   {
+/* 11 */     this.data = data;
+/*    */   }
+/*    */   
+/*    */   public void setData(T data) {
+/* 15 */     System.out.println("Node.setData");
+/* 16 */     this.data = data;
+/*    */   }
+/*    */   
+/*    */   static class MyNode extends Node<Integer> {
+/*    */     public MyNode(Integer data) {
+/* 21 */       super();
+/*    */     }
+/*    */     
+/*    */     public void setData(Integer data) {
+/* 25 */       System.out.println("MyNode.setData");
+/* 26 */       super.setData(data);
+/*    */     }
+/*    */   }
+/*    */ }
