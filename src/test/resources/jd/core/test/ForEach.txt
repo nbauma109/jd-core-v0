@@ -4,33 +4,53 @@
 /*    */ 
 /*    */ public class ForEach
 /*    */ {
-/*    */   void enhancedForEachStatement(List<String> elements) {
-/*  8 */     for (String element : elements) {
-/*  9 */       print(element);
+/*    */   void enhancedForEachStatement(List<String> elements)
+/*    */   {
+/*  9 */     for (String element : elements) {
+/* 10 */       print(element);
 /*    */     }
 /*    */   }
 /*    */   
 /*    */   void forEachWithStaticMethodReference(List<String> elements) {
-/* 14 */     elements.forEach(ForEach::printStatic);
+/* 15 */     elements.forEach(ForEach::printStatic);
 /*    */   }
 /*    */   
 /*    */   void forEachWithMethodReference(List<String> elements) {
-/* 18 */     elements.forEach(this::print);
+/* 19 */     elements.forEach(this::print);
 /*    */   }
 /*    */   
 /*    */   void forEachWithMethodReference(ForEach f, List<String> elements) {
-/* 22 */     elements.forEach(f::print);
+/* 23 */     elements.forEach(f::print);
+/*    */   }
+/*    */   
+/*    */   void forEachWithAnonymousClass(List<String> elements)
+/*    */   {
+/* 28 */     elements.forEach(new java.util.function.Consumer()
+/*    */     {
+/*    */ 
+/*    */       public void accept(Object o)
+/*    */       {
+/*    */ 
+/* 34 */         ForEach.this.print(o);
+/*    */       }
+/*    */     });
 /*    */   }
 /*    */   
 /*    */   void forEachWithLambdaMethod(List<String> elements) {
-/* 26 */     elements.forEach( x ->  {   print(x);
+/* 40 */     elements.forEach( o ->  {   print(o);
 /*    */     } );
 /*    */   }
 /*    */   
-/* 30 */   private static void printStatic(String element) { System.out.println(element); }
+/* 44 */   private static void printStatic(Object o) { System.out.println(o); }
 /*    */   
-/*    */   private void print(String element)
+/*    */   private void print(Object o)
 /*    */   {
-/* 34 */     printStatic(element);
+/* 48 */     printStatic(o);
+/*    */   }
+/*    */   
+/*    */   public static void main(String[] args) {
+/* 52 */     for (int i = 0; i < args.length; i++) {
+/* 53 */       System.out.println(args[i]);
+/*    */     }
 /*    */   }
 /*    */ }

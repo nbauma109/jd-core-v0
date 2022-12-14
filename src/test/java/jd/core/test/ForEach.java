@@ -1,6 +1,7 @@
 package jd.core.test;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 public class ForEach {
 
@@ -22,15 +23,34 @@ public class ForEach {
         elements.forEach(f::print);
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    void forEachWithAnonymousClass(List<String> elements) {
+        elements.forEach(new Consumer() {
+            /*
+             * TODO FIXME Anonymous Consumer only works with Object
+             */
+            @Override
+            public void accept(Object o) {
+                print(o);
+            }
+        });
+    }
+
     void forEachWithLambdaMethod(List<String> elements) {
-        elements.forEach(x -> print(x));
+        elements.forEach(o -> print(o));
     }
 
-    private static void printStatic(String element) {
-        System.out.println(element);
+    private static void printStatic(Object o) {
+        System.out.println(o);
     }
 
-    private void print(String element) {
-        printStatic(element);
+    private void print(Object o) {
+        printStatic(o);
+    }
+    
+    public static void main(String[] args) {
+        for (int i = 0; i < args.length; i++) {
+            System.out.println(args[i]);
+        }
     }
 }
