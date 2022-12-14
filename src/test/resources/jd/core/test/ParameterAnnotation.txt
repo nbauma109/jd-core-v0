@@ -1,0 +1,6 @@
+package jd.core.test;
+
+public abstract class ParameterAnnotation
+{
+  abstract void test(@TestAnnotation int paramInt1, @TestAnnotation(nested=@NestedAnnotation(123.45F)) int paramInt2);
+}
