@@ -23,30 +23,34 @@
 /* 23 */     elements.forEach(f::print);
 /*    */   }
 /*    */   
-/*    */   void forEachWithAnonymousClass(List<String> elements) {
-/* 27 */     elements.forEach(new java.util.function.Consumer()
+/*    */   void forEachWithAnonymousClass(List<String> elements)
+/*    */   {
+/* 28 */     elements.forEach(new java.util.function.Consumer()
 /*    */     {
-/*    */       public void accept(String x) {
-/* 30 */         ForEach.printStatic(x);
+/*    */ 
+/*    */       public void accept(Object o)
+/*    */       {
+/*    */ 
+/* 34 */         ForEach.this.print(o);
 /*    */       }
 /*    */     });
 /*    */   }
 /*    */   
 /*    */   void forEachWithLambdaMethod(List<String> elements) {
-/* 36 */     elements.forEach( x ->  {  printStatic(x);
+/* 40 */     elements.forEach( o ->  {   print(o);
 /*    */     } );
 /*    */   }
 /*    */   
-/* 40 */   private static void printStatic(String element) { System.out.println(element); }
+/* 44 */   private static void printStatic(Object o) { System.out.println(o); }
 /*    */   
-/*    */   private void print(String element)
+/*    */   private void print(Object o)
 /*    */   {
-/* 44 */     printStatic(element);
+/* 48 */     printStatic(o);
 /*    */   }
 /*    */   
 /*    */   public static void main(String[] args) {
-/* 48 */     for (int i = 0; i < args.length; i++) {
-/* 49 */       System.out.println(args[i]);
+/* 52 */     for (int i = 0; i < args.length; i++) {
+/* 53 */       System.out.println(args[i]);
 /*    */     }
 /*    */   }
 /*    */ }

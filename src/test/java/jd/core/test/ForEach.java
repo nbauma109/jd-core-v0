@@ -23,25 +23,29 @@ public class ForEach {
         elements.forEach(f::print);
     }
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     void forEachWithAnonymousClass(List<String> elements) {
-        elements.forEach(new Consumer<String>() {
+        elements.forEach(new Consumer() {
+            /*
+             * TODO FIXME Anonymous Consumer only works with Object
+             */
             @Override
-            public void accept(String x) {
-                printStatic(x);
+            public void accept(Object o) {
+                print(o);
             }
         });
     }
 
     void forEachWithLambdaMethod(List<String> elements) {
-        elements.forEach(x -> printStatic(x));
+        elements.forEach(o -> print(o));
     }
 
-    private static void printStatic(String element) {
-        System.out.println(element);
+    private static void printStatic(Object o) {
+        System.out.println(o);
     }
 
-    private void print(String element) {
-        printStatic(element);
+    private void print(Object o) {
+        printStatic(o);
     }
     
     public static void main(String[] args) {
