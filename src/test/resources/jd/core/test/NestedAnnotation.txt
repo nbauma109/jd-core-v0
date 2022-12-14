@@ -1,0 +1,8 @@
+package jd.core.test;
+
+import java.lang.annotation.Annotation;
+
+@interface NestedAnnotation
+{
+  float value();
+}

@@ -1,0 +1,18 @@
+package jd.core.test;
+
+import java.lang.annotation.Annotation;
+
+@interface TestAnnotation
+{
+  String value() default "";
+  
+  String name() default "";
+  
+  char[] characters() default {};
+  
+  int integer() default 0;
+  
+  double real() default 0.0D;
+  
+  NestedAnnotation nested() default @NestedAnnotation(0.0F);
+}
