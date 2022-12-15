@@ -191,6 +191,10 @@ public class LocalVariable
         return nameIndex;
     }
 
+    public String getName(ConstantPool cp) {
+        return cp.getConstantUtf8(nameIndex);
+    }
+
     public void setNameIndex(int nameIndex) {
         this.nameIndex = nameIndex;
     }
