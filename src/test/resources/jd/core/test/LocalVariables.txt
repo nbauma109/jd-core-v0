@@ -1,0 +1,44 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.awt.datatransfer.DataFlavor;
+/*    */ import java.awt.datatransfer.UnsupportedFlavorException;
+/*    */ import javax.swing.tree.DefaultMutableTreeNode;
+/*    */ 
+/*    */ 
+/*    */ public class LocalVariables
+/*    */   extends DefaultMutableTreeNode
+/*    */ {
+/*    */   private static final long serialVersionUID = 1L;
+/* 12 */   static DataFlavor[] flavors = { DataFlavor.stringFlavor };
+/*    */   
+/*    */   Object getTransferData(DataFlavor flavor) throws Exception {
+/*    */     Object returnObject;
+/* 16 */     if (flavor.equals(flavors[0])) {
+/* 17 */       Object userObject = getUserObject();
+/* 18 */       if (userObject == null) {
+/* 19 */         returnObject = null;
+/*    */       } else {
+/* 21 */         returnObject = userObject;
+/*    */       }
+/*    */     } else {
+/* 24 */       throw new UnsupportedFlavorException(flavor);
+/*    */     }
+/* 26 */     return returnObject;
+/*    */   }
+/*    */   
+/*    */   double compute(double value, double length, double a, double b) {
+/*    */     double result;
+/* 31 */     if (a != b) {
+/* 32 */       if (a < b) {
+/* 33 */         result = value / -length * (a - b);
+/*    */       } else {
+/* 35 */         result = value / -length * (b - a);
+/* 36 */         result -= 255.0D;
+/*    */       }
+/* 38 */       result = Math.abs(result);
+/*    */     } else {
+/* 40 */       result = a;
+/*    */     }
+/* 42 */     return result;
+/*    */   }
+/*    */ }
