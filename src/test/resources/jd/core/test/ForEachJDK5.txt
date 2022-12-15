@@ -1,0 +1,20 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.util.List;
+/*    */ 
+/*    */ public class ForEachJDK5
+/*    */ {
+/*    */   static void enhancedForEachStatement(List<String> paramList) {
+/*  8 */     for (String str : paramList) {
+/*  9 */       print(str);
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   static native void print(String paramString);
+/*    */   
+/*    */   public static void main(String[] paramArrayOfString) {
+/* 16 */     for (String str : paramArrayOfString) {
+/* 17 */       print(str);
+/*    */     }
+/*    */   }
+/*    */ }
