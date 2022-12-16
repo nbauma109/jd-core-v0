@@ -1,0 +1,125 @@
+/*     */ package jd.core.test;
+/*     */ 
+/*     */ import java.io.PrintStream;
+/*     */ import java.io.Serializable;
+/*     */ import java.security.AccessController;
+/*     */ import java.security.PrivilegedAction;
+/*     */ 
+/*     */ 
+/*     */ public class DotClass14
+/*     */ {
+/*     */   Class clazz;
+/*     */   static Class staticClass;
+/*  13 */   static final Class CONST = Object.class;
+/*  14 */   static final Class ARRAY_CONST = new Object[0];
+/*     */   
+/*     */   boolean getField() {
+/*  17 */     return this.clazz.equals(Object.class);
+/*     */   }
+/*     */   
+/*     */   boolean preInc(Object[] array, int i) {
+/*  21 */     return array[(++i)] == Object.class;
+/*     */   }
+/*     */   
+/*     */   boolean postInc(Object[] array, int i) {
+/*  25 */     return array[(i++)] == Object.class;
+/*     */   }
+/*     */   
+/*     */   boolean arrayLoad(Object[] array) {
+/*  29 */     return array[0].getClass() == Object.class;
+/*     */   }
+/*     */   
+/*     */   boolean aNewArray() {
+/*  33 */     return new Object[0].equals(Object.class);
+/*     */   }
+/*     */   
+/*     */   Class xReturn() {
+/*  37 */     return Object.class;
+/*     */   }
+/*     */   
+/*     */   Class ldc(int dim) {
+/*  41 */     return dim == 0 ? CONST : ARRAY_CONST;
+/*     */   }
+/*     */   
+/*     */   void putField() {
+/*  45 */     this.clazz = Object.class;
+/*     */   }
+/*     */   
+/*     */   void putStatic() {
+/*  49 */     staticClass = Object.class;
+/*     */   }
+/*     */   
+/*     */   void aThrow() {
+/*  53 */     throw new RuntimeException("" + Object.class);
+/*     */   }
+/*     */   
+/*     */   Class instanceOf(Class c) {
+/*  57 */     if ((Object.class instanceof Class)) {
+/*  58 */       return c;
+/*     */     }
+/*  60 */     return null;
+/*     */   }
+/*     */   
+/*     */   Class ifCmp(Class c) {
+/*  64 */     if (Object.class == c)
+/*  65 */       return c;
+/*  66 */     if (c == Object.class) {
+/*  67 */       return c;
+/*     */     }
+/*  69 */     return null;
+/*     */   }
+/*     */   
+/*     */   void aStore() {
+/*  73 */     Class c = Object.class;
+/*     */   }
+/*     */   
+/*     */   Object aaStore() {
+/*  77 */     return new Class[] { new String[0].getClass() };
+/*     */   }
+/*     */   
+/*     */   int unaryOp() {
+/*  81 */     return -Object.class.hashCode();
+/*     */   }
+/*     */   
+/*     */   int binaryOp() {
+/*  85 */     return Object.class.hashCode() + Object.class.hashCode();
+/*     */   }
+/*     */   
+/*     */   void invokeStatic() {
+/*  89 */     print(Object.class);
+/*     */   }
+/*     */   
+/*     */   void invokeVirtual() {
+/*  93 */     System.out.println(Object.class);
+/*     */   }
+/*     */   
+/*     */   native Serializable readValue(Class paramClass);
+/*     */   
+/*     */   void checkCast() {
+/*  99 */     this.clazz = ((Class)readValue(Object.class));
+/*     */   }
+/*     */   
+/*     */   void pop() {
+/* 103 */     readValue(Object.class);
+/*     */   }
+/*     */   
+/*     */   Class ternaryOpStore(String subtypeName) throws ClassNotFoundException {
+/* 107 */     Class subtype = subtypeName == null ? Object.class : Class.forName(subtypeName);
+/* 108 */     return subtype;
+/*     */   }
+/*     */   
+/*     */   static native void print(Class paramClass);
+/*     */   
+/*     */   Class dupStore(Class c) {
+/*     */     Class tmp;
+/* 115 */     return tmp = c == (tmp = Object.class) ? (tmp = Integer.TYPE) : (tmp = Long.TYPE);
+/*     */   }
+/*     */   
+/*     */   Object anonymous() {
+/* 119 */     AccessController.doPrivileged(new PrivilegedAction() {
+/*     */       public Object run() {
+/* 121 */         return Object.class;
+/*     */       }
+/*     */     });
+/*     */   }
+/*     */ }
