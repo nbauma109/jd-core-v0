@@ -9,22 +9,27 @@
 /*    */ 
 /*    */ 
 /*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
 /*    */ public class MonitorSynchronized
 /*    */ {
 /*    */   private volatile Object resource;
 /*    */   
 /*    */   public Object getResource()
 /*    */   {
-/* 18 */     Object localResource = this.resource;
-/* 19 */     if (localResource == null) {
-/* 20 */       synchronized (this) {
-/* 21 */         localResource = this.resource;
-/* 22 */         if (localResource == null) {
-/* 23 */           this.resource = (localResource = new Object());
+/* 23 */     Object localResource = this.resource;
+/* 24 */     if (localResource == null) {
+/* 25 */       synchronized (this) {
+/* 26 */         localResource = this.resource;
+/* 27 */         if (localResource == null) {
+/* 28 */           this.resource = (localResource = new Object());
 /*    */         }
 /*    */       }
 /*    */     }
-/* 27 */     return localResource;
+/* 32 */     return localResource;
 /*    */   }
 /*    */   
 /*    */ 
@@ -32,12 +37,12 @@
 /*    */ 
 /*    */   void navigate()
 /*    */   {
-/* 35 */     Map m = Collections.synchronizedMap(new HashMap());
-/* 36 */     Set s = m.keySet();
-/* 37 */     synchronized (m) {
-/* 38 */       Iterator i = s.iterator();
-/* 39 */       while (i.hasNext()) {
-/* 40 */         System.out.println(i.next());
+/* 40 */     Map m = Collections.synchronizedMap(new HashMap());
+/* 41 */     Set s = m.keySet();
+/* 42 */     synchronized (m) {
+/* 43 */       Iterator i = s.iterator();
+/* 44 */       while (i.hasNext()) {
+/* 45 */         System.out.println(i.next());
 /*    */       }
 /*    */     }
 /*    */   }
