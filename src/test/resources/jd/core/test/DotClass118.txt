@@ -1,0 +1,115 @@
+/*     */ package jd.core.test;
+/*     */ 
+/*     */ import java.io.Serializable;
+/*     */ 
+/*     */ public class DotClass118
+/*     */ {
+/*     */   Class clazz;
+/*     */   static Class staticClass;
+/*   9 */   static final Class CONST = Object.class;
+/*  10 */   static final Class ARRAY_CONST = new Object[0];
+/*     */   
+/*     */   static class Inner {
+/*     */     boolean check(String className) throws ClassNotFoundException {
+/*  14 */       return Object.class.equals(Class.forName(className));
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   boolean getField() {
+/*  19 */     return this.clazz.equals(Object.class);
+/*     */   }
+/*     */   
+/*     */   boolean preInc(Object[] array, int i) {
+/*  23 */     return array[(++i)] == Object.class;
+/*     */   }
+/*     */   
+/*     */   boolean postInc(Object[] array, int i) {
+/*  27 */     return array[(i++)] == Object.class;
+/*     */   }
+/*     */   
+/*     */   boolean arrayLoad(Object[] array) {
+/*  31 */     return array[0].getClass() == Object.class;
+/*     */   }
+/*     */   
+/*     */   Class xReturn() {
+/*  35 */     return Object.class;
+/*     */   }
+/*     */   
+/*     */   Class ldc(int dim) {
+/*  39 */     return dim == 0 ? CONST : ARRAY_CONST;
+/*     */   }
+/*     */   
+/*     */   void putField() {
+/*  43 */     this.clazz = Object.class;
+/*     */   }
+/*     */   
+/*     */   void putStatic() {
+/*  47 */     staticClass = Object.class;
+/*     */   }
+/*     */   
+/*     */   void aThrow() {
+/*  51 */     throw new RuntimeException(String.valueOf(String.valueOf(Object.class)));
+/*     */   }
+/*     */   
+/*     */   Class instanceOf(Class c) {
+/*  55 */     if ((Object.class instanceof Class)) {
+/*  56 */       return c;
+/*     */     }
+/*  58 */     return null;
+/*     */   }
+/*     */   
+/*     */   Class ifCmp(Class c) {
+/*  62 */     if (Object.class == c)
+/*  63 */       return c;
+/*  64 */     if (c == Object.class) {
+/*  65 */       return c;
+/*     */     }
+/*  67 */     return null;
+/*     */   }
+/*     */   
+/*     */   void aStore() {
+/*  71 */     Class c = Object.class;
+/*     */   }
+/*     */   
+/*     */   Object aaStore() {
+/*  75 */     return new Class[] { new String[0].getClass() };
+/*     */   }
+/*     */   
+/*     */   int unaryOp() {
+/*  79 */     return -Object.class.hashCode();
+/*     */   }
+/*     */   
+/*     */   int binaryOp() {
+/*  83 */     return Object.class.hashCode() + Object.class.hashCode();
+/*     */   }
+/*     */   
+/*     */   void invokeStatic() {
+/*  87 */     print(Object.class);
+/*     */   }
+/*     */   
+/*     */   void invokeVirtual() {
+/*  91 */     System.out.println(Object.class);
+/*     */   }
+/*     */   
+/*     */   void checkCast() {
+/*  95 */     this.clazz = ((Class)readValue(Object.class));
+/*     */   }
+/*     */   
+/*     */   void pop() {
+/*  99 */     readValue(Object.class);
+/*     */   }
+/*     */   
+/*     */   Class ternaryOpStore(String subtypeName) throws ClassNotFoundException {
+/* 103 */     Class subtype = subtypeName == null ? Object.class : Class.forName(subtypeName);
+/* 104 */     return subtype;
+/*     */   }
+/*     */   
+/*     */   Class dupStore(Class c) {
+/*     */     Class tmp;
+/* 109 */     return tmp = c == (tmp = Object.class) ? (tmp = Integer.TYPE) : (tmp = Long.TYPE);
+/*     */   }
+/*     */   
+/*     */   static native void print(Class paramClass);
+/*     */   
+/*     */   static native Serializable readValue(Class paramClass);
+/*     */ }

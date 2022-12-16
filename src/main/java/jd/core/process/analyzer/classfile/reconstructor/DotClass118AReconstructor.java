@@ -308,31 +308,34 @@ public final class DotClass118AReconstructor
 
             // Recherche de l'attribut statique et ajout de l'attribut SYNTHETIC
             Field[] fields = classFile.getFields();
-            int j = fields.length;
-
-            while (j-- > 0)
-            {
-                Field field = fields[j];
-
-                if (field.getNameIndex() == cnatField.getNameIndex())
+            if (fields != null) {
+                int j = fields.length;
+    
+                while (j-- > 0)
                 {
-                    field.setAccessFlags(field.getAccessFlags() | Const.ACC_SYNTHETIC);
-                    break;
+                    Field field = fields[j];
+    
+                    if (field.getNameIndex() == cnatField.getNameIndex())
+                    {
+                        field.setAccessFlags(field.getAccessFlags() | Const.ACC_SYNTHETIC);
+                        break;
+                    }
                 }
             }
-
             // Recherche de la méthode statique et ajout de l'attribut SYNTHETIC
             Method[] methods = classFile.getMethods();
-            j = methods.length;
-
-            while (j-- > 0)
-            {
-                Method method = methods[j];
-
-                if (method.getNameIndex() == cnatMethod.getNameIndex())
+            if (methods != null) {
+                int j = methods.length;
+    
+                while (j-- > 0)
                 {
-                    method.setAccessFlags(method.getAccessFlags() | Const.ACC_SYNTHETIC);
-                    break;
+                    Method method = methods[j];
+    
+                    if (method.getNameIndex() == cnatMethod.getNameIndex())
+                    {
+                        method.setAccessFlags(method.getAccessFlags() | Const.ACC_SYNTHETIC);
+                        break;
+                    }
                 }
             }
         }
