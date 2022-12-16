@@ -114,6 +114,8 @@ import jd.core.process.layouter.visitor.MinMaxLineNumberVisitor.MinMaxLineNumber
 import jd.core.util.IntSet;
 import jd.core.util.SignatureUtil;
 
+import static org.jd.core.v1.util.StringConstants.INTERNAL_OBJECT_SIGNATURE;
+
 /**
  *    Analyze
  *       |
@@ -1224,7 +1226,7 @@ public final class FastInstructionListBuilder {
                 String returnedSignature =
                     ri.getValueref().getReturnedSignature(constants, localVariables);
 
-                if (StringConstants.INTERNAL_OBJECT_SIGNATURE.equals(returnedSignature) && ! StringConstants.INTERNAL_OBJECT_SIGNATURE.equals(methodReturnedSignature))
+                if (INTERNAL_OBJECT_SIGNATURE.equals(returnedSignature) && ! INTERNAL_OBJECT_SIGNATURE.equals(methodReturnedSignature))
                 {
                     signatureIndex = constants.addConstantUtf8(methodReturnedSignature);
 
@@ -1336,7 +1338,7 @@ public final class FastInstructionListBuilder {
         // StoreReturnAnalyzer.Cleanup(list, localVariables);
 
         // Add local variable declarations
-        Set<FastDeclaration> outerDeclarations = addDeclarations(list, localVariables, beforeListOffset, addDeclarations, classFile.getConstantPool());
+        Set<FastDeclaration> outerDeclarations = addDeclarations(list, localVariables, beforeListOffset, addDeclarations, classFile);
 
         // Remove 'goto' jumping on next instruction
         // A VALIDER A LONG TERME.
@@ -1474,7 +1476,7 @@ public final class FastInstructionListBuilder {
      * non encore déclarées et dont la portée est incluse à  la liste courante,
      * on declare les variables en début de bloc.
      */
-    private static Set<FastDeclaration> addDeclarations(List<Instruction> list, LocalVariables localVariables, int beforeListOffset, boolean addDeclarations, ConstantPool cp) {
+    private static Set<FastDeclaration> addDeclarations(List<Instruction> list, LocalVariables localVariables, int beforeListOffset, boolean addDeclarations, ClassFile classFile) {
 
         Set<FastDeclaration> outerDeclarations = new HashSet<>();
         
@@ -1561,11 +1563,17 @@ public final class FastInstructionListBuilder {
             for (int i = 0; i < lvLength; i++) {
                 lv = localVariables.getLocalVariableAt(i);
                 if (lv.hasDeclarationFlag() == NOT_DECLARED && !lv.isToBeRemoved() && beforeListOffset < lv.getStartPc()
-                        && lv.getStartPc() + lv.getLength() - 1 <= lastOffset && !StringConstants.INTERNAL_OBJECT_SIGNATURE.equals(lv.getName(cp))) {
+                        && lv.getStartPc() + lv.getLength() - 1 <= lastOffset && !INTERNAL_OBJECT_SIGNATURE.equals(lv.getName(classFile.getConstantPool()))) {
                     int indexForNewDeclaration = InstructionUtil.getIndexForOffset(list, lv.getStartPc());
                     if (indexForNewDeclaration == -1) {
                         // 'startPc' offset not found
                         indexForNewDeclaration = 0;
+                    }
+                    if (classFile.getMajorVersion() == Const.MAJOR_1_1 && lv.getLength() == 1 && lv.getStartPc() == lastOffset) {
+                        /*
+                         * workaround broken local variable table for JDK 1.1
+                         */
+                        continue;
                     }
                     FastDeclaration fastDeclaration = new FastDeclaration(FastConstants.DECLARE, lv.getStartPc(),
                             Instruction.UNKNOWN_LINE_NUMBER, lv, null);
