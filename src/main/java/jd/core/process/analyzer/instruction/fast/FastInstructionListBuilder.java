@@ -27,12 +27,15 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static org.jd.core.v1.util.StringConstants.INTERNAL_OBJECT_SIGNATURE;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
@@ -109,12 +112,11 @@ import jd.core.process.analyzer.instruction.fast.reconstructor.RemoveDupConstant
 import jd.core.process.analyzer.instruction.fast.reconstructor.TernaryOpInReturnReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.TernaryOpReconstructor;
 import jd.core.process.analyzer.util.InstructionUtil;
+import jd.core.process.layouter.visitor.MaxLineNumberVisitor;
 import jd.core.process.layouter.visitor.MinMaxLineNumberVisitor;
 import jd.core.process.layouter.visitor.MinMaxLineNumberVisitor.MinMaxLineNumber;
 import jd.core.util.IntSet;
 import jd.core.util.SignatureUtil;
-
-import static org.jd.core.v1.util.StringConstants.INTERNAL_OBJECT_SIGNATURE;
 
 /**
  *    Analyze
@@ -1005,6 +1007,10 @@ public final class FastInstructionListBuilder {
         // Reduce lists of instructions
         FastCodeExceptionAnalyzer.formatFastTry(localVariables, fce, fastTry, returnOffset);
 
+        if (classFile.getMajorVersion() == Const.MAJOR_1_1) {
+            cleanUpJDK118Try(fastTry.getInstructions());
+        }
+
         // Analyze lists of instructions
         executeReconstructors(referenceMap, classFile, tryInstructions, localVariables);
 
@@ -1082,6 +1088,18 @@ public final class FastInstructionListBuilder {
         }
     }
 
+
+    private static void cleanUpJDK118Try(List<Instruction> instructions) {
+        int maxLineNumber = Integer.MIN_VALUE;
+        for (Iterator<Instruction> iterator = instructions.iterator(); iterator.hasNext();) {
+            Instruction instruction = iterator.next();
+            if (instruction.getLineNumber() > 0 && instruction.getLineNumber() < maxLineNumber) {
+                iterator.remove();
+            }
+            maxLineNumber = Math.max(maxLineNumber, MaxLineNumberVisitor.visit(instruction));
+        }
+        
+    }
 
     private static ExceptionLoad searchExceptionLoadInstruction(List<Instruction> instructions) {
         int length = instructions.size();

@@ -1,0 +1,35 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ public class TryCatchFinallyClassForTest
+/*    */ {
+/*    */   native void inTry();
+/*    */   
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */   int trySynchronized1(Object o)
+/*    */     throws Exception
+/*    */   {
+/*    */     try
+/*    */     {
+/* 27 */       synchronized (o) {
+/* 28 */         inTry();
+/* 29 */         int i = 2;return i;
+/*    */       }
+/*    */     } catch (Exception e) {
+/* 32 */       throw e;
+/*    */     }
+/*    */   }
+/*    */ }

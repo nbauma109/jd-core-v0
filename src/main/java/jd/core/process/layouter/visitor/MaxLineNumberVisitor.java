@@ -56,6 +56,7 @@ import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
 import jd.core.model.instruction.fast.FastConstants;
 import jd.core.model.instruction.fast.instruction.FastDeclaration;
+import jd.core.model.instruction.fast.instruction.FastSynchronized;
 
 public final class MaxLineNumberVisitor
 {
@@ -250,6 +251,12 @@ public final class MaxLineNumberVisitor
             break;
         case ByteCodeConstants.TERNARYOP:
             maxLineNumber = visit(((TernaryOperator)instruction).getValue2());
+            break;
+        case FastConstants.SYNCHRONIZED:
+            List<Instruction> instructions = ((FastSynchronized)instruction).getInstructions();
+            if (instructions != null && !instructions.isEmpty()) {
+                maxLineNumber = visit(instructions.get(instructions.size() - 1));
+            }
             break;
         }
 
