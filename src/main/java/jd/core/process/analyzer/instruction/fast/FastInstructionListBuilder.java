@@ -1098,7 +1098,6 @@ public final class FastInstructionListBuilder {
             }
             maxLineNumber = Math.max(maxLineNumber, MaxLineNumberVisitor.visit(instruction));
         }
-        
     }
 
     private static ExceptionLoad searchExceptionLoadInstruction(List<Instruction> instructions) {
