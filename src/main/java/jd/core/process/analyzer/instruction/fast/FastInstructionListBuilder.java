@@ -1103,6 +1103,17 @@ public final class FastInstructionListBuilder {
         }
         // Store new FastTry instruction
         list.set(index + 1, fastTry);
+        if (index >= 0) {
+            Instruction instruction = list.get(index);
+            if (instruction instanceof AStore) {
+                AStore astore = (AStore) instruction;
+                LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(astore.getIndex(), astore.getOffset());
+                if (lv != null && lv.getTryResources() == fastTry) {
+                    fastTry.addResource(astore, lv);
+                    list.remove(index);
+                }
+            }
+        }
         list.removeIf(Objects::isNull);
         if (!instructionsToMove.isEmpty()) {
             list.addAll(index + 2, instructionsToMove);
