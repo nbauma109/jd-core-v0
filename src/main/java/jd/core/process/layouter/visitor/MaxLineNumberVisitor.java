@@ -251,6 +251,13 @@ public final class MaxLineNumberVisitor
         case ByteCodeConstants.TERNARYOP:
             maxLineNumber = visit(((TernaryOperator)instruction).getValue2());
             break;
+//        TODO check whether this necessary
+//        case FastConstants.SYNCHRONIZED:
+//            List<Instruction> instructions = ((FastSynchronized)instruction).getInstructions();
+//            if (instructions != null && !instructions.isEmpty()) {
+//                maxLineNumber = visit(instructions.get(instructions.size() - 1));
+//            }
+//            break;
         }
 
         // Autre curieux bug : les constantes finales passees en parametres

@@ -1,0 +1,41 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.io.PrintStream;
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ public class EmptySynchronizedBlock
+/*    */ {
+/*    */   boolean contentEquals(StringBuffer paramStringBuffer)
+/*    */     throws Throwable
+/*    */   {
+/*    */     try
+/*    */     {
+/* 16 */       synchronized (this) {}
+/*    */       
+/* 18 */       return contentEquals(paramStringBuffer);
+/*    */     } catch (Throwable localObject) {
+/* 20 */       throw localObject;
+/*    */     }
+/*    */   }
+/*    */   
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */   void trySynchronized()
+/*    */     throws Throwable
+/*    */   {
+/*    */     try
+/*    */     {
+/* 33 */       System.out.println("start");
+/* 34 */       Object localTestSynchronize = this;
+/* 35 */       synchronized (localTestSynchronize) {}
+/*    */     }
+/*    */     catch (Throwable localObject) {
+/* 38 */       throw localObject;
+/*    */     }
+/*    */   }
+/*    */ }

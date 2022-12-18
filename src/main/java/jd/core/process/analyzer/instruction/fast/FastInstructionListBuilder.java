@@ -34,6 +34,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static org.jd.core.v1.util.StringConstants.INTERNAL_OBJECT_SIGNATURE;
+
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariable;
@@ -74,6 +76,7 @@ import jd.core.model.instruction.bytecode.instruction.LookupSwitch;
 import jd.core.model.instruction.bytecode.instruction.MonitorEnter;
 import jd.core.model.instruction.bytecode.instruction.MonitorExit;
 import jd.core.model.instruction.bytecode.instruction.Return;
+import jd.core.model.instruction.bytecode.instruction.ReturnAddressLoad;
 import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.Switch;
@@ -113,8 +116,6 @@ import jd.core.process.layouter.visitor.MinMaxLineNumberVisitor;
 import jd.core.process.layouter.visitor.MinMaxLineNumberVisitor.MinMaxLineNumber;
 import jd.core.util.IntSet;
 import jd.core.util.SignatureUtil;
-
-import static org.jd.core.v1.util.StringConstants.INTERNAL_OBJECT_SIGNATURE;
 
 /**
  *    Analyze
@@ -1005,6 +1006,32 @@ public final class FastInstructionListBuilder {
         // Reduce lists of instructions
         FastCodeExceptionAnalyzer.formatFastTry(localVariables, fce, fastTry, returnOffset);
 
+        if (classFile.getMajorVersion() == Const.MAJOR_1_1 && tryInstructions.size() >= 4) {
+            int length = tryInstructions.size() - 1;
+            // Remove last 'ret' instruction in try block
+            Instruction last = tryInstructions.get(length);
+            if (last.getOpcode() == Const.RET) {
+                tryInstructions.remove(length);
+                last = tryInstructions.get(--length);
+                // Skip MONITOREXIT
+                if (last.getOpcode() == Const.MONITOREXIT) {
+                    last = tryInstructions.get(--length);
+                }
+                // Remove 'astore' instruction (returnAddress) in try block
+                if (last instanceof AStore && ((AStore)last).getValueref() instanceof ReturnAddressLoad) {
+                    tryInstructions.remove(length);
+                    last = tryInstructions.get(--length);
+                }
+                // Remove 'athrow' instruction in try block
+                if (last instanceof AThrow && ((AThrow)last).getValue() instanceof ExceptionLoad) {
+                    ExceptionLoad exceptionLoad = (ExceptionLoad) ((AThrow)last).getValue();
+                    if (exceptionLoad.getExceptionNameIndex() == 0) {
+                        tryInstructions.remove(length);
+                    }
+                }
+            }
+        }
+        
         // Analyze lists of instructions
         executeReconstructors(referenceMap, classFile, tryInstructions, localVariables);
 
@@ -1081,7 +1108,6 @@ public final class FastInstructionListBuilder {
             list.addAll(index + 2, instructionsToMove);
         }
     }
-
 
     private static ExceptionLoad searchExceptionLoadInstruction(List<Instruction> instructions) {
         int length = instructions.size();
