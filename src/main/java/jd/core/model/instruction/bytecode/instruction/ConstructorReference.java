@@ -49,7 +49,7 @@ public class ConstructorReference extends Instruction implements SourceWriteable
 
     @Override
     public String getReturnedSignature(ConstantPool constants, LocalVariables localVariables) {
-        throw new UnsupportedOperationException();
+        return descriptor;
     }
 
     @Override

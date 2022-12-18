@@ -57,7 +57,7 @@ public class StaticMethodReference extends Instruction implements SourceWriteabl
 
     @Override
     public String getReturnedSignature(ConstantPool constants, LocalVariables localVariables) {
-        throw new UnsupportedOperationException();
+        return descriptor;
     }
 
     @Override

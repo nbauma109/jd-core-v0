@@ -1,0 +1,48 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.util.Collections;
+/*    */ import java.util.List;
+/*    */ import java.util.Set;
+/*    */ import java.util.function.BiConsumer;
+/*    */ import java.util.function.BinaryOperator;
+/*    */ import java.util.function.Function;
+/*    */ import java.util.function.Supplier;
+/*    */ import java.util.stream.Collector;
+/*    */ import java.util.stream.Collector.Characteristics;
+/*    */ 
+/*    */ 
+/*    */ public class ArrayCollector<O>
+/*    */   implements Collector<O, List<O>, O[]>
+/*    */ {
+/*    */   final Class<O> elementType;
+/*    */   
+/*    */   public ArrayCollector(Class<O> elementType)
+/*    */   {
+/* 21 */     this.elementType = elementType;
+/*    */   }
+/*    */   
+/*    */   public BiConsumer<List<O>, O> accumulator()
+/*    */   {
+/* 26 */     return List::add;
+/*    */   }
+/*    */   
+/*    */   public Set<Collector.Characteristics> characteristics()
+/*    */   {
+/* 31 */     return Collections.emptySet();
+/*    */   }
+/*    */   
+/*    */   public BinaryOperator<List<O>> combiner()
+/*    */   {
+/* 36 */     throw new UnsupportedOperationException();
+/*    */   }
+/*    */   
+/*    */   public Function<List<O>, O[]> finisher()
+/*    */   {
+/* 41 */     throw new UnsupportedOperationException();
+/*    */   }
+/*    */   
+/*    */   public Supplier<List<O>> supplier()
+/*    */   {
+/* 46 */     return ArrayList::new;
+/*    */   }
+/*    */ }
