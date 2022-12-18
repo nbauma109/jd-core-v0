@@ -1,0 +1,19 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.io.InputStream;
+/*    */ import java.nio.file.OpenOption;
+/*    */ import java.nio.file.Path;
+/*    */ 
+/*    */ public class PathUtils
+/*    */ {
+/*    */   public static boolean fileContentEquals(Path path1, Path path2, OpenOption[] openOptions) throws java.io.IOException
+/*    */   {
+/* 11 */     try (InputStream inputStream1 = java.nio.file.Files.newInputStream(path1, openOptions);
+/* 12 */     InputStream inputStream2 = java.nio.file.Files.newInputStream(path2, openOptions);) {
+/* 13 */       return contentEquals(inputStream1, inputStream2);
+/*    */     }
+/*    */     
+/*    */   }
+/*    */   
+/*    */   static native boolean contentEquals(InputStream paramInputStream1, InputStream paramInputStream2);
+/*    */ }
