@@ -234,25 +234,6 @@ public class FastTry extends FastList {
                 }
             }
         }
-        if (instructions.size() > 1) {
-            for (int i = 0; i < instructions.size() - 1; i++) {
-                Instruction instr1 = instructions.get(i);
-                Instruction instr2 = instructions.get(i + 1);
-                if (instr1 instanceof AStore && instr2 instanceof FastTry) {
-                    AStore aStore1 = (AStore) instr1;
-                    FastTry nestedTry = (FastTry)instr2;
-                    LocalVariable lv1 = localVariables.getLocalVariableWithIndexAndOffset(aStore1.getIndex(), aStore1.getOffset());
-                    FastTry tryResources = lv1.getTryResources();
-                    if (!(aStore1.getValueref() instanceof AConstNull) && tryResources != null) {
-                        instructions.remove(i);
-                        nestedTry.processTryResources(localVariables, cp);
-                        tryResources.addResource(aStore1, lv1);
-                        processed = true;
-                        i--;
-                    }
-                }
-            }
-        }
         if (instructions.size() == 1) {
             Iterator<Instruction> iterator = instructions.iterator();
             Instruction instruction = iterator.next();
