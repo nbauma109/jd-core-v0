@@ -27,7 +27,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -77,6 +76,7 @@ import jd.core.model.instruction.bytecode.instruction.LookupSwitch;
 import jd.core.model.instruction.bytecode.instruction.MonitorEnter;
 import jd.core.model.instruction.bytecode.instruction.MonitorExit;
 import jd.core.model.instruction.bytecode.instruction.Return;
+import jd.core.model.instruction.bytecode.instruction.ReturnAddressLoad;
 import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.Switch;
@@ -112,7 +112,6 @@ import jd.core.process.analyzer.instruction.fast.reconstructor.RemoveDupConstant
 import jd.core.process.analyzer.instruction.fast.reconstructor.TernaryOpInReturnReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.TernaryOpReconstructor;
 import jd.core.process.analyzer.util.InstructionUtil;
-import jd.core.process.layouter.visitor.MaxLineNumberVisitor;
 import jd.core.process.layouter.visitor.MinMaxLineNumberVisitor;
 import jd.core.process.layouter.visitor.MinMaxLineNumberVisitor.MinMaxLineNumber;
 import jd.core.util.IntSet;
@@ -1007,10 +1006,32 @@ public final class FastInstructionListBuilder {
         // Reduce lists of instructions
         FastCodeExceptionAnalyzer.formatFastTry(localVariables, fce, fastTry, returnOffset);
 
-        if (classFile.getMajorVersion() == Const.MAJOR_1_1) {
-            cleanUpJDK118Try(fastTry.getInstructions());
+        if (classFile.getMajorVersion() == Const.MAJOR_1_1 && tryInstructions.size() >= 4) {
+            int length = tryInstructions.size() - 1;
+            // Remove last 'ret' instruction in try block
+            Instruction last = tryInstructions.get(length);
+            if (last.getOpcode() == Const.RET) {
+                tryInstructions.remove(length);
+                last = tryInstructions.get(--length);
+                // Skip MONITOREXIT
+                if (last.getOpcode() == Const.MONITOREXIT) {
+                    last = tryInstructions.get(--length);
+                }
+                // Remove 'astore' instruction (returnAddress) in try block
+                if (last instanceof AStore && ((AStore)last).getValueref() instanceof ReturnAddressLoad) {
+                    tryInstructions.remove(length);
+                    last = tryInstructions.get(--length);
+                }
+                // Remove 'athrow' instruction in try block
+                if (last instanceof AThrow && ((AThrow)last).getValue() instanceof ExceptionLoad) {
+                    ExceptionLoad exceptionLoad = (ExceptionLoad) ((AThrow)last).getValue();
+                    if (exceptionLoad.getExceptionNameIndex() == 0) {
+                        tryInstructions.remove(length);
+                    }
+                }
+            }
         }
-
+        
         // Analyze lists of instructions
         executeReconstructors(referenceMap, classFile, tryInstructions, localVariables);
 
@@ -1085,18 +1106,6 @@ public final class FastInstructionListBuilder {
         list.removeIf(Objects::isNull);
         if (!instructionsToMove.isEmpty()) {
             list.addAll(index + 2, instructionsToMove);
-        }
-    }
-
-
-    private static void cleanUpJDK118Try(List<Instruction> instructions) {
-        int maxLineNumber = Integer.MIN_VALUE;
-        for (Iterator<Instruction> iterator = instructions.iterator(); iterator.hasNext();) {
-            Instruction instruction = iterator.next();
-            if (instruction.getLineNumber() > 0 && instruction.getLineNumber() < maxLineNumber) {
-                iterator.remove();
-            }
-            maxLineNumber = Math.max(maxLineNumber, MaxLineNumberVisitor.visit(instruction));
         }
     }
 
