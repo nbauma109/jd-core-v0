@@ -60,7 +60,7 @@ import jd.core.process.analyzer.util.InstructionUtil;
 import jd.core.util.IntSet;
 import jd.core.util.UtilConstants;
 
-/** Aglomeration des informations 'CodeException'. */
+/** Agglomeration des informations 'CodeException'. */
 public final class FastCodeExceptionAnalyzer
 {
     private FastCodeExceptionAnalyzer() {

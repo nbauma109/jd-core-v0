@@ -9,6 +9,7 @@ import static org.junit.Assert.assertEquals;
 
 /*
  * Test for exception aggregation.
+ * FastCodeExceptionAnalyzer.aggregateCodeExceptions().
  */
 public class EventUtilsTest extends AbstractTestCase {
     @Test
