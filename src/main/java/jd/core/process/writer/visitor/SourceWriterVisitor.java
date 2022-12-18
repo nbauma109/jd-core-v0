@@ -1922,7 +1922,7 @@ public class SourceWriterVisitor
         int nextOffset = this.previousOffset + 1;
 
         if (this.firstOffset <= this.previousOffset &&
-            nextOffset <= this.lastOffset)
+            (nextOffset <= this.lastOffset || this.lastOffset == 0))
         {
             int lineNumber = invokestatic.getLineNumber();
 
@@ -2004,7 +2004,7 @@ public class SourceWriterVisitor
             int nextOffset = this.previousOffset + 1;
 
             if (this.firstOffset <= this.previousOffset &&
-                nextOffset <= this.lastOffset) {
+                (nextOffset <= this.lastOffset || this.lastOffset == 0)) {
                 this.printer.print(lineNumber, "()");
             }
         }
