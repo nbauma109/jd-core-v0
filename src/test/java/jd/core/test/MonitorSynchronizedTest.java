@@ -12,6 +12,13 @@ import static org.junit.Assert.assertEquals;
 public class MonitorSynchronizedTest extends AbstractTestCase {
 
     @Test
+    public void test() throws Exception {
+        String internalClassName = "jd/core/test/MonitorSynchronized";
+        String output = decompile(internalClassName);
+        assertEquals(IOUtils.toString(getClass().getResource("MonitorSynchronized.txt"), StandardCharsets.UTF_8), output);
+    }
+
+    @Test
     public void testJikes() throws Exception {
         try (InputStream in = getClass().getResourceAsStream("/monitor-synchronized-jikes-1.22.jar")) {
             ZipLoader loader = new ZipLoader(in);
@@ -30,7 +37,7 @@ public class MonitorSynchronizedTest extends AbstractTestCase {
             assertEquals(IOUtils.toString(getClass().getResource("MonitorSynchronized.txt"), StandardCharsets.UTF_8), output);
         }
     }
-    
+
     @Test
     public void testJavac131() throws Exception {
         try (InputStream in = getClass().getResourceAsStream("/monitor-synchronized-jdk1.3.1_28.jar")) {
