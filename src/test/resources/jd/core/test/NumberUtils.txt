@@ -1,0 +1,1832 @@
+/*      */ package org.apache.commons.lang3.math;
+/*      */ 
+/*      */ import java.lang.reflect.Array;
+/*      */ import java.math.BigDecimal;
+/*      */ import java.math.BigInteger;
+/*      */ import java.math.RoundingMode;
+/*      */ import org.apache.commons.lang3.StringUtils;
+/*      */ import org.apache.commons.lang3.Validate;
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ public class NumberUtils
+/*      */ {
+/*   35 */   public static final Long LONG_ZERO = Long.valueOf(0L);
+/*      */   
+/*   37 */   public static final Long LONG_ONE = Long.valueOf(1L);
+/*      */   
+/*   39 */   public static final Long LONG_MINUS_ONE = Long.valueOf(-1L);
+/*      */   
+/*   41 */   public static final Integer INTEGER_ZERO = Integer.valueOf(0);
+/*      */   
+/*   43 */   public static final Integer INTEGER_ONE = Integer.valueOf(1);
+/*      */   
+/*   45 */   public static final Integer INTEGER_TWO = Integer.valueOf(2);
+/*      */   
+/*   47 */   public static final Integer INTEGER_MINUS_ONE = Integer.valueOf(-1);
+/*      */   
+/*   49 */   public static final Short SHORT_ZERO = Short.valueOf((short)0);
+/*      */   
+/*   51 */   public static final Short SHORT_ONE = Short.valueOf((short)1);
+/*      */   
+/*   53 */   public static final Short SHORT_MINUS_ONE = Short.valueOf((short)-1);
+/*      */   
+/*   55 */   public static final Byte BYTE_ZERO = Byte.valueOf((byte)0);
+/*      */   
+/*   57 */   public static final Byte BYTE_ONE = Byte.valueOf((byte)1);
+/*      */   
+/*   59 */   public static final Byte BYTE_MINUS_ONE = Byte.valueOf((byte)-1);
+/*      */   
+/*   61 */   public static final Double DOUBLE_ZERO = Double.valueOf(0.0D);
+/*      */   
+/*   63 */   public static final Double DOUBLE_ONE = Double.valueOf(1.0D);
+/*      */   
+/*   65 */   public static final Double DOUBLE_MINUS_ONE = Double.valueOf(-1.0D);
+/*      */   
+/*   67 */   public static final Float FLOAT_ZERO = Float.valueOf(0.0F);
+/*      */   
+/*   69 */   public static final Float FLOAT_ONE = Float.valueOf(1.0F);
+/*      */   
+/*   71 */   public static final Float FLOAT_MINUS_ONE = Float.valueOf(-1.0F);
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*   78 */   public static final Long LONG_INT_MAX_VALUE = Long.valueOf(2147483647L);
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*   85 */   public static final Long LONG_INT_MIN_VALUE = Long.valueOf(-2147483648L);
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static int toInt(String str)
+/*      */   {
+/*  117 */     return toInt(str, 0);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static int toInt(String str, int defaultValue)
+/*      */   {
+/*  138 */     if (str == null) {
+/*  139 */       return defaultValue;
+/*      */     }
+/*      */     try {
+/*  142 */       return Integer.parseInt(str);
+/*      */     } catch (NumberFormatException nfe) {}
+/*  144 */     return defaultValue;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static long toLong(String str)
+/*      */   {
+/*  166 */     return toLong(str, 0L);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static long toLong(String str, long defaultValue)
+/*      */   {
+/*  187 */     if (str == null) {
+/*  188 */       return defaultValue;
+/*      */     }
+/*      */     try {
+/*  191 */       return Long.parseLong(str);
+/*      */     } catch (NumberFormatException nfe) {}
+/*  193 */     return defaultValue;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static float toFloat(String str)
+/*      */   {
+/*  216 */     return toFloat(str, 0.0F);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static float toFloat(String str, float defaultValue)
+/*      */   {
+/*  239 */     if (str == null) {
+/*  240 */       return defaultValue;
+/*      */     }
+/*      */     try {
+/*  243 */       return Float.parseFloat(str);
+/*      */     } catch (NumberFormatException nfe) {}
+/*  245 */     return defaultValue;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static double toDouble(String str)
+/*      */   {
+/*  268 */     return toDouble(str, 0.0D);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static double toDouble(String str, double defaultValue)
+/*      */   {
+/*  291 */     if (str == null) {
+/*  292 */       return defaultValue;
+/*      */     }
+/*      */     try {
+/*  295 */       return Double.parseDouble(str);
+/*      */     } catch (NumberFormatException nfe) {}
+/*  297 */     return defaultValue;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static double toDouble(BigDecimal value)
+/*      */   {
+/*  318 */     return toDouble(value, 0.0D);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static double toDouble(BigDecimal value, double defaultValue)
+/*      */   {
+/*  339 */     return value == null ? defaultValue : value.doubleValue();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static byte toByte(String str)
+/*      */   {
+/*  361 */     return toByte(str, (byte)0);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static byte toByte(String str, byte defaultValue)
+/*      */   {
+/*  382 */     if (str == null) {
+/*  383 */       return defaultValue;
+/*      */     }
+/*      */     try {
+/*  386 */       return Byte.parseByte(str);
+/*      */     } catch (NumberFormatException nfe) {}
+/*  388 */     return defaultValue;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static short toShort(String str)
+/*      */   {
+/*  410 */     return toShort(str, (short)0);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static short toShort(String str, short defaultValue)
+/*      */   {
+/*  431 */     if (str == null) {
+/*  432 */       return defaultValue;
+/*      */     }
+/*      */     try {
+/*  435 */       return Short.parseShort(str);
+/*      */     } catch (NumberFormatException nfe) {}
+/*  437 */     return defaultValue;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static BigDecimal toScaledBigDecimal(BigDecimal value)
+/*      */   {
+/*  454 */     return toScaledBigDecimal(value, INTEGER_TWO.intValue(), RoundingMode.HALF_EVEN);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static BigDecimal toScaledBigDecimal(BigDecimal value, int scale, RoundingMode roundingMode)
+/*      */   {
+/*  470 */     if (value == null) {
+/*  471 */       return BigDecimal.ZERO;
+/*      */     }
+/*  473 */     return value.setScale(scale, roundingMode == null ? RoundingMode.HALF_EVEN : roundingMode);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static BigDecimal toScaledBigDecimal(Float value)
+/*      */   {
+/*  492 */     return toScaledBigDecimal(value, INTEGER_TWO.intValue(), RoundingMode.HALF_EVEN);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static BigDecimal toScaledBigDecimal(Float value, int scale, RoundingMode roundingMode)
+/*      */   {
+/*  508 */     if (value == null) {
+/*  509 */       return BigDecimal.ZERO;
+/*      */     }
+/*  511 */     return toScaledBigDecimal(
+/*  512 */       BigDecimal.valueOf(value.floatValue()), scale, roundingMode);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static BigDecimal toScaledBigDecimal(Double value)
+/*      */   {
+/*  531 */     return toScaledBigDecimal(value, INTEGER_TWO.intValue(), RoundingMode.HALF_EVEN);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static BigDecimal toScaledBigDecimal(Double value, int scale, RoundingMode roundingMode)
+/*      */   {
+/*  547 */     if (value == null) {
+/*  548 */       return BigDecimal.ZERO;
+/*      */     }
+/*  550 */     return toScaledBigDecimal(
+/*  551 */       BigDecimal.valueOf(value.doubleValue()), scale, roundingMode);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static BigDecimal toScaledBigDecimal(String value)
+/*      */   {
+/*  570 */     return toScaledBigDecimal(value, INTEGER_TWO.intValue(), RoundingMode.HALF_EVEN);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static BigDecimal toScaledBigDecimal(String value, int scale, RoundingMode roundingMode)
+/*      */   {
+/*  586 */     if (value == null) {
+/*  587 */       return BigDecimal.ZERO;
+/*      */     }
+/*  589 */     return toScaledBigDecimal(
+/*  590 */       createBigDecimal(value), scale, roundingMode);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static Number createNumber(String str)
+/*      */   {
+/*  664 */     if (str == null) {
+/*  665 */       return null;
+/*      */     }
+/*  667 */     if (StringUtils.isBlank(str)) {
+/*  668 */       throw new NumberFormatException("A blank string is not a valid number");
+/*      */     }
+/*      */     
+/*  671 */     String[] hex_prefixes = { "0x", "0X", "-0x", "-0X", "#", "-#" };
+/*  672 */     int length = str.length();
+/*  673 */     int pfxLen = 0;
+/*  674 */     for (String pfx : hex_prefixes) {
+/*  675 */       if (str.startsWith(pfx)) {
+/*  676 */         pfxLen += pfx.length();
+/*  677 */         break;
+/*      */       }
+/*      */     }
+/*  680 */     if (pfxLen > 0) {
+/*  681 */       char firstSigDigit = '\000';
+/*  682 */       for (int i = pfxLen; i < length; i++) {
+/*  683 */         firstSigDigit = str.charAt(i);
+/*  684 */         if (firstSigDigit != '0') break;
+/*  685 */         pfxLen++;
+/*      */       }
+/*      */       
+/*      */ 
+/*      */ 
+/*  690 */       int hexDigits = length - pfxLen;
+/*  691 */       if ((hexDigits > 16) || ((hexDigits == 16) && (firstSigDigit > '7'))) {
+/*  692 */         return createBigInteger(str);
+/*      */       }
+/*  694 */       if ((hexDigits > 8) || ((hexDigits == 8) && (firstSigDigit > '7'))) {
+/*  695 */         return createLong(str);
+/*      */       }
+/*  697 */       return createInteger(str);
+/*      */     }
+/*  699 */     char lastChar = str.charAt(length - 1);
+/*      */     
+/*      */ 
+/*      */ 
+/*  703 */     int decPos = str.indexOf('.');
+/*  704 */     int expPos = str.indexOf('e') + str.indexOf('E') + 1;
+/*      */     
+/*      */     String mant;
+/*      */     String dec;
+/*  708 */     if (decPos > -1) {
+/*  709 */       if (expPos > -1) {
+/*  710 */         if ((expPos < decPos) || (expPos > length)) {
+/*  711 */           throw new NumberFormatException(str + " is not a valid number.");
+/*      */         }
+/*  713 */         dec = str.substring(decPos + 1, expPos);
+/*      */       } else {
+/*  715 */         dec = str.substring(decPos + 1);
+/*      */       }
+/*  717 */       mant = getMantissa(str, decPos);
+/*      */     } else {
+/*  719 */       if (expPos > -1) {
+/*  720 */         if (expPos > length) {
+/*  721 */           throw new NumberFormatException(str + " is not a valid number.");
+/*      */         }
+/*  723 */         mant = getMantissa(str, expPos);
+/*      */       } else {
+/*  725 */         mant = getMantissa(str);
+/*      */       }
+/*  727 */       dec = null;
+/*      */     }
+/*  729 */     if ((!Character.isDigit(lastChar)) && (lastChar != '.')) { String exp;
+/*  730 */       if ((expPos > -1) && (expPos < length - 1)) {
+/*  731 */         exp = str.substring(expPos + 1, length - 1);
+/*      */       } else {
+/*  733 */         exp = null;
+/*      */       }
+/*      */       
+/*  736 */       String numeric = str.substring(0, length - 1);
+/*  737 */       boolean allZeros = (isAllZeros(mant)) && (isAllZeros(exp));
+/*  738 */       switch (lastChar) {
+/*      */       case 'L': 
+/*      */       case 'l': 
+/*  741 */         if ((dec == null) && (exp == null))
+/*      */         {
+/*  743 */           if (((!numeric.isEmpty()) && (numeric.charAt(0) == '-') && (isDigits(numeric.substring(1)))) || (isDigits(numeric)))
+/*      */             try {
+/*  745 */               return createLong(numeric);
+/*      */             }
+/*      */             catch (NumberFormatException localNumberFormatException)
+/*      */             {
+/*  749 */               return createBigInteger(numeric);
+/*      */             }
+/*      */         }
+/*  752 */         throw new NumberFormatException(str + " is not a valid number.");
+/*      */       case 'F': 
+/*      */       case 'f': 
+/*      */         try {
+/*  756 */           Float f = createFloat(str);
+/*  757 */           if ((!f.isInfinite()) && ((f.floatValue() != 0.0F) || (allZeros)))
+/*      */           {
+/*      */ 
+/*  760 */             return f;
+/*      */           }
+/*      */         }
+/*      */         catch (NumberFormatException localNumberFormatException1) {}
+/*      */       
+/*      */ 
+/*      */       case 'D': 
+/*      */       case 'd': 
+/*      */         try
+/*      */         {
+/*  770 */           Double d = createDouble(str);
+/*  771 */           if ((!d.isInfinite()) && ((d.doubleValue() != 0.0D) || (allZeros))) {
+/*  772 */             return d;
+/*      */           }
+/*      */         }
+/*      */         catch (NumberFormatException localNumberFormatException2) {}
+/*      */         try
+/*      */         {
+/*  778 */           return createBigDecimal(numeric);
+/*      */         }
+/*      */         catch (NumberFormatException localNumberFormatException3) {}
+/*      */       }
+/*      */       
+/*      */       
+/*  784 */       throw new NumberFormatException(str + " is not a valid number.");
+/*      */     }
+/*      */     
+/*      */ 
+/*      */     String exp;
+/*      */     
+/*  790 */     if ((expPos > -1) && (expPos < length - 1)) {
+/*  791 */       exp = str.substring(expPos + 1);
+/*      */     } else {
+/*  793 */       exp = null;
+/*      */     }
+/*  795 */     if ((dec == null) && (exp == null)) {
+/*      */       try
+/*      */       {
+/*  798 */         return createInteger(str);
+/*      */       }
+/*      */       catch (NumberFormatException localNumberFormatException4)
+/*      */       {
+/*      */         try {
+/*  803 */           return createLong(str);
+/*      */         }
+/*      */         catch (NumberFormatException localNumberFormatException5)
+/*      */         {
+/*  807 */           return createBigInteger(str);
+/*      */         }
+/*      */       }
+/*      */     }
+/*  811 */     boolean allZeros = (isAllZeros(mant)) && (isAllZeros(exp));
+/*      */     try {
+/*  813 */       Float f = createFloat(str);
+/*  814 */       Double d = createDouble(str);
+/*  815 */       if ((!f.isInfinite()) && 
+/*  816 */         ((f.floatValue() != 0.0F) || (allZeros)) && 
+/*  817 */         (f.toString().equals(d.toString()))) {
+/*  818 */         return f;
+/*      */       }
+/*  820 */       if ((!d.isInfinite()) && ((d.doubleValue() != 0.0D) || (allZeros))) {
+/*  821 */         BigDecimal b = createBigDecimal(str);
+/*  822 */         if (b.compareTo(BigDecimal.valueOf(d.doubleValue())) == 0) {
+/*  823 */           return d;
+/*      */         }
+/*  825 */         return b;
+/*      */       }
+/*      */     }
+/*      */     catch (NumberFormatException localNumberFormatException6) {}
+/*      */     
+/*  830 */     return createBigDecimal(str);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static String getMantissa(String str)
+/*      */   {
+/*  842 */     return getMantissa(str, str.length());
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static String getMantissa(String str, int stopPos)
+/*      */   {
+/*  855 */     char firstChar = str.charAt(0);
+/*  856 */     boolean hasSign = (firstChar == '-') || (firstChar == '+');
+/*      */     
+/*  858 */     return hasSign ? str.substring(1, stopPos) : str.substring(0, stopPos);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static boolean isAllZeros(String str)
+/*      */   {
+/*  870 */     if (str == null) {
+/*  871 */       return true;
+/*      */     }
+/*  873 */     for (int i = str.length() - 1; i >= 0; i--) {
+/*  874 */       if (str.charAt(i) != '0') {
+/*  875 */         return false;
+/*      */       }
+/*      */     }
+/*  878 */     return !str.isEmpty();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static Float createFloat(String str)
+/*      */   {
+/*  892 */     if (str == null) {
+/*  893 */       return null;
+/*      */     }
+/*  895 */     return Float.valueOf(str);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static Double createDouble(String str)
+/*      */   {
+/*  908 */     if (str == null) {
+/*  909 */       return null;
+/*      */     }
+/*  911 */     return Double.valueOf(str);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static Integer createInteger(String str)
+/*      */   {
+/*  926 */     if (str == null) {
+/*  927 */       return null;
+/*      */     }
+/*      */     
+/*  930 */     return Integer.decode(str);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static Long createLong(String str)
+/*      */   {
+/*  945 */     if (str == null) {
+/*  946 */       return null;
+/*      */     }
+/*  948 */     return Long.decode(str);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static BigInteger createBigInteger(String str)
+/*      */   {
+/*  962 */     if (str == null) {
+/*  963 */       return null;
+/*      */     }
+/*  965 */     int pos = 0;
+/*  966 */     int radix = 10;
+/*  967 */     boolean negate = false;
+/*  968 */     if (str.startsWith("-")) {
+/*  969 */       negate = true;
+/*  970 */       pos = 1;
+/*      */     }
+/*  972 */     if ((str.startsWith("0x", pos)) || (str.startsWith("0X", pos))) {
+/*  973 */       radix = 16;
+/*  974 */       pos += 2;
+/*  975 */     } else if (str.startsWith("#", pos)) {
+/*  976 */       radix = 16;
+/*  977 */       pos++;
+/*  978 */     } else if ((str.startsWith("0", pos)) && (str.length() > pos + 1)) {
+/*  979 */       radix = 8;
+/*  980 */       pos++;
+/*      */     }
+/*      */     
+/*  983 */     BigInteger value = new BigInteger(str.substring(pos), radix);
+/*  984 */     return negate ? value.negate() : value;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static BigDecimal createBigDecimal(String str)
+/*      */   {
+/*  997 */     if (str == null) {
+/*  998 */       return null;
+/*      */     }
+/*      */     
+/* 1001 */     if (StringUtils.isBlank(str)) {
+/* 1002 */       throw new NumberFormatException("A blank string is not a valid number");
+/*      */     }
+/* 1004 */     return new BigDecimal(str);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static long min(long... array)
+/*      */   {
+/* 1020 */     validateArray(array);
+/*      */     
+/*      */ 
+/* 1023 */     long min = array[0];
+/* 1024 */     for (int i = 1; i < array.length; i++) {
+/* 1025 */       if (array[i] < min) {
+/* 1026 */         min = array[i];
+/*      */       }
+/*      */     }
+/*      */     
+/* 1030 */     return min;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static int min(int... array)
+/*      */   {
+/* 1044 */     validateArray(array);
+/*      */     
+/*      */ 
+/* 1047 */     int min = array[0];
+/* 1048 */     for (int j = 1; j < array.length; j++) {
+/* 1049 */       if (array[j] < min) {
+/* 1050 */         min = array[j];
+/*      */       }
+/*      */     }
+/*      */     
+/* 1054 */     return min;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static short min(short... array)
+/*      */   {
+/* 1068 */     validateArray(array);
+/*      */     
+/*      */ 
+/* 1071 */     short min = array[0];
+/* 1072 */     for (int i = 1; i < array.length; i++) {
+/* 1073 */       if (array[i] < min) {
+/* 1074 */         min = array[i];
+/*      */       }
+/*      */     }
+/*      */     
+/* 1078 */     return min;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static byte min(byte... array)
+/*      */   {
+/* 1092 */     validateArray(array);
+/*      */     
+/*      */ 
+/* 1095 */     byte min = array[0];
+/* 1096 */     for (int i = 1; i < array.length; i++) {
+/* 1097 */       if (array[i] < min) {
+/* 1098 */         min = array[i];
+/*      */       }
+/*      */     }
+/*      */     
+/* 1102 */     return min;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static double min(double... array)
+/*      */   {
+/* 1117 */     validateArray(array);
+/*      */     
+/*      */ 
+/* 1120 */     double min = array[0];
+/* 1121 */     for (int i = 1; i < array.length; i++) {
+/* 1122 */       if (Double.isNaN(array[i])) {
+/* 1123 */         return Double.NaN;
+/*      */       }
+/* 1125 */       if (array[i] < min) {
+/* 1126 */         min = array[i];
+/*      */       }
+/*      */     }
+/*      */     
+/* 1130 */     return min;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static float min(float... array)
+/*      */   {
+/* 1145 */     validateArray(array);
+/*      */     
+/*      */ 
+/* 1148 */     float min = array[0];
+/* 1149 */     for (int i = 1; i < array.length; i++) {
+/* 1150 */       if (Float.isNaN(array[i])) {
+/* 1151 */         return Float.NaN;
+/*      */       }
+/* 1153 */       if (array[i] < min) {
+/* 1154 */         min = array[i];
+/*      */       }
+/*      */     }
+/*      */     
+/* 1158 */     return min;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static long max(long... array)
+/*      */   {
+/* 1174 */     validateArray(array);
+/*      */     
+/*      */ 
+/* 1177 */     long max = array[0];
+/* 1178 */     for (int j = 1; j < array.length; j++) {
+/* 1179 */       if (array[j] > max) {
+/* 1180 */         max = array[j];
+/*      */       }
+/*      */     }
+/*      */     
+/* 1184 */     return max;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static int max(int... array)
+/*      */   {
+/* 1198 */     validateArray(array);
+/*      */     
+/*      */ 
+/* 1201 */     int max = array[0];
+/* 1202 */     for (int j = 1; j < array.length; j++) {
+/* 1203 */       if (array[j] > max) {
+/* 1204 */         max = array[j];
+/*      */       }
+/*      */     }
+/*      */     
+/* 1208 */     return max;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static short max(short... array)
+/*      */   {
+/* 1222 */     validateArray(array);
+/*      */     
+/*      */ 
+/* 1225 */     short max = array[0];
+/* 1226 */     for (int i = 1; i < array.length; i++) {
+/* 1227 */       if (array[i] > max) {
+/* 1228 */         max = array[i];
+/*      */       }
+/*      */     }
+/*      */     
+/* 1232 */     return max;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static byte max(byte... array)
+/*      */   {
+/* 1246 */     validateArray(array);
+/*      */     
+/*      */ 
+/* 1249 */     byte max = array[0];
+/* 1250 */     for (int i = 1; i < array.length; i++) {
+/* 1251 */       if (array[i] > max) {
+/* 1252 */         max = array[i];
+/*      */       }
+/*      */     }
+/*      */     
+/* 1256 */     return max;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static double max(double... array)
+/*      */   {
+/* 1271 */     validateArray(array);
+/*      */     
+/*      */ 
+/* 1274 */     double max = array[0];
+/* 1275 */     for (int j = 1; j < array.length; j++) {
+/* 1276 */       if (Double.isNaN(array[j])) {
+/* 1277 */         return Double.NaN;
+/*      */       }
+/* 1279 */       if (array[j] > max) {
+/* 1280 */         max = array[j];
+/*      */       }
+/*      */     }
+/*      */     
+/* 1284 */     return max;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static float max(float... array)
+/*      */   {
+/* 1299 */     validateArray(array);
+/*      */     
+/*      */ 
+/* 1302 */     float max = array[0];
+/* 1303 */     for (int j = 1; j < array.length; j++) {
+/* 1304 */       if (Float.isNaN(array[j])) {
+/* 1305 */         return Float.NaN;
+/*      */       }
+/* 1307 */       if (array[j] > max) {
+/* 1308 */         max = array[j];
+/*      */       }
+/*      */     }
+/*      */     
+/* 1312 */     return max;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static void validateArray(Object array)
+/*      */   {
+/* 1322 */     Validate.notNull(array, "array", new Object[0]);
+/* 1323 */     Validate.isTrue(Array.getLength(array) != 0, "Array cannot be empty.", new Object[0]);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static long min(long a, long b, long c)
+/*      */   {
+/* 1337 */     if (b < a) {
+/* 1338 */       a = b;
+/*      */     }
+/* 1340 */     if (c < a) {
+/* 1341 */       a = c;
+/*      */     }
+/* 1343 */     return a;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static int min(int a, int b, int c)
+/*      */   {
+/* 1355 */     if (b < a) {
+/* 1356 */       a = b;
+/*      */     }
+/* 1358 */     if (c < a) {
+/* 1359 */       a = c;
+/*      */     }
+/* 1361 */     return a;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static short min(short a, short b, short c)
+/*      */   {
+/* 1373 */     if (b < a) {
+/* 1374 */       a = b;
+/*      */     }
+/* 1376 */     if (c < a) {
+/* 1377 */       a = c;
+/*      */     }
+/* 1379 */     return a;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static byte min(byte a, byte b, byte c)
+/*      */   {
+/* 1391 */     if (b < a) {
+/* 1392 */       a = b;
+/*      */     }
+/* 1394 */     if (c < a) {
+/* 1395 */       a = c;
+/*      */     }
+/* 1397 */     return a;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static double min(double a, double b, double c)
+/*      */   {
+/* 1413 */     return Math.min(Math.min(a, b), c);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static float min(float a, float b, float c)
+/*      */   {
+/* 1429 */     return Math.min(Math.min(a, b), c);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static long max(long a, long b, long c)
+/*      */   {
+/* 1443 */     if (b > a) {
+/* 1444 */       a = b;
+/*      */     }
+/* 1446 */     if (c > a) {
+/* 1447 */       a = c;
+/*      */     }
+/* 1449 */     return a;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static int max(int a, int b, int c)
+/*      */   {
+/* 1461 */     if (b > a) {
+/* 1462 */       a = b;
+/*      */     }
+/* 1464 */     if (c > a) {
+/* 1465 */       a = c;
+/*      */     }
+/* 1467 */     return a;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static short max(short a, short b, short c)
+/*      */   {
+/* 1479 */     if (b > a) {
+/* 1480 */       a = b;
+/*      */     }
+/* 1482 */     if (c > a) {
+/* 1483 */       a = c;
+/*      */     }
+/* 1485 */     return a;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static byte max(byte a, byte b, byte c)
+/*      */   {
+/* 1497 */     if (b > a) {
+/* 1498 */       a = b;
+/*      */     }
+/* 1500 */     if (c > a) {
+/* 1501 */       a = c;
+/*      */     }
+/* 1503 */     return a;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static double max(double a, double b, double c)
+/*      */   {
+/* 1519 */     return Math.max(Math.max(a, b), c);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static float max(float a, float b, float c)
+/*      */   {
+/* 1535 */     return Math.max(Math.max(a, b), c);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static boolean isDigits(String str)
+/*      */   {
+/* 1550 */     return StringUtils.isNumeric(str);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Deprecated
+/*      */   public static boolean isNumber(String str)
+/*      */   {
+/* 1580 */     return isCreatable(str);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static boolean isCreatable(String str)
+/*      */   {
+/* 1606 */     if (StringUtils.isEmpty(str)) {
+/* 1607 */       return false;
+/*      */     }
+/* 1609 */     char[] chars = str.toCharArray();
+/* 1610 */     int sz = chars.length;
+/* 1611 */     boolean hasExp = false;
+/* 1612 */     boolean hasDecPoint = false;
+/* 1613 */     boolean allowSigns = false;
+/* 1614 */     boolean foundDigit = false;
+/*      */     
+/* 1616 */     int start = (chars[0] == '-') || (chars[0] == '+') ? 1 : 0;
+/* 1617 */     if ((sz > start + 1) && (chars[start] == '0') && (!StringUtils.contains(str, 46))) {
+/* 1618 */       if ((chars[(start + 1)] == 'x') || (chars[(start + 1)] == 'X')) {
+/* 1619 */         int i = start + 2;
+/* 1620 */         if (i == sz) {
+/* 1621 */           return false;
+/*      */         }
+/* 1624 */         for (; 
+/* 1624 */             i < chars.length; i++) {
+/* 1625 */           if (((chars[i] < '0') || (chars[i] > '9')) && ((chars[i] < 'a') || (chars[i] > 'f')) && ((chars[i] < 'A') || (chars[i] > 'F')))
+/*      */           {
+/*      */ 
+/* 1628 */             return false;
+/*      */           }
+/*      */         }
+/* 1631 */         return true; }
+/* 1632 */       if (Character.isDigit(chars[(start + 1)]))
+/*      */       {
+/* 1634 */         for (int i = start + 1; 
+/* 1635 */             i < chars.length; i++) {
+/* 1636 */           if ((chars[i] < '0') || (chars[i] > '7')) {
+/* 1637 */             return false;
+/*      */           }
+/*      */         }
+/* 1640 */         return true;
+/*      */       }
+/*      */     }
+/* 1643 */     sz--;
+/*      */     
+/* 1645 */     int i = start;
+/*      */     
+/*      */ 
+/* 1648 */     while ((i < sz) || ((i < sz + 1) && (allowSigns) && (!foundDigit))) {
+/* 1649 */       if ((chars[i] >= '0') && (chars[i] <= '9')) {
+/* 1650 */         foundDigit = true;
+/* 1651 */         allowSigns = false;
+/*      */       }
+/* 1653 */       else if (chars[i] == '.') {
+/* 1654 */         if ((hasDecPoint) || (hasExp))
+/*      */         {
+/* 1656 */           return false;
+/*      */         }
+/* 1658 */         hasDecPoint = true;
+/* 1659 */       } else if ((chars[i] == 'e') || (chars[i] == 'E'))
+/*      */       {
+/* 1661 */         if (hasExp)
+/*      */         {
+/* 1663 */           return false;
+/*      */         }
+/* 1665 */         if (!foundDigit) {
+/* 1666 */           return false;
+/*      */         }
+/* 1668 */         hasExp = true;
+/* 1669 */         allowSigns = true;
+/* 1670 */       } else if ((chars[i] == '+') || (chars[i] == '-')) {
+/* 1671 */         if (!allowSigns) {
+/* 1672 */           return false;
+/*      */         }
+/* 1674 */         allowSigns = false;
+/* 1675 */         foundDigit = false;
+/*      */       } else {
+/* 1677 */         return false;
+/*      */       }
+/* 1679 */       i++;
+/*      */     }
+/* 1681 */     if (i < chars.length) {
+/* 1682 */       if ((chars[i] >= '0') && (chars[i] <= '9'))
+/*      */       {
+/* 1684 */         return true;
+/*      */       }
+/* 1686 */       if ((chars[i] == 'e') || (chars[i] == 'E'))
+/*      */       {
+/* 1688 */         return false;
+/*      */       }
+/* 1690 */       if (chars[i] == '.') {
+/* 1691 */         if ((hasDecPoint) || (hasExp))
+/*      */         {
+/* 1693 */           return false;
+/*      */         }
+/*      */         
+/* 1696 */         return foundDigit;
+/*      */       }
+/* 1698 */       if ((!allowSigns) && ((chars[i] == 'd') || (chars[i] == 'D') || (chars[i] == 'f') || (chars[i] == 'F')))
+/*      */       {
+/*      */ 
+/*      */ 
+/*      */ 
+/* 1703 */         return foundDigit;
+/*      */       }
+/* 1705 */       if ((chars[i] == 'l') || (chars[i] == 'L'))
+/*      */       {
+/*      */ 
+/* 1708 */         return (foundDigit) && (!hasExp) && (!hasDecPoint);
+/*      */       }
+/*      */       
+/* 1711 */       return false;
+/*      */     }
+/*      */     
+/*      */ 
+/* 1715 */     return (!allowSigns) && (foundDigit);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static boolean isParsable(String str)
+/*      */   {
+/* 1736 */     if (StringUtils.isEmpty(str)) {
+/* 1737 */       return false;
+/*      */     }
+/* 1739 */     if (str.charAt(str.length() - 1) == '.') {
+/* 1740 */       return false;
+/*      */     }
+/* 1742 */     if (str.charAt(0) == '-') {
+/* 1743 */       if (str.length() == 1) {
+/* 1744 */         return false;
+/*      */       }
+/* 1746 */       return withDecimalsParsing(str, 1);
+/*      */     }
+/* 1748 */     return withDecimalsParsing(str, 0);
+/*      */   }
+/*      */   
+/*      */   private static boolean withDecimalsParsing(String str, int beginIdx) {
+/* 1752 */     int decimalPoints = 0;
+/* 1753 */     for (int i = beginIdx; i < str.length(); i++) {
+/* 1754 */       boolean isDecimalPoint = str.charAt(i) == '.';
+/* 1755 */       if (isDecimalPoint) {
+/* 1756 */         decimalPoints++;
+/*      */       }
+/* 1758 */       if (decimalPoints > 1) {
+/* 1759 */         return false;
+/*      */       }
+/* 1761 */       if ((!isDecimalPoint) && (!Character.isDigit(str.charAt(i)))) {
+/* 1762 */         return false;
+/*      */       }
+/*      */     }
+/* 1765 */     return true;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static int compare(int x, int y)
+/*      */   {
+/* 1779 */     if (x == y) {
+/* 1780 */       return 0;
+/*      */     }
+/* 1782 */     return x < y ? -1 : 1;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static int compare(long x, long y)
+/*      */   {
+/* 1796 */     if (x == y) {
+/* 1797 */       return 0;
+/*      */     }
+/* 1799 */     return x < y ? -1 : 1;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static int compare(short x, short y)
+/*      */   {
+/* 1813 */     if (x == y) {
+/* 1814 */       return 0;
+/*      */     }
+/* 1816 */     return x < y ? -1 : 1;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static int compare(byte x, byte y)
+/*      */   {
+/* 1830 */     return x - y;
+/*      */   }
+/*      */ }

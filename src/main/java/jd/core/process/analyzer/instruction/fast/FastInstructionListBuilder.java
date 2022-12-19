@@ -251,6 +251,11 @@ public final class FastInstructionListBuilder {
             FastTest2Lists fastTest2Lists = (FastTest2Lists) instruction;
             return Arrays.asList(fastTest2Lists.getInstructions(), fastTest2Lists.getInstructions2());
         }
+        // /!\ order matters since FastTest2Lists extends FastTestList
+        if (instruction instanceof FastTestList) { // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
+            FastTestList fastTestList = (FastTestList) instruction;
+            return Collections.singletonList(fastTestList.getInstructions());
+        }
         if (instruction instanceof FastTry) { // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
             FastTry fastTry = (FastTry) instruction;
             List<List<Instruction>> instructions = new ArrayList<>();
