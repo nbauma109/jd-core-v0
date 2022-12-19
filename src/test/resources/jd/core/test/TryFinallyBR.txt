@@ -1,0 +1,24 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.io.BufferedReader;
+/*    */ import java.io.File;
+/*    */ import java.io.IOException;
+/*    */ 
+/*    */ public class TryFinallyBR
+/*    */ {
+/*    */   void tryFinally(File file) throws IOException
+/*    */   {
+/* 11 */     BufferedReader br = null;
+/*    */     try {
+/* 13 */       br = new BufferedReader(new java.io.FileReader(file));
+/*    */       String line;
+/* 15 */       while ((line = br.readLine()) != null) {
+/* 16 */         System.out.println(line);
+/*    */       }
+/*    */     } finally {
+/* 19 */       if (br != null) {
+/* 20 */         br.close();
+/*    */       }
+/*    */     }
+/*    */   }
+/*    */ }

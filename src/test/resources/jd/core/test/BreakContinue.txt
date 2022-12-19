@@ -1,0 +1,36 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.util.Collection;
+/*    */ import java.util.Iterator;
+/*    */ import java.util.LinkedList;
+/*    */ import java.util.Objects;
+/*    */ 
+/*    */ public class BreakContinue
+/*    */ {
+/*    */   Collection process(Collection collection)
+/*    */   {
+/* 12 */     Collection result = new LinkedList();
+/* 13 */     for (Object o : collection) {
+/* 14 */       if (!result.isEmpty()) {
+/*    */         break;
+/*    */       }
+/* 17 */       if ((Objects.isNull(o)) || (!(o instanceof Collection))) {
+/*    */         continue;
+/*    */       }
+/* 20 */       Collection<?> c = (Collection)o;
+/* 21 */       if ((Objects.isNull(c)) || (c.isEmpty())) {
+/*    */         continue;
+/*    */       }
+/* 24 */       Iterator<?> iterator = c.iterator();
+/* 25 */       if (!iterator.hasNext()) {
+/*    */         continue;
+/*    */       }
+/* 28 */       Object next = iterator.next();
+/* 29 */       if (next != null) {
+/* 30 */         result.add(next);
+/* 31 */         break;
+/*    */       }
+/*    */     }
+/* 34 */     return result;
+/*    */   }
+/*    */ }
