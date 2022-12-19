@@ -1,0 +1,28 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.lang.reflect.InvocationTargetException;
+/*    */ import java.lang.reflect.Method;
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ public class MultiCatch
+/*    */ {
+/*    */   static Throwable getCauseUsingMethodName(Throwable throwable, String methodName)
+/*    */   {
+/* 12 */     Method method = null;
+/*    */     try {
+/* 14 */       method = throwable.getClass().getMethod(methodName, new Class[0]);
+/*    */     }
+/*    */     catch (NoSuchMethodException|SecurityException localNoSuchMethodException) {}
+/*    */     
+/*    */ 
+/* 19 */     if ((method != null) && (Throwable.class.isAssignableFrom(method.getReturnType()))) {
+/*    */       try {
+/* 21 */         return (Throwable)method.invoke(throwable, new Object[0]);
+/*    */       }
+/*    */       catch (IllegalAccessException|IllegalArgumentException|InvocationTargetException localIllegalAccessException) {}
+/*    */     }
+/*    */     
+/* 26 */     return null;
+/*    */   }
+/*    */ }
