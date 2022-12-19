@@ -1,0 +1,28 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.util.concurrent.Callable;
+/*    */ import java.util.concurrent.ExecutorService;
+/*    */ 
+/*    */ public abstract class InitializationTask<T>
+/*    */   implements Callable<T>
+/*    */ {
+/*    */   private final ExecutorService execFinally;
+/*    */   
+/*    */   InitializationTask(ExecutorService exec)
+/*    */   {
+/* 13 */     this.execFinally = exec;
+/*    */   }
+/*    */   
+/*    */   public T call() throws Exception
+/*    */   {
+/*    */     try {
+/* 19 */       return (T)initialize();
+/*    */     } finally {
+/* 21 */       if (this.execFinally != null) {
+/* 22 */         this.execFinally.shutdown();
+/*    */       }
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   abstract T initialize();
+/*    */ }
