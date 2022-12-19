@@ -40,4 +40,14 @@ public class MonitorSynchronizedTest extends AbstractTestCase {
             assertEquals(IOUtils.toString(getClass().getResource("MonitorSynchronized.txt"), StandardCharsets.UTF_8), output);
         }
     }
+
+    @Test
+    public void testJavac180() throws Exception {
+        try (InputStream in = getClass().getResourceAsStream("/monitor-synchronized-jdk1.8.0_331.jar")) {
+            ZipLoader loader = new ZipLoader(in);
+            String internalClassName = "jd/core/test/MonitorSynchronized";
+            String output = decompile(internalClassName, loader);
+            assertEquals(IOUtils.toString(getClass().getResource("MonitorSynchronized.txt"), StandardCharsets.UTF_8), output);
+        }
+    }
 }
