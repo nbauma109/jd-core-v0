@@ -209,12 +209,6 @@ public final class ComparisonInstructionAnalyzer
                         instruction.getLineNumber() != Instruction.UNKNOWN_LINE_NUMBER &&
                         nextInstruction.getLineNumber() != Instruction.UNKNOWN_LINE_NUMBER)
                     {
-                        if (instruction.getLineNumber()+2 <= nextInstruction.getLineNumber())
-                        {
-                            // Amelioration par rapport a JAD : possibilite de
-                            // construire deux instructions 'if' pourtant compatibles
-                            break; // Non
-                        }
                         // Est-ce que l'une des instructions suivantes a un
                         // numéro de ligne <= a instruction.lineNumber et <
                         // a nextInstruction.lineNumber
