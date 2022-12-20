@@ -1,0 +1,23 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class StrBuilder
+/*    */ {
+/*    */   public StrBuilder deleteAll(char ch, int size, char[] buffer) {
+/*  6 */     for (int i = 0; i < size; i++) {
+/*  7 */       if (buffer[i] == ch) {
+/*  8 */         int start = i;
+/*  9 */         for (;;) { i++; if (i < size) {
+/* 10 */             if (buffer[i] != ch)
+/*    */               break;
+/*    */           }
+/*    */         }
+/* 14 */         int len = i - start;
+/* 15 */         deleteImpl(start, i, len);
+/* 16 */         i -= len;
+/*    */       }
+/*    */     }
+/* 19 */     return this;
+/*    */   }
+/*    */   
+/*    */   private native void deleteImpl(int paramInt1, int paramInt2, int paramInt3);
+/*    */ }
