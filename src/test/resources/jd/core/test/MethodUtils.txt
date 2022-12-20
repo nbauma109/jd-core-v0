@@ -1,0 +1,33 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.lang.reflect.Method;
+/*    */ import java.util.Arrays;
+/*    */ import java.util.List;
+/*    */ import java.util.stream.Collectors;
+/*    */ import java.util.stream.Stream;
+/*    */ import org.apache.commons.lang3.ClassUtils;
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ public class MethodUtils
+/*    */ {
+/*    */   public static Method getMethod(Class<?> cls, Class<?>... parameterTypes)
+/*    */   {
+/* 18 */     List<Method> methods = 
+/* 19 */       (List)Arrays.stream(cls.getDeclaredMethods()).collect(Collectors.toList());
+/*    */     
+/* 21 */     ClassUtils.getAllSuperclasses(cls).stream()
+/* 22 */       .map(Class::getDeclaredMethods)
+/* 23 */       .flatMap(Arrays::stream)
+/* 24 */       .forEach(methods::add);
+/*    */     
+/* 26 */     for (Method method : methods) {
+/* 27 */       if (Arrays.deepEquals(method.getParameterTypes(), parameterTypes)) {
+/* 28 */         return method;
+/*    */       }
+/*    */     }
+/* 31 */     return null;
+/*    */   }
+/*    */ }
