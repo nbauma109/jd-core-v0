@@ -10,10 +10,10 @@ import static org.junit.Assert.assertEquals;
 /*
  * Test for CountDuploadVisitor.
  */
-public class MethodUtilsTest extends AbstractTestCase {
+public class MethodBeanTest extends AbstractTestCase {
     @Test
     public void test() throws Exception {
-        String output = decompile("jd/core/test/MethodUtils");
-        assertEquals(IOUtils.toString(getClass().getResource("MethodUtils.txt"), StandardCharsets.UTF_8), output);
+        String output = decompile("jd/core/test/MethodBean");
+        assertEquals(IOUtils.toString(getClass().getResource("MethodBean.txt"), StandardCharsets.UTF_8), output);
     }
 }

@@ -1,0 +1,47 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.lang.reflect.Method;
+/*    */ import java.util.Arrays;
+/*    */ import java.util.List;
+/*    */ import java.util.stream.Collectors;
+/*    */ import java.util.stream.Stream;
+/*    */ import org.apache.commons.lang3.ClassUtils;
+/*    */ import org.apache.commons.lang3.Validate;
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ public class MethodBean
+/*    */ {
+/*    */   private String methodName;
+/*    */   
+/*    */   public MethodBean(String methodName)
+/*    */   {
+/* 21 */     this.methodName = methodName;
+/*    */   }
+/*    */   
+/*    */   Method getMatchingMethod(Class<?> cls, String methodName, Class<?>... parameterTypes) {
+/* 25 */     Validate.notNull(cls, "cls", new Object[0]);
+/* 26 */     Validate.notEmpty(methodName, "methodName", new Object[0]);
+/*    */     
+/* 28 */     MethodBean methodBean = new MethodBean(methodName);
+/* 29 */     List<Method> methods = (List)Arrays.stream(cls.getDeclaredMethods()).filter(methodBean::matchName).collect(Collectors.toList());
+/*    */     
+/* 31 */     ClassUtils.getAllSuperclasses(cls).stream().map(Class::getDeclaredMethods).flatMap(Arrays::stream).filter(methodBean::matchName)
+/* 32 */       .forEach(methods::add);
+/*    */     
+/* 34 */     for (Method method : methods) {
+/* 35 */       if (Arrays.deepEquals(method.getParameterTypes(), parameterTypes)) {
+/* 36 */         return method;
+/*    */       }
+/*    */     }
+/*    */     
+/* 40 */     throw new IllegalStateException(String.format("Could not find method %s on class %s", new Object[] {
+/* 41 */       methodName + (String)Arrays.stream(parameterTypes).map(String::valueOf).collect(Collectors.joining(",", "(", ")")), cls.getName() }));
+/*    */   }
+/*    */   
+/*    */   public boolean matchName(Method method) {
+/* 45 */     return method.getName().equals(this.methodName);
+/*    */   }
+/*    */ }
