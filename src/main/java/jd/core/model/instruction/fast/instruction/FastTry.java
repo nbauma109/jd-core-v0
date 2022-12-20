@@ -221,15 +221,17 @@ public class FastTry extends FastList {
                     FastTry nestedTry = (FastTry)instr3;
                     LocalVariable lv1 = localVariables.getLocalVariableWithIndexAndOffset(aStore1.getIndex(), aStore1.getOffset());
                     LocalVariable lv2 = localVariables.getLocalVariableWithIndexAndOffset(aStore2.getIndex(), aStore2.getOffset());
-                    FastTry tryResources = lv1.getTryResources();
-                    if (aStore2.getValueref() instanceof AConstNull && lv2.isExceptionOrThrowable(cp) && tryResources != null) {
-                        lv2.setToBeRemoved(true);
-                        instructions.remove(i);
-                        instructions.remove(i);
-                        nestedTry.processTryResources(localVariables, cp);
-                        tryResources.addResource(aStore1, lv1);
-                        processed = true;
-                        i--;
+                    if (lv1 != null && lv2 != null) {
+                        FastTry tryResources = lv1.getTryResources();
+                        if (aStore2.getValueref() instanceof AConstNull && lv2.isExceptionOrThrowable(cp) && tryResources != null) {
+                            lv2.setToBeRemoved(true);
+                            instructions.remove(i);
+                            instructions.remove(i);
+                            nestedTry.processTryResources(localVariables, cp);
+                            tryResources.addResource(aStore1, lv1);
+                            processed = true;
+                            i--;
+                        }
                     }
                 }
             }
