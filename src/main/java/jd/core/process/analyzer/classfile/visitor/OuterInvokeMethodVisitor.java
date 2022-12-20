@@ -59,11 +59,6 @@ public class OuterInvokeMethodVisitor extends OuterGetStaticVisitor
         String descriptor =
             constants.getConstantUtf8(cnat.getSignatureIndex());
 
-        // Zero parameter ?
-        if (descriptor.charAt(1) == ')') {
-            return null;
-        }
-
         String className = constants.getConstantClassName(cmr.getClassIndex());
         ClassFile classFile = this.innerClassesMap.get(className);
         if (classFile == null) {

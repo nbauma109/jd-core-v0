@@ -3,7 +3,16 @@ package jd.core.test;
 public class Outer {
 
     private String id;
+    static String name;
 
+    private void init() {
+        id = name = "";
+    }
+    
+    private static void staticInit() {
+        name = "";
+    }
+    
     public void method1() {
         System.out.println("Test.method1");
     }
@@ -28,6 +37,8 @@ public class Outer {
             System.out.println("Inner1 constructor");
             this.x = x;
             this.y = y;
+            Outer.this.id = "";
+            init();
         }
 
         public void method1() {
@@ -58,6 +69,8 @@ public class Outer {
         Inner2(int x, int y) {
             this.x = x;
             this.y = y;
+            name = "";
+            staticInit();
         }
     }
 

@@ -4,20 +4,29 @@
 /*     */ 
 /*     */ public class Outer {
 /*     */   private String id;
+/*     */   static String name;
 /*     */   
-/*   8 */   public void method1() { System.out.println("Test.method1"); }
+/*   9 */   private void init() { this.id = (name = ""); }
 /*     */   
-/*     */   static
+/*     */   private static void staticInit()
 /*     */   {
-/*  12 */     System.out.println("clinit1");
+/*  13 */     name = "";
+/*     */   }
+/*     */   
+/*     */   public void method1() {
+/*  17 */     System.out.println("Test.method1");
+/*     */   }
+/*     */   
+/*     */   static {
+/*  21 */     System.out.println("clinit1");
 /*     */   }
 /*     */   
 /*     */   public void method2() {
-/*  16 */     System.out.println("Test.method2");
+/*  25 */     System.out.println("Test.method2");
 /*     */   }
 /*     */   
 /*     */   public Outer(String id) {
-/*  20 */     this.id = id;
+/*  29 */     this.id = id;
 /*     */   }
 /*     */   
 /*     */   class Inner1 {
@@ -25,30 +34,32 @@
 /*     */     int y;
 /*     */     
 /*     */     public Inner1(int x, int y) {
-/*  28 */       System.out.println("Inner1 constructor");
-/*  29 */       this.x = x;
-/*  30 */       this.y = y;
+/*  37 */       System.out.println("Inner1 constructor");
+/*  38 */       this.x = x;
+/*  39 */       this.y = y;
+/*  40 */       Outer.this.id = "";
+/*  41 */       Outer.this.init();
 /*     */     }
 /*     */     
 /*     */     public void method1() {
-/*  34 */       System.out.println("Inner1.method1");
+/*  45 */       System.out.println("Inner1.method1");
 /*     */     }
 /*     */     
 /*     */     public void method2() {
-/*  38 */       System.out.println("Inner1.method2");
+/*  49 */       System.out.println("Inner1.method2");
 /*     */     }
 /*     */     
 /*     */     public String toString() {
-/*  42 */       return Outer.this.id;
+/*  53 */       return Outer.this.id;
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   public void method3() {
-/*  47 */     System.out.println("Test.method3");
+/*  58 */     System.out.println("Test.method3");
 /*     */   }
 /*     */   
 /*     */   public void method4() {
-/*  51 */     System.out.println("Test.method4");
+/*  62 */     System.out.println("Test.method4");
 /*     */   }
 /*     */   
 /*     */   static class Inner2 {
@@ -56,48 +67,50 @@
 /*     */     int y;
 /*     */     
 /*     */     Inner2(int x, int y) {
-/*  59 */       this.x = x;
-/*  60 */       this.y = y;
+/*  70 */       this.x = x;
+/*  71 */       this.y = y;
+/*  72 */       Outer.name = "";
+/*  73 */       Outer.staticInit();
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   class Inner3
 /*     */   {
 /*     */     public Inner3() {
-/*  67 */       System.out.println("Inner3 constructor");
+/*  80 */       System.out.println("Inner3 constructor");
 /*     */     }
 /*     */     
 /*     */     public void method1() {
-/*  71 */       System.out.println("Inner3.method1");
+/*  84 */       System.out.println("Inner3.method1");
 /*     */     }
 /*     */     
 /*     */     public void method2() {
-/*  75 */       System.out.println("Inner3.method2");
+/*  88 */       System.out.println("Inner3.method2");
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   class Inner4
 /*     */   {
 /*     */     public Inner4() {
-/*  82 */       System.out.println("Inner4 constructor");
+/*  95 */       System.out.println("Inner4 constructor");
 /*     */     }
 /*     */     
 /*     */     public void method1() {
-/*  86 */       System.out.println("Inner4.method1");
+/*  99 */       System.out.println("Inner4.method1");
 /*     */     }
 /*     */     
 /*     */     public void method2() {
-/*  90 */       System.out.println("Inner4.method2");
+/* 103 */       System.out.println("Inner4.method2");
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   public void method5() {
-/*  95 */     System.out.println("Test.method5");
+/* 108 */     System.out.println("Test.method5");
 /*     */   }
 /*     */   
 /*     */   public void method6() {
-/*  99 */     System.out.println("Test.method6");
+/* 112 */     System.out.println("Test.method6");
 /*     */   }
 /*     */   
-/* 102 */   static String TEST = "TEST";
+/* 115 */   static String TEST = "TEST";
 /*     */ }
