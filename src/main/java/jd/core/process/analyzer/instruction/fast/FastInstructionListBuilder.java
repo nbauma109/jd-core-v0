@@ -210,6 +210,9 @@ public final class FastInstructionListBuilder {
     private static void manageRedeclaredVariables(Set<FastDeclaration> outsideDeclarations, Set<FastDeclaration> insideDeclarations, List<Instruction> instructions) {
         Instruction instruction;
         List<List<Instruction>> blocks;
+        if (instructions == null) {
+            return;
+        }
         for (int i = 0; i < instructions.size(); i++) {
             instruction = instructions.get(i);
             if (instruction instanceof FastDeclaration) {// to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
@@ -3301,18 +3304,25 @@ public final class FastInstructionListBuilder {
     }
 
     /**
-     * Type de boucle infinie: 0: for (;;) 1: for (beforeLoop; ;) 2: while
-     * (test) 3: for (beforeLoop; test;) 4: for (; ; lastBodyLoop) 5: for
-     * (beforeLoop; ; lastBodyLoop) 6: for (; test; lastBodyLoop) 7: for
-     * (beforeLoop; test; lastBodyLoop)
+     * Type de boucle infinie:
+     * 0: for (;;)
+     * 1: for (beforeLoop; ;)
+     * 2: while (test)
+     * 3: for (beforeLoop; test;)
+     * 4: for (; ; lastBodyLoop)
+     * 5: for (beforeLoop; ; lastBodyLoop)
+     * 6: for (; test; lastBodyLoop)
+     * 7: for (beforeLoop; test; lastBodyLoop)
      */
     private static int getLoopType(Instruction beforeLoop, Instruction test, Instruction beforeLastBodyLoop,
             Instruction lastBodyLoop) {
         if (beforeLoop == null) {
             // Cas possibles : 0, 2, 4, 6
             /*
-             * 0: for (;;) 2: while (test) 4: for (; ; lastBodyLoop) 6: for (;
-             * test; lastBodyLoop)
+             * 0: for (;;)
+             * 2: while (test)
+             * 4: for (; ; lastBodyLoop)
+             * 6: for (; test; lastBodyLoop)
              */
             if (test == null) {
                 // Cas possibles : 0, 4
@@ -3324,7 +3334,10 @@ public final class FastInstructionListBuilder {
                 return beforeLastBodyLoop != null && beforeLastBodyLoop.getLineNumber() > lastBodyLoop.getLineNumber() ? 4
                         : 0;
             }
-            /* 2: while (test) 6: for (; test; lastBodyLoop) */
+            /* 
+             * 2: while (test)
+             * 6: for (; test; lastBodyLoop)
+             */
             // Cas possibles : 0, 2, 4, 6
             if (lastBodyLoop != null && test.getLineNumber() != Instruction.UNKNOWN_LINE_NUMBER) {
                 return test.getLineNumber() == lastBodyLoop.getLineNumber() ? 6 : 2;
@@ -3339,12 +3352,14 @@ public final class FastInstructionListBuilder {
         if (test == null) {
             // Cas possibles : 0, 1, 4, 5
             /*
-             * 0: for (;;) 1: for (beforeLoop; ;) 4: for (; ; lastBodyLoop)
+             * 0: for (;;)
+             * 1: for (beforeLoop; ;)
+             * 4: for (; ; lastBodyLoop)
              * 5: for (beforeLoop; ; lastBodyLoop)
              */
             if (lastBodyLoop == null) {
                 // Cas possibles : 0, 1
-                return 0;
+                return beforeLoop == null ? 0 : 1;
             }
             if (lastBodyLoop.getOpcode() == ByteCodeConstants.ASSIGNMENT) {
                 lastBodyLoop = ((AssignmentInstruction) lastBodyLoop).getValue1();
@@ -3364,7 +3379,10 @@ public final class FastInstructionListBuilder {
         }
         if (lastBodyLoop == null) {
             // Cas possibles : 2, 3
-            /* 2: while (test) 3: for (beforeLoop; test;) */
+            /* 
+             * 2: while (test)
+             * 3: for (beforeLoop; test;)
+             */
             if (beforeLoop.getLineNumber() == Instruction.UNKNOWN_LINE_NUMBER) {
                 return 2;
             }
@@ -3378,26 +3396,41 @@ public final class FastInstructionListBuilder {
             // beforeLoop & lastBodyLoop sont-elles des instructions
             // d'affectation ou d'incrementation ?
             // (a|d|f|i|l|s)store ou iinc ?
-            /* 2: while (test) 7: for (beforeLoop; test; lastBodyLoop) */
+            /* 
+             * 2: while (test)
+             * 7: for (beforeLoop; test; lastBodyLoop)
+             */
             return checkBeforeLoopAndLastBodyLoop(beforeLoop, lastBodyLoop) ? 7 : 2;
         }
         if (beforeLastBodyLoop == null) {
             if (beforeLoop.getLineNumber() == test.getLineNumber()) {
                 // Cas possibles : 3, 7
-                /* 3: for (beforeLoop; test;) 7: for (beforeLoop; test; lastBodyLoop) */
+                /* 
+                 * 3: for (beforeLoop; test;)
+                 * 7: for (beforeLoop; test; lastBodyLoop)
+                 */
                 return beforeLoop.getLineNumber() == lastBodyLoop.getLineNumber() ? 7 : 3;
             }
             // Cas possibles : 2, 6
-            /* 2: while (test) 6: for (; test; lastBodyLoop) */
+            /* 
+             * 2: while (test)
+             * 6: for (; test; lastBodyLoop)
+             */
             return test.getLineNumber() == lastBodyLoop.getLineNumber() ? 6 : 2;
         }
         if (beforeLastBodyLoop.getLineNumber() < lastBodyLoop.getLineNumber()) {
             // Cas possibles : 2, 3
-            /* 2: while (test) 3: for (beforeLoop; test;) */
+            /* 
+             * 2: while (test)
+             * 3: for (beforeLoop; test;)
+             */
             return beforeLoop.getLineNumber() == test.getLineNumber() ? 3 : 2;
         }
         // Cas possibles : 6, 7
-        /* 6: for (; test; lastBodyLoop) 7: for (beforeLoop; test; lastBodyLoop) */
+        /* 
+         * 6: for (; test; lastBodyLoop)
+         * 7: for (beforeLoop; test; lastBodyLoop)
+         */
         if (beforeLoop.getLineNumber() == test.getLineNumber()) {
             return 7;
         }
