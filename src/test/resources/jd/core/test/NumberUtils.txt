@@ -738,16 +738,16 @@
 /*  738 */       switch (lastChar) {
 /*      */       case 'L': 
 /*      */       case 'l': 
-/*  741 */         if ((dec == null) && (exp == null))
-/*      */         {
-/*  743 */           if (((!numeric.isEmpty()) && (numeric.charAt(0) == '-') && (isDigits(numeric.substring(1)))) || (isDigits(numeric)))
-/*      */             try {
-/*  745 */               return createLong(numeric);
-/*      */             }
-/*      */             catch (NumberFormatException localNumberFormatException)
-/*      */             {
-/*  749 */               return createBigInteger(numeric);
-/*      */             }
+/*  741 */         if ((dec == null) && (exp == null) && (
+/*      */         
+/*  743 */           ((!numeric.isEmpty()) && (numeric.charAt(0) == '-') && (isDigits(numeric.substring(1)))) || (isDigits(numeric)))) {
+/*      */           try {
+/*  745 */             return createLong(numeric);
+/*      */           }
+/*      */           catch (NumberFormatException localNumberFormatException)
+/*      */           {
+/*  749 */             return createBigInteger(numeric);
+/*      */           }
 /*      */         }
 /*  752 */         throw new NumberFormatException(str + " is not a valid number.");
 /*      */       case 'F': 
