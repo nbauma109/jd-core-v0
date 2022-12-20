@@ -397,10 +397,16 @@ public final class ClassFileAnalyzer
             while (j-- > 0)
             {
                 field = list.get(j);
-
+                int fieldDescriptorIndex;
+                AttributeSignature fieldSignature = field.getAttributeSignature();
+                if (fieldSignature != null) {
+                    fieldDescriptorIndex = fieldSignature.getSignatureIndex();
+                } else {
+                    fieldDescriptorIndex = field.getDescriptorIndex();
+                }
                 // Generate new attribute names
                 newName = FieldNameGenerator.generateName(
-                        constants.getConstantUtf8(field.getDescriptorIndex()),
+                        constants.getConstantUtf8(fieldDescriptorIndex),
                         constants.getConstantUtf8(field.getNameIndex()));
                 // Add new constant string
                 newNameIndex = constants.addConstantUtf8(newName);
