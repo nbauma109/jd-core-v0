@@ -36,6 +36,26 @@ public class TryCatchFinallyBRTest extends AbstractTestCase {
         test("javac-17.0.4", false);
     }
 
+    @Test
+    public void testEcj_1_1() throws Exception {
+        test("ecj-1.1", false);
+    }
+
+    @Test
+    public void testEcj_1_2() throws Exception {
+        test("ecj-1.2", false);
+    }
+
+    @Test
+    public void testEcj_1_3() throws Exception {
+        test("ecj-1.3", false);
+    }
+
+    @Test
+    public void testEcj_1_4() throws Exception {
+        test("ecj-1.4", false);
+    }
+
     private void test(String compiler, boolean noVar) throws IOException {
         StringBuilder expectedFileName = new StringBuilder("TryCatchFinallyBR");
         StringBuilder jarPath = new StringBuilder("/try-catch-finally-");
