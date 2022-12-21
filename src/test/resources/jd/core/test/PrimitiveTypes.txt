@@ -1,0 +1,13 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class PrimitiveTypes {
+/*  4 */   Class<Double> getDoubleType() { return Double.TYPE; }
+/*  5 */   Class<Long> getLongType() { return Long.TYPE; }
+/*  6 */   Class<Float> getFloatType() { return Float.TYPE; }
+/*  7 */   Class<Integer> getIntType() { return Integer.TYPE; }
+/*  8 */   Class<Short> getShortType() { return Short.TYPE; }
+/*  9 */   Class<Character> getCharType() { return Character.TYPE; }
+/* 10 */   Class<Byte> getByteType() { return Byte.TYPE; }
+/* 11 */   Class<Boolean> getBooleanType() { return Boolean.TYPE; }
+/* 12 */   Class<Void> getVoidType() { return Void.TYPE; }
+/*    */ }
