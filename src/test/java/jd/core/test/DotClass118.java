@@ -48,7 +48,7 @@ public class DotClass118 {
     }
 
     void aThrow() {
-        throw new RuntimeException("" + Object.class);
+        throw new RuntimeException(String.valueOf(Object.class));
     }
 
     Class instanceOf(Class c) {

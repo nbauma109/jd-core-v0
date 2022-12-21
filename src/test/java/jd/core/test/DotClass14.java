@@ -1,7 +1,5 @@
 package jd.core.test;
 
-import java.io.ObjectInput;
-import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -32,7 +30,7 @@ public class DotClass14 {
     boolean aNewArray() {
         return new Object[0].equals(Object.class);
     }
-    
+
     Class xReturn() {
         return Object.class;
     }
@@ -50,7 +48,7 @@ public class DotClass14 {
     }
 
     void aThrow() {
-        throw new RuntimeException("" + Object.class);
+        throw new RuntimeException(String.valueOf(Object.class));
     }
 
     Class instanceOf(Class c) {
@@ -71,6 +69,7 @@ public class DotClass14 {
 
     void aStore() {
         Class c = Object.class;
+        System.out.println(c);
     }
 
     Object aaStore() {
@@ -111,8 +110,12 @@ public class DotClass14 {
     static native void print(Class c);
 
     Class dupStore(Class c) {
-        Class tmp;
-        return tmp = c == (tmp = Object.class) ? (tmp = int.class) : (tmp = long.class);
+        Class tmp = null;
+        try {
+            return tmp = c == (tmp = Object.class) ? (tmp = int.class) : (tmp = long.class);
+        } finally {
+            System.out.println(tmp);
+        }
     }
 
     Object anonymous() {

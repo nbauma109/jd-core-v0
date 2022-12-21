@@ -7,7 +7,7 @@
 /*     */   Class clazz;
 /*     */   static Class staticClass;
 /*   9 */   static final Class CONST = Object.class;
-/*  10 */   static final Class ARRAY_CONST = new Object[0];
+/*  10 */   static final Class ARRAY_CONST = Object[].class;
 /*     */   
 /*     */   static class Inner {
 /*     */     boolean check(String className) throws ClassNotFoundException {
@@ -48,7 +48,7 @@
 /*     */   }
 /*     */   
 /*     */   void aThrow() {
-/*  51 */     throw new RuntimeException(String.valueOf(String.valueOf(Object.class)));
+/*  51 */     throw new RuntimeException(String.valueOf(Object.class));
 /*     */   }
 /*     */   
 /*     */   Class instanceOf(Class c) {
@@ -72,7 +72,7 @@
 /*     */   }
 /*     */   
 /*     */   Object aaStore() {
-/*  75 */     return new Class[] { new String[0].getClass() };
+/*  75 */     return new Class[] { String[].class };
 /*     */   }
 /*     */   
 /*     */   int unaryOp() {
