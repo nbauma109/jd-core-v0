@@ -1,0 +1,29 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.io.PrintStream;
+/*    */ 
+/*    */ public class LabelledBreaks
+/*    */ {
+/*    */   public void tripleWhile2(int i) {
+/*  8 */     System.out.println("start");
+/*    */     label8:
+/* 10 */     if (i > 1) {
+/* 11 */       label56: for (;;) { if (i <= 2) break label8;
+/* 12 */         for (;;) { if (i <= 3) break label56;
+/* 13 */           System.out.println("a");
+/*    */           
+/* 15 */           if (i == 4) {
+/*    */             break;
+/*    */           }
+/* 18 */           if (i == 5) {
+/*    */             break label8;
+/*    */           }
+/*    */           
+/* 22 */           System.out.println("b");
+/*    */         }
+/*    */       }
+/*    */     }
+/*    */     
+/* 27 */     System.out.println("end");
+/*    */   }
+/*    */ }
