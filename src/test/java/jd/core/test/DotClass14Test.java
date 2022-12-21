@@ -19,4 +19,14 @@ public class DotClass14Test extends AbstractTestCase {
             assertEquals(IOUtils.toString(getClass().getResource("DotClass14.txt"), StandardCharsets.UTF_8), output);
         }
     }
+
+    @Test
+    public void testEcj() throws Exception {
+        try (InputStream in = getClass().getResourceAsStream("/dotclass14-ecj-1.4.jar")) {
+            ZipLoader loader = new ZipLoader(in);
+            String internalClassName = "jd/core/test/DotClass14";
+            String output = decompile(internalClassName, loader);
+            assertEquals(IOUtils.toString(getClass().getResource("DotClass14Ecj.txt"), StandardCharsets.UTF_8), output);
+        }
+    }
 }
