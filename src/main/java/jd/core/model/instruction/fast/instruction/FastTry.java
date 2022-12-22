@@ -272,7 +272,11 @@ public class FastTry extends FastList {
     }
 
     public boolean isResourceOnly() {
-        return !resources.isEmpty() && !hasCatch() && !hasFinally();
+        return hasResource() && !hasCatch() && !hasFinally();
+    }
+
+    public boolean hasResource() {
+        return !resources.isEmpty();
     }
 
     public boolean hasFinally() {
