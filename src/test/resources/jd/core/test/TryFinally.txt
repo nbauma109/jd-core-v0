@@ -8,24 +8,36 @@
 /*    */   {
 /*  9 */     setFlag(true);
 /*    */     try {
-/* 11 */       setFlag(value);
+/* 11 */       setFlag(true);
+/*    */       try {
+/* 13 */         setFlag(value);
+/*    */       } finally {
+/* 15 */         setFlag(false);
+/*    */       }
+/* 17 */       setFlag(value);
 /*    */     } finally {
-/* 13 */       setFlag(false);
+/* 19 */       setFlag(false);
 /*    */     }
 /*    */   }
 /*    */   
 /*    */   public void tryEmptyCatchFinally(boolean value)
 /*    */   {
-/* 19 */     setFlag(true);
+/* 25 */     setFlag(true);
 /*    */     try {
-/* 21 */       setFlag(value);
+/* 27 */       setFlag(true);
+/*    */       try {
+/* 29 */         setFlag(value);
+/*    */       }
+/*    */       catch (Exception localException) {}finally {
+/* 32 */         setFlag(true);
+/*    */       }
 /*    */     }
-/*    */     catch (Exception localException) {}finally {
-/* 24 */       setFlag(false);
+/*    */     catch (Exception localException1) {}finally {
+/* 36 */       setFlag(false);
 /*    */     }
 /*    */   }
 /*    */   
 /*    */   public void setFlag(boolean flag) {
-/* 29 */     this.flag = flag;
+/* 41 */     this.flag = flag;
 /*    */   }
 /*    */ }

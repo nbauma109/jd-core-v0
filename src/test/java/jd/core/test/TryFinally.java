@@ -8,6 +8,12 @@ public class TryFinally {
     {
       setFlag(true);
       try {
+          setFlag(true);
+          try {
+            setFlag(value);
+          } finally {
+            setFlag(false);
+          }
         setFlag(value);
       } finally {
         setFlag(false);
@@ -18,7 +24,13 @@ public class TryFinally {
     {
         setFlag(true);
         try {
-            setFlag(value);
+            setFlag(true);
+            try {
+                setFlag(value);
+            } catch (Exception e) {
+            } finally {
+                setFlag(true);
+            }
         } catch (Exception e) {
         } finally {
             setFlag(false);
