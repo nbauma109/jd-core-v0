@@ -5,6 +5,7 @@ import org.jd.core.v1.api.loader.Loader;
 import org.jd.core.v1.loader.ClassPathLoader;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,9 +28,18 @@ import jd.core.process.writer.ByteCodeWriter;
 public class ByteCodeWriterTest {
 
     @Test
-    public void test() throws Exception {
+    public void testTableSwitch() throws Exception {
+        test("jd/core/test/TableSwitch", "tableSwitch", "(I)V", "TableSwitchByteCode.txt");
+    }
+
+    @Test
+    public void testLookupSwitch() throws Exception {
+        test("jd/core/test/LookupSwitch", "lookupSwitch", "(I)V", "LookupSwitchByteCode.txt");
+    }
+    
+    private void test(String internalClassPath, String methodName, String methodDescriptor, String expectedResultFile) throws IOException {
         Loader loader = new ClassPathLoader();
-        ClassFile classFile = ClassFileDeserializer.deserialize(loader, "jd/core/test/TableSwitch");
+        ClassFile classFile = ClassFileDeserializer.deserialize(loader, internalClassPath);
         ReferenceMap referenceMap = new ReferenceMap();
         ClassFileAnalyzer.analyze(referenceMap, classFile);
         ReferenceAnalyzer.analyze(referenceMap, classFile);
@@ -38,8 +48,8 @@ public class ByteCodeWriterTest {
         int maxLineNumber = ClassFileLayouter.layout(preferences, referenceMap, classFile, layoutBlockList);
         Printer printer = new PrinterImpl(preferences);
         printer.start(maxLineNumber, classFile.getMajorVersion(), classFile.getMinorVersion());
-        Method method = classFile.getMethod("tableSwitch", "(I)V");
+        Method method = classFile.getMethod(methodName, methodDescriptor);
         ByteCodeWriter.write(loader, printer, referenceMap, classFile, method);
-        assertEquals(IOUtils.toString(getClass().getResource("TableSwitchByteCode.txt"), StandardCharsets.UTF_8), printer.toString());
+        assertEquals(IOUtils.toString(getClass().getResource(expectedResultFile), StandardCharsets.UTF_8), printer.toString());
     }
 }
