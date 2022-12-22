@@ -18,7 +18,7 @@ public abstract class AbstractTestCase {
         PlainTextPrinter printer = new PlainTextPrinter();
 
         Preferences preferences = new Preferences();
-        preferences.setRealignmentLineNumber(true);
+        preferences.setRealignmentLineNumber(realignmentLineNumber());
         preferences.setShowDefaultConstructor(showDefaultConstructor());
         preferences.setShowLineNumbers(true);
         preferences.setShowPrefixThis(true);
@@ -35,5 +35,9 @@ public abstract class AbstractTestCase {
     
     protected boolean showDefaultConstructor() {
         return false;
+    }
+    
+    protected boolean realignmentLineNumber() {
+        return true;
     }
 }
