@@ -1,0 +1,31 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class TryFinally
+/*    */ {
+/*    */   boolean flag;
+/*    */   
+/*    */   public void tryFinally(boolean value)
+/*    */   {
+/*  9 */     setFlag(true);
+/*    */     try {
+/* 11 */       setFlag(value);
+/*    */     } finally {
+/* 13 */       setFlag(false);
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   public void tryEmptyCatchFinally(boolean value)
+/*    */   {
+/* 19 */     setFlag(true);
+/*    */     try {
+/* 21 */       setFlag(value);
+/*    */     }
+/*    */     catch (Exception localException) {}finally {
+/* 24 */       setFlag(false);
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   public void setFlag(boolean flag) {
+/* 29 */     this.flag = flag;
+/*    */   }
+/*    */ }
