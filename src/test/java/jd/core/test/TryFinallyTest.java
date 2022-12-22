@@ -23,6 +23,16 @@ public class TryFinallyTest extends AbstractTestCase {
         test("/try-finally-javac-1.4.2_19.jar", "TryFinally142.txt");
     }
 
+    @Test
+    public void testTryFinally131() throws Exception {
+        test("/try-finally-javac-1.3.1_28.jar", "TryFinally131.txt");
+    }
+    
+    @Test
+    public void testTryFinally122() throws Exception {
+        test("/try-finally-javac-1.2.2.jar", "TryFinally122.txt");
+    }
+
     private void test(String jarPath, String expectedResultFile) throws IOException {
         try (InputStream in = getClass().getResourceAsStream(jarPath)) {
             String internalClassName = "jd/core/test/TryFinally";
