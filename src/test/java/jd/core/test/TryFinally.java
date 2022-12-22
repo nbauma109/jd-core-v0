@@ -1,43 +1,70 @@
 package jd.core.test;
 
 public class TryFinally {
-    
-    boolean flag;
 
-    public void tryFinally(boolean value)
-    {
-      setFlag(true);
-      try {
-          setFlag(true);
-          try {
-            setFlag(value);
-          } finally {
-            setFlag(false);
-          }
-        setFlag(value);
-      } finally {
-        setFlag(false);
-      }
+    int value;
+
+    public void tryFinally(int value) {
+        setValue(0);
+        try {
+            setValue(1);
+            try {
+                setValue(value);
+            } finally {
+                setValue(2);
+            }
+        } finally {
+            setValue(3);
+        }
     }
 
-    public void tryEmptyCatchFinally(boolean value)
-    {
-        setFlag(true);
+    public void tryEmptyCatchFinally(int value) {
+        setValue(0);
         try {
-            setFlag(true);
+            setValue(1);
             try {
-                setFlag(value);
+                setValue(value);
             } catch (Exception e) {
             } finally {
-                setFlag(true);
+                setValue(2);
             }
         } catch (Exception e) {
         } finally {
-            setFlag(false);
+            setValue(3);
         }
     }
-    
-    public void setFlag(boolean flag) {
-        this.flag = flag;
+
+    public void trySameFinally(int value) {
+        setValue(0);
+        try {
+            setValue(1);
+            try {
+                setValue(value);
+            } finally {
+                setValue(2);
+            }
+        } finally {
+            setValue(2);
+        }
+    }
+
+    public void tryEmptyCatchSameFinally(int value) {
+        setValue(0);
+        try {
+            setValue(1);
+            try {
+                setValue(value);
+            } catch (Exception e) {
+            } finally {
+                setValue(2);
+            }
+        } catch (Exception e) {
+        } finally {
+            setValue(2);
+        }
+    }
+
+    public void setValue(int value) {
+        this.value = value;
     }
 }
