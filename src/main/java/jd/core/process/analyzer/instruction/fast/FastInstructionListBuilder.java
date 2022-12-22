@@ -1153,8 +1153,8 @@ public final class FastInstructionListBuilder {
             LocalVariables localVariables) {
         // Reconstruction des blocs synchronisés vide
         EmptySynchronizedBlockReconstructor.reconstruct(localVariables, list);
-        // Recontruction du mot clé '.class' pour ECJ
-        DotClass118BReconstructor.reconstruct(referenceMap, classFile, list);
+        // Reconstruction du mot clé '.class' pour ECJ
+//        DotClass118BReconstructor.reconstruct(referenceMap, classFile, list);
         // Transformation de l'ensemble 'if-break' en simple 'if'
         // A executer avant 'ComparisonInstructionAnalyzer'
         IfGotoToIfReconstructor.reconstruct(list);

@@ -1,105 +1,182 @@
 /*     */ package jd.core.test;
 /*     */ 
 /*     */ import java.io.PrintStream;
-/*     */ import java.security.AccessController;
-/*     */ import java.security.PrivilegedAction;
 /*     */ 
-/*     */ public class DotClass14
-/*     */ {
+/*     */ public class DotClass14 {
 /*     */   Class clazz;
 /*     */   static Class staticClass;
-/*  11 */   static final Class CONST = Object.class;
-/*  12 */   static final Class ARRAY_CONST = Object[].class;
+/*     */   static final Class CONST;
 /*     */   
-/*     */   boolean getField() {
-/*  15 */     return this.clazz.equals(Object.class);
+/*     */   static { Class tmp3_0 = class$0;
+/*  11 */     if (tmp3_0 == null) { tmp3_0; try { tmpTernaryOp = (class$0 = Class.forName("java.lang.Object")); } catch (ClassNotFoundException localClassNotFoundException1) { throw new NoClassDefFoundError(localClassNotFoundException1.getMessage()); } } CONST = tmp3_0; Class 
+/*  12 */       tmp38_35 = class$1;
+/*  12 */     if (tmp38_35 == null) { tmp38_35; try { tmpTernaryOp = (class$1 = Class.forName("[Ljava.lang.Object;")); } catch (ClassNotFoundException localClassNotFoundException2) { throw new NoClassDefFoundError(localClassNotFoundException2.getMessage()); } } } static final Class ARRAY_CONST = tmp38_35;
+/*     */   static Class class$0;
+/*     */   
+/*     */   boolean getField() { Class tmp7_4 = class$0; if (tmp7_4 == null) { tmp7_4; try { tmpTernaryOp = (class$0 = Class.forName("java.lang.Object")); } catch (ClassNotFoundException localClassNotFoundException) { throw new NoClassDefFoundError(localClassNotFoundException.getMessage()); } } return this.clazz.equals(tmp7_4);
 /*     */   }
 /*     */   
-/*     */   boolean preInc(Object[] array, int i) {
-/*  19 */     return array[(++i)] == Object.class;
+/*     */   boolean preInc(Object[] array, int i) { Class tmp9_6 = class$0;
+/*  19 */     if (tmp9_6 == null) { tmp9_6; try { tmpTernaryOp = (class$0 = Class.forName("java.lang.Object")); } catch (ClassNotFoundException localClassNotFoundException) { throw new NoClassDefFoundError(localClassNotFoundException.getMessage()); } } return array[(++i)] == tmp9_6;
 /*     */   }
 /*     */   
-/*     */   boolean postInc(Object[] array, int i) {
-/*  23 */     return array[(i++)] == Object.class;
+/*     */   boolean postInc(Object[] array, int i) { Class tmp9_6 = class$0;
+/*  23 */     if (tmp9_6 == null) { tmp9_6; try { tmpTernaryOp = (class$0 = Class.forName("java.lang.Object")); } catch (ClassNotFoundException localClassNotFoundException) { throw new NoClassDefFoundError(localClassNotFoundException.getMessage()); } } return array[(i++)] == tmp9_6;
 /*     */   }
 /*     */   
-/*     */   boolean arrayLoad(Object[] array) {
-/*  27 */     return array[0].getClass() == Object.class;
+/*     */   boolean arrayLoad(Object[] array) { Class tmp9_6 = class$0;
+/*  27 */     if (tmp9_6 == null) { tmp9_6; try { tmpTernaryOp = (class$0 = Class.forName("java.lang.Object")); } catch (ClassNotFoundException localClassNotFoundException) { throw new NoClassDefFoundError(localClassNotFoundException.getMessage()); } } return array[0].getClass() == tmp9_6;
 /*     */   }
 /*     */   
-/*     */   boolean aNewArray() {
-/*  31 */     return new Object[0].equals(Object.class);
+/*     */   boolean aNewArray() { Class tmp7_4 = class$0;
+/*  31 */     if (tmp7_4 == null) { tmp7_4; try { tmpTernaryOp = (class$0 = Class.forName("java.lang.Object")); } catch (ClassNotFoundException localClassNotFoundException) { throw new NoClassDefFoundError(localClassNotFoundException.getMessage()); } } return new Object[0].equals(tmp7_4);
 /*     */   }
 /*     */   
-/*     */   Class xReturn() {
-/*  35 */     return Object.class;
-/*     */   }
+/*     */   Class xReturn() { Class tmp3_0 = class$0;
+/*  35 */     if (tmp3_0 == null) { tmp3_0; try { tmpTernaryOp = (class$0 = Class.forName("java.lang.Object")); } catch (ClassNotFoundException localClassNotFoundException) { throw new NoClassDefFoundError(localClassNotFoundException.getMessage()); } } return tmp3_0; }
 /*     */   
-/*     */   Class ldc(int dim) {
-/*  39 */     return dim == 0 ? CONST : ARRAY_CONST;
-/*     */   }
+/*     */   static Class class$1;
+/*     */   static Class class$2;
+/*  39 */   Class ldc(int dim) { return dim == 0 ? CONST : ARRAY_CONST; }
 /*     */   
 /*     */   void putField() {
-/*  43 */     this.clazz = Object.class;
+/*     */     Class tmp4_1 = class$0;
+/*  43 */     if (tmp4_1 == null) { tmp4_1; try { tmpTernaryOp = (class$0 = Class.forName("java.lang.Object")); } catch (ClassNotFoundException localClassNotFoundException) { throw new NoClassDefFoundError(localClassNotFoundException.getMessage()); } } this.clazz = tmp4_1;
 /*     */   }
 /*     */   
-/*     */   void putStatic() {
-/*  47 */     staticClass = Object.class;
+/*     */   void putStatic() { Class tmp3_0 = class$0;
+/*  47 */     if (tmp3_0 == null) { tmp3_0; try { tmpTernaryOp = (class$0 = Class.forName("java.lang.Object")); } catch (ClassNotFoundException localClassNotFoundException) { throw new NoClassDefFoundError(localClassNotFoundException.getMessage()); } } staticClass = tmp3_0;
 /*     */   }
 /*     */   
-/*     */   void aThrow() {
-/*  51 */     throw new RuntimeException(String.valueOf(Object.class));
+/*     */   void aThrow() { Class tmp7_4 = class$0;
+/*  51 */     if (tmp7_4 == null) { tmp7_4; try { tmpTernaryOp = (class$0 = Class.forName("java.lang.Object")); } catch (ClassNotFoundException localClassNotFoundException) { throw new NoClassDefFoundError(localClassNotFoundException.getMessage()); } } throw new RuntimeException(String.valueOf(tmp7_4));
 /*     */   }
 /*     */   
-/*     */   Class instanceOf(Class c) {
-/*  55 */     if ((Object.class instanceof Class)) {
+/*     */   Class instanceOf(Class c) { Class tmp3_0 = class$0;
+/*  55 */     if (tmp3_0 == null) { tmp3_0; try { tmpTernaryOp = (class$0 = Class.forName("java.lang.Object")); } catch (ClassNotFoundException localClassNotFoundException) { throw new NoClassDefFoundError(localClassNotFoundException.getMessage()); } } if ((tmp3_0 instanceof Class)) {
 /*  56 */       return c;
 /*     */     }
 /*  58 */     return null;
 /*     */   }
 /*     */   
-/*     */   Class ifCmp(Class c) {
-/*  62 */     if (Object.class == c)
+/*     */   Class ifCmp(Class c) { Class tmp3_0 = class$0;
+/*  62 */     if (tmp3_0 == null) { tmp3_0; try { tmpTernaryOp = (class$0 = Class.forName("java.lang.Object")); } catch (ClassNotFoundException localClassNotFoundException1) { throw new NoClassDefFoundError(localClassNotFoundException1.getMessage()); } } if (tmp3_0 == c)
 /*  63 */       return c;
-/*  64 */     if (c == Object.class) {
+/*     */     Class tmp42_39 = class$0; if (tmp42_39 == null) { tmp42_39; try { tmpTernaryOp = (class$0 = Class.forName("java.lang.Object")); } catch (ClassNotFoundException localClassNotFoundException2) { throw new NoClassDefFoundError(localClassNotFoundException2.getMessage()); } } if (c == tmp42_39) {
 /*  65 */       return c;
 /*     */     }
 /*  67 */     return null;
 /*     */   }
 /*     */   
-/*     */   void aStore() {
-/*  71 */     Class c = Object.class;
+/*     */   void aStore() { Class tmp3_0 = class$0;
+/*  71 */     if (tmp3_0 == null) { tmp3_0; try { tmpTernaryOp = (class$0 = Class.forName("java.lang.Object")); } catch (ClassNotFoundException localClassNotFoundException) { throw new NoClassDefFoundError(localClassNotFoundException.getMessage()); } } Class c = tmp3_0;
 /*  72 */     System.out.println(c);
 /*     */   }
 /*     */   
 /*     */   Object aaStore() {
-/*  76 */     return new Class[] { String[].class };
+/*  76 */     Class[] tmp4_1 = new Class[1]; Class tmp9_6 = class$2;
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*  76 */     if (tmp9_6 == null) { tmp9_6; try { tmpTernaryOp = (class$2 = Class.forName("[Ljava.lang.String;")); } catch (ClassNotFoundException localClassNotFoundException) { throw new NoClassDefFoundError(localClassNotFoundException.getMessage()); } } tmp4_1[0] = tmp9_6;return tmp4_1;
 /*     */   }
 /*     */   
-/*     */   int unaryOp() {
-/*  80 */     return -Object.class.hashCode();
+/*     */   int unaryOp() { Class tmp3_0 = class$0;
+/*  80 */     if (tmp3_0 == null) { tmp3_0; try { tmpTernaryOp = (class$0 = Class.forName("java.lang.Object")); } catch (ClassNotFoundException localClassNotFoundException) { throw new NoClassDefFoundError(localClassNotFoundException.getMessage()); } } return -tmp3_0.hashCode();
 /*     */   }
 /*     */   
-/*     */   int binaryOp() {
-/*  84 */     return Object.class.hashCode() + Object.class.hashCode();
+/*     */   int binaryOp() { Class tmp3_0 = class$0;
+/*  84 */     if (tmp3_0 == null) { tmp3_0; try { tmpTernaryOp = (class$0 = Class.forName("java.lang.Object")); } catch (ClassNotFoundException localClassNotFoundException1) { throw new NoClassDefFoundError(localClassNotFoundException1.getMessage()); } } Class tmp38_35 = class$0; if (tmp38_35 == null) { tmp38_35; try { tmpTernaryOp = (class$0 = Class.forName("java.lang.Object")); } catch (ClassNotFoundException localClassNotFoundException2) { throw new NoClassDefFoundError(localClassNotFoundException2.getMessage()); } } return tmp3_0.hashCode() + tmp38_35.hashCode();
 /*     */   }
 /*     */   
-/*     */   void invokeStatic() {
-/*  88 */     print(Object.class);
+/*     */   void invokeStatic() { Class tmp3_0 = class$0;
+/*  88 */     if (tmp3_0 == null) { tmp3_0; try { tmpTernaryOp = (class$0 = Class.forName("java.lang.Object")); } catch (ClassNotFoundException localClassNotFoundException) { throw new NoClassDefFoundError(localClassNotFoundException.getMessage()); } } print(tmp3_0);
 /*     */   }
 /*     */   
-/*     */   void invokeVirtual() {
-/*  92 */     System.out.println(Object.class);
+/*     */   void invokeVirtual() { Class tmp6_3 = class$0;
+/*  92 */     if (tmp6_3 == null) { tmp6_3; try { tmpTernaryOp = (class$0 = Class.forName("java.lang.Object")); } catch (ClassNotFoundException localClassNotFoundException) { throw new NoClassDefFoundError(localClassNotFoundException.getMessage()); } } System.out.println(tmp6_3);
 /*     */   }
 /*     */   
 /*     */   native java.io.Serializable readValue(Class paramClass);
 /*     */   
-/*     */   void checkCast() {
-/*  98 */     this.clazz = ((Class)readValue(Object.class));
+/*     */   void checkCast() { Class tmp5_2 = class$0;
+/*  98 */     if (tmp5_2 == null) { tmp5_2; try { tmpTernaryOp = (class$0 = Class.forName("java.lang.Object")); } catch (ClassNotFoundException localClassNotFoundException) { throw new NoClassDefFoundError(localClassNotFoundException.getMessage()); } } this.clazz = ((Class)readValue(tmp5_2));
 /*     */   }
 /*     */   
-/*     */   void pop() {
-/* 102 */     readValue(Object.class);
+/*     */   void pop() { Class tmp4_1 = class$0;
+/* 102 */     if (tmp4_1 == null) { tmp4_1; try { tmpTernaryOp = (class$0 = Class.forName("java.lang.Object")); } catch (ClassNotFoundException localClassNotFoundException) { throw new NoClassDefFoundError(localClassNotFoundException.getMessage()); } } readValue(tmp4_1);
 /*     */   }
 /*     */   
 /*     */   Class ternaryOpStore(String subtypeName) throws ClassNotFoundException {
@@ -111,17 +188,17 @@
 /*     */   
 /*     */   Class dupStore(Class c) {
 /* 113 */     Class tmp = null;
-/*     */     try {
-/* 115 */       return tmp = c == (tmp = Object.class) ? (tmp = Integer.TYPE) : (tmp = Long.TYPE);
+/*     */     try { Class tmp6_3 = class$0;
+/* 115 */       if (tmp6_3 == null) { tmp6_3; try { tmpTernaryOp = (class$0 = Class.forName("java.lang.Object")); } catch (ClassNotFoundException localClassNotFoundException) { throw new NoClassDefFoundError(localClassNotFoundException.getMessage()); } } return tmp = c == (tmp = tmp6_3) ? (tmp = Integer.TYPE) : (tmp = Long.TYPE);
 /*     */     } finally {
 /* 117 */       System.out.println(tmp);
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   Object anonymous() {
-/* 122 */     AccessController.doPrivileged(new PrivilegedAction() {
-/*     */       public Object run() {
-/* 124 */         return Object.class;
+/* 122 */     java.security.AccessController.doPrivileged(new java.security.PrivilegedAction() {
+/*     */       public Object run() { Class tmp3_0 = DotClass14.class$0;
+/* 124 */         if (tmp3_0 == null) { tmp3_0; try { tmpTernaryOp = (DotClass14.class$0 = Class.forName("java.lang.Object")); } catch (ClassNotFoundException localClassNotFoundException) { throw new NoClassDefFoundError(localClassNotFoundException.getMessage()); } } return tmp3_0;
 /*     */       }
 /*     */     });
 /*     */   }
