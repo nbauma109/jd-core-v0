@@ -92,7 +92,7 @@ public class OuterReferenceReconstructor
             // Replace outer reference parameter of constructors
             ConstantPool constants = classFile.getConstantPool();
             if (method.getNameIndex() == constants.getInstanceConstructorIndex()) {
-                this.outerReferenceVisitor.visit(list);
+                //this.outerReferenceVisitor.visit(list);
             }
             // Replace multiple outer references
             this.multipleOuterReference.visit(list);
