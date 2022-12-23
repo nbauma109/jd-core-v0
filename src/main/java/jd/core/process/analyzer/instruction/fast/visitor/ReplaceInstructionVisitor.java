@@ -516,7 +516,11 @@ public class ReplaceInstructionVisitor
 
                     if (this.oldInstruction == null)
                     {
-                        if (putField.getValueref().getOffset() == this.offset)
+                        int targetOffset = this.offset;
+                        if (putField.getValueref().getOpcode() == ByteCodeConstants.PREINC) {
+                            targetOffset--;
+                        }
+                        if (putField.getValueref().getOffset() == targetOffset)
                         {
                             this.oldInstruction = putField.getValueref();
                             putField.setValueref(this.newInstruction);
@@ -676,7 +680,7 @@ public class ReplaceInstructionVisitor
         case FastConstants.TRY:
             {
                 FastTry ft = (FastTry)instruction;
-
+                visit(ft.getResources());
                 visit(ft.getInstructions());
 
                 if (this.oldInstruction == null)

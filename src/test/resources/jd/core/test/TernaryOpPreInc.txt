@@ -1,0 +1,12 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.awt.Point;
+/*    */ 
+/*    */ public class TernaryOpPreInc
+/*    */ {
+/*    */   Point p;
+/*    */   
+/*    */   void putfieldPreInc(boolean flag) {
+/* 10 */     this.p.y = (flag ? ++this.p.x : --this.p.y);
+/*    */   }
+/*    */ }
