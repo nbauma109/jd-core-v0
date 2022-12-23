@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class OuterGetStatic {
 
-    in[] a;
+    int[] a;
     int x, y;
     Double d;
     Object o;
@@ -32,7 +32,7 @@ public class OuterGetStatic {
 
     class Inner {
 
-        static int[] NEW_INIT_ARRAY = { getX(), getY() };
+        int[] newInitArray = { getX(), getY() };
 
         int arrayLength() {
             return getArray().length;
