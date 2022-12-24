@@ -1,6 +1,6 @@
 /*    */ package jd.core.test;
 /*    */ 
-/*    */ import java.awt.Point;
+/*    */ import java.awt.Rectangle;
 /*    */ 
 /*    */ public class Assignment { static int i;
 /*    */   static int j;
@@ -24,7 +24,7 @@
 /* 24 */     i = y + x;
 /*    */   }
 /*    */   
-/*    */   static void add(Point p, int x) {
+/*    */   static void add(java.awt.Point p, int x) {
 /* 28 */     p.x += x;
 /*    */   }
 /*    */   
@@ -38,5 +38,9 @@
 /*    */   
 /*    */   void multiAssignInc() {
 /* 40 */     this.a = (this.b += this.c);
+/*    */   }
+/*    */   
+/*    */   void compute(Rectangle[] r) {
+/* 44 */     r[7].y = (r[8].y = r[6].y = r[4].y + r[4].height);
 /*    */   }
 /*    */ }
