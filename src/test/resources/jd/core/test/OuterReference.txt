@@ -1,0 +1,93 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.io.PrintStream;
+/*    */ 
+/*    */ public class OuterReference {
+/*    */   int[] a;
+/*    */   int x;
+/*    */   int y;
+/*    */   Double d;
+/*    */   Object o;
+/*    */   
+/*    */   class Inner {
+/*    */     Inner() {}
+/*    */     
+/* 15 */     int[] newInitArray = { OuterReference.this.x, OuterReference.this.y };
+/*    */     
+/*    */     int arrayLength() {
+/* 18 */       return OuterReference.this.a.length;
+/*    */     }
+/*    */     
+/*    */     void arrayStore() {
+/* 22 */       OuterReference.this.a[OuterReference.this.x] = OuterReference.this.y;
+/*    */     }
+/*    */     
+/*    */     int unaryOp() {
+/* 26 */       return -OuterReference.this.x;
+/*    */     }
+/*    */     
+/*    */     int binaryOp() {
+/* 30 */       return OuterReference.this.x + OuterReference.this.y;
+/*    */     }
+/*    */     
+/*    */     byte convert() {
+/* 34 */       return (byte)OuterReference.this.x;
+/*    */     }
+/*    */     
+/*    */     void instanceOf() throws Exception {
+/* 38 */       if ((OuterReference.this.d instanceof Number)) {
+/* 39 */         System.out.println("ok");
+/*    */       }
+/*    */     }
+/*    */     
+/*    */     void tableSwitch() {
+/* 44 */       switch (OuterReference.this.x) {
+/*    */       case 1: 
+/* 46 */         System.out.println("One");
+/* 47 */         break;
+/*    */       case 2: 
+/* 49 */         System.out.println("Two");
+/* 50 */         break;
+/*    */       case 3: 
+/* 52 */         System.out.println("Three");
+/* 53 */         break;
+/*    */       default: 
+/* 55 */         throw new IllegalArgumentException();
+/*    */       }
+/*    */     }
+/*    */     
+/*    */     void lookupSwitch() {
+/* 60 */       switch (OuterReference.this.x) {
+/*    */       case 1: 
+/* 62 */         System.out.println("One");
+/* 63 */         break;
+/*    */       case 1000: 
+/* 65 */         System.out.println("One thousand");
+/* 66 */         break;
+/*    */       case 1000000: 
+/* 68 */         System.out.println("One million");
+/* 69 */         break;
+/*    */       default: 
+/* 71 */         throw new IllegalArgumentException();
+/*    */       }
+/*    */     }
+/*    */     
+/*    */     void fastSynchronized() {
+/* 76 */       synchronized (OuterReference.this.o) {
+/* 77 */         System.out.println("ok");
+/*    */       }
+/*    */     }
+/*    */     
+/*    */     Object[] aNewArray() {
+/* 82 */       return new Object[OuterReference.this.x];
+/*    */     }
+/*    */     
+/*    */     int[] newArray() {
+/* 86 */       return new int[OuterReference.this.x];
+/*    */     }
+/*    */     
+/*    */     Object[][] multiANewArray() {
+/* 90 */       return new Object[OuterReference.this.x][OuterReference.this.y];
+/*    */     }
+/*    */   }
+/*    */ }
