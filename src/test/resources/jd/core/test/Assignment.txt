@@ -1,10 +1,23 @@
-/*   */ package jd.core.test;
-/*   */ 
-/*   */ public class Assignment
-/*   */ {
-/*   */   static int i;
-/*   */   
-/*   */   void add(int x) {
-/* 8 */     i += x;
-/*   */   }
-/*   */ }
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class Assignment {
+/*    */   static int i;
+/*    */   static int j;
+/*    */   
+/*    */   void add(int x) {
+/*  8 */     i += x;
+/*    */   }
+/*    */   
+/*    */   void add(byte x)
+/*    */   {
+/* 13 */     i = i + x;
+/*    */   }
+/*    */   
+/*    */   void add(short x) {
+/* 17 */     i = j + x;
+/*    */   }
+/*    */   
+/*    */   void add(int x, int y) {
+/* 21 */     i = y + x;
+/*    */   }
+/*    */ }
