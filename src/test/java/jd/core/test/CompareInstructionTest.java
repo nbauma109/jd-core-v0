@@ -46,7 +46,7 @@ public class CompareInstructionTest {
     private void test(String internalClassPath) throws IOException {
         ClassFile cf1 = buildClass(internalClassPath);
         ClassFile cf2 = buildClass(internalClassPath);
-        CompareInstructionVisitor cmp = new FastCompareInstructionVisitor();
+        FastCompareInstructionVisitor cmp = new FastCompareInstructionVisitor();
         for (int i = 0; i < cf1.getMethods().length; i++) {
             assertTrue(cmp.visit(cf1.getMethods()[i].getFastNodes(), cf2.getMethods()[i].getFastNodes()));
         }            
