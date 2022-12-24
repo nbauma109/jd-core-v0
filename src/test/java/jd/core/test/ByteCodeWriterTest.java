@@ -38,8 +38,8 @@ public class ByteCodeWriterTest {
     }
 
     @Test
-    public void testInvokeinterfaceIInc() throws Exception {
-        test("jd/core/test/ByteCodeInput", "invokeinterfaceIInc", "()V", "InvokeinterfaceIIncByteCode.txt");
+    public void testInvokeInterfaceIInc() throws Exception {
+        test("jd/core/test/ByteCodeInput", "invokeInterfaceIInc", "()V", "InvokeInterfaceIIncByteCode.txt");
     }
 
     @Test
