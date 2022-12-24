@@ -39,4 +39,8 @@
 /*    */   void multiAssignInc() {
 /* 40 */     this.a = (this.b += this.c);
 /*    */   }
+/*    */   
+/*    */   void compute(Rectangle[] r) {
+/* 44 */     r[7].y = (r[8].y = r[6].y = r[4].y + r[4].height]);
+/*    */   }
 /*    */ }
