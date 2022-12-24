@@ -1,3 +1,5 @@
+package jd.core.test;
+
 import java.util.List;
 
 public class ByteCodeInput {
