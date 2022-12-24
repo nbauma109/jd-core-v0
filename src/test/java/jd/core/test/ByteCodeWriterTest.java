@@ -60,6 +60,6 @@ public class ByteCodeWriterTest {
         printer.start(maxLineNumber, classFile.getMajorVersion(), classFile.getMinorVersion());
         Method method = classFile.getMethod(methodName, methodDescriptor);
         ByteCodeWriter.write(loader, printer, referenceMap, classFile, method);
-        assertEquals(IOUtils.toString(getClass().getResource(expectedResultFile), StandardCharsets.UTF_8), printer.toString());
+        assertEquals(IOUtils.toString(getClass().getResource(expectedResultFile), StandardCharsets.UTF_8).trim(), printer.toString().trim());
     }
 }
