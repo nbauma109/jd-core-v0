@@ -1,5 +1,7 @@
 package jd.core.test;
 
+import java.awt.Point;
+
 public class Assignment {
 
     static int i, j;
