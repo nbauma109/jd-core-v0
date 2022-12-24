@@ -1,23 +1,42 @@
 /*    */ package jd.core.test;
 /*    */ 
-/*    */ public class Assignment {
-/*    */   static int i;
+/*    */ import java.awt.Point;
+/*    */ 
+/*    */ public class Assignment { static int i;
 /*    */   static int j;
+/*    */   int a;
+/*    */   int b;
+/*    */   int c;
 /*    */   
-/*    */   void add(int x) {
-/*  8 */     i += x;
-/*    */   }
+/* 11 */   void add(int x) { i += x; }
 /*    */   
+/*    */ 
 /*    */   void add(byte x)
 /*    */   {
-/* 13 */     i = i + x;
+/* 16 */     i = i + x;
 /*    */   }
 /*    */   
 /*    */   void add(short x) {
-/* 17 */     i = j + x;
+/* 20 */     i = j + x;
 /*    */   }
 /*    */   
 /*    */   void add(int x, int y) {
-/* 21 */     i = y + x;
+/* 24 */     i = y + x;
+/*    */   }
+/*    */   
+/*    */   static void add(Point p, int x) {
+/* 28 */     p.x += x;
+/*    */   }
+/*    */   
+/*    */ 
+/*    */ 
+/*    */   void multiAssign()
+/*    */   {
+/* 35 */     this.b = this.c;
+/* 36 */     this.a = this.b;
+/*    */   }
+/*    */   
+/*    */   void multiAssignInc() {
+/* 40 */     this.a = (this.b += this.c);
 /*    */   }
 /*    */ }
