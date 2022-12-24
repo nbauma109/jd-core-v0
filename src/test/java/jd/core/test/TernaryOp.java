@@ -105,7 +105,7 @@ public class TernaryOp {
     }
 
     static void putStatic(int a, int b) {
-        i = Math.random() > 0.5 ? a : b;
+        i = Math.random() > 0.5 ? a+i: b-i;
     }
 
     void pop(Map<String, String> m1, Map<String, String> m2) {
