@@ -1,6 +1,6 @@
 package jd.core.test;
 
-import java.awt.Point;
+import java.awt.*;
 
 public class Assignment {
 
