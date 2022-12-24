@@ -39,4 +39,8 @@ public class Assignment {
     void multiAssignInc() {
         a = b += c;
     }
+
+    void compute(Rectangle[] r) {
+        r[7].y = (r[8].y = r[6].y = r[4].y + r[4].height);
+    }
 }
