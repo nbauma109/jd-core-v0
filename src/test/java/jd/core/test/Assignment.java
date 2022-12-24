@@ -1,3 +1,5 @@
+package jd.core.test;
+
 public class Assignment {
 
     static int i;
