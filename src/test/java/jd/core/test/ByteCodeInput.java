@@ -4,9 +4,10 @@ import java.util.List;
 
 public class ByteCodeInput {
 
-    private Object[][] array;
+    Object[][] array;
+    List<?> list;
 
-    public void invokeInterfaceIInc(List<?> list) {
+    public void invokeInterfaceIInc() {
         for (int i = 0; i < list.size(); i++) {
             System.out.println(list.get(i));
          }
