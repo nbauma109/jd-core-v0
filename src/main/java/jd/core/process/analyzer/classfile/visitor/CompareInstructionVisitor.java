@@ -443,7 +443,7 @@ public class CompareInstructionVisitor
         }
     }
 
-    protected boolean visit(
+    public boolean visit(
         List<Instruction> l1, List<Instruction> l2)
     {
         int i = l1.size();
