@@ -3035,12 +3035,18 @@ public final class FastInstructionListBuilder {
         return "()Ljava/lang/Object;".equals(nextMethodDescriptor);
     }
 
-    /**
-     * Pattern SUN 1.5: 14: String[] strings = { "a", "b" }; 20: int j =
-     * (arrayOfString1 = strings).length; 48: for (int i = 0; i < j; ++i) { 33:
-     * String s = arrayOfString1[i]; 38: System.out.println(s); }
+    /*
+     * Pattern SUN 1.5:
+     * 14: String[] strings = { "a", "b" };
+     * 20: int j = (arrayOfString1 = strings).length;
+     * 48: for (int i = 0; i < j; ++i) {
+     * 33: String s = arrayOfString1[i]; 
+     * 38: System.out.println(s);
+     * }
      *
-     * Return 0: No pattern 1: Pattern SUN 1.5
+     * Possible return values:
+     * 0: No pattern
+     * 1: Pattern SUN 1.5
      */
     private static int getForEachArraySun15PatternType(Instruction init, Instruction test, Instruction inc,
             Instruction firstInstruction, StoreInstruction siLength) {
@@ -3106,11 +3112,17 @@ public final class FastInstructionListBuilder {
     }
 
     /**
-     * Pattern SUN 1.6: String[] arr$ = { "a", "b" }; int len$ = arr$.length;
-     * for(int i$ = 0; i$ < len$; i$++) { String s = arr$[i$];
-     * System.out.println(s); }
+     * Pattern SUN 1.6:
+     * String[] arr$ = { "a", "b" };
+     * int len$ = arr$.length;
+     * for(int i$ = 0; i$ < len$; i$++) {
+     *     String s = arr$[i$];
+     *     System.out.println(s);
+     * }
      *
-     * Return 0: No pattern 2: Pattern SUN 1.6
+     * Possible return values:
+     * 0: No pattern
+     * 2: Pattern SUN 1.6
      */
     private static int getForEachArraySun16PatternType(Instruction init, Instruction test, Instruction inc,
             Instruction firstInstruction, StoreInstruction siLength, Instruction beforeBeforeForInstruction) {
@@ -3171,13 +3183,18 @@ public final class FastInstructionListBuilder {
         return 2;
     }
 
-    /**
-     * Pattern IBM: 81: Object localObject = args; 84: GUIMap guiMap = 0; 116:
-     * for (GUIMap localGUIMap1 = localObject.length; guiMap < localGUIMap1;
-     * ++guiMap) { 99: String arg = localObject[guiMap]; 106:
-     * System.out.println(arg); }
+    /*
+     * Pattern IBM:
+     * 81: Object localObject = args;
+     * 84: GUIMap guiMap = 0;
+     * 116: for (GUIMap localGUIMap1 = localObject.length; guiMap < localGUIMap1; ++guiMap) {
+     * 99:  String arg = localObject[guiMap];
+     * 106: System.out.println(arg);
+     * }
      *
-     * Return 0: No pattern 3: Pattern IBM
+     * Possible return values:
+     * 0: No pattern
+     * 3: Pattern IBM
      */
     private static int getForEachArrayIbmPatternType(Instruction init, Instruction test,
             Instruction inc, List<Instruction> list, int beforeWhileLoopIndex, Instruction firstInstruction,
@@ -3239,21 +3256,36 @@ public final class FastInstructionListBuilder {
         return 3;
     }
 
-    /**
-     * Pattern SUN 1.5: 14: String[] strings = { "a", "b" }; 20: int j =
-     * (arrayOfString1 = strings).length; 48: for (int i = 0; i < j; ++i) { 33:
-     * String s = arrayOfString1[i]; 38: System.out.println(s); }
+    /*
+     * Pattern SUN 1.5:
+     * 14: String[] strings = { "a", "b" };
+     * 20: int j = (arrayOfString1 = strings).length;
+     * 48: for (int i = 0; i < j; ++i) {
+     * 33: String s = arrayOfString1[i];
+     * 38: System.out.println(s);
+     * }
      *
-     * Pattern SUN 1.6: String[] arr$ = { "a", "b" }; int len$ = arr$.length;
-     * for(int i$ = 0; i$ < len$; i$++) { String s = arr$[i$];
-     * System.out.println(s); }
+     * Pattern SUN 1.6:
+     * String[] arr$ = { "a", "b" };
+     * int len$ = arr$.length;
+     * for(int i$ = 0; i$ < len$; i$++) {
+     *     String s = arr$[i$];
+     *     System.out.println(s);
+     * }
      *
-     * Pattern IBM: 81: Object localObject = args; 84: GUIMap guiMap = 0; 116:
-     * for (GUIMap localGUIMap1 = localObject.length; guiMap < localGUIMap1;
-     * ++guiMap) { 99: String arg = localObject[guiMap]; 106:
-     * System.out.println(arg); }
+     * Pattern IBM:
+     * 81: Object localObject = args;
+     * 84: GUIMap guiMap = 0;
+     * 116: for (GUIMap localGUIMap1 = localObject.length; guiMap < localGUIMap1; ++guiMap) {
+     * 99: String arg = localObject[guiMap];
+     * 106: System.out.println(arg);
+     * }
      *
-     * Return 0: No pattern 1: Pattern SUN 1.5 2: Pattern SUN 1.6 3: Pattern IBM
+     * Possible return values:
+     * 0: No pattern
+     * 1: Pattern SUN 1.5 
+     * 2: Pattern SUN 1.6 
+     * 3: Pattern IBM
      */
     private static int getForEachArrayPatternType(ClassFile classFile, Instruction init, Instruction test,
             Instruction inc, List<Instruction> list, int beforeWhileLoopIndex, List<Instruction> subList) {
