@@ -1,0 +1,13 @@
+// Byte code:
+/*    */ //   0: aload_0
+/*    */ //   1: iconst_1
+/*    */ //   2: iconst_2
+/*    */ //   3: multianewarray 49 2
+/*    */ //   7: putfield 50	jd/core/test/ByteCodeInput:array	[[Ljava/lang/Object;
+/*    */ //   10: return
+/*    */ // Line number table:
+/*    */ //   Java source line #17	-> byte code offset #0
+/*    */ //   Java source line #18	-> byte code offset #10
+/*    */ // Local variable table:
+/*    */ //   start	length	slot	name	signature
+/*    */ //   0	11	0	this	ByteCodeInput

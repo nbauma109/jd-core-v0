@@ -36,7 +36,17 @@ public class ByteCodeWriterTest {
     public void testLookupSwitch() throws Exception {
         test("jd/core/test/LookupSwitch", "lookupSwitch", "(I)V", "LookupSwitchByteCode.txt");
     }
-    
+
+    @Test
+    public void testInvokeInterfaceIInc() throws Exception {
+        test("jd/core/test/ByteCodeInput", "invokeInterfaceIInc", "()V", "InvokeInterfaceIIncByteCode.txt");
+    }
+
+    @Test
+    public void testMultiANewArray() throws Exception {
+        test("jd/core/test/ByteCodeInput", "multiANewArray", "()V", "MultiANewArrayByteCode.txt");
+    }
+
     private void test(String internalClassPath, String methodName, String methodDescriptor, String expectedResultFile) throws IOException {
         Loader loader = new ClassPathLoader();
         ClassFile classFile = ClassFileDeserializer.deserialize(loader, internalClassPath);
@@ -50,6 +60,6 @@ public class ByteCodeWriterTest {
         printer.start(maxLineNumber, classFile.getMajorVersion(), classFile.getMinorVersion());
         Method method = classFile.getMethod(methodName, methodDescriptor);
         ByteCodeWriter.write(loader, printer, referenceMap, classFile, method);
-        assertEquals(IOUtils.toString(getClass().getResource(expectedResultFile), StandardCharsets.UTF_8), printer.toString());
+        assertEquals(IOUtils.toString(getClass().getResource(expectedResultFile), StandardCharsets.UTF_8).trim(), printer.toString().trim());
     }
 }
