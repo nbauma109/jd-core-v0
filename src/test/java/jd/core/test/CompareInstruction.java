@@ -97,4 +97,8 @@ public class CompareInstruction {
     int ternaryOp(boolean flag) {
         return flag ? x : y;
     }
+
+    void checkcast(Object a) {
+        Object[] b = (Object[]) a;
+    }
 }
