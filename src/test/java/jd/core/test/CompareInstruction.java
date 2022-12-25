@@ -99,7 +99,7 @@ public class CompareInstruction {
     }
 
     int ternaryOpStore(boolean flag) {
-        x = flag ? x + y: x - y;
+        x = flag ? x + y: -y;
         return x;
     }
 }
