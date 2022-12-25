@@ -13,6 +13,11 @@ public class OuterReference {
     class Inner {
 
         int[] newInitArray = { x, y };
+        int length;
+
+        Inner() {
+            length = a.length;
+        }
 
         int arrayLength() {
             return a.length;
