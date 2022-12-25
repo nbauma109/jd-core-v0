@@ -1,0 +1,37 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.io.PrintStream;
+/*    */ 
+/*    */ public class TryFinallyReturnThrow {
+/*  6 */   void tryFinallyReturnInFinally(boolean flag) { if (flag) {
+/*    */       try {
+/*  8 */         System.out.println("try");
+/*    */       } finally {
+/* 10 */         return;
+/*    */       }
+/*    */     }
+/* 13 */     System.out.println("end");
+/*    */   }
+/*    */   
+/*    */   void tryFinallyThrowInFinally(boolean flag) {
+/* 17 */     if (flag) {
+/*    */       try {
+/* 19 */         System.out.println("try");
+/*    */         
+/* 21 */         throw new RuntimeException();
+/*    */       } finally {}
+/*    */     }
+/* 24 */     System.out.println("end");
+/*    */   }
+/*    */   
+/*    */   void tryFinallyThrowInTry(boolean flag) {
+/* 28 */     if (flag) {
+/*    */       try {
+/* 30 */         throw new RuntimeException();
+/*    */       } finally {
+/* 32 */         System.out.println("finally");
+/*    */       }
+/*    */     }
+/* 35 */     System.out.println("end");
+/*    */   }
+/*    */ }
