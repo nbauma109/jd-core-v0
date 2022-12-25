@@ -98,7 +98,7 @@ public class CompareInstruction {
         return flag ? x : y;
     }
 
-    void checkcast(Object a) {
-        Object[] b = (Object[]) a;
+    Object[] checkcast(Object a) {
+        return (Object[]) a;
     }
 }
