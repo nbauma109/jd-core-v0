@@ -101,10 +101,4 @@ public class CompareInstruction {
     String newString() throws Exception {
         return (String) Class.forName("java.lang.String").newInstance();
     }
-
-    void complexStore(boolean flag) {
-        int tmp;
-        tmp = flag ? (tmp = x + y) : (tmp = x - y);
-        System.out.println(tmp);
-    }
 }
