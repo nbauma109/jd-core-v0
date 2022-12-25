@@ -98,7 +98,13 @@ public class CompareInstruction {
         return flag ? x : y;
     }
 
-    Object[] checkcast(Object a) {
-        return (Object[]) a;
+    String newString() throws Exception {
+        return Class.forName("java.lang.String").newInstance();
+    }
+
+    void complexStore(boolean flag) {
+        int tmp;
+        tmp = ((x = flag) ? (tmp = x + y) : (tmp = x - y));
+        System.out.println(tmp);
     }
 }
