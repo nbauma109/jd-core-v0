@@ -1,0 +1,17 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.io.PrintStream;
+/*    */ 
+/*    */ public class TryCatchFinallyReturn {
+/*  6 */   void tryCatchFinallyReturnInFinally(boolean flag) { if (flag) {
+/*    */       try {
+/*  8 */         System.out.println("try");
+/*    */       } catch (Exception e) {
+/* 10 */         e.printStackTrace();
+/*    */       } finally {
+/* 12 */         return;
+/*    */       }
+/*    */     }
+/* 15 */     System.out.println("end");
+/*    */   }
+/*    */ }
