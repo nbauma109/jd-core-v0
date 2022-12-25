@@ -74,7 +74,7 @@ public class CompareInstruction {
         }
     }
 
-    String checkcast() {
+    String checkcast() throws Exception {
         return (String) String.class.newInstance();
     }
     
