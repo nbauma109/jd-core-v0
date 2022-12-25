@@ -54,10 +54,8 @@ public class CompareInstruction {
         return (byte) x;
     }
 
-    void instanceOf() throws Exception {
-        if (d instanceof Number) {
-            System.out.println("ok");
-        }
+    boolean instanceOf() throws Exception {
+        return (d instanceof Number);
     }
 
     void fastSynchronized() {
