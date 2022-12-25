@@ -73,10 +73,6 @@ public class CompareInstruction {
             System.out.println("finally");
         }
     }
-
-    String checkcast() throws Exception {
-        return (String) String.class.newInstance();
-    }
     
     int preInc() {
         return a[++x];
@@ -100,9 +96,5 @@ public class CompareInstruction {
 
     int ternaryOp(boolean flag) {
         return flag ? x : y;
-    }
-
-    void ternaryOpStore(boolean flag) {
-        x = flag ? x + y : x - y;
     }
 }
