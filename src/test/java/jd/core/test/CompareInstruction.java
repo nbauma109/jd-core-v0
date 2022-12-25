@@ -98,8 +98,8 @@ public class CompareInstruction {
         return flag ? x : y;
     }
 
-    int ternaryOpStore(boolean flag) {
-        x = flag ? x + y: -y;
+    int complexStore(boolean flag) {
+        x = flag ? x + y: -a.length;
         return x;
     }
 }
