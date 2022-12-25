@@ -29,18 +29,8 @@ import jd.core.process.analyzer.instruction.fast.visitor.FastCompareInstructionV
 public class CompareInstructionTest {
 
     @Test
-    public void testTableSwitch() throws Exception {
-        test("jd/core/test/TableSwitch");
-    }
-
-    @Test
-    public void testLookupSwitch() throws Exception {
-        test("jd/core/test/LookupSwitch");
-    }
-
-    @Test
-    public void testByteCodeInput() throws Exception {
-        test("jd/core/test/ByteCodeInput");
+    public void test() throws Exception {
+        test("jd/core/test/CompareInstruction");
     }
 
     private void test(String internalClassPath) throws IOException {
