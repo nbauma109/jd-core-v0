@@ -23,4 +23,15 @@
 /*    */     }
 /* 24 */     System.out.println("end");
 /*    */   }
+/*    */   
+/*    */   void tryFinallyThrowInTry(boolean flag) {
+/* 28 */     if (flag) {
+/*    */       try {
+/* 30 */         throw new RuntimeException();
+/*    */       } finally {
+/* 32 */         System.out.println("finally");
+/*    */       }
+/*    */     }
+/* 35 */     System.out.println("end");
+/*    */   }
 /*    */ }
