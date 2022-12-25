@@ -24,4 +24,15 @@ public class TryFinallyReturnThrow {
         System.out.println("end");
     }
 
+    void tryFinallyThrowInTry(boolean flag) {
+        if (flag) {
+            try {
+                throw new RuntimeException();
+            } finally {
+                System.out.println("finally");
+            }
+        }
+        System.out.println("end");
+    }
+
 }
