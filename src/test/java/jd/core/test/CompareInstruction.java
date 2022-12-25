@@ -71,10 +71,11 @@ public class CompareInstruction {
             System.out.println("catch");
         } finally {
             System.out.println("finally");
+        }
     }
 
     String checkcast() {
-        return Class.forName("java.lang.String").newInstance();
+        return (String) String.class.newInstance();
     }
     
     int preInc() {
@@ -101,7 +102,7 @@ public class CompareInstruction {
         return flag ? x : y;
     }
 
-    int ternaryOpStore(boolean flag) {
+    void ternaryOpStore(boolean flag) {
         x = flag ? x + y : x - y;
     }
 }
