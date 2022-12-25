@@ -74,12 +74,12 @@ public class CompareInstruction {
         }
     }
     
-    int preInc() {
-        return a[++x];
+    void preInc() {
+        ++x;
     }
 
-    int postInc() {
-        return a[x++];
+    void postInc() {
+        x++;
     }
 
     Object[] aNewArray() {
