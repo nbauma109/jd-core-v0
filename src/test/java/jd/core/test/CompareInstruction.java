@@ -22,7 +22,7 @@ public class CompareInstruction {
         assert flag : message;
     }
 
-    void athrow(String message) {
+    void athrow(String message) throws Exception {
         throw new Exception(message);
     }
 
@@ -38,7 +38,7 @@ public class CompareInstruction {
         a[x] = y;
     }
  
-    void arrayLoad(int x) {
+    int arrayLoad(int x) {
         return a[x];
     }
 
