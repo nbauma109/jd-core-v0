@@ -100,5 +100,6 @@ public class CompareInstruction {
 
     int ternaryOpStore(boolean flag) {
         x = flag ? x + y: x - y;
+        return x;
     }
 }
