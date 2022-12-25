@@ -55,7 +55,7 @@ public class CompareInstruction {
     }
 
     boolean instanceOf() throws Exception {
-        return (d instanceof Number);
+        return d instanceof Number;
     }
 
     void fastSynchronized() {
@@ -98,8 +98,8 @@ public class CompareInstruction {
         return flag ? x : y;
     }
 
-    int complexStore(boolean flag) {
-        x = flag ? x + y: -a.length;
+    int complexStore() {
+        x = d instanceof Number ? x + y: -a.length;
         return x;
     }
 }
