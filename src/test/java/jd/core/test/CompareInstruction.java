@@ -64,6 +64,24 @@ public class CompareInstruction {
         }
     }
 
+    void tryCatchFinally() {
+        try {
+            System.out.println("try");
+        } catch (Exception ex) {
+            System.out.println("catch");
+        } finally {
+            System.out.println("finally");
+        }
+    }
+    
+    int preInc() {
+        return a[++x];
+    }
+
+    int postInc() {
+        return a[x++];
+    }
+
     Object[] aNewArray() {
         return new Object[x];
     }
@@ -74,5 +92,14 @@ public class CompareInstruction {
 
     Object[][] multiANewArray() {
         return new Object[x][y];
+    }
+
+    int ternaryOp(boolean flag) {
+        return flag ? x : y;
+    }
+
+    int ternaryOpStore(boolean flag) {
+        x = flag ? x + y: x - y;
+        return x;
     }
 }
