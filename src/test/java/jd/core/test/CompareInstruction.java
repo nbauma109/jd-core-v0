@@ -98,7 +98,7 @@ public class CompareInstruction {
         return flag ? x : y;
     }
 
-    String newString() throws Exception {
-        return (String) Class.forName("java.lang.String").newInstance();
+    int ternaryOpStore(boolean flag) {
+        x = flag ? x + y: x - y;
     }
 }
