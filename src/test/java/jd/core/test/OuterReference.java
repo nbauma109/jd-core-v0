@@ -16,6 +16,12 @@ public class OuterReference {
 
     class Inner {
 
+        int[] newInitArray = { x, y };
+
+        int arrayLength() {
+            return a.length;
+        }
+
         Inner() {
             m = new HashMap<>(); // PUTSTATIC
             m.put(x, y); // POP

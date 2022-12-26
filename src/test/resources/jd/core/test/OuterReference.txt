@@ -1,6 +1,7 @@
 /*    */ package jd.core.test;
 /*    */ 
 /*    */ import java.io.PrintStream;
+/*    */ import java.util.Map;
 /*    */ 
 /*    */ public class OuterReference
 /*    */ {
@@ -11,56 +12,61 @@
 /*    */   Object o;
 /*    */   java.awt.Point p;
 /*    */   boolean flag;
-/*    */   static java.util.Map<Integer, Integer> m;
+/*    */   static Map<Integer, Integer> m;
 /*    */   
 /*    */   class Inner
 /*    */   {
-/*    */     Inner()
-/*    */     {
-/* 20 */       OuterReference.m = new java.util.HashMap();
-/* 21 */       OuterReference.m.put(Integer.valueOf(OuterReference.this.x), Integer.valueOf(OuterReference.this.y));
-/* 22 */       OuterReference.this.a = new int[] { OuterReference.this.x, OuterReference.this.y };
-/* 23 */       OuterReference.this.a[(OuterReference.this.x++)] = (OuterReference.this.a.length + OuterReference.this.y);
-/* 24 */       OuterReference.this.a[(++OuterReference.this.y)] = (-OuterReference.this.x);
-/* 25 */       OuterReference.this.a[(OuterReference.this.x + OuterReference.this.y)] = ((OuterReference.this.d instanceof Double) ? (int)Math.round(((Double)OuterReference.this.d).doubleValue()) : OuterReference.this.x);
-/* 26 */       OuterReference.this.p.y = (OuterReference.this.flag ? ++OuterReference.this.p.x : --OuterReference.this.p.y);
+/* 19 */     int[] newInitArray = { OuterReference.this.x, OuterReference.this.y };
+/*    */     
+/*    */     int arrayLength() {
+/* 22 */       return OuterReference.this.a.length;
+/*    */     }
+/*    */     
+/*    */     Inner() {
+/* 26 */       OuterReference.m = new java.util.HashMap();
+/* 27 */       OuterReference.m.put(Integer.valueOf(OuterReference.this.x), Integer.valueOf(OuterReference.this.y));
+/* 28 */       OuterReference.this.a = new int[] { OuterReference.this.x, OuterReference.this.y };
+/* 29 */       OuterReference.this.a[(OuterReference.this.x++)] = (OuterReference.this.a.length + OuterReference.this.y);
+/* 30 */       OuterReference.this.a[(++OuterReference.this.y)] = (-OuterReference.this.x);
+/* 31 */       OuterReference.this.a[(OuterReference.this.x + OuterReference.this.y)] = ((OuterReference.this.d instanceof Double) ? (int)Math.round(((Double)OuterReference.this.d).doubleValue()) : OuterReference.this.x);
+/* 32 */       OuterReference.this.p.y = (OuterReference.this.flag ? ++OuterReference.this.p.x : --OuterReference.this.p.y);
 /*    */       
-/* 28 */       switch (OuterReference.this.x) {
+/* 34 */       switch (OuterReference.this.x) {
 /*    */       case 1: 
-/* 30 */         System.out.println("One");
-/* 31 */         break;
-/*    */       case 2: 
-/* 33 */         System.out.println("Two");
-/* 34 */         break;
-/*    */       case 3: 
-/* 36 */         System.out.println("Three");
+/* 36 */         System.out.println("One");
 /* 37 */         break;
+/*    */       case 2: 
+/* 39 */         System.out.println("Two");
+/* 40 */         break;
+/*    */       case 3: 
+/* 42 */         System.out.println("Three");
+/* 43 */         break;
 /*    */       default: 
-/* 39 */         throw new IllegalArgumentException();
+/* 45 */         throw new IllegalArgumentException();
 /*    */       }
 /*    */       
-/* 42 */       switch (OuterReference.this.x) {
+/* 48 */       switch (OuterReference.this.x) {
 /*    */       case 1: 
-/* 44 */         System.out.println("One");
-/* 45 */         break;
-/*    */       case 1000: 
-/* 47 */         System.out.println("One thousand");
-/* 48 */         break;
-/*    */       case 1000000: 
-/* 50 */         System.out.println("One million");
+/* 50 */         System.out.println("One");
 /* 51 */         break;
+/*    */       case 1000: 
+/* 53 */         System.out.println("One thousand");
+/* 54 */         break;
+/*    */       case 1000000: 
+/* 56 */         System.out.println("One million");
+/* 57 */         break;
 /*    */       default: 
-/* 53 */         throw new IllegalArgumentException();
+/* 59 */         throw new IllegalArgumentException();
 /*    */       }
 /*    */       
-/* 56 */       synchronized (OuterReference.this.o) {
-/* 57 */         if (((OuterReference.this.flag) && ((OuterReference.this.d instanceof Double))) || ((OuterReference.this.x < OuterReference.this.y) && (OuterReference.this.y < OuterReference.this.a.length))) {
-/* 58 */           System.out.println("ok");
+/* 62 */       synchronized (OuterReference.this.o) {
+/* 63 */         if (((OuterReference.this.flag) && ((OuterReference.this.d instanceof Double))) || ((OuterReference.this.x < OuterReference.this.y) && (OuterReference.this.y < OuterReference.this.a.length))) {
+/* 64 */           System.out.println("ok");
 /*    */         }
 /*    */       }
-/* 61 */       Object[][] multiANewArray = new Object[OuterReference.this.x][OuterReference.this.y];
-/* 62 */       multiANewArray[0] = new Object[OuterReference.this.y];
-/* 63 */       multiANewArray[0][1] = new int[OuterReference.this.x];
+/* 67 */       Object[][] multiANewArray = new Object[OuterReference.this.x][OuterReference.this.y];
+/* 68 */       multiANewArray[0] = new Object[OuterReference.this.y];
+/* 69 */       multiANewArray[0][1] = new int[OuterReference.this.x];
 /*    */     }
 /*    */   }
 /*    */ }
