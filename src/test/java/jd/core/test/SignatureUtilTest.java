@@ -15,5 +15,6 @@ public class SignatureUtilTest {
         assertEquals(2, SignatureUtil.getParameterSignatureCount("(IJ)V"));
         assertEquals(1, SignatureUtil.getParameterSignatureCount("([[Ljava/lang/String;)V"));
         assertEquals(2, SignatureUtil.getParameterSignatureCount("(Ljava/lang/String;[I)V"));
+        assertEquals(2, SignatureUtil.getParameterSignatureCount("(Ljava/lang/String;I)V"));
     }
 }

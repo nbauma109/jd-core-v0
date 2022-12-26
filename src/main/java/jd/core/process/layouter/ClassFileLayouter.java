@@ -655,7 +655,7 @@ public final class ClassFileLayouter {
                     {
                         if ((classFile.getAccessFlags() & Const.ACC_ENUM) != 0)
                         {
-                            if ("()V".equals(signature))
+                            if ("()V".equals(signature) || "(Ljava/lang/String;I)V".equals(signature))
                             {
                                 // Ne pas afficher le constructeur par defaut
                                 // des Enum si il est vide et si c'est le seul
