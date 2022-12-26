@@ -74,7 +74,6 @@ import jd.core.preferences.Preferences;
 import jd.core.process.layouter.visitor.InstructionSplitterVisitor;
 import jd.core.process.layouter.visitor.MaxLineNumberVisitor;
 import jd.core.util.ClassFileUtil;
-import jd.core.util.SignatureUtil;
 import jd.core.util.TypeNameUtil;
 
 public final class ClassFileLayouter {
@@ -656,7 +655,7 @@ public final class ClassFileLayouter {
                     {
                         if ((classFile.getAccessFlags() & Const.ACC_ENUM) != 0)
                         {
-                            if (SignatureUtil.getParameterSignatureCount(signature) == 2)
+                            if ("()V".equals(signature))
                             {
                                 // Ne pas afficher le constructeur par defaut
                                 // des Enum si il est vide et si c'est le seul
