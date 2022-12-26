@@ -19,4 +19,10 @@ public class LayoutTest extends AbstractTestCase {
         String output = decompile("jd/core/test/Fruit");
         assertEquals(IOUtils.toString(getClass().getResource("Fruit.txt"), StandardCharsets.UTF_8), output);
     }
+
+    @Test
+    public void testFruitWithName() throws Exception {
+        String output = decompile("jd/core/test/FruitWithName");
+        assertEquals(IOUtils.toString(getClass().getResource("FruitWithName.txt"), StandardCharsets.UTF_8), output);
+    }
 }
