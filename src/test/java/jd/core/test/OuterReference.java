@@ -1,51 +1,30 @@
 package jd.core.test;
 
 import java.awt.Point;
+import java.util.HashMap;
 import java.util.Map;
 
 public class OuterReference {
 
     int[] a;
     int x, y;
-    Double d;
+    Number d;
     Object o;
+    Point p;
+    boolean flag;
+    static Map<Integer, Integer> m;
 
     class Inner {
 
-        int[] newInitArray = { x, y };
-        int length;
-
         Inner() {
-            length = a.length;
-        }
-
-        int arrayLength() {
-            return a.length;
-        }
-
-        void arrayStore() {
-            a[x] = y;
-        }
-
-        int unaryOp() {
-            return -x;
-        }
-
-        int binaryOp() {
-            return x + y;
-        }
-
-        byte convert() {
-            return (byte) x;
-        }
-
-        void instanceOf() throws Exception {
-            if (d instanceof Number) {
-                System.out.println("ok");
-            }
-        }
-
-        void tableSwitch() {
+            m = new HashMap<>(); // PUTSTATIC
+            m.put(x, y); // POP
+            a = new int[] { x, y }; // NEWINITARRAY
+            a[x++] = a.length + y; // ARRAYSTORE, ARRAYLENGTH, BINARYOP
+            a[++y] = -x; // UNARYOP
+            a[x + y] = d instanceof Double ? (int) Math.round((Double) d) : x; // CONVERT
+            p.y = flag ? ++p.x : --p.y; // TERNARYOPSTORE
+            // TABLESWITCH
             switch (x) {
                 case 1:
                     System.out.println("One");
@@ -59,9 +38,7 @@ public class OuterReference {
                 default:
                     throw new IllegalArgumentException();
             }
-        }
-
-        void lookupSwitch() {
+            // LOOKUPSWITCH
             switch (x) {
                 case 1:
                     System.out.println("One");
@@ -75,24 +52,15 @@ public class OuterReference {
                 default:
                     throw new IllegalArgumentException();
             }
-        }
-
-        void fastSynchronized() {
+            // MONITORENTER/EXIT
             synchronized (o) {
-                System.out.println("ok");
+                if (flag && d instanceof Double || (x < y && y < a.length)) { // IFCMP
+                    System.out.println("ok");
+                }
             }
-        }
-
-        Object[] aNewArray() {
-            return new Object[x];
-        }
-
-        int[] newArray() {
-            return new int[x];
-        }
-
-        Object[][] multiANewArray() {
-            return new Object[x][y];
+            Object[][] multiANewArray = new Object[x][y]; // MULTIANEWARRAY
+            multiANewArray[0] = new Object[y]; // ANEWARRAY
+            multiANewArray[0][1] = new int[x]; // NEWARRAY
         }
     }
 }
