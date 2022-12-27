@@ -5,28 +5,28 @@ import java.util.Map;
 
 public class OuterGetStatic {
 
-    int[] a;
-    int x, y;
-    Double d;
-    Object o;
+    static int[] a;
+    static int x, y;
+    static Double d;
+    static Object o;
 
-    public int[] getArray() {
+    public static int[] getArray() {
         return a;
     }
 
-    public int getX() {
+    public static int getX() {
         return x;
     }
 
-    public int getY() {
+    public static int getY() {
         return y;
     }
 
-    public Double getDouble() {
+    public static Double getDouble() {
         return d;
     }
 
-    public Object getObject() {
+    public static Object getObject() {
         return o;
     }
 
