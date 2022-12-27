@@ -1,67 +1,48 @@
 package jd.core.test;
 
-import java.awt.Point;
-import java.util.Map;
-
 public class OuterGetStatic {
 
-    int[] a;
-    int x, y;
-    Double d;
-    Object o;
-
-    public int[] getArray() {
-        return a;
-    }
-
-    public int getX() {
-        return x;
-    }
-
-    public int getY() {
-        return y;
-    }
-
-    public Double getDouble() {
-        return d;
-    }
-
-    public Object getObject() {
-        return o;
-    }
+    static int[] a;
+    static int x, y;
+    static Number d;
+    static Object o;
 
     class Inner {
 
-        int[] newInitArray = { getX(), getY() };
+        int[] newInitArray = { x, y };
 
         int arrayLength() {
-            return getArray().length;
+            return a.length;
         }
 
         void arrayStore() {
-            getArray()[getX()] = getY();
+            a[x] = y;
         }
 
         int unaryOp() {
-            return -getX();
+            return -x;
         }
 
         int binaryOp() {
-            return getX() + getY();
+            return x + y;
         }
 
+        int ternaryOp() {
+            return x > 0 ? ++y : x++;
+        }
+        
         byte convert() {
-            return (byte) getX();
+            return (byte) x;
         }
 
         void instanceOf() throws Exception {
-            if (getDouble() instanceof Number) {
+            if (d instanceof Double) {
                 System.out.println("ok");
             }
         }
 
         void tableSwitch() {
-            switch (getX()) {
+            switch (x) {
                 case 1:
                     System.out.println("One");
                     break;
@@ -77,7 +58,7 @@ public class OuterGetStatic {
         }
 
         void lookupSwitch() {
-            switch (getX()) {
+            switch (x) {
                 case 1:
                     System.out.println("One");
                     break;
@@ -93,21 +74,21 @@ public class OuterGetStatic {
         }
 
         void fastSynchronized() {
-            synchronized (getObject()) {
+            synchronized (o) {
                 System.out.println("ok");
             }
         }
 
         Object[] aNewArray() {
-            return new Object[getX()];
+            return new Object[x];
         }
 
         int[] newArray() {
-            return new int[getX()];
+            return new int[x];
         }
 
         Object[][] multiANewArray() {
-            return new Object[getX()][getY()];
+            return new Object[x][y];
         }
     }
 }
