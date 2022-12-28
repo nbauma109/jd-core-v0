@@ -11,6 +11,6 @@ public class HashCodeBuilderTest extends AbstractTestCase {
     @Test
     public void test() throws Exception {
         String output = decompile("org/apache/commons/lang3/builder/HashCodeBuilder");
-        assertEquals(IOUtils.toString(getClass().getResource("HashCodeBuilder.txt"), StandardCharsets.UTF_8), output);
+        assertEquals(IOUtils.toString(getClass().getResource("HashCodeBuilder.txt"), StandardCharsets.UTF_8).trim(), output.trim());
     }
 }
