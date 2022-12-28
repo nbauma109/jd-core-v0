@@ -15,7 +15,7 @@ public class HashCodeBuilderTest extends AbstractTestCase {
     }
 
     @Override
-    public realignmentLineNumber() {
+    public boolean realignmentLineNumber() {
         return false;
     }
 }
