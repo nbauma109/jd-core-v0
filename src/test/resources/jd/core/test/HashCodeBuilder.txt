@@ -1,5 +1,5 @@
 /*     */ package org.apache.commons.lang3.builder;
-/*     */
+/*     */ 
 /*     */ import java.lang.reflect.AccessibleObject;
 /*     */ import java.lang.reflect.Field;
 /*     */ import java.lang.reflect.Modifier;
@@ -10,179 +10,179 @@
 /*     */ import org.apache.commons.lang3.ArraySorter;
 /*     */ import org.apache.commons.lang3.ArrayUtils;
 /*     */ import org.apache.commons.lang3.Validate;
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */ public class HashCodeBuilder
 /*     */   implements Builder<Integer>
 /*     */ {
 /*     */   private static final int DEFAULT_INITIAL_VALUE = 17;
 /*     */   private static final int DEFAULT_MULTIPLIER_VALUE = 37;
 /* 123 */   private static final ThreadLocal<Set<IDKey>> REGISTRY = new ThreadLocal();
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   private final int iConstant;
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   private int iTotal;
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   static Set<IDKey> getRegistry()
 /*     */   {
 /* 151 */     return (Set)REGISTRY.get();
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   static boolean isRegistered(Object value)
 /*     */   {
 /* 166 */     Set<IDKey> registry = getRegistry();
 /* 167 */     return (registry != null) && (registry.contains(new IDKey(value)));
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   private static void reflectionAppend(Object object, Class<?> clazz, HashCodeBuilder builder, boolean useTransients, String[] excludeFields)
 /*     */   {
 /* 188 */     if (isRegistered(object)) {
@@ -190,14 +190,14 @@
 /*     */     }
 /*     */     try {
 /* 192 */       register(object);
-/*     */      
+/*     */       
 /* 194 */       Field[] fields = (Field[])ArraySorter.sort(clazz.getDeclaredFields(), Comparator.comparing(Field::getName));
 /* 195 */       AccessibleObject.setAccessible(fields, true);
 /* 196 */       for (Field field : fields) {
-/* 197 */         if ((ArrayUtils.contains(excludeFields, field.getName())) ||
-/* 198 */           (field.getName().contains("$")) || ((!useTransients) &&
-/* 199 */           (Modifier.isTransient(field.getModifiers()))) ||
-/* 200 */           (Modifier.isStatic(field.getModifiers())) ||
+/* 197 */         if ((ArrayUtils.contains(excludeFields, field.getName())) || 
+/* 198 */           (field.getName().contains("$")) || ((!useTransients) && 
+/* 199 */           (Modifier.isTransient(field.getModifiers()))) || 
+/* 200 */           (Modifier.isStatic(field.getModifiers())) || 
 /* 201 */           (field.isAnnotationPresent(HashCodeExclude.class)))
 /*     */           continue;
 /* 203 */         try { Object fieldValue = field.get(object);
@@ -213,148 +213,148 @@
 /* 213 */       unregister(object);
 /*     */     }
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public static int reflectionHashCode(int initialNonZeroOddNumber, int multiplierNonZeroOddNumber, Object object)
 /*     */   {
 /* 258 */     return reflectionHashCode(initialNonZeroOddNumber, multiplierNonZeroOddNumber, object, false, null, new String[0]);
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public static int reflectionHashCode(int initialNonZeroOddNumber, int multiplierNonZeroOddNumber, Object object, boolean testTransients)
 /*     */   {
 /* 305 */     return reflectionHashCode(initialNonZeroOddNumber, multiplierNonZeroOddNumber, object, testTransients, null, new String[0]);
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public static <T> int reflectionHashCode(int initialNonZeroOddNumber, int multiplierNonZeroOddNumber, T object, boolean testTransients, Class<? super T> reflectUpToClass, String... excludeFields)
 /*     */   {
 /* 360 */     Validate.notNull(object, "object", new Object[0]);
@@ -367,135 +367,135 @@
 /*     */     }
 /* 368 */     return builder.toHashCode();
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public static int reflectionHashCode(Object object, boolean testTransients)
 /*     */   {
 /* 407 */     return reflectionHashCode(17, 37, object, testTransients, null, new String[0]);
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public static int reflectionHashCode(Object object, Collection<String> excludeFields)
 /*     */   {
 /* 447 */     return reflectionHashCode(object, ReflectionToStringBuilder.toNoNullStringArray(excludeFields));
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public static int reflectionHashCode(Object object, String... excludeFields)
 /*     */   {
 /* 488 */     return reflectionHashCode(17, 37, object, false, null, excludeFields);
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   private static void register(Object value)
 /*     */   {
 /* 501 */     Set<IDKey> registry = getRegistry();
@@ -505,18 +505,18 @@
 /*     */     }
 /* 506 */     registry.add(new IDKey(value));
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   private static void unregister(Object value)
 /*     */   {
 /* 522 */     Set<IDKey> registry = getRegistry();
@@ -527,43 +527,43 @@
 /*     */       }
 /*     */     }
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public HashCodeBuilder()
 /*     */   {
 /* 547 */     this.iConstant = 37;
 /* 548 */     this.iTotal = 17;
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public HashCodeBuilder(int initialOddNumber, int multiplierOddNumber)
 /*     */   {
 /* 569 */     Validate.isTrue(initialOddNumber % 2 != 0, "HashCodeBuilder requires an odd initial value", new Object[0]);
@@ -571,41 +571,41 @@
 /* 571 */     this.iConstant = multiplierOddNumber;
 /* 572 */     this.iTotal = initialOddNumber;
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public HashCodeBuilder append(boolean value)
 /*     */   {
 /* 597 */     this.iTotal = (this.iTotal * this.iConstant + (value ? 0 : 1));
 /* 598 */     return this;
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public HashCodeBuilder append(boolean[] array)
 /*     */   {
 /* 611 */     if (array == null) {
@@ -617,33 +617,33 @@
 /*     */     }
 /* 618 */     return this;
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public HashCodeBuilder append(byte value)
 /*     */   {
 /* 633 */     this.iTotal = (this.iTotal * this.iConstant + value);
 /* 634 */     return this;
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public HashCodeBuilder append(byte[] array)
 /*     */   {
 /* 649 */     if (array == null) {
@@ -655,29 +655,29 @@
 /*     */     }
 /* 656 */     return this;
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public HashCodeBuilder append(char value)
 /*     */   {
 /* 669 */     this.iTotal = (this.iTotal * this.iConstant + value);
 /* 670 */     return this;
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public HashCodeBuilder append(char[] array)
 /*     */   {
 /* 683 */     if (array == null) {
@@ -689,28 +689,28 @@
 /*     */     }
 /* 690 */     return this;
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public HashCodeBuilder append(double value)
 /*     */   {
 /* 703 */     return append(Double.doubleToLongBits(value));
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public HashCodeBuilder append(double[] array)
 /*     */   {
 /* 716 */     if (array == null) {
@@ -722,29 +722,29 @@
 /*     */     }
 /* 723 */     return this;
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public HashCodeBuilder append(float value)
 /*     */   {
 /* 736 */     this.iTotal = (this.iTotal * this.iConstant + Float.floatToIntBits(value));
 /* 737 */     return this;
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public HashCodeBuilder append(float[] array)
 /*     */   {
 /* 750 */     if (array == null) {
@@ -756,29 +756,29 @@
 /*     */     }
 /* 757 */     return this;
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public HashCodeBuilder append(int value)
 /*     */   {
 /* 770 */     this.iTotal = (this.iTotal * this.iConstant + value);
 /* 771 */     return this;
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public HashCodeBuilder append(int[] array)
 /*     */   {
 /* 784 */     if (array == null) {
@@ -790,33 +790,33 @@
 /*     */     }
 /* 791 */     return this;
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public HashCodeBuilder append(long value)
 /*     */   {
 /* 808 */     this.iTotal = (this.iTotal * this.iConstant + (int)(value ^ value >> 32));
 /* 809 */     return this;
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public HashCodeBuilder append(long[] array)
 /*     */   {
 /* 822 */     if (array == null) {
@@ -828,15 +828,15 @@
 /*     */     }
 /* 829 */     return this;
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public HashCodeBuilder append(Object object)
 /*     */   {
 /* 842 */     if (object == null) {
@@ -844,23 +844,23 @@
 /*     */     }
 /* 845 */     else if (object.getClass().isArray())
 /*     */     {
-/*     */
+/*     */ 
 /* 848 */       appendArray(object);
 /*     */     } else {
 /* 850 */       this.iTotal = (this.iTotal * this.iConstant + object.hashCode());
 /*     */     }
 /* 852 */     return this;
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   private void appendArray(Object object)
 /*     */   {
 /* 866 */     if ((object instanceof long[])) {
@@ -884,15 +884,15 @@
 /* 884 */       append((Object[])object);
 /*     */     }
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public HashCodeBuilder append(Object[] array)
 /*     */   {
 /* 898 */     if (array == null) {
@@ -904,29 +904,29 @@
 /*     */     }
 /* 905 */     return this;
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public HashCodeBuilder append(short value)
 /*     */   {
 /* 918 */     this.iTotal = (this.iTotal * this.iConstant + value);
 /* 919 */     return this;
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public HashCodeBuilder append(short[] array)
 /*     */   {
 /* 932 */     if (array == null) {
@@ -938,54 +938,54 @@
 /*     */     }
 /* 939 */     return this;
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public HashCodeBuilder appendSuper(int superHashCode)
 /*     */   {
 /* 953 */     this.iTotal = (this.iTotal * this.iConstant + superHashCode);
 /* 954 */     return this;
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public int toHashCode()
 /*     */   {
 /* 965 */     return this.iTotal;
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public Integer build()
 /*     */   {
 /* 977 */     return Integer.valueOf(toHashCode());
 /*     */   }
-/*     */  
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
-/*     */
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public int hashCode()
 /*     */   {
 /* 991 */     return toHashCode();
