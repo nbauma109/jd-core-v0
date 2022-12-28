@@ -1,0 +1,18 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.util.Random;
+/*    */ 
+/*    */ public class InitFields {
+/*  6 */   int[] a = { 1, 2, 3 };
+/*  7 */   int i = 0;
+/*  8 */   Random r = new Random(System.currentTimeMillis());
+/*  9 */   int j = this.r.nextBoolean() ? this.a[this.i] + this.a.length : -this.a[this.i];
+/* 10 */   int k = ++this.i;
+/* 11 */   int l = this.k++;
+/* 12 */   Number[] nums = new Number[1];
+/* 13 */   Number n1 = this.nums[0] = Double.valueOf(this.r.nextDouble());
+/* 14 */   Number n2 = this.nums[0] = Long.valueOf(this.r.nextLong());
+/* 15 */   Number n = this.r.nextBoolean() ? this.n1 : this.n2;
+/* 16 */   boolean flag = this.n instanceof Double;
+/* 17 */   Double d = Double.valueOf(this.flag ? ((Double)this.n).doubleValue() : new int[0][0].length);
+/*    */ }
