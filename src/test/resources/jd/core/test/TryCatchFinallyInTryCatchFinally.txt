@@ -1,0 +1,67 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.io.PrintStream;
+/*    */ 
+/*    */ public class TryCatchFinallyInTryCatchFinally
+/*    */ {
+/*    */   public int methodTryCatchFinallyInTryCatchFinally(java.util.Random r) throws Exception {
+/*  8 */     System.out.println("start");
+/*    */     
+/* 10 */     int a = 1;
+/* 11 */     int b = 1;
+/*    */     try
+/*    */     {
+/* 14 */       System.out.println("in try");
+/*    */       int i;
+/*    */       try {
+/* 17 */         System.out.println("in inner try");
+/*    */         
+/* 19 */         if (r.nextBoolean()) {
+/* 20 */           System.out.println("before throw in inner try");
+/* 21 */           throw new RuntimeException();
+/*    */         }
+/*    */         
+/* 24 */         return b;
+/*    */       } catch (RuntimeException e) {
+/* 26 */         System.err.println(e);
+/*    */         
+/* 28 */         if (r.nextBoolean()) {
+/* 29 */           throw new RuntimeException();
+/*    */         }
+/* 31 */         System.out.println("in catch in inner try");
+/*    */       } finally {
+/* 33 */         System.out.println("in finally in inner try");
+/*    */       }
+/*    */       
+/* 36 */       System.out.println("in try");
+/*    */       try
+/*    */       {
+/* 39 */         System.out.println("in inner try");
+/*    */         
+/* 41 */         if (r.nextBoolean()) {
+/* 42 */           System.out.println("before throw in inner try");
+/* 43 */           throw new RuntimeException();
+/*    */         }
+/*    */         
+/* 46 */         return b;
+/*    */       } catch (RuntimeException e) {
+/* 48 */         e.printStackTrace();
+/*    */         
+/* 50 */         if (r.nextBoolean()) {
+/* 51 */           throw new RuntimeException();
+/*    */         }
+/* 53 */         System.out.println("in catch in inner try");
+/*    */       } finally {
+/* 55 */         System.out.println("in finally in inner try");
+/*    */       }
+/*    */       
+/* 58 */       System.out.println("in try");
+/*    */     } finally {
+/* 60 */       System.out.println("in finally");
+/*    */     }
+/*    */     
+/* 63 */     System.out.println("end");
+/*    */     
+/* 65 */     return a + b;
+/*    */   }
+/*    */ }

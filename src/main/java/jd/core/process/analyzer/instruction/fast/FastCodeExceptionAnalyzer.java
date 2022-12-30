@@ -36,6 +36,7 @@ import jd.core.model.instruction.bytecode.instruction.AssignmentInstruction;
 import jd.core.model.instruction.bytecode.instruction.BranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.CheckCast;
 import jd.core.model.instruction.bytecode.instruction.ComplexConditionalBranchInstruction;
+import jd.core.model.instruction.bytecode.instruction.ExceptionLoad;
 import jd.core.model.instruction.bytecode.instruction.Goto;
 import jd.core.model.instruction.bytecode.instruction.IfCmp;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
@@ -45,6 +46,7 @@ import jd.core.model.instruction.bytecode.instruction.Jsr;
 import jd.core.model.instruction.bytecode.instruction.MonitorEnter;
 import jd.core.model.instruction.bytecode.instruction.MonitorExit;
 import jd.core.model.instruction.bytecode.instruction.Pop;
+import jd.core.model.instruction.bytecode.instruction.ReturnAddressLoad;
 import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.Switch;
@@ -2286,7 +2288,7 @@ public final class FastCodeExceptionAnalyzer
         finallyInstructions.remove(0);
     }
 
-    /** Deux variantes existent. La sous procedure [finally] ne se trouve pas
+    /* Deux variantes existent. La sous procedure [finally] ne se trouve pas
      * toujours dans le block 'finally'.
      */
     private static void format131CatchFinally(
@@ -2321,6 +2323,7 @@ public final class FastCodeExceptionAnalyzer
 
         if (jumpOffset < finallyInstructions.get(0).getOffset())
         {
+            // Jikes & Harmony
             // La sous procedure [finally] se trouve dans l'un des blocs 'catch'.
 
             // Recherche et extraction de la sous procedure
@@ -2424,8 +2427,32 @@ public final class FastCodeExceptionAnalyzer
             // Remove 'athrow' instruction in finally block
             finallyInstructions.remove(0);
         }
-        // Remove 'AStore ReturnAddressLoad' instruction in finally block
-        finallyInstructions.remove(0);
+        if (!finallyInstructions.isEmpty() && finallyInstructions.get(0) instanceof AStore) {
+            AStore aStore = (AStore) finallyInstructions.get(0);
+            if (aStore.getValueref() instanceof ExceptionLoad) {
+                // Remove 'AStore ExceptionLoad' instruction in finally block
+                finallyInstructions.remove(0);
+                // Remove 'jsr' instruction in finally block
+                if (!finallyInstructions.isEmpty() && finallyInstructions.get(0).getOpcode() == Const.JSR) {
+                    finallyInstructions.remove(0);
+                }
+                // Remove 'athrow' instruction in finally block
+                if (!finallyInstructions.isEmpty() && finallyInstructions.get(0).getOpcode() == Const.ATHROW) {
+                    finallyInstructions.remove(0);
+                }
+                if (!finallyInstructions.isEmpty() && finallyInstructions.get(0) instanceof AStore) {
+                    AStore as = (AStore) finallyInstructions.get(0);
+                    if (as.getValueref() instanceof ReturnAddressLoad) {
+                        // Remove 'AStore ReturnAddressLoad' instruction in finally block
+                        finallyInstructions.remove(0);
+                    }
+                }
+            }
+            if (aStore.getValueref() instanceof ReturnAddressLoad) {
+                // Remove 'AStore ReturnAddressLoad' instruction in finally block
+                finallyInstructions.remove(0);
+            }
+        }
     }
 
     private static void format142(
