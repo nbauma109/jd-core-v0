@@ -2427,31 +2427,20 @@ public final class FastCodeExceptionAnalyzer
             // Remove 'athrow' instruction in finally block
             finallyInstructions.remove(0);
         }
-        if (!finallyInstructions.isEmpty() && finallyInstructions.get(0) instanceof AStore) {
-            AStore aStore = (AStore) finallyInstructions.get(0);
-            if (aStore.getValueref() instanceof ExceptionLoad) {
-                // Remove 'AStore ExceptionLoad' instruction in finally block
-                finallyInstructions.remove(0);
-                // Remove 'jsr' instruction in finally block
-                if (!finallyInstructions.isEmpty() && finallyInstructions.get(0).getOpcode() == Const.JSR) {
-                    finallyInstructions.remove(0);
-                }
-                // Remove 'athrow' instruction in finally block
-                if (!finallyInstructions.isEmpty() && finallyInstructions.get(0).getOpcode() == Const.ATHROW) {
-                    finallyInstructions.remove(0);
-                }
-                if (!finallyInstructions.isEmpty() && finallyInstructions.get(0) instanceof AStore) {
-                    AStore as = (AStore) finallyInstructions.get(0);
-                    if (as.getValueref() instanceof ReturnAddressLoad) {
-                        // Remove 'AStore ReturnAddressLoad' instruction in finally block
-                        finallyInstructions.remove(0);
-                    }
-                }
-            }
-            if (aStore.getValueref() instanceof ReturnAddressLoad) {
-                // Remove 'AStore ReturnAddressLoad' instruction in finally block
-                finallyInstructions.remove(0);
-            }
+        AStore aStore = (AStore) finallyInstructions.get(0);
+        if (aStore.getValueref() instanceof ExceptionLoad) {
+            // Remove 'AStore ExceptionLoad' instruction in finally block
+            finallyInstructions.remove(0);
+            // Remove 'jsr' instruction in finally block
+            finallyInstructions.remove(0);
+            // Remove 'athrow' instruction in finally block
+            finallyInstructions.remove(0);
+            // Remove 'AStore ReturnAddressLoad' instruction in finally block
+            finallyInstructions.remove(0);
+        }
+        if (aStore.getValueref() instanceof ReturnAddressLoad) {
+            // Remove 'AStore ReturnAddressLoad' instruction in finally block
+            finallyInstructions.remove(0);
         }
     }
 
