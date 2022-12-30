@@ -181,6 +181,9 @@ public final class FastInstructionListBuilder {
             }
         }
 
+        // last attempt to remove last remaining JSRs that have been missed
+        list.removeIf(instr -> instr.getOpcode() == Const.JSR);
+
         executeReconstructors(referenceMap, classFile, list, localVariables);
 
         analyzeList(classFile, method, list, localVariables, offsetLabelSet, -1, -1, -1, -1, -1, -1, returnOffset);
