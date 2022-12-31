@@ -1,29 +1,16 @@
 package jd.core.test;
 
-import org.apache.commons.io.IOUtils;
 import org.jd.core.v1.api.loader.Loader;
 import org.jd.core.v1.loader.ClassPathLoader;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.junit.Assert.*;
 
 import jd.core.model.classfile.ClassFile;
-import jd.core.model.classfile.Method;
-import jd.core.model.layout.block.LayoutBlock;
 import jd.core.model.reference.ReferenceMap;
-import jd.core.preferences.Preferences;
-import jd.core.printer.Printer;
-import jd.core.printer.PrinterImpl;
 import jd.core.process.analyzer.classfile.ClassFileAnalyzer;
 import jd.core.process.analyzer.classfile.ReferenceAnalyzer;
 import jd.core.process.deserializer.ClassFileDeserializer;
-import jd.core.process.layouter.ClassFileLayouter;
-import jd.core.process.writer.ByteCodeWriter;
 import jd.core.process.analyzer.instruction.fast.visitor.FastCompareInstructionVisitor;
 
 public class CompareInstructionTest {
@@ -33,7 +20,7 @@ public class CompareInstructionTest {
         test("jd/core/test/CompareInstruction");
     }
 
-    private void test(String internalClassPath) throws IOException {
+    private static void test(String internalClassPath) {
         ClassFile cf1 = buildClass(internalClassPath);
         ClassFile cf2 = buildClass(internalClassPath);
         FastCompareInstructionVisitor cmp = new FastCompareInstructionVisitor();
@@ -42,7 +29,7 @@ public class CompareInstructionTest {
         }            
     }
 
-    private ClassFile buildClass(String internalClassPath) throws IOException {
+    private static ClassFile buildClass(String internalClassPath) {
         Loader loader = new ClassPathLoader();
         ClassFile classFile = ClassFileDeserializer.deserialize(loader, internalClassPath);
         ReferenceMap referenceMap = new ReferenceMap();

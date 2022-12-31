@@ -52,6 +52,7 @@ import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
 import jd.core.model.instruction.bytecode.instruction.MultiANewArray;
 import jd.core.model.instruction.bytecode.instruction.NewArray;
 import jd.core.model.instruction.bytecode.instruction.PutField;
+import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
@@ -411,8 +412,10 @@ public class CompareInstructionVisitor
             return ((ConstInstruction)i1).getValue() == ((ConstInstruction)i2).getValue();
         case ByteCodeConstants.DUPLOAD:
             return ((DupLoad)i1).getDupStore() == ((DupLoad)i2).getDupStore();
+        case ByteCodeConstants.XRETURN,
+             Const.RETURN:
+            return visit(((ReturnInstruction)i1).getValueref(), ((ReturnInstruction)i2).getValueref());
         case Const.TABLESWITCH,
-             ByteCodeConstants.XRETURN,
              Const.PUTSTATIC,
              Const.LOOKUPSWITCH,
              Const.MONITORENTER,
@@ -430,7 +433,6 @@ public class CompareInstructionVisitor
              Const.NEW,
              Const.NOP,
              Const.RET,
-             Const.RETURN,
              Const.INVOKEDYNAMIC,
              ByteCodeConstants.EXCEPTIONLOAD,
              ByteCodeConstants.RETURNADDRESSLOAD:
