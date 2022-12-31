@@ -412,10 +412,10 @@ public class CompareInstructionVisitor
             return ((ConstInstruction)i1).getValue() == ((ConstInstruction)i2).getValue();
         case ByteCodeConstants.DUPLOAD:
             return ((DupLoad)i1).getDupStore() == ((DupLoad)i2).getDupStore();
-        case ByteCodeConstants.XRETURN,
-             Const.RETURN:
+        case ByteCodeConstants.XRETURN:
             return visit(((ReturnInstruction)i1).getValueref(), ((ReturnInstruction)i2).getValueref());
-        case Const.TABLESWITCH,
+        case Const.RETURN,
+             Const.TABLESWITCH,
              Const.PUTSTATIC,
              Const.LOOKUPSWITCH,
              Const.MONITORENTER,
