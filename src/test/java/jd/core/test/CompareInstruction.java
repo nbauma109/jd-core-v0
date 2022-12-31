@@ -1,20 +1,19 @@
 package jd.core.test;
 
 import java.awt.Point;
-import java.util.Map;
 
 public class CompareInstruction {
 
     int[] a;
     int x, y;
-    Double d;
+    Number n;
     Object o;
 
-    public CompareInstruction(int[] a, Point p, Double d, Object o) {
+    public CompareInstruction(int[] a, Point p, Number n, Object o) {
         this.a = a;
         x = p.x;
         y = p.y;
-        this.d = d;
+        this.n = n;
         this.o = o;
     }
 
@@ -55,9 +54,13 @@ public class CompareInstruction {
     }
 
     boolean instanceOf() throws Exception {
-        return d instanceof Number;
+        return n instanceof Double;
     }
 
+    Double checkcast() throws Exception {
+        return (Double) n;
+    }
+    
     void fastSynchronized() {
         synchronized (o) {
             System.out.println("ok");
@@ -68,6 +71,7 @@ public class CompareInstruction {
         try {
             System.out.println("try");
         } catch (Exception ex) {
+            ex.printStackTrace();
             System.out.println("catch");
         } finally {
             System.out.println("finally");
@@ -99,7 +103,7 @@ public class CompareInstruction {
     }
 
     int complexStore() {
-        x = d instanceof Number ? x + y: -a.length;
+        x = n instanceof Double ? x + y: -a.length;
         return x;
     }
 }
