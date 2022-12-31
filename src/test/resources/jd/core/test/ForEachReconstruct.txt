@@ -1,0 +1,15 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.io.PrintStream;
+/*    */ 
+/*    */ public class ForEachReconstruct {
+/*  6 */   void iterate() { for (String s : new String[] { "a", "b" }) System.out.println(s);
+/*    */   }
+/*    */   
+/*    */   public static void main(String[] args)
+/*    */   {
+/* 11 */     for (Object arg : args) {
+/* 12 */       System.out.println(arg);
+/*    */     }
+/*    */   }
+/*    */ }

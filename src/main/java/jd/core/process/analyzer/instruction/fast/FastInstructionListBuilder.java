@@ -2861,7 +2861,7 @@ public final class FastInstructionListBuilder {
             // Remove index local variable
             removeLocalVariable(method, (StoreInstruction) beforeWhileLoop);
             // Remove array tmp local variable
-            removeLocalVariable(method, (AStore) ai.getValue1());
+            removeLocalVariable(method, (ALoad) ai.getValue1());
 
             list.set(beforeWhileLoopIndex, new FastForEach(FastConstants.FOREACH, forLoopOffset, variable.getLineNumber(),
                     branch, variable, values, subList));
@@ -3059,10 +3059,10 @@ public final class FastInstructionListBuilder {
             return 0;
         }
         AssignmentInstruction ai = (AssignmentInstruction) al.getArrayref();
-        if (!"=".equals(ai.getOperator()) || ai.getValue1().getOpcode() != Const.ASTORE) {
+        if (!"=".equals(ai.getOperator()) || ai.getValue1().getOpcode() != Const.ALOAD) {
             return 0;
         }
-        StoreInstruction siTmpArray = (StoreInstruction) ai.getValue1();
+        LoadInstruction liTmpArray = (LoadInstruction) ai.getValue1();
 
         // Test 'init' instruction: int i = 0
         if (init.getOpcode() != Const.ISTORE) {
@@ -3106,7 +3106,7 @@ public final class FastInstructionListBuilder {
         }
         ArrayLoadInstruction ali = (ArrayLoadInstruction) siVariable.getValueref();
         if (ali.getArrayref().getOpcode() != Const.ALOAD || ali.getIndexref().getOpcode() != Const.ILOAD
-                || ((ALoad) ali.getArrayref()).getIndex() != siTmpArray.getIndex()
+                || ((ALoad) ali.getArrayref()).getIndex() != liTmpArray.getIndex()
                 || ((ILoad) ali.getIndexref()).getIndex() != siIndex.getIndex()) {
             return 0;
         }
