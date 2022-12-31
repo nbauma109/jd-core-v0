@@ -54,12 +54,12 @@
 /* 54 */       setValue(1);
 /*    */       try {
 /* 56 */         setValue(value);
-/*    */ 
 /*    */       }
-/*    */       catch (Exception localException) {}
+/*    */       catch (Exception localException) {}finally {
+/* 59 */         setValue(2);
+/*    */       }
 /*    */     }
-/*    */     catch (Exception localException1) {}finally
-/*    */     {
+/*    */     catch (Exception localException1) {}finally {
 /* 63 */       setValue(2);
 /*    */     }
 /*    */   }
