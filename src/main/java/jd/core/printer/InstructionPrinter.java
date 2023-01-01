@@ -248,7 +248,7 @@ public class InstructionPrinter implements Printer
     @Override
     public void printJavaWord(String s) { this.printer.printJavaWord(s); }
 
-    // TODO pourquoi de temps en temps passer un 'internalName' et d'autre fois un 'internalPath'? comprendre les besoin de jd-gui.
+    // TODO pourquoi de temps en temps passer un 'internalName' et d'autre fois un 'internalPath'? comprendre les besoins de jd-gui.
     @Override
     public void printType(String internalName, String name, String scopeInternalName)
         { this.printer.printType(internalName, name, scopeInternalName); }
