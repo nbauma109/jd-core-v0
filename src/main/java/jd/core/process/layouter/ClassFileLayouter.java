@@ -662,11 +662,21 @@ public final class ClassFileLayouter {
                                 // constructeur.
                                 continue;
                             }
-                        } else if (!showDefaultConstructor && "()V".equals(signature))
+                        } else if (!showDefaultConstructor)
                         {
-                            // Ne pas afficher le constructeur par defaut si
-                            // il est vide et si c'est le seul constructeur.
-                            continue;
+                            if ("()V".equals(signature)) {
+                                // Ne pas afficher le constructeur par defaut si
+                                // il est vide et si c'est le seul constructeur.
+                                continue;
+                            }
+                            ClassFile outerClass = classFile.getOuterClass();
+                            if (outerClass != null) {
+                                String outerClassName = outerClass.getInternalClassName();
+                                if (("(" + outerClassName + ")V").equals(signature)) {
+                                    // skip inner class constructor
+                                    continue;
+                                }
+                            }
                         }
                     }
                 }

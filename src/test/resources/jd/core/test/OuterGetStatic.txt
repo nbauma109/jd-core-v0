@@ -1,14 +1,14 @@
 /*    */ package jd.core.test;
 /*    */ 
-/*    */ public class OuterGetStatic {
+/*    */ public class OuterGetStatic
+/*    */ {
 /*    */   static int[] a;
 /*    */   static int x;
 /*    */   static int y;
 /*    */   static Number d;
 /*    */   static Object o;
 /*    */   
-/*    */   class Inner { Inner() {}
-/*    */     
+/*    */   class Inner {
 /* 12 */     int[] newInitArray = { OuterGetStatic.x, OuterGetStatic.y };
 /*    */     
 /*    */     int arrayLength() {
