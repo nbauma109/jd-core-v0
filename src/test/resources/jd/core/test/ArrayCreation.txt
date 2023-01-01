@@ -1,21 +1,35 @@
 /*    */ package jd.core.test;
 /*    */ 
 /*    */ 
+/*    */ 
+/*    */ 
 /*    */ public class ArrayCreation
 /*    */ {
-/*    */   public int[] arrayCreation(boolean initialize)
-/*    */   {
-/*  8 */     if (initialize) {
-/*  9 */       return new int[] { 1, 2, 3 };
+/*  8 */   static final int[] table1 = new int[126];
+/*  9 */   static final int[] table2 = new int[127];
+/* 10 */   static final int[] table3 = new int[128];
+/* 11 */   static final int[] table4 = new int[32766];
+/* 12 */   static final int[] table5 = new int[Short.MAX_VALUE];
+/* 13 */   static final int[] table6 = new int[32768];
+/* 14 */   static final int[] table7 = new int[65534];
+/* 15 */   static final int[] table8 = new int[65535];
+/* 16 */   static final int[] table9 = new int[65536];
+/* 17 */   static final int[] table10 = new int[2147483646];
+/* 18 */   static final int[] table11 = new int[Integer.MAX_VALUE];
+/* 19 */   static final int[] table12 = new int[Integer.MIN_VALUE];
+/*    */   
+/*    */   public int[] arrayCreation(boolean initialize) {
+/* 22 */     if (initialize) {
+/* 23 */       return new int[] { 1, 2, 3 };
 /*    */     }
-/* 11 */     return new int[3];
+/* 25 */     return new int[3];
 /*    */   }
 /*    */   
 /*    */   public int[][] jaggedArrayInitialization() {
-/* 15 */     return new int[][] { { 1, 2, 3 }, { 4, 5, 6 } };
+/* 29 */     return new int[][] { { 1, 2, 3 }, { 4, 5, 6 } };
 /*    */   }
 /*    */   
 /*    */   public int[][] multiDimensionalArrayCreation() {
-/* 19 */     return new int[3][2];
+/* 33 */     return new int[3][2];
 /*    */   }
 /*    */ }
