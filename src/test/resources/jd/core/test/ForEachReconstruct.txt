@@ -2,14 +2,25 @@
 /*    */ 
 /*    */ import java.io.PrintStream;
 /*    */ 
-/*    */ public class ForEachReconstruct {
-/*  6 */   void iterate() { for (String s : new String[] { "a", "b" }) System.out.println(s);
+/*    */ public class ForEachReconstruct
+/*    */ {
+/*    */   void forEachInCatch()
+/*    */   {
+/*    */     try {
+/* 10 */       System.out.println("try");
+/*    */     } catch (Exception e) {
+/* 12 */       for (StackTraceElement stackTraceElement : e.getStackTrace()) {
+/* 13 */         System.out.println(stackTraceElement);
+/*    */       }
+/*    */     }
 /*    */   }
 /*    */   
+/*    */ 
+/*    */ 
 /*    */   public static void main(String[] args)
 /*    */   {
-/* 11 */     for (Object arg : args) {
-/* 12 */       System.out.println(arg);
+/* 22 */     for (Object arg : args) {
+/* 23 */       System.out.println(arg);
 /*    */     }
 /*    */   }
 /*    */ }
