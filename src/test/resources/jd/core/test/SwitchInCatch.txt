@@ -1,10 +1,10 @@
 /*    */ package jd.core.test;
 /*    */ 
-/*    */ import java.io.PrintStream;
-/*    */ 
-/*    */ public class SwitchInCatch {
+/*    */ public class SwitchInCatch
+/*    */ {
 /*    */   void tableSwitch() {
-/*  7 */     try { System.out.println("try");
+/*    */     try {
+/*  7 */       System.out.println("try");
 /*    */     } catch (Exception e) {
 /*  9 */       switch (e.hashCode()) {
 /*    */       case 1: 

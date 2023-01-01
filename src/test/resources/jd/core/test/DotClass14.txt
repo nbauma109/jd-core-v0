@@ -1,6 +1,6 @@
 /*     */ package jd.core.test;
 /*     */ 
-/*     */ import java.io.PrintStream;
+/*     */ import java.io.Serializable;
 /*     */ import java.security.AccessController;
 /*     */ import java.security.PrivilegedAction;
 /*     */ 
@@ -92,7 +92,7 @@
 /*  92 */     System.out.println(Object.class);
 /*     */   }
 /*     */   
-/*     */   native java.io.Serializable readValue(Class paramClass);
+/*     */   native Serializable readValue(Class paramClass);
 /*     */   
 /*     */   void checkCast() {
 /*  98 */     this.clazz = ((Class)readValue(Object.class));

@@ -212,9 +212,11 @@ public class ReferenceVisitor
              ByteCodeConstants.INVOKENEW:
             {
                 InvokeInstruction ii = (InvokeInstruction)instruction;
-                ConstantMethodref cmr = constants.getConstantMethodref(ii.getIndex());
-                internalName = constants.getConstantClassName(cmr.getClassIndex());
-                addReference(internalName);
+                if (!(ii instanceof InvokeNoStaticInstruction)) {
+                    ConstantMethodref cmr = constants.getConstantMethodref(ii.getIndex());
+                    internalName = constants.getConstantClassName(cmr.getClassIndex());
+                    addReference(internalName);
+                }
                 visit(ii.getArgs());
             }
             break;

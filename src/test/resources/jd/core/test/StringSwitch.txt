@@ -1,10 +1,10 @@
 /*    */ package jd.core.test;
 /*    */ 
-/*    */ import java.io.PrintStream;
 /*    */ 
 /*    */ public class StringSwitch
 /*    */ {
-/*    */   void stringSwitch(String inputValue) {
+/*    */   void stringSwitch(String inputValue)
+/*    */   {
 /*  8 */     switch (inputValue) {
 /*    */     case "1": 
 /* 10 */       System.out.println("One");

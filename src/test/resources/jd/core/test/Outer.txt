@@ -1,15 +1,15 @@
 /*     */ package jd.core.test;
 /*     */ 
-/*     */ import java.io.PrintStream;
-/*     */ 
-/*     */ public class Outer {
+/*     */ public class Outer
+/*     */ {
 /*     */   private String id;
 /*     */   static String name;
 /*     */   
-/*   9 */   private void init() { this.id = (name = ""); }
+/*     */   private void init() {
+/*   9 */     this.id = (name = "");
+/*     */   }
 /*     */   
-/*     */   private static void staticInit()
-/*     */   {
+/*     */   private static void staticInit() {
 /*  13 */     name = "";
 /*     */   }
 /*     */   

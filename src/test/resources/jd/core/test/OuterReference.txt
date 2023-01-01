@@ -1,6 +1,6 @@
 /*    */ package jd.core.test;
 /*    */ 
-/*    */ import java.io.PrintStream;
+/*    */ import java.util.HashMap;
 /*    */ import java.util.Map;
 /*    */ 
 /*    */ public class OuterReference
@@ -23,7 +23,7 @@
 /*    */     }
 /*    */     
 /*    */     Inner() {
-/* 26 */       OuterReference.m = new java.util.HashMap();
+/* 26 */       OuterReference.m = new HashMap();
 /* 27 */       OuterReference.m.put(Integer.valueOf(OuterReference.this.x), Integer.valueOf(OuterReference.this.y));
 /* 28 */       OuterReference.this.a = new int[] { OuterReference.this.x, OuterReference.this.y };
 /* 29 */       OuterReference.this.a[(OuterReference.this.x++)] = (OuterReference.this.a.length + OuterReference.this.y);

@@ -1,10 +1,10 @@
 /*    */ package jd.core.test;
 /*    */ 
-/*    */ import java.io.PrintStream;
 /*    */ 
 /*    */ public class TableSwitch
 /*    */ {
-/*    */   void tableSwitch(int inputValue) {
+/*    */   void tableSwitch(int inputValue)
+/*    */   {
 /*  8 */     switch (inputValue) {
 /*    */     case 1: 
 /* 10 */       System.out.println("One");

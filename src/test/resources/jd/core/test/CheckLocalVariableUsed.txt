@@ -1,6 +1,6 @@
 /*    */ package jd.core.test;
 /*    */ 
-/*    */ import java.io.PrintStream;
+/*    */ import org.apache.commons.lang3.exception.ExceptionUtils;
 /*    */ 
 /*    */ public class CheckLocalVariableUsed
 /*    */ {
@@ -67,7 +67,7 @@
 /*    */     try {
 /* 68 */       System.out.println("try");
 /*    */     } catch (Exception e) {
-/* 70 */       return org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseStackTrace(e);
+/* 70 */       return ExceptionUtils.getRootCauseStackTrace(e);
 /*    */     }
 /* 72 */     return null;
 /*    */   }

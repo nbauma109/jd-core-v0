@@ -56,11 +56,11 @@ public final class ReferenceAnalyzer
         public static void analyze(
         ReferenceMap referenceMap, ClassFile classFile)
     {
-        countReferences(referenceMap, classFile);
+        collectReferences(referenceMap, classFile);
         reduceReferences(referenceMap, classFile);
     }
 
-    private static void countReferences(
+    private static void collectReferences(
             ReferenceMap referenceMap, ClassFile classFile)
     {
         // Class
@@ -100,7 +100,7 @@ public final class ReferenceAnalyzer
         List<ClassFile> innerClassFiles = classFile.getInnerClassFiles();
         if (innerClassFiles != null) {
             for (int i=innerClassFiles.size()-1; i>=0; --i) {
-                countReferences(referenceMap, innerClassFiles.get(i));
+                collectReferences(referenceMap, innerClassFiles.get(i));
             }
         }
 
