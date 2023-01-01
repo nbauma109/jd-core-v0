@@ -1,0 +1,83 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.io.PrintStream;
+/*    */ 
+/*    */ public class CheckLocalVariableUsed
+/*    */ {
+/*    */   int testUnaryOpArrayLength() {
+/*    */     try {
+/*  9 */       throw new Exception();
+/*    */     } catch (Exception e) {
+/* 11 */       return -e.getStackTrace().length;
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   void testBinaryOpInvokeNew() {
+/*    */     try {
+/* 17 */       System.out.println("try");
+/*    */     } catch (Exception e) {
+/* 19 */       throw new Error("Error " + e.getMessage());
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   boolean testInstanceOf() {
+/*    */     try {
+/* 25 */       throw new Exception();
+/*    */     } catch (Exception e) {
+/* 27 */       return e instanceof RuntimeException;
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   void testCheckcast() {
+/*    */     try {
+/* 33 */       System.out.println("try");
+/*    */     } catch (Exception e) {
+/* 35 */       throw ((RuntimeException)e);
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   int[] newArray() {
+/*    */     try {
+/* 41 */       System.out.println("try");
+/*    */     } catch (Exception e) {
+/* 43 */       return new int[e.getStackTrace().length];
+/*    */     }
+/* 45 */     return null;
+/*    */   }
+/*    */   
+/*    */   Integer[] aNewArray() {
+/*    */     try {
+/* 50 */       System.out.println("try");
+/*    */     } catch (Exception e) {
+/* 52 */       return new Integer[e.getStackTrace().length];
+/*    */     }
+/* 54 */     return null;
+/*    */   }
+/*    */   
+/*    */   Integer[][] multiNewArray() {
+/*    */     try {
+/* 59 */       System.out.println("try");
+/*    */     } catch (Exception e) {
+/* 61 */       return new Integer[e.getStackTrace().length][e.getStackTrace().length];
+/*    */     }
+/* 63 */     return null;
+/*    */   }
+/*    */   
+/*    */   String[] invokeStatic() {
+/*    */     try {
+/* 68 */       System.out.println("try");
+/*    */     } catch (Exception e) {
+/* 70 */       return org.apache.commons.lang3.exception.ExceptionUtils.getRootCauseStackTrace(e);
+/*    */     }
+/* 72 */     return null;
+/*    */   }
+/*    */   
+/*    */   StackTraceElement arrayLoadAssignment() {
+/*    */     try {
+/* 77 */       System.out.println("try");
+/*    */     } catch (Exception e) {
+/* 79 */       return e.getStackTrace()[0] = null;
+/*    */     }
+/* 81 */     return null;
+/*    */   }
+/*    */ }
