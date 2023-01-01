@@ -1,0 +1,6 @@
+package gr.androiddev.FuelPrices;
+
+public enum StaticTools$LocationProvider
+{
+  BESTOFBOTH,  ANY,  GPS,  NETWORK;
+}
