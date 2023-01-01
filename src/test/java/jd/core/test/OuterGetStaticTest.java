@@ -13,4 +13,9 @@ public class OuterGetStaticTest extends AbstractTestCase {
         String output = decompile("jd/core/test/OuterGetStatic");
         assertEquals(IOUtils.toString(getClass().getResource("OuterGetStatic.txt"), StandardCharsets.UTF_8), output);
     }
+
+    @Override
+    protected boolean showDefaultConstructor() {
+        return true;
+    }
 }
