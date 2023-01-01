@@ -1,6 +1,6 @@
 package jd.core.test;
 
-public class TryCatchFinallyClassForTest {
+public class TryCatchFinallyClassForTesting {
 
     // Retrait de la sous procédure allant de "monitorexit" à  "ret"
     // Byte code:
