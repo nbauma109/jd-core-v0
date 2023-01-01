@@ -3,7 +3,5 @@
 /*   */ public class StackedFields {
 /* 4 */   int d = 4; int c = 3; int b = 1; int a = 0;
 /* 5 */   class Inner { int d = 4; int c = 3; int b = 1; int a = 0;
-/*   */     
-/*   */     Inner() {}
 /*   */   }
 /*   */ }
