@@ -1,0 +1,32 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class Dup2Pop2
+/*    */ {
+/*    */   long l1;
+/*    */   long l2;
+/*    */   double[] darr;
+/*    */   
+/*    */   void dup2x1Form1(String[] s) {
+/* 10 */     int tmp9_8 = 0; String[] tmp9_7 = s;tmp9_7[tmp9_8] = (tmp9_7[tmp9_8] + "s");
+/*    */   }
+/*    */   
+/*    */   void dup2x1Form2() {
+/* 14 */     this.l2 = (this.l1 = 1L);
+/*    */   }
+/*    */   
+/*    */   long dup2Form1(long a) {
+/* 18 */     return ++a;
+/*    */   }
+/*    */   
+/*    */   void dup2Form2(double d) {
+/* 22 */     this.darr[0] += d;
+/*    */   }
+/*    */   
+/*    */   long dup2x2(long[] array, int i, long l) {
+/* 26 */     return array[i] = l;
+/*    */   }
+/*    */   
+/*    */   void pop2() {
+/* 30 */     Math.round(0.5D);
+/*    */   }
+/*    */ }
