@@ -21,7 +21,6 @@ import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.jd.core.v1.util.StringConstants;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import jd.core.model.classfile.ClassFile;
@@ -29,16 +28,9 @@ import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.Field;
 import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
-import jd.core.model.instruction.bytecode.instruction.AAStore;
-import jd.core.model.instruction.bytecode.instruction.ALoad;
-import jd.core.model.instruction.bytecode.instruction.ANewArray;
-import jd.core.model.instruction.bytecode.instruction.AStore;
-import jd.core.model.instruction.bytecode.instruction.IConst;
 import jd.core.model.instruction.bytecode.instruction.InitArrayInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.PutStatic;
-import jd.core.model.instruction.fast.FastConstants;
-import jd.core.model.instruction.fast.instruction.FastDeclaration;
 
 /*
  * Les valeurs des Enum des classes produites par "javac" sont correctement
@@ -113,7 +105,7 @@ public final class InitDexEnumFieldsReconstructor
                 }
 
                 PutStatic putStatic = (PutStatic)instruction;
-                if (putStatic.getValueref().getOpcode() != Const.ALOAD) {
+                if (putStatic.getValueref().getOpcode() != ByteCodeConstants.NEWANDINITARRAY) {
                     break;
                 }
 
@@ -142,73 +134,18 @@ public final class InitDexEnumFieldsReconstructor
                         cnat.getNameIndex() == field.getNameIndex())
                     {
                         // "ENUM$VALUES = ..." found.
-                        ALoad aload = (ALoad)putStatic.getValueref();
-                        int localEnumArrayIndex = aload.getIndex();
-                        int index = indexInstruction;
+                        InitArrayInstruction iai = (InitArrayInstruction)putStatic.getValueref();
 
-                        // Middle instructions of pattern : AAStore(...)
-                        List<Instruction> values = new ArrayList<>();
-
-                        while (index-- > 0)
-                        {
-                            instruction = list.get(index);
-                            if (instruction.getOpcode() != Const.AASTORE) {
-                                break;
-                            }
-                            AAStore aastore = (AAStore)instruction;
-                            if (aastore.getArrayref().getOpcode() != Const.ALOAD ||
-                                aastore.getValueref().getOpcode() != Const.GETSTATIC ||
-                                ((ALoad)aastore.getArrayref()).getIndex() != localEnumArrayIndex) {
-                                break;
-                            }
-                            values.add(aastore.getValueref());
-                        }
-
-                        // FastDeclaration(AStore(...))
-                        if (instruction.getOpcode() != FastConstants.DECLARE) {
-                            break;
-                        }
-                        FastDeclaration declaration = (FastDeclaration)instruction;
-                        if (declaration.getInstruction().getOpcode() != Const.ASTORE) {
-                            break;
-                        }
-                        AStore astore = (AStore)declaration.getInstruction();
-                        if (astore.getIndex() != localEnumArrayIndex) {
-                            break;
-                        }
+                        List<Instruction> values = iai.getValues();
 
                         int valuesLength = values.size();
 
                         if (valuesLength > 0)
                         {
                             // Pattern found.
-
-                            // Construct new pattern
-                            InitArrayInstruction iai =
-                                new InitArrayInstruction(
-                                    ByteCodeConstants.INITARRAY,
-                                    putStatic.getOffset(),
-                                    declaration.getLineNumber(),
-                                    new ANewArray(
-                                        Const.ANEWARRAY,
-                                        putStatic.getOffset(),
-                                        declaration.getLineNumber(),
-                                        classFile.getThisClassIndex(),
-                                        new IConst(
-                                            ByteCodeConstants.ICONST,
-                                            putStatic.getOffset(),
-                                            declaration.getLineNumber(),
-                                            valuesLength)),
-                                    values);
                             field.setValueAndMethod(iai, method);
 
                             // Remove PutStatic
-                            list.remove(indexInstruction);
-                            // Remove AAStores
-                            while (--indexInstruction > index) {
-                                list.remove(indexInstruction);
-                            }
-                            // Remove FastDeclaration
                             list.remove(indexInstruction);
                         }
 
