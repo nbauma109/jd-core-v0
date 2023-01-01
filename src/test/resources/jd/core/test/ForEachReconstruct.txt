@@ -1,12 +1,12 @@
 /*    */ package jd.core.test;
 /*    */ 
-/*    */ import java.io.PrintStream;
 /*    */ 
 /*    */ public class ForEachReconstruct
 /*    */ {
 /*    */   void forEachInCatch()
 /*    */   {
-/*    */     try {
+/*    */     try
+/*    */     {
 /* 10 */       System.out.println("try");
 /*    */     } catch (Exception e) {
 /* 12 */       for (StackTraceElement stackTraceElement : e.getStackTrace()) {

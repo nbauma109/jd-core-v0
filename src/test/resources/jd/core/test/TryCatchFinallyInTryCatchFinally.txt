@@ -1,10 +1,10 @@
 /*    */ package jd.core.test;
 /*    */ 
-/*    */ import java.io.PrintStream;
+/*    */ import java.util.Random;
 /*    */ 
 /*    */ public class TryCatchFinallyInTryCatchFinally
 /*    */ {
-/*    */   public int methodTryCatchFinallyInTryCatchFinally(java.util.Random r) throws Exception {
+/*    */   public int methodTryCatchFinallyInTryCatchFinally(Random r) throws Exception {
 /*  8 */     System.out.println("start");
 /*    */     
 /* 10 */     int a = 1;

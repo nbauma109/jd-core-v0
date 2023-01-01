@@ -1,11 +1,11 @@
 /*    */ package jd.core.test;
 /*    */ 
-/*    */ import java.io.PrintStream;
-/*    */ 
-/*    */ public class ForLoopPatterns {
+/*    */ public class ForLoopPatterns
+/*    */ {
 /*    */   private int i;
 /*    */   
-/*  8 */   void beforeLoop() { int i = 0;
+/*    */   void beforeLoop() {
+/*  8 */     int i = 0;
 /*    */     for (;;) {
 /* 10 */       System.out.println(i++);
 /* 11 */       if (i >= 10) {

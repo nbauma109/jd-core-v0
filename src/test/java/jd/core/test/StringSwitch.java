@@ -1,6 +1,6 @@
 package jd.core.test;
 /*
- * TODO FIXME No need to import java.io.PrintStream
+ * A test input for the string switch pattern.
  */
 public class StringSwitch {
 

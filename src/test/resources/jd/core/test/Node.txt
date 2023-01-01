@@ -1,11 +1,11 @@
 /*    */ package jd.core.test;
 /*    */ 
-/*    */ import java.io.PrintStream;
 /*    */ 
 /*    */ class Node<T>
 /*    */ {
 /*    */   public T data;
 /*    */   
+/*    */ 
 /*    */   public Node(T data)
 /*    */   {
 /* 11 */     this.data = data;

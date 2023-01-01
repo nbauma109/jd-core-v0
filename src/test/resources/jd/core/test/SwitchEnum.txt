@@ -1,9 +1,9 @@
 /*    */ package jd.core.test;
 /*    */ 
-/*    */ import java.io.PrintStream;
-/*    */ 
-/*    */ public class SwitchEnum {
-/*  6 */   public static enum ColourEnum { BLUE,  GREEN,  RED;
+/*    */ public class SwitchEnum
+/*    */ {
+/*    */   public static enum ColourEnum {
+/*  6 */     BLUE,  GREEN,  RED;
 /*    */   }
 /*    */   
 /*    */ 

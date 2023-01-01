@@ -1,9 +1,9 @@
 /*    */ package jd.core.test;
 /*    */ 
-/*    */ import java.io.PrintStream;
-/*    */ 
-/*    */ public class TryCatchFinallyReturn {
-/*  6 */   void tryCatchFinallyReturnInFinally(boolean flag) { if (flag) {
+/*    */ public class TryCatchFinallyReturn
+/*    */ {
+/*    */   void tryCatchFinallyReturnInFinally(boolean flag) {
+/*  6 */     if (flag) {
 /*    */       try {
 /*  8 */         System.out.println("try");
 /*    */       } catch (Exception e) {

@@ -1,10 +1,10 @@
 /*    */ package jd.core.test;
 /*    */ 
-/*    */ import java.io.PrintStream;
 /*    */ 
 /*    */ public class LabelledBreaks
 /*    */ {
-/*    */   public void tripleWhile2(int i) {
+/*    */   public void tripleWhile2(int i)
+/*    */   {
 /*  8 */     System.out.println("start");
 /*    */     label8:
 /* 10 */     if (i > 1) {
