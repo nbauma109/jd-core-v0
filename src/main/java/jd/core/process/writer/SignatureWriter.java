@@ -244,10 +244,15 @@ public final class SignatureWriter
             int endIndex;
             String templateName;
             int newIndex;
+            String pendingToken = "";
             while (index < length)
             {
                 endIndex = CharArrayUtil.indexOf(caSignature, ':', index);
                 templateName = CharArrayUtil.substring(caSignature, index, endIndex);
+                if (templateName.isEmpty()) {
+                    pendingToken = " &";
+                }
+                printer.print(pendingToken);
                 printer.print(templateName);
                 index = endIndex + 1;
 
@@ -261,8 +266,10 @@ public final class SignatureWriter
                 if (!isObjectClass(caSignature, index, newIndex))
                 {
                     printer.print(' ');
-                    printer.printKeyword("extends");
-                    printer.print(' ');
+                    if (!templateName.isEmpty()) {
+                        printer.printKeyword("extends");
+                        printer.print(' ');
+                    }
                     writeSignature(
                         loader, printer, referenceMap, classFile,
                         caSignature, length, index, false, null, false);
@@ -274,7 +281,7 @@ public final class SignatureWriter
                     break;
                 }
 
-                printer.print(", ");
+                pendingToken = ", ";
             }
             printer.print('>');
             index++;
