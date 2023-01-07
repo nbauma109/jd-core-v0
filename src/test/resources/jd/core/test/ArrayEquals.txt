@@ -1,0 +1,23 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class ArrayEquals
+/*    */ {
+/*    */   public static boolean equals(int[] a, int[] b) {
+/*  6 */     if (a == null) {
+/*  7 */       return b == null;
+/*    */     }
+/*  9 */     if (b == null) {
+/* 10 */       return false;
+/*    */     }
+/* 12 */     int i = a.length;
+/* 13 */     if (i != b.length) {
+/* 14 */       return false;
+/*    */     }
+/* 16 */     while (i-- > 0) {
+/* 17 */       if (a[i] != b[i]) {
+/* 18 */         return false;
+/*    */       }
+/*    */     }
+/* 21 */     return true;
+/*    */   }
+/*    */ }
