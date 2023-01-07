@@ -2830,7 +2830,7 @@ public final class FastInstructionListBuilder {
                     values.getLineNumber(), branch, variable, values, subList));
         } else {
             list.set(beforeWhileLoopIndex, new FastFor(FastConstants.FOR, forLoopOffset, beforeWhileLoop.getLineNumber(),
-                    branch, beforeWhileLoop, test, null, subList));
+                    branch, beforeWhileLoop, test, subList));
         }
     }
 
@@ -2929,8 +2929,17 @@ public final class FastInstructionListBuilder {
                 list.set(beforeWhileLoopIndex, new FastForEach(FastConstants.FOREACH, forLoopOffset,
                         values.getLineNumber(), branch, variable, values, subList));
             } else {
+                List<Instruction> incInstructions = new ArrayList<>();
+                if (!subList.isEmpty() && lastBodyWhileLoop instanceof IInc) {
+                    Instruction lastInstruction = subList.get(subList.size() - 1);
+                    if (lastInstruction  instanceof IInc && lastInstruction.getLineNumber() == lastBodyWhileLoop.getLineNumber()) {
+                        incInstructions.add(lastInstruction);
+                        subList.remove(subList.size() - 1);
+                    }
+                }
+                incInstructions.add(lastBodyWhileLoop);
                 list.set(beforeWhileLoopIndex, new FastFor(FastConstants.FOR, forLoopOffset, beforeWhileLoop.getLineNumber(),
-                        branch, beforeWhileLoop, test, lastBodyWhileLoop, subList));
+                        branch, beforeWhileLoop, test, incInstructions, subList));
             }
         }
         }
@@ -3751,7 +3760,7 @@ public final class FastInstructionListBuilder {
                     if (lastBodyLoop != null) {
                         if (lastBodyLoop instanceof Goto) {
                             list.set(index, new FastFor(FastConstants.FOR, jumpInstruction.getOffset(), lastBodyLoop.getLineNumber(),
-                                    branch, null, test, null, subList));
+                                    branch, null, test, subList));
                         } else {
                             list.set(index, new FastFor(FastConstants.FOR, jumpInstruction.getOffset(), lastBodyLoop.getLineNumber(),
                                 branch, null, test, lastBodyLoop, subList));

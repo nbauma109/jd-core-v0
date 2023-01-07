@@ -16,6 +16,7 @@
  ******************************************************************************/
 package jd.core.model.instruction.fast.instruction;
 
+import java.util.Collections;
 import java.util.List;
 
 import jd.core.model.instruction.bytecode.instruction.Instruction;
@@ -26,7 +27,17 @@ import jd.core.model.instruction.bytecode.instruction.Instruction;
 public class FastFor extends FastTestList
 {
     private Instruction init;
-    private Instruction inc;
+    private List<Instruction> inc;
+
+    public FastFor(
+            int opcode, int offset, int lineNumber, int branch,
+            Instruction init, Instruction test, List<Instruction> inc,
+            List<Instruction> instructions)
+    {
+        super(opcode, offset, lineNumber, branch, test, instructions);
+        this.setInit(init);
+        this.setInc(inc);
+    }
 
     public FastFor(
             int opcode, int offset, int lineNumber, int branch,
@@ -35,14 +46,24 @@ public class FastFor extends FastTestList
     {
         super(opcode, offset, lineNumber, branch, test, instructions);
         this.setInit(init);
-        this.setInc(inc);
+        this.setInc(Collections.singletonList(inc));
     }
-
-    public Instruction getInc() {
+    
+    public FastFor(
+            int opcode, int offset, int lineNumber, int branch,
+            Instruction init, Instruction test,
+            List<Instruction> instructions)
+    {
+        super(opcode, offset, lineNumber, branch, test, instructions);
+        this.setInit(init);
+        this.setInc(Collections.emptyList());
+    }
+    
+    public List<Instruction> getInc() {
         return inc;
     }
 
-    public void setInc(Instruction inc) {
+    public void setInc(List<Instruction> inc) {
         this.inc = inc;
     }
 

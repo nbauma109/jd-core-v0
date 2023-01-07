@@ -23,6 +23,7 @@ import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
 
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 
 import jd.core.model.classfile.ClassFile;
@@ -438,8 +439,15 @@ public class JavaSourceLayouter
                     0, LayoutBlockConstants.UNLIMITED_LINE_COUNT, 0);
             layoutBlockList.add(sblb);
 
-            createBlockForInstruction(
-                    preferences, layoutBlockList, classFile, method, ff.getInc());
+            for (Iterator<Instruction> iterator = ff.getInc().iterator(); iterator.hasNext();) {
+                Instruction instruction = iterator.next();
+                createBlockForInstruction(
+                        preferences, layoutBlockList, classFile, method, instruction);
+                if (iterator.hasNext()) {
+                    layoutBlockList.add(new FragmentLayoutBlock(
+                            LayoutBlockConstants.FRAGMENT_COMA_SPACE));
+                }
+            }
 
             BlockLayoutBlock eblb = new BlockLayoutBlock(
                     LayoutBlockConstants.FOR_BLOCK_END, 0);

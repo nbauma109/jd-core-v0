@@ -564,10 +564,13 @@ public class ReplaceDupLoadVisitor
 
                 if (this.parentFound == null && ff.getInc() != null)
                 {
-                    if (match(ff, ff.getInc())) {
-                        ff.setInc(this.newInstruction);
-                    } else {
-                        visit(ff.getInc());
+                    for (int i = 0; i < ff.getInc().size(); i++) {
+                        Instruction inc = ff.getInc().get(i);
+                        if (match(ff, inc)) {
+                            ff.getInc().set(i, this.newInstruction);
+                        } else {
+                            visit(inc);
+                        }
                     }
                 }
             }
