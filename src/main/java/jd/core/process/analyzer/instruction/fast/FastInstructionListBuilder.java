@@ -2929,6 +2929,14 @@ public final class FastInstructionListBuilder {
                 list.set(beforeWhileLoopIndex, new FastForEach(FastConstants.FOREACH, forLoopOffset,
                         values.getLineNumber(), branch, variable, values, subList));
             } else {
+                if (!subList.isEmpty() && lastBodyWhileLoop instanceof IInc) {
+                    Instruction lastInstruction = subList.get(subList.size() - 1);
+                    if (lastInstruction instanceof IInc && lastInstruction.getLineNumber() == lastBodyWhileLoop.getLineNumber()) {
+                        IInc iinc = (IInc) lastInstruction;
+                        ((IInc) lastBodyWhileLoop).setPrevious(iinc);
+                        subList.remove(subList.size() - 1);
+                    }
+                }
                 list.set(beforeWhileLoopIndex, new FastFor(FastConstants.FOR, forLoopOffset, beforeWhileLoop.getLineNumber(),
                         branch, beforeWhileLoop, test, lastBodyWhileLoop, subList));
             }

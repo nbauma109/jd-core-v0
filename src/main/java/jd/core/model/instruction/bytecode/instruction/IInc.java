@@ -23,6 +23,7 @@ import jd.core.model.classfile.LocalVariables;
 public class IInc extends IndexInstruction
 {
     private final int count;
+    private IInc previous;
 
     public IInc(int opcode, int offset, int lineNumber, int index, int count)
     {
@@ -60,5 +61,13 @@ public class IInc extends IndexInstruction
 
     public int getCount() {
         return count;
+    }
+
+    public IInc getPrevious() {
+        return previous;
+    }
+
+    public void setPrevious(IInc previous) {
+        this.previous = previous;
     }
 }
