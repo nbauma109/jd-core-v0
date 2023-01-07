@@ -2,10 +2,10 @@
 /*    */ 
 /*    */ public class ArrayEquals
 /*    */ {
-/*    */   public static boolean equals(int[] a, int[] b) {
-/*  6 */     if (a == null) {
-/*  7 */       return b == null;
-/*    */     }
+/*    */   public static boolean equals(int[] a, int[] b)
+/*    */   {
+/*  7 */     if (a == null)
+/*  8 */       return b == null;
 /*  9 */     if (b == null) {
 /* 10 */       return false;
 /*    */     }
