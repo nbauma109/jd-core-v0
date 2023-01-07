@@ -18,18 +18,22 @@
 /* 18 */   static final int[] table11 = new int[Integer.MAX_VALUE];
 /* 19 */   static final int[] table12 = new int[Integer.MIN_VALUE];
 /*    */   
+/* 21 */   static final boolean[] booleans = { true };
+/* 22 */   static final short[] shorts = { 0, 1, 2, 3 };
+/* 23 */   static final byte[] bytes = { 0, 1, 2, 3 };
+/*    */   
 /*    */   public int[] arrayCreation(boolean initialize) {
-/* 22 */     if (initialize) {
-/* 23 */       return new int[] { 1, 2, 3 };
+/* 26 */     if (initialize) {
+/* 27 */       return new int[] { 1, 2, 3 };
 /*    */     }
-/* 25 */     return new int[3];
+/* 29 */     return new int[3];
 /*    */   }
 /*    */   
 /*    */   public int[][] jaggedArrayInitialization() {
-/* 29 */     return new int[][] { { 1, 2, 3 }, { 4, 5, 6 } };
+/* 33 */     return new int[][] { { 1, 2, 3 }, { 4, 5, 6 } };
 /*    */   }
 /*    */   
 /*    */   public int[][] multiDimensionalArrayCreation() {
-/* 33 */     return new int[3][2];
+/* 37 */     return new int[3][2];
 /*    */   }
 /*    */ }

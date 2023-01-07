@@ -17,7 +17,11 @@ public class ArrayCreation {
     static final int[] table10 = new int[2147483646];
     static final int[] table11 = new int[2147483647];
     static final int[] table12 = new int[Integer.MAX_VALUE+1];
-    
+
+    static final boolean[] booleans = { true, false };
+    static final short[] shorts = { 0, 1, 2, 3 };
+    static final byte[] bytes = { 0, 1, 2, 3 };
+
     public int[] arrayCreation(final boolean initialize) {
         if (initialize) {
             return new int[] { 1, 2, 3 };
