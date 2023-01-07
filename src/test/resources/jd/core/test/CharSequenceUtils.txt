@@ -1,0 +1,383 @@
+/*     */ package org.apache.commons.lang3;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class CharSequenceUtils
+/*     */ {
+/*     */   private static final int NOT_FOUND = -1;
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   static final int TO_STRING_LIMIT = 16;
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public static CharSequence subSequence(CharSequence cs, int start)
+/*     */   {
+/*  56 */     return cs == null ? null : cs.subSequence(start, cs.length());
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   static int indexOf(CharSequence cs, int searchChar, int start)
+/*     */   {
+/*  99 */     if ((cs instanceof String)) {
+/* 100 */       return ((String)cs).indexOf(searchChar, start);
+/*     */     }
+/* 102 */     int sz = cs.length();
+/* 103 */     if (start < 0) {
+/* 104 */       start = 0;
+/*     */     }
+/* 106 */     if (searchChar < 65536) {
+/* 107 */       for (int i = start; i < sz; i++) {
+/* 108 */         if (cs.charAt(i) == searchChar) {
+/* 109 */           return i;
+/*     */         }
+/*     */       }
+/* 112 */       return -1;
+/*     */     }
+/*     */     
+/* 115 */     if (searchChar <= 1114111) {
+/* 116 */       char[] chars = Character.toChars(searchChar);
+/* 117 */       for (int i = start; i < sz - 1; i++) {
+/* 118 */         char high = cs.charAt(i);
+/* 119 */         char low = cs.charAt(i + 1);
+/* 120 */         if ((high == chars[0]) && (low == chars[1])) {
+/* 121 */           return i;
+/*     */         }
+/*     */       }
+/*     */     }
+/* 125 */     return -1;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   static int indexOf(CharSequence cs, CharSequence searchChar, int start)
+/*     */   {
+/* 137 */     if ((cs instanceof String))
+/* 138 */       return ((String)cs).indexOf(searchChar.toString(), start);
+/* 139 */     if ((cs instanceof StringBuilder))
+/* 140 */       return ((StringBuilder)cs).indexOf(searchChar.toString(), start);
+/* 141 */     if ((cs instanceof StringBuffer)) {
+/* 142 */       return ((StringBuffer)cs).indexOf(searchChar.toString(), start);
+/*     */     }
+/* 144 */     return cs.toString().indexOf(searchChar.toString(), start);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   static int lastIndexOf(CharSequence cs, int searchChar, int start)
+/*     */   {
+/* 183 */     if ((cs instanceof String)) {
+/* 184 */       return ((String)cs).lastIndexOf(searchChar, start);
+/*     */     }
+/* 186 */     int sz = cs.length();
+/* 187 */     if (start < 0) {
+/* 188 */       return -1;
+/*     */     }
+/* 190 */     if (start >= sz) {
+/* 191 */       start = sz - 1;
+/*     */     }
+/* 193 */     if (searchChar < 65536) {
+/* 194 */       for (int i = start; i >= 0; i--) {
+/* 195 */         if (cs.charAt(i) == searchChar) {
+/* 196 */           return i;
+/*     */         }
+/*     */       }
+/* 199 */       return -1;
+/*     */     }
+/*     */     
+/*     */ 
+/* 203 */     if (searchChar <= 1114111) {
+/* 204 */       char[] chars = Character.toChars(searchChar);
+/*     */       
+/* 206 */       if (start == sz - 1) {
+/* 207 */         return -1;
+/*     */       }
+/* 209 */       for (int i = start; i >= 0; i--) {
+/* 210 */         char high = cs.charAt(i);
+/* 211 */         char low = cs.charAt(i + 1);
+/* 212 */         if ((chars[0] == high) && (chars[1] == low)) {
+/* 213 */           return i;
+/*     */         }
+/*     */       }
+/*     */     }
+/* 217 */     return -1;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   static int lastIndexOf(CharSequence cs, CharSequence searchChar, int start)
+/*     */   {
+/* 231 */     if ((searchChar == null) || (cs == null)) {
+/* 232 */       return -1;
+/*     */     }
+/* 234 */     if ((searchChar instanceof String)) {
+/* 235 */       if ((cs instanceof String))
+/* 236 */         return ((String)cs).lastIndexOf((String)searchChar, start);
+/* 237 */       if ((cs instanceof StringBuilder))
+/* 238 */         return ((StringBuilder)cs).lastIndexOf((String)searchChar, start);
+/* 239 */       if ((cs instanceof StringBuffer)) {
+/* 240 */         return ((StringBuffer)cs).lastIndexOf((String)searchChar, start);
+/*     */       }
+/*     */     }
+/*     */     
+/* 244 */     int len1 = cs.length();
+/* 245 */     int len2 = searchChar.length();
+/*     */     
+/* 247 */     if (start > len1) {
+/* 248 */       start = len1;
+/*     */     }
+/*     */     
+/* 251 */     if ((start < 0) || (len2 < 0) || (len2 > len1)) {
+/* 252 */       return -1;
+/*     */     }
+/*     */     
+/* 255 */     if (len2 == 0) {
+/* 256 */       return start;
+/*     */     }
+/*     */     
+/* 259 */     if (len2 <= 16) {
+/* 260 */       if ((cs instanceof String))
+/* 261 */         return ((String)cs).lastIndexOf(searchChar.toString(), start);
+/* 262 */       if ((cs instanceof StringBuilder))
+/* 263 */         return ((StringBuilder)cs).lastIndexOf(searchChar.toString(), start);
+/* 264 */       if ((cs instanceof StringBuffer)) {
+/* 265 */         return ((StringBuffer)cs).lastIndexOf(searchChar.toString(), start);
+/*     */       }
+/*     */     }
+/*     */     
+/* 269 */     if (start + len2 > len1) {
+/* 270 */       start = len1 - len2;
+/*     */     }
+/*     */     
+/* 273 */     char char0 = searchChar.charAt(0);
+/*     */     
+/* 275 */     int i = start;
+/*     */     do {
+/* 277 */       while (cs.charAt(i) != char0) {
+/* 278 */         i--;
+/* 279 */         if (i < 0) {
+/* 280 */           return -1;
+/*     */         }
+/*     */       }
+/* 283 */       if (checkLaterThan1(cs, searchChar, len2, i)) {
+/* 284 */         return i;
+/*     */       }
+/* 286 */       i--;
+/* 287 */     } while (i >= 0);
+/* 288 */     return -1;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */   private static boolean checkLaterThan1(CharSequence cs, CharSequence searchChar, int len2, int start1)
+/*     */   {
+/* 294 */     int i = 1; for (int j = len2 - 1; i <= j; i++, j--) {
+/* 295 */       if ((cs.charAt(start1 + i) != searchChar.charAt(i)) || 
+/*     */       
+/* 297 */         (cs.charAt(start1 + j) != searchChar.charAt(j)))
+/*     */       {
+/* 299 */         return false;
+/*     */       }
+/*     */     }
+/* 302 */     return true;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public static char[] toCharArray(CharSequence source)
+/*     */   {
+/* 313 */     int len = StringUtils.length(source);
+/* 314 */     if (len == 0) {
+/* 315 */       return ArrayUtils.EMPTY_CHAR_ARRAY;
+/*     */     }
+/* 317 */     if ((source instanceof String)) {
+/* 318 */       return ((String)source).toCharArray();
+/*     */     }
+/* 320 */     char[] array = new char[len];
+/* 321 */     for (int i = 0; i < len; i++) {
+/* 322 */       array[i] = source.charAt(i);
+/*     */     }
+/* 324 */     return array;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   static boolean regionMatches(CharSequence cs, boolean ignoreCase, int thisStart, CharSequence substring, int start, int length)
+/*     */   {
+/* 340 */     if (((cs instanceof String)) && ((substring instanceof String))) {
+/* 341 */       return ((String)cs).regionMatches(ignoreCase, thisStart, (String)substring, start, length);
+/*     */     }
+/* 343 */     int index1 = thisStart;
+/* 344 */     int index2 = start;
+/* 345 */     int tmpLen = length;
+/*     */     
+/*     */ 
+/* 348 */     int srcLen = cs.length() - thisStart;
+/* 349 */     int otherLen = substring.length() - start;
+/*     */     
+/*     */ 
+/* 352 */     if ((thisStart < 0) || (start < 0) || (length < 0)) {
+/* 353 */       return false;
+/*     */     }
+/*     */     
+/*     */ 
+/* 357 */     if ((srcLen < length) || (otherLen < length)) {
+/* 358 */       return false;
+/*     */     }
+/*     */     
+/* 361 */     while (tmpLen-- > 0) {
+/* 362 */       char c1 = cs.charAt(index1++);
+/* 363 */       char c2 = substring.charAt(index2++);
+/*     */       
+/* 365 */       if (c1 == c2) {
+/*     */         continue;
+/*     */       }
+/*     */       
+/* 369 */       if (!ignoreCase) {
+/* 370 */         return false;
+/*     */       }
+/*     */       
+/*     */ 
+/* 374 */       char u1 = Character.toUpperCase(c1);
+/* 375 */       char u2 = Character.toUpperCase(c2);
+/* 376 */       if ((u1 != u2) && (Character.toLowerCase(u1) != Character.toLowerCase(u2))) {
+/* 377 */         return false;
+/*     */       }
+/*     */     }
+/*     */     
+/* 381 */     return true;
+/*     */   }
+/*     */ }
