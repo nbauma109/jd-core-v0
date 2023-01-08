@@ -32,7 +32,6 @@ import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.ArrayLoadInstruction;
 import jd.core.model.instruction.bytecode.instruction.BranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.GetStatic;
-import jd.core.model.instruction.bytecode.instruction.IInc;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.Invokestatic;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
@@ -439,19 +438,8 @@ public class JavaSourceLayouter
                     0, LayoutBlockConstants.UNLIMITED_LINE_COUNT, 0);
             layoutBlockList.add(sblb);
 
-            if (ff.getInc() instanceof IInc) {
-                for (IInc iinc = (IInc) ff.getInc(); iinc != null; iinc = iinc.getNext()) {
-                    createBlockForInstruction(
-                            preferences, layoutBlockList, classFile, method, iinc);
-                    if (iinc.getNext() != null) {
-                        layoutBlockList.add(new FragmentLayoutBlock(
-                                LayoutBlockConstants.FRAGMENT_COMA_SPACE));
-                    }
-                }
-            } else {
-                createBlockForInstruction(
+            createBlockForInstruction(
                     preferences, layoutBlockList, classFile, method, ff.getInc());
-            }
 
             BlockLayoutBlock eblb = new BlockLayoutBlock(
                     LayoutBlockConstants.FOR_BLOCK_END, 0);

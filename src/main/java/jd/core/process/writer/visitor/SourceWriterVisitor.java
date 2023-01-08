@@ -278,6 +278,10 @@ public class SourceWriterVisitor
         case ByteCodeConstants.ASSIGNMENT:
             lineNumber = writeAssignmentInstruction(
                 (AssignmentInstruction)instruction);
+            if (instruction.getNext() != null) {
+                this.printer.print(", ");
+                lineNumber = visit(instruction.getNext());
+            }
             break;
         case Const.ATHROW:
             {
@@ -490,6 +494,10 @@ public class SourceWriterVisitor
             break;
         case Const.IINC:
             lineNumber = writeIInc((IInc)instruction);
+            if (instruction.getNext() != null) {
+                this.printer.print(", ");
+                lineNumber = visit(instruction.getNext());
+            }
             break;
         case ByteCodeConstants.PREINC:
             lineNumber = writePreInc((IncInstruction)instruction);
@@ -771,13 +779,12 @@ public class SourceWriterVisitor
             }
             break;
         case ByteCodeConstants.STORE,
-             Const.ASTORE,
-             Const.ISTORE:
-                for (StoreInstruction si = (StoreInstruction)instruction; si != null; si = si.getNext()) {
-                    lineNumber = writeStoreInstruction(si);
-                    if (si.getNext() != null) {
-                        this.printer.print(", ");
-                    }
+            Const.ASTORE,
+            Const.ISTORE:
+                lineNumber = writeStoreInstruction((StoreInstruction) instruction);
+                if (instruction.getNext() !=  null) {
+                    this.printer.print(", ");
+                    lineNumber = visit(instruction.getNext());
                 }
             break;
         case ByteCodeConstants.EXCEPTIONLOAD:
