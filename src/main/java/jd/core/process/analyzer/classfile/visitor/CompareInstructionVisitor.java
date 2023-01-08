@@ -62,7 +62,7 @@ public class CompareInstructionVisitor
 {
     public boolean visit(Instruction i1, Instruction i2)
     {
-        if (i1.getOpcode() != i2.getOpcode() || i1.getLineNumber() != i2.getLineNumber()) {
+        if (i1.getOpcode() != i2.getOpcode()) {
             return false;
         }
 

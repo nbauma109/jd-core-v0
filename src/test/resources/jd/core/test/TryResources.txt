@@ -2,8 +2,14 @@
 /*    */ 
 /*    */ import java.io.BufferedReader;
 /*    */ import java.nio.file.Path;
+/*    */ import java.sql.Connection;
+/*    */ import java.sql.PreparedStatement;
+/*    */ import java.sql.ResultSet;
+/*    */ import java.sql.SQLException;
+/*    */ import java.util.AbstractMap.SimpleEntry;
 /*    */ import java.util.ArrayList;
 /*    */ import java.util.List;
+/*    */ import java.util.Map.Entry;
 /*    */ import java.util.Scanner;
 /*    */ 
 /*    */ 
@@ -11,15 +17,30 @@
 /*    */ {
 /*    */   List<String> readFile(Path path)
 /*    */   {
-/* 14 */     List<String> lines = new ArrayList();
-/* 15 */     try (BufferedReader br = java.nio.file.Files.newBufferedReader(path, java.nio.charset.StandardCharsets.UTF_8);
-/* 16 */     Scanner sc = new Scanner(br);) {
-/* 17 */       while (sc.hasNextLine()) {
-/* 18 */         lines.add(sc.nextLine());
+/* 20 */     List<String> lines = new ArrayList();
+/* 21 */     try (BufferedReader br = java.nio.file.Files.newBufferedReader(path, java.nio.charset.StandardCharsets.UTF_8);Scanner sc = new Scanner(br);) {
+/* 22 */       while (sc.hasNextLine()) {
+/* 23 */         lines.add(sc.nextLine());
 /*    */       }
 /*    */     } catch (Exception e) {
-/* 21 */       e.printStackTrace();
+/* 26 */       e.printStackTrace();
 /*    */     }
-/* 23 */     return lines;
+/* 28 */     return lines;
+/*    */   }
+/*    */   
+/*    */   public static Map.Entry<Integer, String> get(Connection connection, int employeeId) throws SQLException {
+/* 32 */     try (PreparedStatement ps = connection.prepareStatement("SELECT * FROM employee WHERE employee_id = ?")) {
+/* 33 */       ps.setInt(1, employeeId);
+/* 34 */       try (ResultSet rs = ps.executeQuery()) {
+/* 35 */         if (rs.next()) {
+/* 36 */           String employeeName = rs.getString("employee_name");
+/* 37 */           return new AbstractMap.SimpleEntry(Integer.valueOf(employeeId), employeeName);
+/*    */         }
+/*    */       }
+/*    */     } catch (Throwable e) {
+/* 41 */       e.printStackTrace();
+/* 42 */       throw new SQLException(e);
+/*    */     }
+/* 44 */     return null;
 /*    */   }
 /*    */ }

@@ -40,10 +40,10 @@
 /* 40 */       setValue(1);
 /*    */       try {
 /* 42 */         setValue(value);
-/*    */       } finally {
-/* 44 */         setValue(2);
 /*    */       }
-/*    */     } finally {
+/*    */       finally {}
+/*    */     }
+/*    */     finally {
 /* 47 */       setValue(2);
 /*    */     }
 /*    */   }
@@ -54,12 +54,12 @@
 /* 54 */       setValue(1);
 /*    */       try {
 /* 56 */         setValue(value);
+/*    */ 
 /*    */       }
-/*    */       catch (Exception e) {}finally {
-/* 59 */         setValue(2);
-/*    */       }
+/*    */       catch (Exception e) {}
 /*    */     }
-/*    */     catch (Exception e) {}finally {
+/*    */     catch (Exception e) {}finally
+/*    */     {
 /* 63 */       setValue(2);
 /*    */     }
 /*    */   }
