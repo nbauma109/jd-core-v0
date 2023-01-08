@@ -77,7 +77,7 @@ public class InstructionSplitterVisitor extends BaseInstructionSplitterVisitor
                 this.firstLineNumber, lastLineNumber,
                 preferedLineNumber, preferedLineNumber, preferedLineNumber,
                 this.classFile, this.method, this.instruction,
-                this.offset1, this.instruction.getOffset()));
+                this.offset1, this.instruction.getLastOffset()));
         }
     }
 

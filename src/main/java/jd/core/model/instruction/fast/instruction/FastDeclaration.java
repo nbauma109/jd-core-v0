@@ -75,4 +75,9 @@ public class FastDeclaration extends Instruction
     public void setInstruction(Instruction instruction) {
         this.instruction = instruction;
     }
+
+    @Override
+    public int getLastOffset() {
+        return instruction == null ? super.getLastOffset() : instruction.getLastOffset();
+    }
 }

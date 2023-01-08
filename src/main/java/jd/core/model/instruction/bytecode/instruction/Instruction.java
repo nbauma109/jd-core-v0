@@ -27,7 +27,8 @@ public abstract class Instruction
     private int opcode;
     private final int offset;
     private int lineNumber;
-
+    private Instruction next; // comma-separated instruction in for and declarations
+    
     protected Instruction(int opcode, int offset, int lineNumber)
     {
         this.opcode = opcode;
@@ -47,6 +48,10 @@ public abstract class Instruction
         return offset;
     }
 
+    public int getLastOffset() {
+        return next == null ? offset : next.getLastOffset();
+    }
+
     public int getLineNumber() {
         return lineNumber;
     }
@@ -61,5 +66,13 @@ public abstract class Instruction
 
     public void setOpcode(int opcode) {
         this.opcode = opcode;
+    }
+
+    public Instruction getNext() {
+        return next;
+    }
+
+    public void setNext(Instruction next) {
+        this.next = next;
     }
 }

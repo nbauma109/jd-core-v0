@@ -2929,13 +2929,13 @@ public final class FastInstructionListBuilder {
                 list.set(beforeWhileLoopIndex, new FastForEach(FastConstants.FOREACH, forLoopOffset,
                         values.getLineNumber(), branch, variable, values, subList));
             } else {
-                if (!subList.isEmpty() && lastBodyWhileLoop instanceof IInc) {
+                if (!subList.isEmpty() && isAssignment(lastBodyWhileLoop)) {
                     for (int i = subList.size() - 1; i >= 0; i--) {
                         Instruction lastInstruction = subList.get(i);
-                        if (lastInstruction instanceof IInc && lastInstruction.getLineNumber() == lastBodyWhileLoop.getLineNumber()) {
-                            IInc iinc = (IInc) lastInstruction;
-                            iinc.setNext((IInc) lastBodyWhileLoop);
-                            lastBodyWhileLoop = iinc;
+                        if (isAssignment(lastInstruction)
+                                && lastInstruction.getLineNumber() == lastBodyWhileLoop.getLineNumber()) {
+                            lastInstruction.setNext(lastBodyWhileLoop);
+                            lastBodyWhileLoop = lastInstruction;
                             subList.remove(i);
                         } else {
                             break;
@@ -2946,12 +2946,13 @@ public final class FastInstructionListBuilder {
                     for (int i = beforeWhileLoopIndex - 1; i >= 0; i--) {
                         Instruction lastInstruction = list.get(i);
                         if (lastInstruction instanceof StoreInstruction && lastInstruction.getLineNumber() == beforeWhileLoop.getLineNumber()) {
-                            StoreInstruction si = (StoreInstruction) lastInstruction;
                             StoreInstruction next = (StoreInstruction) beforeWhileLoop;
-                            si.setNext(next);
+                            lastInstruction.setNext(next);
                             LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(next.getIndex(), next.getOffset());
-                            lv.setDeclarationFlag(DECLARED);
-                            beforeWhileLoop = si;
+                            if (lv != null) {
+                                lv.setDeclarationFlag(DECLARED);
+                            }
+                            beforeWhileLoop = lastInstruction;
                             list.remove(i);
                             beforeWhileLoopIndex--;
                         } else {
@@ -2967,6 +2968,12 @@ public final class FastInstructionListBuilder {
         }
 
         return beforeWhileLoopIndex;
+    }
+
+    private static boolean isAssignment(Instruction instruction) {
+        return instruction instanceof IInc
+            || instruction instanceof StoreInstruction
+            || instruction instanceof AssignmentInstruction;
     }
 
     /**
