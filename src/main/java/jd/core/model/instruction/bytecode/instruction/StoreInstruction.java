@@ -22,6 +22,7 @@ public class StoreInstruction
     extends LoadInstruction implements ValuerefAttribute
 {
     private Instruction valueref;
+    private StoreInstruction next;
 
     public StoreInstruction(
             int opcode, int offset, int lineNumber, int index,
@@ -38,5 +39,18 @@ public class StoreInstruction
 
     public void setValueref(Instruction valueref) {
         this.valueref = valueref;
+    }
+
+    public StoreInstruction getNext() {
+        return next;
+    }
+
+    public void setNext(StoreInstruction next) {
+        this.next = next;
+    }
+
+    @Override
+    public int getOffset() {
+        return next == null ? super.getOffset() : next.getOffset();
     }
 }

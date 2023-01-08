@@ -150,7 +150,7 @@ public final class FastInstructionListBuilder {
         // Aggregation des déclarations CodeException
         List<FastCodeExcepcion> lfce = FastCodeExceptionAnalyzer.aggregateCodeExceptions(method, list);
 
-        // Initialyze delaclation flags
+        // Initialyze declaration flags
         LocalVariables localVariables = method.getLocalVariables();
         if (localVariables != null) {
             initDelcarationFlags(localVariables);
@@ -2632,7 +2632,7 @@ public final class FastInstructionListBuilder {
                 }
 
                 index = createForLoopCase3(classFile, method, list, index, beforeLoop, test, lastBodyLoop, subList,
-                        breakOffset);
+                        breakOffset, localVariables);
                 break;
             default:
                 throw new UnexpectedElementException("AnalyzeBackIf");
@@ -2836,7 +2836,7 @@ public final class FastInstructionListBuilder {
 
     private static int createForLoopCase3(ClassFile classFile, Method method, List<Instruction> list,
             int beforeWhileLoopIndex, Instruction beforeWhileLoop, Instruction test, Instruction lastBodyWhileLoop,
-            List<Instruction> subList, int breakOffset) {
+            List<Instruction> subList, int breakOffset, LocalVariables localVariables) {
         int forLoopOffset = getMaxOffset(beforeWhileLoop, test, lastBodyWhileLoop);
 
         int branch = 1;
@@ -2930,12 +2930,35 @@ public final class FastInstructionListBuilder {
                         values.getLineNumber(), branch, variable, values, subList));
             } else {
                 if (!subList.isEmpty() && lastBodyWhileLoop instanceof IInc) {
-                    Instruction lastInstruction = subList.get(subList.size() - 1);
-                    if (lastInstruction instanceof IInc && lastInstruction.getLineNumber() == lastBodyWhileLoop.getLineNumber()) {
-                        IInc iinc = (IInc) lastInstruction;
-                        ((IInc) lastBodyWhileLoop).setPrevious(iinc);
-                        subList.remove(subList.size() - 1);
+                    for (int i = subList.size() - 1; i >= 0; i--) {
+                        Instruction lastInstruction = subList.get(i);
+                        if (lastInstruction instanceof IInc && lastInstruction.getLineNumber() == lastBodyWhileLoop.getLineNumber()) {
+                            IInc iinc = (IInc) lastInstruction;
+                            iinc.setNext((IInc) lastBodyWhileLoop);
+                            lastBodyWhileLoop = iinc;
+                            subList.remove(i);
+                        } else {
+                            break;
+                        }
                     }
+                }
+                if (beforeWhileLoopIndex > 1 && beforeWhileLoop instanceof StoreInstruction) {
+                    for (int i = beforeWhileLoopIndex - 1; i >= 0; i--) {
+                        Instruction lastInstruction = list.get(i);
+                        if (lastInstruction instanceof StoreInstruction && lastInstruction.getLineNumber() == beforeWhileLoop.getLineNumber()) {
+                            StoreInstruction si = (StoreInstruction) lastInstruction;
+                            StoreInstruction next = (StoreInstruction) beforeWhileLoop;
+                            si.setNext(next);
+                            LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(next.getIndex(), next.getOffset());
+                            lv.setDeclarationFlag(DECLARED);
+                            beforeWhileLoop = si;
+                            list.remove(i);
+                            beforeWhileLoopIndex--;
+                        } else {
+                            break;
+                        }
+                    }
+                    
                 }
                 list.set(beforeWhileLoopIndex, new FastFor(FastConstants.FOR, forLoopOffset, beforeWhileLoop.getLineNumber(),
                         branch, beforeWhileLoop, test, lastBodyWhileLoop, subList));
@@ -3817,7 +3840,7 @@ public final class FastInstructionListBuilder {
 
                 ComparisonInstructionAnalyzer.inverseComparison(test);
                 index = createForLoopCase3(classFile, method, list, index, beforeLoop, test, lastBodyLoop, subList,
-                        breakOffset);
+                        breakOffset, localVariables);
                 break;
             }
         } else {
