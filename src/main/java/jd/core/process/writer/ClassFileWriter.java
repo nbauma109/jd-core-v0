@@ -1446,6 +1446,7 @@ public final class ClassFileWriter
         case 0:
             /* A {} B */
             this.printer.print(" {}");
+            addSpace = true;
             break;
         case 1:
             /* A {} B */

@@ -25,11 +25,11 @@
 /*    */       try {
 /* 26 */         setValue(value);
 /*    */       }
-/*    */       catch (Exception e) {}finally {
+/*    */       catch (Exception e) {} finally {
 /* 29 */         setValue(2);
 /*    */       }
 /*    */     }
-/*    */     catch (Exception e) {}finally {
+/*    */     catch (Exception e) {} finally {
 /* 33 */       setValue(3);
 /*    */     }
 /*    */   }
@@ -58,7 +58,7 @@
 /*    */       }
 /*    */       catch (Exception e) {}
 /*    */     }
-/*    */     catch (Exception e) {}finally
+/*    */     catch (Exception e) {} finally
 /*    */     {
 /* 63 */       setValue(2);
 /*    */     }
