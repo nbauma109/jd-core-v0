@@ -773,7 +773,12 @@ public class SourceWriterVisitor
         case ByteCodeConstants.STORE,
              Const.ASTORE,
              Const.ISTORE:
-            lineNumber = writeStoreInstruction((StoreInstruction)instruction);
+                for (StoreInstruction si = (StoreInstruction)instruction; si != null; si = si.getNext()) {
+                    lineNumber = writeStoreInstruction(si);
+                    if (si.getNext() != null) {
+                        this.printer.print(", ");
+                    }
+                }
             break;
         case ByteCodeConstants.EXCEPTIONLOAD:
             lineNumber = writeExceptionLoad((ExceptionLoad)instruction);

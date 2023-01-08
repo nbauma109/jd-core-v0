@@ -440,17 +440,18 @@ public class JavaSourceLayouter
             layoutBlockList.add(sblb);
 
             if (ff.getInc() instanceof IInc) {
-                IInc iinc = (IInc) ff.getInc();
-                IInc prev = iinc.getPrevious();
-                if (prev != null) {
+                for (IInc iinc = (IInc) ff.getInc(); iinc != null; iinc = iinc.getNext()) {
                     createBlockForInstruction(
-                            preferences, layoutBlockList, classFile, method, prev);
-                    layoutBlockList.add(new FragmentLayoutBlock(
-                            LayoutBlockConstants.FRAGMENT_COMA_SPACE));
+                            preferences, layoutBlockList, classFile, method, iinc);
+                    if (iinc.getNext() != null) {
+                        layoutBlockList.add(new FragmentLayoutBlock(
+                                LayoutBlockConstants.FRAGMENT_COMA_SPACE));
+                    }
                 }
-            }
-            createBlockForInstruction(
+            } else {
+                createBlockForInstruction(
                     preferences, layoutBlockList, classFile, method, ff.getInc());
+            }
 
             BlockLayoutBlock eblb = new BlockLayoutBlock(
                     LayoutBlockConstants.FOR_BLOCK_END, 0);

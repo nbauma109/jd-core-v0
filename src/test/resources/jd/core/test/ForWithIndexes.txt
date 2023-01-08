@@ -1,0 +1,27 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class ForWithIndexes
+/*    */ {
+/*    */   public static void test(int n) {
+/*  6 */     for (int i = 0, j = 0, k = 0; (i < n) && (j < i) && (k < j); i++, j++, k++) {
+/*  7 */       System.out.println(i);
+/*  8 */       System.out.println(j);
+/*  9 */       System.out.println(k);
+/*    */     }
+/* 11 */     for (long i = 0L, j = 0L, k = 0L; (i < n) && (j < i) && (k < j); i++, j++, k++) {
+/* 12 */       System.out.println(i);
+/* 13 */       System.out.println(j);
+/* 14 */       System.out.println(k);
+/*    */     }
+/* 16 */     for (double i = 0.0D, j = 0.0D, k = 0.0D; (i < n) && (j < i) && (k < j); i++, j++, k++) {
+/* 17 */       System.out.println(i);
+/* 18 */       System.out.println(j);
+/* 19 */       System.out.println(k);
+/*    */     }
+/* 21 */     for (float i = 0.0F, j = 0.0F, k = 0.0F; (i < n) && (j < i) && (k < j); i++, j++, k++) {
+/* 22 */       System.out.println(i);
+/* 23 */       System.out.println(j);
+/* 24 */       System.out.println(k);
+/*    */     }
+/*    */   }
+/*    */ }
