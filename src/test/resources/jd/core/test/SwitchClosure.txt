@@ -1,0 +1,185 @@
+/*     */ package org.apache.commons.collections4.functors;
+/*     */ 
+/*     */ import java.io.Serializable;
+/*     */ import java.util.Map;
+/*     */ import java.util.Map.Entry;
+/*     */ import org.apache.commons.collections4.Closure;
+/*     */ import org.apache.commons.collections4.Predicate;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class SwitchClosure<E>
+/*     */   implements Closure<E>, Serializable
+/*     */ {
+/*     */   private static final long serialVersionUID = 3518477308466486130L;
+/*     */   private final Predicate<? super E>[] iPredicates;
+/*     */   private final Closure<? super E>[] iClosures;
+/*     */   private final Closure<? super E> iDefault;
+/*     */   
+/*     */   public static <E> Closure<E> switchClosure(Predicate<? super E>[] predicates, Closure<? super E>[] closures, Closure<? super E> defaultClosure)
+/*     */   {
+/*  59 */     FunctorUtils.validate(predicates);
+/*  60 */     FunctorUtils.validate(closures);
+/*  61 */     if (predicates.length != closures.length) {
+/*  62 */       throw new IllegalArgumentException("The predicate and closure arrays must be the same size");
+/*     */     }
+/*  64 */     if (predicates.length == 0) {
+/*  65 */       return defaultClosure == null ? NOPClosure.nopClosure() : defaultClosure;
+/*     */     }
+/*  67 */     return new SwitchClosure(predicates, closures, defaultClosure);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public static <E> Closure<E> switchClosure(Map<Predicate<E>, Closure<E>> predicatesAndClosures)
+/*     */   {
+/*  90 */     if (predicatesAndClosures == null) {
+/*  91 */       throw new NullPointerException("The predicate and closure map must not be null");
+/*     */     }
+/*     */     
+/*  94 */     Closure<? super E> defaultClosure = (Closure)predicatesAndClosures.remove(null);
+/*  95 */     int size = predicatesAndClosures.size();
+/*  96 */     if (size == 0) {
+/*  97 */       return defaultClosure == null ? NOPClosure.nopClosure() : defaultClosure;
+/*     */     }
+/*  99 */     Closure<E>[] closures = new Closure[size];
+/* 100 */     Predicate<E>[] preds = new Predicate[size];
+/* 101 */     int i = 0;
+/* 102 */     for (Map.Entry<Predicate<E>, Closure<E>> entry : predicatesAndClosures.entrySet()) {
+/* 103 */       preds[i] = ((Predicate)entry.getKey());
+/* 104 */       closures[i] = ((Closure)entry.getValue());
+/* 105 */       i++;
+/*     */     }
+/* 107 */     return new SwitchClosure(false, preds, closures, defaultClosure);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   private SwitchClosure(boolean clone, Predicate<? super E>[] predicates, Closure<? super E>[] closures, Closure<? super E> defaultClosure)
+/*     */   {
+/* 122 */     this.iPredicates = (clone ? FunctorUtils.copy(predicates) : predicates);
+/* 123 */     this.iClosures = (clone ? FunctorUtils.copy(closures) : closures);
+/* 124 */     this.iDefault = (defaultClosure == null ? NOPClosure.nopClosure() : defaultClosure);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public SwitchClosure(Predicate<? super E>[] predicates, Closure<? super E>[] closures, Closure<? super E> defaultClosure)
+/*     */   {
+/* 137 */     this(true, predicates, closures, defaultClosure);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void execute(E input)
+/*     */   {
+/* 147 */     for (int i = 0; i < this.iPredicates.length; i++) {
+/* 148 */       if (this.iPredicates[i].evaluate(input) == true) {
+/* 149 */         this.iClosures[i].execute(input);
+/* 150 */         return;
+/*     */       }
+/*     */     }
+/* 153 */     this.iDefault.execute(input);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public Predicate<? super E>[] getPredicates()
+/*     */   {
+/* 163 */     return FunctorUtils.copy(this.iPredicates);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public Closure<? super E>[] getClosures()
+/*     */   {
+/* 173 */     return FunctorUtils.copy(this.iClosures);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public Closure<? super E> getDefaultClosure()
+/*     */   {
+/* 183 */     return this.iDefault;
+/*     */   }
+/*     */ }
