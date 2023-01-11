@@ -1,0 +1,19 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class OuterAcessor
+/*    */ {
+/*    */   void init() {}
+/*    */   
+/*    */   class Inner
+/*    */   {
+/*    */     void init()
+/*    */     {
+/* 11 */       new Thread()
+/*    */       {
+/*    */         public void run() {
+/* 14 */           OuterAcessor.this.init();
+/*    */         }
+/*    */       }.start();
+/*    */     }
+/*    */   }
+/*    */ }
