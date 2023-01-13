@@ -3,8 +3,11 @@ package jd.core.test;
 public class OuterGetStatic {
 
     static int[] a;
+    static int x, y;
 
     class Inner {
+
+        int[] newInitArray = { x, y };
 
         void athrow() throws Exception {
             throw new Exception("Cannot convert " + Object.class + " to " + Void.class);

@@ -1,82 +1,85 @@
 /*    */ package jd.core.test;
 /*    */ 
-/*    */ public class OuterGetStatic {
-/*    */   static int[] a;
+/*    */ public class OuterGetStatic { static int[] a;
+/*    */   static int x;
+/*    */   static int y;
 /*    */   
 /*    */   public OuterGetStatic() {}
 /*    */   
 /*    */   class Inner { Inner() {}
+/* 10 */     int[] newInitArray = { OuterGetStatic.x, OuterGetStatic.y };
 /*    */     
-/* 10 */     void athrow() throws Exception { throw new Exception("Cannot convert " + Object.class + " to " + Void.class); }
+/*    */     void athrow() throws Exception {
+/* 13 */       throw new Exception("Cannot convert " + Object.class + " to " + Void.class);
+/*    */     }
 /*    */     
-/*    */     int arrayLength()
-/*    */     {
-/* 14 */       return new Class[] { Float.class }.length;
+/*    */     int arrayLength() {
+/* 17 */       return new Class[] { Float.class }.length;
 /*    */     }
 /*    */     
 /*    */     void arrayStore() {
-/* 18 */       OuterGetStatic.a[Double.class.hashCode()] = Float.class.hashCode();
+/* 21 */       OuterGetStatic.a[Double.class.hashCode()] = Float.class.hashCode();
 /*    */     }
 /*    */     
 /*    */     int unaryOp() {
-/* 22 */       return -Double.class.hashCode();
+/* 25 */       return -Double.class.hashCode();
 /*    */     }
 /*    */     
 /*    */     int binaryOp() {
-/* 26 */       return Float.class.hashCode() + Double.class.hashCode();
+/* 29 */       return Float.class.hashCode() + Double.class.hashCode();
 /*    */     }
 /*    */     
 /*    */     byte convert() {
-/* 30 */       return (byte)OuterGetStatic.a[Byte.class.hashCode()];
+/* 33 */       return (byte)OuterGetStatic.a[Byte.class.hashCode()];
 /*    */     }
 /*    */     
 /*    */     void tableSwitch() {
-/* 34 */       switch (Object.class.hashCode()) {
+/* 37 */       switch (Object.class.hashCode()) {
 /*    */       case 1: 
-/* 36 */         System.out.println("One");
-/* 37 */         break;
-/*    */       case 2: 
-/* 39 */         System.out.println("Two");
+/* 39 */         System.out.println("One");
 /* 40 */         break;
-/*    */       case 3: 
-/* 42 */         System.out.println("Three");
+/*    */       case 2: 
+/* 42 */         System.out.println("Two");
 /* 43 */         break;
+/*    */       case 3: 
+/* 45 */         System.out.println("Three");
+/* 46 */         break;
 /*    */       default: 
-/* 45 */         throw new IllegalArgumentException();
+/* 48 */         throw new IllegalArgumentException();
 /*    */       }
 /*    */     }
 /*    */     
 /*    */     void lookupSwitch() {
-/* 50 */       switch (Object.class.hashCode()) {
+/* 53 */       switch (Object.class.hashCode()) {
 /*    */       case 1: 
-/* 52 */         System.out.println("One");
-/* 53 */         break;
-/*    */       case 1000: 
-/* 55 */         System.out.println("One thousand");
+/* 55 */         System.out.println("One");
 /* 56 */         break;
-/*    */       case 1000000: 
-/* 58 */         System.out.println("One million");
+/*    */       case 1000: 
+/* 58 */         System.out.println("One thousand");
 /* 59 */         break;
+/*    */       case 1000000: 
+/* 61 */         System.out.println("One million");
+/* 62 */         break;
 /*    */       default: 
-/* 61 */         throw new IllegalArgumentException();
+/* 64 */         throw new IllegalArgumentException();
 /*    */       }
 /*    */     }
 /*    */     
 /*    */     Object[] aNewArray() {
-/* 66 */       return new Object[Object.class.hashCode()];
+/* 69 */       return new Object[Object.class.hashCode()];
 /*    */     }
 /*    */     
 /*    */     int[] newArray() {
-/* 70 */       return new int[Object.class.hashCode()];
+/* 73 */       return new int[Object.class.hashCode()];
 /*    */     }
 /*    */     
 /*    */     Object[][] multiANewArray() {
-/* 74 */       return new Object[Object.class.hashCode()][Object.class.hashCode()];
+/* 77 */       return new Object[Object.class.hashCode()][Object.class.hashCode()];
 /*    */     }
 /*    */     
 /*    */     void dupStore() {
-/* 78 */       synchronized (Object.class.toString()) {
-/* 79 */         System.out.println("ok");
+/* 81 */       synchronized (Object.class.toString()) {
+/* 82 */         System.out.println("ok");
 /*    */       }
 /*    */     }
 /*    */   }
