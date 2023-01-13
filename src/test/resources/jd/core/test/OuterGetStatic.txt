@@ -29,57 +29,61 @@
 /* 29 */       return Float.class.hashCode() + Double.class.hashCode();
 /*    */     }
 /*    */     
+/*    */     int preIncPostInc() {
+/* 33 */       return OuterGetStatic.x > 0 ? ++OuterGetStatic.y : OuterGetStatic.x++;
+/*    */     }
+/*    */     
 /*    */     byte convert() {
-/* 33 */       return (byte)OuterGetStatic.a[Byte.class.hashCode()];
+/* 37 */       return (byte)OuterGetStatic.a[Byte.class.hashCode()];
 /*    */     }
 /*    */     
 /*    */     void tableSwitch() {
-/* 37 */       switch (Object.class.hashCode()) {
+/* 41 */       switch (Object.class.hashCode()) {
 /*    */       case 1: 
-/* 39 */         System.out.println("One");
-/* 40 */         break;
+/* 43 */         System.out.println("One");
+/* 44 */         break;
 /*    */       case 2: 
-/* 42 */         System.out.println("Two");
-/* 43 */         break;
+/* 46 */         System.out.println("Two");
+/* 47 */         break;
 /*    */       case 3: 
-/* 45 */         System.out.println("Three");
-/* 46 */         break;
+/* 49 */         System.out.println("Three");
+/* 50 */         break;
 /*    */       default: 
-/* 48 */         throw new IllegalArgumentException();
+/* 52 */         throw new IllegalArgumentException();
 /*    */       }
 /*    */     }
 /*    */     
 /*    */     void lookupSwitch() {
-/* 53 */       switch (Object.class.hashCode()) {
+/* 57 */       switch (Object.class.hashCode()) {
 /*    */       case 1: 
-/* 55 */         System.out.println("One");
-/* 56 */         break;
+/* 59 */         System.out.println("One");
+/* 60 */         break;
 /*    */       case 1000: 
-/* 58 */         System.out.println("One thousand");
-/* 59 */         break;
+/* 62 */         System.out.println("One thousand");
+/* 63 */         break;
 /*    */       case 1000000: 
-/* 61 */         System.out.println("One million");
-/* 62 */         break;
+/* 65 */         System.out.println("One million");
+/* 66 */         break;
 /*    */       default: 
-/* 64 */         throw new IllegalArgumentException();
+/* 68 */         throw new IllegalArgumentException();
 /*    */       }
 /*    */     }
 /*    */     
 /*    */     Object[] aNewArray() {
-/* 69 */       return new Object[Object.class.hashCode()];
+/* 73 */       return new Object[Object.class.hashCode()];
 /*    */     }
 /*    */     
 /*    */     int[] newArray() {
-/* 73 */       return new int[Object.class.hashCode()];
+/* 77 */       return new int[Object.class.hashCode()];
 /*    */     }
 /*    */     
 /*    */     Object[][] multiANewArray() {
-/* 77 */       return new Object[Object.class.hashCode()][Object.class.hashCode()];
+/* 81 */       return new Object[Object.class.hashCode()][Object.class.hashCode()];
 /*    */     }
 /*    */     
 /*    */     void dupStore() {
-/* 81 */       synchronized (Object.class.toString()) {
-/* 82 */         System.out.println("ok");
+/* 85 */       synchronized (Object.class.toString()) {
+/* 86 */         System.out.println("ok");
 /*    */       }
 /*    */     }
 /*    */   }

@@ -29,6 +29,10 @@ public class OuterGetStatic {
             return Float.class.hashCode() + Double.class.hashCode();
         }
 
+        int preIncPostInc() {
+            return x > 0 ? ++y : x++;
+        }
+        
         byte convert() {
             return (byte) a[Byte.class.hashCode()];
         }
