@@ -1,0 +1,12 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class For
+/*    */ {
+/*    */   public void emptyForTestUpdate(int i) {
+/*  6 */     System.out.println("start");
+/*    */     
+/*  8 */     while (i < 10) { i++;
+/*    */     }
+/* 10 */     System.out.println("end");
+/*    */   }
+/*    */ }
