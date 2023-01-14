@@ -1,5 +1,7 @@
 package jd.core.test;
 
+import java.lang.reflect.InvocationTargetException;
+
 public class OuterGetStatic {
 
     static int[] a;
@@ -23,6 +25,16 @@ public class OuterGetStatic {
 
         int unaryOp() {
             return -Double.class.hashCode();
+        }
+
+        void instanceOf() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+            if (newInstance(Object.class) instanceof String) {
+                System.out.println("ok");
+            }
+        }
+        
+        Object newInstance(Class c) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+            return c.getConstructor(new Class[0]).newInstance(new Object[0]);
         }
 
         int binaryOp() {
