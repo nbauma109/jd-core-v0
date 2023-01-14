@@ -87,14 +87,33 @@ public class DuplicateLoadReturn {
         return o;
     }
 
+    @SuppressWarnings("unused")
+    void testVoid() {
+        label0: {
+            while (while1Condition()) {
+                while (while2Condition()) {
+                    try {
+                        System.out.println("in try");
+                    } catch (Exception e) {
+                        break label0;
+                    }
+                }
+            }
+        }
+    }
+
     native boolean if1Condition(int i);
 
     native boolean if2Condition(int i);
 
+    native boolean while1Condition();
+
+    native boolean while2Condition();
+
     native boolean while1Condition(int i);
-
+    
     native boolean while2Condition(int i);
-
+    
     native boolean if1Condition(long i);
 
     native boolean if2Condition(long i);

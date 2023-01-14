@@ -1791,15 +1791,15 @@ public final class FastInstructionListBuilder {
                         list.set(index, new FastInstruction(
                             FastConstants.GOTO_CONTINUE, g.getOffset(), lineNumber, null));
                     }
-                } else if (ByteCodeUtil.jumpTo(method.getCode(), breakOffset, jumpOffset)) {
-                    list.set(index, new FastInstruction(
-                        FastConstants.GOTO_BREAK, g.getOffset(), lineNumber, null));
                 } else // Si la méthode retourne 'void' et si l'instruction
                 // saute un goto qui saut sur un goto ... qui saute
                 // sur 'returnOffset', générer 'return'.
                 if (ByteCodeUtil.jumpTo(method.getCode(), jumpOffset, returnOffset)) {
                     list.set(index, new Return(
                         Const.RETURN, g.getOffset(), lineNumber));
+                } else if (ByteCodeUtil.jumpTo(method.getCode(), breakOffset, jumpOffset)) {
+                    list.set(index, new FastInstruction(
+                        FastConstants.GOTO_BREAK, g.getOffset(), lineNumber, null));
                 } else {
                     // Si l'instruction saute vers un '?return' simple,
                     // duplication de l'instruction cible pour éviter la
