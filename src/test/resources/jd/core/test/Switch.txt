@@ -1,0 +1,37 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class Switch {
+/*    */   public void testSwitch() {
+/*  5 */     System.out.println("start");
+/*    */     
+/*  7 */     switch ((int)(System.currentTimeMillis() & 0xF)) {
+/*    */     case 0: 
+/*  9 */       System.out.println("0");
+/*    */     case 1: 
+/* 11 */       System.out.println("0 or 1");
+/* 12 */       break;
+/*    */     case 2: 
+/*    */     default: 
+/* 15 */       System.out.println("2 or >= 9");
+/* 16 */       break;
+/*    */     case 3: 
+/*    */     case 4: 
+/* 19 */       System.out.println("3 or 4");
+/* 20 */       break;
+/*    */     case 5: 
+/* 22 */       System.out.println("5");
+/* 23 */       break;
+/*    */     case 6: 
+/* 25 */       System.out.println("6");
+/* 26 */       break;
+/*    */     case 7: 
+/* 28 */       System.out.println("7");
+/* 29 */       break;
+/*    */     case 8: 
+/* 31 */       System.out.println("8");
+/*    */     }
+/*    */     
+/*    */     
+/* 35 */     System.out.println("end");
+/*    */   }
+/*    */ }
