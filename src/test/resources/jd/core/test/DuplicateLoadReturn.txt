@@ -87,9 +87,29 @@
 /* 87 */     return o;
 /*    */   }
 /*    */   
+/*    */ 
+/*    */   void testVoid()
+/*    */   {
+/* 93 */     while (while1Condition()) {
+/* 94 */       while (while2Condition()) {
+/*    */         try {
+/* 96 */           System.out.println("in try");
+/*    */         }
+/*    */         catch (Exception e)
+/*    */         {
+/*    */           return;
+/*    */         }
+/*    */       }
+/*    */     }
+/*    */   }
+/*    */   
 /*    */   native boolean if1Condition(int paramInt);
 /*    */   
 /*    */   native boolean if2Condition(int paramInt);
+/*    */   
+/*    */   native boolean while1Condition();
+/*    */   
+/*    */   native boolean while2Condition();
 /*    */   
 /*    */   native boolean while1Condition(int paramInt);
 /*    */   
