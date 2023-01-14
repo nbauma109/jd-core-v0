@@ -1,0 +1,14 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class MonitorStore
+/*    */ {
+/*    */   void test(String className) {
+/*    */     try {
+/*  7 */       Class.forName(className);
+/*    */     } catch (ClassNotFoundException e) {
+/*  9 */       synchronized (e.getStackTrace()) {
+/* 10 */         e.printStackTrace();
+/*    */       }
+/*    */     }
+/*    */   }
+/*    */ }
