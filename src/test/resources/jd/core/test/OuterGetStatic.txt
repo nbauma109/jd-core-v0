@@ -1,94 +1,102 @@
 /*    */ package jd.core.test;
 /*    */ 
+/*    */ import java.lang.reflect.InvocationTargetException;
+/*    */ 
 /*    */ public class OuterGetStatic { static int[] a;
 /*    */   static int x;
 /*    */   static int y;
-/*    */   static Number d;
-/*    */   static Object o;
 /*    */   
 /*    */   public OuterGetStatic() {}
 /*    */   
 /*    */   class Inner { Inner() {}
 /* 12 */     int[] newInitArray = { OuterGetStatic.x, OuterGetStatic.y };
 /*    */     
+/*    */     void athrow() throws Exception {
+/* 15 */       throw new Exception("Cannot convert " + Object.class + " to " + Void.class);
+/*    */     }
+/*    */     
 /*    */     int arrayLength() {
-/* 15 */       return OuterGetStatic.a.length;
+/* 19 */       return new Class[] { Float.class }.length;
 /*    */     }
 /*    */     
 /*    */     void arrayStore() {
-/* 19 */       OuterGetStatic.a[OuterGetStatic.x] = OuterGetStatic.y;
+/* 23 */       OuterGetStatic.a[Double.class.hashCode()] = Float.class.hashCode();
 /*    */     }
 /*    */     
 /*    */     int unaryOp() {
-/* 23 */       return -OuterGetStatic.x;
+/* 27 */       return -Double.class.hashCode();
 /*    */     }
 /*    */     
-/*    */     int binaryOp() {
-/* 27 */       return OuterGetStatic.x + OuterGetStatic.y;
-/*    */     }
-/*    */     
-/*    */     int ternaryOp() {
-/* 31 */       return OuterGetStatic.x > 0 ? ++OuterGetStatic.y : OuterGetStatic.x++;
-/*    */     }
-/*    */     
-/*    */     byte convert() {
-/* 35 */       return (byte)OuterGetStatic.x;
-/*    */     }
-/*    */     
-/*    */     void instanceOf() throws Exception {
-/* 39 */       if ((OuterGetStatic.d instanceof Double)) {
-/* 40 */         System.out.println("ok");
+/*    */     void instanceOf() throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+/* 31 */       if ((newInstance(Object.class) instanceof String)) {
+/* 32 */         System.out.println("ok");
 /*    */       }
 /*    */     }
 /*    */     
+/*    */     Object newInstance(Class c) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
+/* 37 */       return c.getConstructor(new Class[0]).newInstance(new Object[0]);
+/*    */     }
+/*    */     
+/*    */     int binaryOp() {
+/* 41 */       return Float.class.hashCode() + Double.class.hashCode();
+/*    */     }
+/*    */     
+/*    */     int preIncPostInc() {
+/* 45 */       return OuterGetStatic.x > 0 ? ++OuterGetStatic.y : OuterGetStatic.x++;
+/*    */     }
+/*    */     
+/*    */     byte convert() {
+/* 49 */       return (byte)OuterGetStatic.a[Byte.class.hashCode()];
+/*    */     }
+/*    */     
 /*    */     void tableSwitch() {
-/* 45 */       switch (OuterGetStatic.x) {
+/* 53 */       switch (Object.class.hashCode()) {
 /*    */       case 1: 
-/* 47 */         System.out.println("One");
-/* 48 */         break;
+/* 55 */         System.out.println("One");
+/* 56 */         break;
 /*    */       case 2: 
-/* 50 */         System.out.println("Two");
-/* 51 */         break;
+/* 58 */         System.out.println("Two");
+/* 59 */         break;
 /*    */       case 3: 
-/* 53 */         System.out.println("Three");
-/* 54 */         break;
+/* 61 */         System.out.println("Three");
+/* 62 */         break;
 /*    */       default: 
-/* 56 */         throw new IllegalArgumentException();
+/* 64 */         throw new IllegalArgumentException();
 /*    */       }
 /*    */     }
 /*    */     
 /*    */     void lookupSwitch() {
-/* 61 */       switch (OuterGetStatic.x) {
+/* 69 */       switch (Object.class.hashCode()) {
 /*    */       case 1: 
-/* 63 */         System.out.println("One");
-/* 64 */         break;
+/* 71 */         System.out.println("One");
+/* 72 */         break;
 /*    */       case 1000: 
-/* 66 */         System.out.println("One thousand");
-/* 67 */         break;
+/* 74 */         System.out.println("One thousand");
+/* 75 */         break;
 /*    */       case 1000000: 
-/* 69 */         System.out.println("One million");
-/* 70 */         break;
+/* 77 */         System.out.println("One million");
+/* 78 */         break;
 /*    */       default: 
-/* 72 */         throw new IllegalArgumentException();
-/*    */       }
-/*    */     }
-/*    */     
-/*    */     void fastSynchronized() {
-/* 77 */       synchronized (OuterGetStatic.o) {
-/* 78 */         System.out.println("ok");
+/* 80 */         throw new IllegalArgumentException();
 /*    */       }
 /*    */     }
 /*    */     
 /*    */     Object[] aNewArray() {
-/* 83 */       return new Object[OuterGetStatic.x];
+/* 85 */       return new Object[Object.class.hashCode()];
 /*    */     }
 /*    */     
 /*    */     int[] newArray() {
-/* 87 */       return new int[OuterGetStatic.x];
+/* 89 */       return new int[Object.class.hashCode()];
 /*    */     }
 /*    */     
 /*    */     Object[][] multiANewArray() {
-/* 91 */       return new Object[OuterGetStatic.x][OuterGetStatic.y];
+/* 93 */       return new Object[Object.class.hashCode()][Object.class.hashCode()];
+/*    */     }
+/*    */     
+/*    */     void dupStore() {
+/* 97 */       synchronized (Object.class.toString()) {
+/* 98 */         System.out.println("ok");
+/*    */       }
 /*    */     }
 /*    */   }
 /*    */ }
