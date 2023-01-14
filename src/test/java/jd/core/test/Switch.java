@@ -34,4 +34,25 @@ public class Switch {
 
         System.out.println("end");
     }
+
+    public void methodTrySwitchFinally() throws Exception {
+        System.out.println("start");
+
+        try {
+            System.out.println("in try");
+
+            switch ((int)(System.currentTimeMillis() & 0xF)) {
+                case 0:
+                    System.out.println("0");
+                    break;
+                default:
+                    System.out.println("default");
+                    break;
+            }
+        } finally {
+            System.out.println("in finally");
+        }
+
+        System.out.println("end");
+    }
 }

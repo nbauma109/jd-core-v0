@@ -34,4 +34,25 @@
 /*    */     
 /* 35 */     System.out.println("end");
 /*    */   }
+/*    */   
+/*    */   public void methodTrySwitchFinally() throws Exception {
+/* 39 */     System.out.println("start");
+/*    */     try
+/*    */     {
+/* 42 */       System.out.println("in try");
+/*    */       
+/* 44 */       switch ((int)(System.currentTimeMillis() & 0xF)) {
+/*    */       case 0: 
+/* 46 */         System.out.println("0");
+/* 47 */         break;
+/*    */       default: 
+/* 49 */         System.out.println("default");
+/*    */       }
+/*    */     }
+/*    */     finally {
+/* 53 */       System.out.println("in finally");
+/*    */     }
+/*    */     
+/* 56 */     System.out.println("end");
+/*    */   }
 /*    */ }
