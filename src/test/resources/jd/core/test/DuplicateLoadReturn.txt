@@ -1,0 +1,129 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class DuplicateLoadReturn
+/*    */ {
+/*    */   int testILoad1() {
+/*  6 */     int i = 0;
+/*    */     
+/*  8 */     while (while1Condition(i)) {
+/*  9 */       while (while2Condition(i)) {
+/* 10 */         if (if1Condition(i)) {
+/*    */           break;
+/*    */         }
+/* 13 */         if (if2Condition(i)) {
+/*    */           return i;
+/*    */         }
+/*    */       }
+/*    */     }
+/*    */     
+/* 19 */     return i;
+/*    */   }
+/*    */   
+/*    */   long testJLoad1() {
+/* 23 */     long l = 0L;
+/*    */     
+/* 25 */     while (while1Condition(l)) {
+/* 26 */       while (while2Condition(l)) {
+/* 27 */         if (if1Condition(l)) {
+/*    */           break;
+/*    */         }
+/* 30 */         if (if2Condition(l)) {
+/*    */           return l;
+/*    */         }
+/*    */       }
+/*    */     }
+/*    */     
+/* 36 */     return l;
+/*    */   }
+/*    */   
+/*    */   float testFLoad1() {
+/* 40 */     float f = 0.0F;
+/*    */     
+/* 42 */     while (while1Condition(f)) {
+/* 43 */       while (while2Condition(f)) {
+/* 44 */         if (if1Condition(f)) {
+/*    */           break;
+/*    */         }
+/* 47 */         if (if2Condition(f)) {
+/*    */           return f;
+/*    */         }
+/*    */       }
+/*    */     }
+/*    */     
+/* 53 */     return f;
+/*    */   }
+/*    */   
+/*    */   double testDLoad1() {
+/* 57 */     double d = 0.0D;
+/*    */     
+/* 59 */     while (while1Condition(d)) {
+/* 60 */       while (while2Condition(d)) {
+/* 61 */         if (if1Condition(d)) {
+/*    */           break;
+/*    */         }
+/* 64 */         if (if2Condition(d)) {
+/*    */           return d;
+/*    */         }
+/*    */       }
+/*    */     }
+/*    */     
+/* 70 */     return d;
+/*    */   }
+/*    */   
+/*    */   Object testALoad1() {
+/* 74 */     Object o = Integer.valueOf(0);
+/*    */     
+/* 76 */     while (while1Condition(o)) {
+/* 77 */       while (while2Condition(o)) {
+/* 78 */         if (if1Condition(o)) {
+/*    */           break;
+/*    */         }
+/* 81 */         if (if2Condition(o)) {
+/*    */           return o;
+/*    */         }
+/*    */       }
+/*    */     }
+/*    */     
+/* 87 */     return o;
+/*    */   }
+/*    */   
+/*    */   native boolean if1Condition(int paramInt);
+/*    */   
+/*    */   native boolean if2Condition(int paramInt);
+/*    */   
+/*    */   native boolean while1Condition(int paramInt);
+/*    */   
+/*    */   native boolean while2Condition(int paramInt);
+/*    */   
+/*    */   native boolean if1Condition(long paramLong);
+/*    */   
+/*    */   native boolean if2Condition(long paramLong);
+/*    */   
+/*    */   native boolean while1Condition(long paramLong);
+/*    */   
+/*    */   native boolean while2Condition(long paramLong);
+/*    */   
+/*    */   native boolean if1Condition(float paramFloat);
+/*    */   
+/*    */   native boolean if2Condition(float paramFloat);
+/*    */   
+/*    */   native boolean while1Condition(float paramFloat);
+/*    */   
+/*    */   native boolean while2Condition(float paramFloat);
+/*    */   
+/*    */   native boolean if1Condition(double paramDouble);
+/*    */   
+/*    */   native boolean if2Condition(double paramDouble);
+/*    */   
+/*    */   native boolean while1Condition(double paramDouble);
+/*    */   
+/*    */   native boolean while2Condition(double paramDouble);
+/*    */   
+/*    */   native boolean if1Condition(Object paramObject);
+/*    */   
+/*    */   native boolean if2Condition(Object paramObject);
+/*    */   
+/*    */   native boolean while1Condition(Object paramObject);
+/*    */   
+/*    */   native boolean while2Condition(Object paramObject);
+/*    */ }
