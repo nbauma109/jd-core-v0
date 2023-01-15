@@ -1,0 +1,171 @@
+/*     */ package net.sourceforge.plantuml.command.regex;
+/*     */ 
+/*     */ import java.util.HashMap;
+/*     */ import java.util.Map;
+/*     */ import java.util.Map.Entry;
+/*     */ import java.util.regex.Matcher;
+/*     */ import java.util.regex.Pattern;
+/*     */ import net.sourceforge.plantuml.utils.Log;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class Matcher2
+/*     */ {
+/*     */   private static final boolean INSTRUMENT = false;
+/*     */   private final Matcher matcher;
+/*     */   private final String id;
+/*     */   
+/*     */   private Matcher2(Matcher matcher, String id)
+/*     */   {
+/*  52 */     this.matcher = matcher;
+/*  53 */     this.id = id;
+/*     */   }
+/*     */   
+/*     */   public static Matcher2 build(Pattern pattern, CharSequence input) {
+/*  57 */     long now = System.currentTimeMillis();
+/*  58 */     String id = pattern.pattern();
+/*     */     try {
+/*  60 */       Matcher matcher2 = pattern.matcher(input);
+/*  61 */       return new Matcher2(matcher2, id);
+/*     */     }
+/*     */     finally {}
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public boolean matches()
+/*     */   {
+/*  70 */     long now = System.currentTimeMillis();
+/*     */     try {
+/*  72 */       return this.matcher.matches();
+/*     */     } finally {
+/*  74 */       addTime(System.currentTimeMillis() - now);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*  85 */   private static final Map<String, Long> durations = new HashMap();
+/*     */   
+/*     */   private void addTime(long duration) {}
+/*     */   
+/*  89 */   private static synchronized void addTime(String id, long duration) { Long total = (Long)durations.get(id);
+/*  90 */     if (total == null) {
+/*  91 */       total = Long.valueOf(0L);
+/*     */     }
+/*  93 */     total = Long.valueOf(total.longValue() + duration);
+/*  94 */     durations.put(id, total);
+/*  95 */     String longest = getLongest();
+/*  96 */     if (longest == null) {
+/*  97 */       return;
+/*     */     }
+/*  99 */     if (((Long)durations.get(longest)).longValue() > printed) {
+/* 100 */       Log.info("---------- Regex " + longest + " " + durations.get(longest) + "ms (" + durations.size() + ")");
+/* 101 */       printed = ((Long)durations.get(longest)).longValue();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private static long printed;
+/*     */   private static String getLongest() {
+/* 107 */     long max = 0L;
+/* 108 */     String result = null;
+/* 109 */     for (Map.Entry<String, Long> ent : durations.entrySet()) {
+/* 110 */       if (((Long)ent.getValue()).longValue() > max) {
+/* 111 */         max = ((Long)ent.getValue()).longValue();
+/* 112 */         result = (String)ent.getKey();
+/*     */       }
+/*     */     }
+/* 115 */     return result;
+/*     */   }
+/*     */   
+/*     */   public String group(int n) {
+/* 119 */     long now = System.currentTimeMillis();
+/*     */     try {
+/* 121 */       return this.matcher.group(n);
+/*     */     } finally {
+/* 123 */       addTime(System.currentTimeMillis() - now);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   public String group() {
+/* 128 */     long now = System.currentTimeMillis();
+/*     */     try {
+/* 130 */       return this.matcher.group();
+/*     */     } finally {
+/* 132 */       addTime(System.currentTimeMillis() - now);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   public int groupCount() {
+/* 137 */     long now = System.currentTimeMillis();
+/*     */     try {
+/* 139 */       return this.matcher.groupCount();
+/*     */     } finally {
+/* 141 */       addTime(System.currentTimeMillis() - now);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   public boolean find() {
+/* 146 */     long now = System.currentTimeMillis();
+/*     */     try {
+/* 148 */       return this.matcher.find();
+/*     */     } finally {
+/* 150 */       addTime(System.currentTimeMillis() - now);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   public int end() {
+/* 155 */     long now = System.currentTimeMillis();
+/*     */     try {
+/* 157 */       return this.matcher.end();
+/*     */     } finally {
+/* 159 */       addTime(System.currentTimeMillis() - now);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   public int start() {
+/* 164 */     long now = System.currentTimeMillis();
+/*     */     try {
+/* 166 */       return this.matcher.start();
+/*     */     } finally {
+/* 168 */       addTime(System.currentTimeMillis() - now);
+/*     */     }
+/*     */   }
+/*     */ }
