@@ -1,0 +1,28 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class Wait
+/*    */ {
+/*    */   boolean initialized;
+/*    */   
+/*    */   void waitInit(long startTime, long timeout) {
+/*  8 */     while (!this.initialized) {
+/*  9 */       if (System.currentTimeMillis() - startTime > timeout * 1000L) {
+/* 10 */         throw new RuntimeException();
+/*    */       }
+/*    */       try {
+/* 13 */         Thread.sleep(1000L);
+/*    */       } catch (InterruptedException e) {
+/* 15 */         throw new RuntimeException(e);
+/*    */       }
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   synchronized void waitInit() {
+/* 21 */     while (!this.initialized) {
+/*    */       try {
+/* 23 */         wait();
+/*    */       } catch (InterruptedException localInterruptedException) {}
+/*    */     }
+/* 26 */     this.initialized = false;
+/*    */   }
+/*    */ }
