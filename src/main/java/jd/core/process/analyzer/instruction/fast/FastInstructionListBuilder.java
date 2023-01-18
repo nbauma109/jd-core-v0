@@ -1156,7 +1156,7 @@ public final class FastInstructionListBuilder {
             LocalVariables localVariables) {
         // Reconstruction des blocs synchronisés vide
         EmptySynchronizedBlockReconstructor.reconstruct(localVariables, list);
-        // Recontruction du mot clé '.class' pour ECJ
+        // Reconstruction du mot clé '.class' pour ECJ
         DotClass118BReconstructor.reconstruct(referenceMap, classFile, list);
         // Transformation de l'ensemble 'if-break' en simple 'if'
         // A executer avant 'ComparisonInstructionAnalyzer'
@@ -1166,17 +1166,17 @@ public final class FastInstructionListBuilder {
         // 'IfGotoToIfReconstructor'
         // A executer avant 'TernaryOpReconstructor'
         ComparisonInstructionAnalyzer.aggregate(list);
-        // Recontruction des instructions 'assert'. Cette operation doit être
+        // Reconstruction des instructions 'assert'. Cette operation doit être
         // executee après 'ComparisonInstructionAnalyzer'.
         AssertInstructionReconstructor.reconstruct(classFile, list);
         // Create ternary operator before analisys of local variables.
         // A executer après 'ComparisonInstructionAnalyzer'
         TernaryOpReconstructor.reconstruct(list);
-        // Recontruction des initialisations de tableaux
+        // Reconstruction des initialisations de tableaux
         // Cette operation doit être executee après
         // 'AssignmentInstructionReconstructor'.
         InitArrayInstructionReconstructor.reconstruct(list);
-        // Recontruction des operations binaires d'assignement
+        // Reconstruction des operations binaires d'assignement
         AssignmentOperatorReconstructor.reconstruct(list);
         // Retrait des instructions DupLoads & DupStore associés à 
         // une constante ou un attribut.
@@ -1360,7 +1360,7 @@ public final class FastInstructionListBuilder {
         analyzeTryAndSynchronized(classFile, method, list, localVariables, offsetLabelSet, beforeLoopEntryOffset,
                 loopEntryOffset, afterBodyLoopOffset, beforeListOffset, afterListOffset, breakOffset, returnOffset);
 
-        // Recontruction de la sequence 'return (b1 == 1);' après la
+        // Reconstruction de la sequence 'return (b1 == 1);' après la
         // determination des types de variable
         // A executer après 'ComparisonInstructionAnalyzer'
         TernaryOpInReturnReconstructor.reconstruct(list);

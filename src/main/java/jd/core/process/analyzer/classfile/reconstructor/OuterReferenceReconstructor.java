@@ -36,7 +36,7 @@ import jd.core.process.analyzer.classfile.visitor.ReplaceOuterReferenceVisitor;
 import jd.core.util.SignatureUtil;
 
 /*
- * Recontruction des references externes dans le corps des méthodes des classes
+ * Reconstruction des references externes dans le corps des méthodes des classes
  * internes.
  */
 public class OuterReferenceReconstructor

@@ -29,7 +29,7 @@ import jd.core.model.instruction.bytecode.instruction.Invokespecial;
 import jd.core.model.instruction.bytecode.instruction.New;
 
 /*
- * Recontruction de l'instruction 'new' depuis le motif :
+ * Reconstruction de l'instruction 'new' depuis le motif :
  * Invokespecial(New, <init>, [ IConst_1 ])
  */
 public class SimpleNewInstructionReconstructor

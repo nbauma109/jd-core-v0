@@ -36,7 +36,7 @@ import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNew;
 
 /*
- * Recontruction des des instructions 'assert' depuis le motif :
+ * Reconstruction des des instructions 'assert' depuis le motif :
  * ...
  * complexif( (!($assertionsDisabled)) && (test) )
  *  athrow( newinvoke( classindex="AssertionError", args=["msg"] ));

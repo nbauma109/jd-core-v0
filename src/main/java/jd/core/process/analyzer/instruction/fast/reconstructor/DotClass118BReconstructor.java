@@ -45,7 +45,7 @@ import jd.core.model.reference.ReferenceMap;
 import jd.core.process.analyzer.classfile.visitor.ReplaceDupLoadVisitor;
 
 /*
- * Recontruction du mot cle '.class' depuis les instructions generees par ECJ
+ * Reconstruction du mot cle '.class' depuis les instructions generees par ECJ
  * ...
  * dupstore( getstatic( current class, 'class$...', Class ) )
  * ifnotnull( dupload )

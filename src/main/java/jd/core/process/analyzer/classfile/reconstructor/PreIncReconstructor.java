@@ -33,7 +33,7 @@ import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.process.analyzer.util.ReconstructorUtil;
 
 /*
- * Recontruction des pre-incrementations depuis le motif :
+ * Reconstruction des pre-incrementations depuis le motif :
  * DupStore( (i - 1F) )
  * ...
  * {?Store | PutField | PutStatic}( DupLoad )

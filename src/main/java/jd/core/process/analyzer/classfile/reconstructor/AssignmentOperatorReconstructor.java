@@ -41,7 +41,7 @@ import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.process.analyzer.classfile.visitor.CompareInstructionVisitor;
 
 /*
- * Recontruction des operateurs d'assignation depuis les motifs :
+ * Reconstruction des operateurs d'assignation depuis les motifs :
  * 1) Operation sur les attributs de classes:
  *    PutStatic(BinaryOperator(GetStatic(), ...))
  * 2) Operation sur les attributs d'instance:

@@ -34,7 +34,7 @@ import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.process.analyzer.util.ReconstructorUtil;
 
 /*
- * Recontruction des post-incrementations depuis le motif :
+ * Reconstruction des post-incrementations depuis le motif :
  * DupStore( i )
  * ...
  * {?Store | PutField | PutStatic}( DupLoad +/- 1 )

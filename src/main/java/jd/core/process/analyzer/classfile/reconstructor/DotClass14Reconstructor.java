@@ -44,7 +44,7 @@ import jd.core.model.reference.ReferenceMap;
 import jd.core.process.analyzer.classfile.visitor.ReplaceGetStaticVisitor;
 
 /*
- * Recontruction du mot cle '.class' depuis les instructions generees par le
+ * Reconstruction du mot cle '.class' depuis les instructions generees par le
  * JDK 1.4 de SUN :
  * ...
  * ifnotnull( getstatic( current or outer class, 'class$...', Class ) )

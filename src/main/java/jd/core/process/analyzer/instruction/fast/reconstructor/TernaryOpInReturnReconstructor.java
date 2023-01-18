@@ -30,7 +30,7 @@ import jd.core.process.analyzer.instruction.bytecode.ComparisonInstructionAnalyz
 import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
 
 /*
- * Recontruction de l'instruction 'return (b1 == 1);' depuis la sequence :
+ * Reconstruction de l'instruction 'return (b1 == 1);' depuis la sequence :
  * 46: if (b1 == 1)
  *   46: return true;
  * 48: return false;

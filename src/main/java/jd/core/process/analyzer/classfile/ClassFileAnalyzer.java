@@ -862,14 +862,14 @@ public final class ClassFileAnalyzer
         // Re-construct 'new' intruction
         NewInstructionReconstructor.reconstruct(classFile, method, list);
         SimpleNewInstructionReconstructor.reconstruct(classFile, method, list);
-        // Recontruction des instructions de pre-incrementation non entier
+        // Reconstruction des instructions de pre-incrementation non entier
         PreIncReconstructor.reconstruct(list);
-        // Recontruction des instructions de post-incrementation non entier
+        // Reconstruction des instructions de post-incrementation non entier
         PostIncReconstructor.reconstruct(list);
-        // Recontruction du mot clé '.class' pour le JDK 1.1.8 - A
+        // Reconstruction du mot clé '.class' pour le JDK 1.1.8 - A
         DotClass118AReconstructor.reconstruct(
                 referenceMap, classFile, list);
-        // Recontruction du mot clé '.class' pour le JDK 1.4
+        // Reconstruction du mot clé '.class' pour le JDK 1.4
         DotClass14Reconstructor.reconstruct(
                 referenceMap, classFile, list);
         // Replace StringBuffer and StringBuilder in java source line
@@ -884,7 +884,7 @@ public final class ClassFileAnalyzer
         // Cette operation doit être executee avant
         // 'AssignmentInstructionReconstructor'.
         DupStoreThisReconstructor.reconstruct(list);
-        // Recontruction des affectations multiples
+        // Reconstruction des affectations multiples
         // Cette operation doit être executee avant
         // 'InitArrayInstructionReconstructor', 'TernaryOpReconstructor'
         // et la construction des instructions try-catch et finally.
