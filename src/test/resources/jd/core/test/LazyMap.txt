@@ -1,0 +1,178 @@
+/*     */ package org.apache.commons.collections4.map;
+/*     */ 
+/*     */ import java.io.IOException;
+/*     */ import java.io.ObjectInputStream;
+/*     */ import java.io.ObjectOutputStream;
+/*     */ import java.io.Serializable;
+/*     */ import java.util.Map;
+/*     */ import org.apache.commons.collections4.Factory;
+/*     */ import org.apache.commons.collections4.Transformer;
+/*     */ import org.apache.commons.collections4.functors.FactoryTransformer;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class LazyMap<K, V>
+/*     */   extends AbstractMapDecorator<K, V>
+/*     */   implements Serializable
+/*     */ {
+/*     */   private static final long serialVersionUID = 7990956402564206740L;
+/*     */   protected final Transformer<? super K, ? extends V> factory;
+/*     */   
+/*     */   public static <K, V> LazyMap<K, V> lazyMap(Map<K, V> map, Factory<? extends V> factory)
+/*     */   {
+/*  89 */     return new LazyMap(map, factory);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public static <V, K> LazyMap<K, V> lazyMap(Map<K, V> map, Transformer<? super K, ? extends V> factory)
+/*     */   {
+/* 104 */     return new LazyMap(map, factory);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   protected LazyMap(Map<K, V> map, Factory<? extends V> factory)
+/*     */   {
+/* 116 */     super(map);
+/* 117 */     if (factory == null) {
+/* 118 */       throw new NullPointerException("Factory must not be null");
+/*     */     }
+/* 120 */     this.factory = FactoryTransformer.factoryTransformer(factory);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   protected LazyMap(Map<K, V> map, Transformer<? super K, ? extends V> factory)
+/*     */   {
+/* 131 */     super(map);
+/* 132 */     if (factory == null) {
+/* 133 */       throw new NullPointerException("Factory must not be null");
+/*     */     }
+/* 135 */     this.factory = factory;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   private void writeObject(ObjectOutputStream out)
+/*     */     throws IOException
+/*     */   {
+/* 147 */     out.defaultWriteObject();
+/* 148 */     out.writeObject(this.map);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   private void readObject(ObjectInputStream in)
+/*     */     throws IOException, ClassNotFoundException
+/*     */   {
+/* 161 */     in.defaultReadObject();
+/* 162 */     this.map = ((Map)in.readObject());
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public V get(Object key)
+/*     */   {
+/* 169 */     if (!this.map.containsKey(key))
+/*     */     {
+/* 171 */       K castKey = (K)key;
+/* 172 */       V value = this.factory.transform(castKey);
+/* 173 */       this.map.put(castKey, value);
+/* 174 */       return value;
+/*     */     }
+/* 176 */     return (V)this.map.get(key);
+/*     */   }
+/*     */ }
