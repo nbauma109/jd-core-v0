@@ -19,4 +19,9 @@ public class DotClass118Test extends AbstractTestCase {
             assertEquals(IOUtils.toString(getClass().getResource("DotClass118.txt"), StandardCharsets.UTF_8), output);
         }
     }
+
+    @Override
+    protected boolean showMetaData() {
+        return true;
+    }
 }

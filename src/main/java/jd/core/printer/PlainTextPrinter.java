@@ -397,7 +397,9 @@ public class PlainTextPrinter implements Printer, VersionAware {
 
         // Metadata
         if (preferences.isWriteMetaData()) {
-            print("\n\n/*");
+            println();
+            println();
+            print("/*");
 
             // Add Java compiler version
             if (majorVersion >= MAJOR_1_1) {
