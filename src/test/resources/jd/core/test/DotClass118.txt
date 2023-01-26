@@ -113,3 +113,9 @@
 /*     */   
 /*     */   static native Serializable readValue(Class paramClass);
 /*     */ }
+
+
+/*
+ * Java compiler version: 1 (45.3)
+ * JD-Core Version:       SNAPSHOT
+ */

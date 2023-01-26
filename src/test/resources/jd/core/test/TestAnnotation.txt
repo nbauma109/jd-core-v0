@@ -16,3 +16,9 @@ import java.lang.annotation.Annotation;
   
   NestedAnnotation nested() default @NestedAnnotation(0.0F);
 }
+
+
+/*
+ * Java compiler version: 17 (61.0)
+ * JD-Core Version:       SNAPSHOT
+ */

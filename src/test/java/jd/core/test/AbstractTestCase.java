@@ -23,7 +23,7 @@ public abstract class AbstractTestCase {
         preferences.setShowLineNumbers(true);
         preferences.setShowPrefixThis(true);
         preferences.setUnicodeEscape(false);
-        preferences.setWriteMetaData(false);
+        preferences.setWriteMetaData(showMetaData());
 
         return printer.buildDecompiledOutput(loader, internalTypeName, preferences, decompiler);
 
@@ -34,6 +34,10 @@ public abstract class AbstractTestCase {
     }
     
     protected boolean showDefaultConstructor() {
+        return false;
+    }
+    
+    protected boolean showMetaData() {
         return false;
     }
     

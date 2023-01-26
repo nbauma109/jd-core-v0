@@ -13,4 +13,9 @@ public class AnnotationTest extends AbstractTestCase {
         String output = decompile("jd/core/test/TestAnnotation");
         assertEquals(IOUtils.toString(getClass().getResource("TestAnnotation.txt"), StandardCharsets.UTF_8), output);
     }
+
+    @Override
+    protected boolean showMetaData() {
+        return true;
+    }
 }
