@@ -1,0 +1,14 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class TryCatchSynchronized
+/*    */ {
+/*    */   void tryCatchSynchronized() {
+/*    */     try {
+/*  7 */       System.out.println("try");
+/*    */     } catch (Exception e) {
+/*  9 */       synchronized (e.getStackTrace()) {
+/* 10 */         System.out.println("catch");
+/*    */       }
+/*    */     }
+/*    */   }
+/*    */ }
