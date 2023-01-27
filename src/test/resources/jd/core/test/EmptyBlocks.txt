@@ -1,0 +1,13 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class EmptyBlocks
+/*    */ {
+/*    */   void emptySynchronized() {
+/*  6 */     synchronized (this) {}
+/*    */   }
+/*    */   
+/*    */   void emptyIf(boolean flag)
+/*    */   {
+/* 11 */     if (flag) {}
+/*    */   }
+/*    */ }
