@@ -22,7 +22,7 @@ public abstract class AbstractTestCase {
         preferences.setShowDefaultConstructor(showDefaultConstructor());
         preferences.setShowLineNumbers(true);
         preferences.setShowPrefixThis(true);
-        preferences.setUnicodeEscape(false);
+        preferences.setUnicodeEscape(true);
         preferences.setWriteMetaData(showMetaData());
 
         return printer.buildDecompiledOutput(loader, internalTypeName, preferences, decompiler);
