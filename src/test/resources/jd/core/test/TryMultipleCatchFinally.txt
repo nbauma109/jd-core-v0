@@ -1,0 +1,49 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class TryMultipleCatchFinally
+/*    */ {
+/*    */   public void methodTryCatchCatchFinally() {
+/*  6 */     before();
+/*    */     try {
+/*  8 */       inTry();
+/*    */     } catch (RuntimeException localRuntimeException) {
+/* 10 */       inCatch1();
+/*    */     } catch (Exception localException) {
+/* 12 */       inCatch2();
+/*    */     } finally {
+/* 14 */       inFinally();
+/*    */     }
+/*    */     
+/* 17 */     after();
+/*    */   }
+/*    */   
+/*    */   public void methodTryCatchCatchCatchFinally() {
+/* 21 */     before();
+/*    */     try {
+/* 23 */       inTry();
+/*    */     } catch (ClassCastException localClassCastException) {
+/* 25 */       inCatch1();
+/*    */     } catch (RuntimeException localRuntimeException) {
+/* 27 */       inCatch2();
+/*    */     } catch (Exception localException) {
+/* 29 */       inCatch3();
+/*    */     } finally {
+/* 31 */       inFinally();
+/*    */     }
+/* 33 */     after();
+/*    */   }
+/*    */   
+/*    */   private void inTry() {}
+/*    */   
+/*    */   private void inFinally() {}
+/*    */   
+/*    */   private void inCatch3() {}
+/*    */   
+/*    */   private void inCatch2() {}
+/*    */   
+/*    */   private void inCatch1() {}
+/*    */   
+/*    */   private void before() {}
+/*    */   
+/*    */   private void after() {}
+/*    */ }
