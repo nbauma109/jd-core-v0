@@ -1,6 +1,12 @@
 /*    */ package jd.core.test;
 /*    */ 
+/*    */ import h.ST_pointnlink_t;
+/*    */ import h.ST_triangle_t;
 /*    */ import org.apache.commons.lang3.StringUtils;
+/*    */ import smetana.core.CArray;
+/*    */ import smetana.core.Z;
+/*    */ import smetana.core.__ptr__;
+/*    */ 
 /*    */ 
 /*    */ 
 /*    */ 
@@ -8,14 +14,35 @@
 /*    */ {
 /*    */   public static String abbreviateMiddle(String str, String middle, int length)
 /*    */   {
-/* 11 */     if ((StringUtils.isAnyEmpty(new CharSequence[] { str, middle })) || (length >= str.length()) || (length < middle.length() + 2)) {
-/* 12 */       return str;
+/* 17 */     if ((StringUtils.isAnyEmpty(new CharSequence[] { str, middle })) || (length >= str.length()) || (length < middle.length() + 2)) {
+/* 18 */       return str;
 /*    */     }
 /*    */     
-/* 15 */     int targetSting = length - middle.length();
-/* 16 */     int startOffset = targetSting / 2 + targetSting % 2;
-/* 17 */     int endOffset = str.length() - targetSting / 2;
+/* 21 */     int targetSting = length - middle.length();
+/* 22 */     int startOffset = targetSting / 2 + targetSting % 2;
+/* 23 */     int endOffset = str.length() - targetSting / 2;
 /*    */     
-/* 19 */     return str.substring(0, startOffset) + middle + str.substring(endOffset);
+/* 25 */     return str.substring(0, startOffset) + middle + str.substring(endOffset);
+/*    */   }
+/*    */   
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */   public static void loadtriangle(__ptr__ pnlap, __ptr__ pnlbp, __ptr__ pnlcp)
+/*    */   {
+/* 33 */     CArray<ST_triangle_t> trip = Z.z().tris.plus_(Z.z().tril++);
+/* 34 */     ((ST_triangle_t)trip.get__(0)).mark = 0;
+/* 35 */     ((ST_triangle_t)trip.get__(0)).e[0].pnl0p = ((ST_pointnlink_t)pnlap);
+/* 36 */     ((ST_triangle_t)trip.get__(0)).e[0].pnl1p = ((ST_pointnlink_t)pnlbp);
+/* 37 */     ((ST_triangle_t)trip.get__(0)).e[0].rtp = null;
+/* 38 */     ((ST_triangle_t)trip.get__(0)).e[1].pnl0p = ((ST_pointnlink_t)pnlbp);
+/* 39 */     ((ST_triangle_t)trip.get__(0)).e[1].pnl1p = ((ST_pointnlink_t)pnlcp);
+/* 40 */     ((ST_triangle_t)trip.get__(0)).e[1].rtp = null;
+/* 41 */     ((ST_triangle_t)trip.get__(0)).e[2].pnl0p = ((ST_pointnlink_t)pnlcp);
+/* 42 */     ((ST_triangle_t)trip.get__(0)).e[2].pnl1p = ((ST_pointnlink_t)pnlap);
+/* 43 */     ((ST_triangle_t)trip.get__(0)).e[2].rtp = null;
+/* 44 */     for (int ei = 0; ei < 3; ei++) {
+/* 45 */       ((ST_triangle_t)trip.get__(0)).e[ei].lrp = trip;
+/*    */     }
 /*    */   }
 /*    */ }
