@@ -3,20 +3,22 @@
 /*    */ 
 /*    */ public class TableSwitch
 /*    */ {
-/*    */   void tableSwitch(int inputValue)
+/*    */   int inputValue;
+/*    */   
+/*    */   void tableSwitch()
 /*    */   {
-/*  8 */     switch (inputValue) {
+/* 10 */     switch (this.inputValue++) {
 /*    */     case 1: 
-/* 10 */       System.out.println("One");
-/* 11 */       break;
+/* 12 */       System.out.println("One");
+/* 13 */       break;
 /*    */     case 2: 
-/* 13 */       System.out.println("Two");
-/* 14 */       break;
+/* 15 */       System.out.println("Two");
+/* 16 */       break;
 /*    */     case 3: 
-/* 16 */       System.out.println("Three");
-/* 17 */       break;
+/* 18 */       System.out.println("Three");
+/* 19 */       break;
 /*    */     default: 
-/* 19 */       throw new IllegalArgumentException();
+/* 21 */       throw new IllegalArgumentException();
 /*    */     }
 /*    */   }
 /*    */ }

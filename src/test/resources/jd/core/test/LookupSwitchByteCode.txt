@@ -1,34 +1,39 @@
 // Byte code:
-/*    */ //   0: iload_1
-/*    */ //   1: lookupswitch	default:+68->69, 1:+35->36, 1000:+46->47, 1000000:+57->58
-/*    */ //   36: getstatic 16	java/lang/System:out	Ljava/io/PrintStream;
-/*    */ //   39: ldc 22
-/*    */ //   41: invokevirtual 24	java/io/PrintStream:println	(Ljava/lang/String;)V
-/*    */ //   44: goto +33 -> 77
-/*    */ //   47: getstatic 16	java/lang/System:out	Ljava/io/PrintStream;
-/*    */ //   50: ldc 30
-/*    */ //   52: invokevirtual 24	java/io/PrintStream:println	(Ljava/lang/String;)V
-/*    */ //   55: goto +22 -> 77
-/*    */ //   58: getstatic 16	java/lang/System:out	Ljava/io/PrintStream;
-/*    */ //   61: ldc 32
-/*    */ //   63: invokevirtual 24	java/io/PrintStream:println	(Ljava/lang/String;)V
-/*    */ //   66: goto +11 -> 77
-/*    */ //   69: new 34	java/lang/IllegalArgumentException
-/*    */ //   72: dup
-/*    */ //   73: invokespecial 36	java/lang/IllegalArgumentException:<init>	()V
-/*    */ //   76: athrow
-/*    */ //   77: return
+/*    */ //   0: aload_0
+/*    */ //   1: dup
+/*    */ //   2: getfield 17	jd/core/test/LookupSwitch:inputValue	I
+/*    */ //   5: dup_x1
+/*    */ //   6: iconst_1
+/*    */ //   7: iadd
+/*    */ //   8: putfield 17	jd/core/test/LookupSwitch:inputValue	I
+/*    */ //   11: lookupswitch	default:+66->77, 1:+33->44, 1000:+44->55, 1000000:+55->66
+/*    */ //   44: getstatic 19	java/lang/System:out	Ljava/io/PrintStream;
+/*    */ //   47: ldc 25
+/*    */ //   49: invokevirtual 27	java/io/PrintStream:println	(Ljava/lang/String;)V
+/*    */ //   52: goto +33 -> 85
+/*    */ //   55: getstatic 19	java/lang/System:out	Ljava/io/PrintStream;
+/*    */ //   58: ldc 33
+/*    */ //   60: invokevirtual 27	java/io/PrintStream:println	(Ljava/lang/String;)V
+/*    */ //   63: goto +22 -> 85
+/*    */ //   66: getstatic 19	java/lang/System:out	Ljava/io/PrintStream;
+/*    */ //   69: ldc 35
+/*    */ //   71: invokevirtual 27	java/io/PrintStream:println	(Ljava/lang/String;)V
+/*    */ //   74: goto +11 -> 85
+/*    */ //   77: new 37	java/lang/IllegalArgumentException
+/*    */ //   80: dup
+/*    */ //   81: invokespecial 39	java/lang/IllegalArgumentException:<init>	()V
+/*    */ //   84: athrow
+/*    */ //   85: return
 /*    */ // Line number table:
-/*    */ //   Java source line #8	-> byte code offset #0
-/*    */ //   Java source line #10	-> byte code offset #36
-/*    */ //   Java source line #11	-> byte code offset #44
-/*    */ //   Java source line #13	-> byte code offset #47
-/*    */ //   Java source line #14	-> byte code offset #55
-/*    */ //   Java source line #16	-> byte code offset #58
-/*    */ //   Java source line #17	-> byte code offset #66
-/*    */ //   Java source line #19	-> byte code offset #69
+/*    */ //   Java source line #10	-> byte code offset #0
+/*    */ //   Java source line #12	-> byte code offset #44
+/*    */ //   Java source line #13	-> byte code offset #52
+/*    */ //   Java source line #15	-> byte code offset #55
+/*    */ //   Java source line #16	-> byte code offset #63
+/*    */ //   Java source line #18	-> byte code offset #66
+/*    */ //   Java source line #19	-> byte code offset #74
 /*    */ //   Java source line #21	-> byte code offset #77
+/*    */ //   Java source line #23	-> byte code offset #85
 /*    */ // Local variable table:
 /*    */ //   start	length	slot	name	signature
-/*    */ //   0	78	0	this	LookupSwitch
-/*    */ //   0	78	1	inputValue	int
+/*    */ //   0	86	0	this	LookupSwitch

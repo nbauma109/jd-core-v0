@@ -1,34 +1,39 @@
 // Byte code:
-/*    */ //   0: iload_1
-/*    */ //   1: tableswitch	default:+60->61, 1:+27->28, 2:+38->39, 3:+49->50
-/*    */ //   28: getstatic 16	java/lang/System:out	Ljava/io/PrintStream;
-/*    */ //   31: ldc 22
-/*    */ //   33: invokevirtual 24	java/io/PrintStream:println	(Ljava/lang/String;)V
-/*    */ //   36: goto +33 -> 69
-/*    */ //   39: getstatic 16	java/lang/System:out	Ljava/io/PrintStream;
-/*    */ //   42: ldc 30
-/*    */ //   44: invokevirtual 24	java/io/PrintStream:println	(Ljava/lang/String;)V
-/*    */ //   47: goto +22 -> 69
-/*    */ //   50: getstatic 16	java/lang/System:out	Ljava/io/PrintStream;
-/*    */ //   53: ldc 32
-/*    */ //   55: invokevirtual 24	java/io/PrintStream:println	(Ljava/lang/String;)V
-/*    */ //   58: goto +11 -> 69
-/*    */ //   61: new 34	java/lang/IllegalArgumentException
-/*    */ //   64: dup
-/*    */ //   65: invokespecial 36	java/lang/IllegalArgumentException:<init>	()V
-/*    */ //   68: athrow
-/*    */ //   69: return
+/*    */ //   0: aload_0
+/*    */ //   1: dup
+/*    */ //   2: getfield 17	jd/core/test/TableSwitch:inputValue	I
+/*    */ //   5: dup_x1
+/*    */ //   6: iconst_1
+/*    */ //   7: iadd
+/*    */ //   8: putfield 17	jd/core/test/TableSwitch:inputValue	I
+/*    */ //   11: tableswitch	default:+58->69, 1:+25->36, 2:+36->47, 3:+47->58
+/*    */ //   36: getstatic 19	java/lang/System:out	Ljava/io/PrintStream;
+/*    */ //   39: ldc 25
+/*    */ //   41: invokevirtual 27	java/io/PrintStream:println	(Ljava/lang/String;)V
+/*    */ //   44: goto +33 -> 77
+/*    */ //   47: getstatic 19	java/lang/System:out	Ljava/io/PrintStream;
+/*    */ //   50: ldc 33
+/*    */ //   52: invokevirtual 27	java/io/PrintStream:println	(Ljava/lang/String;)V
+/*    */ //   55: goto +22 -> 77
+/*    */ //   58: getstatic 19	java/lang/System:out	Ljava/io/PrintStream;
+/*    */ //   61: ldc 35
+/*    */ //   63: invokevirtual 27	java/io/PrintStream:println	(Ljava/lang/String;)V
+/*    */ //   66: goto +11 -> 77
+/*    */ //   69: new 37	java/lang/IllegalArgumentException
+/*    */ //   72: dup
+/*    */ //   73: invokespecial 39	java/lang/IllegalArgumentException:<init>	()V
+/*    */ //   76: athrow
+/*    */ //   77: return
 /*    */ // Line number table:
-/*    */ //   Java source line #8	-> byte code offset #0
-/*    */ //   Java source line #10	-> byte code offset #28
-/*    */ //   Java source line #11	-> byte code offset #36
-/*    */ //   Java source line #13	-> byte code offset #39
-/*    */ //   Java source line #14	-> byte code offset #47
-/*    */ //   Java source line #16	-> byte code offset #50
-/*    */ //   Java source line #17	-> byte code offset #58
-/*    */ //   Java source line #19	-> byte code offset #61
+/*    */ //   Java source line #10	-> byte code offset #0
+/*    */ //   Java source line #12	-> byte code offset #36
+/*    */ //   Java source line #13	-> byte code offset #44
+/*    */ //   Java source line #15	-> byte code offset #47
+/*    */ //   Java source line #16	-> byte code offset #55
+/*    */ //   Java source line #18	-> byte code offset #58
+/*    */ //   Java source line #19	-> byte code offset #66
 /*    */ //   Java source line #21	-> byte code offset #69
+/*    */ //   Java source line #23	-> byte code offset #77
 /*    */ // Local variable table:
 /*    */ //   start	length	slot	name	signature
-/*    */ //   0	70	0	this	TableSwitch
-/*    */ //   0	70	1	inputValue	int
+/*    */ //   0	78	0	this	TableSwitch
