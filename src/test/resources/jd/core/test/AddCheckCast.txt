@@ -1,0 +1,91 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.awt.Component;
+/*    */ import java.lang.reflect.Constructor;
+/*    */ 
+/*    */ public class AddCheckCast
+/*    */ {
+/*    */   ReflectionData reflectionData;
+/*    */   static StaticReflectionData staticReflectionData;
+/*    */   
+/*    */   int getField(Component paramComponent)
+/*    */   {
+/* 13 */     Object localObject = paramComponent != null ? paramComponent.getLocation() : null;
+/* 14 */     return ((java.awt.Point)localObject).x;
+/*    */   }
+/*    */   
+/*    */   void putField(Component paramComponent) {
+/* 18 */     int i = paramComponent != null ? paramComponent.getWidth() : 0;
+/* 19 */     Object localObject = paramComponent != null ? paramComponent.getLocation() : null;
+/* 20 */     ((java.awt.Point)localObject).x = i;
+/*    */   }
+/*    */   
+/*    */   Constructor<?>[] privateGetDeclaredConstructors(Class<?> paramClass, boolean paramBoolean)
+/*    */   {
+/* 25 */     ReflectionData localReflectionData = reflectionData();
+/* 26 */     Object localObject; if (localReflectionData != null) {
+/* 27 */       localObject = paramBoolean ? localReflectionData.publicConstructors : localReflectionData.declaredConstructors;
+/* 28 */       if (localObject != null)
+/* 29 */         return (Constructor<?>[])localObject;
+/*    */     }
+/* 31 */     if (paramClass.isInterface()) {
+/* 32 */       Constructor[] arrayOfConstructor = new Constructor[0];
+/* 33 */       localObject = arrayOfConstructor;
+/*    */     } else {
+/* 35 */       localObject = paramClass.getDeclaredConstructors();
+/*    */     }
+/* 37 */     if (localReflectionData != null) {
+/* 38 */       if (paramBoolean) {
+/* 39 */         localReflectionData.publicConstructors = ((Constructor[])localObject);
+/*    */       } else {
+/* 41 */         localReflectionData.declaredConstructors = ((Constructor[])localObject);
+/*    */       }
+/*    */     }
+/* 44 */     return (Constructor<?>[])localObject;
+/*    */   }
+/*    */   
+/*    */ 
+/*    */   Constructor<?>[] staticPrivateGetDeclaredConstructors(Class<?> paramClass, boolean paramBoolean)
+/*    */   {
+/* 50 */     StaticReflectionData localStaticReflectionData = staticReflectionData();
+/* 51 */     Object localObject; if (localStaticReflectionData != null) {
+/* 52 */       localObject = paramBoolean ? StaticReflectionData.publicConstructors : StaticReflectionData.declaredConstructors;
+/* 53 */       if (localObject != null)
+/* 54 */         return (Constructor<?>[])localObject;
+/*    */     }
+/* 56 */     if (paramClass.isInterface()) {
+/* 57 */       Constructor[] arrayOfConstructor = new Constructor[0];
+/* 58 */       localObject = arrayOfConstructor;
+/*    */     } else {
+/* 60 */       localObject = paramClass.getDeclaredConstructors();
+/*    */     }
+/* 62 */     if (localStaticReflectionData != null) {
+/* 63 */       if (paramBoolean) {
+/* 64 */         StaticReflectionData.publicConstructors = (Constructor[])localObject;
+/*    */       } else {
+/* 66 */         StaticReflectionData.declaredConstructors = (Constructor[])localObject;
+/*    */       }
+/*    */     }
+/* 69 */     return (Constructor<?>[])localObject;
+/*    */   }
+/*    */   
+/*    */   ReflectionData reflectionData() {
+/* 73 */     return this.reflectionData;
+/*    */   }
+/*    */   
+/*    */   StaticReflectionData staticReflectionData() {
+/* 77 */     return staticReflectionData;
+/*    */   }
+/*    */   
+/*    */   static class StaticReflectionData
+/*    */   {
+/*    */     static Constructor<?>[] publicConstructors;
+/*    */     static Constructor<?>[] declaredConstructors;
+/*    */   }
+/*    */   
+/*    */   class ReflectionData
+/*    */   {
+/*    */     Constructor<?>[] publicConstructors;
+/*    */     Constructor<?>[] declaredConstructors;
+/*    */   }
+/*    */ }
