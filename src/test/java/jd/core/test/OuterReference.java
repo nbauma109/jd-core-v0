@@ -66,7 +66,7 @@ public class OuterReference {
             }
             Object[][] multiANewArray = new Object[x][y]; // MULTIANEWARRAY
             multiANewArray[0] = new Object[y]; // ANEWARRAY
-            multiANewArray[0][1] = new int[x]; // NEWARRAY
+            multiANewArray[0][1] = new int[x++]; // NEWARRAY
         }
     }
 }
