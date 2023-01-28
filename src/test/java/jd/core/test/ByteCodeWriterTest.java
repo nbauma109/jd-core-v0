@@ -29,12 +29,12 @@ public class ByteCodeWriterTest {
 
     @Test
     public void testTableSwitch() throws Exception {
-        test("jd/core/test/TableSwitch", "tableSwitch", "(I)V", "TableSwitchByteCode.txt");
+        test("jd/core/test/TableSwitch", "tableSwitch", "()V", "TableSwitchByteCode.txt");
     }
 
     @Test
     public void testLookupSwitch() throws Exception {
-        test("jd/core/test/LookupSwitch", "lookupSwitch", "(I)V", "LookupSwitchByteCode.txt");
+        test("jd/core/test/LookupSwitch", "lookupSwitch", "()V", "LookupSwitchByteCode.txt");
     }
 
     @Test

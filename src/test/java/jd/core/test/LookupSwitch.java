@@ -1,11 +1,13 @@
 package jd.core.test;
+
 /*
  * A test input for LOOKUPSWITCH pattern.
  */
 public class LookupSwitch {
+    int inputValue;
 
-    void lookupSwitch(int inputValue) {
-        switch (inputValue) {
+    void lookupSwitch() {
+        switch (inputValue++) {
             case 1:
                 System.out.println("One");
                 break;
