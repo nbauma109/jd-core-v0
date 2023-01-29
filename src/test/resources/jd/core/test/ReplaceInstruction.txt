@@ -1,0 +1,124 @@
+/*     */ package jd.core.test;
+/*     */ 
+/*     */ import java.io.IOException;
+/*     */ import java.util.ArrayList;
+/*     */ import java.util.List;
+/*     */ import java.util.function.Supplier;
+/*     */ import net.sourceforge.plantuml.FileFormatOption;
+/*     */ import net.sourceforge.plantuml.FileImageData;
+/*     */ import net.sourceforge.plantuml.SplitParam;
+/*     */ import net.sourceforge.plantuml.SuggestedFile;
+/*     */ import net.sourceforge.plantuml.TitledDiagram;
+/*     */ import net.sourceforge.plantuml.awt.geom.XPoint2D;
+/*     */ import net.sourceforge.plantuml.core.ImageData;
+/*     */ import net.sourceforge.plantuml.graphic.SymbolContext;
+/*     */ import net.sourceforge.plantuml.graphic.TextBlock;
+/*     */ import net.sourceforge.plantuml.png.PngSplitter;
+/*     */ import net.sourceforge.plantuml.project.GanttDiagram;
+/*     */ import net.sourceforge.plantuml.security.SFile;
+/*     */ import net.sourceforge.plantuml.svek.Boundary;
+/*     */ import net.sourceforge.plantuml.ugraphic.color.HColors;
+/*     */ import org.apache.commons.lang3.ArrayUtils;
+/*     */ import org.apache.commons.lang3.StringUtils;
+/*     */ import org.apache.commons.lang3.Validate;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class ReplaceInstruction
+/*     */ {
+/*  29 */   double size = 60.0D;
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   String normalizeSpace(String str)
+/*     */   {
+/*  35 */     if (StringUtils.isEmpty(str)) {
+/*  36 */       return str;
+/*     */     }
+/*  38 */     int size = str.length();
+/*  39 */     char[] newChars = new char[size];
+/*  40 */     int count = 0;
+/*  41 */     int whitespacesCount = 0;
+/*  42 */     boolean startWhitespaces = true;
+/*  43 */     for (int i = 0; i < size; i++) {
+/*  44 */       char actualChar = str.charAt(i);
+/*  45 */       boolean isWhitespace = Character.isWhitespace(actualChar);
+/*  46 */       if (isWhitespace) {
+/*  47 */         if ((whitespacesCount == 0) && (!startWhitespaces)) {
+/*  48 */           newChars[(count++)] = " ".charAt(0);
+/*     */         }
+/*  50 */         whitespacesCount++;
+/*     */       } else {
+/*  52 */         startWhitespaces = false;
+/*  53 */         newChars[(count++)] = (actualChar == ' ' ? 32 : actualChar);
+/*  54 */         whitespacesCount = 0;
+/*     */       }
+/*     */     }
+/*  57 */     if (startWhitespaces) {
+/*  58 */       return "";
+/*     */     }
+/*  60 */     return new String(newChars, 0, count - (whitespacesCount > 0 ? 1 : 0)).trim();
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   String toString(Object obj, Supplier<String> supplier)
+/*     */   {
+/*  67 */     return obj == null ? (String)supplier.get() : supplier == null ? null : obj.toString();
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   XPoint2D centerHexa(int i, int j)
+/*     */   {
+/*  74 */     double width = getWidth();
+/*  75 */     double x = width * i + (j % 2 == 0 ? 0.0D : width / 2.0D);
+/*  76 */     double y = this.size * j * 1.5D;
+/*  77 */     return new XPoint2D(x, y);
+/*     */   }
+/*     */   
+/*     */   double getWidth() {
+/*  81 */     return Math.sqrt(3.0D) / 2.0D * 2.0D * this.size;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   TextBlock getDrawing(SymbolContext symbolContext)
+/*     */   {
+/*  88 */     return new Boundary(symbolContext.withDeltaShadow(symbolContext.isShadowing() ? 4.0D : 0.0D));
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   boolean[] addFirst(boolean[] array, boolean element)
+/*     */   {
+/*  95 */     return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, new boolean[] { element });
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   List<FileImageData> splitPng(TitledDiagram diagram, SuggestedFile pngFile, ImageData imageData, FileFormatOption fileFormatOption)
+/*     */     throws IOException
+/*     */   {
+/* 104 */     List<SFile> files = new PngSplitter(fileFormatOption.getColorMapper(), pngFile, 
+/* 105 */       diagram.getSplitPagesHorizontal(), diagram.getSplitPagesVertical(), 
+/* 106 */       fileFormatOption.isWithMetadata() ? diagram.getMetadata() : null, diagram.getSkinParam().getDpi(), 
+/* 107 */       (diagram instanceof GanttDiagram) ? new SplitParam(HColors.BLACK, null, 5) : 
+/* 108 */       diagram.getSkinParam().getSplitParam()).getFiles();
+/*     */     
+/* 110 */     List<FileImageData> result = new ArrayList();
+/* 111 */     for (SFile f : files) {
+/* 112 */       result.add(new FileImageData(f, imageData));
+/*     */     }
+/* 114 */     return result;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   <E extends Enum<E>> void checkBitVectorable(Class<E> enumClass, E[] constants)
+/*     */   {
+/* 121 */     Validate.isTrue(constants.length <= 64, "Cannot store %s %s values in %s bits", new Object[] {
+/* 122 */       Integer.valueOf(constants.length), enumClass.getSimpleName(), Integer.valueOf(64) });
+/*     */   }
+/*     */ }
