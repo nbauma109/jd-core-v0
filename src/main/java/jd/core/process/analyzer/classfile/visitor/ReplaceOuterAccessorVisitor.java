@@ -564,7 +564,7 @@ public class ReplaceOuterAccessorVisitor
             break;
         default:
             System.err.println(
-                    "Can not replace DupLoad in " +
+                    "Can not replace OuterAccessor in " +
                     instruction.getClass().getName() +
                     ", opcode=" + instruction.getOpcode());
         }

@@ -521,7 +521,7 @@ public class ReplaceOuterReferenceVisitor
             break;
         default:
             System.err.println(
-                    "Can not replace DupLoad in " +
+                    "Can not replace OuterReference in " +
                     instruction.getClass().getName() +
                     ", opcode=" + instruction.getOpcode());
         }

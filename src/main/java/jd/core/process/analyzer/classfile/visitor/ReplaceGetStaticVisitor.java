@@ -586,7 +586,7 @@ public class ReplaceGetStaticVisitor
             break;
         default:
             System.err.println(
-                    "Can not replace DupLoad in " +
+                    "Can not replace GetStatic in " +
                     instruction.getClass().getName() +
                     ", opcode=" + instruction.getOpcode());
         }
