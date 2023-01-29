@@ -1154,7 +1154,7 @@ public final class FastInstructionListBuilder {
      */
     private static void executeReconstructors(ReferenceMap referenceMap, ClassFile classFile, List<Instruction> list,
             LocalVariables localVariables) {
-        // Reconstruction des blocs synchronisés vide
+        // Reconstruction des blocs synchronisés vides
         EmptySynchronizedBlockReconstructor.reconstruct(localVariables, list);
         // Reconstruction du mot clé '.class' pour ECJ
         DotClass118BReconstructor.reconstruct(referenceMap, classFile, list);
@@ -1169,7 +1169,7 @@ public final class FastInstructionListBuilder {
         // Reconstruction des instructions 'assert'. Cette operation doit être
         // executee après 'ComparisonInstructionAnalyzer'.
         AssertInstructionReconstructor.reconstruct(classFile, list);
-        // Create ternary operator before analisys of local variables.
+        // Create ternary operator before analysis of local variables.
         // A executer après 'ComparisonInstructionAnalyzer'
         TernaryOpReconstructor.reconstruct(list);
         // Reconstruction des initialisations de tableaux
