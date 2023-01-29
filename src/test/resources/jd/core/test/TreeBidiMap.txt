@@ -1917,10 +1917,10 @@
 /*      */     }
 /*      */     
 /*      */     private Object getData(TreeBidiMap.DataElement dataElement) {
-/* 1920 */       switch (TreeBidiMap.1.$SwitchMap$org$apache$commons$collections4$bidimap$TreeBidiMap$DataElement[dataElement.ordinal()]) {
-/*      */       case 1: 
+/* 1920 */       switch (dataElement) {
+/*      */       case KEY: 
 /* 1922 */         return getKey();
-/*      */       case 2: 
+/*      */       case VALUE: 
 /* 1924 */         return getValue();
 /*      */       }
 /* 1926 */       throw new IllegalArgumentException();

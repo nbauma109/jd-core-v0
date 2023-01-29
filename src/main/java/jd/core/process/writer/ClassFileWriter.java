@@ -2125,13 +2125,17 @@ public final class ClassFileWriter
         ClassFile classFile = celb.getClassFile();
         ConstantPool constants = classFile.getConstantPool();
         List<Integer> switchMap =
-            classFile.getSwitchMaps().get(celb.getSwitchMapKeyIndex());
-
+            classFile.getSwitchMaps().get(celb.getSwitchMapKey());
         ArrayLoadInstruction ali = (ArrayLoadInstruction)celb.getFs().getTest();
         Invokevirtual iv = (Invokevirtual)ali.getIndexref();
         ConstantMethodref cmr = constants.getConstantMethodref(iv.getIndex());
         String internalEnumName =
             constants.getConstantClassName(cmr.getClassIndex());
+
+        if (switchMap == null) {
+            constants = classFile.getOuterClass().getConstantPool();
+            switchMap = classFile.getOuterClass().getSwitchMaps().get(celb.getSwitchMapKey());
+        }
 
         String enumDescriptor = SignatureUtil.createTypeName(internalEnumName);
 

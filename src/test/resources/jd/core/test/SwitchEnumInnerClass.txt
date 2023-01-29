@@ -1,0 +1,31 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class SwitchEnumInnerClass
+/*    */ {
+/*    */   static enum DataElement {
+/*  6 */     KEY,  VALUE;
+/*    */   }
+/*    */   
+/*    */   String getString(DataElement dataElement) {
+/* 10 */     switch (dataElement) {
+/*    */     case KEY: 
+/* 12 */       return "key";
+/*    */     case VALUE: 
+/* 14 */       return "value";
+/*    */     }
+/* 16 */     throw new IllegalArgumentException();
+/*    */   }
+/*    */   
+/*    */   class Node
+/*    */   {
+/*    */     String getString(SwitchEnumInnerClass.DataElement dataElement) {
+/* 22 */       switch (dataElement) {
+/*    */       case KEY: 
+/* 24 */         return "key";
+/*    */       case VALUE: 
+/* 26 */         return "value";
+/*    */       }
+/* 28 */       throw new IllegalArgumentException();
+/*    */     }
+/*    */   }
+/*    */ }

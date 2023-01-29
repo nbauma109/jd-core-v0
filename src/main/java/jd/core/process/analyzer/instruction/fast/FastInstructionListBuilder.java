@@ -4125,8 +4125,9 @@ public final class FastInstructionListBuilder {
                     ConstantPool constants = classFile.getConstantPool();
                     ConstantFieldref cfr = constants.getConstantFieldref(gs.getIndex());
                     ConstantNameAndType cnat = constants.getConstantNameAndType(cfr.getNameAndTypeIndex());
-
-                    if (classFile.getSwitchMaps().containsKey(cnat.getNameIndex())) {
+                    String cnatName = constants.getConstantUtf8(cnat.getNameIndex());
+                    if (classFile.getSwitchMaps().containsKey(cnatName)
+                     || classFile.getOuterClass().getSwitchMaps().containsKey(cnatName)) {
                         Invokevirtual iv = (Invokevirtual) ali.getIndexref();
 
                         if (iv.getArgs().isEmpty()) {
@@ -4150,7 +4151,8 @@ public final class FastInstructionListBuilder {
 
                         if (cmr.getClassIndex() == classFile.getThisClassIndex()) {
                             ConstantNameAndType cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
-                            if (classFile.getSwitchMaps().containsKey(cnat.getNameIndex())) {
+                            String cnatName = constants.getConstantUtf8(cnat.getNameIndex());
+                            if (classFile.getSwitchMaps().containsKey(cnatName)) {
                                 Invokevirtual iv = (Invokevirtual) ali.getIndexref();
 
                                 if (iv.getArgs().isEmpty()) {

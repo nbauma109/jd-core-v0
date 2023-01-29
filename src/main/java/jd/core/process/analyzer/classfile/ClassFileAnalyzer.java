@@ -216,7 +216,6 @@ public final class ClassFileAnalyzer
                 Field field;
                 String fieldName;
                 List<Integer> enumNameIndexes;
-                int outerFieldNameIndex;
                 Instruction instruction;
                 String enumName;
                 int outerEnumNameIndex;
@@ -282,12 +281,10 @@ public final class ClassFileAnalyzer
                         enumNameIndexes.add(outerEnumNameIndex);
                     }
 
-                    outerFieldNameIndex = outerConstants.addConstantUtf8(fieldName);
-
-                    // Key = indexe du nom de la classe interne dans le
+                    // Key = le nom de la classe interne dans le
                     // pool de constantes de la classe externe
                     outerClassFile.getSwitchMaps().put(
-                            outerFieldNameIndex, enumNameIndexes);
+                            fieldName, enumNameIndexes);
 
                     index -= 3;
                 }
@@ -657,7 +654,7 @@ public final class ClassFileAnalyzer
             }
 
             classFile.getSwitchMaps().put(
-                    method.getNameIndex(), enumNameIndexes);
+                    constants.getConstantUtf8(method.getNameIndex()), enumNameIndexes);
         }
         else if (length >= 7 &&
                 list.get(0).getOpcode() == Const.ASTORE &&
@@ -702,7 +699,7 @@ public final class ClassFileAnalyzer
             }
 
             classFile.getSwitchMaps().put(
-                    method.getNameIndex(), enumNameIndexes);
+                    constants.getConstantUtf8(method.getNameIndex()), enumNameIndexes);
         }
     }
 
