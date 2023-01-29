@@ -1,0 +1,2265 @@
+/*      */ package org.apache.commons.collections4.bidimap;
+/*      */ 
+/*      */ import java.io.IOException;
+/*      */ import java.io.ObjectInputStream;
+/*      */ import java.io.ObjectOutputStream;
+/*      */ import java.io.Serializable;
+/*      */ import java.util.AbstractSet;
+/*      */ import java.util.ConcurrentModificationException;
+/*      */ import java.util.Iterator;
+/*      */ import java.util.Map;
+/*      */ import java.util.Map.Entry;
+/*      */ import java.util.NoSuchElementException;
+/*      */ import java.util.Set;
+/*      */ import org.apache.commons.collections4.KeyValue;
+/*      */ import org.apache.commons.collections4.MapIterator;
+/*      */ import org.apache.commons.collections4.OrderedBidiMap;
+/*      */ import org.apache.commons.collections4.OrderedIterator;
+/*      */ import org.apache.commons.collections4.OrderedMapIterator;
+/*      */ import org.apache.commons.collections4.iterators.EmptyOrderedMapIterator;
+/*      */ import org.apache.commons.collections4.keyvalue.UnmodifiableMapEntry;
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ public class TreeBidiMap<K extends Comparable<K>, V extends Comparable<V>>
+/*      */   implements OrderedBidiMap<K, V>, Serializable
+/*      */ {
+/*      */   private static final long serialVersionUID = 721969328361807L;
+/*      */   private transient Node<K, V>[] rootNode;
+/*      */   
+/*      */   static enum DataElement
+/*      */   {
+/*   89 */     KEY("key"),  VALUE("value");
+/*      */     
+/*      */ 
+/*      */ 
+/*      */     private final String description;
+/*      */     
+/*      */ 
+/*      */ 
+/*      */     private DataElement(String description)
+/*      */     {
+/*   99 */       this.description = description;
+/*      */     }
+/*      */     
+/*      */     public String toString()
+/*      */     {
+/*  104 */       return this.description;
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*  111 */   private transient int nodeCount = 0;
+/*  112 */   private transient int modifications = 0;
+/*      */   private transient Set<K> keySet;
+/*      */   private transient Set<V> valuesSet;
+/*      */   private transient Set<Map.Entry<K, V>> entrySet;
+/*  116 */   private transient TreeBidiMap<K, V>.Inverse inverse = null;
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public TreeBidiMap()
+/*      */   {
+/*  125 */     this.rootNode = new Node[2];
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public TreeBidiMap(Map<? extends K, ? extends V> map)
+/*      */   {
+/*  137 */     this();
+/*  138 */     putAll(map);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public int size()
+/*      */   {
+/*  149 */     return this.nodeCount;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public boolean isEmpty()
+/*      */   {
+/*  159 */     return this.nodeCount == 0;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public boolean containsKey(Object key)
+/*      */   {
+/*  174 */     checkKey(key);
+/*  175 */     return lookupKey(key) != null;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public boolean containsValue(Object value)
+/*      */   {
+/*  190 */     checkValue(value);
+/*  191 */     return lookupValue(value) != null;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public V get(Object key)
+/*      */   {
+/*  208 */     checkKey(key);
+/*  209 */     Node<K, V> node = lookupKey(key);
+/*  210 */     return node == null ? null : node.getValue();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public V put(K key, V value)
+/*      */   {
+/*  239 */     V result = get(key);
+/*  240 */     doPut(key, value);
+/*  241 */     return result;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public void putAll(Map<? extends K, ? extends V> map)
+/*      */   {
+/*  253 */     for (Map.Entry<? extends K, ? extends V> e : map.entrySet()) {
+/*  254 */       put((Comparable)e.getKey(), (Comparable)e.getValue());
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public V remove(Object key)
+/*      */   {
+/*  271 */     return doRemoveKey(key);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public void clear()
+/*      */   {
+/*  279 */     modify();
+/*      */     
+/*  281 */     this.nodeCount = 0;
+/*  282 */     this.rootNode[DataElement.KEY.ordinal()] = null;
+/*  283 */     this.rootNode[DataElement.VALUE.ordinal()] = null;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public K getKey(Object value)
+/*      */   {
+/*  301 */     checkValue(value);
+/*  302 */     Node<K, V> node = lookupValue(value);
+/*  303 */     return node == null ? null : node.getKey();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public K removeValue(Object value)
+/*      */   {
+/*  319 */     return doRemoveValue(value);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public K firstKey()
+/*      */   {
+/*  331 */     if (this.nodeCount == 0) {
+/*  332 */       throw new NoSuchElementException("Map is empty");
+/*      */     }
+/*  334 */     return leastNode(this.rootNode[DataElement.KEY.ordinal()], DataElement.KEY).getKey();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public K lastKey()
+/*      */   {
+/*  345 */     if (this.nodeCount == 0) {
+/*  346 */       throw new NoSuchElementException("Map is empty");
+/*      */     }
+/*  348 */     return greatestNode(this.rootNode[DataElement.KEY.ordinal()], DataElement.KEY).getKey();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public K nextKey(K key)
+/*      */   {
+/*  361 */     checkKey(key);
+/*  362 */     Node<K, V> node = nextGreater(lookupKey(key), DataElement.KEY);
+/*  363 */     return node == null ? null : node.getKey();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public K previousKey(K key)
+/*      */   {
+/*  376 */     checkKey(key);
+/*  377 */     Node<K, V> node = nextSmaller(lookupKey(key), DataElement.KEY);
+/*  378 */     return node == null ? null : node.getKey();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public Set<K> keySet()
+/*      */   {
+/*  396 */     if (this.keySet == null) {
+/*  397 */       this.keySet = new KeyView(DataElement.KEY);
+/*      */     }
+/*  399 */     return this.keySet;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public Set<V> values()
+/*      */   {
+/*  418 */     if (this.valuesSet == null) {
+/*  419 */       this.valuesSet = new ValueView(DataElement.KEY);
+/*      */     }
+/*  421 */     return this.valuesSet;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public Set<Map.Entry<K, V>> entrySet()
+/*      */   {
+/*  441 */     if (this.entrySet == null) {
+/*  442 */       this.entrySet = new EntryView();
+/*      */     }
+/*  444 */     return this.entrySet;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */   public OrderedMapIterator<K, V> mapIterator()
+/*      */   {
+/*  450 */     if (isEmpty()) {
+/*  451 */       return EmptyOrderedMapIterator.emptyOrderedMapIterator();
+/*      */     }
+/*  453 */     return new ViewMapIterator(DataElement.KEY);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public OrderedBidiMap<V, K> inverseBidiMap()
+/*      */   {
+/*  464 */     if (this.inverse == null) {
+/*  465 */       this.inverse = new Inverse();
+/*      */     }
+/*  467 */     return this.inverse;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public boolean equals(Object obj)
+/*      */   {
+/*  479 */     return doEquals(obj, DataElement.KEY);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public int hashCode()
+/*      */   {
+/*  489 */     return doHashCode(DataElement.KEY);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public String toString()
+/*      */   {
+/*  499 */     return doToString(DataElement.KEY);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private void doPut(K key, V value)
+/*      */   {
+/*  510 */     checkKeyAndValue(key, value);
+/*      */     
+/*      */ 
+/*  513 */     doRemoveKey(key);
+/*  514 */     doRemoveValue(value);
+/*      */     
+/*  516 */     Node<K, V> node = this.rootNode[DataElement.KEY.ordinal()];
+/*  517 */     if (node == null)
+/*      */     {
+/*  519 */       Node<K, V> root = new Node(key, value);
+/*  520 */       this.rootNode[DataElement.KEY.ordinal()] = root;
+/*  521 */       this.rootNode[DataElement.VALUE.ordinal()] = root;
+/*  522 */       grow();
+/*      */     }
+/*      */     else
+/*      */     {
+/*      */       for (;;) {
+/*  527 */         int cmp = compare(key, node.getKey());
+/*      */         
+/*  529 */         if (cmp == 0)
+/*      */         {
+/*  531 */           throw new IllegalArgumentException("Cannot store a duplicate key (\"" + key + "\") in this Map"); }
+/*  532 */         if (cmp < 0) {
+/*  533 */           if (node.getLeft(DataElement.KEY) != null) {
+/*  534 */             node = node.getLeft(DataElement.KEY);
+/*      */           } else {
+/*  536 */             Node<K, V> newNode = new Node(key, value);
+/*      */             
+/*  538 */             insertValue(newNode);
+/*  539 */             node.setLeft(newNode, DataElement.KEY);
+/*  540 */             newNode.setParent(node, DataElement.KEY);
+/*  541 */             doRedBlackInsert(newNode, DataElement.KEY);
+/*  542 */             grow();
+/*      */             
+/*  544 */             return;
+/*      */           }
+/*      */         }
+/*  547 */         else if (node.getRight(DataElement.KEY) != null) {
+/*  548 */           node = node.getRight(DataElement.KEY);
+/*      */         } else {
+/*  550 */           Node<K, V> newNode = new Node(key, value);
+/*      */           
+/*  552 */           insertValue(newNode);
+/*  553 */           node.setRight(newNode, DataElement.KEY);
+/*  554 */           newNode.setParent(node, DataElement.KEY);
+/*  555 */           doRedBlackInsert(newNode, DataElement.KEY);
+/*  556 */           grow();
+/*      */           
+/*  558 */           return;
+/*      */         }
+/*      */       }
+/*      */     }
+/*      */   }
+/*      */   
+/*      */   private V doRemoveKey(Object key)
+/*      */   {
+/*  566 */     Node<K, V> node = lookupKey(key);
+/*  567 */     if (node == null) {
+/*  568 */       return null;
+/*      */     }
+/*  570 */     doRedBlackDelete(node);
+/*  571 */     return node.getValue();
+/*      */   }
+/*      */   
+/*      */   private K doRemoveValue(Object value) {
+/*  575 */     Node<K, V> node = lookupValue(value);
+/*  576 */     if (node == null) {
+/*  577 */       return null;
+/*      */     }
+/*  579 */     doRedBlackDelete(node);
+/*  580 */     return node.getKey();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private <T extends Comparable<T>> Node<K, V> lookup(Object data, DataElement dataElement)
+/*      */   {
+/*  594 */     Node<K, V> rval = null;
+/*  595 */     Node<K, V> node = this.rootNode[dataElement.ordinal()];
+/*      */     
+/*  597 */     while (node != null) {
+/*  598 */       int cmp = compare((Comparable)data, (Comparable)node.getData(dataElement));
+/*  599 */       if (cmp == 0) {
+/*  600 */         rval = node;
+/*  601 */         break;
+/*      */       }
+/*  603 */       node = cmp < 0 ? node.getLeft(dataElement) : node.getRight(dataElement);
+/*      */     }
+/*      */     
+/*  606 */     return rval;
+/*      */   }
+/*      */   
+/*      */   private Node<K, V> lookupKey(Object key) {
+/*  610 */     return lookup(key, DataElement.KEY);
+/*      */   }
+/*      */   
+/*      */   private Node<K, V> lookupValue(Object value) {
+/*  614 */     return lookup(value, DataElement.VALUE);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private Node<K, V> nextGreater(Node<K, V> node, DataElement dataElement)
+/*      */   {
+/*      */     Node<K, V> rval;
+/*      */     
+/*      */ 
+/*      */ 
+/*  627 */     if (node == null) {
+/*  628 */       rval = null;
+/*  629 */     } else if (node.getRight(dataElement) != null)
+/*      */     {
+/*      */ 
+/*  632 */       rval = leastNode(node.getRight(dataElement), dataElement);
+/*      */ 
+/*      */ 
+/*      */     }
+/*      */     else
+/*      */     {
+/*      */ 
+/*      */ 
+/*  640 */       Node<K, V> parent = node.getParent(dataElement);
+/*  641 */       Node<K, V> child = node;
+/*      */       
+/*  643 */       while ((parent != null) && (child == parent.getRight(dataElement))) {
+/*  644 */         child = parent;
+/*  645 */         parent = parent.getParent(dataElement);
+/*      */       }
+/*  647 */       rval = parent;
+/*      */     }
+/*  649 */     return rval;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private Node<K, V> nextSmaller(Node<K, V> node, DataElement dataElement)
+/*      */   {
+/*      */     Node<K, V> rval;
+/*      */     
+/*      */ 
+/*      */ 
+/*  662 */     if (node == null) {
+/*  663 */       rval = null;
+/*  664 */     } else if (node.getLeft(dataElement) != null)
+/*      */     {
+/*      */ 
+/*  667 */       rval = greatestNode(node.getLeft(dataElement), dataElement);
+/*      */ 
+/*      */ 
+/*      */     }
+/*      */     else
+/*      */     {
+/*      */ 
+/*      */ 
+/*  675 */       Node<K, V> parent = node.getParent(dataElement);
+/*  676 */       Node<K, V> child = node;
+/*      */       
+/*  678 */       while ((parent != null) && (child == parent.getLeft(dataElement))) {
+/*  679 */         child = parent;
+/*  680 */         parent = parent.getParent(dataElement);
+/*      */       }
+/*  682 */       rval = parent;
+/*      */     }
+/*  684 */     return rval;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static <T extends Comparable<T>> int compare(T o1, T o2)
+/*      */   {
+/*  699 */     return o1.compareTo(o2);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private Node<K, V> leastNode(Node<K, V> node, DataElement dataElement)
+/*      */   {
+/*  712 */     Node<K, V> rval = node;
+/*  713 */     if (rval != null) {
+/*  714 */       while (rval.getLeft(dataElement) != null) {
+/*  715 */         rval = rval.getLeft(dataElement);
+/*      */       }
+/*      */     }
+/*  718 */     return rval;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private Node<K, V> greatestNode(Node<K, V> node, DataElement dataElement)
+/*      */   {
+/*  730 */     Node<K, V> rval = node;
+/*  731 */     if (rval != null) {
+/*  732 */       while (rval.getRight(dataElement) != null) {
+/*  733 */         rval = rval.getRight(dataElement);
+/*      */       }
+/*      */     }
+/*  736 */     return rval;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private void copyColor(Node<K, V> from, Node<K, V> to, DataElement dataElement)
+/*      */   {
+/*  749 */     if (to != null) {
+/*  750 */       if (from == null)
+/*      */       {
+/*  752 */         to.setBlack(dataElement);
+/*      */       } else {
+/*  754 */         to.copyColor(from, dataElement);
+/*      */       }
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static boolean isRed(Node<?, ?> node, DataElement dataElement)
+/*      */   {
+/*  768 */     return (node != null) && (node.isRed(dataElement));
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static boolean isBlack(Node<?, ?> node, DataElement dataElement)
+/*      */   {
+/*  780 */     return (node == null) || (node.isBlack(dataElement));
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static void makeRed(Node<?, ?> node, DataElement dataElement)
+/*      */   {
+/*  791 */     if (node != null) {
+/*  792 */       node.setRed(dataElement);
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static void makeBlack(Node<?, ?> node, DataElement dataElement)
+/*      */   {
+/*  804 */     if (node != null) {
+/*  805 */       node.setBlack(dataElement);
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private Node<K, V> getGrandParent(Node<K, V> node, DataElement dataElement)
+/*      */   {
+/*  818 */     return getParent(getParent(node, dataElement), dataElement);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private Node<K, V> getParent(Node<K, V> node, DataElement dataElement)
+/*      */   {
+/*  830 */     return node == null ? null : node.getParent(dataElement);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private Node<K, V> getRightChild(Node<K, V> node, DataElement dataElement)
+/*      */   {
+/*  842 */     return node == null ? null : node.getRight(dataElement);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private Node<K, V> getLeftChild(Node<K, V> node, DataElement dataElement)
+/*      */   {
+/*  854 */     return node == null ? null : node.getLeft(dataElement);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private void rotateLeft(Node<K, V> node, DataElement dataElement)
+/*      */   {
+/*  865 */     Node<K, V> rightChild = node.getRight(dataElement);
+/*  866 */     node.setRight(rightChild.getLeft(dataElement), dataElement);
+/*      */     
+/*  868 */     if (rightChild.getLeft(dataElement) != null) {
+/*  869 */       rightChild.getLeft(dataElement).setParent(node, dataElement);
+/*      */     }
+/*  871 */     rightChild.setParent(node.getParent(dataElement), dataElement);
+/*      */     
+/*  873 */     if (node.getParent(dataElement) == null)
+/*      */     {
+/*  875 */       this.rootNode[dataElement.ordinal()] = rightChild;
+/*  876 */     } else if (node.getParent(dataElement).getLeft(dataElement) == node) {
+/*  877 */       node.getParent(dataElement).setLeft(rightChild, dataElement);
+/*      */     } else {
+/*  879 */       node.getParent(dataElement).setRight(rightChild, dataElement);
+/*      */     }
+/*      */     
+/*  882 */     rightChild.setLeft(node, dataElement);
+/*  883 */     node.setParent(rightChild, dataElement);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private void rotateRight(Node<K, V> node, DataElement dataElement)
+/*      */   {
+/*  894 */     Node<K, V> leftChild = node.getLeft(dataElement);
+/*  895 */     node.setLeft(leftChild.getRight(dataElement), dataElement);
+/*  896 */     if (leftChild.getRight(dataElement) != null) {
+/*  897 */       leftChild.getRight(dataElement).setParent(node, dataElement);
+/*      */     }
+/*  899 */     leftChild.setParent(node.getParent(dataElement), dataElement);
+/*      */     
+/*  901 */     if (node.getParent(dataElement) == null)
+/*      */     {
+/*  903 */       this.rootNode[dataElement.ordinal()] = leftChild;
+/*  904 */     } else if (node.getParent(dataElement).getRight(dataElement) == node) {
+/*  905 */       node.getParent(dataElement).setRight(leftChild, dataElement);
+/*      */     } else {
+/*  907 */       node.getParent(dataElement).setLeft(leftChild, dataElement);
+/*      */     }
+/*      */     
+/*  910 */     leftChild.setRight(node, dataElement);
+/*  911 */     node.setParent(leftChild, dataElement);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private void doRedBlackInsert(Node<K, V> insertedNode, DataElement dataElement)
+/*      */   {
+/*  922 */     Node<K, V> currentNode = insertedNode;
+/*  923 */     makeRed(currentNode, dataElement);
+/*      */     
+/*  925 */     while ((currentNode != null) && 
+/*  926 */       (currentNode != this.rootNode[dataElement.ordinal()]) && 
+/*  927 */       (isRed(currentNode.getParent(dataElement), dataElement))) {
+/*  928 */       if (currentNode.isLeftChild(dataElement)) {
+/*  929 */         Node<K, V> y = getRightChild(getGrandParent(currentNode, dataElement), dataElement);
+/*      */         
+/*  931 */         if (isRed(y, dataElement)) {
+/*  932 */           makeBlack(getParent(currentNode, dataElement), dataElement);
+/*  933 */           makeBlack(y, dataElement);
+/*  934 */           makeRed(getGrandParent(currentNode, dataElement), dataElement);
+/*      */           
+/*  936 */           currentNode = getGrandParent(currentNode, dataElement);
+/*      */         }
+/*      */         else {
+/*  939 */           if (currentNode.isRightChild(dataElement)) {
+/*  940 */             currentNode = getParent(currentNode, dataElement);
+/*      */             
+/*  942 */             rotateLeft(currentNode, dataElement);
+/*      */           }
+/*      */           
+/*  945 */           makeBlack(getParent(currentNode, dataElement), dataElement);
+/*  946 */           makeRed(getGrandParent(currentNode, dataElement), dataElement);
+/*      */           
+/*  948 */           if (getGrandParent(currentNode, dataElement) != null) {
+/*  949 */             rotateRight(getGrandParent(currentNode, dataElement), dataElement);
+/*      */           }
+/*      */         }
+/*      */       }
+/*      */       else
+/*      */       {
+/*  955 */         Node<K, V> y = getLeftChild(getGrandParent(currentNode, dataElement), dataElement);
+/*      */         
+/*  957 */         if (isRed(y, dataElement)) {
+/*  958 */           makeBlack(getParent(currentNode, dataElement), dataElement);
+/*  959 */           makeBlack(y, dataElement);
+/*  960 */           makeRed(getGrandParent(currentNode, dataElement), dataElement);
+/*      */           
+/*  962 */           currentNode = getGrandParent(currentNode, dataElement);
+/*      */         }
+/*      */         else {
+/*  965 */           if (currentNode.isLeftChild(dataElement)) {
+/*  966 */             currentNode = getParent(currentNode, dataElement);
+/*      */             
+/*  968 */             rotateRight(currentNode, dataElement);
+/*      */           }
+/*      */           
+/*  971 */           makeBlack(getParent(currentNode, dataElement), dataElement);
+/*  972 */           makeRed(getGrandParent(currentNode, dataElement), dataElement);
+/*      */           
+/*  974 */           if (getGrandParent(currentNode, dataElement) != null) {
+/*  975 */             rotateLeft(getGrandParent(currentNode, dataElement), dataElement);
+/*      */           }
+/*      */         }
+/*      */       }
+/*      */     }
+/*      */     
+/*  981 */     makeBlack(this.rootNode[dataElement.ordinal()], dataElement);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private void doRedBlackDelete(Node<K, V> deletedNode)
+/*      */   {
+/*  991 */     for (DataElement dataElement : DataElement.values())
+/*      */     {
+/*      */ 
+/*  994 */       if ((deletedNode.getLeft(dataElement) != null) && (deletedNode.getRight(dataElement) != null)) {
+/*  995 */         swapPosition(nextGreater(deletedNode, dataElement), deletedNode, dataElement);
+/*      */       }
+/*      */       
+/*      */ 
+/*  999 */       Node<K, V> replacement = deletedNode.getLeft(dataElement) != null ? deletedNode.getLeft(dataElement) : deletedNode.getRight(dataElement);
+/*      */       
+/* 1001 */       if (replacement != null) {
+/* 1002 */         replacement.setParent(deletedNode.getParent(dataElement), dataElement);
+/*      */         
+/* 1004 */         if (deletedNode.getParent(dataElement) == null) {
+/* 1005 */           this.rootNode[dataElement.ordinal()] = replacement;
+/* 1006 */         } else if (deletedNode == deletedNode.getParent(dataElement).getLeft(dataElement)) {
+/* 1007 */           deletedNode.getParent(dataElement).setLeft(replacement, dataElement);
+/*      */         } else {
+/* 1009 */           deletedNode.getParent(dataElement).setRight(replacement, dataElement);
+/*      */         }
+/*      */         
+/* 1012 */         deletedNode.setLeft(null, dataElement);
+/* 1013 */         deletedNode.setRight(null, dataElement);
+/* 1014 */         deletedNode.setParent(null, dataElement);
+/*      */         
+/* 1016 */         if (isBlack(deletedNode, dataElement)) {
+/* 1017 */           doRedBlackDeleteFixup(replacement, dataElement);
+/*      */         }
+/*      */         
+/*      */ 
+/*      */       }
+/* 1022 */       else if (deletedNode.getParent(dataElement) == null)
+/*      */       {
+/*      */ 
+/* 1025 */         this.rootNode[dataElement.ordinal()] = null;
+/*      */       }
+/*      */       else
+/*      */       {
+/* 1029 */         if (isBlack(deletedNode, dataElement)) {
+/* 1030 */           doRedBlackDeleteFixup(deletedNode, dataElement);
+/*      */         }
+/*      */         
+/* 1033 */         if (deletedNode.getParent(dataElement) != null) {
+/* 1034 */           if (deletedNode == deletedNode.getParent(dataElement).getLeft(dataElement)) {
+/* 1035 */             deletedNode.getParent(dataElement).setLeft(null, dataElement);
+/*      */           } else {
+/* 1037 */             deletedNode.getParent(dataElement).setRight(null, dataElement);
+/*      */           }
+/*      */           
+/* 1040 */           deletedNode.setParent(null, dataElement);
+/*      */         }
+/*      */       }
+/*      */     }
+/*      */     
+/* 1045 */     shrink();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private void doRedBlackDeleteFixup(Node<K, V> replacementNode, DataElement dataElement)
+/*      */   {
+/* 1058 */     Node<K, V> currentNode = replacementNode;
+/*      */     
+/* 1060 */     while ((currentNode != this.rootNode[dataElement.ordinal()]) && (isBlack(currentNode, dataElement))) {
+/* 1061 */       if (currentNode.isLeftChild(dataElement)) {
+/* 1062 */         Node<K, V> siblingNode = getRightChild(getParent(currentNode, dataElement), dataElement);
+/*      */         
+/* 1064 */         if (isRed(siblingNode, dataElement)) {
+/* 1065 */           makeBlack(siblingNode, dataElement);
+/* 1066 */           makeRed(getParent(currentNode, dataElement), dataElement);
+/* 1067 */           rotateLeft(getParent(currentNode, dataElement), dataElement);
+/*      */           
+/* 1069 */           siblingNode = getRightChild(getParent(currentNode, dataElement), dataElement);
+/*      */         }
+/*      */         
+/* 1072 */         if ((isBlack(getLeftChild(siblingNode, dataElement), dataElement)) && 
+/* 1073 */           (isBlack(getRightChild(siblingNode, dataElement), dataElement))) {
+/* 1074 */           makeRed(siblingNode, dataElement);
+/*      */           
+/* 1076 */           currentNode = getParent(currentNode, dataElement);
+/*      */         } else {
+/* 1078 */           if (isBlack(getRightChild(siblingNode, dataElement), dataElement)) {
+/* 1079 */             makeBlack(getLeftChild(siblingNode, dataElement), dataElement);
+/* 1080 */             makeRed(siblingNode, dataElement);
+/* 1081 */             rotateRight(siblingNode, dataElement);
+/*      */             
+/* 1083 */             siblingNode = getRightChild(getParent(currentNode, dataElement), dataElement);
+/*      */           }
+/*      */           
+/* 1086 */           copyColor(getParent(currentNode, dataElement), siblingNode, dataElement);
+/* 1087 */           makeBlack(getParent(currentNode, dataElement), dataElement);
+/* 1088 */           makeBlack(getRightChild(siblingNode, dataElement), dataElement);
+/* 1089 */           rotateLeft(getParent(currentNode, dataElement), dataElement);
+/*      */           
+/* 1091 */           currentNode = this.rootNode[dataElement.ordinal()];
+/*      */         }
+/*      */       } else {
+/* 1094 */         Node<K, V> siblingNode = getLeftChild(getParent(currentNode, dataElement), dataElement);
+/*      */         
+/* 1096 */         if (isRed(siblingNode, dataElement)) {
+/* 1097 */           makeBlack(siblingNode, dataElement);
+/* 1098 */           makeRed(getParent(currentNode, dataElement), dataElement);
+/* 1099 */           rotateRight(getParent(currentNode, dataElement), dataElement);
+/*      */           
+/* 1101 */           siblingNode = getLeftChild(getParent(currentNode, dataElement), dataElement);
+/*      */         }
+/*      */         
+/* 1104 */         if ((isBlack(getRightChild(siblingNode, dataElement), dataElement)) && 
+/* 1105 */           (isBlack(getLeftChild(siblingNode, dataElement), dataElement))) {
+/* 1106 */           makeRed(siblingNode, dataElement);
+/*      */           
+/* 1108 */           currentNode = getParent(currentNode, dataElement);
+/*      */         } else {
+/* 1110 */           if (isBlack(getLeftChild(siblingNode, dataElement), dataElement)) {
+/* 1111 */             makeBlack(getRightChild(siblingNode, dataElement), dataElement);
+/* 1112 */             makeRed(siblingNode, dataElement);
+/* 1113 */             rotateLeft(siblingNode, dataElement);
+/*      */             
+/* 1115 */             siblingNode = getLeftChild(getParent(currentNode, dataElement), dataElement);
+/*      */           }
+/*      */           
+/* 1118 */           copyColor(getParent(currentNode, dataElement), siblingNode, dataElement);
+/* 1119 */           makeBlack(getParent(currentNode, dataElement), dataElement);
+/* 1120 */           makeBlack(getLeftChild(siblingNode, dataElement), dataElement);
+/* 1121 */           rotateRight(getParent(currentNode, dataElement), dataElement);
+/*      */           
+/* 1123 */           currentNode = this.rootNode[dataElement.ordinal()];
+/*      */         }
+/*      */       }
+/*      */     }
+/*      */     
+/* 1128 */     makeBlack(currentNode, dataElement);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private void swapPosition(Node<K, V> x, Node<K, V> y, DataElement dataElement)
+/*      */   {
+/* 1142 */     Node<K, V> xFormerParent = x.getParent(dataElement);
+/* 1143 */     Node<K, V> xFormerLeftChild = x.getLeft(dataElement);
+/* 1144 */     Node<K, V> xFormerRightChild = x.getRight(dataElement);
+/* 1145 */     Node<K, V> yFormerParent = y.getParent(dataElement);
+/* 1146 */     Node<K, V> yFormerLeftChild = y.getLeft(dataElement);
+/* 1147 */     Node<K, V> yFormerRightChild = y.getRight(dataElement);
+/*      */     
+/* 1149 */     boolean xWasLeftChild = (x.getParent(dataElement) != null) && (x == x.getParent(dataElement).getLeft(dataElement));
+/*      */     
+/* 1151 */     boolean yWasLeftChild = (y.getParent(dataElement) != null) && (y == y.getParent(dataElement).getLeft(dataElement));
+/*      */     
+/*      */ 
+/* 1154 */     if (x == yFormerParent) {
+/* 1155 */       x.setParent(y, dataElement);
+/*      */       
+/* 1157 */       if (yWasLeftChild) {
+/* 1158 */         y.setLeft(x, dataElement);
+/* 1159 */         y.setRight(xFormerRightChild, dataElement);
+/*      */       } else {
+/* 1161 */         y.setRight(x, dataElement);
+/* 1162 */         y.setLeft(xFormerLeftChild, dataElement);
+/*      */       }
+/*      */     } else {
+/* 1165 */       x.setParent(yFormerParent, dataElement);
+/*      */       
+/* 1167 */       if (yFormerParent != null) {
+/* 1168 */         if (yWasLeftChild) {
+/* 1169 */           yFormerParent.setLeft(x, dataElement);
+/*      */         } else {
+/* 1171 */           yFormerParent.setRight(x, dataElement);
+/*      */         }
+/*      */       }
+/*      */       
+/* 1175 */       y.setLeft(xFormerLeftChild, dataElement);
+/* 1176 */       y.setRight(xFormerRightChild, dataElement);
+/*      */     }
+/*      */     
+/* 1179 */     if (y == xFormerParent) {
+/* 1180 */       y.setParent(x, dataElement);
+/*      */       
+/* 1182 */       if (xWasLeftChild) {
+/* 1183 */         x.setLeft(y, dataElement);
+/* 1184 */         x.setRight(yFormerRightChild, dataElement);
+/*      */       } else {
+/* 1186 */         x.setRight(y, dataElement);
+/* 1187 */         x.setLeft(yFormerLeftChild, dataElement);
+/*      */       }
+/*      */     } else {
+/* 1190 */       y.setParent(xFormerParent, dataElement);
+/*      */       
+/* 1192 */       if (xFormerParent != null) {
+/* 1193 */         if (xWasLeftChild) {
+/* 1194 */           xFormerParent.setLeft(y, dataElement);
+/*      */         } else {
+/* 1196 */           xFormerParent.setRight(y, dataElement);
+/*      */         }
+/*      */       }
+/*      */       
+/* 1200 */       x.setLeft(yFormerLeftChild, dataElement);
+/* 1201 */       x.setRight(yFormerRightChild, dataElement);
+/*      */     }
+/*      */     
+/*      */ 
+/* 1205 */     if (x.getLeft(dataElement) != null) {
+/* 1206 */       x.getLeft(dataElement).setParent(x, dataElement);
+/*      */     }
+/*      */     
+/* 1209 */     if (x.getRight(dataElement) != null) {
+/* 1210 */       x.getRight(dataElement).setParent(x, dataElement);
+/*      */     }
+/*      */     
+/* 1213 */     if (y.getLeft(dataElement) != null) {
+/* 1214 */       y.getLeft(dataElement).setParent(y, dataElement);
+/*      */     }
+/*      */     
+/* 1217 */     if (y.getRight(dataElement) != null) {
+/* 1218 */       y.getRight(dataElement).setParent(y, dataElement);
+/*      */     }
+/*      */     
+/* 1221 */     x.swapColors(y, dataElement);
+/*      */     
+/*      */ 
+/* 1224 */     if (this.rootNode[dataElement.ordinal()] == x) {
+/* 1225 */       this.rootNode[dataElement.ordinal()] = y;
+/* 1226 */     } else if (this.rootNode[dataElement.ordinal()] == y) {
+/* 1227 */       this.rootNode[dataElement.ordinal()] = x;
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static void checkNonNullComparable(Object o, DataElement dataElement)
+/*      */   {
+/* 1243 */     if (o == null) {
+/* 1244 */       throw new NullPointerException(dataElement + " cannot be null");
+/*      */     }
+/* 1246 */     if (!(o instanceof Comparable)) {
+/* 1247 */       throw new ClassCastException(dataElement + " must be Comparable");
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static void checkKey(Object key)
+/*      */   {
+/* 1260 */     checkNonNullComparable(key, DataElement.KEY);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static void checkValue(Object value)
+/*      */   {
+/* 1272 */     checkNonNullComparable(value, DataElement.VALUE);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static void checkKeyAndValue(Object key, Object value)
+/*      */   {
+/* 1286 */     checkKey(key);
+/* 1287 */     checkValue(value);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private void modify()
+/*      */   {
+/* 1296 */     this.modifications += 1;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   private void grow()
+/*      */   {
+/* 1303 */     modify();
+/* 1304 */     this.nodeCount += 1;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   private void shrink()
+/*      */   {
+/* 1311 */     modify();
+/* 1312 */     this.nodeCount -= 1;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private void insertValue(Node<K, V> newNode)
+/*      */     throws IllegalArgumentException
+/*      */   {
+/* 1324 */     Node<K, V> node = this.rootNode[DataElement.VALUE.ordinal()];
+/*      */     for (;;)
+/*      */     {
+/* 1327 */       int cmp = compare(newNode.getValue(), node.getValue());
+/*      */       
+/* 1329 */       if (cmp == 0)
+/*      */       {
+/* 1331 */         throw new IllegalArgumentException("Cannot store a duplicate value (\"" + newNode.getData(DataElement.VALUE) + "\") in this Map"); }
+/* 1332 */       if (cmp < 0) {
+/* 1333 */         if (node.getLeft(DataElement.VALUE) != null) {
+/* 1334 */           node = node.getLeft(DataElement.VALUE);
+/*      */         } else {
+/* 1336 */           node.setLeft(newNode, DataElement.VALUE);
+/* 1337 */           newNode.setParent(node, DataElement.VALUE);
+/* 1338 */           doRedBlackInsert(newNode, DataElement.VALUE);
+/*      */           
+/* 1340 */           return;
+/*      */         }
+/*      */       }
+/* 1343 */       else if (node.getRight(DataElement.VALUE) != null) {
+/* 1344 */         node = node.getRight(DataElement.VALUE);
+/*      */       } else {
+/* 1346 */         node.setRight(newNode, DataElement.VALUE);
+/* 1347 */         newNode.setParent(node, DataElement.VALUE);
+/* 1348 */         doRedBlackInsert(newNode, DataElement.VALUE);
+/*      */         
+/* 1350 */         return;
+/*      */       }
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private boolean doEquals(Object obj, DataElement dataElement)
+/*      */   {
+/* 1366 */     if (obj == this) {
+/* 1367 */       return true;
+/*      */     }
+/* 1369 */     if (!(obj instanceof Map)) {
+/* 1370 */       return false;
+/*      */     }
+/* 1372 */     Map<?, ?> other = (Map)obj;
+/* 1373 */     if (other.size() != size()) {
+/* 1374 */       return false;
+/*      */     }
+/*      */     
+/* 1377 */     if (this.nodeCount > 0) {
+/*      */       MapIterator<?, ?> it;
+/* 1379 */       try { for (it = getMapIterator(dataElement); it.hasNext();) {
+/* 1380 */           Object key = it.next();
+/* 1381 */           Object value = it.getValue();
+/* 1382 */           if (!value.equals(other.get(key))) {
+/* 1383 */             return false;
+/*      */           }
+/*      */         }
+/*      */       } catch (ClassCastException ex) {
+/* 1387 */         return false;
+/*      */       } catch (NullPointerException ex) {
+/* 1389 */         return false;
+/*      */       }
+/*      */     }
+/* 1392 */     return true;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private int doHashCode(DataElement dataElement)
+/*      */   {
+/* 1403 */     int total = 0;
+/* 1404 */     MapIterator<?, ?> it; if (this.nodeCount > 0) {
+/* 1405 */       for (it = getMapIterator(dataElement); it.hasNext();) {
+/* 1406 */         Object key = it.next();
+/* 1407 */         Object value = it.getValue();
+/* 1408 */         total += (key.hashCode() ^ value.hashCode());
+/*      */       }
+/*      */     }
+/* 1411 */     return total;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private String doToString(DataElement dataElement)
+/*      */   {
+/* 1422 */     if (this.nodeCount == 0) {
+/* 1423 */       return "{}";
+/*      */     }
+/* 1425 */     StringBuilder buf = new StringBuilder(this.nodeCount * 32);
+/* 1426 */     buf.append('{');
+/* 1427 */     MapIterator<?, ?> it = getMapIterator(dataElement);
+/* 1428 */     boolean hasNext = it.hasNext();
+/* 1429 */     while (hasNext) {
+/* 1430 */       Object key = it.next();
+/* 1431 */       Object value = it.getValue();
+/* 1432 */       buf.append(key == this ? "(this Map)" : key)
+/* 1433 */         .append('=')
+/* 1434 */         .append(value == this ? "(this Map)" : value);
+/*      */       
+/* 1436 */       hasNext = it.hasNext();
+/* 1437 */       if (hasNext) {
+/* 1438 */         buf.append(", ");
+/*      */       }
+/*      */     }
+/*      */     
+/* 1442 */     buf.append('}');
+/* 1443 */     return buf.toString();
+/*      */   }
+/*      */   
+/*      */   private MapIterator<?, ?> getMapIterator(DataElement dataElement) {
+/* 1447 */     switch (dataElement) {
+/*      */     case KEY: 
+/* 1449 */       return new ViewMapIterator(DataElement.KEY);
+/*      */     case VALUE: 
+/* 1451 */       return new InverseViewMapIterator(DataElement.VALUE);
+/*      */     }
+/* 1453 */     throw new IllegalArgumentException();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private void readObject(ObjectInputStream stream)
+/*      */     throws IOException, ClassNotFoundException
+/*      */   {
+/* 1466 */     stream.defaultReadObject();
+/* 1467 */     this.rootNode = new Node[2];
+/* 1468 */     int size = stream.readInt();
+/* 1469 */     for (int i = 0; i < size; i++) {
+/* 1470 */       K k = (Comparable)stream.readObject();
+/* 1471 */       V v = (Comparable)stream.readObject();
+/* 1472 */       put(k, v);
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private void writeObject(ObjectOutputStream stream)
+/*      */     throws IOException
+/*      */   {
+/* 1483 */     stream.defaultWriteObject();
+/* 1484 */     stream.writeInt(size());
+/* 1485 */     for (Map.Entry<K, V> entry : entrySet()) {
+/* 1486 */       stream.writeObject(entry.getKey());
+/* 1487 */       stream.writeObject(entry.getValue());
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   abstract class View<E>
+/*      */     extends AbstractSet<E>
+/*      */   {
+/*      */     final TreeBidiMap.DataElement orderType;
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     View(TreeBidiMap.DataElement orderType)
+/*      */     {
+/* 1506 */       this.orderType = orderType;
+/*      */     }
+/*      */     
+/*      */     public int size()
+/*      */     {
+/* 1511 */       return TreeBidiMap.this.size();
+/*      */     }
+/*      */     
+/*      */     public void clear()
+/*      */     {
+/* 1516 */       TreeBidiMap.this.clear();
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */   class KeyView
+/*      */     extends TreeBidiMap<K, V>.View<K>
+/*      */   {
+/*      */     public KeyView(TreeBidiMap.DataElement orderType)
+/*      */     {
+/* 1526 */       super(orderType);
+/*      */     }
+/*      */     
+/*      */     public Iterator<K> iterator()
+/*      */     {
+/* 1531 */       return new TreeBidiMap.ViewMapIterator(TreeBidiMap.this, this.orderType);
+/*      */     }
+/*      */     
+/*      */     public boolean contains(Object obj)
+/*      */     {
+/* 1536 */       TreeBidiMap.checkNonNullComparable(obj, TreeBidiMap.DataElement.KEY);
+/* 1537 */       return TreeBidiMap.this.lookupKey(obj) != null;
+/*      */     }
+/*      */     
+/*      */     public boolean remove(Object o)
+/*      */     {
+/* 1542 */       return TreeBidiMap.this.doRemoveKey(o) != null;
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   class ValueView
+/*      */     extends TreeBidiMap<K, V>.View<V>
+/*      */   {
+/*      */     public ValueView(TreeBidiMap.DataElement orderType)
+/*      */     {
+/* 1553 */       super(orderType);
+/*      */     }
+/*      */     
+/*      */     public Iterator<V> iterator()
+/*      */     {
+/* 1558 */       return new TreeBidiMap.InverseViewMapIterator(TreeBidiMap.this, this.orderType);
+/*      */     }
+/*      */     
+/*      */     public boolean contains(Object obj)
+/*      */     {
+/* 1563 */       TreeBidiMap.checkNonNullComparable(obj, TreeBidiMap.DataElement.VALUE);
+/* 1564 */       return TreeBidiMap.this.lookupValue(obj) != null;
+/*      */     }
+/*      */     
+/*      */     public boolean remove(Object o)
+/*      */     {
+/* 1569 */       return TreeBidiMap.this.doRemoveValue(o) != null;
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   class EntryView
+/*      */     extends TreeBidiMap<K, V>.View<Map.Entry<K, V>>
+/*      */   {
+/*      */     EntryView()
+/*      */     {
+/* 1580 */       super(TreeBidiMap.DataElement.KEY);
+/*      */     }
+/*      */     
+/*      */     public boolean contains(Object obj)
+/*      */     {
+/* 1585 */       if (!(obj instanceof Map.Entry)) {
+/* 1586 */         return false;
+/*      */       }
+/* 1588 */       Map.Entry<?, ?> entry = (Map.Entry)obj;
+/* 1589 */       Object value = entry.getValue();
+/* 1590 */       TreeBidiMap.Node<K, V> node = TreeBidiMap.this.lookupKey(entry.getKey());
+/* 1591 */       return (node != null) && (node.getValue().equals(value));
+/*      */     }
+/*      */     
+/*      */     public boolean remove(Object obj)
+/*      */     {
+/* 1596 */       if (!(obj instanceof Map.Entry)) {
+/* 1597 */         return false;
+/*      */       }
+/* 1599 */       Map.Entry<?, ?> entry = (Map.Entry)obj;
+/* 1600 */       Object value = entry.getValue();
+/* 1601 */       TreeBidiMap.Node<K, V> node = TreeBidiMap.this.lookupKey(entry.getKey());
+/* 1602 */       if ((node != null) && (node.getValue().equals(value))) {
+/* 1603 */         TreeBidiMap.this.doRedBlackDelete(node);
+/* 1604 */         return true;
+/*      */       }
+/* 1606 */       return false;
+/*      */     }
+/*      */     
+/*      */     public Iterator<Map.Entry<K, V>> iterator()
+/*      */     {
+/* 1611 */       return new TreeBidiMap.ViewMapEntryIterator(TreeBidiMap.this);
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */   class InverseEntryView
+/*      */     extends TreeBidiMap<K, V>.View<Map.Entry<V, K>>
+/*      */   {
+/*      */     InverseEntryView()
+/*      */     {
+/* 1621 */       super(TreeBidiMap.DataElement.VALUE);
+/*      */     }
+/*      */     
+/*      */     public boolean contains(Object obj)
+/*      */     {
+/* 1626 */       if (!(obj instanceof Map.Entry)) {
+/* 1627 */         return false;
+/*      */       }
+/* 1629 */       Map.Entry<?, ?> entry = (Map.Entry)obj;
+/* 1630 */       Object value = entry.getValue();
+/* 1631 */       TreeBidiMap.Node<K, V> node = TreeBidiMap.this.lookupValue(entry.getKey());
+/* 1632 */       return (node != null) && (node.getKey().equals(value));
+/*      */     }
+/*      */     
+/*      */     public boolean remove(Object obj)
+/*      */     {
+/* 1637 */       if (!(obj instanceof Map.Entry)) {
+/* 1638 */         return false;
+/*      */       }
+/* 1640 */       Map.Entry<?, ?> entry = (Map.Entry)obj;
+/* 1641 */       Object value = entry.getValue();
+/* 1642 */       TreeBidiMap.Node<K, V> node = TreeBidiMap.this.lookupValue(entry.getKey());
+/* 1643 */       if ((node != null) && (node.getKey().equals(value))) {
+/* 1644 */         TreeBidiMap.this.doRedBlackDelete(node);
+/* 1645 */         return true;
+/*      */       }
+/* 1647 */       return false;
+/*      */     }
+/*      */     
+/*      */     public Iterator<Map.Entry<V, K>> iterator()
+/*      */     {
+/* 1652 */       return new TreeBidiMap.InverseViewMapEntryIterator(TreeBidiMap.this);
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   abstract class ViewIterator
+/*      */   {
+/*      */     private final TreeBidiMap.DataElement orderType;
+/*      */     
+/*      */ 
+/*      */     TreeBidiMap.Node<K, V> lastReturnedNode;
+/*      */     
+/*      */ 
+/*      */     private TreeBidiMap.Node<K, V> nextNode;
+/*      */     
+/*      */ 
+/*      */     private TreeBidiMap.Node<K, V> previousNode;
+/*      */     
+/*      */ 
+/*      */     private int expectedModifications;
+/*      */     
+/*      */ 
+/*      */ 
+/*      */     ViewIterator(TreeBidiMap.DataElement orderType)
+/*      */     {
+/* 1679 */       this.orderType = orderType;
+/* 1680 */       this.expectedModifications = TreeBidiMap.this.modifications;
+/* 1681 */       this.nextNode = TreeBidiMap.this.leastNode(TreeBidiMap.this.rootNode[orderType.ordinal()], orderType);
+/* 1682 */       this.lastReturnedNode = null;
+/* 1683 */       this.previousNode = null;
+/*      */     }
+/*      */     
+/*      */     public final boolean hasNext() {
+/* 1687 */       return this.nextNode != null;
+/*      */     }
+/*      */     
+/*      */     protected TreeBidiMap.Node<K, V> navigateNext() {
+/* 1691 */       if (this.nextNode == null) {
+/* 1692 */         throw new NoSuchElementException();
+/*      */       }
+/* 1694 */       if (TreeBidiMap.this.modifications != this.expectedModifications) {
+/* 1695 */         throw new ConcurrentModificationException();
+/*      */       }
+/* 1697 */       this.lastReturnedNode = this.nextNode;
+/* 1698 */       this.previousNode = this.nextNode;
+/* 1699 */       this.nextNode = TreeBidiMap.this.nextGreater(this.nextNode, this.orderType);
+/* 1700 */       return this.lastReturnedNode;
+/*      */     }
+/*      */     
+/*      */     public boolean hasPrevious() {
+/* 1704 */       return this.previousNode != null;
+/*      */     }
+/*      */     
+/*      */     protected TreeBidiMap.Node<K, V> navigatePrevious() {
+/* 1708 */       if (this.previousNode == null) {
+/* 1709 */         throw new NoSuchElementException();
+/*      */       }
+/* 1711 */       if (TreeBidiMap.this.modifications != this.expectedModifications) {
+/* 1712 */         throw new ConcurrentModificationException();
+/*      */       }
+/* 1714 */       this.nextNode = this.lastReturnedNode;
+/* 1715 */       if (this.nextNode == null) {
+/* 1716 */         this.nextNode = TreeBidiMap.this.nextGreater(this.previousNode, this.orderType);
+/*      */       }
+/* 1718 */       this.lastReturnedNode = this.previousNode;
+/* 1719 */       this.previousNode = TreeBidiMap.this.nextSmaller(this.previousNode, this.orderType);
+/* 1720 */       return this.lastReturnedNode;
+/*      */     }
+/*      */     
+/*      */     public final void remove() {
+/* 1724 */       if (this.lastReturnedNode == null) {
+/* 1725 */         throw new IllegalStateException();
+/*      */       }
+/* 1727 */       if (TreeBidiMap.this.modifications != this.expectedModifications) {
+/* 1728 */         throw new ConcurrentModificationException();
+/*      */       }
+/* 1730 */       TreeBidiMap.this.doRedBlackDelete(this.lastReturnedNode);
+/* 1731 */       this.expectedModifications += 1;
+/* 1732 */       this.lastReturnedNode = null;
+/* 1733 */       if (this.nextNode == null) {
+/* 1734 */         this.previousNode = TreeBidiMap.this.greatestNode(TreeBidiMap.this.rootNode[this.orderType.ordinal()], this.orderType);
+/*      */       } else {
+/* 1736 */         this.previousNode = TreeBidiMap.this.nextSmaller(this.nextNode, this.orderType);
+/*      */       }
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   class ViewMapIterator
+/*      */     extends TreeBidiMap<K, V>.ViewIterator
+/*      */     implements OrderedMapIterator<K, V>
+/*      */   {
+/*      */     ViewMapIterator(TreeBidiMap.DataElement orderType)
+/*      */     {
+/* 1751 */       super(orderType);
+/*      */     }
+/*      */     
+/*      */     public K getKey()
+/*      */     {
+/* 1756 */       if (this.lastReturnedNode == null) {
+/* 1757 */         throw new IllegalStateException("Iterator getKey() can only be called after next() and before remove()");
+/*      */       }
+/*      */       
+/* 1760 */       return this.lastReturnedNode.getKey();
+/*      */     }
+/*      */     
+/*      */     public V getValue()
+/*      */     {
+/* 1765 */       if (this.lastReturnedNode == null) {
+/* 1766 */         throw new IllegalStateException("Iterator getValue() can only be called after next() and before remove()");
+/*      */       }
+/*      */       
+/* 1769 */       return this.lastReturnedNode.getValue();
+/*      */     }
+/*      */     
+/*      */     public V setValue(V obj)
+/*      */     {
+/* 1774 */       throw new UnsupportedOperationException();
+/*      */     }
+/*      */     
+/*      */     public K next()
+/*      */     {
+/* 1779 */       return navigateNext().getKey();
+/*      */     }
+/*      */     
+/*      */     public K previous()
+/*      */     {
+/* 1784 */       return navigatePrevious().getKey();
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   class InverseViewMapIterator
+/*      */     extends TreeBidiMap<K, V>.ViewIterator
+/*      */     implements OrderedMapIterator<V, K>
+/*      */   {
+/*      */     public InverseViewMapIterator(TreeBidiMap.DataElement orderType)
+/*      */     {
+/* 1797 */       super(orderType);
+/*      */     }
+/*      */     
+/*      */     public V getKey()
+/*      */     {
+/* 1802 */       if (this.lastReturnedNode == null) {
+/* 1803 */         throw new IllegalStateException("Iterator getKey() can only be called after next() and before remove()");
+/*      */       }
+/*      */       
+/* 1806 */       return this.lastReturnedNode.getValue();
+/*      */     }
+/*      */     
+/*      */     public K getValue()
+/*      */     {
+/* 1811 */       if (this.lastReturnedNode == null) {
+/* 1812 */         throw new IllegalStateException("Iterator getValue() can only be called after next() and before remove()");
+/*      */       }
+/*      */       
+/* 1815 */       return this.lastReturnedNode.getKey();
+/*      */     }
+/*      */     
+/*      */     public K setValue(K obj)
+/*      */     {
+/* 1820 */       throw new UnsupportedOperationException();
+/*      */     }
+/*      */     
+/*      */     public V next()
+/*      */     {
+/* 1825 */       return navigateNext().getValue();
+/*      */     }
+/*      */     
+/*      */     public V previous()
+/*      */     {
+/* 1830 */       return navigatePrevious().getValue();
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   class ViewMapEntryIterator
+/*      */     extends TreeBidiMap<K, V>.ViewIterator
+/*      */     implements OrderedIterator<Map.Entry<K, V>>
+/*      */   {
+/*      */     ViewMapEntryIterator()
+/*      */     {
+/* 1843 */       super(TreeBidiMap.DataElement.KEY);
+/*      */     }
+/*      */     
+/*      */     public Map.Entry<K, V> next()
+/*      */     {
+/* 1848 */       return navigateNext();
+/*      */     }
+/*      */     
+/*      */     public Map.Entry<K, V> previous()
+/*      */     {
+/* 1853 */       return navigatePrevious();
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   class InverseViewMapEntryIterator
+/*      */     extends TreeBidiMap<K, V>.ViewIterator
+/*      */     implements OrderedIterator<Map.Entry<V, K>>
+/*      */   {
+/*      */     InverseViewMapEntryIterator()
+/*      */     {
+/* 1866 */       super(TreeBidiMap.DataElement.VALUE);
+/*      */     }
+/*      */     
+/*      */     public Map.Entry<V, K> next()
+/*      */     {
+/* 1871 */       return createEntry(navigateNext());
+/*      */     }
+/*      */     
+/*      */     public Map.Entry<V, K> previous()
+/*      */     {
+/* 1876 */       return createEntry(navigatePrevious());
+/*      */     }
+/*      */     
+/*      */     private Map.Entry<V, K> createEntry(TreeBidiMap.Node<K, V> node) {
+/* 1880 */       return new UnmodifiableMapEntry(node.getValue(), node.getKey());
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   static class Node<K extends Comparable<K>, V extends Comparable<V>>
+/*      */     implements Map.Entry<K, V>, KeyValue<K, V>
+/*      */   {
+/*      */     private final K key;
+/*      */     
+/*      */ 
+/*      */     private final V value;
+/*      */     
+/*      */ 
+/*      */     private final Node<K, V>[] leftNode;
+/*      */     
+/*      */     private final Node<K, V>[] rightNode;
+/*      */     
+/*      */     private final Node<K, V>[] parentNode;
+/*      */     
+/*      */     private final boolean[] blackColor;
+/*      */     
+/*      */     private int hashcodeValue;
+/*      */     
+/*      */     private boolean calculatedHashCode;
+/*      */     
+/*      */ 
+/*      */     Node(K key, V value)
+/*      */     {
+/* 1910 */       this.key = key;
+/* 1911 */       this.value = value;
+/* 1912 */       this.leftNode = new Node[2];
+/* 1913 */       this.rightNode = new Node[2];
+/* 1914 */       this.parentNode = new Node[2];
+/* 1915 */       this.blackColor = new boolean[] { true, true };
+/* 1916 */       this.calculatedHashCode = false;
+/*      */     }
+/*      */     
+/*      */     private Object getData(TreeBidiMap.DataElement dataElement) {
+/* 1920 */       switch (TreeBidiMap.1.$SwitchMap$org$apache$commons$collections4$bidimap$TreeBidiMap$DataElement[dataElement.ordinal()]) {
+/*      */       case 1: 
+/* 1922 */         return getKey();
+/*      */       case 2: 
+/* 1924 */         return getValue();
+/*      */       }
+/* 1926 */       throw new IllegalArgumentException();
+/*      */     }
+/*      */     
+/*      */     private void setLeft(Node<K, V> node, TreeBidiMap.DataElement dataElement)
+/*      */     {
+/* 1931 */       this.leftNode[dataElement.ordinal()] = node;
+/*      */     }
+/*      */     
+/*      */     private Node<K, V> getLeft(TreeBidiMap.DataElement dataElement) {
+/* 1935 */       return this.leftNode[dataElement.ordinal()];
+/*      */     }
+/*      */     
+/*      */     private void setRight(Node<K, V> node, TreeBidiMap.DataElement dataElement) {
+/* 1939 */       this.rightNode[dataElement.ordinal()] = node;
+/*      */     }
+/*      */     
+/*      */     private Node<K, V> getRight(TreeBidiMap.DataElement dataElement) {
+/* 1943 */       return this.rightNode[dataElement.ordinal()];
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     private void setParent(Node<K, V> node, TreeBidiMap.DataElement dataElement)
+/*      */     {
+/* 1954 */       this.parentNode[dataElement.ordinal()] = node;
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     private Node<K, V> getParent(TreeBidiMap.DataElement dataElement)
+/*      */     {
+/* 1965 */       return this.parentNode[dataElement.ordinal()];
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     private void swapColors(Node<K, V> node, TreeBidiMap.DataElement dataElement)
+/*      */     {
+/* 1977 */       this.blackColor[dataElement.ordinal()] ^= node.blackColor[dataElement.ordinal()];
+/* 1978 */       node.blackColor[dataElement.ordinal()] ^= this.blackColor[dataElement.ordinal()];
+/* 1979 */       this.blackColor[dataElement.ordinal()] ^= node.blackColor[dataElement.ordinal()];
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     private boolean isBlack(TreeBidiMap.DataElement dataElement)
+/*      */     {
+/* 1990 */       return this.blackColor[dataElement.ordinal()];
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     private boolean isRed(TreeBidiMap.DataElement dataElement)
+/*      */     {
+/* 2001 */       return this.blackColor[dataElement.ordinal()] == 0;
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     private void setBlack(TreeBidiMap.DataElement dataElement)
+/*      */     {
+/* 2011 */       this.blackColor[dataElement.ordinal()] = true;
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     private void setRed(TreeBidiMap.DataElement dataElement)
+/*      */     {
+/* 2021 */       this.blackColor[dataElement.ordinal()] = false;
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     private void copyColor(Node<K, V> node, TreeBidiMap.DataElement dataElement)
+/*      */     {
+/* 2032 */       this.blackColor[dataElement.ordinal()] = node.blackColor[dataElement.ordinal()];
+/*      */     }
+/*      */     
+/*      */     private boolean isLeftChild(TreeBidiMap.DataElement dataElement) {
+/* 2036 */       return (this.parentNode[dataElement.ordinal()] != null) && 
+/* 2037 */         (this.parentNode[dataElement.ordinal()].leftNode[dataElement.ordinal()] == this);
+/*      */     }
+/*      */     
+/*      */     private boolean isRightChild(TreeBidiMap.DataElement dataElement) {
+/* 2041 */       return (this.parentNode[dataElement.ordinal()] != null) && 
+/* 2042 */         (this.parentNode[dataElement.ordinal()].rightNode[dataElement.ordinal()] == this);
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     public K getKey()
+/*      */     {
+/* 2053 */       return this.key;
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     public V getValue()
+/*      */     {
+/* 2063 */       return this.value;
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     public V setValue(V ignored)
+/*      */       throws UnsupportedOperationException
+/*      */     {
+/* 2075 */       throw new UnsupportedOperationException("Map.Entry.setValue is not supported");
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     public boolean equals(Object obj)
+/*      */     {
+/* 2088 */       if (obj == this) {
+/* 2089 */         return true;
+/*      */       }
+/* 2091 */       if (!(obj instanceof Map.Entry)) {
+/* 2092 */         return false;
+/*      */       }
+/* 2094 */       Map.Entry<?, ?> e = (Map.Entry)obj;
+/* 2095 */       return (getKey().equals(e.getKey())) && (getValue().equals(e.getValue()));
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     public int hashCode()
+/*      */     {
+/* 2103 */       if (!this.calculatedHashCode) {
+/* 2104 */         this.hashcodeValue = (getKey().hashCode() ^ getValue().hashCode());
+/* 2105 */         this.calculatedHashCode = true;
+/*      */       }
+/* 2107 */       return this.hashcodeValue;
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   class Inverse
+/*      */     implements OrderedBidiMap<V, K>
+/*      */   {
+/*      */     private Set<V> inverseKeySet;
+/*      */     
+/*      */ 
+/*      */     private Set<K> inverseValuesSet;
+/*      */     
+/*      */     private Set<Map.Entry<V, K>> inverseEntrySet;
+/*      */     
+/*      */ 
+/*      */     public int size()
+/*      */     {
+/* 2126 */       return TreeBidiMap.this.size();
+/*      */     }
+/*      */     
+/*      */     public boolean isEmpty()
+/*      */     {
+/* 2131 */       return TreeBidiMap.this.isEmpty();
+/*      */     }
+/*      */     
+/*      */     public K get(Object key)
+/*      */     {
+/* 2136 */       return TreeBidiMap.this.getKey(key);
+/*      */     }
+/*      */     
+/*      */     public V getKey(Object value)
+/*      */     {
+/* 2141 */       return TreeBidiMap.this.get(value);
+/*      */     }
+/*      */     
+/*      */     public boolean containsKey(Object key)
+/*      */     {
+/* 2146 */       return TreeBidiMap.this.containsValue(key);
+/*      */     }
+/*      */     
+/*      */     public boolean containsValue(Object value)
+/*      */     {
+/* 2151 */       return TreeBidiMap.this.containsKey(value);
+/*      */     }
+/*      */     
+/*      */     public V firstKey()
+/*      */     {
+/* 2156 */       if (TreeBidiMap.this.nodeCount == 0) {
+/* 2157 */         throw new NoSuchElementException("Map is empty");
+/*      */       }
+/* 2159 */       return TreeBidiMap.this.leastNode(TreeBidiMap.this.rootNode[TreeBidiMap.DataElement.VALUE.ordinal()], TreeBidiMap.DataElement.VALUE).getValue();
+/*      */     }
+/*      */     
+/*      */     public V lastKey()
+/*      */     {
+/* 2164 */       if (TreeBidiMap.this.nodeCount == 0) {
+/* 2165 */         throw new NoSuchElementException("Map is empty");
+/*      */       }
+/* 2167 */       return TreeBidiMap.this.greatestNode(TreeBidiMap.this.rootNode[TreeBidiMap.DataElement.VALUE.ordinal()], TreeBidiMap.DataElement.VALUE).getValue();
+/*      */     }
+/*      */     
+/*      */     public V nextKey(V key)
+/*      */     {
+/* 2172 */       TreeBidiMap.checkKey(key);
+/* 2173 */       TreeBidiMap.Node<K, V> node = TreeBidiMap.this.nextGreater(TreeBidiMap.this.lookup(key, TreeBidiMap.DataElement.VALUE), TreeBidiMap.DataElement.VALUE);
+/* 2174 */       return node == null ? null : node.getValue();
+/*      */     }
+/*      */     
+/*      */     public V previousKey(V key)
+/*      */     {
+/* 2179 */       TreeBidiMap.checkKey(key);
+/* 2180 */       TreeBidiMap.Node<K, V> node = TreeBidiMap.this.nextSmaller(TreeBidiMap.this.lookup(key, TreeBidiMap.DataElement.VALUE), TreeBidiMap.DataElement.VALUE);
+/* 2181 */       return node == null ? null : node.getValue();
+/*      */     }
+/*      */     
+/*      */     public K put(V key, K value)
+/*      */     {
+/* 2186 */       K result = get(key);
+/* 2187 */       TreeBidiMap.this.doPut(value, key);
+/* 2188 */       return result;
+/*      */     }
+/*      */     
+/*      */     public void putAll(Map<? extends V, ? extends K> map)
+/*      */     {
+/* 2193 */       for (Map.Entry<? extends V, ? extends K> e : map.entrySet()) {
+/* 2194 */         put((Comparable)e.getKey(), (Comparable)e.getValue());
+/*      */       }
+/*      */     }
+/*      */     
+/*      */     public K remove(Object key)
+/*      */     {
+/* 2200 */       return TreeBidiMap.this.removeValue(key);
+/*      */     }
+/*      */     
+/*      */     public V removeValue(Object value)
+/*      */     {
+/* 2205 */       return TreeBidiMap.this.remove(value);
+/*      */     }
+/*      */     
+/*      */     public void clear()
+/*      */     {
+/* 2210 */       TreeBidiMap.this.clear();
+/*      */     }
+/*      */     
+/*      */     public Set<V> keySet()
+/*      */     {
+/* 2215 */       if (this.inverseKeySet == null) {
+/* 2216 */         this.inverseKeySet = new TreeBidiMap.ValueView(TreeBidiMap.this, TreeBidiMap.DataElement.VALUE);
+/*      */       }
+/* 2218 */       return this.inverseKeySet;
+/*      */     }
+/*      */     
+/*      */     public Set<K> values()
+/*      */     {
+/* 2223 */       if (this.inverseValuesSet == null) {
+/* 2224 */         this.inverseValuesSet = new TreeBidiMap.KeyView(TreeBidiMap.this, TreeBidiMap.DataElement.VALUE);
+/*      */       }
+/* 2226 */       return this.inverseValuesSet;
+/*      */     }
+/*      */     
+/*      */     public Set<Map.Entry<V, K>> entrySet()
+/*      */     {
+/* 2231 */       if (this.inverseEntrySet == null) {
+/* 2232 */         this.inverseEntrySet = new TreeBidiMap.InverseEntryView(TreeBidiMap.this);
+/*      */       }
+/* 2234 */       return this.inverseEntrySet;
+/*      */     }
+/*      */     
+/*      */     public OrderedMapIterator<V, K> mapIterator()
+/*      */     {
+/* 2239 */       if (isEmpty()) {
+/* 2240 */         return EmptyOrderedMapIterator.emptyOrderedMapIterator();
+/*      */       }
+/* 2242 */       return new TreeBidiMap.InverseViewMapIterator(TreeBidiMap.this, TreeBidiMap.DataElement.VALUE);
+/*      */     }
+/*      */     
+/*      */     public OrderedBidiMap<K, V> inverseBidiMap()
+/*      */     {
+/* 2247 */       return TreeBidiMap.this;
+/*      */     }
+/*      */     
+/*      */     public boolean equals(Object obj)
+/*      */     {
+/* 2252 */       return TreeBidiMap.this.doEquals(obj, TreeBidiMap.DataElement.VALUE);
+/*      */     }
+/*      */     
+/*      */     public int hashCode()
+/*      */     {
+/* 2257 */       return TreeBidiMap.this.doHashCode(TreeBidiMap.DataElement.VALUE);
+/*      */     }
+/*      */     
+/*      */     public String toString()
+/*      */     {
+/* 2262 */       return TreeBidiMap.this.doToString(TreeBidiMap.DataElement.VALUE);
+/*      */     }
+/*      */   }
+/*      */ }
