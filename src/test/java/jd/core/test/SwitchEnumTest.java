@@ -26,4 +26,14 @@ public class SwitchEnumTest extends AbstractTestCase {
             assertEquals(IOUtils.toString(getClass().getResource("SwitchEnum.txt"), StandardCharsets.UTF_8), output);
         }
     }
+
+    @Test
+    public void testSwitchEnumInnerClassJDK180() throws Exception {
+        try (InputStream in = getClass().getResourceAsStream("/switch-enum-inner-class-jdk1.8.0_331.jar")) {
+            ZipLoader loader = new ZipLoader(in);
+            String internalClassName = "jd/core/test/SwitchEnumInnerClass";
+            String output = decompile(internalClassName, loader);
+            assertEquals(IOUtils.toString(getClass().getResource("SwitchEnumInnerClass.txt"), StandardCharsets.UTF_8), output);
+        }
+    }
 }

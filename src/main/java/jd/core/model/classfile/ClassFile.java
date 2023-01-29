@@ -65,11 +65,11 @@ public class ClassFile extends Base
      *   est l'indexe du nom de la méthode
      *   "static int[] $SWITCH_TABLE$basic$data$TestEnum$enum1()".
      * - Dans le cas des instructions Switch+Enum des autres compilateurs, la
-     *   clé de la map est l'indexe du nom de la classe interne "static class 1"
+     *   clé de la map est le nom de la classe interne "static class 1"
      *   contenant le tableau de correspondance
      *   "$SwitchMap$basic$data$TestEnum$enum1".
      */
-    private final Map<Integer, List<Integer>> switchMaps;
+    private final Map<String, List<Integer>> switchMaps;
     
     private final Loader loader;
 
@@ -460,7 +460,7 @@ public class ClassFile extends Base
         return map == null ? null : map.get(descriptor);
     }
 
-    public Map<Integer, List<Integer>> getSwitchMaps()
+    public Map<String, List<Integer>> getSwitchMaps()
     {
         return this.switchMaps;
     }

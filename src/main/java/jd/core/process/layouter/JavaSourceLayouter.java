@@ -628,7 +628,7 @@ public class JavaSourceLayouter
         Instruction test = fs.getTest();
 
         ConstantPool constants = classFile.getConstantPool();
-        int switchMapKeyIndex = -1;
+        String switchMapKey = null;
 
         if (test.getOpcode() == ByteCodeConstants.ARRAYLOAD)
         {
@@ -659,7 +659,7 @@ public class JavaSourceLayouter
                 throw new IllegalStateException();
             }
 
-            switchMapKeyIndex = cnat.getNameIndex();
+            switchMapKey = constants.getConstantUtf8(cnat.getNameIndex());
 
             Invokevirtual iv = (Invokevirtual)ali.getIndexref();
 
@@ -667,7 +667,7 @@ public class JavaSourceLayouter
                     preferences, layoutBlockList, classFile, method, iv.getObjectref());
         }
 
-        if (switchMapKeyIndex == -1) {
+        if (switchMapKey == null) {
             throw new IllegalStateException();
         }
 
@@ -700,7 +700,7 @@ public class JavaSourceLayouter
             if (instructions != null)
             {
                 layoutBlockList.add(new CaseEnumLayoutBlock(
-                        classFile, method, fs, firstIndex, i, switchMapKeyIndex));
+                        classFile, method, fs, firstIndex, i, switchMapKey));
                 firstIndex = i+1;
 
                 layoutBlockList.add(new CaseBlockStartLayoutBlock());
