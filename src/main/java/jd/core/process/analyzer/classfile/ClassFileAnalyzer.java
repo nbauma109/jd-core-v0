@@ -284,7 +284,7 @@ public final class ClassFileAnalyzer
 
                     outerFieldNameIndex = outerConstants.addConstantUtf8(fieldName);
 
-                    // Key = indexe du nom de na classe interne dans le
+                    // Key = indexe du nom de la classe interne dans le
                     // pool de constantes de la classe externe
                     outerClassFile.getSwitchMaps().put(
                             outerFieldNameIndex, enumNameIndexes);
