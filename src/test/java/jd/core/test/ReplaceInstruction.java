@@ -95,6 +95,26 @@ public class ReplaceInstruction {
         return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, element);
     }
 
+    float[] addFirst(float[] array, float element) {
+        return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, element);
+    }
+    
+    double[] addFirst(double[] array, double element) {
+        return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, element);
+    }
+    
+    byte[] addFirst(byte[] array, byte element) {
+        return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, element);
+    }
+    
+    short[] addFirst(short[] array, short element) {
+        return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, element);
+    }
+    
+    long[] addFirst(long[] array, long element) {
+        return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, element);
+    }
+    
     /*
      * INSTANCEOF
      */

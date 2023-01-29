@@ -95,30 +95,50 @@
 /*  95 */     return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, new boolean[] { element });
 /*     */   }
 /*     */   
+/*     */   float[] addFirst(float[] array, float element) {
+/*  99 */     return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, new float[] { element });
+/*     */   }
+/*     */   
+/*     */   double[] addFirst(double[] array, double element) {
+/* 103 */     return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, new double[] { element });
+/*     */   }
+/*     */   
+/*     */   byte[] addFirst(byte[] array, byte element) {
+/* 107 */     return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, new byte[] { element });
+/*     */   }
+/*     */   
+/*     */   short[] addFirst(short[] array, short element) {
+/* 111 */     return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, new short[] { element });
+/*     */   }
+/*     */   
+/*     */   long[] addFirst(long[] array, long element) {
+/* 115 */     return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, new long[] { element });
+/*     */   }
+/*     */   
 /*     */ 
 /*     */ 
 /*     */ 
 /*     */   List<FileImageData> splitPng(TitledDiagram diagram, SuggestedFile pngFile, ImageData imageData, FileFormatOption fileFormatOption)
 /*     */     throws IOException
 /*     */   {
-/* 104 */     List<SFile> files = new PngSplitter(fileFormatOption.getColorMapper(), pngFile, 
-/* 105 */       diagram.getSplitPagesHorizontal(), diagram.getSplitPagesVertical(), 
-/* 106 */       fileFormatOption.isWithMetadata() ? diagram.getMetadata() : null, diagram.getSkinParam().getDpi(), 
-/* 107 */       (diagram instanceof GanttDiagram) ? new SplitParam(HColors.BLACK, null, 5) : 
-/* 108 */       diagram.getSkinParam().getSplitParam()).getFiles();
+/* 124 */     List<SFile> files = new PngSplitter(fileFormatOption.getColorMapper(), pngFile, 
+/* 125 */       diagram.getSplitPagesHorizontal(), diagram.getSplitPagesVertical(), 
+/* 126 */       fileFormatOption.isWithMetadata() ? diagram.getMetadata() : null, diagram.getSkinParam().getDpi(), 
+/* 127 */       (diagram instanceof GanttDiagram) ? new SplitParam(HColors.BLACK, null, 5) : 
+/* 128 */       diagram.getSkinParam().getSplitParam()).getFiles();
 /*     */     
-/* 110 */     List<FileImageData> result = new ArrayList();
-/* 111 */     for (SFile f : files) {
-/* 112 */       result.add(new FileImageData(f, imageData));
+/* 130 */     List<FileImageData> result = new ArrayList();
+/* 131 */     for (SFile f : files) {
+/* 132 */       result.add(new FileImageData(f, imageData));
 /*     */     }
-/* 114 */     return result;
+/* 134 */     return result;
 /*     */   }
 /*     */   
 /*     */ 
 /*     */ 
 /*     */   <E extends Enum<E>> void checkBitVectorable(Class<E> enumClass, E[] constants)
 /*     */   {
-/* 121 */     Validate.isTrue(constants.length <= 64, "Cannot store %s %s values in %s bits", new Object[] {
-/* 122 */       Integer.valueOf(constants.length), enumClass.getSimpleName(), Integer.valueOf(64) });
+/* 141 */     Validate.isTrue(constants.length <= 64, "Cannot store %s %s values in %s bits", new Object[] {
+/* 142 */       Integer.valueOf(constants.length), enumClass.getSimpleName(), Integer.valueOf(64) });
 /*     */   }
 /*     */ }
