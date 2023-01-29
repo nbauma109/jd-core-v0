@@ -200,9 +200,8 @@ public class OuterGetStaticVisitor
                 Accessor a = match(storeInstruction.getValueref());
                 if (a != null) {
                     storeInstruction.setValueref(newInstruction(storeInstruction.getValueref(), a));
-                } else {
-                    visit(storeInstruction.getValueref());
                 }
+                visit(storeInstruction.getValueref());
             }
             break;
         case ByteCodeConstants.DUPSTORE:
@@ -234,15 +233,13 @@ public class OuterGetStaticVisitor
                 Accessor a = match(ifCmp.getValue1());
                 if (a != null) {
                     ifCmp.setValue1(newInstruction(ifCmp.getValue1(), a));
-                } else {
-                    visit(ifCmp.getValue1());
                 }
+                visit(ifCmp.getValue1());
                 a = match(ifCmp.getValue2());
                 if (a != null) {
                     ifCmp.setValue2(newInstruction(ifCmp.getValue2(), a));
-                } else {
-                    visit(ifCmp.getValue2());
                 }
+                visit(ifCmp.getValue2());
             }
             break;
         case ByteCodeConstants.IF,
@@ -581,13 +578,12 @@ public class OuterGetStaticVisitor
         for (int index=instructions.size()-1; index>=0; --index)
         {
             Instruction i = instructions.get(index);
+            visit(i);
             Accessor a = match(i);
-
             if (a != null) {
                 instructions.set(index, newInstruction(i, a));
-            } else {
-                visit(i);
             }
+
         }
     }
 
