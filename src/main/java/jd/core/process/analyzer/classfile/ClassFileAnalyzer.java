@@ -852,11 +852,11 @@ public final class ClassFileAnalyzer
     public static void analyzeSingleMethod(ReferenceMap referenceMap, ClassFile classFile, OuterReferenceReconstructor outerReferenceReconstructor, final Method method) {
         List<Instruction> list = method.getInstructions();
 
-        // Recontruct access to outer fields and methods
+        // Reconstruct access to outer fields and methods
         if (outerReferenceReconstructor != null) {
             outerReferenceReconstructor.reconstruct(method, list);
         }
-        // Re-construct 'new' intruction
+        // Re-construct 'new' instruction
         NewInstructionReconstructor.reconstruct(classFile, method, list);
         SimpleNewInstructionReconstructor.reconstruct(classFile, method, list);
         // Reconstruction des instructions de pre-incrementation non entier
@@ -1123,7 +1123,7 @@ public final class ClassFileAnalyzer
     }
 
     /**
-     * 1) Retrait de la sequence suivante pour les contructeurs :
+     * 1) Retrait de la sequence suivante pour les constructeurs :
      *    Invokespecial(ALoad 0, <init>, [ ])
      * 2) Store super constructor parameter count to display anonymous
      *    class instanciation

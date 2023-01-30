@@ -205,7 +205,7 @@ public final class DotClass118AReconstructor
                 Const.LDC, ii.getOffset(),
                 ii.getLineNumber(), index);
 
-            // Remplacement de l'intruction GetStatic par l'instruction Ldc
+            // Remplacement de l'instruction GetStatic par l'instruction Ldc
             ReplaceDupLoadVisitor visitor = new ReplaceDupLoadVisitor(ds, ldc);
 
             for (int j=i+5; j<list.size(); j++)
@@ -216,15 +216,15 @@ public final class DotClass118AReconstructor
                 }
             }
 
-            // Retrait de l'intruction PutStatic
+            // Retrait de l'instruction PutStatic
             list.remove(i+4);
-            // Retrait de l'intruction DupStore
+            // Retrait de l'instruction DupStore
             list.remove(i+3);
-            // Retrait de l'intruction Goto
+            // Retrait de l'instruction Goto
             list.remove(i+2);
-            // Retrait de l'intruction TernaryOpStore
+            // Retrait de l'instruction TernaryOpStore
             list.remove(i+1);
-            // Retrait de l'intruction IfNotNull
+            // Retrait de l'instruction IfNotNull
             list.remove(i);
 
             // Recherche de l'attribut statique et ajout de l'attribut SYNTHETIC

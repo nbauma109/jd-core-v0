@@ -386,7 +386,7 @@ public final class LocalVariableAnalyzer
                 continue;
             }
 
-            // Recherche des intructions MonitorExit correspondantes
+            // Recherche des instructions MonitorExit correspondantes
             monitorExitCount = 0;
             // Recherche en avant
             j = i;

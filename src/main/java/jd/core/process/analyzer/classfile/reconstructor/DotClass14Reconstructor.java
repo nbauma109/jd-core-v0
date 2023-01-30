@@ -228,15 +228,15 @@ public final class DotClass14Reconstructor
 
             visitor.visit(instruction);
 
-            // Retrait de l'intruction Goto
+            // Retrait de l'instruction Goto
             list.remove(i+4);
-            // Retrait de l'intruction TernaryOpStore
+            // Retrait de l'instruction TernaryOpStore
             list.remove(i+3);
-            // Retrait de l'intruction PutStatic
+            // Retrait de l'instruction PutStatic
             list.remove(i+2);
-            // Retrait de l'intruction DupStore
+            // Retrait de l'instruction DupStore
             list.remove(i+1);
-            // Retrait de l'intruction IfNotNull
+            // Retrait de l'instruction IfNotNull
             list.remove(i);
 
             if (matchingClassFile == classFile)

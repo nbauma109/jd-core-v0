@@ -242,19 +242,19 @@ public final class DotClass118BReconstructor
                 Const.LDC, ii.getOffset(),
                 ii.getLineNumber(), index);
 
-            // Remplacement de l'intruction GetStatic par l'instruction Ldc
+            // Remplacement de l'instruction GetStatic par l'instruction Ldc
             ReplaceDupLoadVisitor visitor = new ReplaceDupLoadVisitor(ds, ldc);
 
             visitor.visit(list.get(i+4));
 
             if (visitor.getParentFound() != null) {
-                // Retrait de l'intruction FastTry
+                // Retrait de l'instruction FastTry
                 list.remove(i+3);
-                // Retrait de l'intruction Pop
+                // Retrait de l'instruction Pop
                 list.remove(i+2);
-                // Retrait de l'intruction IfNotNull
+                // Retrait de l'instruction IfNotNull
                 list.remove(i+1);
-                // Retrait de l'intruction DupStore
+                // Retrait de l'instruction DupStore
                 list.remove(i);
             }
 
