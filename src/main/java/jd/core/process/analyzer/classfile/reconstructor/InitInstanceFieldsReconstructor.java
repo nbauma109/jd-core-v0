@@ -30,6 +30,7 @@ import jd.core.model.classfile.Field;
 import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.ALoad;
+import jd.core.model.instruction.bytecode.instruction.ILoad;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.Invokespecial;
 import jd.core.model.instruction.bytecode.instruction.PutField;
@@ -323,6 +324,10 @@ public final class InitInstanceFieldsReconstructor
                             Instruction putFieldValueref = putField.getValueref();
                             // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved    
                             if (putFieldValueref instanceof ALoad && ((ALoad) putFieldValueref).getIndex() != 0) {
+                                continue;
+                            }
+
+                            if (putFieldValueref instanceof ILoad && ((ILoad) putFieldValueref).getIndex() != 0) {
                                 continue;
                             }
 
