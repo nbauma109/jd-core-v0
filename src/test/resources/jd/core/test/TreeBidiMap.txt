@@ -1528,7 +1528,7 @@
 /*      */     
 /*      */     public Iterator<K> iterator()
 /*      */     {
-/* 1531 */       return new TreeBidiMap.ViewMapIterator(TreeBidiMap.this, this.orderType);
+/* 1531 */       return new TreeBidiMap.ViewMapIterator(this.orderType);
 /*      */     }
 /*      */     
 /*      */     public boolean contains(Object obj)
@@ -1555,7 +1555,7 @@
 /*      */     
 /*      */     public Iterator<V> iterator()
 /*      */     {
-/* 1558 */       return new TreeBidiMap.InverseViewMapIterator(TreeBidiMap.this, this.orderType);
+/* 1558 */       return new TreeBidiMap.InverseViewMapIterator(this.orderType);
 /*      */     }
 /*      */     
 /*      */     public boolean contains(Object obj)
@@ -1608,7 +1608,7 @@
 /*      */     
 /*      */     public Iterator<Map.Entry<K, V>> iterator()
 /*      */     {
-/* 1611 */       return new TreeBidiMap.ViewMapEntryIterator(TreeBidiMap.this);
+/* 1611 */       return new TreeBidiMap.ViewMapEntryIterator();
 /*      */     }
 /*      */   }
 /*      */   
@@ -1649,7 +1649,7 @@
 /*      */     
 /*      */     public Iterator<Map.Entry<V, K>> iterator()
 /*      */     {
-/* 1652 */       return new TreeBidiMap.InverseViewMapEntryIterator(TreeBidiMap.this);
+/* 1652 */       return new TreeBidiMap.InverseViewMapEntryIterator();
 /*      */     }
 /*      */   }
 /*      */   
@@ -2213,7 +2213,7 @@
 /*      */     public Set<V> keySet()
 /*      */     {
 /* 2215 */       if (this.inverseKeySet == null) {
-/* 2216 */         this.inverseKeySet = new TreeBidiMap.ValueView(TreeBidiMap.this, TreeBidiMap.DataElement.VALUE);
+/* 2216 */         this.inverseKeySet = new TreeBidiMap.ValueView(TreeBidiMap.DataElement.VALUE);
 /*      */       }
 /* 2218 */       return this.inverseKeySet;
 /*      */     }
@@ -2221,7 +2221,7 @@
 /*      */     public Set<K> values()
 /*      */     {
 /* 2223 */       if (this.inverseValuesSet == null) {
-/* 2224 */         this.inverseValuesSet = new TreeBidiMap.KeyView(TreeBidiMap.this, TreeBidiMap.DataElement.VALUE);
+/* 2224 */         this.inverseValuesSet = new TreeBidiMap.KeyView(TreeBidiMap.DataElement.VALUE);
 /*      */       }
 /* 2226 */       return this.inverseValuesSet;
 /*      */     }
@@ -2229,7 +2229,7 @@
 /*      */     public Set<Map.Entry<V, K>> entrySet()
 /*      */     {
 /* 2231 */       if (this.inverseEntrySet == null) {
-/* 2232 */         this.inverseEntrySet = new TreeBidiMap.InverseEntryView(TreeBidiMap.this);
+/* 2232 */         this.inverseEntrySet = new TreeBidiMap.InverseEntryView();
 /*      */       }
 /* 2234 */       return this.inverseEntrySet;
 /*      */     }
@@ -2239,7 +2239,7 @@
 /* 2239 */       if (isEmpty()) {
 /* 2240 */         return EmptyOrderedMapIterator.emptyOrderedMapIterator();
 /*      */       }
-/* 2242 */       return new TreeBidiMap.InverseViewMapIterator(TreeBidiMap.this, TreeBidiMap.DataElement.VALUE);
+/* 2242 */       return new TreeBidiMap.InverseViewMapIterator(TreeBidiMap.DataElement.VALUE);
 /*      */     }
 /*      */     
 /*      */     public OrderedBidiMap<K, V> inverseBidiMap()
