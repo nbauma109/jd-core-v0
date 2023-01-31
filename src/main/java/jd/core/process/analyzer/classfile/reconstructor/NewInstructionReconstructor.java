@@ -94,9 +94,13 @@ public final class NewInstructionReconstructor extends NewInstructionReconstruct
                 if (cnat.getNameIndex() == constants.getInstanceConstructorIndex())
                 {
                     New nw = (New)ds.getObjectref();
+                    List<Instruction> args = is.getArgs();
+                    if (!args.isEmpty() && args.get(0).getOpcode() == ByteCodeConstants.OUTERTHIS) {
+                        args.remove(0);
+                    }
                     InvokeNew invokeNew = new InvokeNew(
                         ByteCodeConstants.INVOKENEW, is.getOffset(),
-                        nw.getLineNumber(), is.getIndex(), is.getArgs());
+                        nw.getLineNumber(), is.getIndex(), args);
 
                     Instruction parentFound = ReconstructorUtil.replaceDupLoad(
                         list, invokespecialIndex+1, ds, invokeNew);
