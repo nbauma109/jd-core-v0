@@ -92,7 +92,7 @@ public final class LocalVariableAnalyzer
         // DEBUG String debugClassName = classFile.getInternalClassName();
         // DEBUG String debugMethodName = constants.getConstantUtf8(method.nameIndex);
 
-        // Reconstruction de la Liste des variables locales
+        // Reconstruction de la liste des variables locales
         byte[] code = method.getCode();
         int codeLength = code == null ? 0 : code.length;
         LocalVariables localVariables = method.getLocalVariables();
@@ -162,7 +162,7 @@ public final class LocalVariableAnalyzer
             if (indexOfFirstLocalVariable > localVariables.size())
             {
                 // Dans le cas des méthodes générées automatiquement par le
-                // compilateur (comme par exemple les méthode des enums), le
+                // compilateur (comme par exemple les méthodes des enums), le
                 // tableau des variables locales est incomplet.
                 // Add Parameters
                 analyzeMethodParameter(
@@ -240,7 +240,7 @@ public final class LocalVariableAnalyzer
         if (parameterTypes != null)
         {
             // Arguments
-            // Constructeur des classes interne non static :
+            // Constructeur des classes internes non static :
             // - var 1: outer this => ne pas generer de nom
             // Constructeur des Enum :
             // Descripteur:
@@ -464,7 +464,7 @@ public final class LocalVariableAnalyzer
         // Reset length
         int length = localVariables.size();
 
-        // Remise à  1 de la longueur des portées
+        // Remise à 1 de la longueur des portées
         for (int i=localVariables.getIndexOfFirstLocalVariable(); i<length; i++) {
             localVariables.getLocalVariableAt(i).setLength(1);
         }
@@ -605,14 +605,14 @@ public final class LocalVariableAnalyzer
             lv = localVariables.getLocalVariableWithIndexAndOffset(ii.getIndex(), nextOffset);
             if (lv != null)
             {
-                // Variable trouvée. Mise à  jour de 'startPc' de la
+                // Variable trouvée. Mise à jour de 'startPc' de la
                 // portée.
                 lv.updateRange(ii.getOffset());
             }
             else
             {
-                // Mise à  jour de la longueur de la portées de la
-                // variable possedant le même index et precedement
+                // Mise à jour de la longueur de la portée de la
+                // variable possedant le même index et precedemment
                 // definie.
                 lv = localVariables.searchLocalVariableWithIndexAndOffset(ii.getIndex(), ii.getOffset());
                 if (lv != null) {
@@ -622,7 +622,7 @@ public final class LocalVariableAnalyzer
         }
         else
         {
-            // Mise à  jour de la longeur de la portée
+            // Mise à jour de la longueur de la portée
             lv.updateRange(ii.getOffset());
         }
     }
