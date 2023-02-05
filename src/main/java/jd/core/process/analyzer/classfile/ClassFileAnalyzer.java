@@ -99,6 +99,8 @@ public final class ClassFileAnalyzer
             innerClassesMap = null;
         }
 
+        preAnalyzeClass(referenceMap, innerClassesMap, classFile);
+
         // Generation des listes d'instructions
         // Creation du tableau des variables locales si necessaire
         analyzeClass(referenceMap, innerClassesMap, classFile);
@@ -111,15 +113,35 @@ public final class ClassFileAnalyzer
 
         if (innerClassFiles != null)
         {
-            int length = innerClassFiles.size();
-
-            ClassFile innerClassFile;
-            for (int i=0; i<length; ++i)
-            {
-                innerClassFile = innerClassFiles.get(i);
+            for (ClassFile innerClassFile : innerClassFiles) {
                 innerClassesMap.put(
                         innerClassFile.getThisClassName(), innerClassFile);
                 populateInnerClassMap(innerClassesMap, innerClassFile);
+            }
+        }
+    }
+
+    private static void preAnalyzeClass(
+            ReferenceMap referenceMap,
+            Map<String, ClassFile> innerClassesMap,
+            ClassFile classFile)
+    {
+        if ((classFile.getAccessFlags() & Const.ACC_SYNTHETIC) == 0)
+        {
+            // L'analyse preliminaire permet d'identifier l'attribut de chaque
+            // classe interne non statique portant la reference vers la classe
+            // externe. 'PreAnalyzeMethods' doit être execute avant l'analyse
+            // des classes internes. Elle permet egalement de construire la liste
+            // des accesseurs et de parser les tableaux "SwitchMap" produit par le
+            // compilateur d'Eclipse et utilisé pour le Switch+Enum.
+            preAnalyzeMethods(classFile);
+
+            List<ClassFile> innerClassFiles = classFile.getInnerClassFiles();
+            if (innerClassFiles != null)
+            {
+                for (ClassFile innerClassFile : innerClassFiles) {
+                    preAnalyzeClass(referenceMap, innerClassesMap, innerClassFile);
+                }
             }
         }
     }
@@ -135,37 +157,28 @@ public final class ClassFileAnalyzer
         }
         else
         {
-            // L'analyse preliminaire permet d'identifier l'attribut de chaque
-            // classe interne non statique portant la reference vers la classe
-            // externe. 'PreAnalyzeMethods' doit être execute avant l'analyse
-            // des classes internes. Elle permet egalement de construire la liste
-            // des accesseurs et de parser les tableaux "SwitchMap" produit par le
-            // compilateur d'Eclipse et utilisé pour le Switch+Enum.
-            preAnalyzeMethods(classFile);
-
             // Analyse des classes internes avant l'analyse de la classe pour
             // afficher correctement des classes anonymes.
             List<ClassFile> innerClassFiles = classFile.getInnerClassFiles();
             if (innerClassFiles != null)
             {
-                int length = innerClassFiles.size();
-                for (int i=0; i<length; i++) {
-                    analyzeClass(referenceMap, innerClassesMap, innerClassFiles.get(i));
+                for (ClassFile innerClassFile : innerClassFiles) {
+                    analyzeClass(referenceMap, innerClassesMap, innerClassFile);
                 }
             }
-
+            
             // Analyse de la classe
             checkUnicityOfFieldNames(classFile);
             checkUnicityOfFieldrefNames(classFile);
             analyzeMethods(referenceMap, innerClassesMap, classFile);
             checkAssertionsDisabledField(classFile);
-
+            
             if ((classFile.getAccessFlags() & Const.ACC_ENUM) != 0) {
                 analyzeEnum(classFile);
             }
         }
     }
-
+    
     private static void analyzeSyntheticClass(ClassFile classFile)
     {
         // Recherche des classes internes utilisees par les instructions
