@@ -1,0 +1,42 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ class RangeTrie
+/*    */ {
+/*    */   class RangeEntryMap<K>
+/*    */   {
+/*    */     K fromKey;
+/*    */     K toKey;
+/*    */     boolean fromInclusive;
+/*    */     boolean toInclusive;
+/*    */     
+/*    */     RangeEntryMap(K fromKey, K toKey) {
+/* 13 */       this(fromKey, true, toKey, false);
+/*    */     }
+/*    */     
+/*    */     RangeEntryMap(K fromKey, boolean fromInclusive, K toKey, boolean toInclusive) {
+/* 17 */       this.fromKey = fromKey;
+/* 18 */       this.fromInclusive = fromInclusive;
+/* 19 */       this.toKey = toKey;
+/* 20 */       this.toInclusive = toInclusive;
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   class StringRangeEntryMap
+/*    */   {
+/*    */     String fromKey;
+/*    */     String toKey;
+/*    */     boolean fromInclusive;
+/*    */     boolean toInclusive;
+/*    */     
+/*    */     StringRangeEntryMap(String fromKey, String toKey) {
+/* 32 */       this(fromKey, true, toKey, false);
+/*    */     }
+/*    */     
+/*    */     StringRangeEntryMap(String fromKey, boolean fromInclusive, String toKey, boolean toInclusive) {
+/* 36 */       this.fromKey = fromKey;
+/* 37 */       this.fromInclusive = fromInclusive;
+/* 38 */       this.toKey = toKey;
+/* 39 */       this.toInclusive = toInclusive;
+/*    */     }
+/*    */   }
+/*    */ }

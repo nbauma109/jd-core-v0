@@ -148,7 +148,12 @@ public final class SignatureWriter
                     variableIndex = 3;
                 }
             } else if (classFile.isAInnerClass() && (classFile.getAccessFlags() & Const.ACC_STATIC) == 0) {
-                firstVisibleParameterIndex = 1;
+                if (method.getAttributeSignature() != null) {
+                    firstVisibleParameterIndex = 0;
+                    variableIndex++;
+                } else {
+                    firstVisibleParameterIndex = 1;
+                }
             }
         }
 
@@ -196,7 +201,6 @@ public final class SignatureWriter
                 // de la gestion des enum pour éviter un NullPointerException
                 if (method.getLocalVariables() != null) {
                     lv = method.getLocalVariables().searchLocalVariableWithIndexAndOffset(variableIndex, 0);
-
                     if (lv != null && lv.hasFinalFlag()) {
                         printer.printKeyword("final");
                         printer.print(' ');
