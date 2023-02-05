@@ -1811,7 +1811,7 @@ public class SourceWriterVisitor
             } else // Appel d'un constructeur de la classe mere
             if (this.classFile.isAInnerClass())
             {
-                // inner class: firstIndex=1
+                // inner class: firstIndex=1 in case of outer this, else 0
                 firstIndex = 0;
                 if (!insi.getArgs().isEmpty()) {
                     Instruction instruction = insi.getArgs().get(0);
@@ -1820,11 +1820,9 @@ public class SourceWriterVisitor
                         ConstantFieldref fieldref = constants.getConstantFieldref(getStatic.getIndex());
                         ConstantNameAndType nameAndType = constants.getConstantNameAndType(fieldref.getNameAndTypeIndex());
                         String name = constants.getConstantUtf8(nameAndType.getNameIndex());
-                        String signature = constants.getConstantUtf8(nameAndType.getSignatureIndex());
                         String suffix = "$" + classFile.getClassName() + ";";
                         String internalName = classFile.getInternalClassName();
-                        String sig = internalName.substring(0, internalName.lastIndexOf(suffix)) + ";";
-                        if ("this".equals(name) && internalName.endsWith(suffix) && signature.equals(sig)) {
+                        if ("this".equals(name) && internalName.endsWith(suffix)) {
                             firstIndex = 1;
                         }
                     }
