@@ -166,19 +166,19 @@ public final class ClassFileAnalyzer
                     analyzeClass(referenceMap, innerClassesMap, innerClassFile);
                 }
             }
-            
+
             // Analyse de la classe
             checkUnicityOfFieldNames(classFile);
             checkUnicityOfFieldrefNames(classFile);
             analyzeMethods(referenceMap, innerClassesMap, classFile);
             checkAssertionsDisabledField(classFile);
-            
+
             if ((classFile.getAccessFlags() & Const.ACC_ENUM) != 0) {
                 analyzeEnum(classFile);
             }
         }
     }
-    
+
     private static void analyzeSyntheticClass(ClassFile classFile)
     {
         // Recherche des classes internes utilisees par les instructions
