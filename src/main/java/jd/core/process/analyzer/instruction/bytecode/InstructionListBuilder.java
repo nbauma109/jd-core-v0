@@ -136,7 +136,7 @@ public final class InstructionListBuilder
                     }
                 }
 
-                // Boucle principale : agregation des instructions
+                // Boucle principale : aggregation des instructions
                 for (offset=0; offset<length; ++offset)
                 {
                     int opcode = code[offset] & 255;

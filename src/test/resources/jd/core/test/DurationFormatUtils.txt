@@ -617,7 +617,7 @@
 /*     */ 
 /*     */     void increment()
 /*     */     {
-/* 620 */       this.count += 1;
+/* 620 */       this.count++;
 /*     */     }
 /*     */     
 /*     */ 

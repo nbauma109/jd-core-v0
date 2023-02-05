@@ -26,14 +26,11 @@ import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.AssignmentInstruction;
 import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.ConstInstruction;
-import jd.core.model.instruction.bytecode.instruction.DConst;
 import jd.core.model.instruction.bytecode.instruction.DupLoad;
-import jd.core.model.instruction.bytecode.instruction.FConst;
 import jd.core.model.instruction.bytecode.instruction.GetField;
 import jd.core.model.instruction.bytecode.instruction.GetStatic;
-import jd.core.model.instruction.bytecode.instruction.IInc;
+import jd.core.model.instruction.bytecode.instruction.IncInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
-import jd.core.model.instruction.bytecode.instruction.LConst;
 import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
 import jd.core.model.instruction.bytecode.instruction.PutField;
 import jd.core.model.instruction.bytecode.instruction.PutStatic;
@@ -177,10 +174,19 @@ public final class AssignmentOperatorReconstructor
 
         String newOperator = boi.getOperator() + "=";
 
-        list.set(index, new AssignmentInstruction(
-            ByteCodeConstants.ASSIGNMENT, putField.getOffset(),
-            getField.getLineNumber(), boi.getPriority(), newOperator,
-            getField, boi.getValue2()));
+        if (boi.getValue2() instanceof ConstInstruction
+            && Math.abs(((ConstInstruction)boi.getValue2()).getValue()) == 1
+            && ("+=".equals(newOperator) || "-=".equals(newOperator))) {
+            int sign = "+=".equals(newOperator) ? 1 : -1;
+            list.set(index, new IncInstruction(ByteCodeConstants.POSTINC,
+                putField.getOffset(), getField.getLineNumber(), getField,
+                sign * ((ConstInstruction)boi.getValue2()).getValue()));
+        } else {
+            list.set(index, new AssignmentInstruction(
+                ByteCodeConstants.ASSIGNMENT, putField.getOffset(),
+                getField.getLineNumber(), boi.getPriority(), newOperator,
+                getField, boi.getValue2()));
+        }
 
         return index;
     }
@@ -201,9 +207,13 @@ public final class AssignmentOperatorReconstructor
 
         String newOperator = boi.getOperator() + "=";
 
-        if (boi.getValue2() instanceof LConst || boi.getValue2() instanceof DConst || boi.getValue2() instanceof FConst) {
-            ConstInstruction constInstruction = (ConstInstruction) boi.getValue2();
-            list.set(index, new IInc(Const.IINC, si.getOffset(), li.getLineNumber(), li.getIndex(), constInstruction.getValue()));
+        if (boi.getValue2() instanceof ConstInstruction
+            && Math.abs(((ConstInstruction)boi.getValue2()).getValue()) == 1
+            && ("+=".equals(newOperator) || "-=".equals(newOperator))) {
+            int sign = "+=".equals(newOperator) ? 1 : -1;
+            list.set(index, new IncInstruction(ByteCodeConstants.POSTINC,
+                    si.getOffset(), li.getLineNumber(), li,
+                    sign * ((ConstInstruction) boi.getValue2()).getValue()));
         } else {
             list.set(index, new AssignmentInstruction(
                 ByteCodeConstants.ASSIGNMENT, si.getOffset(),

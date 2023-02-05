@@ -105,7 +105,7 @@
 /*      */ 
 /*      */   void incrementSize()
 /*      */   {
-/*  108 */     this.size += 1;
+/*  108 */     this.size++;
 /*  109 */     incrementModCount();
 /*      */   }
 /*      */   
@@ -113,7 +113,7 @@
 /*      */ 
 /*      */   void decrementSize()
 /*      */   {
-/*  116 */     this.size -= 1;
+/*  116 */     this.size--;
 /*  117 */     incrementModCount();
 /*      */   }
 /*      */   
@@ -121,7 +121,7 @@
 /*      */ 
 /*      */   private void incrementModCount()
 /*      */   {
-/*  124 */     this.modCount += 1;
+/*  124 */     this.modCount++;
 /*      */   }
 /*      */   
 /*      */   public V put(K key, V value)
@@ -2004,7 +2004,7 @@
 /* 2004 */         this.size = 0;
 /*      */         
 /* 2006 */         for (Iterator<?> it = iterator(); it.hasNext(); it.next()) {
-/* 2007 */           this.size += 1;
+/* 2007 */           this.size++;
 /*      */         }
 /*      */         
 /* 2010 */         this.expectedModCount = AbstractPatriciaTrie.this.modCount;
@@ -2140,7 +2140,7 @@
 /* 2140 */         this.toKey = this.fromKey;
 /*      */         
 /* 2142 */         while (it.hasNext()) {
-/* 2143 */           this.size += 1;
+/* 2143 */           this.size++;
 /* 2144 */           entry = (Map.Entry)it.next();
 /*      */         }
 /*      */         
@@ -2335,7 +2335,7 @@
 /* 2335 */           throw new NoSuchElementException();
 /*      */         }
 /*      */         
-/* 2338 */         this.hit += 1;
+/* 2338 */         this.hit++;
 /* 2339 */         return this.entry;
 /*      */       }
 /*      */       
@@ -2345,7 +2345,7 @@
 /* 2345 */           throw new IllegalStateException();
 /*      */         }
 /*      */         
-/* 2348 */         this.hit += 1;
+/* 2348 */         this.hit++;
 /* 2349 */         AbstractPatriciaTrie.this.removeEntry(this.entry);
 /*      */       }
 /*      */     }
