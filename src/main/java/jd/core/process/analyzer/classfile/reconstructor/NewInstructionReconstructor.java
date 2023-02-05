@@ -98,6 +98,12 @@ public final class NewInstructionReconstructor extends NewInstructionReconstruct
                     if (!args.isEmpty() && args.get(0).getOpcode() == ByteCodeConstants.OUTERTHIS) {
                         args.remove(0);
                     }
+                    if (!args.isEmpty() && args.get(args.size() - 1).getOpcode() == Const.ACONST_NULL) {
+                        String signature = constants.getConstantUtf8(cnat.getSignatureIndex());
+                        if (signature.endsWith("$1;)V")) {
+                            args.remove(args.size() - 1);
+                        }
+                    }
                     InvokeNew invokeNew = new InvokeNew(
                         ByteCodeConstants.INVOKENEW, is.getOffset(),
                         nw.getLineNumber(), is.getIndex(), args);

@@ -1171,7 +1171,8 @@ public final class ClassFileAnalyzer
                         {
                             if (cmr.getClassIndex() == classFile.getSuperClassIndex())
                             {
-                                int count = is.getArgs().size();
+                                List<Instruction> args = is.getArgs();
+                                int count = args.size();
 
                                 method.setSuperConstructorParameterCount(count);
 
@@ -1188,6 +1189,23 @@ public final class ClassFileAnalyzer
                                     // Retrait de l'appel du constructeur s'il
                                     // n'a aucun parametre.
                                     list.remove(0);
+                                } else if (args.get(0).getOpcode() == ByteCodeConstants.OUTERTHIS)
+                                {
+                                    GetStatic getStatic = (GetStatic) args.get(0);
+                                    ConstantFieldref fieldref = constants.getConstantFieldref(getStatic.getIndex());
+                                    int nameAndTypeIndex = fieldref.getNameAndTypeIndex();
+                                    ConstantNameAndType nameAndType = constants.getConstantNameAndType(nameAndTypeIndex);
+                                    String name = constants.getConstantUtf8(nameAndType.getNameIndex());
+                                    String suffix = "$" + classFile.getClassName() + ";";
+                                    String internalName = classFile.getInternalClassName();
+                                    if (count == 1 && "this".equals(name) && internalName.endsWith(suffix)) {
+                                        list.remove(0);
+                                    } else if (count > 1 && args.get(count - 1).getOpcode() == Const.ACONST_NULL) {
+                                        String signature = constants.getConstantUtf8(cnat.getSignatureIndex());
+                                        if (signature.endsWith("$1;)V")) {
+                                            list.remove(0);
+                                        }
+                                    }
                                 }
                             }
 
