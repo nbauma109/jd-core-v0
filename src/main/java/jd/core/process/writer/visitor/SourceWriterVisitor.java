@@ -504,6 +504,10 @@ public class SourceWriterVisitor
             break;
         case ByteCodeConstants.POSTINC:
             lineNumber = writePostInc((IncInstruction)instruction);
+            if (instruction.getNext() != null) {
+                this.printer.print(", ");
+                lineNumber = visit(instruction.getNext());
+            }
             break;
         case ByteCodeConstants.INVOKENEW:
             lineNumber = writeInvokeNewInstruction((InvokeNew)instruction);

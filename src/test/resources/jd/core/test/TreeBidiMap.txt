@@ -1293,7 +1293,7 @@
 /*      */ 
 /*      */   private void modify()
 /*      */   {
-/* 1296 */     this.modifications += 1;
+/* 1296 */     this.modifications++;
 /*      */   }
 /*      */   
 /*      */ 
@@ -1301,7 +1301,7 @@
 /*      */   private void grow()
 /*      */   {
 /* 1303 */     modify();
-/* 1304 */     this.nodeCount += 1;
+/* 1304 */     this.nodeCount++;
 /*      */   }
 /*      */   
 /*      */ 
@@ -1309,7 +1309,7 @@
 /*      */   private void shrink()
 /*      */   {
 /* 1311 */     modify();
-/* 1312 */     this.nodeCount -= 1;
+/* 1312 */     this.nodeCount--;
 /*      */   }
 /*      */   
 /*      */ 
@@ -1728,7 +1728,7 @@
 /* 1728 */         throw new ConcurrentModificationException();
 /*      */       }
 /* 1730 */       TreeBidiMap.this.doRedBlackDelete(this.lastReturnedNode);
-/* 1731 */       this.expectedModifications += 1;
+/* 1731 */       this.expectedModifications++;
 /* 1732 */       this.lastReturnedNode = null;
 /* 1733 */       if (this.nextNode == null) {
 /* 1734 */         this.previousNode = TreeBidiMap.this.greatestNode(TreeBidiMap.this.rootNode[this.orderType.ordinal()], this.orderType);

@@ -64,6 +64,7 @@ import jd.core.model.instruction.bytecode.instruction.ILoad;
 import jd.core.model.instruction.bytecode.instruction.IStore;
 import jd.core.model.instruction.bytecode.instruction.IfCmp;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
+import jd.core.model.instruction.bytecode.instruction.IncInstruction;
 import jd.core.model.instruction.bytecode.instruction.IndexInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
@@ -2972,6 +2973,7 @@ public final class FastInstructionListBuilder {
 
     private static boolean isAssignment(Instruction instruction) {
         return instruction instanceof IInc
+            || instruction instanceof IncInstruction
             || instruction instanceof StoreInstruction
             || instruction instanceof AssignmentInstruction;
     }

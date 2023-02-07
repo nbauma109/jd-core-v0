@@ -16,7 +16,7 @@
 /*    */   
 /*    */   void lastBodyLoop()
 /*    */   {
-/* 19 */     for (;; this.i += 1) {
+/* 19 */     for (;; this.i++) {
 /* 20 */       System.out.println("start");
 /* 21 */       System.out.println(this.i);
 /* 22 */       System.out.println("end");
@@ -34,9 +34,9 @@
 /*    */   
 /*    */   void testlastBodyLoop()
 /*    */   {
-/* 37 */     for (; this.i < 5; this.i += 1) {
+/* 37 */     for (; this.i < 5; this.i++) {
 /* 38 */       System.out.println(this.i);
 /*    */     }
-/* 40 */     while (this.i < 10) this.i += 1;
+/* 40 */     while (this.i < 10) this.i++;
 /*    */   }
 /*    */ }
