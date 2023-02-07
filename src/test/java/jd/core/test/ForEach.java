@@ -37,7 +37,7 @@ public class ForEach {
     }
 
     void forEachWithLambdaMethod(List<String> elements) {
-        elements.forEach(o -> print(o));
+        elements.stream().sorted((a, b) -> a.compareTo(b)).forEach(o -> print(o));
     }
 
     private static void printStatic(Object o) {
