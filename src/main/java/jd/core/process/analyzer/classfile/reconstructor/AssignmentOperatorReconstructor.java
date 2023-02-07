@@ -134,11 +134,19 @@ public final class AssignmentOperatorReconstructor
 
         String newOperator = boi.getOperator() + "=";
 
-        list.set(index, new AssignmentInstruction(
-            ByteCodeConstants.ASSIGNMENT, putStatic.getOffset(),
-            getStatic.getLineNumber(), boi.getPriority(), newOperator,
-            getStatic, boi.getValue2()));
-
+        if (boi.getValue2() instanceof ConstInstruction
+            && Math.abs(((ConstInstruction)boi.getValue2()).getValue()) == 1
+            && ("+=".equals(newOperator) || "-=".equals(newOperator))) {
+            int sign = "+=".equals(newOperator) ? 1 : -1;
+            list.set(index, new IncInstruction(ByteCodeConstants.POSTINC,
+                putStatic.getOffset(), getStatic.getLineNumber(), getStatic,
+                sign * ((ConstInstruction)boi.getValue2()).getValue()));
+        } else {
+            list.set(index, new AssignmentInstruction(
+                ByteCodeConstants.ASSIGNMENT, putStatic.getOffset(),
+                getStatic.getLineNumber(), boi.getPriority(), newOperator,
+                getStatic, boi.getValue2()));
+        }
     }
 
     /*

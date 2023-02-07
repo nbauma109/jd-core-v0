@@ -24,8 +24,44 @@ public class Assignment {
         i = y + x;
     }
 
-    static void add (Point p, int x) {
+    static void add(Point p, int x) {
         p.x += x;
+    }
+
+    int mul(int x) {
+        i *= 1;
+        a *= 1;
+        x *= 1;
+        i *= -1;
+        a *= -1;
+        x *= -1;
+        return x;
+    }
+
+    int increment(int x) {
+        i++;
+        a++;
+        x++;
+        i += 1;
+        a += 1;
+        x += 1;
+        i -= -1;
+        a -= -1;
+        x -= -1;
+        return x;
+    }
+
+    int decrement(int x) {
+        i--;
+        a--;
+        x--;
+        i -= 1;
+        a -= 1;
+        x -= 1;
+        i += -1;
+        a += -1;
+        x += -1;
+        return x;
     }
 
     // Assignation multiple sur deux lignes :
