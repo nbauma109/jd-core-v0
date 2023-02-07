@@ -37,7 +37,7 @@
 /*    */   }
 /*    */   
 /*    */   void forEachWithLambdaMethod(List<String> elements) {
-/* 40 */     elements.forEach( o ->  {   print(o);
+/* 40 */     elements.stream().sorted( (a, b) ->  {   return a.compareTo(b); } ).forEach( o ->  {   print(o);
 /*    */     } );
 /*    */   }
 /*    */   
