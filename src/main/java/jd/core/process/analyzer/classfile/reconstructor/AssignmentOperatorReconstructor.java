@@ -216,12 +216,11 @@ public final class AssignmentOperatorReconstructor
         String newOperator = boi.getOperator() + "=";
 
         if (boi.getValue2() instanceof ConstInstruction
-            && Math.abs(((ConstInstruction)boi.getValue2()).getValue()) == 1
-            && ("+=".equals(newOperator) || "-=".equals(newOperator))) {
-            int sign = "+=".equals(newOperator) ? 1 : -1;
+            && ((ConstInstruction)boi.getValue2()).getValue() == 1
+            && "+=".equals(newOperator)) {
             list.set(index, new IncInstruction(ByteCodeConstants.POSTINC,
                     si.getOffset(), li.getLineNumber(), li,
-                    sign * ((ConstInstruction) boi.getValue2()).getValue()));
+                    ((ConstInstruction) boi.getValue2()).getValue()));
         } else {
             list.set(index, new AssignmentInstruction(
                 ByteCodeConstants.ASSIGNMENT, si.getOffset(),
