@@ -48,6 +48,9 @@ public class Assignment {
         i -= -1;
         a -= -1;
         x -= -1;
+        i += 2;
+        a += 2;
+        x += 2;
         return x;
     }
 
@@ -61,6 +64,9 @@ public class Assignment {
         i += -1;
         a += -1;
         x += -1;
+        i -= 2;
+        a -= 2;
+        x -= 2;
         return x;
     }
 

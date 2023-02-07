@@ -48,35 +48,41 @@
 /* 48 */     i++;
 /* 49 */     this.a++;
 /* 50 */     x++;
-/* 51 */     return x;
+/* 51 */     i += 2;
+/* 52 */     this.a += 2;
+/* 53 */     x += 2;
+/* 54 */     return x;
 /*    */   }
 /*    */   
 /*    */   int decrement(int x) {
-/* 55 */     i--;
-/* 56 */     this.a--;
-/* 57 */     x--;
 /* 58 */     i--;
 /* 59 */     this.a--;
 /* 60 */     x--;
 /* 61 */     i--;
 /* 62 */     this.a--;
 /* 63 */     x--;
-/* 64 */     return x;
+/* 64 */     i--;
+/* 65 */     this.a--;
+/* 66 */     x--;
+/* 67 */     i -= 2;
+/* 68 */     this.a -= 2;
+/* 69 */     x -= 2;
+/* 70 */     return x;
 /*    */   }
 /*    */   
 /*    */ 
 /*    */ 
 /*    */   void multiAssign()
 /*    */   {
-/* 71 */     this.b = this.c;
-/* 72 */     this.a = this.b;
+/* 77 */     this.b = this.c;
+/* 78 */     this.a = this.b;
 /*    */   }
 /*    */   
 /*    */   void multiAssignInc() {
-/* 76 */     this.a = (this.b += this.c);
+/* 82 */     this.a = (this.b += this.c);
 /*    */   }
 /*    */   
 /*    */   void compute(Rectangle[] r) {
-/* 80 */     r[7].y = (r[8].y = r[6].y = r[4].y + r[4].height);
+/* 86 */     r[7].y = (r[8].y = r[6].y = r[4].y + r[4].height);
 /*    */   }
 /*    */ }
