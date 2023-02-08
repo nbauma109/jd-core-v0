@@ -41,7 +41,7 @@ public class MethodReference extends Instruction implements SourceWriteable {
 
     @Override
     public String getReturnedSignature(ConstantPool constants, LocalVariables localVariables) {
-        throw new UnsupportedOperationException();
+        return descriptor;
     }
 
     public String getInternalTypeName() {

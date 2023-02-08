@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BinaryOperator;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
@@ -44,5 +45,9 @@ public class ArrayCollector<O> implements Collector<O, List<O>, O[]> {
     @Override
     public Supplier<List<O>> supplier() {
         return ArrayList::new;
+    }
+
+    Consumer<O> accumulator(List<O> l) {
+        return l::add;
     }
 }
