@@ -5,6 +5,7 @@
 /*    */ import java.util.Set;
 /*    */ import java.util.function.BiConsumer;
 /*    */ import java.util.function.BinaryOperator;
+/*    */ import java.util.function.Consumer;
 /*    */ import java.util.function.Function;
 /*    */ import java.util.function.Supplier;
 /*    */ import java.util.stream.Collector;
@@ -18,31 +19,35 @@
 /*    */   
 /*    */   public ArrayCollector(Class<O> elementType)
 /*    */   {
-/* 21 */     this.elementType = elementType;
+/* 22 */     this.elementType = elementType;
 /*    */   }
 /*    */   
 /*    */   public BiConsumer<List<O>, O> accumulator()
 /*    */   {
-/* 26 */     return List::add;
+/* 27 */     return List::add;
 /*    */   }
 /*    */   
 /*    */   public Set<Collector.Characteristics> characteristics()
 /*    */   {
-/* 31 */     return Collections.emptySet();
+/* 32 */     return Collections.emptySet();
 /*    */   }
 /*    */   
 /*    */   public BinaryOperator<List<O>> combiner()
 /*    */   {
-/* 36 */     throw new UnsupportedOperationException();
+/* 37 */     throw new UnsupportedOperationException();
 /*    */   }
 /*    */   
 /*    */   public Function<List<O>, O[]> finisher()
 /*    */   {
-/* 41 */     throw new UnsupportedOperationException();
+/* 42 */     throw new UnsupportedOperationException();
 /*    */   }
 /*    */   
 /*    */   public Supplier<List<O>> supplier()
 /*    */   {
-/* 46 */     return ArrayList::new;
+/* 47 */     return ArrayList::new;
+/*    */   }
+/*    */   
+/*    */   Consumer<O> accumulator(List<O> l) {
+/* 51 */     return l::add;
 /*    */   }
 /*    */ }
