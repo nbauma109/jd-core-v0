@@ -115,7 +115,7 @@
 /*     */     {
 /* 116 */       Future<O> future = (Future)this.cache.get(arg);
 /* 117 */       if (future == null) {
-/* 118 */         Callable<O> eval =  () ->  {   return this.computable.compute(arg); } ;
+/* 118 */         Callable<O> eval = () -> this.computable.compute(arg);
 /* 119 */         FutureTask<O> futureTask = new FutureTask(eval);
 /* 120 */         future = (Future)this.cache.putIfAbsent(arg, futureTask);
 /* 121 */         if (future == null) {

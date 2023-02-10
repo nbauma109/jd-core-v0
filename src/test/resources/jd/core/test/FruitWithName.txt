@@ -1,7 +1,7 @@
 /*   */ package jd.core.test;
 /*   */ 
 /*   */ public enum FruitWithName implements Eatable, Disposable {
-/* 4 */   APPLE("apple"),  BANANA("banana"),  KIWI("kiwi");
+/* 4 */   APPLE("apple"), BANANA("banana"), KIWI("kiwi");
 /*   */   
 /*   */   String name;
 /*   */   

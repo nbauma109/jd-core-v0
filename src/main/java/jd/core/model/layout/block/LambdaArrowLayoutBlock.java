@@ -16,7 +16,6 @@
  ******************************************************************************/
 package jd.core.model.layout.block;
 
-import static jd.core.model.instruction.bytecode.instruction.Instruction.UNKNOWN_LINE_NUMBER;
 import static jd.core.model.layout.block.LayoutBlockConstants.FRAGMENT_ARROW;
 
 import jd.core.model.classfile.ClassFile;
@@ -27,12 +26,12 @@ public class LambdaArrowLayoutBlock extends LayoutBlock
     private final ClassFile classFile;
     private final Method method;
 
-    public LambdaArrowLayoutBlock(ClassFile classFile, Method method)
+    public LambdaArrowLayoutBlock(ClassFile classFile, Method method, int lineNumber)
     {
         super(
             FRAGMENT_ARROW,
-            UNKNOWN_LINE_NUMBER,
-            UNKNOWN_LINE_NUMBER,
+            lineNumber,
+            lineNumber,
             0, 0, 0);
 
         this.classFile = classFile;

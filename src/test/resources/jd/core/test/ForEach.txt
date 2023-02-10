@@ -36,21 +36,17 @@
 /*    */     });
 /*    */   }
 /*    */   
-/*    */   void forEachWithLambdaMethod(List<String> elements) {
-/* 40 */     elements.stream().sorted( (a, b) ->  {   return a.compareTo(b); } ).forEach( o ->  {   print(o);
-/*    */     } );
+/*    */   private static void printStatic(Object o) {
+/* 40 */     System.out.println(o);
 /*    */   }
 /*    */   
-/* 44 */   private static void printStatic(Object o) { System.out.println(o); }
-/*    */   
-/*    */   private void print(Object o)
-/*    */   {
-/* 48 */     printStatic(o);
+/*    */   private void print(Object o) {
+/* 44 */     printStatic(o);
 /*    */   }
 /*    */   
 /*    */   public static void main(String[] args) {
-/* 52 */     for (int i = 0; i < args.length; i++) {
-/* 53 */       System.out.println(args[i]);
+/* 48 */     for (int i = 0; i < args.length; i++) {
+/* 49 */       System.out.println(args[i]);
 /*    */     }
 /*    */   }
 /*    */ }

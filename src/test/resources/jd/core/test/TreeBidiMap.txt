@@ -86,7 +86,7 @@
 /*      */   
 /*      */   static enum DataElement
 /*      */   {
-/*   89 */     KEY("key"),  VALUE("value");
+/*   89 */     KEY("key"), VALUE("value");
 /*      */     
 /*      */ 
 /*      */ 

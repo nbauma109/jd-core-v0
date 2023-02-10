@@ -3,7 +3,7 @@
 /*    */ public class SwitchEnumInnerClass
 /*    */ {
 /*    */   static enum DataElement {
-/*  6 */     KEY,  VALUE;
+/*  6 */     KEY, VALUE;
 /*    */   }
 /*    */   
 /*    */   String getString(DataElement dataElement) {

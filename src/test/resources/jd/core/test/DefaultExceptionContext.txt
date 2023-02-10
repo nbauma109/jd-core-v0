@@ -59,7 +59,7 @@
 /*     */ 
 /*     */   public DefaultExceptionContext setContextValue(String label, Object value)
 /*     */   {
-/*  62 */     this.contextValues.removeIf( p ->  {   return StringUtils.equals(label, (CharSequence)p.getKey()); } );
+/*  62 */     this.contextValues.removeIf(p -> StringUtils.equals(label, (CharSequence)p.getKey()));
 /*  63 */     addContextValue(label, value);
 /*  64 */     return this;
 /*     */   }
