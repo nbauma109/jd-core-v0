@@ -3554,13 +3554,13 @@ public final class ClassFileLayouter {
             // DEBUG //
             if (method.containsError())
             {
-                InnerTypeBodyBlockStartLayoutBlock mbbslb =
-                    new InnerTypeBodyBlockStartLayoutBlock();
+                MethodBodyBlockStartLayoutBlock mbbslb =
+                    new MethodBodyBlockStartLayoutBlock();
                 subLayoutBlockList.add(mbbslb);
                 subLayoutBlockList.add(
                     new ByteCodeLayoutBlock(classFile, method));
-                InnerTypeBodyBlockEndLayoutBlock mbbelb =
-                    new InnerTypeBodyBlockEndLayoutBlock();
+                MethodBodyBlockEndLayoutBlock mbbelb =
+                    new MethodBodyBlockEndLayoutBlock();
                 subLayoutBlockList.add(mbbelb);
                 mbbslb.setOther(mbbelb);
                 mbbelb.setOther(mbbslb);
