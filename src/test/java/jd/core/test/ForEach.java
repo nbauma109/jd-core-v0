@@ -36,10 +36,6 @@ public class ForEach {
         });
     }
 
-    void forEachWithLambdaMethod(List<String> elements) {
-        elements.stream().sorted((a, b) -> a.compareTo(b)).forEach(o -> print(o));
-    }
-
     private static void printStatic(Object o) {
         System.out.println(o);
     }

@@ -775,7 +775,9 @@ public class SourceWriterVisitor
                 if (this.firstOffset <= this.previousOffset &&
                     instruction.getOffset() <= this.lastOffset)
                 {
-                    this.printer.printKeyword(ri.getLineNumber(), "return");
+                    if (!this.printer.toString().endsWith("->")) {
+                        this.printer.printKeyword(ri.getLineNumber(), "return");
+                    }
                     this.printer.print(' ');
                 }
 
@@ -2502,6 +2504,8 @@ public class SourceWriterVisitor
                     nextOffset <= this.lastOffset) {
                     this.printer.print(
                         lineNumber, constants.getConstantUtf8(lv.getNameIndex()));
+                } else {
+                    fd.setSkipped(true);
                 }
             }
             else

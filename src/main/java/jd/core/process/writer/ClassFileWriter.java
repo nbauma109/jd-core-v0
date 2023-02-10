@@ -44,6 +44,7 @@ import jd.core.model.instruction.bytecode.instruction.ArrayLoadInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
 import jd.core.model.instruction.fast.FastConstants;
+import jd.core.model.instruction.fast.instruction.FastDeclaration;
 import jd.core.model.instruction.fast.instruction.FastSwitch;
 import jd.core.model.instruction.fast.instruction.FastTry.FastCatch;
 import jd.core.model.layout.block.AnnotationsLayoutBlock;
@@ -536,7 +537,7 @@ public final class ClassFileWriter
             this.printer.startOfLine(
                 searchFirstLineNumber());
         }
-        else
+        else if (this.addSpace)
         {
             this.printer.print(' ');
             this.addSpace = false;
@@ -666,6 +667,7 @@ public final class ClassFileWriter
     {
         this.printer.debugMarker("&gt;F&gt;");
         this.printer.endOfTypeDeclaration();
+        this.addSpace = true;
     }
 
     private void writeMethodMarkerStart(MarkerLayoutBlock mlb)
@@ -1446,7 +1448,9 @@ public final class ClassFileWriter
         case 0:
             /* A {} B */
             this.printer.print(" {}");
-            addSpace = true;
+            if (lb.getTag() == LayoutBlockConstants.STATEMENTS_BLOCK_START_END) {
+                this.addSpace = true;
+            }
             break;
         case 1:
             /* A {} B */
@@ -1843,6 +1847,11 @@ public final class ClassFileWriter
                 this.instructionPrinter.startOfInstruction();
             }
 
+            boolean inlineLambda = this.printer.toString().endsWith("->");
+            String methodHeader = ilb.getMethod().toString();
+            if (inlineLambda && methodHeader.startsWith("lambda$") && methodHeader.endsWith(")V")) {
+                this.printer.print(' ');
+            }
             this.visitor.visit(instruction);
 
             if (idx < lastIndex || ilb.getLastOffset() == instruction.getOffset())
@@ -1850,7 +1859,10 @@ public final class ClassFileWriter
                 // Ne pas afficher de ';' si une instruction n'a pas ete
                 // entierement ecrite.
                 this.instructionPrinter.endOfInstruction();
-                this.printer.print(';');
+                if (!inlineLambda) {
+                    this.printer.print(';');
+                    this.addSpace = true;
+                }
             }
 
             idx++;
@@ -1888,12 +1900,14 @@ public final class ClassFileWriter
         }
 
         this.instructionPrinter.init(dlb.getFirstLineNumber());
-        this.visitor.init(dlb.getClassFile(), dlb.getMethod(), 0, dlb.getInstruction().getOffset());
+        FastDeclaration fd = (FastDeclaration) dlb.getInstruction();
+        this.visitor.init(dlb.getClassFile(), dlb.getMethod(), 0, fd.getOffset());
         this.instructionPrinter.startOfInstruction();
-        this.visitor.visit(dlb.getInstruction());
+        this.visitor.visit(fd);
         this.instructionPrinter.endOfInstruction();
-        if (!this.printer.toString().trim().endsWith("{")) {
+        if (!fd.isSkipped()) {
             this.printer.print(';');
+            this.addSpace = true;
         }
         this.instructionPrinter.release();
 
@@ -1983,7 +1997,7 @@ public final class ClassFileWriter
 
     private void writeArrow()
     {
-        this.printer.print(" -> ");
+        this.printer.print(" ->");
     }
     
     private void writeSwitch()
@@ -2444,6 +2458,7 @@ public final class ClassFileWriter
         this.printer.print(FastConstants.LABEL_PREFIX);
         this.printer.print(olb.getOffset());
         this.printer.print(':');
+        this.addSpace = true;
     }
 
     private void writeElse()

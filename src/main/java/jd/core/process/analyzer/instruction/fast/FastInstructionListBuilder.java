@@ -3048,7 +3048,7 @@ public final class FastInstructionListBuilder {
 
         if (astoreVariable.getValueref().getOpcode() == Const.CHECKCAST)
         {
-            // Une instruction Cast est utilisée si le type de l'interation
+            // Une instruction Cast est utilisée si le type de l'iteration
             // n'est pas Object.
             CheckCast cc = (CheckCast) astoreVariable.getValueref();
             if (cc.getObjectref().getOpcode() != Const.INVOKEINTERFACE) {

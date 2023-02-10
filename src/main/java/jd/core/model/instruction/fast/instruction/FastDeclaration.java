@@ -28,6 +28,7 @@ public class FastDeclaration extends Instruction
 {
     private final LocalVariable lv;
     private Instruction instruction;
+    private boolean skipped;
 
     public FastDeclaration(
         int opcode, int offset, int lineNumber,
@@ -79,5 +80,13 @@ public class FastDeclaration extends Instruction
     @Override
     public int getLastOffset() {
         return instruction == null ? super.getLastOffset() : instruction.getLastOffset();
+    }
+
+    public boolean isSkipped() {
+        return skipped;
+    }
+
+    public void setSkipped(boolean skipped) {
+        this.skipped = skipped;
     }
 }

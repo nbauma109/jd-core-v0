@@ -3,7 +3,7 @@
 /*    */ public class SwitchEnum
 /*    */ {
 /*    */   public static enum ColourEnum {
-/*  6 */     BLUE,  GREEN,  RED;
+/*  6 */     BLUE, GREEN, RED;
 /*    */   }
 /*    */   
 /*    */ 

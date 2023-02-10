@@ -38,6 +38,7 @@ import jd.core.model.instruction.bytecode.instruction.GetStatic;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNew;
 import jd.core.model.instruction.bytecode.instruction.LambdaInstruction;
+import jd.core.model.instruction.fast.instruction.FastDeclaration;
 import jd.core.model.layout.block.BlockLayoutBlock;
 import jd.core.model.layout.block.ByteCodeLayoutBlock;
 import jd.core.model.layout.block.CommentDeprecatedLayoutBlock;
@@ -3541,7 +3542,8 @@ public final class ClassFileLayouter {
         subLayoutBlockList.add(new LambdaMethodLayoutBlock(
                 classFile, method, signature,
                 as == null, nullCodeFlag, lambdaInstruction.getParameterNames()));
-        subLayoutBlockList.add(new LambdaArrowLayoutBlock(classFile, method));
+        int lineNumber = lambdaInstruction.getLineNumber();
+        subLayoutBlockList.add(new LambdaArrowLayoutBlock(classFile, method, lineNumber));
         
         int firstLineNumber = Instruction.UNKNOWN_LINE_NUMBER;
         int lastLineNumber = Instruction.UNKNOWN_LINE_NUMBER;
@@ -3552,13 +3554,13 @@ public final class ClassFileLayouter {
             // DEBUG //
             if (method.containsError())
             {
-                MethodBodyBlockStartLayoutBlock mbbslb =
-                    new MethodBodyBlockStartLayoutBlock();
+                InnerTypeBodyBlockStartLayoutBlock mbbslb =
+                    new InnerTypeBodyBlockStartLayoutBlock();
                 subLayoutBlockList.add(mbbslb);
                 subLayoutBlockList.add(
                     new ByteCodeLayoutBlock(classFile, method));
-                MethodBodyBlockEndLayoutBlock mbbelb =
-                    new MethodBodyBlockEndLayoutBlock();
+                InnerTypeBodyBlockEndLayoutBlock mbbelb =
+                    new InnerTypeBodyBlockEndLayoutBlock();
                 subLayoutBlockList.add(mbbelb);
                 mbbslb.setOther(mbbelb);
                 mbbelb.setOther(mbbslb);
@@ -3567,19 +3569,20 @@ public final class ClassFileLayouter {
             else
             {
                 List<Instruction> list = method.getFastNodes();
-
-                MethodBodyBlockStartLayoutBlock mbbslb =
-                    new MethodBodyBlockStartLayoutBlock();
-                subLayoutBlockList.add(mbbslb);
+                int paramCount = countLambdaDeclarations(list);
+                InnerTypeBodyBlockStartLayoutBlock mbbslb =
+                    new InnerTypeBodyBlockStartLayoutBlock();
+                if (list.size() != paramCount + 1) {
+                    subLayoutBlockList.add(mbbslb);
+                }
                 int subLayoutBlockListLength = subLayoutBlockList.size();
-                boolean singleLine = false;
 
                 if (!list.isEmpty())
                 {
                     try
                     {
                         int beforeIndex = subLayoutBlockList.size();
-                        singleLine = javaSourceLayouter.createBlocks(
+                        javaSourceLayouter.createBlocks(
                             preferences, subLayoutBlockList,
                             classFile, method, list);
                         int afterIndex = subLayoutBlockList.size();
@@ -3605,28 +3608,16 @@ public final class ClassFileLayouter {
                     }
                 }
 
-                if (subLayoutBlockListLength == subLayoutBlockList.size())
-                {
-                    // Bloc vide d'instructions. Transformation du bloc
-                    // 'StatementBlockStartLayoutBlock'
-                    mbbslb.transformToStartEndBlock(1);
-                }
-                else if (singleLine)
-                {
-                    mbbslb.transformToSingleLineBlock();
-                    MethodBodySingleLineBlockEndLayoutBlock mbssbelb =
-                        new MethodBodySingleLineBlockEndLayoutBlock();
-                    mbbslb.setOther(mbssbelb);
-                    mbssbelb.setOther(mbbslb);
-                    subLayoutBlockList.add(mbssbelb);
-                }
-                else
-                {
-                    MethodBodyBlockEndLayoutBlock mbbelb =
-                        new MethodBodyBlockEndLayoutBlock();
-                    mbbslb.setOther(mbbelb);
-                    mbbelb.setOther(mbbslb);
-                    subLayoutBlockList.add(mbbelb);
+                InnerTypeBodyBlockEndLayoutBlock mbbelb =
+                    new InnerTypeBodyBlockEndLayoutBlock();
+                mbbslb.setOther(mbbelb);
+                mbbelb.setOther(mbbslb);
+                if (list.size() != paramCount + 1) {
+                    if (list.size() == paramCount) {
+                        mbbslb.transformToStartEndBlock();
+                    } else {
+                        subLayoutBlockList.add(mbbelb);
+                    }
                 }
             } // if (method.containsError()) else
         } // if (nullCodeFlag == false)
@@ -3636,5 +3627,14 @@ public final class ClassFileLayouter {
             subLayoutBlockList, firstLineNumber,
             lastLineNumber, preferedLineNumber));
         return sortBlocks(sortedMethodBlockList);
+    }
+
+    private static int countLambdaDeclarations(List<Instruction> fastNodes) {
+        Iterator<Instruction> it = fastNodes.iterator();
+        int count = 0;
+        while (it.hasNext() && it.next() instanceof FastDeclaration) {
+            count++;
+        }
+        return count;
     }
 }

@@ -879,62 +879,57 @@ public class JavaSourceLayouter
                         preferences, layoutBlockList, classFile,
                         method, (FastInstruction)instruction);
                 break;
-                //                    case FastConstants.GOTO_CONTINUE:
-                    //                        CreateBlocksForGotoContinue(layoutBlockList);
-                    //                    case FastConstants.GOTO_BREAK:
-                        //                        CreateBlocksForGotoBreak(layoutBlockList);
-                        //                        break;
-                    case FastConstants.GOTO_LABELED_BREAK:
-                        createBlocksForGotoLabeledBreak(
-                                layoutBlockList, (FastInstruction)instruction);
-                        break;
-                    case FastConstants.SWITCH:
-                        createBlocksForSwitch(
-                                preferences, layoutBlockList, classFile, method,
-                                (FastSwitch)instruction, LayoutBlockConstants.FRAGMENT_CASE);
-                        break;
-                    case FastConstants.SWITCH_ENUM:
-                        createBlocksForSwitchEnum(
-                                preferences, layoutBlockList, classFile, method,
-                                (FastSwitch)instruction);
-                        break;
-                    case FastConstants.SWITCH_STRING:
-                        createBlocksForSwitch(
-                                preferences, layoutBlockList, classFile, method,
-                                (FastSwitch)instruction,
-                                LayoutBlockConstants.FRAGMENT_CASE_STRING);
-                        break;
-                    case FastConstants.TRY:
-                        createBlocksForTry(
-                                preferences, layoutBlockList, classFile,
-                                method, (FastTry)instruction);
-                        break;
-                    case FastConstants.SYNCHRONIZED:
-                        createBlocksForSynchronized(
-                                preferences, layoutBlockList, classFile,
-                                method, (FastSynchronized)instruction);
-                        break;
-                    case FastConstants.LABEL:
-                        createBlocksForLabel(
-                                preferences, layoutBlockList, classFile, method,
-                                (FastLabel)instruction);
-                        break;
-                    case FastConstants.DECLARE:
-                        if (((FastDeclaration)instruction).getInstruction() == null)
-                        {
-                            layoutBlockList.add(new DeclareLayoutBlock(
-                                    classFile, method, instruction));
-                            break;
-                        }
-                        // intended fall through
-                    default:
-                    {
-                        createBlockForInstruction(
-                                preferences, layoutBlockList, classFile,
-                                method, instruction);
-                        layoutBlockList.add(new FragmentLayoutBlock(
-                                LayoutBlockConstants.FRAGMENT_SEMICOLON));
-                    }
+            case FastConstants.GOTO_LABELED_BREAK:
+                createBlocksForGotoLabeledBreak(
+                        layoutBlockList, (FastInstruction)instruction);
+                break;
+            case FastConstants.SWITCH:
+                createBlocksForSwitch(
+                        preferences, layoutBlockList, classFile, method,
+                        (FastSwitch)instruction, LayoutBlockConstants.FRAGMENT_CASE);
+                break;
+            case FastConstants.SWITCH_ENUM:
+                createBlocksForSwitchEnum(
+                        preferences, layoutBlockList, classFile, method,
+                        (FastSwitch)instruction);
+                break;
+            case FastConstants.SWITCH_STRING:
+                createBlocksForSwitch(
+                        preferences, layoutBlockList, classFile, method,
+                        (FastSwitch)instruction,
+                        LayoutBlockConstants.FRAGMENT_CASE_STRING);
+                break;
+            case FastConstants.TRY:
+                createBlocksForTry(
+                        preferences, layoutBlockList, classFile,
+                        method, (FastTry)instruction);
+                break;
+            case FastConstants.SYNCHRONIZED:
+                createBlocksForSynchronized(
+                        preferences, layoutBlockList, classFile,
+                        method, (FastSynchronized)instruction);
+                break;
+            case FastConstants.LABEL:
+                createBlocksForLabel(
+                        preferences, layoutBlockList, classFile, method,
+                        (FastLabel)instruction);
+                break;
+            case FastConstants.DECLARE:
+                if (((FastDeclaration)instruction).getInstruction() == null)
+                {
+                    layoutBlockList.add(new DeclareLayoutBlock(
+                            classFile, method, instruction));
+                    break;
+                }
+                // intended fall through
+            default:
+                {
+                    createBlockForInstruction(
+                            preferences, layoutBlockList, classFile,
+                            method, instruction);
+                    layoutBlockList.add(new FragmentLayoutBlock(
+                            LayoutBlockConstants.FRAGMENT_SEMICOLON));
+                }
             }
         }
     }
