@@ -7,22 +7,27 @@
 /*    */   Predicate<?> predicate;
 /*    */   static Predicate<?> predicateStatic;
 /*    */   
-/*    */   Predicate<?> isNotNullReturn() {
-/* 11 */     return a -> a != null;
+/*    */   Predicate<?> isNotNullReturn()
+/*    */   {
+/* 12 */     return a -> a != null;
+/*    */   }
+/*    */   
+/*    */   java.util.function.ToIntFunction<?> isNotNullReturnInt() {
+/* 16 */     return a -> a != null ? 1 : 0;
 /*    */   }
 /*    */   
 /*    */   Predicate<?> isNotNullStoreReturn() {
-/* 15 */     Predicate<?> predicate = a -> a != null;
-/* 16 */     return predicate;
+/* 20 */     Predicate<?> predicate = a -> a != null;
+/* 21 */     return predicate;
 /*    */   }
 /*    */   
 /*    */   Predicate<?> isNotNullPutFieldReturn() {
-/* 20 */     this.predicate = a -> a != null;
-/* 21 */     return this.predicate;
+/* 25 */     this.predicate = a -> a != null;
+/* 26 */     return this.predicate;
 /*    */   }
 /*    */   
 /*    */   static Predicate<?> isNotNullPutStaticReturn() {
-/* 25 */     predicateStatic = a -> a != null;
-/* 26 */     return predicateStatic;
+/* 30 */     predicateStatic = a -> a != null;
+/* 31 */     return predicateStatic;
 /*    */   }
 /*    */ }

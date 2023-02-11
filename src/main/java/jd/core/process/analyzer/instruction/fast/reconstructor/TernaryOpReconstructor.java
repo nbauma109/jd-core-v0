@@ -144,10 +144,9 @@ public final class TernaryOpReconstructor
 
     private static boolean maybeBooleanConstant(Instruction instruction)
     {
-        return instruction != null
+        return instruction instanceof IConst
             && ByteCodeUtil.isLoadIntValue(instruction.getOpcode())
             && "X".equals(instruction.getReturnedSignature(null, null))
-            && instruction instanceof IConst
             && (((IConst)instruction).getValue() == 0
              || ((IConst)instruction).getValue() == 1);
     }
