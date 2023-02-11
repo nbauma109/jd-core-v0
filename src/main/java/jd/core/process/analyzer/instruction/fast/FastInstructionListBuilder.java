@@ -3026,8 +3026,13 @@ public final class FastInstructionListBuilder {
             return false;
         }
         insi = (InvokeNoStaticInstruction) ifi.getValue();
-        if (insi.getObjectref().getOpcode() != Const.ALOAD
-                || ((ALoad) insi.getObjectref()).getIndex() != astoreIterator.getIndex()) {
+        Instruction objectref = insi.getObjectref();
+        if (objectref instanceof CheckCast) {
+            CheckCast checkCast = (CheckCast) objectref;
+            objectref = checkCast.getObjectref();
+        }
+        if (objectref.getOpcode() != Const.ALOAD
+                || ((ALoad) objectref).getIndex() != astoreIterator.getIndex()) {
             return false;
         }
         cmr = constants.getConstantMethodref(insi.getIndex());
@@ -3065,8 +3070,8 @@ public final class FastInstructionListBuilder {
             insi = (InvokeNoStaticInstruction)astoreVariable.getValueref();
         }
 
-        if (insi.getObjectref().getOpcode() != Const.ALOAD
-                || ((ALoad) insi.getObjectref()).getIndex() != astoreIterator.getIndex()) {
+        if (objectref.getOpcode() != Const.ALOAD
+                || ((ALoad) objectref).getIndex() != astoreIterator.getIndex()) {
             return false;
         }
         cmr = constants.getConstantMethodref(insi.getIndex());
