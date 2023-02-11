@@ -1,11 +1,11 @@
 package java.io;
 
-public abstract interface Externalizable
+public interface Externalizable
   extends Serializable
 {
-  public abstract void writeExternal(ObjectOutput paramObjectOutput)
+  void writeExternal(ObjectOutput paramObjectOutput)
     throws IOException;
   
-  public abstract void readExternal(ObjectInput paramObjectInput)
+  void readExternal(ObjectInput paramObjectInput)
     throws IOException, ClassNotFoundException;
 }
