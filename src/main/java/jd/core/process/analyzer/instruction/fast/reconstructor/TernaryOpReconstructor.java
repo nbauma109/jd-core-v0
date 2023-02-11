@@ -22,6 +22,7 @@ import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.BranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.IConst;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
+import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
 import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.process.analyzer.instruction.bytecode.ComparisonInstructionAnalyzer;
@@ -41,7 +42,7 @@ public final class TernaryOpReconstructor
         super();
     }
 
-    public static void reconstruct(List<Instruction> list)
+    public static void reconstruct(List<Instruction> list, boolean booleanReturnType)
     {
         int length = list.size();
 
@@ -100,8 +101,14 @@ public final class TernaryOpReconstructor
 
                 fto.setValue2(visitor.getOldInstruction());
 
-                if (isBooleanConstant(fto.getValue1()) &&
+                Instruction last = list.get(indexVisitor-1);
+                
+                if ((isBooleanConstant(fto.getValue1()) &&
                     isBooleanConstant(fto.getValue2()))
+                || (maybeBooleanConstant(fto.getValue1()) &&
+                    maybeBooleanConstant(fto.getValue2()) &&
+                    booleanReturnType && last instanceof ReturnInstruction &&
+                   ((ReturnInstruction)last).getValueref() == fto))
                 {
                     if (((IConst)fto.getValue1()).getValue() == 0) {
                         ComparisonInstructionAnalyzer.inverseComparison(fto.getTest());
@@ -133,5 +140,15 @@ public final class TernaryOpReconstructor
         return instruction != null
             && ByteCodeUtil.isLoadIntValue(instruction.getOpcode())
             && "Z".equals(instruction.getReturnedSignature(null, null));
+    }
+
+    private static boolean maybeBooleanConstant(Instruction instruction)
+    {
+        return instruction != null
+            && ByteCodeUtil.isLoadIntValue(instruction.getOpcode())
+            && "X".equals(instruction.getReturnedSignature(null, null))
+            && instruction instanceof IConst
+            && (((IConst)instruction).getValue() == 0
+             || ((IConst)instruction).getValue() == 1);
     }
 }

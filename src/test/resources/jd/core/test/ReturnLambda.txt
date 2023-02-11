@@ -1,0 +1,28 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.util.function.Predicate;
+/*    */ 
+/*    */ public class ReturnLambda
+/*    */ {
+/*    */   Predicate<?> predicate;
+/*    */   static Predicate<?> predicateStatic;
+/*    */   
+/*    */   Predicate<?> isNotNullReturn() {
+/* 11 */     return a -> a != null;
+/*    */   }
+/*    */   
+/*    */   Predicate<?> isNotNullStoreReturn() {
+/* 15 */     Predicate<?> predicate = a -> a != null;
+/* 16 */     return predicate;
+/*    */   }
+/*    */   
+/*    */   Predicate<?> isNotNullPutFieldReturn() {
+/* 20 */     this.predicate = a -> a != null;
+/* 21 */     return this.predicate;
+/*    */   }
+/*    */   
+/*    */   static Predicate<?> isNotNullPutStaticReturn() {
+/* 25 */     predicateStatic = a -> a != null;
+/* 26 */     return predicateStatic;
+/*    */   }
+/*    */ }

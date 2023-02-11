@@ -70,7 +70,6 @@ import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
 import jd.core.model.instruction.bytecode.instruction.Invokestatic;
 import jd.core.model.instruction.bytecode.instruction.Jsr;
 import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
-import jd.core.model.instruction.bytecode.instruction.LookupSwitch;
 import jd.core.model.instruction.bytecode.instruction.MultiANewArray;
 import jd.core.model.instruction.bytecode.instruction.NewArray;
 import jd.core.model.instruction.bytecode.instruction.Pop;
@@ -78,7 +77,6 @@ import jd.core.model.instruction.bytecode.instruction.PutField;
 import jd.core.model.instruction.bytecode.instruction.PutStatic;
 import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
-import jd.core.model.instruction.bytecode.instruction.TableSwitch;
 import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
@@ -160,716 +158,656 @@ public class SourceWriterVisitor
             return lineNumber;
         }
 
-        switch (instruction.getOpcode())
-        {
-        case Const.ARRAYLENGTH:
+        if (!instruction.isWritten()) {
+            switch (instruction.getOpcode())
             {
-                lineNumber = visit(instruction, ((ArrayLength)instruction).getArrayref());
-
-                if (this.firstOffset <= this.previousOffset &&
-                    instruction.getOffset() <= this.lastOffset)
+            case Const.ARRAYLENGTH:
                 {
-                    this.printer.print(lineNumber, '.');
-                    this.printer.printJavaWord("length");
-                }
-            }
-            break;
-        case ByteCodeConstants.ARRAYLOAD:
-            {
-                ArrayLoadInstruction ali = (ArrayLoadInstruction)instruction;
-                lineNumber = writeArray(ali, ali.getArrayref(), ali.getIndexref());
-            }
-            break;
-        case Const.AASTORE,
-             ByteCodeConstants.ARRAYSTORE:
-            {
-                ArrayStoreInstruction asi = (ArrayStoreInstruction)instruction;
-                lineNumber = writeArray(asi, asi.getArrayref(), asi.getIndexref());
-
-                int nextOffset = this.previousOffset + 1;
-                if (this.firstOffset <= nextOffset &&
-                    nextOffset <= this.lastOffset) {
-                    this.printer.print(lineNumber, " = ");
-                }
-
-                lineNumber = visit(asi, asi.getValueref());
-            }
-            break;
-        case Const.ANEWARRAY:
-            {
-                ANewArray newArray = (ANewArray)instruction;
-                Instruction dimension = newArray.getDimension();
-
-                String signature = constants.getConstantClassName(newArray.getIndex());
-
-                if (signature.charAt(0) != '[') {
-                    signature = SignatureUtil.createTypeName(signature);
-                }
-
-                String signatureWithoutArray =
-                    SignatureUtil.cutArrayDimensionPrefix(signature);
-
-                int nextOffset = this.previousOffset + 1;
-
-                if (this.firstOffset <= this.previousOffset &&
-                    nextOffset <= this.lastOffset)
-                {
-                    this.printer.printKeyword(lineNumber, "new");
-                    this.printer.print(' ');
-
-                    SignatureWriter.writeSignature(
-                        this.loader, this.printer, this.referenceMap,
-                        this.classFile, signatureWithoutArray);
-
-                    this.printer.print(lineNumber, '[');
-                }
-
-                lineNumber = visit(dimension);
-
-                if (this.firstOffset <= this.previousOffset &&
-                    instruction.getOffset() <= this.lastOffset)
-                {
-                    this.printer.print(lineNumber, ']');
-
-                    int dimensionCount =
-                        signature.length() - signatureWithoutArray.length();
-
-                    for (int i=dimensionCount; i>0; --i) {
-                        this.printer.print(lineNumber, "[]");
-                    }
-                }
-            }
-            break;
-        case Const.ACONST_NULL:
-            {
-                if (this.firstOffset <= this.previousOffset &&
-                    instruction.getOffset() <= this.lastOffset) {
-                    this.printer.printKeyword(lineNumber, "null");
-                }
-            }
-            break;
-        case ByteCodeConstants.ASSERT:
-            {
-                AssertInstruction ai = (AssertInstruction)instruction;
-
-                int nextOffset = this.previousOffset + 1;
-
-                if (this.firstOffset <= this.previousOffset &&
-                    nextOffset <= this.lastOffset)
-                {
-                    this.printer.printKeyword(lineNumber, "assert");
-                    this.printer.print(' ');
-                }
-
-                lineNumber = visit(ai, ai.getTest());
-
-                if (ai.getMsg() != null)
-                {
-
+                    lineNumber = visit(instruction, ((ArrayLength)instruction).getArrayref());
+    
                     if (this.firstOffset <= this.previousOffset &&
-                        ai.getMsg().getOffset() <= this.lastOffset) {
-                        this.printer.print(lineNumber, " : ");
-                    }
-
-                    lineNumber = visit(ai, ai.getMsg());
-                }
-            }
-            break;
-        case ByteCodeConstants.ASSIGNMENT:
-            lineNumber = writeAssignmentInstruction(
-                (AssignmentInstruction)instruction);
-            if (instruction.getNext() != null) {
-                this.printer.print(", ");
-                lineNumber = visit(instruction.getNext());
-            }
-            break;
-        case Const.ATHROW:
-            {
-                AThrow athrow = (AThrow)instruction;
-                int nextOffset = this.previousOffset + 1;
-
-                if (this.firstOffset <= this.previousOffset &&
-                    nextOffset <= this.lastOffset)
-                {
-                    this.printer.printKeyword(lineNumber, "throw");
-                    this.printer.print(' ');
-                }
-
-                lineNumber = visit(athrow, athrow.getValue());
-            }
-            break;
-        case ByteCodeConstants.UNARYOP:
-            {
-                UnaryOperatorInstruction ioi =
-                    (UnaryOperatorInstruction)instruction;
-
-                int nextOffset = this.previousOffset + 1;
-
-                if (this.firstOffset <= this.previousOffset &&
-                    nextOffset <= this.lastOffset) {
-                    this.printer.print(lineNumber, ioi.getOperator());
-                }
-
-                lineNumber = visit(ioi, ioi.getValue());
-            }
-            break;
-        case ByteCodeConstants.BINARYOP:
-            lineNumber = writeBinaryOperatorInstruction(
-                (BinaryOperatorInstruction)instruction);
-            break;
-        case Const.BIPUSH,
-             Const.SIPUSH,
-             ByteCodeConstants.ICONST:
-            lineNumber = writeBIPushSIPushIConst((IConst)instruction);
-            break;
-        case ByteCodeConstants.LCONST:
-            if (this.firstOffset <= this.previousOffset &&
-                instruction.getOffset() <= this.lastOffset)
-            {
-                this.printer.printNumeric(lineNumber,
-                    String.valueOf(((ConstInstruction)instruction).getValue()) + 'L');
-            }
-            break;
-        case ByteCodeConstants.FCONST:
-            if (this.firstOffset <= this.previousOffset &&
-                instruction.getOffset() <= this.lastOffset)
-            {
-                String value =
-                    String.valueOf(((ConstInstruction)instruction).getValue());
-                if (value.indexOf('.') == -1) {
-                    value += ".0";
-                }
-                this.printer.printNumeric(lineNumber, value + 'F');
-            }
-            break;
-        case ByteCodeConstants.DCONST:
-            if (this.firstOffset <= this.previousOffset &&
-                instruction.getOffset() <= this.lastOffset)
-            {
-                String value =
-                    String.valueOf(((ConstInstruction)instruction).getValue());
-                if (value.indexOf('.') == -1) {
-                    value += ".0";
-                }
-                this.printer.printNumeric(lineNumber, value + 'D');
-            }
-            break;
-        case ByteCodeConstants.CONVERT:
-            lineNumber = writeConvertInstruction(
-                (ConvertInstruction)instruction);
-            break;
-        case ByteCodeConstants.IMPLICITCONVERT:
-            lineNumber = visit(((ConvertInstruction)instruction).getValue());
-            break;
-        case Const.CHECKCAST:
-            {
-                CheckCast checkCast = (CheckCast)instruction;
-
-                int nextOffset = this.previousOffset + 1;
-
-                if (this.firstOffset <= this.previousOffset &&
-                    nextOffset <= this.lastOffset)
-                {
-                    this.printer.print(lineNumber, '(');
-
-                    String signature;
-                    Constant c = constants.get(checkCast.getIndex());
-
-                    if (c instanceof ConstantUtf8)
+                        instruction.getOffset() <= this.lastOffset)
                     {
-                        // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
-                        ConstantUtf8 cutf8 = (ConstantUtf8) c;
-                        signature = cutf8.getBytes();
+                        this.printer.print(lineNumber, '.');
+                        this.printer.printJavaWord("length");
                     }
-                    else
-                    {
-                        ConstantClass cc = (ConstantClass)c;
-                        signature = constants.getConstantUtf8(cc.getNameIndex());
-                        if (signature.charAt(0) != '[') {
-                            signature = SignatureUtil.createTypeName(signature);
-                        }
+                }
+                break;
+            case ByteCodeConstants.ARRAYLOAD:
+                {
+                    ArrayLoadInstruction ali = (ArrayLoadInstruction)instruction;
+                    lineNumber = writeArray(ali, ali.getArrayref(), ali.getIndexref());
+                }
+                break;
+            case Const.AASTORE,
+                 ByteCodeConstants.ARRAYSTORE:
+                {
+                    ArrayStoreInstruction asi = (ArrayStoreInstruction)instruction;
+                    lineNumber = writeArray(asi, asi.getArrayref(), asi.getIndexref());
+    
+                    int nextOffset = this.previousOffset + 1;
+                    if (this.firstOffset <= nextOffset &&
+                        nextOffset <= this.lastOffset) {
+                        this.printer.print(lineNumber, " = ");
                     }
-
-                    SignatureWriter.writeSignature(
-                        this.loader, this.printer, this.referenceMap,
-                        this.classFile, signature);
-
-                    this.printer.print(')');
+    
+                    lineNumber = visit(asi, asi.getValueref());
                 }
-
-                lineNumber = visit(checkCast, checkCast.getObjectref());
-            }
-            break;
-        case FastConstants.DECLARE:
-            lineNumber = writeDeclaration((FastDeclaration)instruction);
-            break;
-        case ByteCodeConstants.DUPSTORE:
-            {
-                DupStore dupStore = (DupStore)instruction;
-
-                int nextOffset = this.previousOffset + 1;
-
-                if (this.firstOffset <= this.previousOffset &&
-                    nextOffset <= this.lastOffset)
+                break;
+            case Const.ANEWARRAY:
                 {
-                    this.printer.print(
-                        lineNumber, StringConstants.TMP_LOCAL_VARIABLE_NAME);
-                    this.printer.print(instruction.getOffset());
-                    this.printer.print('_');
-                    this.printer.print(
-                        ((DupStore)instruction).getObjectref().getOffset());
-                    this.printer.print(" = ");
-                }
-
-                lineNumber = visit(instruction, dupStore.getObjectref());
-            }
-            break;
-        case ByteCodeConstants.DUPLOAD:
-            {
-                int nextOffset = this.previousOffset + 1;
-
-                if (this.firstOffset <= this.previousOffset &&
-                    nextOffset <= this.lastOffset)
-                {
-                    this.printer.print(
-                        lineNumber, StringConstants.TMP_LOCAL_VARIABLE_NAME);
-                    this.printer.print(instruction.getOffset());
-                    this.printer.print('_');
-                    this.printer.print(
-                        ((DupLoad)instruction).getDupStore().getObjectref().getOffset());
-                }
-            }
-            break;
-        case FastConstants.ENUMVALUE:
-            lineNumber = writeEnumValueInstruction((InvokeNew)instruction);
-            break;
-        case Const.GETFIELD:
-            writeGetField((GetField)instruction);
-            break;
-        case Const.GETSTATIC:
-            lineNumber = writeGetStatic((GetStatic)instruction);
-            break;
-        case ByteCodeConstants.OUTERTHIS:
-            lineNumber = writeOuterThis((GetStatic)instruction);
-            break;
-        case Const.GOTO:
-            {
-                if (this.firstOffset <= this.previousOffset &&
-                    instruction.getOffset() <= this.lastOffset)
-                {
-                    Goto gotoInstruction = (Goto)instruction;
-                    this.printer.printKeyword(lineNumber, "goto");
-                    this.printer.print(' ');
-                    this.printer.print(
-                        lineNumber, gotoInstruction.getJumpOffset());
-                }
-            }
-            break;
-        case FastConstants.GOTO_CONTINUE:
-            if (this.firstOffset <= this.previousOffset &&
-                instruction.getOffset() <= this.lastOffset)
-            {
-                this.printer.printKeyword(lineNumber, "continue");
-            }
-            break;
-        case FastConstants.GOTO_BREAK:
-            if (this.firstOffset <= this.previousOffset &&
-                instruction.getOffset() <= this.lastOffset)
-            {
-                this.printer.printKeyword(lineNumber, "break");
-            }
-            break;
-        case ByteCodeConstants.IF:
-            lineNumber = writeIfTest((IfInstruction)instruction);
-            break;
-        case ByteCodeConstants.IFCMP:
-            lineNumber = writeIfCmpTest((IfCmp)instruction);
-            break;
-        case ByteCodeConstants.IFXNULL:
-            lineNumber = writeIfXNullTest((IfInstruction)instruction);
-            break;
-        case ByteCodeConstants.COMPLEXIF:
-            lineNumber = writeComplexConditionalBranchInstructionTest(
-                (ComplexConditionalBranchInstruction)instruction);
-            break;
-        case Const.IINC:
-            lineNumber = writeIInc((IInc)instruction);
-            if (instruction.getNext() != null) {
-                this.printer.print(", ");
-                lineNumber = visit(instruction.getNext());
-            }
-            break;
-        case ByteCodeConstants.PREINC:
-            lineNumber = writePreInc((IncInstruction)instruction);
-            break;
-        case ByteCodeConstants.POSTINC:
-            lineNumber = writePostInc((IncInstruction)instruction);
-            if (instruction.getNext() != null) {
-                this.printer.print(", ");
-                lineNumber = visit(instruction.getNext());
-            }
-            break;
-        case ByteCodeConstants.INVOKENEW:
-            lineNumber = writeInvokeNewInstruction((InvokeNew)instruction);
-            break;
-        case Const.INSTANCEOF:
-            {
-                InstanceOf instanceOf = (InstanceOf)instruction;
-
-                lineNumber = visit(instanceOf, instanceOf.getObjectref());
-
-                if (this.firstOffset <= this.previousOffset &&
-                    instruction.getOffset() <= this.lastOffset)
-                {
-                    this.printer.print(lineNumber, ' ');
-                    this.printer.printKeyword("instanceof");
-                    this.printer.print(' ');
-
-                    // reference to a class, array, or interface
-                    String signature =
-                        constants.getConstantClassName(instanceOf.getIndex());
-
+                    ANewArray newArray = (ANewArray)instruction;
+                    Instruction dimension = newArray.getDimension();
+    
+                    String signature = constants.getConstantClassName(newArray.getIndex());
+    
                     if (signature.charAt(0) != '[') {
                         signature = SignatureUtil.createTypeName(signature);
                     }
-
-                    SignatureWriter.writeSignature(
-                        this.loader, this.printer, this.referenceMap,
-                        this.classFile, signature);
-                }
-            }
-            break;
-        case Const.INVOKEINTERFACE,
-             Const.INVOKEVIRTUAL:
-            lineNumber = writeInvokeNoStaticInstruction(
-                (InvokeNoStaticInstruction)instruction);
-            break;
-        case Const.INVOKESPECIAL:
-            lineNumber = writeInvokespecial(
-                (InvokeNoStaticInstruction)instruction);
-            break;
-        case Const.INVOKESTATIC:
-            lineNumber = writeInvokestatic((Invokestatic)instruction);
-            break;
-        case Const.JSR:
-            {
-                if (this.firstOffset <= this.previousOffset &&
-                    instruction.getOffset() <= this.lastOffset)
-                {
-                    this.printer.printKeyword(lineNumber, "jsr");
-                    this.printer.print(' ');
-                    this.printer.print((short)((Jsr)instruction).getBranch());
-                }
-            }
-            break;
-        case Const.LDC,
-             Const.LDC2_W:
-            lineNumber = writeLcdInstruction((IndexInstruction)instruction);
-            break;
-        case ByteCodeConstants.LOAD,
-             Const.ALOAD,
-             Const.ILOAD:
-            lineNumber = writeLoadInstruction((LoadInstruction)instruction);
-            break;
-        case Const.LOOKUPSWITCH:
-            {
-                LookupSwitch lookupSwitch = (LookupSwitch)instruction;
-
-                int nextOffset = this.previousOffset + 1;
-
-                if (this.firstOffset <= this.previousOffset &&
-                    nextOffset <= this.lastOffset)
-                {
-                    this.printer.printKeyword(lineNumber, "switch");
-                    this.printer.print(" (");
-                }
-
-                lineNumber = visit(lookupSwitch.getKey());
-
-                if (this.firstOffset <= this.previousOffset &&
-                    instruction.getOffset() <= this.lastOffset)
-                {
-                    this.printer.print(lineNumber, ')');
-                }
-            }
-            break;
-        case Const.TABLESWITCH:
-            {
-                TableSwitch tableSwitch = (TableSwitch)instruction;
-
-                int nextOffset = this.previousOffset + 1;
-
-                if (this.firstOffset <= this.previousOffset &&
-                    nextOffset <= this.lastOffset)
-                {
-                    this.printer.printKeyword(lineNumber, "switch");
-                    this.printer.print(" (");
-                }
-
-                lineNumber = visit(tableSwitch.getKey());
-
-                if (this.firstOffset <= this.previousOffset &&
-                    instruction.getOffset() <= this.lastOffset)
-                {
-                    this.printer.print(lineNumber, ')');
-                }
-            }
-            break;
-        case Const.MONITORENTER:
-            {
-                if (this.firstOffset <= this.previousOffset &&
-                    instruction.getOffset() <= this.lastOffset)
-                {
-                    this.printer.startOfError();
-                    this.printer.printKeyword(lineNumber, "monitorenter");
-                    this.printer.endOfError();
-                }
-            }
-            break;
-        case Const.MONITOREXIT:
-            {
-                if (this.firstOffset <= this.previousOffset &&
-                    instruction.getOffset() <= this.lastOffset)
-                {
-                    this.printer.startOfError();
-                    this.printer.printKeyword(lineNumber, "monitorexit");
-                    this.printer.endOfError();
-                }
-            }
-            break;
-        case Const.MULTIANEWARRAY:
-            lineNumber = writeMultiANewArray((MultiANewArray)instruction);
-            break;
-        case Const.NEW:
-            {
-                if (this.firstOffset <= this.previousOffset &&
-                    instruction.getOffset() <= this.lastOffset)
-                {
-                    this.printer.printKeyword(lineNumber, "new");
-                    this.printer.print(' ');
-                    this.printer.print(
-                        lineNumber, constants.getConstantClassName(
-                            ((IndexInstruction)instruction).getIndex()));
-                }
-            }
-            break;
-        case Const.NEWARRAY:
-            {
-                NewArray newArray = (NewArray)instruction;
-                int nextOffset = this.previousOffset + 1;
-
-                if (this.firstOffset <= this.previousOffset &&
-                    nextOffset <= this.lastOffset)
-                {
-                    this.printer.printKeyword(lineNumber, "new");
-                    this.printer.print(' ');
-                    SignatureWriter.writeSignature(
-                        this.loader, this.printer,
-                        this.referenceMap, this.classFile,
-                        SignatureUtil.getSignatureFromType(newArray.getType()));
-                    this.printer.print(lineNumber, '[');
-                }
-
-                lineNumber = visit(newArray.getDimension());
-
-                if (this.firstOffset <= this.previousOffset &&
-                    instruction.getOffset() <= this.lastOffset) {
-                    this.printer.print(lineNumber, ']');
-                }
-            }
-            break;
-        case Const.POP:
-            lineNumber = visit(instruction, ((Pop)instruction).getObjectref());
-            break;
-        case Const.PUTFIELD:
-            {
-                PutField putField = (PutField)instruction;
-
-                ConstantFieldref cfr = constants.getConstantFieldref(putField.getIndex());
-                ConstantNameAndType cnat =
-                    constants.getConstantNameAndType(cfr.getNameAndTypeIndex());
-
-                boolean displayPrefix = false;
-
-                if (this.localVariables.containsLocalVariableWithNameIndex(cnat.getNameIndex()))
-                {
-                    if (putField.getObjectref().getOpcode() == Const.ALOAD) {
-                        if (((ALoad)putField.getObjectref()).getIndex() == 0) {
-                            displayPrefix = true;
+    
+                    String signatureWithoutArray =
+                        SignatureUtil.cutArrayDimensionPrefix(signature);
+    
+                    int nextOffset = this.previousOffset + 1;
+    
+                    if (this.firstOffset <= this.previousOffset &&
+                        nextOffset <= this.lastOffset)
+                    {
+                        this.printer.printKeyword(lineNumber, "new");
+                        this.printer.print(' ');
+    
+                        SignatureWriter.writeSignature(
+                            this.loader, this.printer, this.referenceMap,
+                            this.classFile, signatureWithoutArray);
+    
+                        this.printer.print(lineNumber, '[');
+                    }
+    
+                    lineNumber = visit(dimension);
+    
+                    if (this.firstOffset <= this.previousOffset &&
+                        instruction.getOffset() <= this.lastOffset)
+                    {
+                        this.printer.print(lineNumber, ']');
+    
+                        int dimensionCount =
+                            signature.length() - signatureWithoutArray.length();
+    
+                        for (int i=dimensionCount; i>0; --i) {
+                            this.printer.print(lineNumber, "[]");
                         }
-                    } else if (putField.getObjectref().getOpcode() == ByteCodeConstants.OUTERTHIS && !needAPrefixForThisField(
-                            cnat.getNameIndex(), cnat.getSignatureIndex(),
-                            (GetStatic)putField.getObjectref())) {
-                        displayPrefix = true;
                     }
                 }
-
-                if (this.firstOffset <= this.previousOffset &&
-                    putField.getObjectref().getOffset() <= this.lastOffset)
+                break;
+            case Const.ACONST_NULL:
                 {
-                    if (!displayPrefix)
+                    if (this.firstOffset <= this.previousOffset &&
+                        instruction.getOffset() <= this.lastOffset) {
+                        this.printer.printKeyword(lineNumber, "null");
+                    }
+                }
+                break;
+            case ByteCodeConstants.ASSERT:
+                {
+                    AssertInstruction ai = (AssertInstruction)instruction;
+    
+                    int nextOffset = this.previousOffset + 1;
+    
+                    if (this.firstOffset <= this.previousOffset &&
+                        nextOffset <= this.lastOffset)
                     {
-                        this.printer.addNewLinesAndPrefix(lineNumber);
-                        this.printer.startOfOptionalPrefix();
+                        this.printer.printKeyword(lineNumber, "assert");
+                        this.printer.print(' ');
                     }
-
-                    lineNumber = visit(putField, putField.getObjectref());
-                    this.printer.print(lineNumber, '.');
-
-                    if (!displayPrefix)
+    
+                    lineNumber = visit(ai, ai.getTest());
+    
+                    if (ai.getMsg() != null)
                     {
-                        this.printer.endOfOptionalPrefix();
+    
+                        if (this.firstOffset <= this.previousOffset &&
+                            ai.getMsg().getOffset() <= this.lastOffset) {
+                            this.printer.print(lineNumber, " : ");
+                        }
+    
+                        lineNumber = visit(ai, ai.getMsg());
                     }
                 }
-
-                String fieldName =
-                    constants.getConstantUtf8(cnat.getNameIndex());
-                if (this.keywordSet.contains(fieldName)) {
-                    fieldName = StringConstants.JD_FIELD_PREFIX + fieldName;
-                }
-
-                int nextOffset = this.previousOffset + 1;
-
-                if (this.firstOffset <= this.previousOffset &&
-                    nextOffset <= this.lastOffset)
-                {
-                    String internalClassName =
-                        this.constants.getConstantClassName(cfr.getClassIndex());
-                    String descriptor =
-                        this.constants.getConstantUtf8(cnat.getSignatureIndex());
-                    this.printer.printField(
-                        lineNumber, internalClassName, fieldName,
-                        descriptor, this.classFile.getThisClassName());
-                    this.printer.print(" = ");
-                }
-
-                lineNumber = visit(putField, putField.getValueref());
-            }
-            break;
-        case Const.PUTSTATIC:
-            lineNumber = writePutStatic((PutStatic)instruction);
-            break;
-        case Const.RET:
-            {
-                if (this.firstOffset <= this.previousOffset &&
-                    instruction.getOffset() <= this.lastOffset)
-                {
-                    this.printer.startOfError();
-                    this.printer.printKeyword(lineNumber, "ret");
-                    this.printer.endOfError();
-                }
-            }
-            break;
-        case Const.RETURN:
-            {
-                if (this.firstOffset <= this.previousOffset &&
-                    instruction.getOffset() <= this.lastOffset) {
-                    this.printer.printKeyword(lineNumber, "return");
-                }
-            }
-            break;
-        case ByteCodeConstants.XRETURN:
-            {
-                ReturnInstruction ri = (ReturnInstruction)instruction;
-
-                if (this.firstOffset <= this.previousOffset &&
-                    instruction.getOffset() <= this.lastOffset)
-                {
-                    if (!this.printer.toString().endsWith("->")) {
-                        this.printer.printKeyword(ri.getLineNumber(), "return");
-                    }
-                    this.printer.print(' ');
-                }
-
-                lineNumber = visit(ri.getValueref());
-            }
-            break;
-        case ByteCodeConstants.STORE,
-            Const.ASTORE,
-            Const.ISTORE:
-                lineNumber = writeStoreInstruction((StoreInstruction) instruction);
-                if (instruction.getNext() !=  null) {
+                break;
+            case ByteCodeConstants.ASSIGNMENT:
+                lineNumber = writeAssignmentInstruction(
+                    (AssignmentInstruction)instruction);
+                if (instruction.getNext() != null) {
                     this.printer.print(", ");
                     lineNumber = visit(instruction.getNext());
                 }
-            break;
-        case ByteCodeConstants.EXCEPTIONLOAD:
-            lineNumber = writeExceptionLoad((ExceptionLoad)instruction);
-            break;
-        case ByteCodeConstants.RETURNADDRESSLOAD:
-            {
+                break;
+            case Const.ATHROW:
+                {
+                    AThrow athrow = (AThrow)instruction;
+                    int nextOffset = this.previousOffset + 1;
+    
+                    if (this.firstOffset <= this.previousOffset &&
+                        nextOffset <= this.lastOffset)
+                    {
+                        this.printer.printKeyword(lineNumber, "throw");
+                        this.printer.print(' ');
+                    }
+    
+                    lineNumber = visit(athrow, athrow.getValue());
+                }
+                break;
+            case ByteCodeConstants.UNARYOP:
+                {
+                    UnaryOperatorInstruction ioi =
+                        (UnaryOperatorInstruction)instruction;
+    
+                    int nextOffset = this.previousOffset + 1;
+    
+                    if (this.firstOffset <= this.previousOffset &&
+                        nextOffset <= this.lastOffset) {
+                        this.printer.print(lineNumber, ioi.getOperator());
+                    }
+    
+                    lineNumber = visit(ioi, ioi.getValue());
+                }
+                break;
+            case ByteCodeConstants.BINARYOP:
+                lineNumber = writeBinaryOperatorInstruction(
+                    (BinaryOperatorInstruction)instruction);
+                break;
+            case Const.BIPUSH,
+                 Const.SIPUSH,
+                 ByteCodeConstants.ICONST:
+                lineNumber = writeBIPushSIPushIConst((IConst)instruction);
+                break;
+            case ByteCodeConstants.LCONST:
                 if (this.firstOffset <= this.previousOffset &&
                     instruction.getOffset() <= this.lastOffset)
                 {
-                    this.printer.startOfError();
-                    this.printer.printKeyword(lineNumber, "returnAddress");
-                    this.printer.endOfError();
+                    this.printer.printNumeric(lineNumber,
+                        String.valueOf(((ConstInstruction)instruction).getValue()) + 'L');
                 }
-            }
-            break;
-        case ByteCodeConstants.TERNARYOPSTORE:
-            {
-                int nextOffset = this.previousOffset + 1;
-
+                break;
+            case ByteCodeConstants.FCONST:
                 if (this.firstOffset <= this.previousOffset &&
-                    nextOffset <= this.lastOffset)
+                    instruction.getOffset() <= this.lastOffset)
                 {
-                    this.printer.startOfError();
-                    this.printer.print(lineNumber, "tmpTernaryOp");
-                    this.printer.print(lineNumber, " = ");
-                    this.printer.endOfError();
+                    String value =
+                        String.valueOf(((ConstInstruction)instruction).getValue());
+                    if (value.indexOf('.') == -1) {
+                        value += ".0";
+                    }
+                    this.printer.printNumeric(lineNumber, value + 'F');
                 }
-
-                lineNumber = visit(
-                    instruction, ((TernaryOpStore)instruction).getObjectref());
-            }
-            break;
-        case ByteCodeConstants.TERNARYOP:
-            {
-                TernaryOperator tp = (TernaryOperator)instruction;
-
-                lineNumber = visit(tp.getTest());
-
-                int nextOffset = this.previousOffset + 1;
-
+                break;
+            case ByteCodeConstants.DCONST:
                 if (this.firstOffset <= this.previousOffset &&
-                    nextOffset <= this.lastOffset) {
-                    this.printer.print(lineNumber, " ? ");
+                    instruction.getOffset() <= this.lastOffset)
+                {
+                    String value =
+                        String.valueOf(((ConstInstruction)instruction).getValue());
+                    if (value.indexOf('.') == -1) {
+                        value += ".0";
+                    }
+                    this.printer.printNumeric(lineNumber, value + 'D');
                 }
-
-                lineNumber = visit(tp, tp.getValue1());
-
-                nextOffset = this.previousOffset + 1;
-
+                break;
+            case ByteCodeConstants.CONVERT:
+                lineNumber = writeConvertInstruction(
+                    (ConvertInstruction)instruction);
+                break;
+            case ByteCodeConstants.IMPLICITCONVERT:
+                lineNumber = visit(((ConvertInstruction)instruction).getValue());
+                break;
+            case Const.CHECKCAST:
+                {
+                    CheckCast checkCast = (CheckCast)instruction;
+    
+                    int nextOffset = this.previousOffset + 1;
+    
+                    if (this.firstOffset <= this.previousOffset &&
+                        nextOffset <= this.lastOffset)
+                    {
+                        this.printer.print(lineNumber, '(');
+    
+                        String signature;
+                        Constant c = constants.get(checkCast.getIndex());
+    
+                        if (c instanceof ConstantUtf8)
+                        {
+                            // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
+                            ConstantUtf8 cutf8 = (ConstantUtf8) c;
+                            signature = cutf8.getBytes();
+                        }
+                        else
+                        {
+                            ConstantClass cc = (ConstantClass)c;
+                            signature = constants.getConstantUtf8(cc.getNameIndex());
+                            if (signature.charAt(0) != '[') {
+                                signature = SignatureUtil.createTypeName(signature);
+                            }
+                        }
+    
+                        SignatureWriter.writeSignature(
+                            this.loader, this.printer, this.referenceMap,
+                            this.classFile, signature);
+    
+                        this.printer.print(')');
+                    }
+    
+                    lineNumber = visit(checkCast, checkCast.getObjectref());
+                }
+                break;
+            case FastConstants.DECLARE:
+                lineNumber = writeDeclaration((FastDeclaration)instruction);
+                break;
+            case ByteCodeConstants.DUPSTORE:
+                {
+                    DupStore dupStore = (DupStore)instruction;
+    
+                    int nextOffset = this.previousOffset + 1;
+    
+                    if (this.firstOffset <= this.previousOffset &&
+                        nextOffset <= this.lastOffset)
+                    {
+                        this.printer.print(
+                            lineNumber, StringConstants.TMP_LOCAL_VARIABLE_NAME);
+                        this.printer.print(instruction.getOffset());
+                        this.printer.print('_');
+                        this.printer.print(
+                            ((DupStore)instruction).getObjectref().getOffset());
+                        this.printer.print(" = ");
+                    }
+    
+                    lineNumber = visit(instruction, dupStore.getObjectref());
+                }
+                break;
+            case ByteCodeConstants.DUPLOAD:
+                {
+                    int nextOffset = this.previousOffset + 1;
+    
+                    if (this.firstOffset <= this.previousOffset &&
+                        nextOffset <= this.lastOffset)
+                    {
+                        this.printer.print(
+                            lineNumber, StringConstants.TMP_LOCAL_VARIABLE_NAME);
+                        this.printer.print(instruction.getOffset());
+                        this.printer.print('_');
+                        this.printer.print(
+                            ((DupLoad)instruction).getDupStore().getObjectref().getOffset());
+                    }
+                }
+                break;
+            case FastConstants.ENUMVALUE:
+                lineNumber = writeEnumValueInstruction((InvokeNew)instruction);
+                break;
+            case Const.GETFIELD:
+                writeGetField((GetField)instruction);
+                break;
+            case Const.GETSTATIC:
+                lineNumber = writeGetStatic((GetStatic)instruction);
+                break;
+            case ByteCodeConstants.OUTERTHIS:
+                lineNumber = writeOuterThis((GetStatic)instruction);
+                break;
+            case Const.GOTO:
+                {
+                    if (this.firstOffset <= this.previousOffset &&
+                        instruction.getOffset() <= this.lastOffset)
+                    {
+                        Goto gotoInstruction = (Goto)instruction;
+                        this.printer.printKeyword(lineNumber, "goto");
+                        this.printer.print(' ');
+                        this.printer.print(
+                            lineNumber, gotoInstruction.getJumpOffset());
+                    }
+                }
+                break;
+            case FastConstants.GOTO_CONTINUE:
                 if (this.firstOffset <= this.previousOffset &&
-                    nextOffset <= this.lastOffset) {
-                    this.printer.print(lineNumber, " : ");
+                    instruction.getOffset() <= this.lastOffset)
+                {
+                    this.printer.printKeyword(lineNumber, "continue");
                 }
-
-                lineNumber = visit(tp, tp.getValue2());
+                break;
+            case FastConstants.GOTO_BREAK:
+                if (this.firstOffset <= this.previousOffset &&
+                    instruction.getOffset() <= this.lastOffset)
+                {
+                    this.printer.printKeyword(lineNumber, "break");
+                }
+                break;
+            case ByteCodeConstants.IF:
+                lineNumber = writeIfTest((IfInstruction)instruction);
+                break;
+            case ByteCodeConstants.IFCMP:
+                lineNumber = writeIfCmpTest((IfCmp)instruction);
+                break;
+            case ByteCodeConstants.IFXNULL:
+                lineNumber = writeIfXNullTest((IfInstruction)instruction);
+                break;
+            case ByteCodeConstants.COMPLEXIF:
+                lineNumber = writeComplexConditionalBranchInstructionTest(
+                    (ComplexConditionalBranchInstruction)instruction);
+                break;
+            case Const.IINC:
+                lineNumber = writeIInc((IInc)instruction);
+                if (instruction.getNext() != null) {
+                    this.printer.print(", ");
+                    lineNumber = visit(instruction.getNext());
+                }
+                break;
+            case ByteCodeConstants.PREINC:
+                lineNumber = writePreInc((IncInstruction)instruction);
+                break;
+            case ByteCodeConstants.POSTINC:
+                lineNumber = writePostInc((IncInstruction)instruction);
+                if (instruction.getNext() != null) {
+                    this.printer.print(", ");
+                    lineNumber = visit(instruction.getNext());
+                }
+                break;
+            case ByteCodeConstants.INVOKENEW:
+                lineNumber = writeInvokeNewInstruction((InvokeNew)instruction);
+                break;
+            case Const.INSTANCEOF:
+                {
+                    InstanceOf instanceOf = (InstanceOf)instruction;
+    
+                    lineNumber = visit(instanceOf, instanceOf.getObjectref());
+    
+                    if (this.firstOffset <= this.previousOffset &&
+                        instruction.getOffset() <= this.lastOffset)
+                    {
+                        this.printer.print(lineNumber, ' ');
+                        this.printer.printKeyword("instanceof");
+                        this.printer.print(' ');
+    
+                        // reference to a class, array, or interface
+                        String signature =
+                            constants.getConstantClassName(instanceOf.getIndex());
+    
+                        if (signature.charAt(0) != '[') {
+                            signature = SignatureUtil.createTypeName(signature);
+                        }
+    
+                        SignatureWriter.writeSignature(
+                            this.loader, this.printer, this.referenceMap,
+                            this.classFile, signature);
+                    }
+                }
+                break;
+            case Const.INVOKEINTERFACE,
+                 Const.INVOKEVIRTUAL:
+                lineNumber = writeInvokeNoStaticInstruction(
+                    (InvokeNoStaticInstruction)instruction);
+                break;
+            case Const.INVOKESPECIAL:
+                lineNumber = writeInvokespecial(
+                    (InvokeNoStaticInstruction)instruction);
+                break;
+            case Const.INVOKESTATIC:
+                lineNumber = writeInvokestatic((Invokestatic)instruction);
+                break;
+            case Const.JSR:
+                {
+                    if (this.firstOffset <= this.previousOffset &&
+                        instruction.getOffset() <= this.lastOffset)
+                    {
+                        this.printer.printKeyword(lineNumber, "jsr");
+                        this.printer.print(' ');
+                        this.printer.print((short)((Jsr)instruction).getBranch());
+                    }
+                }
+                break;
+            case Const.LDC,
+                 Const.LDC2_W:
+                lineNumber = writeLcdInstruction((IndexInstruction)instruction);
+                break;
+            case ByteCodeConstants.LOAD,
+                 Const.ALOAD,
+                 Const.ILOAD:
+                lineNumber = writeLoadInstruction((LoadInstruction)instruction);
+                break;
+            case Const.MULTIANEWARRAY:
+                lineNumber = writeMultiANewArray((MultiANewArray)instruction);
+                break;
+            case Const.NEW:
+                {
+                    if (this.firstOffset <= this.previousOffset &&
+                        instruction.getOffset() <= this.lastOffset)
+                    {
+                        this.printer.printKeyword(lineNumber, "new");
+                        this.printer.print(' ');
+                        this.printer.print(
+                            lineNumber, constants.getConstantClassName(
+                                ((IndexInstruction)instruction).getIndex()));
+                    }
+                }
+                break;
+            case Const.NEWARRAY:
+                {
+                    NewArray newArray = (NewArray)instruction;
+                    int nextOffset = this.previousOffset + 1;
+    
+                    if (this.firstOffset <= this.previousOffset &&
+                        nextOffset <= this.lastOffset)
+                    {
+                        this.printer.printKeyword(lineNumber, "new");
+                        this.printer.print(' ');
+                        SignatureWriter.writeSignature(
+                            this.loader, this.printer,
+                            this.referenceMap, this.classFile,
+                            SignatureUtil.getSignatureFromType(newArray.getType()));
+                        this.printer.print(lineNumber, '[');
+                    }
+    
+                    lineNumber = visit(newArray.getDimension());
+    
+                    if (this.firstOffset <= this.previousOffset &&
+                        instruction.getOffset() <= this.lastOffset) {
+                        this.printer.print(lineNumber, ']');
+                    }
+                }
+                break;
+            case Const.POP:
+                lineNumber = visit(instruction, ((Pop)instruction).getObjectref());
+                break;
+            case Const.PUTFIELD:
+                {
+                    PutField putField = (PutField)instruction;
+    
+                    ConstantFieldref cfr = constants.getConstantFieldref(putField.getIndex());
+                    ConstantNameAndType cnat =
+                        constants.getConstantNameAndType(cfr.getNameAndTypeIndex());
+    
+                    boolean displayPrefix = false;
+    
+                    if (this.localVariables.containsLocalVariableWithNameIndex(cnat.getNameIndex()))
+                    {
+                        if (putField.getObjectref().getOpcode() == Const.ALOAD) {
+                            if (((ALoad)putField.getObjectref()).getIndex() == 0) {
+                                displayPrefix = true;
+                            }
+                        } else if (putField.getObjectref().getOpcode() == ByteCodeConstants.OUTERTHIS && !needAPrefixForThisField(
+                                cnat.getNameIndex(), cnat.getSignatureIndex(),
+                                (GetStatic)putField.getObjectref())) {
+                            displayPrefix = true;
+                        }
+                    }
+    
+                    if (this.firstOffset <= this.previousOffset &&
+                        putField.getObjectref().getOffset() <= this.lastOffset)
+                    {
+                        if (!displayPrefix)
+                        {
+                            this.printer.addNewLinesAndPrefix(lineNumber);
+                            this.printer.startOfOptionalPrefix();
+                        }
+    
+                        lineNumber = visit(putField, putField.getObjectref());
+                        this.printer.print(lineNumber, '.');
+    
+                        if (!displayPrefix)
+                        {
+                            this.printer.endOfOptionalPrefix();
+                        }
+                    }
+    
+                    String fieldName =
+                        constants.getConstantUtf8(cnat.getNameIndex());
+                    if (this.keywordSet.contains(fieldName)) {
+                        fieldName = StringConstants.JD_FIELD_PREFIX + fieldName;
+                    }
+    
+                    int nextOffset = this.previousOffset + 1;
+    
+                    if (this.firstOffset <= this.previousOffset &&
+                        nextOffset <= this.lastOffset)
+                    {
+                        String internalClassName =
+                            this.constants.getConstantClassName(cfr.getClassIndex());
+                        String descriptor =
+                            this.constants.getConstantUtf8(cnat.getSignatureIndex());
+                        this.printer.printField(
+                            lineNumber, internalClassName, fieldName,
+                            descriptor, this.classFile.getThisClassName());
+                        this.printer.print(" = ");
+                    }
+    
+                    lineNumber = visit(putField, putField.getValueref());
+                }
+                break;
+            case Const.PUTSTATIC:
+                lineNumber = writePutStatic((PutStatic)instruction);
+                break;
+            case Const.RET:
+                {
+                    if (this.firstOffset <= this.previousOffset &&
+                        instruction.getOffset() <= this.lastOffset)
+                    {
+                        this.printer.startOfError();
+                        this.printer.printKeyword(lineNumber, "ret");
+                        this.printer.endOfError();
+                    }
+                }
+                break;
+            case Const.RETURN:
+                {
+                    if (this.firstOffset <= this.previousOffset &&
+                        instruction.getOffset() <= this.lastOffset) {
+                        this.printer.printKeyword(lineNumber, "return");
+                    }
+                }
+                break;
+            case ByteCodeConstants.XRETURN:
+                {
+                    ReturnInstruction ri = (ReturnInstruction)instruction;
+    
+                    if (this.firstOffset <= this.previousOffset && 
+                        (instruction.getOffset() <= this.lastOffset
+                        || ri.holdsLambda()))
+                    {
+                        if (!this.printer.toString().endsWith("->")) {
+                            this.printer.printKeyword(ri.getLineNumber(), "return");
+                        }
+                        this.printer.print(' ');
+                    }
+    
+                    lineNumber = visit(ri.getValueref());
+                }
+                break;
+            case ByteCodeConstants.STORE,
+                Const.ASTORE,
+                Const.ISTORE:
+                    lineNumber = writeStoreInstruction((StoreInstruction) instruction);
+                    if (instruction.getNext() !=  null) {
+                        this.printer.print(", ");
+                        lineNumber = visit(instruction.getNext());
+                    }
+                break;
+            case ByteCodeConstants.EXCEPTIONLOAD:
+                lineNumber = writeExceptionLoad((ExceptionLoad)instruction);
+                break;
+            case ByteCodeConstants.RETURNADDRESSLOAD:
+                {
+                    if (this.firstOffset <= this.previousOffset &&
+                        instruction.getOffset() <= this.lastOffset)
+                    {
+                        this.printer.startOfError();
+                        this.printer.printKeyword(lineNumber, "returnAddress");
+                        this.printer.endOfError();
+                    }
+                }
+                break;
+            case ByteCodeConstants.TERNARYOPSTORE:
+                {
+                    int nextOffset = this.previousOffset + 1;
+    
+                    if (this.firstOffset <= this.previousOffset &&
+                        nextOffset <= this.lastOffset)
+                    {
+                        this.printer.startOfError();
+                        this.printer.print(lineNumber, "tmpTernaryOp");
+                        this.printer.print(lineNumber, " = ");
+                        this.printer.endOfError();
+                    }
+    
+                    lineNumber = visit(
+                        instruction, ((TernaryOpStore)instruction).getObjectref());
+                }
+                break;
+            case ByteCodeConstants.TERNARYOP:
+                {
+                    TernaryOperator tp = (TernaryOperator)instruction;
+    
+                    lineNumber = visit(tp.getTest());
+    
+                    int nextOffset = this.previousOffset + 1;
+    
+                    if (this.firstOffset <= this.previousOffset &&
+                        nextOffset <= this.lastOffset) {
+                        this.printer.print(lineNumber, " ? ");
+                    }
+    
+                    lineNumber = visit(tp, tp.getValue1());
+    
+                    nextOffset = this.previousOffset + 1;
+    
+                    if (this.firstOffset <= this.previousOffset &&
+                        nextOffset <= this.lastOffset) {
+                        this.printer.print(lineNumber, " : ");
+                    }
+    
+                    lineNumber = visit(tp, tp.getValue2());
+                }
+                break;
+            case ByteCodeConstants.INITARRAY:
+                lineNumber = writeInitArrayInstruction(
+                    (InitArrayInstruction)instruction);
+                break;
+            case ByteCodeConstants.NEWANDINITARRAY:
+                lineNumber = writeNewAndInitArrayInstruction(
+                    (InitArrayInstruction)instruction);
+                break;
+            case Const.NOP:
+                break;
+            case Const.INVOKEDYNAMIC:
+                if (instruction instanceof SourceWriteable) { // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
+                    SourceWriteable sw = (SourceWriteable) instruction;
+                    sw.write(printer, this);
+                }
+                break;
+            default:
+                System.err.println(
+                        "Can not write code for " +
+                        instruction.getClass().getName() +
+                        ", opcode=" + instruction.getOpcode());
             }
-            break;
-        case ByteCodeConstants.INITARRAY:
-            lineNumber = writeInitArrayInstruction(
-                (InitArrayInstruction)instruction);
-            break;
-        case ByteCodeConstants.NEWANDINITARRAY:
-            lineNumber = writeNewAndInitArrayInstruction(
-                (InitArrayInstruction)instruction);
-            break;
-        case Const.NOP:
-            break;
-        case Const.INVOKEDYNAMIC:
-            if (instruction instanceof SourceWriteable) { // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
-                SourceWriteable sw = (SourceWriteable) instruction;
-                sw.write(printer, this);
+            if (instruction.holdsLambda()) {
+                instruction.setWritten(true);
             }
-            break;
-        default:
-            System.err.println(
-                    "Can not write code for " +
-                    instruction.getClass().getName() +
-                    ", opcode=" + instruction.getOpcode());
         }
 
         this.previousOffset = instruction.getOffset();
@@ -2239,7 +2177,7 @@ public class SourceWriterVisitor
         int nextOffset = this.previousOffset + 1;
 
         if (this.firstOffset <= this.previousOffset &&
-            nextOffset <= this.lastOffset)
+            (nextOffset <= this.lastOffset || putStatic.holdsLambda()))
         {
             int lineNumber = putStatic.getLineNumber();
 
@@ -2285,7 +2223,8 @@ public class SourceWriterVisitor
         int nextOffset = this.previousOffset + 1;
 
         if (this.firstOffset <= this.previousOffset &&
-            nextOffset <= this.lastOffset)
+            (nextOffset <= this.lastOffset
+            || storeInstruction.holdsLambda()))
         {
             int lineNumber = storeInstruction.getLineNumber();
 
@@ -2461,7 +2400,7 @@ public class SourceWriterVisitor
             int nextOffset = this.previousOffset + 1;
 
             if (this.firstOffset <= this.previousOffset &&
-                nextOffset <= this.lastOffset)
+                (nextOffset <= this.lastOffset || fd.holdsLambda()))
             {
                 this.printer.addNewLinesAndPrefix(lineNumber);
                 String signature =

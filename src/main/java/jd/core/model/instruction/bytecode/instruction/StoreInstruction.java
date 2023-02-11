@@ -40,4 +40,8 @@ public class StoreInstruction
         this.valueref = valueref;
     }
 
+    @Override
+    public boolean holdsLambda() {
+        return valueref instanceof LambdaInstruction;
+    }
 }

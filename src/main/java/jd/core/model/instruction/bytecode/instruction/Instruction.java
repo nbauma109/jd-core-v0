@@ -28,6 +28,7 @@ public abstract class Instruction
     private final int offset;
     private int lineNumber;
     private Instruction next; // comma-separated instruction in for and declarations
+    private boolean written;
     
     protected Instruction(int opcode, int offset, int lineNumber)
     {
@@ -74,5 +75,17 @@ public abstract class Instruction
 
     public void setNext(Instruction next) {
         this.next = next;
+    }
+
+    public boolean isWritten() {
+        return written;
+    }
+
+    public void setWritten(boolean written) {
+        this.written = written;
+    }
+
+    public boolean holdsLambda() {
+        return false;
     }
 }
