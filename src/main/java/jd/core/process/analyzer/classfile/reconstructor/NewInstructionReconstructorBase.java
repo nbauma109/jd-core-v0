@@ -19,6 +19,8 @@ package jd.core.process.analyzer.classfile.reconstructor;
 import org.apache.bcel.Const;
 import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
 
+import java.util.List;
+
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.Field;
@@ -59,7 +61,6 @@ public class NewInstructionReconstructorBase
             if (innerFields != null)
             {
                 int i = innerFields.length;
-                int argsLength = invokeNew.getArgs().size();
                 ConstantPool innerConstants = innerClassFile.getConstantPool();
                 LocalVariables localVariables = method.getLocalVariables();
 
@@ -73,11 +74,9 @@ public class NewInstructionReconstructorBase
                     if (index != UtilConstants.INVALID_INDEX)
                     {
                         innerField.setAnonymousClassConstructorParameterIndex(UtilConstants.INVALID_INDEX);
-
-                        if (index < argsLength)
+                        Instruction arg = searchInstructionInArgs(invokeNew.getArgs(), index);
+                        if (arg != null)
                         {
-                            Instruction arg = invokeNew.getArgs().get(index);
-
                             if (arg.getOpcode() == Const.CHECKCAST) {
                                 arg = ((CheckCast)arg).getObjectref();
                             }
@@ -95,7 +94,7 @@ public class NewInstructionReconstructorBase
                                 if (lv != null)
                                 {
                                     // Ajout du nom du parametre au ConstantPool
-                                    // de la class anonyme
+                                    // de la classe anonyme
                                     String name =
                                         constants.getConstantUtf8(lv.getNameIndex());
                                     innerField.setOuterMethodLocalVariableNameIndex(innerConstants.addConstantUtf8(name));
@@ -110,5 +109,13 @@ public class NewInstructionReconstructorBase
                 }
             }
         }
+    }
+
+    private static Instruction searchInstructionInArgs(List<Instruction> args, int index) {
+        return args.stream()
+                .filter(IndexInstruction.class::isInstance)
+                .filter(ii -> ((IndexInstruction) ii).getIndex() == index)
+                .findFirst()
+                .orElse(null);
     }
 }
