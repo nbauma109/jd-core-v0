@@ -112,14 +112,10 @@ public class NewInstructionReconstructorBase
     }
 
     private static Instruction searchInstructionInArgs(List<Instruction> args, int index) {
-        for (Instruction instruction : args) {
-            if (instruction instanceof IndexInstruction) {
-                IndexInstruction ii = (IndexInstruction) instruction;
-                if (ii.getIndex() == index) {
-                    return instruction;
-                }
-            }
-        }
-        return null;
+        return args.stream()
+                .filter(IndexInstruction.class::isInstance)
+                .filter(ii -> ((IndexInstruction) ii).getIndex() == index)
+                .findFirst()
+                .orElse(null);
     }
 }
