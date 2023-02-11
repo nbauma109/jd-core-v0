@@ -5,13 +5,13 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.function.Consumer;
 
-public abstract interface Generic
+public interface Generic
 {
-  public abstract <T extends Serializable, X extends Runnable, Y extends Comparable<T>> void process(T paramT, X paramX, Y paramY);
+  <T extends Serializable, X extends Runnable, Y extends Comparable<T>> void process(T paramT, X paramX, Y paramY);
   
-  public abstract <T extends Serializable & Runnable, X extends Comparable<T> & Cloneable & Externalizable> void process(T paramT);
+  <T extends Serializable & Runnable, X extends Comparable<T> & Cloneable & Externalizable> void process(T paramT);
   
-  public abstract <E> boolean addAll(Collection<? extends E> paramCollection);
+  <E> boolean addAll(Collection<? extends E> paramCollection);
   
-  public abstract <E> void forEach(Consumer<? super E> paramConsumer);
+  default <E> void forEach(Consumer<? super E> action) {}
 }

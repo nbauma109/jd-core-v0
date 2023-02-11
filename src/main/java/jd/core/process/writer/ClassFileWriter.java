@@ -129,7 +129,7 @@ public final class ClassFileWriter
         PUBLIC, PRIVATE, PROTECTED, STATIC, FINAL, SYNCHRONIZED,
         null, null, NATIVE, null, ABSTRACT, STRICTFP
     };
-
+    
     private static final String[] ACCESS_NESTED_CLASS_NAMES = {
         PUBLIC, PRIVATE, PROTECTED, STATIC, FINAL
     };
@@ -905,7 +905,7 @@ public final class ClassFileWriter
             this.printer.printKeyword(FINAL);
             this.printer.print(' ');
         }
-        if ((accessFlags & Const.ACC_ABSTRACT) != 0)
+        if ((accessFlags & Const.ACC_ABSTRACT) != 0 && (accessFlags & Const.ACC_INTERFACE) == 0)
         {
             this.printer.printKeyword(ABSTRACT);
             this.printer.print(' ');
@@ -1698,7 +1698,15 @@ public final class ClassFileWriter
                         break;
                 }
             } else {
-                writeAccessMethod(method.getAccessFlags());
+                if ((mlb.getClassFile().getAccessFlags() & Const.ACC_INTERFACE) == 0) {
+                    writeAccessMethod(method.getAccessFlags());
+                } else {
+                    if ((method.getAccessFlags() & Const.ACC_ABSTRACT) == 0) {
+                        this.printer.printKeyword(DEFAULT);
+                        this.printer.print(' ');
+                    }
+                    writeAccessMethod(method.getAccessFlags() & ~(Const.ACC_PUBLIC|Const.ACC_ABSTRACT));
+                }
                 SignatureWriter.writeMethodDeclaration(
                         keywords, this.loader, this.printer, this.referenceMap,
                         mlb.getClassFile(), method, mlb.getSignature(), mlb.hasDescriptorFlag(), mlb.isLambda());
