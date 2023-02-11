@@ -1705,7 +1705,7 @@ public final class ClassFileWriter
                         this.printer.printKeyword(DEFAULT);
                         this.printer.print(' ');
                     }
-                    writeAccessMethod(method.getAccessFlags() & ~(Const.ACC_PUBLIC|Const.ACC_ABSTRACT));
+                    writeAccessMethod(method.getAccessFlags() & ~(Const.ACC_PUBLIC|Const.ACC_ABSTRACT|Const.ACC_STATIC));
                 }
                 SignatureWriter.writeMethodDeclaration(
                         keywords, this.loader, this.printer, this.referenceMap,
