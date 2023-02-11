@@ -22,6 +22,7 @@ import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
+import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 
 /** List & while(true). */
 public class FastDeclaration extends Instruction
@@ -88,5 +89,14 @@ public class FastDeclaration extends Instruction
 
     public void setSkipped(boolean skipped) {
         this.skipped = skipped;
+    }
+
+    @Override
+    public boolean holdsLambda() {
+        if (instruction instanceof StoreInstruction) {
+            StoreInstruction si = (StoreInstruction) instruction;
+            return si.holdsLambda();
+        }
+        return false;
     }
 }

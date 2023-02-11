@@ -175,9 +175,9 @@ public final class FastInstructionListBuilder {
             for (int i = lfce.size() - 1; i >= 0; --i) {
                 fce = lfce.get(i);
                 if (fce.hasSynchronizedFlag()) {
-                    createSynchronizedBlock(referenceMap, classFile, list, localVariables, fce);
+                    createSynchronizedBlock(referenceMap, classFile, list, localVariables, fce, method);
                 } else {
-                    createFastTry(referenceMap, classFile, list, localVariables, fce, returnOffset);
+                    createFastTry(referenceMap, classFile, list, localVariables, fce, returnOffset, method);
                 }
             }
         }
@@ -185,7 +185,7 @@ public final class FastInstructionListBuilder {
         // last attempt to remove last remaining JSRs that have been missed
         list.removeIf(instr -> instr.getOpcode() == Const.JSR);
 
-        executeReconstructors(referenceMap, classFile, list, localVariables);
+        executeReconstructors(referenceMap, classFile, list, localVariables, method);
 
         analyzeList(classFile, method, list, localVariables, offsetLabelSet, -1, -1, -1, -1, -1, -1, returnOffset);
 
@@ -297,7 +297,7 @@ public final class FastInstructionListBuilder {
     }
 
     private static void createSynchronizedBlock(ReferenceMap referenceMap, ClassFile classFile, List<Instruction> list,
-            LocalVariables localVariables, FastCodeExcepcion fce) {
+            LocalVariables localVariables, FastCodeExcepcion fce, Method method) {
         int index = InstructionUtil.getIndexForOffset(list, fce.getTryFromOffset());
         Instruction instruction = list.get(index);
         int synchronizedBlockJumpOffset = -1;
@@ -389,7 +389,7 @@ public final class FastInstructionListBuilder {
             Collections.reverse(instructions);
 
             // Analyze lists of instructions
-            executeReconstructors(referenceMap, classFile, instructions, localVariables);
+            executeReconstructors(referenceMap, classFile, instructions, localVariables, method);
 
             // Remove 'monitorenter (localTestSynchronize1 = xxx)'
             MonitorEnter menter = (MonitorEnter) list.remove(index);
@@ -554,7 +554,7 @@ public final class FastInstructionListBuilder {
                 Instruction monitorexit = list.remove(index);
 
                 // Analyze lists of instructions
-                executeReconstructors(referenceMap, classFile, instructions, localVariables);
+                executeReconstructors(referenceMap, classFile, instructions, localVariables, method);
 
                 FastSynchronized fastSynchronized = new FastSynchronized(FastConstants.SYNCHRONIZED,
                         monitorexit.getOffset(), instruction.getLineNumber(), 1, instructions);
@@ -628,7 +628,7 @@ public final class FastInstructionListBuilder {
                 }
 
                 // Analyze lists of instructions
-                executeReconstructors(referenceMap, classFile, instructions, localVariables);
+                executeReconstructors(referenceMap, classFile, instructions, localVariables, method);
 
                 synchronizedBlockJumpOffset = searchMinusJumpOffset(instructions, 0, instructions.size(),
                         fce.getTryFromOffset(), fce.getAfterOffset());
@@ -761,7 +761,7 @@ public final class FastInstructionListBuilder {
                     lineNumber, branch, instructions);
 
             // Analyze lists of instructions
-            executeReconstructors(referenceMap, classFile, instructions, localVariables);
+            executeReconstructors(referenceMap, classFile, instructions, localVariables, method);
 
             // Store new FastTry instruction
             list.set(index + 1, fastSynchronized);
@@ -853,7 +853,8 @@ public final class FastInstructionListBuilder {
     }
 
     private static void createFastTry(ReferenceMap referenceMap, ClassFile classFile,
-            List<Instruction> list, LocalVariables localVariables, FastCodeExcepcion fce, int returnOffset) {
+            List<Instruction> list, LocalVariables localVariables, FastCodeExcepcion fce,
+            int returnOffset, Method method) {
         int afterListOffset = fce.getAfterOffset();
         int tryJumpOffset = -1;
         int lastIndex = list.size() - 1;
@@ -1044,7 +1045,7 @@ public final class FastInstructionListBuilder {
         }
         
         // Analyze lists of instructions
-        executeReconstructors(referenceMap, classFile, tryInstructions, localVariables);
+        executeReconstructors(referenceMap, classFile, tryInstructions, localVariables, method);
 
         if (catches != null)
         {
@@ -1055,14 +1056,14 @@ public final class FastInstructionListBuilder {
             for (int j = 0; j < length; ++j) {
                 fc = catches.get(j);
                 catchInstructions = fc.instructions();
-                executeReconstructors(referenceMap, classFile, catchInstructions, localVariables);
+                executeReconstructors(referenceMap, classFile, catchInstructions, localVariables, method);
             }
             
             fastTry.removeOutOfBounds();
         }
 
         if (finallyInstructions != null) {
-            executeReconstructors(referenceMap, classFile, finallyInstructions, localVariables);
+            executeReconstructors(referenceMap, classFile, finallyInstructions, localVariables, method);
         }
         ConstantPool cp = classFile.getConstantPool();
         boolean removedTryResourcesPattern = fastTry.removeTryResourcesPattern(localVariables, cp);
@@ -1147,14 +1148,14 @@ public final class FastInstructionListBuilder {
         return null;
     }
 
-    /**
+    /*
      * début de liste fin de liste | | Liste ...
      * --|----|---|==0===1===2===3===4===5===6==7=...=n---|--| ... | | | | | | |
      * beforeListOffset | | Offsets | loopEntryOffset endLoopOffset |
      * beforeLoopEntryOffset afterLoopOffset
      */
     private static void executeReconstructors(ReferenceMap referenceMap, ClassFile classFile, List<Instruction> list,
-            LocalVariables localVariables) {
+            LocalVariables localVariables, Method method) {
         // Reconstruction des blocs synchronisés vides
         EmptySynchronizedBlockReconstructor.reconstruct(localVariables, list);
         // Reconstruction du mot clé '.class' pour ECJ
@@ -1172,7 +1173,7 @@ public final class FastInstructionListBuilder {
         AssertInstructionReconstructor.reconstruct(classFile, list);
         // Create ternary operator before analysis of local variables.
         // A executer après 'ComparisonInstructionAnalyzer'
-        TernaryOpReconstructor.reconstruct(list);
+        TernaryOpReconstructor.reconstruct(list, method.hasReturnType("Z"));
         // Reconstruction des initialisations de tableaux
         // Cette operation doit être executee après
         // 'AssignmentInstructionReconstructor'.

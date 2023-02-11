@@ -44,4 +44,9 @@ public class ReturnInstruction extends Instruction
     public void setValueref(Instruction valueref) {
         this.valueref = valueref;
     }
+
+    @Override
+    public boolean holdsLambda() {
+        return valueref instanceof LambdaInstruction;
+    }
 }

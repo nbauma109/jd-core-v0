@@ -211,10 +211,22 @@ public class Method extends FieldOrMethod
         this.superConstructorParameterCount = count;
     }
 
+    public String getName() {
+        return constants.getConstantUtf8(getNameIndex());
+    }
+
+    public String getDescriptor() {
+        return constants.getConstantUtf8(getDescriptorIndex());
+    }
+
+    public boolean hasReturnType(String returnType) {
+        return getDescriptor().endsWith(')' + returnType);
+    }
+
     @Override
     public String toString() {
-        String methodName = constants.getConstantUtf8(getNameIndex());
-        String methodDesc = constants.getConstantUtf8(getDescriptorIndex());
+        String methodName = getName();
+        String methodDesc = getDescriptor();
         return methodName + methodDesc;
     }
 }
