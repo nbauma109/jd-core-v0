@@ -1189,6 +1189,11 @@ public final class ClassFileAnalyzer
                                     // Retrait de l'appel du constructeur s'il
                                     // n'a aucun parametre.
                                     list.remove(0);
+                                } else if (count == 1 && args.get(0).getOpcode() == Const.ACONST_NULL) {
+                                    String signature = constants.getConstantUtf8(cnat.getSignatureIndex());
+                                    if (signature.endsWith("$1;)V")) {
+                                        list.remove(0);
+                                    }
                                 } else if (args.get(0).getOpcode() == ByteCodeConstants.OUTERTHIS)
                                 {
                                     GetStatic getStatic = (GetStatic) args.get(0);
