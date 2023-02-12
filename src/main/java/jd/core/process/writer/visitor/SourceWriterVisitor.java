@@ -158,7 +158,7 @@ public class SourceWriterVisitor
             return lineNumber;
         }
 
-        if (!instruction.isWritten()) {
+        if (!instruction.isHidden()) {
             switch (instruction.getOpcode())
             {
             case Const.ARRAYLENGTH:
@@ -806,7 +806,7 @@ public class SourceWriterVisitor
                         ", opcode=" + instruction.getOpcode());
             }
             if (instruction.holdsLambda()) {
-                instruction.setWritten(true);
+                instruction.setHidden(true);
             }
         }
 
@@ -2444,7 +2444,7 @@ public class SourceWriterVisitor
                     this.printer.print(
                         lineNumber, constants.getConstantUtf8(lv.getNameIndex()));
                 } else {
-                    fd.setSkipped(true);
+                    fd.setHidden(true);
                 }
             }
             else
