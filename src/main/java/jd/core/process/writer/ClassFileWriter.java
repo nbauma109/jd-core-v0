@@ -1914,10 +1914,8 @@ public final class ClassFileWriter
         this.instructionPrinter.startOfInstruction();
         this.visitor.visit(fd);
         this.instructionPrinter.endOfInstruction();
-        if (!fd.isHidden()) {
-            this.printer.print(';');
-            this.addSpace = true;
-        }
+        this.printer.print(';');
+        this.addSpace = true;
         this.instructionPrinter.release();
 
         this.printer.debugEndOfInstructionBlockLayoutBlock();
