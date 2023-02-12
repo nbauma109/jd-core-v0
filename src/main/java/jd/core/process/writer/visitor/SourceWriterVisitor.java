@@ -2440,8 +2440,6 @@ public class SourceWriterVisitor
                     nextOffset <= this.lastOffset) {
                     this.printer.print(
                         lineNumber, constants.getConstantUtf8(lv.getNameIndex()));
-                } else {
-                    fd.setHidden(true);
                 }
             }
             else

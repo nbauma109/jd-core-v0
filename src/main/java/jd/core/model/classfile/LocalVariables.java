@@ -189,18 +189,6 @@ public class LocalVariables
         this.indexOfFirstLocalVariable = indexOfFirstLocalVariable;
     }
 
-    public int getMaxLocalVariableIndex()
-    {
-        int length = this.listOfLocalVariables.size();
-
-        return length == 0 ?
-            -1 : this.listOfLocalVariables.get(length-1).getIndex();
-    }
-    
-    public List<String> getNames(ConstantPool constantPool) {
-        return this.listOfLocalVariables.stream().map(constantPool::getLocalVariableName).toList();
-    }
-
     public List<String> getFormalParameterNames(ConstantPool constantPool) {
         return this.listOfLocalVariables.stream().filter(lv -> lv.getStartPc() == 0).map(constantPool::getLocalVariableName).toList();
     }
