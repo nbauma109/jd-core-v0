@@ -29,8 +29,8 @@ public class LayoutBlock {
 
     private byte tag;
 
-    private final int firstLineNumber;
-    private final int lastLineNumber;
+    private int firstLineNumber;
+    private int lastLineNumber;
 
     private final int minimalLineCount;
     private final int maximalLineCount;
@@ -84,6 +84,14 @@ public class LayoutBlock {
 
     public int getFirstLineNumber() {
         return firstLineNumber;
+    }
+
+    public void setFirstLineNumber(int firstLineNumber) {
+        this.firstLineNumber = firstLineNumber;
+    }
+
+    public void setLastLineNumber(int lastLineNumber) {
+        this.lastLineNumber = lastLineNumber;
     }
 
     public byte getTag() {

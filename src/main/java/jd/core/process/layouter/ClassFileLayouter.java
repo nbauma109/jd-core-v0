@@ -34,6 +34,7 @@ import jd.core.model.classfile.Field;
 import jd.core.model.classfile.Field.ValueAndMethod;
 import jd.core.model.classfile.Method;
 import jd.core.model.classfile.attribute.AttributeSignature;
+import jd.core.model.instruction.bytecode.instruction.AThrow;
 import jd.core.model.instruction.bytecode.instruction.GetStatic;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNew;
@@ -3543,7 +3544,8 @@ public final class ClassFileLayouter {
                 classFile, method, signature,
                 as == null, nullCodeFlag, lambdaInstruction.getParameterNames()));
         int lineNumber = lambdaInstruction.getLineNumber();
-        subLayoutBlockList.add(new LambdaArrowLayoutBlock(classFile, method, lineNumber));
+        LayoutBlock arrow = new LambdaArrowLayoutBlock(classFile, method, lineNumber);
+        subLayoutBlockList.add(arrow);
         
         int firstLineNumber = Instruction.UNKNOWN_LINE_NUMBER;
         int lastLineNumber = Instruction.UNKNOWN_LINE_NUMBER;
@@ -3572,8 +3574,14 @@ public final class ClassFileLayouter {
                 int paramCount = countLambdaDeclarations(list);
                 InnerTypeBodyBlockStartLayoutBlock mbbslb =
                     new InnerTypeBodyBlockStartLayoutBlock();
-                if (list.size() != paramCount + 1) {
+                int n = list.size();
+                boolean block = n!=paramCount+1 || list.get(n-1) instanceof AThrow;
+                if (block) {
                     subLayoutBlockList.add(mbbslb);
+                } else {
+                    lineNumber = list.get(n-1).getLineNumber();
+                    arrow.setFirstLineNumber(lineNumber);
+                    arrow.setLastLineNumber(lineNumber);
                 }
                 int subLayoutBlockListLength = subLayoutBlockList.size();
 
@@ -3612,8 +3620,8 @@ public final class ClassFileLayouter {
                     new InnerTypeBodyBlockEndLayoutBlock();
                 mbbslb.setOther(mbbelb);
                 mbbelb.setOther(mbbslb);
-                if (list.size() != paramCount + 1) {
-                    if (list.size() == paramCount) {
+                if (block) {
+                    if (n == paramCount) {
                         mbbslb.transformToStartEndBlock();
                     } else {
                         subLayoutBlockList.add(mbbelb);

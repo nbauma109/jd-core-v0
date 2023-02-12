@@ -1861,7 +1861,7 @@ public final class ClassFileWriter
                 this.printer.print(' ');
             }
             this.visitor.visit(instruction);
-
+            
             if (idx < lastIndex || ilb.getLastOffset() == instruction.getOffset())
             {
                 // Ne pas afficher de ';' si une instruction n'a pas ete
@@ -1913,7 +1913,7 @@ public final class ClassFileWriter
         this.instructionPrinter.startOfInstruction();
         this.visitor.visit(fd);
         this.instructionPrinter.endOfInstruction();
-        if (!fd.isSkipped()) {
+        if (!fd.isHidden()) {
             this.printer.print(';');
             this.addSpace = true;
         }
