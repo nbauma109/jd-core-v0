@@ -219,10 +219,6 @@ public class Method extends FieldOrMethod
         return constants.getConstantUtf8(getDescriptorIndex());
     }
 
-    public boolean hasReturnType(String returnType) {
-        return getDescriptor().endsWith(')' + returnType);
-    }
-
     @Override
     public String toString() {
         String methodName = getName();

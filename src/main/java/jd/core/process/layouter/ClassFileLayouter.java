@@ -39,7 +39,6 @@ import jd.core.model.instruction.bytecode.instruction.GetStatic;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNew;
 import jd.core.model.instruction.bytecode.instruction.LambdaInstruction;
-import jd.core.model.instruction.fast.instruction.FastDeclaration;
 import jd.core.model.layout.block.BlockLayoutBlock;
 import jd.core.model.layout.block.ByteCodeLayoutBlock;
 import jd.core.model.layout.block.CommentDeprecatedLayoutBlock;
@@ -3571,11 +3570,10 @@ public final class ClassFileLayouter {
             else
             {
                 List<Instruction> list = method.getFastNodes();
-                int paramCount = countLambdaDeclarations(list);
                 InnerTypeBodyBlockStartLayoutBlock mbbslb =
                     new InnerTypeBodyBlockStartLayoutBlock();
                 int n = list.size();
-                boolean block = n!=paramCount+1 || list.get(n-1) instanceof AThrow;
+                boolean block = n!=1 || list.get(n-1) instanceof AThrow;
                 if (block) {
                     subLayoutBlockList.add(mbbslb);
                 } else {
@@ -3621,7 +3619,7 @@ public final class ClassFileLayouter {
                 mbbslb.setOther(mbbelb);
                 mbbelb.setOther(mbbslb);
                 if (block) {
-                    if (n == paramCount) {
+                    if (n == 0) {
                         mbbslb.transformToStartEndBlock();
                     } else {
                         subLayoutBlockList.add(mbbelb);
@@ -3635,14 +3633,5 @@ public final class ClassFileLayouter {
             subLayoutBlockList, firstLineNumber,
             lastLineNumber, preferedLineNumber));
         return sortBlocks(sortedMethodBlockList);
-    }
-
-    private static int countLambdaDeclarations(List<Instruction> fastNodes) {
-        Iterator<Instruction> it = fastNodes.iterator();
-        int count = 0;
-        while (it.hasNext() && it.next() instanceof FastDeclaration) {
-            count++;
-        }
-        return count;
     }
 }

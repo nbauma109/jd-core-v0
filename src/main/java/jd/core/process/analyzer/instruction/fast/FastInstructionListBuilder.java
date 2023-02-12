@@ -1173,7 +1173,7 @@ public final class FastInstructionListBuilder {
         AssertInstructionReconstructor.reconstruct(classFile, list);
         // Create ternary operator before analysis of local variables.
         // A executer après 'ComparisonInstructionAnalyzer'
-        TernaryOpReconstructor.reconstruct(list, method.hasReturnType("Z"));
+        TernaryOpReconstructor.reconstruct(list);
         // Reconstruction des initialisations de tableaux
         // Cette operation doit être executee après
         // 'AssignmentInstructionReconstructor'.

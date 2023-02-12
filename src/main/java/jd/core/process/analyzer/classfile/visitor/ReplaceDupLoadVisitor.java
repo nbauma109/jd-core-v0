@@ -447,6 +447,7 @@ public class ReplaceDupLoadVisitor
         case ByteCodeConstants.TERNARYOP:
             {
                 TernaryOperator to = (TernaryOperator)instruction;
+                visit(to.getTest());
                 if (match(to, to.getValue1()))
                 {
                     to.setValue1(this.newInstruction);

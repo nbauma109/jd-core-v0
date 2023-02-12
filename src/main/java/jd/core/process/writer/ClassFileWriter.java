@@ -1855,11 +1855,12 @@ public final class ClassFileWriter
                 this.instructionPrinter.startOfInstruction();
             }
 
-            boolean inlineLambda = this.printer.toString().endsWith("->");
+            boolean inlineLambda = this.printer.toString().endsWith(" -> ");
             String methodHeader = ilb.getMethod().toString();
             if (inlineLambda && methodHeader.startsWith("lambda$") && methodHeader.endsWith(")V")) {
                 this.printer.print(' ');
             }
+
             this.visitor.visit(instruction);
             
             if (idx < lastIndex || ilb.getLastOffset() == instruction.getOffset())
@@ -1913,10 +1914,8 @@ public final class ClassFileWriter
         this.instructionPrinter.startOfInstruction();
         this.visitor.visit(fd);
         this.instructionPrinter.endOfInstruction();
-        if (!fd.isHidden()) {
-            this.printer.print(';');
-            this.addSpace = true;
-        }
+        this.printer.print(';');
+        this.addSpace = true;
         this.instructionPrinter.release();
 
         this.printer.debugEndOfInstructionBlockLayoutBlock();
@@ -2005,7 +2004,7 @@ public final class ClassFileWriter
 
     private void writeArrow()
     {
-        this.printer.print(" ->");
+        this.printer.print(" -> ");
     }
     
     private void writeSwitch()

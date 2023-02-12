@@ -84,6 +84,7 @@ import jd.core.model.instruction.fast.FastConstants;
 import jd.core.model.instruction.fast.instruction.FastDeclaration;
 import jd.core.model.reference.ReferenceMap;
 import jd.core.printer.InstructionPrinter;
+import jd.core.process.layouter.visitor.MinLineNumberVisitor;
 import jd.core.process.writer.ConstantValueWriter;
 import jd.core.process.writer.SignatureWriter;
 import jd.core.process.writer.SourceWriteable;
@@ -151,7 +152,7 @@ public class SourceWriterVisitor
 
     public int visit(Instruction instruction)
     {
-        int lineNumber = instruction.getLineNumber();
+        int lineNumber = MinLineNumberVisitor.visit(instruction);
 
         if (instruction.getOffset() < this.firstOffset ||
             this.previousOffset > this.lastOffset) {
@@ -705,14 +706,10 @@ public class SourceWriterVisitor
                 {
                     ReturnInstruction ri = (ReturnInstruction)instruction;
     
-                    if (this.firstOffset <= this.previousOffset && 
-                        (instruction.getOffset() <= this.lastOffset
-                        || ri.holdsLambda()))
-                    {
-                        if (!this.printer.toString().endsWith("->")) {
-                            this.printer.printKeyword(ri.getLineNumber(), "return");
-                        }
+                    if (!this.printer.toString().endsWith(" -> ") && !ri.isKeywordPrinted()) {
+                        this.printer.printKeyword(ri.getLineNumber(), "return");
                         this.printer.print(' ');
+                        ri.setKeywordPrinted(true);
                     }
     
                     lineNumber = visit(ri.getValueref());
@@ -2443,8 +2440,6 @@ public class SourceWriterVisitor
                     nextOffset <= this.lastOffset) {
                     this.printer.print(
                         lineNumber, constants.getConstantUtf8(lv.getNameIndex()));
-                } else {
-                    fd.setHidden(true);
                 }
             }
             else

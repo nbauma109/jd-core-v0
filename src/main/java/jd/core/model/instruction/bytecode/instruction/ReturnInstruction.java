@@ -22,6 +22,7 @@ import jd.core.model.classfile.LocalVariables;
 public class ReturnInstruction extends Instruction
 {
     private Instruction valueref;
+    private boolean keywordPrinted;
 
     public ReturnInstruction(
         int opcode, int offset, int lineNumber, Instruction valueref)
@@ -45,8 +46,11 @@ public class ReturnInstruction extends Instruction
         this.valueref = valueref;
     }
 
-    @Override
-    public boolean holdsLambda() {
-        return valueref instanceof LambdaInstruction;
+    public boolean isKeywordPrinted() {
+        return keywordPrinted;
+    }
+
+    public void setKeywordPrinted(boolean keywordPrinted) {
+        this.keywordPrinted = keywordPrinted;
     }
 }
