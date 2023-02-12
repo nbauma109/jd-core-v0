@@ -55,7 +55,7 @@ import jd.core.process.analyzer.classfile.visitor.AddCheckCastVisitor;
 import jd.core.process.analyzer.classfile.visitor.SearchInstructionByOffsetVisitor;
 import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
 import jd.core.process.analyzer.util.InstructionUtil;
-import jd.core.process.analyzer.variable.DefaultVariableNameGenerator;
+import jd.core.process.analyzer.variable.VariableNameGenerator;
 import jd.core.util.SignatureUtil;
 import jd.core.util.UtilConstants;
 
@@ -83,7 +83,7 @@ public final class LocalVariableAnalyzer
 
     public static void analyze(
             ClassFile classFile, Method method,
-            DefaultVariableNameGenerator variableNameGenerator,
+            VariableNameGenerator variableNameGenerator,
             List<Instruction> list, List<Instruction> listForAnalyze)
     {
         ConstantPool constants = classFile.getConstantPool();
@@ -227,7 +227,7 @@ public final class LocalVariableAnalyzer
     private static void analyzeMethodParameter(
             ClassFile classFile, ConstantPool constants,
             Method method, LocalVariables localVariables,
-            DefaultVariableNameGenerator variableNameGenerator, int codeLength)
+            VariableNameGenerator variableNameGenerator, int codeLength)
     {
         // Le descripteur et la signature sont differentes pour les
         // constructeurs des Enums !
@@ -458,7 +458,7 @@ public final class LocalVariableAnalyzer
      */
     private static void checkLocalVariableRanges(
             ConstantPool constants, byte[] code, LocalVariables localVariables,
-            DefaultVariableNameGenerator variableNameGenerator,
+            VariableNameGenerator variableNameGenerator,
             List<Instruction> listForAnalyze)
     {
         // Reset length
@@ -1675,7 +1675,7 @@ public final class LocalVariableAnalyzer
     private static void generateLocalVariableNames(
             ConstantPool constants,
             LocalVariables localVariables,
-            DefaultVariableNameGenerator variableNameGenerator)
+            VariableNameGenerator variableNameGenerator)
     {
         final int length = localVariables.size();
 

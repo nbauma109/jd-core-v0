@@ -31,6 +31,8 @@ import jd.core.model.classfile.attribute.AttributeBootstrapMethods;
 import jd.core.model.classfile.attribute.AttributeInnerClasses;
 import jd.core.model.classfile.attribute.AttributeMethodParameters;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
+import jd.core.process.analyzer.variable.DefaultVariableNameGenerator;
+import jd.core.process.analyzer.variable.VariableNameGenerator;
 import jd.core.util.SignatureUtil;
 
 public class ClassFile extends Base
@@ -58,6 +60,8 @@ public class ClassFile extends Base
     private List<Instruction> enumValues;
     private String internalAnonymousClassName;
     private final Map<String, Map<String, Accessor>> accessors;
+
+    private final VariableNameGenerator variableNameGenerator;
 
     /**
      * Attention :
@@ -113,6 +117,7 @@ public class ClassFile extends Base
         this.accessors = new HashMap<>(10);
         // SwitchMap for Switch+Enum instructions
         this.switchMaps = new HashMap<>();
+        this.variableNameGenerator = new DefaultVariableNameGenerator(this);
     }
 
     private Method findStaticMethod() {
@@ -467,6 +472,10 @@ public class ClassFile extends Base
 
     public Loader getLoader() {
         return loader;
+    }
+
+    public VariableNameGenerator getVariableNameGenerator() {
+        return variableNameGenerator;
     }
 
     @Override

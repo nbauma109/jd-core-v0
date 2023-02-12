@@ -200,4 +200,8 @@ public class LocalVariables
     public List<String> getNames(ConstantPool constantPool) {
         return this.listOfLocalVariables.stream().map(constantPool::getLocalVariableName).toList();
     }
+
+    public List<String> getFormalParameterNames(ConstantPool constantPool) {
+        return this.listOfLocalVariables.stream().filter(lv -> lv.getStartPc() == 0).map(constantPool::getLocalVariableName).toList();
+    }
 }

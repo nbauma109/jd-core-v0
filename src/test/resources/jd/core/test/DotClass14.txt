@@ -119,7 +119,7 @@
 /*     */   }
 /*     */   
 /*     */   Object anonymous() {
-/* 122 */     AccessController.doPrivileged(new PrivilegedAction() {
+/* 122 */     return AccessController.doPrivileged(new PrivilegedAction() {
 /*     */       public Object run() {
 /* 124 */         return Object.class;
 /*     */       }

@@ -2398,8 +2398,8 @@
 /*      */     throws IOException
 /*      */   {
 /* 2400 */     try (UnsynchronizedByteArrayOutputStream ubaOutput = new UnsynchronizedByteArrayOutputStream();
-/* 2401 */     ThresholdingOutputStream thresholdOuput = new ThresholdingOutputStream(Integer.MAX_VALUE,  os -> {
-/*      */       
+/* 2401 */     ThresholdingOutputStream thresholdOuput = new ThresholdingOutputStream(Integer.MAX_VALUE,  os -> 
+/*      */     {
 /* 2403 */       throw new IllegalArgumentException(String.format("Cannot read more than %,d into a byte array", new Object[] {Integer.valueOf(Integer.MAX_VALUE) })); }, 
 /* 2404 */     os -> ubaOutput);) {
 /* 2405 */       copy(inputStream, thresholdOuput);

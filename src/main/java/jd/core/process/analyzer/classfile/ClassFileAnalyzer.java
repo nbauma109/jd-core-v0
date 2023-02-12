@@ -74,7 +74,7 @@ import jd.core.process.analyzer.instruction.bytecode.InstructionListBuilder;
 import jd.core.process.analyzer.instruction.fast.DupLocalVariableAnalyzer;
 import jd.core.process.analyzer.instruction.fast.FastInstructionListBuilder;
 import jd.core.process.analyzer.instruction.fast.ReturnLineNumberAnalyzer;
-import jd.core.process.analyzer.variable.DefaultVariableNameGenerator;
+import jd.core.process.analyzer.variable.VariableNameGenerator;
 import jd.core.util.SignatureUtil;
 
 public final class ClassFileAnalyzer
@@ -726,8 +726,8 @@ public final class ClassFileAnalyzer
             return;
         }
 
-        DefaultVariableNameGenerator variableNameGenerator =
-                new DefaultVariableNameGenerator(classFile);
+        VariableNameGenerator variableNameGenerator =
+                classFile.getVariableNameGenerator();
         int outerThisFieldrefIndex = 0;
 
         for (final Method method : methods)
@@ -761,7 +761,7 @@ public final class ClassFileAnalyzer
         }
     }
 
-    public static int preAnalyzeSingleMethod(ClassFile classFile, DefaultVariableNameGenerator variableNameGenerator, int outerThisFieldrefIndex, final Method method) {
+    public static int preAnalyzeSingleMethod(ClassFile classFile, VariableNameGenerator variableNameGenerator, int outerThisFieldrefIndex, final Method method) {
         // Build instructions
         List<Instruction> list = new ArrayList<>();
         List<Instruction> listForAnalyze = new ArrayList<>();
@@ -779,7 +779,7 @@ public final class ClassFileAnalyzer
             method.setAccessFlags(method.getAccessFlags() | Const.ACC_SYNTHETIC);
         }
         else if ((method.getAccessFlags() &
-                (Const.ACC_SYNTHETIC|Const.ACC_BRIDGE)) == 0)
+                (Const.ACC_SYNTHETIC|Const.ACC_BRIDGE)) == 0 || method.getName().contains("lambda$"))
         {
             // Create missing local variable table
             LocalVariableAnalyzer.analyze(

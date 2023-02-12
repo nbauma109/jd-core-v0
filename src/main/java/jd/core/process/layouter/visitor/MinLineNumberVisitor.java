@@ -23,6 +23,7 @@ import jd.core.model.instruction.bytecode.instruction.ArrayLoadInstruction;
 import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.AssignmentInstruction;
 import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
+import jd.core.model.instruction.bytecode.instruction.CheckCast;
 import jd.core.model.instruction.bytecode.instruction.IncInstruction;
 import jd.core.model.instruction.bytecode.instruction.InstanceOf;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
@@ -50,6 +51,8 @@ public final class MinLineNumberVisitor
             return visit(((AssignmentInstruction)instruction).getValue1());
         case ByteCodeConstants.BINARYOP:
             return visit(((BinaryOperatorInstruction)instruction).getValue1());
+        case Const.CHECKCAST:
+            return visit(((CheckCast)instruction).getObjectref());
         case ByteCodeConstants.PREINC:
             {
                 IncInstruction ii = (IncInstruction)instruction;
