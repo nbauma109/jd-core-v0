@@ -21,7 +21,7 @@ import jd.core.model.classfile.LocalVariables;
 
 /*
  * La construction de cette instruction ne suit pas les règles générales !
- * C'est la seule exception. Cette instruction, appartement au package
+ * C'est la seule exception. Cette instruction, appartenant au package
  * 'bytecode', ne peut être construite qu'après avoir aggloméré les instructions
  * 'if'. Cette instruction est affichée par une classe du package 'bytecode' et
  * est construite par une classe du package 'fast'.
