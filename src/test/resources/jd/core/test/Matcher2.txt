@@ -106,7 +106,7 @@
 /*     */   private static String getLongest() {
 /* 107 */     long max = 0L;
 /* 108 */     String result = null;
-/* 109 */     for (Map.Entry<String, Long> ent : durations.entrySet()) {
+/* 109 */     for (Entry<String, Long> ent : durations.entrySet()) {
 /* 110 */       if (((Long)ent.getValue()).longValue() > max) {
 /* 111 */         max = ((Long)ent.getValue()).longValue();
 /* 112 */         result = (String)ent.getKey();

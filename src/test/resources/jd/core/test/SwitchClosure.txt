@@ -99,7 +99,7 @@
 /*  99 */     Closure<E>[] closures = new Closure[size];
 /* 100 */     Predicate<E>[] preds = new Predicate[size];
 /* 101 */     int i = 0;
-/* 102 */     for (Map.Entry<Predicate<E>, Closure<E>> entry : predicatesAndClosures.entrySet()) {
+/* 102 */     for (Entry<Predicate<E>, Closure<E>> entry : predicatesAndClosures.entrySet()) {
 /* 103 */       preds[i] = ((Predicate)entry.getKey());
 /* 104 */       closures[i] = ((Closure)entry.getValue());
 /* 105 */       i++;

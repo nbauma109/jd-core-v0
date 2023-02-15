@@ -480,7 +480,7 @@
 /*  480 */     locale = LocaleUtils.toLocale(locale);
 /*  481 */     Map<String, Integer> displayNames = calendar.getDisplayNames(field, 0, locale);
 /*  482 */     TreeSet<String> sorted = new TreeSet(LONGER_FIRST_LOWERCASE);
-/*  483 */     for (Map.Entry<String, Integer> displayName : displayNames.entrySet()) {
+/*  483 */     for (Entry<String, Integer> displayName : displayNames.entrySet()) {
 /*  484 */       String key = ((String)displayName.getKey()).toLowerCase(locale);
 /*  485 */       if (sorted.add(key)) {
 /*  486 */         values.put(key, displayName.getValue());

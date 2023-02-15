@@ -565,7 +565,12 @@ public final class SignatureWriter
                 } else if (referenceMap.contains(internalName))
                 {
                     // Si le nom interne fait parti de la liste des "import"
-                    internalName = internalName.substring(index + 1);
+                    int lastIndexOfDollar = internalName.lastIndexOf('$');
+                    if (lastIndexOfDollar != -1) {
+                        internalName = internalName.substring(lastIndexOfDollar + 1);
+                    } else {
+                        internalName = internalName.substring(index + 1);
+                    }
                 }
                 else if ("java/lang".equals(internalPackageName))
                 {
