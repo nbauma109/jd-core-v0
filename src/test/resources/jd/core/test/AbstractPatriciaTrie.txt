@@ -54,7 +54,7 @@
 /*      */   private volatile transient Collection<V> values;
 /*      */   
 /*      */ 
-/*      */   private volatile transient Set<Map.Entry<K, V>> entrySet;
+/*      */   private volatile transient Set<Entry<K, V>> entrySet;
 /*      */   
 /*      */ 
 /*   60 */   private transient int size = 0;
@@ -277,12 +277,12 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   public Map.Entry<K, V> select(K key)
+/*      */   public Entry<K, V> select(K key)
 /*      */   {
 /*  282 */     int lengthInBits = lengthInBits(key);
-/*  283 */     Reference<Map.Entry<K, V>> reference = new Reference();
+/*  283 */     Reference<Entry<K, V>> reference = new Reference();
 /*  284 */     if (!selectR(this.root.left, -1, key, lengthInBits, reference)) {
-/*  285 */       return (Map.Entry)reference.get();
+/*  285 */       return (Entry)reference.get();
 /*      */     }
 /*  287 */     return null;
 /*      */   }
@@ -307,7 +307,7 @@
 /*      */ 
 /*      */   public K selectKey(K key)
 /*      */   {
-/*  310 */     Map.Entry<K, V> entry = select(key);
+/*  310 */     Entry<K, V> entry = select(key);
 /*  311 */     if (entry == null) {
 /*  312 */       return null;
 /*      */     }
@@ -335,7 +335,7 @@
 /*      */ 
 /*      */   public V selectValue(K key)
 /*      */   {
-/*  338 */     Map.Entry<K, V> entry = select(key);
+/*  338 */     Entry<K, V> entry = select(key);
 /*  339 */     if (entry == null) {
 /*  340 */       return null;
 /*      */     }
@@ -348,7 +348,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   private boolean selectR(TrieEntry<K, V> h, int bitIndex, K key, int lengthInBits, Reference<Map.Entry<K, V>> reference)
+/*      */   private boolean selectR(TrieEntry<K, V> h, int bitIndex, K key, int lengthInBits, Reference<Entry<K, V>> reference)
 /*      */   {
 /*  353 */     if (h.bitIndex <= bitIndex)
 /*      */     {
@@ -385,7 +385,7 @@
 /*  385 */     return (!entry.isEmpty()) && (compareKeys(key, entry.key));
 /*      */   }
 /*      */   
-/*      */   public Set<Map.Entry<K, V>> entrySet()
+/*      */   public Set<Entry<K, V>> entrySet()
 /*      */   {
 /*  390 */     if (this.entrySet == null) {
 /*  391 */       this.entrySet = new EntrySet();
@@ -1387,32 +1387,32 @@
 /*      */ 
 /*      */ 
 /*      */   private class EntrySet
-/*      */     extends AbstractSet<Map.Entry<K, V>>
+/*      */     extends AbstractSet<Entry<K, V>>
 /*      */   {
-/*      */     public Iterator<Map.Entry<K, V>> iterator()
+/*      */     public Iterator<Entry<K, V>> iterator()
 /*      */     {
 /* 1394 */       return new EntryIterator();
 /*      */     }
 /*      */     
 /*      */     public boolean contains(Object o)
 /*      */     {
-/* 1399 */       if (!(o instanceof Map.Entry)) {
+/* 1399 */       if (!(o instanceof Entry)) {
 /* 1400 */         return false;
 /*      */       }
 /*      */       
-/* 1403 */       AbstractPatriciaTrie.TrieEntry<K, V> candidate = AbstractPatriciaTrie.this.getEntry(((Map.Entry)o).getKey());
+/* 1403 */       AbstractPatriciaTrie.TrieEntry<K, V> candidate = AbstractPatriciaTrie.this.getEntry(((Entry)o).getKey());
 /* 1404 */       return (candidate != null) && (candidate.equals(o));
 /*      */     }
 /*      */     
 /*      */     public boolean remove(Object obj)
 /*      */     {
-/* 1409 */       if (!(obj instanceof Map.Entry)) {
+/* 1409 */       if (!(obj instanceof Entry)) {
 /* 1410 */         return false;
 /*      */       }
 /* 1412 */       if (!contains(obj)) {
 /* 1413 */         return false;
 /*      */       }
-/* 1415 */       Map.Entry<?, ?> entry = (Map.Entry)obj;
+/* 1415 */       Entry<?, ?> entry = (Entry)obj;
 /* 1416 */       AbstractPatriciaTrie.this.remove(entry.getKey());
 /* 1417 */       return true;
 /*      */     }
@@ -1429,9 +1429,9 @@
 /*      */     
 /*      */ 
 /*      */     private class EntryIterator
-/*      */       extends AbstractPatriciaTrie<K, V>.TrieIterator<Map.Entry<K, V>>
+/*      */       extends AbstractPatriciaTrie<K, V>.TrieIterator<Entry<K, V>>
 /*      */     {
-/*      */       public Map.Entry<K, V> next()
+/*      */       public Entry<K, V> next()
 /*      */       {
 /* 1436 */         return nextEntry();
 /*      */       }
@@ -1679,12 +1679,12 @@
 /*      */     extends AbstractMap<K, V>
 /*      */     implements SortedMap<K, V>
 /*      */   {
-/*      */     private volatile transient Set<Map.Entry<K, V>> entrySet;
+/*      */     private volatile transient Set<Entry<K, V>> entrySet;
 /*      */     
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */     protected abstract Set<Map.Entry<K, V>> createEntrySet();
+/*      */     protected abstract Set<Entry<K, V>> createEntrySet();
 /*      */     
 /*      */ 
 /*      */ 
@@ -1747,7 +1747,7 @@
 /* 1747 */       return (V)AbstractPatriciaTrie.this.put(key, value);
 /*      */     }
 /*      */     
-/*      */     public Set<Map.Entry<K, V>> entrySet()
+/*      */     public Set<Entry<K, V>> entrySet()
 /*      */     {
 /* 1752 */       if (this.entrySet == null) {
 /* 1753 */         this.entrySet = createEntrySet();
@@ -1886,7 +1886,7 @@
 /*      */     
 /*      */     public K firstKey()
 /*      */     {
-/* 1889 */       Map.Entry<K, V> e = null;
+/* 1889 */       Entry<K, V> e = null;
 /* 1890 */       if (this.fromKey == null) {
 /* 1891 */         e = AbstractPatriciaTrie.this.firstEntry();
 /*      */       }
@@ -1906,7 +1906,7 @@
 /*      */     
 /*      */     public K lastKey()
 /*      */     {
-/*      */       Map.Entry<K, V> e;
+/*      */       Entry<K, V> e;
 /* 1910 */       if (this.toKey == null) {
 /* 1911 */         e = AbstractPatriciaTrie.this.lastEntry();
 /*      */       }
@@ -1924,7 +1924,7 @@
 /* 1924 */       return last;
 /*      */     }
 /*      */     
-/*      */     protected Set<Map.Entry<K, V>> createEntrySet()
+/*      */     protected Set<Entry<K, V>> createEntrySet()
 /*      */     {
 /* 1929 */       return new AbstractPatriciaTrie.RangeEntrySet(this);
 /*      */     }
@@ -1959,7 +1959,7 @@
 /*      */ 
 /*      */ 
 /*      */   private class RangeEntrySet
-/*      */     extends AbstractSet<Map.Entry<K, V>>
+/*      */     extends AbstractSet<Entry<K, V>>
 /*      */   {
 /*      */     private final AbstractPatriciaTrie<K, V>.RangeMap delegate;
 /*      */     
@@ -1978,7 +1978,7 @@
 /* 1978 */       this.delegate = delegate;
 /*      */     }
 /*      */     
-/*      */     public Iterator<Map.Entry<K, V>> iterator()
+/*      */     public Iterator<Entry<K, V>> iterator()
 /*      */     {
 /* 1983 */       K fromKey = this.delegate.getFromKey();
 /* 1984 */       K toKey = this.delegate.getToKey();
@@ -2020,11 +2020,11 @@
 /*      */ 
 /*      */     public boolean contains(Object o)
 /*      */     {
-/* 2023 */       if (!(o instanceof Map.Entry)) {
+/* 2023 */       if (!(o instanceof Entry)) {
 /* 2024 */         return false;
 /*      */       }
 /*      */       
-/* 2027 */       Map.Entry<K, V> entry = (Map.Entry)o;
+/* 2027 */       Entry<K, V> entry = (Entry)o;
 /* 2028 */       K key = entry.getKey();
 /* 2029 */       if (!this.delegate.inRange(key)) {
 /* 2030 */         return false;
@@ -2037,11 +2037,11 @@
 /*      */ 
 /*      */     public boolean remove(Object o)
 /*      */     {
-/* 2040 */       if (!(o instanceof Map.Entry)) {
+/* 2040 */       if (!(o instanceof Entry)) {
 /* 2041 */         return false;
 /*      */       }
 /*      */       
-/* 2044 */       Map.Entry<K, V> entry = (Map.Entry)o;
+/* 2044 */       Entry<K, V> entry = (Entry)o;
 /* 2045 */       K key = entry.getKey();
 /* 2046 */       if (!this.delegate.inRange(key)) {
 /* 2047 */         return false;
@@ -2058,7 +2058,7 @@
 /*      */ 
 /*      */ 
 /*      */     private final class EntryIterator
-/*      */       extends AbstractPatriciaTrie<K, V>.TrieIterator<Map.Entry<K, V>>
+/*      */       extends AbstractPatriciaTrie<K, V>.TrieIterator<Entry<K, V>>
 /*      */     {
 /*      */       private final K excludedKey;
 /*      */       
@@ -2075,7 +2075,7 @@
 /* 2075 */         return (this.next != null) && (!AbstractBitwiseTrie.compare(this.next.key, this.excludedKey));
 /*      */       }
 /*      */       
-/*      */       public Map.Entry<K, V> next()
+/*      */       public Entry<K, V> next()
 /*      */       {
 /* 2080 */         if ((this.next == null) || (AbstractBitwiseTrie.compare(this.next.key, this.excludedKey))) {
 /* 2081 */           throw new NoSuchElementException();
@@ -2122,12 +2122,12 @@
 /*      */     private int fixup()
 /*      */     {
 /* 2124 */       if ((this.size == -1) || (AbstractPatriciaTrie.this.modCount != this.expectedModCount)) {
-/* 2125 */         Iterator<Map.Entry<K, V>> it = super.entrySet().iterator();
+/* 2125 */         Iterator<Entry<K, V>> it = super.entrySet().iterator();
 /* 2126 */         this.size = 0;
 /*      */         
-/* 2128 */         Map.Entry<K, V> entry = null;
+/* 2128 */         Entry<K, V> entry = null;
 /* 2129 */         if (it.hasNext()) {
-/* 2130 */           entry = (Map.Entry)it.next();
+/* 2130 */           entry = (Entry)it.next();
 /* 2131 */           this.size = 1;
 /*      */         }
 /*      */         
@@ -2141,7 +2141,7 @@
 /*      */         
 /* 2142 */         while (it.hasNext()) {
 /* 2143 */           this.size++;
-/* 2144 */           entry = (Map.Entry)it.next();
+/* 2144 */           entry = (Entry)it.next();
 /*      */         }
 /*      */         
 /* 2147 */         this.toKey = (entry == null ? null : entry.getKey());
@@ -2161,7 +2161,7 @@
 /*      */     {
 /* 2162 */       fixup();
 /*      */       
-/* 2164 */       Map.Entry<K, V> e = null;
+/* 2164 */       Entry<K, V> e = null;
 /* 2165 */       if (this.fromKey == null) {
 /* 2166 */         e = AbstractPatriciaTrie.this.firstEntry();
 /*      */       } else {
@@ -2180,7 +2180,7 @@
 /*      */     {
 /* 2181 */       fixup();
 /*      */       
-/* 2183 */       Map.Entry<K, V> e = null;
+/* 2183 */       Entry<K, V> e = null;
 /* 2184 */       if (this.toKey == null) {
 /* 2185 */         e = AbstractPatriciaTrie.this.lastEntry();
 /*      */       } else {
@@ -2227,7 +2227,7 @@
 /* 2227 */       return AbstractPatriciaTrie.this.getKeyAnalyzer().isPrefix(this.prefix, this.offsetInBits, this.lengthInBits, key);
 /*      */     }
 /*      */     
-/*      */     protected Set<Map.Entry<K, V>> createEntrySet()
+/*      */     protected Set<Entry<K, V>> createEntrySet()
 /*      */     {
 /* 2232 */       return new AbstractPatriciaTrie.PrefixRangeEntrySet(this);
 /*      */     }
@@ -2260,10 +2260,10 @@
 /*      */     
 /*      */     public void clear()
 /*      */     {
-/* 2263 */       Iterator<Map.Entry<K, V>> it = AbstractPatriciaTrie.this.entrySet().iterator();
+/* 2263 */       Iterator<Entry<K, V>> it = AbstractPatriciaTrie.this.entrySet().iterator();
 /* 2264 */       Set<K> currentKeys = keySet();
 /* 2265 */       while (it.hasNext()) {
-/* 2266 */         if (currentKeys.contains(((Map.Entry)it.next()).getKey())) {
+/* 2266 */         if (currentKeys.contains(((Entry)it.next()).getKey())) {
 /* 2267 */           it.remove();
 /*      */         }
 /*      */       }
@@ -2294,7 +2294,7 @@
 /* 2294 */       return this.delegate.fixup();
 /*      */     }
 /*      */     
-/*      */     public Iterator<Map.Entry<K, V>> iterator()
+/*      */     public Iterator<Entry<K, V>> iterator()
 /*      */     {
 /* 2299 */       if (AbstractPatriciaTrie.this.modCount != this.expectedModCount) {
 /* 2300 */         this.prefixStart = AbstractPatriciaTrie.this.subtree(this.delegate.prefix, this.delegate.offsetInBits, this.delegate.lengthInBits);
@@ -2302,7 +2302,7 @@
 /*      */       }
 /*      */       
 /* 2304 */       if (this.prefixStart == null) {
-/* 2305 */         Set<Map.Entry<K, V>> empty = Collections.emptySet();
+/* 2305 */         Set<Entry<K, V>> empty = Collections.emptySet();
 /* 2306 */         return empty.iterator(); }
 /* 2307 */       if (this.delegate.lengthInBits > this.prefixStart.bitIndex) {
 /* 2308 */         return new SingletonIterator(this.prefixStart);
@@ -2313,7 +2313,7 @@
 /*      */ 
 /*      */ 
 /*      */     private final class SingletonIterator
-/*      */       implements Iterator<Map.Entry<K, V>>
+/*      */       implements Iterator<Entry<K, V>>
 /*      */     {
 /*      */       private final AbstractPatriciaTrie.TrieEntry<K, V> entry;
 /*      */       
@@ -2329,7 +2329,7 @@
 /* 2329 */         return this.hit == 0;
 /*      */       }
 /*      */       
-/*      */       public Map.Entry<K, V> next()
+/*      */       public Entry<K, V> next()
 /*      */       {
 /* 2334 */         if (this.hit != 0) {
 /* 2335 */           throw new NoSuchElementException();
@@ -2353,7 +2353,7 @@
 /*      */ 
 /*      */ 
 /*      */     private final class EntryIterator
-/*      */       extends AbstractPatriciaTrie<K, V>.TrieIterator<Map.Entry<K, V>>
+/*      */       extends AbstractPatriciaTrie<K, V>.TrieIterator<Entry<K, V>>
 /*      */     {
 /*      */       private final K prefix;
 /*      */       
@@ -2376,9 +2376,9 @@
 /* 2376 */         this.lengthInBits = lengthInBits;
 /*      */       }
 /*      */       
-/*      */       public Map.Entry<K, V> next()
+/*      */       public Entry<K, V> next()
 /*      */       {
-/* 2381 */         Map.Entry<K, V> entry = nextEntry();
+/* 2381 */         Entry<K, V> entry = nextEntry();
 /* 2382 */         if (this.lastOne) {
 /* 2383 */           this.next = null;
 /*      */         }
@@ -2441,7 +2441,7 @@
 /*      */   {
 /* 2442 */     stream.defaultWriteObject();
 /* 2443 */     stream.writeInt(size());
-/* 2444 */     for (Map.Entry<K, V> entry : entrySet()) {
+/* 2444 */     for (Entry<K, V> entry : entrySet()) {
 /* 2445 */       stream.writeObject(entry.getKey());
 /* 2446 */       stream.writeObject(entry.getValue());
 /*      */     }

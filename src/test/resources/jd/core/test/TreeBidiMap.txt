@@ -112,7 +112,7 @@
 /*  112 */   private transient int modifications = 0;
 /*      */   private transient Set<K> keySet;
 /*      */   private transient Set<V> valuesSet;
-/*      */   private transient Set<Map.Entry<K, V>> entrySet;
+/*      */   private transient Set<Entry<K, V>> entrySet;
 /*  116 */   private transient TreeBidiMap<K, V>.Inverse inverse = null;
 /*      */   
 /*      */ 
@@ -250,7 +250,7 @@
 /*      */ 
 /*      */   public void putAll(Map<? extends K, ? extends V> map)
 /*      */   {
-/*  253 */     for (Map.Entry<? extends K, ? extends V> e : map.entrySet()) {
+/*  253 */     for (Entry<? extends K, ? extends V> e : map.entrySet()) {
 /*  254 */       put((Comparable)e.getKey(), (Comparable)e.getValue());
 /*      */     }
 /*      */   }
@@ -436,7 +436,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   public Set<Map.Entry<K, V>> entrySet()
+/*      */   public Set<Entry<K, V>> entrySet()
 /*      */   {
 /*  441 */     if (this.entrySet == null) {
 /*  442 */       this.entrySet = new EntryView();
@@ -1482,7 +1482,7 @@
 /*      */   {
 /* 1483 */     stream.defaultWriteObject();
 /* 1484 */     stream.writeInt(size());
-/* 1485 */     for (Map.Entry<K, V> entry : entrySet()) {
+/* 1485 */     for (Entry<K, V> entry : entrySet()) {
 /* 1486 */       stream.writeObject(entry.getKey());
 /* 1487 */       stream.writeObject(entry.getValue());
 /*      */     }
@@ -1573,7 +1573,7 @@
 /*      */ 
 /*      */ 
 /*      */   class EntryView
-/*      */     extends TreeBidiMap<K, V>.View<Map.Entry<K, V>>
+/*      */     extends TreeBidiMap<K, V>.View<Entry<K, V>>
 /*      */   {
 /*      */     EntryView()
 /*      */     {
@@ -1582,10 +1582,10 @@
 /*      */     
 /*      */     public boolean contains(Object obj)
 /*      */     {
-/* 1585 */       if (!(obj instanceof Map.Entry)) {
+/* 1585 */       if (!(obj instanceof Entry)) {
 /* 1586 */         return false;
 /*      */       }
-/* 1588 */       Map.Entry<?, ?> entry = (Map.Entry)obj;
+/* 1588 */       Entry<?, ?> entry = (Entry)obj;
 /* 1589 */       Object value = entry.getValue();
 /* 1590 */       TreeBidiMap.Node<K, V> node = TreeBidiMap.this.lookupKey(entry.getKey());
 /* 1591 */       return (node != null) && (node.getValue().equals(value));
@@ -1593,10 +1593,10 @@
 /*      */     
 /*      */     public boolean remove(Object obj)
 /*      */     {
-/* 1596 */       if (!(obj instanceof Map.Entry)) {
+/* 1596 */       if (!(obj instanceof Entry)) {
 /* 1597 */         return false;
 /*      */       }
-/* 1599 */       Map.Entry<?, ?> entry = (Map.Entry)obj;
+/* 1599 */       Entry<?, ?> entry = (Entry)obj;
 /* 1600 */       Object value = entry.getValue();
 /* 1601 */       TreeBidiMap.Node<K, V> node = TreeBidiMap.this.lookupKey(entry.getKey());
 /* 1602 */       if ((node != null) && (node.getValue().equals(value))) {
@@ -1606,7 +1606,7 @@
 /* 1606 */       return false;
 /*      */     }
 /*      */     
-/*      */     public Iterator<Map.Entry<K, V>> iterator()
+/*      */     public Iterator<Entry<K, V>> iterator()
 /*      */     {
 /* 1611 */       return new TreeBidiMap.ViewMapEntryIterator();
 /*      */     }
@@ -1614,7 +1614,7 @@
 /*      */   
 /*      */ 
 /*      */   class InverseEntryView
-/*      */     extends TreeBidiMap<K, V>.View<Map.Entry<V, K>>
+/*      */     extends TreeBidiMap<K, V>.View<Entry<V, K>>
 /*      */   {
 /*      */     InverseEntryView()
 /*      */     {
@@ -1623,10 +1623,10 @@
 /*      */     
 /*      */     public boolean contains(Object obj)
 /*      */     {
-/* 1626 */       if (!(obj instanceof Map.Entry)) {
+/* 1626 */       if (!(obj instanceof Entry)) {
 /* 1627 */         return false;
 /*      */       }
-/* 1629 */       Map.Entry<?, ?> entry = (Map.Entry)obj;
+/* 1629 */       Entry<?, ?> entry = (Entry)obj;
 /* 1630 */       Object value = entry.getValue();
 /* 1631 */       TreeBidiMap.Node<K, V> node = TreeBidiMap.this.lookupValue(entry.getKey());
 /* 1632 */       return (node != null) && (node.getKey().equals(value));
@@ -1634,10 +1634,10 @@
 /*      */     
 /*      */     public boolean remove(Object obj)
 /*      */     {
-/* 1637 */       if (!(obj instanceof Map.Entry)) {
+/* 1637 */       if (!(obj instanceof Entry)) {
 /* 1638 */         return false;
 /*      */       }
-/* 1640 */       Map.Entry<?, ?> entry = (Map.Entry)obj;
+/* 1640 */       Entry<?, ?> entry = (Entry)obj;
 /* 1641 */       Object value = entry.getValue();
 /* 1642 */       TreeBidiMap.Node<K, V> node = TreeBidiMap.this.lookupValue(entry.getKey());
 /* 1643 */       if ((node != null) && (node.getKey().equals(value))) {
@@ -1647,7 +1647,7 @@
 /* 1647 */       return false;
 /*      */     }
 /*      */     
-/*      */     public Iterator<Map.Entry<V, K>> iterator()
+/*      */     public Iterator<Entry<V, K>> iterator()
 /*      */     {
 /* 1652 */       return new TreeBidiMap.InverseViewMapEntryIterator();
 /*      */     }
@@ -1836,19 +1836,19 @@
 /*      */ 
 /*      */   class ViewMapEntryIterator
 /*      */     extends TreeBidiMap<K, V>.ViewIterator
-/*      */     implements OrderedIterator<Map.Entry<K, V>>
+/*      */     implements OrderedIterator<Entry<K, V>>
 /*      */   {
 /*      */     ViewMapEntryIterator()
 /*      */     {
 /* 1843 */       super(TreeBidiMap.DataElement.KEY);
 /*      */     }
 /*      */     
-/*      */     public Map.Entry<K, V> next()
+/*      */     public Entry<K, V> next()
 /*      */     {
 /* 1848 */       return navigateNext();
 /*      */     }
 /*      */     
-/*      */     public Map.Entry<K, V> previous()
+/*      */     public Entry<K, V> previous()
 /*      */     {
 /* 1853 */       return navigatePrevious();
 /*      */     }
@@ -1859,24 +1859,24 @@
 /*      */ 
 /*      */   class InverseViewMapEntryIterator
 /*      */     extends TreeBidiMap<K, V>.ViewIterator
-/*      */     implements OrderedIterator<Map.Entry<V, K>>
+/*      */     implements OrderedIterator<Entry<V, K>>
 /*      */   {
 /*      */     InverseViewMapEntryIterator()
 /*      */     {
 /* 1866 */       super(TreeBidiMap.DataElement.VALUE);
 /*      */     }
 /*      */     
-/*      */     public Map.Entry<V, K> next()
+/*      */     public Entry<V, K> next()
 /*      */     {
 /* 1871 */       return createEntry(navigateNext());
 /*      */     }
 /*      */     
-/*      */     public Map.Entry<V, K> previous()
+/*      */     public Entry<V, K> previous()
 /*      */     {
 /* 1876 */       return createEntry(navigatePrevious());
 /*      */     }
 /*      */     
-/*      */     private Map.Entry<V, K> createEntry(TreeBidiMap.Node<K, V> node) {
+/*      */     private Entry<V, K> createEntry(TreeBidiMap.Node<K, V> node) {
 /* 1880 */       return new UnmodifiableMapEntry(node.getValue(), node.getKey());
 /*      */     }
 /*      */   }
@@ -1884,7 +1884,7 @@
 /*      */ 
 /*      */ 
 /*      */   static class Node<K extends Comparable<K>, V extends Comparable<V>>
-/*      */     implements Map.Entry<K, V>, KeyValue<K, V>
+/*      */     implements Entry<K, V>, KeyValue<K, V>
 /*      */   {
 /*      */     private final K key;
 /*      */     
@@ -2088,10 +2088,10 @@
 /* 2088 */       if (obj == this) {
 /* 2089 */         return true;
 /*      */       }
-/* 2091 */       if (!(obj instanceof Map.Entry)) {
+/* 2091 */       if (!(obj instanceof Entry)) {
 /* 2092 */         return false;
 /*      */       }
-/* 2094 */       Map.Entry<?, ?> e = (Map.Entry)obj;
+/* 2094 */       Entry<?, ?> e = (Entry)obj;
 /* 2095 */       return (getKey().equals(e.getKey())) && (getValue().equals(e.getValue()));
 /*      */     }
 /*      */     
@@ -2118,7 +2118,7 @@
 /*      */ 
 /*      */     private Set<K> inverseValuesSet;
 /*      */     
-/*      */     private Set<Map.Entry<V, K>> inverseEntrySet;
+/*      */     private Set<Entry<V, K>> inverseEntrySet;
 /*      */     
 /*      */ 
 /*      */     public int size()
@@ -2190,7 +2190,7 @@
 /*      */     
 /*      */     public void putAll(Map<? extends V, ? extends K> map)
 /*      */     {
-/* 2193 */       for (Map.Entry<? extends V, ? extends K> e : map.entrySet()) {
+/* 2193 */       for (Entry<? extends V, ? extends K> e : map.entrySet()) {
 /* 2194 */         put((Comparable)e.getKey(), (Comparable)e.getValue());
 /*      */       }
 /*      */     }
@@ -2226,7 +2226,7 @@
 /* 2226 */       return this.inverseValuesSet;
 /*      */     }
 /*      */     
-/*      */     public Set<Map.Entry<V, K>> entrySet()
+/*      */     public Set<Entry<V, K>> entrySet()
 /*      */     {
 /* 2231 */       if (this.inverseEntrySet == null) {
 /* 2232 */         this.inverseEntrySet = new TreeBidiMap.InverseEntryView();

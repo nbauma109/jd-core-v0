@@ -45,13 +45,13 @@
 /* 45 */     return lines;
 /*    */   }
 /*    */   
-/*    */   public static Map.Entry<Integer, String> get(Connection connection, int employeeId) throws SQLException {
+/*    */   public static Entry<Integer, String> get(Connection connection, int employeeId) throws SQLException {
 /* 49 */     try (PreparedStatement ps = connection.prepareStatement("SELECT * FROM employee WHERE employee_id = ?")) {
 /* 50 */       ps.setInt(1, employeeId);
 /* 51 */       try (ResultSet rs = ps.executeQuery()) {
 /* 52 */         if (rs.next()) {
 /* 53 */           String employeeName = rs.getString("employee_name");
-/* 54 */           return new AbstractMap.SimpleEntry(Integer.valueOf(employeeId), employeeName);
+/* 54 */           return new SimpleEntry(Integer.valueOf(employeeId), employeeName);
 /*    */         }
 /*    */       }
 /*    */     } catch (Throwable e) {

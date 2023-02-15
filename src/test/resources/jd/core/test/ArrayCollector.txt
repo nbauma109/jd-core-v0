@@ -27,7 +27,7 @@
 /* 27 */     return List::add;
 /*    */   }
 /*    */   
-/*    */   public Set<Collector.Characteristics> characteristics()
+/*    */   public Set<Characteristics> characteristics()
 /*    */   {
 /* 32 */     return Collections.emptySet();
 /*    */   }
