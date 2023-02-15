@@ -2794,6 +2794,7 @@ public final class FastInstructionListBuilder {
         switch (i.getOpcode()) {
         case FastConstants.DECLARE:
             ((FastDeclaration) i).setInstruction(null);
+            ((FastDeclaration) i).getLv().setDeclarationFlag(DECLARED);
             return i;
         case Const.ASTORE:
             return new ALoad(Const.ALOAD, i.getOffset(), i.getLineNumber(), ((AStore) i).getIndex());
@@ -2815,6 +2816,12 @@ public final class FastInstructionListBuilder {
         int branch = 1;
         if (breakOffset != -1) {
             branch = breakOffset - forLoopOffset;
+        }
+
+        if (subList.get(0) instanceof AStore) {
+            AStore astore = (AStore) subList.get(0);
+            LocalVariable lv = method.getLocalVariables().getLocalVariableWithIndexAndOffset(astore.getIndex(), astore.getOffset());
+            subList.set(0, new FastDeclaration(FastConstants.DECLARE, astore.getOffset(), astore.getLineNumber(), lv, astore));
         }
 
         // Is a for-each pattern ?
@@ -2991,11 +2998,9 @@ public final class FastInstructionListBuilder {
             return false;
         }
 
-        Instruction firstInstruction = subList.get(0);
-
         // Test: Same line number
         // Test 'init' instruction: Iterator localIterator = strings.iterator()
-        if (test.getLineNumber() != firstInstruction.getLineNumber() || init.getOpcode() != Const.ASTORE) {
+        if (test.getLineNumber() != subList.get(0).getLineNumber() || init.getOpcode() != Const.ASTORE) {
             return false;
         }
         AStore astoreIterator = (AStore) init;
@@ -3043,10 +3048,10 @@ public final class FastInstructionListBuilder {
         }
         String hasNextMethodDescriptor = constants.getConstantUtf8(cnat.getSignatureIndex());
         // Test first instruction: String s = (String)localIterator.next()
-        if (!"()Z".equals(hasNextMethodDescriptor) || firstInstruction.getOpcode() != FastConstants.DECLARE) {
+        if (!"()Z".equals(hasNextMethodDescriptor) || subList.get(0).getOpcode() != FastConstants.DECLARE) {
             return false;
         }
-        FastDeclaration declaration = (FastDeclaration) firstInstruction;
+        FastDeclaration declaration = (FastDeclaration) subList.get(0);
         if (declaration.getInstruction() == null || declaration.getInstruction().getOpcode() != Const.ASTORE) {
             return false;
         }
