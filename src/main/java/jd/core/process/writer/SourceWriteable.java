@@ -21,4 +21,5 @@ import jd.core.process.writer.visitor.SourceWriterVisitor;
 
 public interface SourceWriteable {
     void write(Printer printer, SourceWriterVisitor visitor);
+    String getInternalTypeName();
 }

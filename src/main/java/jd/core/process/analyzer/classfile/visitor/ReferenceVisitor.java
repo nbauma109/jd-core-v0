@@ -75,6 +75,7 @@ import jd.core.model.instruction.fast.instruction.FastTestList;
 import jd.core.model.instruction.fast.instruction.FastTry;
 import jd.core.model.instruction.fast.instruction.FastTry.FastCatch;
 import jd.core.model.reference.ReferenceMap;
+import jd.core.process.writer.SourceWriteable;
 import jd.core.util.SignatureUtil;
 
 public class ReferenceVisitor
@@ -199,6 +200,12 @@ public class ReferenceVisitor
                 InstanceOf instanceOf = (InstanceOf)instruction;
                 visitCheckCastAndMultiANewArray(instanceOf.getIndex());
                 visit(instanceOf.getObjectref());
+            }
+            break;
+        case Const.INVOKEDYNAMIC:
+            if (instruction instanceof SourceWriteable) {
+                SourceWriteable ref = (SourceWriteable) instruction;
+                addReference(ref.getInternalTypeName());
             }
             break;
         case Const.INVOKEINTERFACE,
@@ -459,7 +466,6 @@ public class ReferenceVisitor
              Const.SIPUSH,
              Const.RET,
              Const.RETURN,
-             Const.INVOKEDYNAMIC,
              ByteCodeConstants.EXCEPTIONLOAD,
              ByteCodeConstants.RETURNADDRESSLOAD:
             break;

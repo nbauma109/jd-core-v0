@@ -43,10 +43,6 @@ public class StaticMethodReference extends Instruction implements SourceWriteabl
         return objectType;
     }
 
-    public String getTypeName() {
-        return typeName;
-    }
-
     public String getName() {
         return name;
     }
@@ -65,5 +61,10 @@ public class StaticMethodReference extends Instruction implements SourceWriteabl
         printer.print(objectType.getObjectType().getName());
         printer.print("::");
         printer.print(name);
+    }
+
+    @Override
+    public String getInternalTypeName() {
+        return typeName;
     }
 }
