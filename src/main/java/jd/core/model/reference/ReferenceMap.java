@@ -18,15 +18,19 @@ package jd.core.model.reference;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class ReferenceMap
 {
     private final Map<String, Reference> references;
+    private final Set<String> simpleInnerNames;
 
     public ReferenceMap()
     {
         this.references = new HashMap<>();
+        this.simpleInnerNames = new HashSet<>();
     }
 
     public void add(String internalName)
@@ -44,6 +48,10 @@ public class ReferenceMap
 
             if (ref == null) {
                 this.references.put(internalName, new Reference(internalName));
+                int lastIndexOfDollar = internalName.lastIndexOf('$');
+                if (lastIndexOfDollar != -1) {
+                    this.simpleInnerNames.add(internalName.substring(lastIndexOfDollar + 1));
+                }
             } else {
                 ref.incCounter();
             }
@@ -68,5 +76,14 @@ public class ReferenceMap
     public boolean contains(String internalName)
     {
         return this.references.containsKey(internalName);
+    }
+
+    public boolean containsSimpleName(String internalName)
+    {
+        int lastIndexOfSlash = internalName.lastIndexOf('/');
+        if (lastIndexOfSlash != -1) {
+            return this.simpleInnerNames.contains(internalName.substring(lastIndexOfSlash + 1));
+        }
+        return false;
     }
 }

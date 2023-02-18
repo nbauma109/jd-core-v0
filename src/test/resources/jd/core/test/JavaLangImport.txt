@@ -1,0 +1,12 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ 
+/*    */ public class JavaLangImport
+/*    */ {
+/*    */   Thread.UncaughtExceptionHandler exceptionHandler;
+/*    */   
+/*    */   Thread.UncaughtExceptionHandler getExceptionHandler()
+/*    */   {
+/* 10 */     return this.exceptionHandler;
+/*    */   }
+/*    */ }

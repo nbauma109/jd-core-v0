@@ -178,8 +178,10 @@ public final class SignatureAnalyzer
                 }
 
                 if (classFlag) {
-                    referenceMap.add(
-                        CharArrayUtil.substring(caSignature, beginIndex, index));
+                    String internalName = CharArrayUtil.substring(caSignature, beginIndex, index);
+                    if (!referenceMap.containsSimpleName(internalName)) {
+                        referenceMap.add(internalName);
+                    }
                 }
 
                 if (c == '<')
