@@ -450,6 +450,11 @@ public final class ClassFileLayouter {
                     visitor.visit(enumValue);
                     visitor.end();
 
+                    ClassFile innerClassFile = classFile.getInnerClassFile(classFile.getThisClassName() + "$1");
+                    if (innerClassFile != null) {
+                        createBlocksForBodyOfAnonymousClass(preferences, innerClassFile, layoutBlockList);
+                    }
+
                     for (int i=1; i<length; i++)
                     {
                         layoutBlockList.add(new FragmentLayoutBlock(
@@ -464,6 +469,11 @@ public final class ClassFileLayouter {
                             classFile.getStaticMethod(), enumValue);
                         visitor.visit(enumValue);
                         visitor.end();
+
+                        innerClassFile = classFile.getInnerClassFile(classFile.getThisClassName() + "$" + (i+1));
+                        if (innerClassFile != null) {
+                            createBlocksForBodyOfAnonymousClass(preferences, innerClassFile, layoutBlockList);
+                        }
                     }
 
                     layoutBlockList.add(new FragmentLayoutBlock(

@@ -848,9 +848,9 @@ public final class ClassFileWriter
     {
         // Affichage de la classe, de l'interface, de l'enum ou de l'annotation
          // Check annotation
-        if ((classFile.getAccessFlags() & Const.ACC_ANNOTATION) != 0)
+        if ((classFile.getAccessFlags() & (Const.ACC_ANNOTATION|Const.ACC_INTERFACE|Const.ACC_ENUM)) != 0)
         {
-            // Retrait du flags 'abstract'
+            // Retrait du flag 'abstract'
             classFile.setAccessFlags(classFile.getAccessFlags() & ~Const.ACC_ABSTRACT);
         }
 
@@ -905,7 +905,7 @@ public final class ClassFileWriter
             this.printer.printKeyword(FINAL);
             this.printer.print(' ');
         }
-        if ((accessFlags & Const.ACC_ABSTRACT) != 0 && (accessFlags & Const.ACC_INTERFACE) == 0)
+        if ((accessFlags & Const.ACC_ABSTRACT) != 0)
         {
             this.printer.printKeyword(ABSTRACT);
             this.printer.print(' ');
