@@ -18,12 +18,12 @@ package jd.core.process.writer.visitor;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.Constant;
+import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.ConstantUtf8;
 import org.jd.core.v1.api.loader.Loader;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.Arrays;
@@ -1098,8 +1098,8 @@ public class SourceWriterVisitor
 
     protected int writeIfTest(IfInstruction ifInstruction)
     {
-        String signature =
-            ifInstruction.getValue().getReturnedSignature(constants, localVariables);
+        Instruction value = ifInstruction.getValue();
+        String signature = value.getReturnedSignature(constants, localVariables);
 
         if (signature != null && signature.charAt(0) == 'Z')
         {
@@ -1114,7 +1114,7 @@ public class SourceWriterVisitor
                 }
             }
 
-            return visit(2, ifInstruction.getValue());
+            return visit(2, value);
 
 //            visit(ifInstruction, ifInstruction.value);
 //            switch (ifInstruction.cmp)
@@ -1128,7 +1128,7 @@ public class SourceWriterVisitor
 //                spw.print(" == true");
 //            }
         }
-        int lineNumber = visit(6, ifInstruction.getValue());
+        int lineNumber = visit(6, value);
         if (this.firstOffset <= this.previousOffset &&
             ifInstruction.getOffset() <= this.lastOffset)
         {
@@ -1356,7 +1356,7 @@ public class SourceWriterVisitor
 
     private int writeInvokeNewInstruction(InvokeNew in)
     {
-        ConstantMethodref cmr = this.constants.getConstantMethodref(in.getIndex());
+        ConstantCP cmr = this.constants.getConstantMethodref(in.getIndex());
         String internalClassName =
             this.constants.getConstantClassName(cmr.getClassIndex());
         String prefix =
@@ -1561,7 +1561,7 @@ public class SourceWriterVisitor
 
     private int writeInvokeNoStaticInstruction(InvokeNoStaticInstruction insi)
     {
-        ConstantMethodref cmr = constants.getConstantMethodref(insi.getIndex());
+        ConstantCP cmr = constants.getConstantMethodref(insi.getIndex());
         ConstantNameAndType cnat =
             constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
         boolean thisInvoke = false;
@@ -1701,7 +1701,7 @@ public class SourceWriterVisitor
 
     private int writeInvokespecial(InvokeNoStaticInstruction insi)
     {
-        ConstantMethodref cmr = constants.getConstantMethodref(insi.getIndex());
+        ConstantCP cmr = constants.getConstantMethodref(insi.getIndex());
         ConstantNameAndType cnat =
             constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
         boolean thisInvoke = false;
@@ -1877,7 +1877,7 @@ public class SourceWriterVisitor
         {
             int lineNumber = invokestatic.getLineNumber();
 
-            ConstantMethodref cmr = constants.getConstantMethodref(invokestatic.getIndex());
+            ConstantCP cmr = constants.getConstantMethodref(invokestatic.getIndex());
 
             String internalClassName =
                 this.constants.getConstantClassName(cmr.getClassIndex());

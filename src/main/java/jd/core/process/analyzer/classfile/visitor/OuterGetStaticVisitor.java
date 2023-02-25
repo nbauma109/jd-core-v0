@@ -17,8 +17,8 @@
 package jd.core.process.analyzer.classfile.visitor;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantNameAndType;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
 
 import java.util.List;
 import java.util.Map;
@@ -594,7 +594,7 @@ public class OuterGetStaticVisitor
         }
 
         Invokestatic is = (Invokestatic)i;
-        ConstantMethodref cmr = constants.getConstantMethodref(is.getIndex());
+        ConstantCP cmr = constants.getConstantMethodref(is.getIndex());
         ConstantNameAndType cnat =
             constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
         String descriptor =

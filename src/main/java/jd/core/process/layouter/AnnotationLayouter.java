@@ -17,15 +17,15 @@
 package jd.core.process.layouter;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.classfile.AnnotationEntry;
+import org.apache.bcel.classfile.Annotations;
+import org.apache.bcel.classfile.Attribute;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import jd.core.model.classfile.ClassFile;
-import jd.core.model.classfile.attribute.Annotation;
-import jd.core.model.classfile.attribute.Attribute;
-import jd.core.model.classfile.attribute.AttributeRuntimeAnnotations;
 import jd.core.model.layout.block.AnnotationsLayoutBlock;
 import jd.core.model.layout.block.LayoutBlock;
 
@@ -43,7 +43,7 @@ public final class AnnotationLayouter
         }
 
         int attributesLength = attributes.length;
-        List<Annotation> annotations =
+        List<AnnotationEntry> annotations =
                 new ArrayList<>(attributesLength);
 
         Attribute attribute;
@@ -52,8 +52,8 @@ public final class AnnotationLayouter
             attribute = attributes[i];
 
             if (attribute.getTag() == Const.ATTR_RUNTIME_INVISIBLE_ANNOTATIONS || attribute.getTag() == Const.ATTR_RUNTIME_VISIBLE_ANNOTATIONS) {
-                Annotation[] array =
-                        ((AttributeRuntimeAnnotations)attribute).getAnnotations();
+                AnnotationEntry[] array =
+                        ((Annotations)attribute).getAnnotationEntries();
 
                 if (array != null)
                 {

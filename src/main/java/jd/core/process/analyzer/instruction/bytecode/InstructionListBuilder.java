@@ -17,8 +17,8 @@
 package jd.core.process.analyzer.instruction.bytecode;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.classfile.CodeException;
 import org.apache.bcel.classfile.LineNumber;
-import org.jd.core.v1.model.classfile.attribute.CodeException;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
@@ -94,7 +94,7 @@ public final class InstructionListBuilder
                 int exceptionOffset;
                 ConstantPool constants = classFile.getConstantPool();
 
-                if (codeExceptions == null)
+                if (codeExceptions == null || codeExceptions.length == 0)
                 {
                     exceptionOffset = -1;
                 }
@@ -102,7 +102,7 @@ public final class InstructionListBuilder
                 {
                     // Sort codeExceptions by handlerPc
                     Arrays.sort(codeExceptions, COMPARATOR);
-                    exceptionOffset = codeExceptions[0].handlerPc();
+                    exceptionOffset = codeExceptions[0].getHandlerPC();
                 }
 
                 // Declaration de variables additionnelles pour le traitement
@@ -155,7 +155,7 @@ public final class InstructionListBuilder
                         // Ajout d'une pseudo instruction de lecture
                         // d'exception en début de bloc catch
                         int catchType =
-                                codeExceptions[codeExceptionsIndex].catchType();
+                                codeExceptions[codeExceptionsIndex].getCatchType();
                         int signatureIndex;
 
                         if (catchType == 0)
@@ -187,7 +187,7 @@ public final class InstructionListBuilder
                             }
 
                             nextOffsetException =
-                                    codeExceptions[codeExceptionsIndex].handlerPc();
+                                    codeExceptions[codeExceptionsIndex].getHandlerPC();
 
                             if (nextOffsetException != exceptionOffset) {
                                 break;
@@ -370,19 +370,19 @@ public final class InstructionListBuilder
         @Override
         public int compare(CodeException ce1, CodeException ce2)
         {
-            if (ce1.handlerPc() != ce2.handlerPc()) {
-                return ce1.handlerPc() - ce2.handlerPc();
+            if (ce1.getHandlerPC() != ce2.getHandlerPC()) {
+                return ce1.getHandlerPC() - ce2.getHandlerPC();
             }
 
-            if (ce1.endPc() != ce2.endPc()) {
-                return ce1.endPc() - ce2.endPc();
+            if (ce1.getEndPC() != ce2.getEndPC()) {
+                return ce1.getEndPC() - ce2.getEndPC();
             }
 
-            if (ce1.startPc() != ce2.startPc()) {
-                return ce1.startPc() - ce2.startPc();
+            if (ce1.getStartPC() != ce2.getStartPC()) {
+                return ce1.getStartPC() - ce2.getStartPC();
             }
 
-            return ce1.index() - ce2.index();
+            return 0;//ce1.index() - ce2.index();
         }
     }
 }

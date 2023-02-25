@@ -18,10 +18,12 @@ package jd.core.process.analyzer.instruction.bytecode.factory;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.BootstrapMethod;
+import org.apache.bcel.classfile.BootstrapMethods;
+import org.apache.bcel.classfile.ConstantCP;
+import org.apache.bcel.classfile.ConstantInvokeDynamic;
 import org.apache.bcel.classfile.ConstantMethodHandle;
 import org.apache.bcel.classfile.ConstantMethodType;
 import org.apache.bcel.classfile.ConstantNameAndType;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
 import org.jd.core.v1.model.javasyntax.expression.ObjectTypeReferenceExpression;
 import org.jd.core.v1.model.javasyntax.type.BaseType;
 import org.jd.core.v1.model.javasyntax.type.ObjectType;
@@ -41,7 +43,6 @@ import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.classfile.Method;
-import jd.core.model.classfile.attribute.AttributeBootstrapMethods;
 import jd.core.model.instruction.bytecode.instruction.ArrayReference;
 import jd.core.model.instruction.bytecode.instruction.ConstructorReference;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
@@ -68,7 +69,7 @@ public class InvokeDynamicFactory implements InstructionFactory
 
             if (lastInstruction instanceof Invokevirtual) { // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
                 Invokevirtual mie = (Invokevirtual) lastInstruction;
-                ConstantMethodref mieRef = constants.getConstantMethodref(mie.getIndex());
+                ConstantCP mieRef = constants.getConstantMethodref(mie.getIndex());
                 ConstantNameAndType mieNameAndType = constants.getConstantNameAndType(mieRef.getNameAndTypeIndex());
                 String mieName = constants.getConstantUtf8(mieNameAndType.getNameIndex());
                 String mieDesc = constants.getConstantUtf8(mieNameAndType.getSignatureIndex());
@@ -84,15 +85,15 @@ public class InvokeDynamicFactory implements InstructionFactory
         
         TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
 
-        ConstantMethodref constantMethodref = constants.getConstantMethodref(index);
-        ConstantNameAndType indyCnat = constants.getConstantNameAndType(constantMethodref.getNameAndTypeIndex());
+        ConstantInvokeDynamic cid = constants.getConstantInvokeDynamic(index);
+        ConstantNameAndType indyCnat = constants.getConstantNameAndType(cid.getNameAndTypeIndex());
 //        String indyMethodName = constants.getConstantUtf8(indyCnat.getNameIndex());
         String indyDescriptor = constants.getConstantUtf8(indyCnat.getSignatureIndex());
         
         MethodTypes indyMethodTypes = typeMaker.makeMethodTypes(indyDescriptor);
-        AttributeBootstrapMethods attributeBootstrapMethods = classFile.getAttributeBootstrapMethods();
+        BootstrapMethods attributeBootstrapMethods = classFile.getAttributeBootstrapMethods();
         List<Instruction> indyParameters = extractParametersFromStack(stack, indyMethodTypes.getParameterTypes());
-        BootstrapMethod bootstrapMethod = attributeBootstrapMethods.getBootstrapMethod(constantMethodref.getClassIndex());
+        BootstrapMethod bootstrapMethod = attributeBootstrapMethods.getBootstrapMethods()[cid.getClassIndex()];
         int[] bootstrapArguments = bootstrapMethod.getBootstrapArguments();
 //        BaseType parameterTypes = indyMethodTypes.getParameterTypes();
         
@@ -102,7 +103,7 @@ public class InvokeDynamicFactory implements InstructionFactory
         int parameterCount = methodTypes0.getParameterTypes() == null ? 0 : methodTypes0.getParameterTypes().size();
         ConstantMethodHandle constantMethodHandle1 = constants.getConstantMethodHandle(bootstrapArguments[1]);
         
-        ConstantMethodref cmr1 = constants.getConstantMethodref(constantMethodHandle1.getReferenceIndex());
+        ConstantCP cmr1 = constants.getConstantMethodref(constantMethodHandle1.getReferenceIndex());
         String typeName = constants.getConstantClassName(cmr1.getClassIndex());
         ConstantNameAndType cnat1 = constants.getConstantNameAndType(cmr1.getNameAndTypeIndex());
         String name1 = constants.getConstantUtf8(cnat1.getNameIndex());

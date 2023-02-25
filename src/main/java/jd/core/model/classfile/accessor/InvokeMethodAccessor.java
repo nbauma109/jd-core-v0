@@ -16,11 +16,8 @@
  ******************************************************************************/
 package jd.core.model.classfile.accessor;
 
-import java.util.List;
-
 public record InvokeMethodAccessor(
         byte tag, String className, int methodOpcode,
-        String methodName, String methodDescriptor,
-        List<String> listOfParameterSignatures, String returnedSignature) implements Accessor
+        String methodName, String methodDescriptor) implements Accessor
 {
 }

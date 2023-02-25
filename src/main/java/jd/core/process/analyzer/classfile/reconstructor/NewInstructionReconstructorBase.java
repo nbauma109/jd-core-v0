@@ -17,7 +17,7 @@
 package jd.core.process.analyzer.classfile.reconstructor;
 
 import org.apache.bcel.Const;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
+import org.apache.bcel.classfile.ConstantCP;
 
 import java.util.List;
 
@@ -47,7 +47,7 @@ public class NewInstructionReconstructorBase
         ClassFile classFile, Method method, InvokeNew invokeNew)
     {
         ConstantPool constants = classFile.getConstantPool();
-        ConstantMethodref cmr = constants.getConstantMethodref(invokeNew.getIndex());
+        ConstantCP cmr = constants.getConstantMethodref(invokeNew.getIndex());
         String internalClassName = constants.getConstantClassName(
             cmr.getClassIndex());
         ClassFile innerClassFile =

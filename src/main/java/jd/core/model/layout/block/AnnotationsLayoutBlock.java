@@ -16,25 +16,26 @@
  ******************************************************************************/
 package jd.core.model.layout.block;
 
+import org.apache.bcel.classfile.AnnotationEntry;
+
 import java.util.List;
 
 import jd.core.model.classfile.ClassFile;
-import jd.core.model.classfile.attribute.Annotation;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 
 public class AnnotationsLayoutBlock extends LayoutBlock
 {
     private final ClassFile classFile;
-    private final List<Annotation> annotations;
+    private final List<AnnotationEntry> annotations;
 
     public AnnotationsLayoutBlock(
-        ClassFile classFile, List<Annotation> annotations)
+        ClassFile classFile, List<AnnotationEntry> annotations)
     {
         this(classFile, annotations, annotations.size());
     }
 
     private AnnotationsLayoutBlock(
-        ClassFile classFile, List<Annotation> annotations, int maxLineCount)
+        ClassFile classFile, List<AnnotationEntry> annotations, int maxLineCount)
     {
         super(
             LayoutBlockConstants.ANNOTATIONS,
@@ -44,7 +45,7 @@ public class AnnotationsLayoutBlock extends LayoutBlock
         this.annotations = annotations;
     }
 
-    public List<Annotation> getAnnotations() {
+    public List<AnnotationEntry> getAnnotations() {
         return annotations;
     }
 

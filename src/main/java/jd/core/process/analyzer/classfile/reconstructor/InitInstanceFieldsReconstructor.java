@@ -17,9 +17,9 @@
 package jd.core.process.analyzer.classfile.reconstructor;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -366,7 +366,7 @@ public final class InitInstanceFieldsReconstructor
                 continue;
             }
 
-            ConstantMethodref cmr = constants.getConstantMethodref(is.getIndex());
+            ConstantCP cmr = constants.getConstantMethodref(is.getIndex());
             ConstantNameAndType cnat =
                 constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
 

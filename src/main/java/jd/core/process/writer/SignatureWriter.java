@@ -17,6 +17,7 @@
 package jd.core.process.writer;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.classfile.ParameterAnnotationEntry;
 import org.jd.core.v1.api.loader.Loader;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.SignatureFormatException;
 import org.jd.core.v1.util.StringConstants;
@@ -27,7 +28,6 @@ import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.Method;
-import jd.core.model.classfile.attribute.ParameterAnnotations;
 import jd.core.model.reference.ReferenceMap;
 import jd.core.printer.Printer;
 import jd.core.util.CharArrayUtil;
@@ -158,8 +158,8 @@ public final class SignatureWriter
         }
 
         // Parameter annotations
-        ParameterAnnotations[] invisibleParameterAnnotations = method.getInvisibleParameterAnnotations();
-        ParameterAnnotations[] visibleParameterAnnotations = method.getVisibleParameterAnnotations();
+        ParameterAnnotationEntry[] invisibleParameterAnnotations = method.getInvisibleParameterAnnotations();
+        ParameterAnnotationEntry[] visibleParameterAnnotations = method.getVisibleParameterAnnotations();
         int parameterIndex = 0;
         int varargsParameterIndex;
 

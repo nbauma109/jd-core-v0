@@ -18,31 +18,40 @@ package jd.core.model.classfile;
 
 
 import org.apache.bcel.Const;
+import org.apache.bcel.classfile.AnnotationDefault;
+import org.apache.bcel.classfile.Attribute;
+import org.apache.bcel.classfile.Code;
+import org.apache.bcel.classfile.CodeException;
+import org.apache.bcel.classfile.ElementValue;
+import org.apache.bcel.classfile.ExceptionTable;
+import org.apache.bcel.classfile.FieldOrMethod;
 import org.apache.bcel.classfile.LineNumber;
-import org.jd.core.v1.model.classfile.attribute.CodeException;
+import org.apache.bcel.classfile.LineNumberTable;
+import org.apache.bcel.classfile.LocalVariable;
+import org.apache.bcel.classfile.LocalVariableTable;
+import org.apache.bcel.classfile.LocalVariableTypeTable;
+import org.apache.bcel.classfile.ParameterAnnotationEntry;
+import org.apache.bcel.classfile.RuntimeInvisibleParameterAnnotations;
+import org.apache.bcel.classfile.RuntimeVisibleParameterAnnotations;
 
+import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
+import java.util.stream.Stream;
 
-import jd.core.model.classfile.attribute.Attribute;
-import jd.core.model.classfile.attribute.AttributeAnnotationDefault;
-import jd.core.model.classfile.attribute.AttributeCode;
-import jd.core.model.classfile.attribute.AttributeExceptions;
-import jd.core.model.classfile.attribute.AttributeLocalVariableTable;
-import jd.core.model.classfile.attribute.AttributeNumberTable;
-import jd.core.model.classfile.attribute.AttributeRuntimeParameterAnnotations;
-import jd.core.model.classfile.attribute.ElementValue;
-import jd.core.model.classfile.attribute.ParameterAnnotations;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 
-public class Method extends FieldOrMethod
+public class Method extends Base
 {
+    private FieldOrMethod fieldOrMethod;
     private boolean containsError;
     private int[] exceptionIndexes; // NO_UCD (use final)
     private byte[] code; // NO_UCD (use final)
     private LineNumber[] lineNumbers; // NO_UCD (use final)
     private CodeException[] codeExceptions;
-    private ParameterAnnotations[] visibleParameterAnnotations; // NO_UCD (use final)
-    private ParameterAnnotations[] invisibleParameterAnnotations; // NO_UCD (use final)
+    private ParameterAnnotationEntry[] visibleParameterAnnotations; // NO_UCD (use final)
+    private ParameterAnnotationEntry[] invisibleParameterAnnotations; // NO_UCD (use final)
     private ElementValue defaultAnnotationValue; // NO_UCD (use final)
     private List<Instruction> instructions;
     private List<Instruction> fastNodes;
@@ -54,11 +63,10 @@ public class Method extends FieldOrMethod
      */
     private int superConstructorParameterCount;
 
-    public Method(int accessFlags, int nameIndex, int descriptorIndex,
-                  Attribute[] attributes, ConstantPool constants)
+    public Method(FieldOrMethod fieldOrMethod, ConstantPool constants)
     {
-        super(accessFlags, nameIndex, descriptorIndex, attributes);
-
+        super(fieldOrMethod.getAccessFlags(), fieldOrMethod.getAttributes());
+        this.fieldOrMethod = fieldOrMethod;
         this.containsError = false;
         this.exceptionIndexes = null;
         this.code = null;
@@ -71,33 +79,33 @@ public class Method extends FieldOrMethod
         this.superConstructorParameterCount = 0;
         this.constants = constants;
 
-        if (attributes != null)
+        if (fieldOrMethod.getAttributes() != null)
         {
-            AttributeCode ac = null;
+            Code ac = null;
 
-            for (int i=this.getAttributes().length-1; i>=0; --i)
+            for (int i=fieldOrMethod.getAttributes().length-1; i>=0; --i)
             {
-                Attribute attribute =  this.getAttribute(i);
+                Attribute attribute =  fieldOrMethod.getAttributes()[i];
                 switch (attribute.getTag())
                 {
                 case Const.ATTR_EXCEPTIONS:
                     this.exceptionIndexes =
-                        ((AttributeExceptions)attribute).getExceptionIndexTable();
+                        ((ExceptionTable)attribute).getExceptionIndexTable();
                     break;
                 case Const.ATTR_CODE:
-                    ac = (AttributeCode)attributes[i];
+                    ac = (Code)attribute;
                     break;
                 case Const.ATTR_RUNTIME_VISIBLE_PARAMETER_ANNOTATIONS:
                     this.visibleParameterAnnotations =
-                        ((AttributeRuntimeParameterAnnotations)attribute).getParameterAnnotations();
+                        ((RuntimeVisibleParameterAnnotations)attribute).getParameterAnnotationEntries();
                     break;
                 case Const.ATTR_RUNTIME_INVISIBLE_PARAMETER_ANNOTATIONS:
                     this.invisibleParameterAnnotations =
-                        ((AttributeRuntimeParameterAnnotations)attribute).getParameterAnnotations();
+                        ((RuntimeInvisibleParameterAnnotations)attribute).getParameterAnnotationEntries();
                     break;
                 case Const.ATTR_ANNOTATION_DEFAULT:
                     this.defaultAnnotationValue =
-                        ((AttributeAnnotationDefault)attribute).getDefaultValue();
+                        ((AnnotationDefault)attribute).getDefaultValue();
                     break;
                 }
             }
@@ -107,18 +115,25 @@ public class Method extends FieldOrMethod
                 this.code = ac.getCode();
 
                 // localVariables
-                AttributeLocalVariableTable alvt = ac.getAttributeLocalVariableTable();
-                if (alvt != null && alvt.getLocalVariableTable() != null)
+                LocalVariableTable alvt = ac.getLocalVariableTable();
+                if (alvt != null && alvt.getLocalVariableTable() != null && alvt.getLocalVariableTable().length > 0)
                 {
-                    AttributeLocalVariableTable alvtt = ac.getAttributeLocalVariableTypeTable();
+                    LocalVariableTypeTable alvtt = (LocalVariableTypeTable) Stream.of(ac.getAttributes())
+                            .filter(LocalVariableTypeTable.class::isInstance).findAny().orElse(null);
                     LocalVariable[] localVariableTypeTable =
-                        alvtt == null ? null : alvtt.getLocalVariableTable();
+                        alvtt == null ? null : alvtt.getLocalVariableTypeTable();
                     this.localVariables = new LocalVariables(
-                        alvt.getLocalVariableTable(), localVariableTypeTable);
+                        Stream.of(alvt.getLocalVariableTable())
+                            .map(jd.core.model.classfile.LocalVariable::new)
+                            .toArray(jd.core.model.classfile.LocalVariable[]::new),
+                        localVariableTypeTable == null ? null :
+                        Stream.of(localVariableTypeTable)
+                            .map(jd.core.model.classfile.LocalVariable::new)
+                            .toArray(jd.core.model.classfile.LocalVariable[]::new));
                 }
 
                 // lineNumbers
-                AttributeNumberTable ant = ac.getAttributeLineNumberTable();
+                LineNumberTable ant = ac.getLineNumberTable();
                 this.lineNumbers = ant == null ? null : ant.getLineNumberTable();
 
                 // codeExceptions
@@ -126,7 +141,7 @@ public class Method extends FieldOrMethod
             }
         }
     }
-
+    
     public boolean containsError()
     {
         return containsError;
@@ -186,12 +201,20 @@ public class Method extends FieldOrMethod
         return this.codeExceptions;
     }
 
-    public ParameterAnnotations[] getVisibleParameterAnnotations()
+    public List<Entry<Integer, CodeException>> getCodeExceptionEntries() {
+        List<Entry<Integer, CodeException>> codeExceptionEntries = new ArrayList<>();
+        for (int i = 0; i < codeExceptions.length; i++) {
+            codeExceptionEntries.add(new SimpleEntry<>(i, codeExceptions[i]));
+        }
+        return codeExceptionEntries;
+    }
+
+    public ParameterAnnotationEntry[] getVisibleParameterAnnotations()
     {
         return this.visibleParameterAnnotations;
     }
 
-    public ParameterAnnotations[] getInvisibleParameterAnnotations()
+    public ParameterAnnotationEntry[] getInvisibleParameterAnnotations()
     {
         return this.invisibleParameterAnnotations;
     }
@@ -211,12 +234,20 @@ public class Method extends FieldOrMethod
         this.superConstructorParameterCount = count;
     }
 
+    public int getNameIndex() {
+        return fieldOrMethod.getNameIndex();
+    }
+
     public String getName() {
-        return constants.getConstantUtf8(getNameIndex());
+        return constants.getConstantUtf8(fieldOrMethod.getNameIndex());
     }
 
     public String getDescriptor() {
-        return constants.getConstantUtf8(getDescriptorIndex());
+        return constants.getConstantUtf8(fieldOrMethod.getSignatureIndex());
+    }
+
+    public int getDescriptorIndex() {
+        return fieldOrMethod.getSignatureIndex();
     }
 
     @Override
@@ -225,4 +256,5 @@ public class Method extends FieldOrMethod
         String methodDesc = getDescriptor();
         return methodName + methodDesc;
     }
+
 }

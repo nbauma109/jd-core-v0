@@ -18,10 +18,10 @@ package jd.core.process.analyzer.classfile.reconstructor;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.Constant;
+import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.ConstantString;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.List;
@@ -140,7 +140,7 @@ public final class DotClass118AReconstructor
                 continue;
             }
 
-            ConstantMethodref cmr =
+            ConstantCP cmr =
                 constants.getConstantMethodref(is.getIndex());
             ConstantNameAndType cnatMethod =
                 constants.getConstantNameAndType(cmr.getNameAndTypeIndex());

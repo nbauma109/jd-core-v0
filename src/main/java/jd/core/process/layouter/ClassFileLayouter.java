@@ -19,6 +19,7 @@ package jd.core.process.layouter;
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
+import org.apache.bcel.classfile.Signature;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.ExceptionUtil;
 import org.jd.core.v1.util.StringConstants;
 
@@ -33,7 +34,6 @@ import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.Field;
 import jd.core.model.classfile.Field.ValueAndMethod;
 import jd.core.model.classfile.Method;
-import jd.core.model.classfile.attribute.AttributeSignature;
 import jd.core.model.instruction.bytecode.instruction.AThrow;
 import jd.core.model.instruction.bytecode.instruction.GetStatic;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
@@ -239,7 +239,7 @@ public final class ClassFileLayouter {
 
         // Affichage de la classe, de l'interface, de l'enum ou de l'annotation
          // Check annotation
-        AttributeSignature as = classFile.getAttributeSignature();
+        Signature as = classFile.getAttributeSignature();
         if (as == null)
         {
             layoutBlockList.add(new TypeNameLayoutBlock(classFile));
@@ -614,7 +614,7 @@ public final class ClassFileLayouter {
             preferences.getShowDefaultConstructor();
         JavaSourceLayouter javaSourceLayouter = new JavaSourceLayouter();
         Method method;
-        AttributeSignature as;
+        Signature as;
         int signatureIndex;
         String signature;
         List<LayoutBlock> subLayoutBlockList;
@@ -3540,7 +3540,7 @@ public final class ClassFileLayouter {
         List<SubListLayoutBlock> sortedMethodBlockList = new ArrayList<>();
         JavaSourceLayouter javaSourceLayouter = new JavaSourceLayouter();
         ConstantPool constants = classFile.getConstantPool();
-        AttributeSignature as = method.getAttributeSignature();
+        Signature as = method.getAttributeSignature();
         int signatureIndex = as == null ?
                 method.getDescriptorIndex() : as.getSignatureIndex();
         String signature = constants.getConstantUtf8(signatureIndex);

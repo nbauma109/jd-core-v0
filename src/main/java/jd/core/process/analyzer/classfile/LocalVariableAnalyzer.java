@@ -19,6 +19,7 @@ package jd.core.process.analyzer.classfile;
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
+import org.apache.bcel.classfile.Signature;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.List;
@@ -28,7 +29,6 @@ import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.classfile.Method;
-import jd.core.model.classfile.attribute.AttributeSignature;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.ALoad;
 import jd.core.model.instruction.bytecode.instruction.AStore;
@@ -151,7 +151,7 @@ public final class LocalVariableAnalyzer
         else
         {
             // Traitement des entrées correspondant aux parametres
-            AttributeSignature as = method.getAttributeSignature();
+            Signature as = method.getAttributeSignature();
             String methodSignature = constants.getConstantUtf8(
                     as==null ? method.getDescriptorIndex() : as.getSignatureIndex());
 
@@ -231,7 +231,7 @@ public final class LocalVariableAnalyzer
     {
         // Le descripteur et la signature sont differentes pour les
         // constructeurs des Enums !
-        AttributeSignature as = method.getAttributeSignature();
+        Signature as = method.getAttributeSignature();
         String methodSignature = constants.getConstantUtf8(
                 as == null ? method.getDescriptorIndex() : as.getSignatureIndex());
         List<String> parameterTypes =
@@ -1602,7 +1602,7 @@ public final class LocalVariableAnalyzer
     private static String getReturnedSignature(
             ClassFile classFile, Method method)
     {
-        AttributeSignature as = method.getAttributeSignature();
+        Signature as = method.getAttributeSignature();
         int signatureIndex = as == null ?
                 method.getDescriptorIndex() : as.getSignatureIndex();
         String signature =

@@ -17,7 +17,19 @@
 package jd.core.process.analyzer.classfile;
 
 import org.apache.bcel.Const;
-import org.jd.core.v1.model.classfile.attribute.CodeException;
+import org.apache.bcel.classfile.AnnotationElementValue;
+import org.apache.bcel.classfile.AnnotationEntry;
+import org.apache.bcel.classfile.Annotations;
+import org.apache.bcel.classfile.ArrayElementValue;
+import org.apache.bcel.classfile.Attribute;
+import org.apache.bcel.classfile.ClassElementValue;
+import org.apache.bcel.classfile.CodeException;
+import org.apache.bcel.classfile.ElementValue;
+import org.apache.bcel.classfile.ElementValuePair;
+import org.apache.bcel.classfile.EnumElementValue;
+import org.apache.bcel.classfile.ParameterAnnotationEntry;
+import org.apache.bcel.classfile.ParameterAnnotations;
+import org.apache.bcel.classfile.Signature;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.HashMap;
@@ -31,19 +43,6 @@ import jd.core.model.classfile.Field;
 import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.classfile.Method;
-import jd.core.model.classfile.attribute.Annotation;
-import jd.core.model.classfile.attribute.Attribute;
-import jd.core.model.classfile.attribute.AttributeRuntimeAnnotations;
-import jd.core.model.classfile.attribute.AttributeRuntimeParameterAnnotations;
-import jd.core.model.classfile.attribute.AttributeSignature;
-import jd.core.model.classfile.attribute.ElementValue;
-import jd.core.model.classfile.attribute.ElementValueAnnotationValue;
-import jd.core.model.classfile.attribute.ElementValueArrayValue;
-import jd.core.model.classfile.attribute.ElementValueClassInfo;
-import jd.core.model.classfile.attribute.ElementValueContants;
-import jd.core.model.classfile.attribute.ElementValueEnumConstValue;
-import jd.core.model.classfile.attribute.ElementValuePair;
-import jd.core.model.classfile.attribute.ParameterAnnotations;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.reference.Reference;
 import jd.core.model.reference.ReferenceMap;
@@ -66,7 +65,7 @@ public final class ReferenceAnalyzer
         // Class
         referenceMap.add(classFile.getThisClassName());
 
-        AttributeSignature as = classFile.getAttributeSignature();
+        Signature as = classFile.getAttributeSignature();
         if (as == null)
         {
             // Super class
@@ -123,19 +122,18 @@ public final class ReferenceAnalyzer
             for (int i=attributes.length-1; i>=0; --i) {
                 if (attributes[i].getTag() == Const.ATTR_RUNTIME_INVISIBLE_ANNOTATIONS
                  || attributes[i].getTag() == Const.ATTR_RUNTIME_VISIBLE_ANNOTATIONS) {
-                    Annotation[] annotations =
-                        ((AttributeRuntimeAnnotations)attributes[i])
-                        .getAnnotations();
+                    AnnotationEntry[] annotations =
+                        ((Annotations)attributes[i])
+                        .getAnnotationEntries();
                     for (int j=annotations.length-1; j>=0; --j) {
                         countAnnotationReference(referenceMap, constants, annotations[j]);
                     }
                 } else if (attributes[i].getTag() == Const.ATTR_RUNTIME_INVISIBLE_PARAMETER_ANNOTATIONS
                         || attributes[i].getTag() == Const.ATTR_RUNTIME_VISIBLE_PARAMETER_ANNOTATIONS) {
-                    ParameterAnnotations[] parameterAnnotations =
-                        ((AttributeRuntimeParameterAnnotations)
-                                attributes[i]).getParameterAnnotations();
-                    countParameterAnnotationsReference(
-                            referenceMap, constants, parameterAnnotations);
+                    ParameterAnnotationEntry[] parameterAnnotations =
+                        ((ParameterAnnotations)
+                                attributes[i]).getParameterAnnotationEntries();
+                    countParameterAnnotationsReference(referenceMap, constants, parameterAnnotations);
                 }
             }
         }
@@ -143,37 +141,35 @@ public final class ReferenceAnalyzer
 
     private static void countAnnotationReference(
             ReferenceMap referenceMap, ConstantPool constants,
-            Annotation annotation)
+            AnnotationEntry annotations)
     {
-        String typeName = constants.getConstantUtf8(annotation.typeIndex());
+        String typeName = constants.getConstantUtf8(annotations.getTypeIndex());
         SignatureAnalyzer.analyzeSimpleSignature(referenceMap, typeName);
 
         ElementValuePair[] elementValuePairs =
-            annotation.elementValuePairs();
+            annotations.getElementValuePairs();
         if (elementValuePairs != null)
         {
             for (int j=elementValuePairs.length-1; j>=0; --j) {
                 countElementValue(
-                    referenceMap, constants, elementValuePairs[j].elementValue());
+                    referenceMap, constants, elementValuePairs[j].getValue());
             }
         }
     }
 
     private static void countParameterAnnotationsReference(
             ReferenceMap referenceMap, ConstantPool constants,
-            ParameterAnnotations[] parameterAnnotations)
+            ParameterAnnotationEntry[] parameterAnnotations)
     {
         if (parameterAnnotations != null)
         {
-            Annotation[] annotations;
-            for (int i=parameterAnnotations.length-1; i>=0; --i)
-            {
-                annotations = parameterAnnotations[i].annotations();
-                if (annotations != null)
-                {
-                    for (int j=annotations.length-1; j>=0; --j) {
-                        countAnnotationReference(
-                            referenceMap, constants, annotations[j]);
+            for (ParameterAnnotationEntry parameterAnnotationEntry : parameterAnnotations) {
+                AnnotationEntry[] annotationEntries = parameterAnnotationEntry.getAnnotationEntries();
+                if (annotationEntries != null) {
+                    for (AnnotationEntry annotationEntry : annotationEntries) {
+                        if (annotationEntry != null) {
+                            countAnnotationReference(referenceMap, constants, annotationEntry);
+                        }
                     }
                 }
             }
@@ -183,51 +179,36 @@ public final class ReferenceAnalyzer
     private static void countElementValue(
             ReferenceMap referenceMap, ConstantPool constants, ElementValue ev)
     {
-        String signature;
-        ElementValueClassInfo evci;
+        if (ev instanceof ClassElementValue) {
+            ClassElementValue evci = (ClassElementValue)ev;
+            String signature = evci.getClassString();
+            SignatureAnalyzer.analyzeSimpleSignature(referenceMap, signature);
+        }
+        if (ev instanceof AnnotationElementValue) {
+            AnnotationElementValue evanv = (AnnotationElementValue)ev;
+            countAnnotationReference(
+                    referenceMap, constants, evanv.getAnnotationEntry());
+        }
+        if (ev instanceof ArrayElementValue) {
+            ArrayElementValue evarv = (ArrayElementValue)ev;
+            ElementValue[] values = evarv.getElementValuesArray();
 
-        switch (ev.tag())
-        {
-        case ElementValueContants.EV_CLASS_INFO:
+            if (values != null)
             {
-                evci = (ElementValueClassInfo)ev;
-                signature = constants.getConstantUtf8(evci.classInfoIndex());
-                SignatureAnalyzer.analyzeSimpleSignature(referenceMap, signature);
-            }
-            break;
-        case ElementValueContants.EV_ANNOTATION_VALUE:
-            {
-                ElementValueAnnotationValue evanv = (ElementValueAnnotationValue)ev;
-                countAnnotationReference(
-                        referenceMap, constants, evanv.annotationValue());
-            }
-            break;
-        case ElementValueContants.EV_ARRAY_VALUE:
-            {
-                ElementValueArrayValue evarv = (ElementValueArrayValue)ev;
-                ElementValue[] values = evarv.values();
-
-                if (values != null)
-                {
-                    for (int i=values.length-1; i>=0; --i) {
-                        if (values[i].tag() == ElementValueContants.EV_CLASS_INFO)
-                        {
-                            evci = (ElementValueClassInfo)values[i];
-                            signature =
-                                constants.getConstantUtf8(evci.classInfoIndex());
-                            SignatureAnalyzer.analyzeSimpleSignature(referenceMap, signature);
-                        }
+                for (int i=values.length-1; i>=0; --i) {
+                    if (values[i] instanceof ClassElementValue)
+                    {
+                        ClassElementValue evci = (ClassElementValue)values[i];
+                        String signature = evci.getClassString();
+                        SignatureAnalyzer.analyzeSimpleSignature(referenceMap, signature);
                     }
                 }
             }
-            break;
-        case ElementValueContants.EV_ENUM_CONST_VALUE:
-            {
-                ElementValueEnumConstValue evecv = (ElementValueEnumConstValue)ev;
-                signature = constants.getConstantUtf8(evecv.typeNameIndex());
-                SignatureAnalyzer.analyzeSimpleSignature(referenceMap, signature);
-            }
-            break;
+        }
+        if (ev instanceof EnumElementValue) {
+            EnumElementValue evecv = (EnumElementValue)ev;
+            String signature = evecv.getEnumTypeString();
+            SignatureAnalyzer.analyzeSimpleSignature(referenceMap, signature);
         }
     }
 
@@ -242,7 +223,7 @@ public final class ReferenceAnalyzer
         }
 
         Field field;
-        AttributeSignature as;
+        Signature as;
         String signature;
         for (int i=fields.length-1; i>=0; --i)
         {
@@ -279,7 +260,7 @@ public final class ReferenceAnalyzer
         ConstantPool constants = classFile.getConstantPool();
 
         Method method;
-        AttributeSignature as;
+        Signature as;
         String signature;
         int[] exceptionIndexes;
         ElementValue defaultAnnotationValue;
@@ -366,10 +347,10 @@ public final class ReferenceAnalyzer
         {
             ce = codeExceptions[i];
 
-            if (ce.catchType() != 0)
+            if (ce.getCatchType() != 0)
             {
                 String internalClassName =
-                    constants.getConstantClassName(ce.catchType());
+                    constants.getConstantClassName(ce.getCatchType());
                 referenceMap.add(internalClassName);
             }
         }

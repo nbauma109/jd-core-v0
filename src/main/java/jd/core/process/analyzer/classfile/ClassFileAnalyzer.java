@@ -18,9 +18,10 @@ package jd.core.process.analyzer.classfile;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.Constant;
+import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
+import org.apache.bcel.classfile.Signature;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.ExceptionUtil;
 import org.jd.core.v1.util.StringConstants;
 
@@ -34,7 +35,6 @@ import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.Field;
 import jd.core.model.classfile.Method;
-import jd.core.model.classfile.attribute.AttributeSignature;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.ALoad;
 import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
@@ -75,7 +75,6 @@ import jd.core.process.analyzer.instruction.fast.DupLocalVariableAnalyzer;
 import jd.core.process.analyzer.instruction.fast.FastInstructionListBuilder;
 import jd.core.process.analyzer.instruction.fast.ReturnLineNumberAnalyzer;
 import jd.core.process.analyzer.variable.VariableNameGenerator;
-import jd.core.util.SignatureUtil;
 
 public final class ClassFileAnalyzer
 {
@@ -202,8 +201,6 @@ public final class ClassFileAnalyzer
 
             try
             {
-                analyzeMethodref(classFile);
-
                 // Build instructions
                 List<Instruction> list = new ArrayList<>();
                 List<Instruction> listForAnalyze = new ArrayList<>();
@@ -330,35 +327,6 @@ public final class ClassFileAnalyzer
         return null;
     }
 
-    private static void analyzeMethodref(ClassFile classFile)
-    {
-        ConstantPool constants = classFile.getConstantPool();
-
-        Constant constant;
-        for (int i=constants.size()-1; i>=0; --i)
-        {
-            constant = constants.get(i);
-
-            if (constant instanceof ConstantMethodref)
-            {
-                // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
-                ConstantMethodref cmr = (ConstantMethodref) constant;
-                ConstantNameAndType cnat =
-                        constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
-
-                if (cnat != null)
-                {
-                    String signature = constants.getConstantUtf8(
-                            cnat.getSignatureIndex());
-                    cmr.setParameterSignatures(
-                            SignatureUtil.getParameterSignatures(signature));
-                    cmr.setReturnedSignature(
-                            SignatureUtil.getMethodReturnedSignature(signature));
-                }
-            }
-        }
-    }
-
     private static void checkUnicityOfFieldNames(ClassFile classFile)
     {
         Field[] fields = classFile.getFields();
@@ -408,7 +376,7 @@ public final class ClassFileAnalyzer
             {
                 field = list.get(j);
                 int fieldDescriptorIndex;
-                AttributeSignature fieldSignature = field.getAttributeSignature();
+                Signature fieldSignature = field.getAttributeSignature();
                 if (fieldSignature != null) {
                     fieldDescriptorIndex = fieldSignature.getSignatureIndex();
                 } else {
@@ -718,8 +686,6 @@ public final class ClassFileAnalyzer
 
     private static void preAnalyzeMethods(ClassFile classFile)
     {
-        analyzeMethodref(classFile);
-
         Method[] methods = classFile.getMethods();
 
         if (methods == null) {
@@ -956,7 +922,7 @@ public final class ClassFileAnalyzer
         }
 
         // Is parameters counter greater than 0 ?
-        AttributeSignature as = method.getAttributeSignature();
+        Signature as = method.getAttributeSignature();
         String methodSignature = constants.getConstantUtf8(
                 as==null ? method.getDescriptorIndex() : as.getSignatureIndex());
 
@@ -990,7 +956,7 @@ public final class ClassFileAnalyzer
             {
                 // Is a call to "this()" in constructor ?
                 Invokespecial is = (Invokespecial)instruction;
-                ConstantMethodref cmr = constants.getConstantMethodref(is.getIndex());
+                ConstantCP cmr = constants.getConstantMethodref(is.getIndex());
                 if (cmr.getClassIndex() == classFile.getThisClassIndex())
                 {
                     ConstantNameAndType cnat =
@@ -1163,7 +1129,7 @@ public final class ClassFileAnalyzer
                     if (is.getObjectref().getOpcode() == Const.ALOAD &&
                             ((ALoad)is.getObjectref()).getIndex() == 0)
                     {
-                        ConstantMethodref cmr = constants.getConstantMethodref(is.getIndex());
+                        ConstantCP cmr = constants.getConstantMethodref(is.getIndex());
                         ConstantNameAndType cnat =
                                 constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
 

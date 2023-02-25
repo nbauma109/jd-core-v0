@@ -18,10 +18,9 @@ package jd.core.process.analyzer.classfile.visitor;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.Constant;
+import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantFieldref;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
-
 import java.util.List;
 
 import jd.core.model.classfile.ConstantPool;
@@ -220,7 +219,7 @@ public class ReferenceVisitor
             {
                 InvokeInstruction ii = (InvokeInstruction)instruction;
                 if (!(ii instanceof InvokeNoStaticInstruction)) {
-                    ConstantMethodref cmr = constants.getConstantMethodref(ii.getIndex());
+                    ConstantCP cmr = constants.getConstantMethodref(ii.getIndex());
                     internalName = constants.getConstantClassName(cmr.getClassIndex());
                     addReference(internalName);
                 }

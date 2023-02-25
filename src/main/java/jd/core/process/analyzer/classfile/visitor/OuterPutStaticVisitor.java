@@ -17,8 +17,8 @@
 package jd.core.process.analyzer.classfile.visitor;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantNameAndType;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
 
 import java.util.Map;
 
@@ -30,6 +30,7 @@ import jd.core.model.classfile.accessor.PutStaticAccessor;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.Invokestatic;
 import jd.core.model.instruction.bytecode.instruction.PutStatic;
+import jd.core.util.SignatureUtil;
 
 /*
  * Replace 'TestInnerClass.access$0(1)'
@@ -51,14 +52,16 @@ public class OuterPutStaticVisitor extends OuterGetStaticVisitor
         }
 
         Invokestatic is = (Invokestatic)i;
-        ConstantMethodref cmr = constants.getConstantMethodref(is.getIndex());
+        ConstantCP cmr = constants.getConstantMethodref(is.getIndex());
         ConstantNameAndType cnat =
             constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
         String descriptor =
             constants.getConstantUtf8(cnat.getSignatureIndex());
 
+        int nbrOfParameters = SignatureUtil.getParameterSignatureCount(descriptor);
+
         // One parameter ?
-        if (cmr.getNbrOfParameters() != 1) {
+        if (nbrOfParameters != 1) {
             return null;
         }
 

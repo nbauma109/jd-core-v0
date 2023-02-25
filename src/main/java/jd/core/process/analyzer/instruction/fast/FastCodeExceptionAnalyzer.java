@@ -17,7 +17,7 @@
 package jd.core.process.analyzer.instruction.fast;
 
 import org.apache.bcel.Const;
-import org.jd.core.v1.model.classfile.attribute.CodeException;
+import org.apache.bcel.classfile.CodeException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -210,30 +210,30 @@ public final class FastCodeExceptionAnalyzer
         {
             codeException = arrayOfCodeException[i];
 
-            if (array[codeException.handlerPc()] == null)
+            if (array[codeException.getHandlerPC()] == null)
             {
                 FastAggregatedCodeExcepcion face =
-                        new FastAggregatedCodeExcepcion(codeException.index(), codeException.startPc(), codeException.endPc(),
-                                codeException.handlerPc(), codeException.catchType());
+                        new FastAggregatedCodeExcepcion(codeException.getStartPC(), codeException.getEndPC(),
+                                codeException.getHandlerPC(), codeException.getCatchType());
                 fastAggregatedCodeExceptions.add(face);
-                array[codeException.handlerPc()] = face;
+                array[codeException.getHandlerPC()] = face;
             }
             else
             {
-                FastAggregatedCodeExcepcion face = array[codeException.handlerPc()];
+                FastAggregatedCodeExcepcion face = array[codeException.getHandlerPC()];
                 // ATTENTION: la modification de 'endPc' implique la
                 //            reecriture de 'defineType(...) !!
                 if (face.getCatchType() == 0)
                 {
                     face.nbrFinally++;
                 } else // Ce type d'exception a-t-il deja ete ajoute ?
-                    if (isNotAlreadyStored(face, codeException.catchType()))
+                    if (isNotAlreadyStored(face, codeException.getCatchType()))
                     {
                         // Non
                         if (face.otherCatchTypes == null) {
                             face.otherCatchTypes = new int[length];
                         }
-                        face.otherCatchTypes[i] = codeException.catchType();
+                        face.otherCatchTypes[i] = codeException.getCatchType();
                     }
             }
         }
@@ -3287,27 +3287,27 @@ public final class FastCodeExceptionAnalyzer
         private boolean             synchronizedFlag;
         private final CodeException codeException;
 
-        public FastAggregatedCodeExcepcion(int index, int startPc, int endPc, int handlerPc, int catchType)
+        public FastAggregatedCodeExcepcion(int startPc, int endPc, int handlerPc, int catchType)
         {
-            this.codeException = new CodeException(index, startPc, endPc, handlerPc, catchType);
+            this.codeException = new CodeException(startPc, endPc, handlerPc, catchType);
             this.otherCatchTypes = null;
             this.nbrFinally = catchType == 0 ? 1 : 0;
         }
 
         public int getCatchType() {
-            return codeException.catchType();
+            return codeException.getCatchType();
         }
 
         public int getStartPC() {
-            return codeException.startPc();
+            return codeException.getStartPC();
         }
 
         public int getEndPC() {
-            return codeException.endPc();
+            return codeException.getEndPC();
         }
 
         public int getHandlerPC() {
-            return codeException.handlerPc();
+            return codeException.getHandlerPC();
         }
     }
 

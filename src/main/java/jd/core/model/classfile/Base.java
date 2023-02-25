@@ -17,11 +17,10 @@
 package jd.core.model.classfile;
 
 import org.apache.bcel.Const;
-
-import jd.core.model.classfile.attribute.Annotation;
-import jd.core.model.classfile.attribute.Attribute;
-import jd.core.model.classfile.attribute.AttributeRuntimeAnnotations;
-import jd.core.model.classfile.attribute.AttributeSignature;
+import org.apache.bcel.classfile.AnnotationEntry;
+import org.apache.bcel.classfile.Annotations;
+import org.apache.bcel.classfile.Attribute;
+import org.apache.bcel.classfile.Signature;
 
 public class Base
 {
@@ -34,13 +33,13 @@ public class Base
         this.attributes = attributes;
     }
 
-    public AttributeSignature getAttributeSignature()
+    public Signature getAttributeSignature()
     {
         if (this.attributes != null)
         {
             for (int i=this.attributes.length-1; i>=0; --i) {
                 if (this.attributes[i].getTag() == Const.ATTR_SIGNATURE) {
-                    return (AttributeSignature)this.attributes[i];
+                    return (Signature)this.attributes[i];
                 }
             }
         }
@@ -70,8 +69,8 @@ public class Base
             {
                 if (this.attributes[i].getTag() == Const.ATTR_RUNTIME_INVISIBLE_ANNOTATIONS
                  || this.attributes[i].getTag() == Const.ATTR_RUNTIME_VISIBLE_ANNOTATIONS) {
-                    Annotation[]annotations =
-                            ((AttributeRuntimeAnnotations)attributes[i]).getAnnotations();
+                    AnnotationEntry[] annotations =
+                            ((Annotations)attributes[i]).getAnnotationEntries();
                     if (containsAnnotationDeprecated(classFile, annotations)) {
                         return true;
                     }
@@ -83,7 +82,7 @@ public class Base
     }
 
     private static boolean containsAnnotationDeprecated(
-            ClassFile classFile, Annotation[] annotations)
+            ClassFile classFile, AnnotationEntry[] annotations)
     {
         if (annotations != null)
         {
@@ -91,7 +90,7 @@ public class Base
                     classFile.getConstantPool().getInternalDeprecatedSignatureIndex();
 
             for (int i=annotations.length-1; i>=0; --i) {
-                if (idsIndex == annotations[i].typeIndex()) {
+                if (idsIndex == annotations[i].getTypeIndex()) {
                     return true;
                 }
             }

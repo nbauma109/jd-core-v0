@@ -16,9 +16,9 @@
  ******************************************************************************/
 package jd.core.model.instruction.fast.instruction;
 
+import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantNameAndType;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -180,7 +180,7 @@ public class FastTry extends FastList {
         LocalVariable lv1 = localVariables.getLocalVariableWithIndexAndOffset(aLoad1.getIndex(), aLoad1.getOffset());
         LocalVariable lv2 = localVariables.getLocalVariableWithIndexAndOffset(aLoad2.getIndex(), aLoad2.getOffset());
         lv1.setTryResources(this);
-        ConstantMethodref catchInstructionMethodref = cp.getConstantMethodref(catchInstruction.getIndex());
+        ConstantCP catchInstructionMethodref = cp.getConstantMethodref(catchInstruction.getIndex());
         ConstantClass catchInstructionClass = cp.getConstantClass(catchInstructionMethodref.getClassIndex());
         ConstantNameAndType catchInstructionMethod = cp.getConstantNameAndType(catchInstructionMethodref.getNameAndTypeIndex());
         String catchInstructionMethodName = cp.getConstantUtf8(catchInstructionMethod.getNameIndex());

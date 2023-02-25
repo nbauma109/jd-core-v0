@@ -17,7 +17,8 @@
 package jd.core.process.analyzer.instruction.bytecode.factory;
 
 import org.apache.bcel.Const;
-import org.jd.core.v1.model.classfile.constant.ConstantInterfaceMethodref;
+import org.apache.bcel.classfile.ConstantInterfaceMethodref;
+import org.apache.bcel.classfile.ConstantNameAndType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,9 +26,11 @@ import java.util.Deque;
 import java.util.List;
 
 import jd.core.model.classfile.ClassFile;
+import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.Invokeinterface;
+import jd.core.util.SignatureUtil;
 
 public class InvokeinterfaceFactory implements InstructionFactory
 {
@@ -42,14 +45,21 @@ public class InvokeinterfaceFactory implements InstructionFactory
         final int index = (code[offset+1] & 255) << 8 | code[offset+2] & 255;
         // Ignore final int count = code[offset+3] & 255; //
 
+        ConstantPool constants = classFile.getConstantPool();
         ConstantInterfaceMethodref cimr =
-            classFile.getConstantPool().getConstantInterfaceMethodref(index);
+            constants.getConstantInterfaceMethodref(index);
         if (cimr == null) {
             throw new IllegalArgumentException(
                     "Invalid ConstantInterfaceMethodref index");
         }
 
-        int nbrOfParameters = cimr.getNbrOfParameters();
+        ConstantNameAndType cnat = constants.getConstantNameAndType(
+                cimr.getNameAndTypeIndex());
+
+        String methodDescriptor =
+            constants.getConstantUtf8(cnat.getSignatureIndex());
+
+        int nbrOfParameters = SignatureUtil.getParameterSignatureCount(methodDescriptor);
         List<Instruction> args = new ArrayList<>(nbrOfParameters);
 
         for (int i=nbrOfParameters; i>0; --i) {
@@ -63,7 +73,7 @@ public class InvokeinterfaceFactory implements InstructionFactory
         final Instruction instruction = new Invokeinterface(
             opcode, offset, lineNumber, index, objectref, args);
 
-        if (cimr.returnAResult()) {
+        if (!"V".equals(SignatureUtil.getMethodReturnedSignature(methodDescriptor))) {
             stack.push(instruction);
         } else {
             list.add(instruction);

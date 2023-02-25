@@ -17,11 +17,11 @@
 package jd.core.process.writer;
 
 import org.apache.bcel.classfile.Constant;
+import org.apache.bcel.classfile.SimpleElementValue;
 import org.jd.core.v1.api.loader.Loader;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
-import jd.core.model.classfile.attribute.ElementValuePrimitiveType;
 import jd.core.model.reference.ReferenceMap;
 import jd.core.printer.Printer;
 import jd.core.util.StringUtil;
@@ -34,14 +34,13 @@ public final class ElementValuePrimitiveTypeWriter
 
     public static void write(
         Loader loader, Printer printer, ReferenceMap referenceMap,
-        ClassFile classFile, ElementValuePrimitiveType evpt)
+        ClassFile classFile, SimpleElementValue evpt)
     {
         ConstantPool constants = classFile.getConstantPool();
 
-        if (evpt.type() == 's')
+        if (evpt.getElementValueType() == 's')
         {
-            String constValue =
-                constants.getConstantUtf8(evpt.constValueIndex());
+            String constValue = evpt.getValueString();
             String escapedString =
                 StringUtil.escapeStringAndAppendQuotationMark(constValue);
             printer.printString(escapedString, classFile.getThisClassName());
@@ -49,9 +48,9 @@ public final class ElementValuePrimitiveTypeWriter
         else
         {
             Constant cv = constants.getConstantValue(
-                evpt.constValueIndex());
+                evpt.getIndex());
             ConstantValueWriter.write(
-                loader, printer, referenceMap, classFile, cv, evpt.type());
+                loader, printer, referenceMap, classFile, cv, evpt.getElementValueType());
         }
     }
 }

@@ -17,19 +17,20 @@
 package jd.core.model.classfile;
 
 import org.apache.bcel.classfile.Constant;
+import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantFieldref;
+import org.apache.bcel.classfile.ConstantInterfaceMethodref;
+import org.apache.bcel.classfile.ConstantInvokeDynamic;
 import org.apache.bcel.classfile.ConstantMethodHandle;
 import org.apache.bcel.classfile.ConstantMethodType;
+import org.apache.bcel.classfile.ConstantMethodref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.ConstantUtf8;
-import org.jd.core.v1.model.classfile.constant.ConstantInterfaceMethodref;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import jd.core.util.IndexToIndexMap;
 import jd.core.util.StringToIndexMap;
 
@@ -77,11 +78,16 @@ public class ConstantPool
     private final int bootstrapMethodsAttributeNameIndex;
     private final int methodParametersAttributeNameIndex;
 
-    public ConstantPool(Constant[] constants)
+    private final org.apache.bcel.classfile.ConstantPool constantPool;
+
+    public ConstantPool(org.apache.bcel.classfile.ConstantPool constantPool)
     {
+        this.constantPool = constantPool;
         this.listOfConstants = new ArrayList<>();
         this.constantUtf8ToIndex = new StringToIndexMap();
         this.constantClassToIndex = new IndexToIndexMap();
+
+        Constant[] constants = constantPool.getConstantPool();
 
         for (int i=0; i<constants.length; i++)
         {
@@ -318,15 +324,8 @@ public class ConstantPool
         return index;
     }
 
-    public int addConstantMethodref(int classIndex, int nameAndTypeIndex)
-    {
-        return addConstantMethodref(
-            classIndex, nameAndTypeIndex, null, null);
-    }
-
     public int addConstantMethodref(
-        int classIndex, int nameAndTypeIndex,
-        List<String> listOfParameterSignatures, String returnedSignature)
+        int classIndex, int nameAndTypeIndex)
     {
         int index = this.listOfConstants.size();
 
@@ -343,10 +342,10 @@ public class ConstantPool
             }
         }
 
-        ConstantMethodref cfr = new ConstantMethodref(classIndex, nameAndTypeIndex,
-            listOfParameterSignatures, returnedSignature);
+        ConstantMethodref cmr = new ConstantMethodref(classIndex, nameAndTypeIndex);
+
         index = this.listOfConstants.size();
-        this.listOfConstants.add(cfr);
+        this.listOfConstants.add(cmr);
 
         return index;
     }
@@ -379,9 +378,9 @@ public class ConstantPool
         return (ConstantNameAndType)this.listOfConstants.get(index);
     }
 
-    public ConstantMethodref getConstantMethodref(int index)
+    public ConstantCP getConstantMethodref(int index)
     {
-        return (ConstantMethodref)this.listOfConstants.get(index);
+        return (ConstantCP)this.listOfConstants.get(index);
     }
 
     public ConstantMethodType getConstantMethodType(int index)
@@ -397,6 +396,11 @@ public class ConstantPool
     public ConstantInterfaceMethodref getConstantInterfaceMethodref(int index)
     {
         return (ConstantInterfaceMethodref)this.listOfConstants.get(index);
+    }
+
+    public ConstantInvokeDynamic getConstantInvokeDynamic(int index)
+    {
+        return (ConstantInvokeDynamic) this.listOfConstants.get(index);
     }
 
     public Constant getConstantValue(int index)
@@ -534,5 +538,9 @@ public class ConstantPool
     
     public String getLocalVariableName(LocalVariable localVariable) {
         return getConstantUtf8(localVariable.getNameIndex());
+    }
+
+    public org.apache.bcel.classfile.ConstantPool getConstantPool() {
+        return constantPool;
     }
 }

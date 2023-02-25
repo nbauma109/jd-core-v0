@@ -17,7 +17,11 @@
 package jd.core.model.classfile;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.classfile.Attribute;
+import org.apache.bcel.classfile.BootstrapMethods;
 import org.apache.bcel.classfile.ConstantClass;
+import org.apache.bcel.classfile.InnerClasses;
+import org.apache.bcel.classfile.MethodParameters;
 import org.jd.core.v1.api.loader.Loader;
 import org.jd.core.v1.util.StringConstants;
 
@@ -26,10 +30,6 @@ import java.util.List;
 import java.util.Map;
 
 import jd.core.model.classfile.accessor.Accessor;
-import jd.core.model.classfile.attribute.Attribute;
-import jd.core.model.classfile.attribute.AttributeBootstrapMethods;
-import jd.core.model.classfile.attribute.AttributeInnerClasses;
-import jd.core.model.classfile.attribute.AttributeMethodParameters;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.process.analyzer.variable.DefaultVariableNameGenerator;
 import jd.core.process.analyzer.variable.VariableNameGenerator;
@@ -220,13 +220,13 @@ public class ClassFile extends Base
         return this.methods[i];
     }
 
-    public AttributeInnerClasses getAttributeInnerClasses()
+    public InnerClasses getAttributeInnerClasses()
     {
         if (this.getAttributes() != null)
         {
             for (Attribute attribute : this.getAttributes()) {
                 if (attribute.getTag() == Const.ATTR_INNER_CLASSES) {
-                    return (AttributeInnerClasses)attribute;
+                    return (InnerClasses)attribute;
                 }
             }
         }
@@ -234,13 +234,13 @@ public class ClassFile extends Base
         return null;
     }
 
-    public AttributeBootstrapMethods getAttributeBootstrapMethods()
+    public BootstrapMethods getAttributeBootstrapMethods()
     {
         if (this.getAttributes() != null)
         {
             for (Attribute attribute : this.getAttributes()) {
                 if (attribute.getTag() == Const.ATTR_BOOTSTRAP_METHODS) {
-                    return (AttributeBootstrapMethods)attribute;
+                    return (BootstrapMethods)attribute;
                 }
             }
         }
@@ -248,13 +248,13 @@ public class ClassFile extends Base
         return null;
     }
     
-    public AttributeMethodParameters getAttributeMethodParameters()
+    public MethodParameters getAttributeMethodParameters()
     {
         if (this.getAttributes() != null)
         {
             for (Attribute attribute : this.getAttributes()) {
                 if (attribute.getTag() == Const.ATTR_METHOD_PARAMETERS) {
-                    return (AttributeMethodParameters)attribute;
+                    return (MethodParameters)attribute;
                 }
             }
         }

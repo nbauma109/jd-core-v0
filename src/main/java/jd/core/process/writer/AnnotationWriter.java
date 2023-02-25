@@ -16,13 +16,13 @@
  */
 package jd.core.process.writer;
 
+import org.apache.bcel.classfile.AnnotationEntry;
+import org.apache.bcel.classfile.ElementValuePair;
+import org.apache.bcel.classfile.ParameterAnnotationEntry;
 import org.jd.core.v1.api.loader.Loader;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
-import jd.core.model.classfile.attribute.Annotation;
-import jd.core.model.classfile.attribute.ElementValuePair;
-import jd.core.model.classfile.attribute.ParameterAnnotations;
 import jd.core.model.reference.ReferenceMap;
 import jd.core.printer.Printer;
 
@@ -32,45 +32,45 @@ public final class AnnotationWriter
     }
         public static void writeParameterAnnotation(
         Loader loader, Printer printer, ReferenceMap referenceMap,
-        ClassFile classFile, ParameterAnnotations parameterAnnotation)
+        ClassFile classFile, ParameterAnnotationEntry parameterAnnotation)
     {
         if (parameterAnnotation == null) {
             return;
         }
 
-        Annotation[] annotations = parameterAnnotation.annotations();
+        AnnotationEntry[] annotations = parameterAnnotation.getAnnotationEntries();
 
         if (annotations == null) {
             return;
         }
 
-        for (int i=0; i<annotations.length; i++)
+        for (AnnotationEntry annotation : annotations)
         {
             writeAnnotation(
-                loader, printer, referenceMap, classFile, annotations[i]);
+                loader, printer, referenceMap, classFile, annotation);
             printer.print(' ');
         }
     }
 
     public static void writeAnnotation(
         Loader loader, Printer printer, ReferenceMap referenceMap,
-        ClassFile classFile, Annotation annotation)
+        ClassFile classFile, AnnotationEntry annotationEntry)
     {
         printer.startOfAnnotationName();
         printer.print('@');
         String annotationName =
-            classFile.getConstantPool().getConstantUtf8(annotation.typeIndex());
+            classFile.getConstantPool().getConstantUtf8(annotationEntry.getTypeIndex());
         SignatureWriter.writeSignature(
             loader, printer, referenceMap, classFile, annotationName);
         printer.endOfAnnotationName();
 
-        ElementValuePair[] evps = annotation.elementValuePairs();
+        ElementValuePair[] evps = annotationEntry.getElementValuePairs();
         if (evps != null && evps.length > 0)
         {
             printer.print('(');
 
             ConstantPool constants = classFile.getConstantPool();
-            String name = constants.getConstantUtf8(evps[0].elementNameIndex());
+            String name = constants.getConstantUtf8(evps[0].getNameIndex());
 
             if (evps.length > 1 || !"value".equals(name))
             {
@@ -79,18 +79,18 @@ public final class AnnotationWriter
             }
             ElementValueWriter.writeElementValue(
                 loader, printer, referenceMap,
-                classFile, evps[0].elementValue());
+                classFile, evps[0].getValue());
 
             for (int j=1; j<evps.length; j++)
             {
-                name = constants.getConstantUtf8(evps[j].elementNameIndex());
+                name = constants.getConstantUtf8(evps[j].getNameIndex());
 
                 printer.print(", ");
                 printer.print(name);
                 printer.print('=');
                 ElementValueWriter.writeElementValue(
                     loader, printer, referenceMap,
-                    classFile, evps[j].elementValue());
+                    classFile, evps[j].getValue());
             }
 
             printer.print(')');
