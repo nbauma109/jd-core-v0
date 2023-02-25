@@ -35,78 +35,57 @@ public class Base
 
     public Signature getAttributeSignature()
     {
-        if (this.attributes != null)
-        {
-            for (int i=this.attributes.length-1; i>=0; --i) {
-                if (this.attributes[i].getTag() == Const.ATTR_SIGNATURE) {
-                    return (Signature)this.attributes[i];
-                }
+        for (Attribute attribute : attributes) {
+            if (attribute.getTag() == Const.ATTR_SIGNATURE) {
+                return (Signature)attribute;
             }
         }
-
         return null;
     }
 
     public boolean containsAttributeDeprecated()
     {
-        if (this.attributes != null)
-        {
-            for (int i=this.attributes.length-1; i>=0; --i) {
-                if (this.attributes[i].getTag() == Const.ATTR_DEPRECATED) {
-                    return true;
-                }
+        for (Attribute attribute : attributes) {
+            if (attribute.getTag() == Const.ATTR_DEPRECATED) {
+                return true;
             }
         }
-
         return false;
     }
 
     public boolean containsAnnotationDeprecated(ClassFile classFile)
     {
-        if (this.attributes != null)
+        for (Attribute attribute : attributes)
         {
-            for (int i=this.attributes.length-1; i>=0; --i)
-            {
-                if (this.attributes[i].getTag() == Const.ATTR_RUNTIME_INVISIBLE_ANNOTATIONS
-                 || this.attributes[i].getTag() == Const.ATTR_RUNTIME_VISIBLE_ANNOTATIONS) {
-                    AnnotationEntry[] annotations =
-                            ((Annotations)attributes[i]).getAnnotationEntries();
-                    if (containsAnnotationDeprecated(classFile, annotations)) {
-                        return true;
-                    }
+            if (attribute.getTag() == Const.ATTR_RUNTIME_INVISIBLE_ANNOTATIONS
+             || attribute.getTag() == Const.ATTR_RUNTIME_VISIBLE_ANNOTATIONS) {
+                AnnotationEntry[] annotations =
+                        ((Annotations)attribute).getAnnotationEntries();
+                if (containsAnnotationDeprecated(classFile, annotations)) {
+                    return true;
                 }
             }
         }
-
         return false;
     }
 
     private static boolean containsAnnotationDeprecated(
             ClassFile classFile, AnnotationEntry[] annotations)
     {
-        if (annotations != null)
-        {
-            int idsIndex =
-                    classFile.getConstantPool().getInternalDeprecatedSignatureIndex();
+        int idsIndex =
+                classFile.getConstantPool().getInternalDeprecatedSignatureIndex();
 
-            for (int i=annotations.length-1; i>=0; --i) {
-                if (idsIndex == annotations[i].getTypeIndex()) {
-                    return true;
-                }
+        for (AnnotationEntry annotationEntry : annotations) {
+            if (idsIndex == annotationEntry.getTypeIndex()) {
+                return true;
             }
         }
-
         return false;
     }
 
     public Attribute[] getAttributes()
     {
         return this.attributes;
-    }
-
-    public Attribute getAttribute(int i)
-    {
-        return this.attributes[i];
     }
 
     public int getAccessFlags() {

@@ -221,7 +221,7 @@ public final class InitInstanceFieldsReconstructor
         int putFieldListLength = putFieldList.size();
         Field[] fields = classFile.getFields();
 
-        if (putFieldListLength > 0 && fields != null)
+        if (putFieldListLength > 0)
         {
             int fieldLength = fields.length;
             int putFieldListIndex = putFieldListLength;

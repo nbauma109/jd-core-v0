@@ -74,14 +74,11 @@ public final class ReferenceAnalyzer
             }
             // Interfaces
             int[] interfaces = classFile.getInterfaces();
-            if (interfaces != null)
+            String internalInterfaceName;
+            for(int i=interfaces.length-1; i>=0; --i)
             {
-                String internalInterfaceName;
-                for(int i=interfaces.length-1; i>=0; --i)
-                {
-                    internalInterfaceName = classFile.getConstantPool().getConstantClassName(interfaces[i]);
-                    referenceMap.add(internalInterfaceName);
-                }
+                internalInterfaceName = classFile.getConstantPool().getConstantClassName(interfaces[i]);
+                referenceMap.add(internalInterfaceName);
             }
         }
         else
@@ -117,24 +114,21 @@ public final class ReferenceAnalyzer
             ReferenceMap referenceMap, ConstantPool constants,
             Attribute[] attributes)
     {
-        if (attributes != null)
-        {
-            for (int i=attributes.length-1; i>=0; --i) {
-                if (attributes[i].getTag() == Const.ATTR_RUNTIME_INVISIBLE_ANNOTATIONS
-                 || attributes[i].getTag() == Const.ATTR_RUNTIME_VISIBLE_ANNOTATIONS) {
-                    AnnotationEntry[] annotations =
-                        ((Annotations)attributes[i])
-                        .getAnnotationEntries();
-                    for (int j=annotations.length-1; j>=0; --j) {
-                        countAnnotationReference(referenceMap, constants, annotations[j]);
-                    }
-                } else if (attributes[i].getTag() == Const.ATTR_RUNTIME_INVISIBLE_PARAMETER_ANNOTATIONS
-                        || attributes[i].getTag() == Const.ATTR_RUNTIME_VISIBLE_PARAMETER_ANNOTATIONS) {
-                    ParameterAnnotationEntry[] parameterAnnotations =
-                        ((ParameterAnnotations)
-                                attributes[i]).getParameterAnnotationEntries();
-                    countParameterAnnotationsReference(referenceMap, constants, parameterAnnotations);
+        for (int i=attributes.length-1; i>=0; --i) {
+            if (attributes[i].getTag() == Const.ATTR_RUNTIME_INVISIBLE_ANNOTATIONS
+             || attributes[i].getTag() == Const.ATTR_RUNTIME_VISIBLE_ANNOTATIONS) {
+                AnnotationEntry[] annotations =
+                    ((Annotations)attributes[i])
+                    .getAnnotationEntries();
+                for (int j=annotations.length-1; j>=0; --j) {
+                    countAnnotationReference(referenceMap, constants, annotations[j]);
                 }
+            } else if (attributes[i].getTag() == Const.ATTR_RUNTIME_INVISIBLE_PARAMETER_ANNOTATIONS
+                    || attributes[i].getTag() == Const.ATTR_RUNTIME_VISIBLE_PARAMETER_ANNOTATIONS) {
+                ParameterAnnotationEntry[] parameterAnnotations =
+                    ((ParameterAnnotations)
+                            attributes[i]).getParameterAnnotationEntries();
+                countParameterAnnotationsReference(referenceMap, constants, parameterAnnotations);
             }
         }
     }
@@ -148,12 +142,9 @@ public final class ReferenceAnalyzer
 
         ElementValuePair[] elementValuePairs =
             annotations.getElementValuePairs();
-        if (elementValuePairs != null)
-        {
-            for (int j=elementValuePairs.length-1; j>=0; --j) {
-                countElementValue(
-                    referenceMap, constants, elementValuePairs[j].getValue());
-            }
+        for (int j=elementValuePairs.length-1; j>=0; --j) {
+            countElementValue(
+                referenceMap, constants, elementValuePairs[j].getValue());
         }
     }
 
@@ -161,17 +152,9 @@ public final class ReferenceAnalyzer
             ReferenceMap referenceMap, ConstantPool constants,
             ParameterAnnotationEntry[] parameterAnnotations)
     {
-        if (parameterAnnotations != null)
-        {
-            for (ParameterAnnotationEntry parameterAnnotationEntry : parameterAnnotations) {
-                AnnotationEntry[] annotationEntries = parameterAnnotationEntry.getAnnotationEntries();
-                if (annotationEntries != null) {
-                    for (AnnotationEntry annotationEntry : annotationEntries) {
-                        if (annotationEntry != null) {
-                            countAnnotationReference(referenceMap, constants, annotationEntry);
-                        }
-                    }
-                }
+        for (ParameterAnnotationEntry parameterAnnotationEntry : parameterAnnotations) {
+            for (AnnotationEntry annotationEntry : parameterAnnotationEntry.getAnnotationEntries()) {
+                countAnnotationReference(referenceMap, constants, annotationEntry);
             }
         }
     }

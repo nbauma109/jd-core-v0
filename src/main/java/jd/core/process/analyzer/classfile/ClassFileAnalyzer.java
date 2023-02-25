@@ -1294,10 +1294,6 @@ public final class ClassFileAnalyzer
 
     private static void analyzeEnum(ClassFile classFile)
     {
-        if (classFile.getFields() == null) {
-            return;
-        }
-
         ConstantPool constants = classFile.getConstantPool();
         String enumArraySignature = "[" + classFile.getInternalClassName();
 
