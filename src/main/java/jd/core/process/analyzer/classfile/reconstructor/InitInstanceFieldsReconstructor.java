@@ -49,10 +49,6 @@ public final class InitInstanceFieldsReconstructor
         ConstantPool constants = classFile.getConstantPool();
         Method[] methods = classFile.getMethods();
 
-        if (methods == null) {
-            return;
-        }
-
         int methodIndex = methods.length;
         Method putFieldListMethod = null;
 

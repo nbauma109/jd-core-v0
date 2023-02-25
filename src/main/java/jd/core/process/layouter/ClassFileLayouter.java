@@ -498,10 +498,6 @@ public final class ClassFileLayouter {
     {
         Field[] fields = classFile.getFields();
 
-        if (fields == null)
-        {
-            return Collections.emptyList();
-        }
         // Creation des 'FieldLayoutBlock'
         int length = fields.length;
         List<SubListLayoutBlock> sortedFieldBlockList =
@@ -599,10 +595,6 @@ public final class ClassFileLayouter {
     {
         Method[] methods = classFile.getMethods();
 
-        if (methods == null)
-        {
-            return Collections.emptyList();
-        }
         // Creation des 'MethodLayoutBlock'
         ConstantPool constants = classFile.getConstantPool();
         boolean multipleConstructorFlag =

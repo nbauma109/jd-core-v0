@@ -17,7 +17,7 @@
 package jd.core.process.analyzer.instruction.bytecode.factory;
 
 import org.apache.bcel.Const;
-import org.apache.bcel.classfile.ConstantMethodref;
+import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantNameAndType;
 
 import java.util.ArrayList;
@@ -45,8 +45,8 @@ public class InvokevirtualFactory implements InstructionFactory
         final int index = (code[offset+1] & 255) << 8 | code[offset+2] & 255;
 
         ConstantPool constants = classFile.getConstantPool();
-        ConstantMethodref cmr =
-            constants.getConstantPool().getConstant(index);
+        ConstantCP cmr =
+            constants.getConstantMethodref(index);
         if (cmr == null) {
             throw new IllegalArgumentException(
                     "Invalid ConstantMethodref index");

@@ -186,8 +186,6 @@ public final class ClassFileAnalyzer
         if ((classFile.getAccessFlags() & Const.ACC_STATIC) != 0 &&
                 classFile.getOuterClass() != null &&
                 classFile.getInternalAnonymousClassName() != null &&
-                classFile.getFields() != null &&
-                classFile.getMethods() != null &&
                 classFile.getFields().length > 0 &&
                 classFile.getMethods().length == 1 &&
                 (classFile.getMethod(0).getAccessFlags() &
@@ -330,9 +328,6 @@ public final class ClassFileAnalyzer
     private static void checkUnicityOfFieldNames(ClassFile classFile)
     {
         Field[] fields = classFile.getFields();
-        if (fields == null) {
-            return;
-        }
 
         ConstantPool constants = classFile.getConstantPool();
         Map<String, List<Field>> map =
@@ -488,10 +483,6 @@ public final class ClassFileAnalyzer
     {
         ConstantPool constants = classFile.getConstantPool();
         Field[] fields = classFile.getFields();
-
-        if (fields == null) {
-            return;
-        }
 
         int i = fields.length;
         Field field;
@@ -688,10 +679,6 @@ public final class ClassFileAnalyzer
     {
         Method[] methods = classFile.getMethods();
 
-        if (methods == null) {
-            return;
-        }
-
         VariableNameGenerator variableNameGenerator =
                 classFile.getVariableNameGenerator();
         int outerThisFieldrefIndex = 0;
@@ -772,10 +759,6 @@ public final class ClassFileAnalyzer
             ClassFile classFile)
     {
         Method[] methods = classFile.getMethods();
-
-        if (methods == null) {
-            return;
-        }
 
         // Initialisation du reconstructeur traitant l'acces des champs et
         // méthodes externes si la classe courante est une classe interne ou
@@ -979,12 +962,6 @@ public final class ClassFileAnalyzer
     {
         Method[] methods = classFile.getMethods();
 
-        if (methods == null) {
-            return;
-        }
-
-        int length = methods.length;
-
         // Recherche de l'attribut portant la reference vers la classe
         // externe.
         ConstantPool constants = classFile.getConstantPool();
@@ -994,33 +971,23 @@ public final class ClassFileAnalyzer
         {
             ConstantNameAndType cnat =
                     constants.getConstantNameAndType(cfr.getNameAndTypeIndex());
-            Field[] fields = classFile.getFields();
-
-            if (fields != null)
+            for (Field field : classFile.getFields())
             {
-                Field field;
-                for (int i=fields.length-1; i>=0; --i)
+                if (field.getNameIndex() == cnat.getNameIndex() &&
+                        field.getDescriptorIndex() == cnat.getSignatureIndex())
                 {
-                    field = fields[i];
-
-                    if (field.getNameIndex() == cnat.getNameIndex() &&
-                            field.getDescriptorIndex() == cnat.getSignatureIndex())
-                    {
-                        classFile.setOuterThisField(field);
-                        // Ensure outer this field is a synthetic field.
-                        field.setAccessFlags(field.getAccessFlags() | Const.ACC_SYNTHETIC);
-                        break;
-                    }
+                    classFile.setOuterThisField(field);
+                    // Ensure outer this field is a synthetic field.
+                    field.setAccessFlags(field.getAccessFlags() | Const.ACC_SYNTHETIC);
+                    break;
                 }
             }
         }
 
         List<Instruction> list;
         int listLength;
-        for (int i=0; i<length; i++)
+        for (final Method method : methods)
         {
-            final Method method = methods[i];
-
             if (method.getCode() == null || method.containsError()) {
                 continue;
             }

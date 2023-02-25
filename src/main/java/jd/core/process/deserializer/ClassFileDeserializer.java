@@ -136,10 +136,8 @@ public final class ClassFileDeserializer
         int superClass = javaClass.getSuperclassNameIndex();
 
         int[] interfaces = javaClass.getInterfaceIndices();
-        Field[] fieldInfos = javaClass.getFields() == null ? null :
-            Stream.of(javaClass.getFields()).map(Field::new).toArray(Field[]::new);
-        Method[] methodInfos = javaClass.getMethods() == null ? null : 
-            Stream.of(javaClass.getMethods()).map(m -> new Method(m, constantPool)).toArray(Method[]::new);
+        Field[] fieldInfos = Stream.of(javaClass.getFields()).map(Field::new).toArray(Field[]::new);
+        Method[] methodInfos = Stream.of(javaClass.getMethods()).map(m -> new Method(m, constantPool)).toArray(Method[]::new);
 
         return new ClassFile(
                 javaClass.getMinor(),

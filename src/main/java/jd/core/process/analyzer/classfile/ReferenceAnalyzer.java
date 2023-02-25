@@ -216,19 +216,10 @@ public final class ReferenceAnalyzer
             ReferenceMap referenceMap, ReferenceVisitor visitor,
             ClassFile classFile)
     {
-        Field[] fields = classFile.getFields();
-
-        if (fields == null) {
-            return;
-        }
-
-        Field field;
         Signature as;
         String signature;
-        for (int i=fields.length-1; i>=0; --i)
+        for (Field field : classFile.getFields())
         {
-            field = fields[i];
-
             if ((field.getAccessFlags() & Const.ACC_SYNTHETIC) != 0) {
                 continue;
             }
@@ -252,10 +243,6 @@ public final class ReferenceAnalyzer
             ClassFile classFile)
     {
         Method[] methods = classFile.getMethods();
-
-        if (methods == null) {
-            return;
-        }
 
         ConstantPool constants = classFile.getConstantPool();
 

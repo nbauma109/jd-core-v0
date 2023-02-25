@@ -54,16 +54,13 @@ public class Field extends Base
 
     public Constant getConstantValue(ConstantPool constants)
     {
-        if (fieldOrMethod.getAttributes() != null) {
-            for (Attribute attribute : fieldOrMethod.getAttributes()) {
-                if (attribute.getTag() == Const.ATTR_CONSTANT_VALUE)
-                {
-                    ConstantValue acv = (ConstantValue)attribute;
-                    return constants.getConstantValue(acv.getConstantValueIndex());
-                }
+        for (Attribute attribute : fieldOrMethod.getAttributes()) {
+            if (attribute.getTag() == Const.ATTR_CONSTANT_VALUE)
+            {
+                ConstantValue acv = (ConstantValue)attribute;
+                return constants.getConstantValue(acv.getConstantValueIndex());
             }
         }
-
         return null;
     }
 

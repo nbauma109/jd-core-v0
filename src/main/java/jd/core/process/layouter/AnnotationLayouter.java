@@ -38,19 +38,12 @@ public final class AnnotationLayouter
             ClassFile classFile, Attribute[] attributes,
             List<LayoutBlock> layoutBlockList)
     {
-        if (attributes == null) {
-            return;
-        }
-
         int attributesLength = attributes.length;
         List<AnnotationEntry> annotations =
                 new ArrayList<>(attributesLength);
 
-        Attribute attribute;
-        for (int i=0; i<attributesLength; i++)
+        for (Attribute attribute : attributes)
         {
-            attribute = attributes[i];
-
             if (attribute.getTag() == Const.ATTR_RUNTIME_INVISIBLE_ANNOTATIONS || attribute.getTag() == Const.ATTR_RUNTIME_VISIBLE_ANNOTATIONS) {
                 AnnotationEntry[] array =
                         ((Annotations)attribute).getAnnotationEntries();
