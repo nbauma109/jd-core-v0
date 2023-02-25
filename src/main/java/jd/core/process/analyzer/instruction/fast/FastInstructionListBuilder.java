@@ -17,9 +17,10 @@
 package jd.core.process.analyzer.instruction.fast;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
+import org.apache.bcel.classfile.Signature;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.ArrayList;
@@ -41,7 +42,6 @@ import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.classfile.Method;
-import jd.core.model.classfile.attribute.AttributeSignature;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.AConstNull;
 import jd.core.model.instruction.bytecode.instruction.ALoad;
@@ -175,9 +175,9 @@ public final class FastInstructionListBuilder {
             for (int i = lfce.size() - 1; i >= 0; --i) {
                 fce = lfce.get(i);
                 if (fce.hasSynchronizedFlag()) {
-                    createSynchronizedBlock(referenceMap, classFile, list, localVariables, fce, method);
+                    createSynchronizedBlock(referenceMap, classFile, list, localVariables, fce);
                 } else {
-                    createFastTry(referenceMap, classFile, list, localVariables, fce, returnOffset, method);
+                    createFastTry(referenceMap, classFile, list, localVariables, fce, returnOffset);
                 }
             }
         }
@@ -185,7 +185,7 @@ public final class FastInstructionListBuilder {
         // last attempt to remove last remaining JSRs that have been missed
         list.removeIf(instr -> instr.getOpcode() == Const.JSR);
 
-        executeReconstructors(referenceMap, classFile, list, localVariables, method);
+        executeReconstructors(referenceMap, classFile, list, localVariables);
 
         analyzeList(classFile, method, list, localVariables, offsetLabelSet, -1, -1, -1, -1, -1, -1, returnOffset);
 
@@ -297,7 +297,7 @@ public final class FastInstructionListBuilder {
     }
 
     private static void createSynchronizedBlock(ReferenceMap referenceMap, ClassFile classFile, List<Instruction> list,
-            LocalVariables localVariables, FastCodeExcepcion fce, Method method) {
+            LocalVariables localVariables, FastCodeExcepcion fce) {
         int index = InstructionUtil.getIndexForOffset(list, fce.getTryFromOffset());
         Instruction instruction = list.get(index);
         int synchronizedBlockJumpOffset = -1;
@@ -389,7 +389,7 @@ public final class FastInstructionListBuilder {
             Collections.reverse(instructions);
 
             // Analyze lists of instructions
-            executeReconstructors(referenceMap, classFile, instructions, localVariables, method);
+            executeReconstructors(referenceMap, classFile, instructions, localVariables);
 
             // Remove 'monitorenter (localTestSynchronize1 = xxx)'
             MonitorEnter menter = (MonitorEnter) list.remove(index);
@@ -554,7 +554,7 @@ public final class FastInstructionListBuilder {
                 Instruction monitorexit = list.remove(index);
 
                 // Analyze lists of instructions
-                executeReconstructors(referenceMap, classFile, instructions, localVariables, method);
+                executeReconstructors(referenceMap, classFile, instructions, localVariables);
 
                 FastSynchronized fastSynchronized = new FastSynchronized(FastConstants.SYNCHRONIZED,
                         monitorexit.getOffset(), instruction.getLineNumber(), 1, instructions);
@@ -628,7 +628,7 @@ public final class FastInstructionListBuilder {
                 }
 
                 // Analyze lists of instructions
-                executeReconstructors(referenceMap, classFile, instructions, localVariables, method);
+                executeReconstructors(referenceMap, classFile, instructions, localVariables);
 
                 synchronizedBlockJumpOffset = searchMinusJumpOffset(instructions, 0, instructions.size(),
                         fce.getTryFromOffset(), fce.getAfterOffset());
@@ -761,7 +761,7 @@ public final class FastInstructionListBuilder {
                     lineNumber, branch, instructions);
 
             // Analyze lists of instructions
-            executeReconstructors(referenceMap, classFile, instructions, localVariables, method);
+            executeReconstructors(referenceMap, classFile, instructions, localVariables);
 
             // Store new FastTry instruction
             list.set(index + 1, fastSynchronized);
@@ -854,7 +854,7 @@ public final class FastInstructionListBuilder {
 
     private static void createFastTry(ReferenceMap referenceMap, ClassFile classFile,
             List<Instruction> list, LocalVariables localVariables, FastCodeExcepcion fce,
-            int returnOffset, Method method) {
+            int returnOffset) {
         int afterListOffset = fce.getAfterOffset();
         int tryJumpOffset = -1;
         int lastIndex = list.size() - 1;
@@ -1045,7 +1045,7 @@ public final class FastInstructionListBuilder {
         }
         
         // Analyze lists of instructions
-        executeReconstructors(referenceMap, classFile, tryInstructions, localVariables, method);
+        executeReconstructors(referenceMap, classFile, tryInstructions, localVariables);
 
         if (catches != null)
         {
@@ -1056,14 +1056,14 @@ public final class FastInstructionListBuilder {
             for (int j = 0; j < length; ++j) {
                 fc = catches.get(j);
                 catchInstructions = fc.instructions();
-                executeReconstructors(referenceMap, classFile, catchInstructions, localVariables, method);
+                executeReconstructors(referenceMap, classFile, catchInstructions, localVariables);
             }
             
             fastTry.removeOutOfBounds();
         }
 
         if (finallyInstructions != null) {
-            executeReconstructors(referenceMap, classFile, finallyInstructions, localVariables, method);
+            executeReconstructors(referenceMap, classFile, finallyInstructions, localVariables);
         }
         ConstantPool cp = classFile.getConstantPool();
         boolean removedTryResourcesPattern = fastTry.removeTryResourcesPattern(localVariables, cp);
@@ -1155,7 +1155,7 @@ public final class FastInstructionListBuilder {
      * beforeLoopEntryOffset afterLoopOffset
      */
     private static void executeReconstructors(ReferenceMap referenceMap, ClassFile classFile, List<Instruction> list,
-            LocalVariables localVariables, Method method) {
+            LocalVariables localVariables) {
         // Reconstruction des blocs synchronisés vides
         EmptySynchronizedBlockReconstructor.reconstruct(localVariables, list);
         // Reconstruction du mot clé '.class' pour ECJ
@@ -1253,7 +1253,7 @@ public final class FastInstructionListBuilder {
         ConstantPool constants = classFile.getConstantPool();
         LocalVariables localVariables = method.getLocalVariables();
 
-        AttributeSignature as = method.getAttributeSignature();
+        Signature as = method.getAttributeSignature();
         int signatureIndex = as == null ?
                 method.getDescriptorIndex() : as.getSignatureIndex();
         String signature = constants.getConstantUtf8(signatureIndex);
@@ -3015,7 +3015,7 @@ public final class FastInstructionListBuilder {
         }
         ConstantPool constants = classFile.getConstantPool();
         InvokeNoStaticInstruction insi = (InvokeNoStaticInstruction) astoreIterator.getValueref();
-        ConstantMethodref cmr = constants.getConstantMethodref(insi.getIndex());
+        ConstantCP cmr = constants.getConstantMethodref(insi.getIndex());
         ConstantNameAndType cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
         String iteratorMethodName = constants.getConstantUtf8(cnat.getNameIndex());
         if (!"iterator".equals(iteratorMethodName)) {
@@ -4144,7 +4144,7 @@ public final class FastInstructionListBuilder {
                         Invokevirtual iv = (Invokevirtual) ali.getIndexref();
 
                         if (iv.getArgs().isEmpty()) {
-                            ConstantMethodref cmr = constants.getConstantMethodref(iv.getIndex());
+                            ConstantCP cmr = constants.getConstantMethodref(iv.getIndex());
                             cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
 
                             if (StringConstants.ORDINAL_METHOD_NAME.equals(constants.getConstantUtf8(cnat.getNameIndex()))) {
@@ -4160,7 +4160,7 @@ public final class FastInstructionListBuilder {
 
                     if (is.getArgs().isEmpty()) {
                         ConstantPool constants = classFile.getConstantPool();
-                        ConstantMethodref cmr = constants.getConstantMethodref(is.getIndex());
+                        ConstantCP cmr = constants.getConstantMethodref(is.getIndex());
 
                         if (cmr.getClassIndex() == classFile.getThisClassIndex()) {
                             ConstantNameAndType cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
@@ -4274,9 +4274,17 @@ public final class FastInstructionListBuilder {
         }
 
         ConstantPool constants = classFile.getConstantPool();
-        ConstantMethodref cmr = constants.getConstantMethodref(iv.getIndex());
+        ConstantCP cmr = constants.getConstantMethodref(iv.getIndex());
 
-        if (!"I".equals(cmr.getReturnedSignature())) {
+        ConstantNameAndType cnat = constants.getConstantNameAndType(
+                cmr.getNameAndTypeIndex());
+
+        String methodDescriptor =
+            constants.getConstantUtf8(cnat.getSignatureIndex());
+
+        String methodReturnedSignature = SignatureUtil.getMethodReturnedSignature(methodDescriptor);
+
+        if (!"I".equals(methodReturnedSignature)) {
             return false;
         }
 
@@ -4285,7 +4293,6 @@ public final class FastInstructionListBuilder {
             return false;
         }
 
-        ConstantNameAndType cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
         String descriptorName = constants.getConstantUtf8(cnat.getSignatureIndex());
         if (!"()I".equals(descriptorName)) {
             return false;
@@ -4390,7 +4397,7 @@ public final class FastInstructionListBuilder {
         return true;
     }
 
-    private static boolean analyzeSwitchStringTestInstructions(ConstantPool constants, ConstantMethodref cmr,
+    private static boolean analyzeSwitchStringTestInstructions(ConstantPool constants, ConstantCP cmr,
             int tsKeyIloadIndex, int previousSwitchAloadIndex, Map<Integer, Integer> stringIndexes,
             Instruction test, Instruction value, int cmp) {
         if (test.getOpcode() != ByteCodeConstants.IF || value.getOpcode() != Const.ISTORE) {
@@ -4426,7 +4433,7 @@ public final class FastInstructionListBuilder {
             return false;
         }
 
-        ConstantMethodref cmrTest = constants.getConstantMethodref(ivTest.getIndex());
+        ConstantCP cmrTest = constants.getConstantMethodref(ivTest.getIndex());
         if (cmr.getClassIndex() != cmrTest.getClassIndex()) {
             return false;
         }

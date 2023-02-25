@@ -18,8 +18,7 @@ package jd.core.process.analyzer.classfile.reconstructor;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantNameAndType;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
-
+import org.apache.bcel.classfile.ConstantCP;
 import java.util.List;
 
 import jd.core.model.classfile.ClassFile;
@@ -87,7 +86,7 @@ public final class NewInstructionReconstructor extends NewInstructionReconstruct
                 }
 
                 ConstantPool constants = classFile.getConstantPool();
-                ConstantMethodref cmr = constants.getConstantMethodref(is.getIndex());
+                ConstantCP cmr = constants.getConstantMethodref(is.getIndex());
                 ConstantNameAndType cnat =
                     constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
 

@@ -47,7 +47,7 @@ public final class ConstantValueWriter
 
     public static void write(
         Loader loader, Printer printer, ReferenceMap referenceMap,
-        ClassFile classFile, Constant cv, byte constantIntegerType)
+        ClassFile classFile, Constant cv, int constantIntegerType)
     {
         ConstantPool constants = classFile.getConstantPool();
 

@@ -17,7 +17,8 @@
 package jd.core.process.analyzer.instruction.bytecode.factory;
 
 import org.apache.bcel.Const;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
+import org.apache.bcel.classfile.ConstantCP;
+import org.apache.bcel.classfile.ConstantNameAndType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,9 +26,11 @@ import java.util.Deque;
 import java.util.List;
 
 import jd.core.model.classfile.ClassFile;
+import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
+import jd.core.util.SignatureUtil;
 
 public class InvokevirtualFactory implements InstructionFactory
 {
@@ -41,14 +44,21 @@ public class InvokevirtualFactory implements InstructionFactory
         final int opcode = code[offset] & 255;
         final int index = (code[offset+1] & 255) << 8 | code[offset+2] & 255;
 
-        ConstantMethodref cmr =
-            classFile.getConstantPool().getConstantMethodref(index);
+        ConstantPool constants = classFile.getConstantPool();
+        ConstantCP cmr =
+            constants.getConstantMethodref(index);
         if (cmr == null) {
             throw new IllegalArgumentException(
                     "Invalid ConstantMethodref index");
         }
 
-        int nbrOfParameters = cmr.getNbrOfParameters();
+        ConstantNameAndType cnat = constants.getConstantNameAndType(
+                cmr.getNameAndTypeIndex());
+
+        String methodDescriptor =
+            constants.getConstantUtf8(cnat.getSignatureIndex());
+
+        int nbrOfParameters = SignatureUtil.getParameterSignatureCount(methodDescriptor);
         List<Instruction> args = new ArrayList<>(nbrOfParameters);
 
         for (int i=nbrOfParameters; i>0; --i) {
@@ -62,7 +72,7 @@ public class InvokevirtualFactory implements InstructionFactory
         final Instruction instruction = new Invokevirtual(
             opcode, offset, lineNumber, index, objectref, args);
 
-        if (cmr.returnAResult()) {
+        if (!"V".equals(SignatureUtil.getMethodReturnedSignature(methodDescriptor))) {
             stack.push(instruction);
         } else {
             list.add(instruction);

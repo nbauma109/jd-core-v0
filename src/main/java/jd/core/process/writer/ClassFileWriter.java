@@ -17,9 +17,12 @@
 package jd.core.process.writer;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.classfile.AnnotationEntry;
 import org.apache.bcel.classfile.Constant;
+import org.apache.bcel.classfile.ConstantCP;
+import org.apache.bcel.classfile.ElementValue;
+import org.apache.bcel.classfile.Signature;
 import org.jd.core.v1.api.loader.Loader;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.ArrayList;
@@ -37,9 +40,6 @@ import jd.core.model.classfile.Field;
 import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.classfile.Method;
-import jd.core.model.classfile.attribute.Annotation;
-import jd.core.model.classfile.attribute.AttributeSignature;
-import jd.core.model.classfile.attribute.ElementValue;
 import jd.core.model.instruction.bytecode.instruction.ArrayLoadInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
@@ -764,7 +764,7 @@ public final class ClassFileWriter
 
     private void writeAnnotations(AnnotationsLayoutBlock alb)
     {
-        List<Annotation> annotations = alb.getAnnotations();
+        List<AnnotationEntry> annotations = alb.getAnnotations();
         int length = annotations.size();
 
         if (length > 0)
@@ -1601,7 +1601,7 @@ public final class ClassFileWriter
 
         ConstantPool constants = classFile.getConstantPool();
 
-        AttributeSignature as = field.getAttributeSignature();
+        Signature as = field.getAttributeSignature();
         int signatureIndex = as == null ?
                 field.getDescriptorIndex() : as.getSignatureIndex();
 
@@ -2149,7 +2149,7 @@ public final class ClassFileWriter
             classFile.getSwitchMaps().get(celb.getSwitchMapKey());
         ArrayLoadInstruction ali = (ArrayLoadInstruction)celb.getFs().getTest();
         Invokevirtual iv = (Invokevirtual)ali.getIndexref();
-        ConstantMethodref cmr = constants.getConstantMethodref(iv.getIndex());
+        ConstantCP cmr = constants.getConstantMethodref(iv.getIndex());
         String internalEnumName =
             constants.getConstantClassName(cmr.getClassIndex());
 

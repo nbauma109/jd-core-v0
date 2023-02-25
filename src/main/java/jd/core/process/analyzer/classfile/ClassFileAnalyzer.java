@@ -18,9 +18,10 @@ package jd.core.process.analyzer.classfile;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.Constant;
+import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
+import org.apache.bcel.classfile.Signature;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.ExceptionUtil;
 import org.jd.core.v1.util.StringConstants;
 
@@ -34,7 +35,6 @@ import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.Field;
 import jd.core.model.classfile.Method;
-import jd.core.model.classfile.attribute.AttributeSignature;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.ALoad;
 import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
@@ -75,7 +75,6 @@ import jd.core.process.analyzer.instruction.fast.DupLocalVariableAnalyzer;
 import jd.core.process.analyzer.instruction.fast.FastInstructionListBuilder;
 import jd.core.process.analyzer.instruction.fast.ReturnLineNumberAnalyzer;
 import jd.core.process.analyzer.variable.VariableNameGenerator;
-import jd.core.util.SignatureUtil;
 
 public final class ClassFileAnalyzer
 {
@@ -187,8 +186,6 @@ public final class ClassFileAnalyzer
         if ((classFile.getAccessFlags() & Const.ACC_STATIC) != 0 &&
                 classFile.getOuterClass() != null &&
                 classFile.getInternalAnonymousClassName() != null &&
-                classFile.getFields() != null &&
-                classFile.getMethods() != null &&
                 classFile.getFields().length > 0 &&
                 classFile.getMethods().length == 1 &&
                 (classFile.getMethod(0).getAccessFlags() &
@@ -202,8 +199,6 @@ public final class ClassFileAnalyzer
 
             try
             {
-                analyzeMethodref(classFile);
-
                 // Build instructions
                 List<Instruction> list = new ArrayList<>();
                 List<Instruction> listForAnalyze = new ArrayList<>();
@@ -330,41 +325,9 @@ public final class ClassFileAnalyzer
         return null;
     }
 
-    private static void analyzeMethodref(ClassFile classFile)
-    {
-        ConstantPool constants = classFile.getConstantPool();
-
-        Constant constant;
-        for (int i=constants.size()-1; i>=0; --i)
-        {
-            constant = constants.get(i);
-
-            if (constant instanceof ConstantMethodref)
-            {
-                // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
-                ConstantMethodref cmr = (ConstantMethodref) constant;
-                ConstantNameAndType cnat =
-                        constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
-
-                if (cnat != null)
-                {
-                    String signature = constants.getConstantUtf8(
-                            cnat.getSignatureIndex());
-                    cmr.setParameterSignatures(
-                            SignatureUtil.getParameterSignatures(signature));
-                    cmr.setReturnedSignature(
-                            SignatureUtil.getMethodReturnedSignature(signature));
-                }
-            }
-        }
-    }
-
     private static void checkUnicityOfFieldNames(ClassFile classFile)
     {
         Field[] fields = classFile.getFields();
-        if (fields == null) {
-            return;
-        }
 
         ConstantPool constants = classFile.getConstantPool();
         Map<String, List<Field>> map =
@@ -408,7 +371,7 @@ public final class ClassFileAnalyzer
             {
                 field = list.get(j);
                 int fieldDescriptorIndex;
-                AttributeSignature fieldSignature = field.getAttributeSignature();
+                Signature fieldSignature = field.getAttributeSignature();
                 if (fieldSignature != null) {
                     fieldDescriptorIndex = fieldSignature.getSignatureIndex();
                 } else {
@@ -520,10 +483,6 @@ public final class ClassFileAnalyzer
     {
         ConstantPool constants = classFile.getConstantPool();
         Field[] fields = classFile.getFields();
-
-        if (fields == null) {
-            return;
-        }
 
         int i = fields.length;
         Field field;
@@ -718,13 +677,7 @@ public final class ClassFileAnalyzer
 
     private static void preAnalyzeMethods(ClassFile classFile)
     {
-        analyzeMethodref(classFile);
-
         Method[] methods = classFile.getMethods();
-
-        if (methods == null) {
-            return;
-        }
 
         VariableNameGenerator variableNameGenerator =
                 classFile.getVariableNameGenerator();
@@ -806,10 +759,6 @@ public final class ClassFileAnalyzer
             ClassFile classFile)
     {
         Method[] methods = classFile.getMethods();
-
-        if (methods == null) {
-            return;
-        }
 
         // Initialisation du reconstructeur traitant l'acces des champs et
         // méthodes externes si la classe courante est une classe interne ou
@@ -956,7 +905,7 @@ public final class ClassFileAnalyzer
         }
 
         // Is parameters counter greater than 0 ?
-        AttributeSignature as = method.getAttributeSignature();
+        Signature as = method.getAttributeSignature();
         String methodSignature = constants.getConstantUtf8(
                 as==null ? method.getDescriptorIndex() : as.getSignatureIndex());
 
@@ -990,7 +939,7 @@ public final class ClassFileAnalyzer
             {
                 // Is a call to "this()" in constructor ?
                 Invokespecial is = (Invokespecial)instruction;
-                ConstantMethodref cmr = constants.getConstantMethodref(is.getIndex());
+                ConstantCP cmr = constants.getConstantMethodref(is.getIndex());
                 if (cmr.getClassIndex() == classFile.getThisClassIndex())
                 {
                     ConstantNameAndType cnat =
@@ -1013,12 +962,6 @@ public final class ClassFileAnalyzer
     {
         Method[] methods = classFile.getMethods();
 
-        if (methods == null) {
-            return;
-        }
-
-        int length = methods.length;
-
         // Recherche de l'attribut portant la reference vers la classe
         // externe.
         ConstantPool constants = classFile.getConstantPool();
@@ -1028,33 +971,23 @@ public final class ClassFileAnalyzer
         {
             ConstantNameAndType cnat =
                     constants.getConstantNameAndType(cfr.getNameAndTypeIndex());
-            Field[] fields = classFile.getFields();
-
-            if (fields != null)
+            for (Field field : classFile.getFields())
             {
-                Field field;
-                for (int i=fields.length-1; i>=0; --i)
+                if (field.getNameIndex() == cnat.getNameIndex() &&
+                        field.getDescriptorIndex() == cnat.getSignatureIndex())
                 {
-                    field = fields[i];
-
-                    if (field.getNameIndex() == cnat.getNameIndex() &&
-                            field.getDescriptorIndex() == cnat.getSignatureIndex())
-                    {
-                        classFile.setOuterThisField(field);
-                        // Ensure outer this field is a synthetic field.
-                        field.setAccessFlags(field.getAccessFlags() | Const.ACC_SYNTHETIC);
-                        break;
-                    }
+                    classFile.setOuterThisField(field);
+                    // Ensure outer this field is a synthetic field.
+                    field.setAccessFlags(field.getAccessFlags() | Const.ACC_SYNTHETIC);
+                    break;
                 }
             }
         }
 
         List<Instruction> list;
         int listLength;
-        for (int i=0; i<length; i++)
+        for (final Method method : methods)
         {
-            final Method method = methods[i];
-
             if (method.getCode() == null || method.containsError()) {
                 continue;
             }
@@ -1163,7 +1096,7 @@ public final class ClassFileAnalyzer
                     if (is.getObjectref().getOpcode() == Const.ALOAD &&
                             ((ALoad)is.getObjectref()).getIndex() == 0)
                     {
-                        ConstantMethodref cmr = constants.getConstantMethodref(is.getIndex());
+                        ConstantCP cmr = constants.getConstantMethodref(is.getIndex());
                         ConstantNameAndType cnat =
                                 constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
 
@@ -1361,10 +1294,6 @@ public final class ClassFileAnalyzer
 
     private static void analyzeEnum(ClassFile classFile)
     {
-        if (classFile.getFields() == null) {
-            return;
-        }
-
         ConstantPool constants = classFile.getConstantPool();
         String enumArraySignature = "[" + classFile.getInternalClassName();
 

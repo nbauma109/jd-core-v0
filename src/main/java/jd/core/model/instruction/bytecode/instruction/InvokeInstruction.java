@@ -16,12 +16,14 @@
  ******************************************************************************/
 package jd.core.model.instruction.bytecode.instruction;
 
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
+import org.apache.bcel.classfile.ConstantCP;
+import org.apache.bcel.classfile.ConstantNameAndType;
 
 import java.util.List;
 
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariables;
+import jd.core.util.SignatureUtil;
 
 public abstract class InvokeInstruction extends IndexInstruction
 {
@@ -43,9 +45,15 @@ public abstract class InvokeInstruction extends IndexInstruction
             return null;
         }
 
-        ConstantMethodref cmr = constants.getConstantMethodref(this.getIndex());
+        ConstantCP cmr = constants.getConstantMethodref(this.getIndex());
+        ConstantNameAndType cnat = constants.getConstantNameAndType(
+                cmr.getNameAndTypeIndex());
 
-        return cmr.getReturnedSignature();
+        String methodDescriptor =
+            constants.getConstantUtf8(cnat.getSignatureIndex());
+
+
+        return SignatureUtil.getMethodReturnedSignature(methodDescriptor);
     }
 
     public List<String> getListOfParameterSignatures(ConstantPool constants)
@@ -54,9 +62,15 @@ public abstract class InvokeInstruction extends IndexInstruction
             return null;
         }
 
-        ConstantMethodref cmr = constants.getConstantMethodref(this.getIndex());
+        ConstantCP cmr = constants.getConstantMethodref(this.getIndex());
+        ConstantNameAndType cnat = constants.getConstantNameAndType(
+                cmr.getNameAndTypeIndex());
 
-        return cmr.getListOfParameterSignatures();
+        String methodDescriptor =
+            constants.getConstantUtf8(cnat.getSignatureIndex());
+
+
+        return SignatureUtil.getParameterSignatures(methodDescriptor);
     }
 
     public List<Instruction> getArgs() {

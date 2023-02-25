@@ -17,14 +17,14 @@
 package jd.core.process.writer;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.classfile.CodeException;
 import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantFieldref;
+import org.apache.bcel.classfile.ConstantMethodref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.LineNumber;
 import org.jd.core.v1.api.loader.Loader;
-import org.jd.core.v1.model.classfile.attribute.CodeException;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
@@ -342,7 +342,7 @@ public final class ByteCodeWriter
     {
         // Ecriture de la table des numéros de ligne
         LineNumber[] lineNumbers = method.getLineNumbers();
-        if (lineNumbers != null)
+        if (lineNumbers.length > 0)
         {
             printer.endOfLine();
             printer.startOfLine(Instruction.UNKNOWN_LINE_NUMBER);
@@ -365,7 +365,7 @@ public final class ByteCodeWriter
     {
         // Ecriture de la table des variables locales
         LocalVariables localVariables = method.getLocalVariables();
-        if (localVariables != null)
+        if (localVariables != null && localVariables.size() > 0)
         {
             int length = localVariables.size();
 
@@ -439,20 +439,20 @@ public final class ByteCodeWriter
                 printer.endOfLine();
                 printer.startOfLine(Instruction.UNKNOWN_LINE_NUMBER);
                 printer.print(START_OF_COMMENT);
-                printer.print(codeException.startPc());
+                printer.print(codeException.getStartPC());
                 printer.print("\t");
-                printer.print(codeException.endPc());
+                printer.print(codeException.getEndPC());
                 printer.print("\t");
-                printer.print(codeException.handlerPc());
+                printer.print(codeException.getHandlerPC());
                 printer.print("\t");
 
-                if (codeException.catchType() == 0) {
+                if (codeException.getCatchType() == 0) {
                     printer.print("finally");
                 } else {
                     printer.print(
 
                             classFile.getConstantPool().getConstantClassName(
-                                    codeException.catchType()));
+                                    codeException.getCatchType()));
                 }
             }
         }

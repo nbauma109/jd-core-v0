@@ -17,10 +17,9 @@
 package jd.core.process.analyzer.classfile;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
-
 import java.util.List;
 
 import jd.core.model.classfile.ClassFile;
@@ -417,7 +416,7 @@ public final class AccessorAnalyzer
         String methodDescriptor =
             constants.getConstantUtf8(method.getDescriptorIndex());
 
-        ConstantMethodref cmr = constants.getConstantMethodref(ii.getIndex());
+        ConstantCP cmr = constants.getConstantMethodref(ii.getIndex());
         ConstantNameAndType cnat = constants.getConstantNameAndType(
             cmr.getNameAndTypeIndex());
 
@@ -429,9 +428,7 @@ public final class AccessorAnalyzer
         classFile.addAccessor(methodName, methodDescriptor,
             new InvokeMethodAccessor(
                 AccessorConstants.ACCESSOR_INVOKEMETHOD, classFile.getThisClassName(),
-                ii.getOpcode(), targetMethodName, targetMethodDescriptor,
-                cmr.getListOfParameterSignatures(),
-                cmr.getReturnedSignature()));
+                ii.getOpcode(), targetMethodName, targetMethodDescriptor));
 
         return true;
     }

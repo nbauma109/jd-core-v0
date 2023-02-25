@@ -1,5 +1,7 @@
 package jd.core.test;
 
+import java.nio.file.StandardCopyOption;
+
 /*
  * Test input built from Procyon's wiki page:
  * https://github.com/mstrobel/procyon/wiki/Decompiler-Output-Comparison.
@@ -10,7 +12,11 @@ package jd.core.test;
 
     String name() default "";
 
-    char[] characters() default {};
+    Class<?> clazz() default Integer.class;
+
+    StandardCopyOption option() default StandardCopyOption.COPY_ATTRIBUTES;
+    
+    char[] characters() default { 'a', 'b' };
 
     int integer() default 0;
 

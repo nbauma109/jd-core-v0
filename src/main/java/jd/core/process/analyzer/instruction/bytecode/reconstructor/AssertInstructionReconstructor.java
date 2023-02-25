@@ -17,9 +17,9 @@
 package jd.core.process.analyzer.instruction.bytecode.reconstructor;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.List;
@@ -115,7 +115,7 @@ public final class AssertInstructionReconstructor
             }
 
             InvokeNew in = (InvokeNew)athrow.getValue();
-            ConstantMethodref cmr =
+            ConstantCP cmr =
                 constants.getConstantMethodref(in.getIndex());
             String className = constants.getConstantClassName(cmr.getClassIndex());
 

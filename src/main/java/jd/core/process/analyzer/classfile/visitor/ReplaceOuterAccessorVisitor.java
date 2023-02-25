@@ -17,9 +17,9 @@
 package jd.core.process.analyzer.classfile.visitor;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
 
 import java.util.List;
 
@@ -64,6 +64,7 @@ import jd.core.model.instruction.bytecode.instruction.TableSwitch;
 import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
+import jd.core.util.SignatureUtil;
 
 /*
  * Replace static call to "OuterClass access$0(InnerClass)" methods.
@@ -604,7 +605,7 @@ public class ReplaceOuterAccessorVisitor
 
         ConstantPool constants = classFile.getConstantPool();
 
-        ConstantMethodref cmr =
+        ConstantCP cmr =
             constants.getConstantMethodref(is.getIndex());
         String className =
             constants.getConstantClassName(cmr.getClassIndex());
@@ -628,7 +629,7 @@ public class ReplaceOuterAccessorVisitor
         }
 
         ClassFile outerClassFile = matchedClassFile.getOuterClass();
-        String returnedSignature = cmr.getReturnedSignature();
+        String returnedSignature = SignatureUtil.getMethodReturnedSignature(methodDescriptor);
 
         if (!returnedSignature.equals(outerClassFile.getInternalClassName())) {
             return null;

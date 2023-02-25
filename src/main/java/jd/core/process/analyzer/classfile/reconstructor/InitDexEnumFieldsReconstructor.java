@@ -76,9 +76,6 @@ public final class InitDexEnumFieldsReconstructor
         }
 
         Field[] fields = classFile.getFields();
-        if (fields == null) {
-            return;
-        }
 
         List<Instruction> list = method.getFastNodes();
         if (list == null) {

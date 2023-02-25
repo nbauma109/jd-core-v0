@@ -17,7 +17,11 @@
 package jd.core.model.classfile;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.classfile.Attribute;
+import org.apache.bcel.classfile.BootstrapMethods;
 import org.apache.bcel.classfile.ConstantClass;
+import org.apache.bcel.classfile.InnerClasses;
+import org.apache.bcel.classfile.MethodParameters;
 import org.jd.core.v1.api.loader.Loader;
 import org.jd.core.v1.util.StringConstants;
 
@@ -26,10 +30,6 @@ import java.util.List;
 import java.util.Map;
 
 import jd.core.model.classfile.accessor.Accessor;
-import jd.core.model.classfile.attribute.Attribute;
-import jd.core.model.classfile.attribute.AttributeBootstrapMethods;
-import jd.core.model.classfile.attribute.AttributeInnerClasses;
-import jd.core.model.classfile.attribute.AttributeMethodParameters;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.process.analyzer.variable.DefaultVariableNameGenerator;
 import jd.core.process.analyzer.variable.VariableNameGenerator;
@@ -121,15 +121,12 @@ public class ClassFile extends Base
     }
 
     private Method findStaticMethod() {
-        if (this.methods != null)
+        for (Method method : methods)
         {
-            for (Method method : methods)
+            if ((method.getAccessFlags() & Const.ACC_STATIC) != 0 &&
+                method.getNameIndex() == this.constants.getClassConstructorIndex())
             {
-                if ((method.getAccessFlags() & Const.ACC_STATIC) != 0 &&
-                    method.getNameIndex() == this.constants.getClassConstructorIndex())
-                {
-                    return method;
-                }
+                return method;
             }
         }
         return null;
@@ -220,45 +217,33 @@ public class ClassFile extends Base
         return this.methods[i];
     }
 
-    public AttributeInnerClasses getAttributeInnerClasses()
+    public InnerClasses getAttributeInnerClasses()
     {
-        if (this.getAttributes() != null)
-        {
-            for (Attribute attribute : this.getAttributes()) {
-                if (attribute.getTag() == Const.ATTR_INNER_CLASSES) {
-                    return (AttributeInnerClasses)attribute;
-                }
+        for (Attribute attribute : this.getAttributes()) {
+            if (attribute.getTag() == Const.ATTR_INNER_CLASSES) {
+                return (InnerClasses)attribute;
             }
         }
-
         return null;
     }
 
-    public AttributeBootstrapMethods getAttributeBootstrapMethods()
+    public BootstrapMethods getAttributeBootstrapMethods()
     {
-        if (this.getAttributes() != null)
-        {
-            for (Attribute attribute : this.getAttributes()) {
-                if (attribute.getTag() == Const.ATTR_BOOTSTRAP_METHODS) {
-                    return (AttributeBootstrapMethods)attribute;
-                }
+        for (Attribute attribute : this.getAttributes()) {
+            if (attribute.getTag() == Const.ATTR_BOOTSTRAP_METHODS) {
+                return (BootstrapMethods)attribute;
             }
         }
-        
         return null;
     }
     
-    public AttributeMethodParameters getAttributeMethodParameters()
+    public MethodParameters getAttributeMethodParameters()
     {
-        if (this.getAttributes() != null)
-        {
-            for (Attribute attribute : this.getAttributes()) {
-                if (attribute.getTag() == Const.ATTR_METHOD_PARAMETERS) {
-                    return (AttributeMethodParameters)attribute;
-                }
+        for (Attribute attribute : this.getAttributes()) {
+            if (attribute.getTag() == Const.ATTR_METHOD_PARAMETERS) {
+                return (MethodParameters)attribute;
             }
         }
-        
         return null;
     }
     
@@ -345,47 +330,33 @@ public class ClassFile extends Base
 
     public Field getField(int fieldNameIndex, int fieldDescriptorIndex)
     {
-        if (this.fields != null)
+        for (Field field : fields)
         {
-            Field field;
-            for (int i=this.fields.length-1; i>=0; --i)
+            if (fieldNameIndex == field.getNameIndex() &&
+                fieldDescriptorIndex == field.getDescriptorIndex())
             {
-                field = this.fields[i];
-
-                if (fieldNameIndex == field.getNameIndex() &&
-                    fieldDescriptorIndex == field.getDescriptorIndex())
-                {
-                    return field;
-                }
+                return field;
             }
         }
-
         return null;
     }
     public Field getField(String fieldName, String fieldDescriptor)
     {
-        if (this.fields != null)
+        String name;
+        for (Field field : fields)
         {
-            Field field;
-            String name;
-            for (int i=this.fields.length-1; i>=0; --i)
+            name = this.constants.getConstantUtf8(field.getNameIndex());
+
+            if (fieldName.equals(name))
             {
-                field = this.fields[i];
+                String descriptor =
+                    this.constants.getConstantUtf8(field.getDescriptorIndex());
 
-                name = this.constants.getConstantUtf8(field.getNameIndex());
-
-                if (fieldName.equals(name))
-                {
-                    String descriptor =
-                        this.constants.getConstantUtf8(field.getDescriptorIndex());
-
-                    if (fieldDescriptor.equals(descriptor)) {
-                        return field;
-                    }
+                if (fieldDescriptor.equals(descriptor)) {
+                    return field;
                 }
             }
         }
-
         return null;
     }
 
@@ -395,47 +366,34 @@ public class ClassFile extends Base
     }
     public Method getMethod(int methodNameIndex, int methodDescriptorIndex)
     {
-        if (this.methods != null)
+        for (Method method : methods)
         {
-            Method method;
-            for (int i=this.methods.length-1; i>=0; --i)
+            if (methodNameIndex == method.getNameIndex() &&
+                methodDescriptorIndex == method.getDescriptorIndex())
             {
-                method = this.methods[i];
+                return method;
+            }
+        }
+        return null;
+    }
 
-                if (methodNameIndex == method.getNameIndex() &&
-                    methodDescriptorIndex == method.getDescriptorIndex())
-                {
+    public Method getMethod(String methodName, String methodDescriptor)
+    {
+        String name;
+        for (Method method : methods)
+        {
+            name = this.constants.getConstantUtf8(method.getNameIndex());
+
+            if (methodName.equals(name))
+            {
+                String descriptor =
+                    this.constants.getConstantUtf8(method.getDescriptorIndex());
+
+                if (methodDescriptor.equals(descriptor)) {
                     return method;
                 }
             }
         }
-
-        return null;
-    }
-    public Method getMethod(String methodName, String methodDescriptor)
-    {
-        if (this.methods != null)
-        {
-            Method method;
-            String name;
-            for (int i=this.methods.length-1; i>=0; --i)
-            {
-                method = this.methods[i];
-
-                name = this.constants.getConstantUtf8(method.getNameIndex());
-
-                if (methodName.equals(name))
-                {
-                    String descriptor =
-                        this.constants.getConstantUtf8(method.getDescriptorIndex());
-
-                    if (methodDescriptor.equals(descriptor)) {
-                        return method;
-                    }
-                }
-            }
-        }
-
         return null;
     }
 

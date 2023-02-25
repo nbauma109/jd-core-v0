@@ -17,7 +17,7 @@
 package jd.core.process.analyzer.classfile.reconstructor;
 
 import org.apache.bcel.Const;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
+import org.apache.bcel.classfile.ConstantCP;
 
 import java.util.List;
 
@@ -47,7 +47,7 @@ public class NewInstructionReconstructorBase
         ClassFile classFile, Method method, InvokeNew invokeNew)
     {
         ConstantPool constants = classFile.getConstantPool();
-        ConstantMethodref cmr = constants.getConstantMethodref(invokeNew.getIndex());
+        ConstantCP cmr = constants.getConstantMethodref(invokeNew.getIndex());
         String internalClassName = constants.getConstantClassName(
             cmr.getClassIndex());
         ClassFile innerClassFile =
@@ -56,53 +56,45 @@ public class NewInstructionReconstructorBase
         if (innerClassFile != null)
         {
             // Initialize inner and anonymous class field names
-            Field[] innerFields = innerClassFile.getFields();
+            ConstantPool innerConstants = innerClassFile.getConstantPool();
+            LocalVariables localVariables = method.getLocalVariables();
 
-            if (innerFields != null)
+            int index;
+            for (Field innerField : innerClassFile.getFields())
             {
-                int i = innerFields.length;
-                ConstantPool innerConstants = innerClassFile.getConstantPool();
-                LocalVariables localVariables = method.getLocalVariables();
+                index = innerField.getAnonymousClassConstructorParameterIndex();
 
-                Field innerField;
-                int index;
-                while (i-- > 0)
+                if (index != UtilConstants.INVALID_INDEX)
                 {
-                    innerField = innerFields[i];
-                    index = innerField.getAnonymousClassConstructorParameterIndex();
-
-                    if (index != UtilConstants.INVALID_INDEX)
+                    innerField.setAnonymousClassConstructorParameterIndex(UtilConstants.INVALID_INDEX);
+                    Instruction arg = searchInstructionInArgs(invokeNew.getArgs(), index);
+                    if (arg != null)
                     {
-                        innerField.setAnonymousClassConstructorParameterIndex(UtilConstants.INVALID_INDEX);
-                        Instruction arg = searchInstructionInArgs(invokeNew.getArgs(), index);
-                        if (arg != null)
-                        {
-                            if (arg.getOpcode() == Const.CHECKCAST) {
-                                arg = ((CheckCast)arg).getObjectref();
-                            }
+                        if (arg.getOpcode() == Const.CHECKCAST) {
+                            arg = ((CheckCast)arg).getObjectref();
+                        }
 
-                            int argOpCode = arg.getOpcode();
-                            if (argOpCode == ByteCodeConstants.LOAD
-                             || argOpCode == Const.ALOAD
-                             || argOpCode == Const.ILOAD) {
-                                LocalVariable lv =
-                                    localVariables
-                                        .getLocalVariableWithIndexAndOffset(
-                                            ((IndexInstruction)arg).getIndex(),
-                                            arg.getOffset());
+                        int argOpCode = arg.getOpcode();
+                        if (argOpCode == ByteCodeConstants.LOAD
+                         || argOpCode == Const.ALOAD
+                         || argOpCode == Const.ILOAD) {
+                            LocalVariable lv =
+                                localVariables
+                                    .getLocalVariableWithIndexAndOffset(
+                                        ((IndexInstruction)arg).getIndex(),
+                                        arg.getOffset());
 
-                                if (lv != null)
-                                {
-                                    // Ajout du nom du parametre au ConstantPool
-                                    // de la classe anonyme
-                                    String name =
-                                        constants.getConstantUtf8(lv.getNameIndex());
-                                    innerField.setOuterMethodLocalVariableNameIndex(innerConstants.addConstantUtf8(name));
-                                    // Ajout du flag 'final' sur la variable
-                                    // locale de la méthode contenant
-                                    // l'instruction "new"
-                                    lv.setFinalFlag(true);
-                                }
+                            if (lv != null)
+                            {
+                                // Ajout du nom du parametre au ConstantPool
+                                // de la classe anonyme
+                                String name =
+                                    constants.getConstantUtf8(lv.getNameIndex());
+                                innerField.setOuterMethodLocalVariableNameIndex(innerConstants.addConstantUtf8(name));
+                                // Ajout du flag 'final' sur la variable
+                                // locale de la méthode contenant
+                                // l'instruction "new"
+                                lv.setFinalFlag(true);
                             }
                         }
                     }

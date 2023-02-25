@@ -43,6 +43,12 @@ public class LocalVariable
     private FastTry tryResources;
     private boolean throwableFromTryResources;
 
+    public LocalVariable(org.apache.bcel.classfile.LocalVariable lv)
+    {
+        this(lv.getStartPC(), lv.getLength(), lv.getNameIndex(),
+                lv.getSignatureIndex(), lv.getIndex(), false, 0);
+    }
+
     public LocalVariable(
             int startPc, int length, int nameIndex, int signatureIndex,
             int index)

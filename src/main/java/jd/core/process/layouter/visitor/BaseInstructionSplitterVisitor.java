@@ -17,7 +17,7 @@
 package jd.core.process.layouter.visitor;
 
 import org.apache.bcel.Const;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
+import org.apache.bcel.classfile.ConstantCP;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.List;
@@ -180,7 +180,7 @@ public abstract class BaseInstructionSplitterVisitor
                     visit(instruction, args.get(i));
                 }
 
-                ConstantMethodref cmr =
+                ConstantCP cmr =
                     this.constants.getConstantMethodref(in.getIndex());
                 String internalClassName =
                     this.constants.getConstantClassName(cmr.getClassIndex());

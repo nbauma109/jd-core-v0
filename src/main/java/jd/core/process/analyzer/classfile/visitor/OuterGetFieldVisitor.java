@@ -18,8 +18,7 @@ package jd.core.process.analyzer.classfile.visitor;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantNameAndType;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
-
+import org.apache.bcel.classfile.ConstantCP;
 import java.util.Map;
 
 import jd.core.model.classfile.ClassFile;
@@ -30,6 +29,7 @@ import jd.core.model.classfile.accessor.GetFieldAccessor;
 import jd.core.model.instruction.bytecode.instruction.GetField;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.Invokestatic;
+import jd.core.util.SignatureUtil;
 
 /*
  * Replace 'TestInnerClass.access$0(this.this$0)'
@@ -51,14 +51,16 @@ public class OuterGetFieldVisitor extends OuterGetStaticVisitor
         }
 
         Invokestatic is = (Invokestatic)i;
-        ConstantMethodref cmr = constants.getConstantMethodref(is.getIndex());
+        ConstantCP cmr = constants.getConstantMethodref(is.getIndex());
         ConstantNameAndType cnat =
             constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
         String descriptor =
             constants.getConstantUtf8(cnat.getSignatureIndex());
 
-        // Two parameters ?
-        if (cmr.getNbrOfParameters() != 1) {
+        int nbrOfParameters = SignatureUtil.getParameterSignatureCount(descriptor);
+
+        // One parameter ?
+        if (nbrOfParameters != 1) {
             return null;
         }
 

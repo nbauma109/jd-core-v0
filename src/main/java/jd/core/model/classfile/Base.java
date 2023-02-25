@@ -17,11 +17,10 @@
 package jd.core.model.classfile;
 
 import org.apache.bcel.Const;
-
-import jd.core.model.classfile.attribute.Annotation;
-import jd.core.model.classfile.attribute.Attribute;
-import jd.core.model.classfile.attribute.AttributeRuntimeAnnotations;
-import jd.core.model.classfile.attribute.AttributeSignature;
+import org.apache.bcel.classfile.AnnotationEntry;
+import org.apache.bcel.classfile.Annotations;
+import org.apache.bcel.classfile.Attribute;
+import org.apache.bcel.classfile.Signature;
 
 public class Base
 {
@@ -34,80 +33,59 @@ public class Base
         this.attributes = attributes;
     }
 
-    public AttributeSignature getAttributeSignature()
+    public Signature getAttributeSignature()
     {
-        if (this.attributes != null)
-        {
-            for (int i=this.attributes.length-1; i>=0; --i) {
-                if (this.attributes[i].getTag() == Const.ATTR_SIGNATURE) {
-                    return (AttributeSignature)this.attributes[i];
-                }
+        for (Attribute attribute : attributes) {
+            if (attribute.getTag() == Const.ATTR_SIGNATURE) {
+                return (Signature)attribute;
             }
         }
-
         return null;
     }
 
     public boolean containsAttributeDeprecated()
     {
-        if (this.attributes != null)
-        {
-            for (int i=this.attributes.length-1; i>=0; --i) {
-                if (this.attributes[i].getTag() == Const.ATTR_DEPRECATED) {
-                    return true;
-                }
+        for (Attribute attribute : attributes) {
+            if (attribute.getTag() == Const.ATTR_DEPRECATED) {
+                return true;
             }
         }
-
         return false;
     }
 
     public boolean containsAnnotationDeprecated(ClassFile classFile)
     {
-        if (this.attributes != null)
+        for (Attribute attribute : attributes)
         {
-            for (int i=this.attributes.length-1; i>=0; --i)
-            {
-                if (this.attributes[i].getTag() == Const.ATTR_RUNTIME_INVISIBLE_ANNOTATIONS
-                 || this.attributes[i].getTag() == Const.ATTR_RUNTIME_VISIBLE_ANNOTATIONS) {
-                    Annotation[]annotations =
-                            ((AttributeRuntimeAnnotations)attributes[i]).getAnnotations();
-                    if (containsAnnotationDeprecated(classFile, annotations)) {
-                        return true;
-                    }
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private static boolean containsAnnotationDeprecated(
-            ClassFile classFile, Annotation[] annotations)
-    {
-        if (annotations != null)
-        {
-            int idsIndex =
-                    classFile.getConstantPool().getInternalDeprecatedSignatureIndex();
-
-            for (int i=annotations.length-1; i>=0; --i) {
-                if (idsIndex == annotations[i].typeIndex()) {
+            if (attribute.getTag() == Const.ATTR_RUNTIME_INVISIBLE_ANNOTATIONS
+             || attribute.getTag() == Const.ATTR_RUNTIME_VISIBLE_ANNOTATIONS) {
+                AnnotationEntry[] annotations =
+                        ((Annotations)attribute).getAnnotationEntries();
+                if (containsAnnotationDeprecated(classFile, annotations)) {
                     return true;
                 }
             }
         }
+        return false;
+    }
 
+    private static boolean containsAnnotationDeprecated(
+            ClassFile classFile, AnnotationEntry[] annotations)
+    {
+        int idsIndex =
+                classFile.getConstantPool().getInternalDeprecatedSignatureIndex();
+
+        for (AnnotationEntry annotationEntry : annotations) {
+            if (idsIndex == annotationEntry.getTypeIndex()) {
+                return true;
+            }
+        }
         return false;
     }
 
     public Attribute[] getAttributes()
     {
         return this.attributes;
-    }
-
-    public Attribute getAttribute(int i)
-    {
-        return this.attributes[i];
     }
 
     public int getAccessFlags() {

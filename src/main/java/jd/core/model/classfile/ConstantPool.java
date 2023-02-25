@@ -17,19 +17,20 @@
 package jd.core.model.classfile;
 
 import org.apache.bcel.classfile.Constant;
+import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantFieldref;
+import org.apache.bcel.classfile.ConstantInterfaceMethodref;
+import org.apache.bcel.classfile.ConstantInvokeDynamic;
 import org.apache.bcel.classfile.ConstantMethodHandle;
 import org.apache.bcel.classfile.ConstantMethodType;
+import org.apache.bcel.classfile.ConstantMethodref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.ConstantUtf8;
-import org.jd.core.v1.model.classfile.constant.ConstantInterfaceMethodref;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import jd.core.util.IndexToIndexMap;
 import jd.core.util.StringToIndexMap;
 
@@ -46,8 +47,6 @@ public class ConstantPool
     private final int valueOfIndex;
     private final int appendIndex;
 
-    private final int objectClassIndex;
-
     private final int objectClassNameIndex;
     private final int stringClassNameIndex;
     private final int stringBufferClassNameIndex;
@@ -57,31 +56,13 @@ public class ConstantPool
 
     private final int thisLocalVariableNameIndex;
 
-    private final int annotationDefaultAttributeNameIndex;
-    private final int codeAttributeNameIndex;
-    private final int constantValueAttributeNameIndex;
-    private final int deprecatedAttributeNameIndex;
-    private final int enclosingMethodAttributeNameIndex;
-    private final int exceptionsAttributeNameIndex;
-    private final int innerClassesAttributeNameIndex;
-    private final int lineNumberTableAttributeNameIndex;
-    private final int localVariableTableAttributeNameIndex;
-    private final int localVariableTypeTableAttributeNameIndex;
-    private final int runtimeInvisibleAnnotationsAttributeNameIndex;
-    private final int runtimeVisibleAnnotationsAttributeNameIndex;
-    private final int runtimeInvisibleParameterAnnotationsAttributeNameIndex;
-    private final int runtimeVisibleParameterAnnotationsAttributeNameIndex;
-    private final int signatureAttributeNameIndex;
-    private final int sourceFileAttributeNameIndex;
-    private final int syntheticAttributeNameIndex;
-    private final int bootstrapMethodsAttributeNameIndex;
-    private final int methodParametersAttributeNameIndex;
-
-    public ConstantPool(Constant[] constants)
+    public ConstantPool(org.apache.bcel.classfile.ConstantPool constantPool)
     {
         this.listOfConstants = new ArrayList<>();
         this.constantUtf8ToIndex = new StringToIndexMap();
         this.constantClassToIndex = new IndexToIndexMap();
+
+        Constant[] constants = constantPool.getConstantPool();
 
         for (int i=0; i<constants.length; i++)
         {
@@ -130,8 +111,6 @@ public class ConstantPool
         // Add 'Object'
         this.objectClassNameIndex =
             addConstantUtf8(StringConstants.JAVA_LANG_OBJECT);
-        this.objectClassIndex =
-            addConstantClass(this.getObjectClassNameIndex());
         this.objectSignatureIndex =
             addConstantUtf8(StringConstants.INTERNAL_OBJECT_SIGNATURE);
 
@@ -150,65 +129,6 @@ public class ConstantPool
         // Add 'this'
         this.thisLocalVariableNameIndex =
             addConstantUtf8(StringConstants.THIS_LOCAL_VARIABLE_NAME);
-
-        // -- Add attribute names ------------------------------------------ //
-        this.annotationDefaultAttributeNameIndex =
-            addConstantUtf8(StringConstants.ANNOTATIONDEFAULT_ATTRIBUTE_NAME);
-
-        this.codeAttributeNameIndex =
-            addConstantUtf8(StringConstants.CODE_ATTRIBUTE_NAME);
-
-        this.constantValueAttributeNameIndex =
-            addConstantUtf8(StringConstants.CONSTANTVALUE_ATTRIBUTE_NAME);
-
-        this.deprecatedAttributeNameIndex =
-            addConstantUtf8(StringConstants.DEPRECATED_ATTRIBUTE_NAME);
-
-        this.enclosingMethodAttributeNameIndex =
-            addConstantUtf8(StringConstants.ENCLOSINGMETHOD_ATTRIBUTE_NAME);
-
-        this.exceptionsAttributeNameIndex =
-            addConstantUtf8(StringConstants.EXCEPTIONS_ATTRIBUTE_NAME);
-
-        this.innerClassesAttributeNameIndex =
-            addConstantUtf8(StringConstants.INNERCLASSES_ATTRIBUTE_NAME);
-
-        this.lineNumberTableAttributeNameIndex =
-            addConstantUtf8(StringConstants.LINENUMBERTABLE_ATTRIBUTE_NAME);
-
-        this.localVariableTableAttributeNameIndex =
-            addConstantUtf8(StringConstants.LOCALVARIABLETABLE_ATTRIBUTE_NAME);
-
-        this.localVariableTypeTableAttributeNameIndex =
-            addConstantUtf8(StringConstants.LOCALVARIABLETYPETABLE_ATTRIBUTE_NAME);
-
-        this.runtimeInvisibleAnnotationsAttributeNameIndex =
-            addConstantUtf8(StringConstants.RUNTIMEINVISIBLEANNOTATIONS_ATTRIBUTE_NAME);
-
-        this.runtimeVisibleAnnotationsAttributeNameIndex =
-            addConstantUtf8(StringConstants.RUNTIMEVISIBLEANNOTATIONS_ATTRIBUTE_NAME);
-
-        this.runtimeInvisibleParameterAnnotationsAttributeNameIndex =
-            addConstantUtf8(StringConstants.RUNTIMEINVISIBLEPARAMETERANNOTATIONS_ATTRIBUTE_NAME);
-
-        this.runtimeVisibleParameterAnnotationsAttributeNameIndex =
-            addConstantUtf8(StringConstants.RUNTIMEVISIBLEPARAMETERANNOTATIONS_ATTRIBUTE_NAME);
-
-        this.signatureAttributeNameIndex =
-            addConstantUtf8(StringConstants.SIGNATURE_ATTRIBUTE_NAME);
-
-        this.sourceFileAttributeNameIndex =
-            addConstantUtf8(StringConstants.SOURCEFILE_ATTRIBUTE_NAME);
-
-        this.syntheticAttributeNameIndex =
-            addConstantUtf8(StringConstants.SYNTHETIC_ATTRIBUTE_NAME);
-
-        this.bootstrapMethodsAttributeNameIndex =
-                addConstantUtf8(StringConstants.BOOTSTRAP_METHODS_ATTRIBUTE_NAME);
-        
-        this.methodParametersAttributeNameIndex =
-                addConstantUtf8(StringConstants.METHOD_PARAMETERS_ATTRIBUTE_NAME);
-        
     }
 
     public Constant get(int i)
@@ -318,15 +238,8 @@ public class ConstantPool
         return index;
     }
 
-    public int addConstantMethodref(int classIndex, int nameAndTypeIndex)
-    {
-        return addConstantMethodref(
-            classIndex, nameAndTypeIndex, null, null);
-    }
-
     public int addConstantMethodref(
-        int classIndex, int nameAndTypeIndex,
-        List<String> listOfParameterSignatures, String returnedSignature)
+        int classIndex, int nameAndTypeIndex)
     {
         int index = this.listOfConstants.size();
 
@@ -343,10 +256,10 @@ public class ConstantPool
             }
         }
 
-        ConstantMethodref cfr = new ConstantMethodref(classIndex, nameAndTypeIndex,
-            listOfParameterSignatures, returnedSignature);
+        ConstantMethodref cmr = new ConstantMethodref(classIndex, nameAndTypeIndex);
+
         index = this.listOfConstants.size();
-        this.listOfConstants.add(cfr);
+        this.listOfConstants.add(cmr);
 
         return index;
     }
@@ -379,9 +292,9 @@ public class ConstantPool
         return (ConstantNameAndType)this.listOfConstants.get(index);
     }
 
-    public ConstantMethodref getConstantMethodref(int index)
+    public ConstantCP getConstantMethodref(int index)
     {
-        return (ConstantMethodref)this.listOfConstants.get(index);
+        return (ConstantCP)this.listOfConstants.get(index);
     }
 
     public ConstantMethodType getConstantMethodType(int index)
@@ -399,21 +312,14 @@ public class ConstantPool
         return (ConstantInterfaceMethodref)this.listOfConstants.get(index);
     }
 
+    public ConstantInvokeDynamic getConstantInvokeDynamic(int index)
+    {
+        return (ConstantInvokeDynamic) this.listOfConstants.get(index);
+    }
+
     public Constant getConstantValue(int index)
     {
         return this.listOfConstants.get(index);
-    }
-
-    public int getAnnotationDefaultAttributeNameIndex() {
-        return annotationDefaultAttributeNameIndex;
-    }
-
-    public int getCodeAttributeNameIndex() {
-        return codeAttributeNameIndex;
-    }
-
-    public int getConstantValueAttributeNameIndex() {
-        return constantValueAttributeNameIndex;
     }
 
     public int getAppendIndex() {
@@ -424,34 +330,6 @@ public class ConstantPool
         return classConstructorIndex;
     }
 
-    public int getDeprecatedAttributeNameIndex() {
-        return deprecatedAttributeNameIndex;
-    }
-
-    public int getEnclosingMethodAttributeNameIndex() {
-        return enclosingMethodAttributeNameIndex;
-    }
-
-    public int getExceptionsAttributeNameIndex() {
-        return exceptionsAttributeNameIndex;
-    }
-
-    public int getInnerClassesAttributeNameIndex() {
-        return innerClassesAttributeNameIndex;
-    }
-
-    public int getLineNumberTableAttributeNameIndex() {
-        return lineNumberTableAttributeNameIndex;
-    }
-
-    public int getLocalVariableTableAttributeNameIndex() {
-        return localVariableTableAttributeNameIndex;
-    }
-
-    public int getLocalVariableTypeTableAttributeNameIndex() {
-        return localVariableTypeTableAttributeNameIndex;
-    }
-
     public int getInstanceConstructorIndex() {
         return instanceConstructorIndex;
     }
@@ -460,52 +338,12 @@ public class ConstantPool
         return internalDeprecatedSignatureIndex;
     }
 
-    public int getObjectClassIndex() {
-        return objectClassIndex;
-    }
-
     public int getObjectClassNameIndex() {
         return objectClassNameIndex;
     }
 
     public int getObjectSignatureIndex() {
         return objectSignatureIndex;
-    }
-
-    public int getRuntimeInvisibleAnnotationsAttributeNameIndex() {
-        return runtimeInvisibleAnnotationsAttributeNameIndex;
-    }
-
-    public int getRuntimeVisibleAnnotationsAttributeNameIndex() {
-        return runtimeVisibleAnnotationsAttributeNameIndex;
-    }
-
-    public int getRuntimeInvisibleParameterAnnotationsAttributeNameIndex() {
-        return runtimeInvisibleParameterAnnotationsAttributeNameIndex;
-    }
-
-    public int getRuntimeVisibleParameterAnnotationsAttributeNameIndex() {
-        return runtimeVisibleParameterAnnotationsAttributeNameIndex;
-    }
-
-    public int getBootstrapMethodsAttributeNameIndex() {
-        return bootstrapMethodsAttributeNameIndex;
-    }
-
-    public int getMethodParametersAttributeNameIndex() {
-        return methodParametersAttributeNameIndex;
-    }
-    
-    public int getSignatureAttributeNameIndex() {
-        return signatureAttributeNameIndex;
-    }
-
-    public int getSourceFileAttributeNameIndex() {
-        return sourceFileAttributeNameIndex;
-    }
-
-    public int getSyntheticAttributeNameIndex() {
-        return syntheticAttributeNameIndex;
     }
 
     public int getStringBufferClassNameIndex() {

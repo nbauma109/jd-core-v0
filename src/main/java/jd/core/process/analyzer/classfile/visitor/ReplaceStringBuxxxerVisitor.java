@@ -17,9 +17,9 @@
 package jd.core.process.analyzer.classfile.visitor;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantNameAndType;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.List;
@@ -573,7 +573,7 @@ public class ReplaceStringBuxxxerVisitor
         if (i.getOpcode() == Const.INVOKEVIRTUAL)
         {
             Invokevirtual iv = (Invokevirtual)i;
-            ConstantMethodref cmr = this.constants.getConstantMethodref(iv.getIndex());
+            ConstantCP cmr = this.constants.getConstantMethodref(iv.getIndex());
             ConstantClass cc = this.constants.getConstantClass(cmr.getClassIndex());
 
             if (cc.getNameIndex() == constants.getStringBufferClassNameIndex() ||
@@ -596,7 +596,7 @@ public class ReplaceStringBuxxxerVisitor
         if (i.getOpcode() == Const.INVOKEVIRTUAL)
         {
             InvokeNoStaticInstruction insi = (InvokeNoStaticInstruction)i;
-            ConstantMethodref cmr =
+            ConstantCP cmr =
                 this.constants.getConstantMethodref(insi.getIndex());
 
             if (cmr.getClassIndex() == classIndex)
@@ -623,7 +623,7 @@ public class ReplaceStringBuxxxerVisitor
         else if (i.getOpcode() == ByteCodeConstants.INVOKENEW)
         {
             InvokeNew in = (InvokeNew)i;
-            ConstantMethodref cmr =
+            ConstantCP cmr =
                 this.constants.getConstantMethodref(in.getIndex());
 
             if (cmr.getClassIndex() == classIndex && in.getArgs().size() == 1)

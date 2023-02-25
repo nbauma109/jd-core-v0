@@ -17,10 +17,10 @@
 package jd.core.process.analyzer.classfile.visitor;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.List;
@@ -217,7 +217,7 @@ public class AddCheckCastVisitor
                     (InvokeNoStaticInstruction)instruction;
                 if (match(insi.getObjectref()))
                 {
-                    ConstantMethodref cmr = this.constants.getConstantMethodref(insi.getIndex());
+                    ConstantCP cmr = this.constants.getConstantMethodref(insi.getIndex());
                     ConstantClass cc = this.constants.getConstantClass(cmr.getClassIndex());
 
                     if (this.constants.getObjectClassNameIndex() != cc.getNameIndex())

@@ -17,9 +17,9 @@
 package jd.core.process.analyzer.classfile.reconstructor;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,10 +48,6 @@ public final class InitInstanceFieldsReconstructor
         List<PutField> putFieldList = new ArrayList<>();
         ConstantPool constants = classFile.getConstantPool();
         Method[] methods = classFile.getMethods();
-
-        if (methods == null) {
-            return;
-        }
 
         int methodIndex = methods.length;
         Method putFieldListMethod = null;
@@ -225,7 +221,7 @@ public final class InitInstanceFieldsReconstructor
         int putFieldListLength = putFieldList.size();
         Field[] fields = classFile.getFields();
 
-        if (putFieldListLength > 0 && fields != null)
+        if (putFieldListLength > 0)
         {
             int fieldLength = fields.length;
             int putFieldListIndex = putFieldListLength;
@@ -366,7 +362,7 @@ public final class InitInstanceFieldsReconstructor
                 continue;
             }
 
-            ConstantMethodref cmr = constants.getConstantMethodref(is.getIndex());
+            ConstantCP cmr = constants.getConstantMethodref(is.getIndex());
             ConstantNameAndType cnat =
                 constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
 

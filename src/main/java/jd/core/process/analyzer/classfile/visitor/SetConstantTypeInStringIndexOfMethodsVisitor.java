@@ -17,9 +17,9 @@
 package jd.core.process.analyzer.classfile.visitor;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantNameAndType;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
 
 import java.util.List;
 
@@ -59,6 +59,7 @@ import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.TableSwitch;
 import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
+import jd.core.util.SignatureUtil;
 
 /*
  * Search :
@@ -152,7 +153,7 @@ public class SetConstantTypeInStringIndexOfMethodsVisitor
         case Const.INVOKEVIRTUAL:
             {
                 Invokevirtual iv = (Invokevirtual)instruction;
-                ConstantMethodref cmr =
+                ConstantCP cmr =
                     this.constants.getConstantMethodref(iv.getIndex());
                 ConstantClass cc = this.constants.getConstantClass(cmr.getClassIndex());
 
@@ -164,14 +165,20 @@ public class SetConstantTypeInStringIndexOfMethodsVisitor
                     {
                         int opcode = iv.getArgs().get(0).getOpcode();
 
+                        ConstantNameAndType cnat = constants.getConstantNameAndType(
+                                cmr.getNameAndTypeIndex());
+
+                        String methodDescriptor =
+                            constants.getConstantUtf8(cnat.getSignatureIndex());
+
+                        String methodReturnedSignature = SignatureUtil.getMethodReturnedSignature(methodDescriptor);
+                        List<String> parameterSignatures = SignatureUtil.getParameterSignatures(methodDescriptor);
+                        
                         if ((opcode==Const.BIPUSH ||
                              opcode==Const.SIPUSH) &&
-                             "I".equals(cmr.getReturnedSignature()) &&
-                             "I".equals(cmr.getListOfParameterSignatures().get(0)))
+                             "I".equals(methodReturnedSignature) &&
+                             "I".equals(parameterSignatures.get(0)))
                         {
-                            ConstantNameAndType cnat =
-                                this.constants.getConstantNameAndType(
-                                    cmr.getNameAndTypeIndex());
                             String name =
                                 this.constants.getConstantUtf8(cnat.getNameIndex());
 

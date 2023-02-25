@@ -18,10 +18,10 @@ package jd.core.process.analyzer.classfile.reconstructor;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.Constant;
+import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.ConstantString;
-import org.jd.core.v1.model.classfile.constant.ConstantMethodref;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.List;
@@ -140,7 +140,7 @@ public final class DotClass118AReconstructor
                 continue;
             }
 
-            ConstantMethodref cmr =
+            ConstantCP cmr =
                 constants.getConstantMethodref(is.getIndex());
             ConstantNameAndType cnatMethod =
                 constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
@@ -228,35 +228,21 @@ public final class DotClass118AReconstructor
             list.remove(i);
 
             // Recherche de l'attribut statique et ajout de l'attribut SYNTHETIC
-            Field[] fields = classFile.getFields();
-            if (fields != null) {
-                int j = fields.length;
-    
-                while (j-- > 0)
+            for (Field field : classFile.getFields())
+            {
+                if (field.getNameIndex() == cnatField.getNameIndex())
                 {
-                    Field field = fields[j];
-    
-                    if (field.getNameIndex() == cnatField.getNameIndex())
-                    {
-                        field.setAccessFlags(field.getAccessFlags() | Const.ACC_SYNTHETIC);
-                        break;
-                    }
+                    field.setAccessFlags(field.getAccessFlags() | Const.ACC_SYNTHETIC);
+                    break;
                 }
             }
             // Recherche de la méthode statique et ajout de l'attribut SYNTHETIC
-            Method[] methods = classFile.getMethods();
-            if (methods != null) {
-                int j = methods.length;
-    
-                while (j-- > 0)
+            for (Method method : classFile.getMethods())
+            {
+                if (method.getNameIndex() == cnatMethod.getNameIndex())
                 {
-                    Method method = methods[j];
-    
-                    if (method.getNameIndex() == cnatMethod.getNameIndex())
-                    {
-                        method.setAccessFlags(method.getAccessFlags() | Const.ACC_SYNTHETIC);
-                        break;
-                    }
+                    method.setAccessFlags(method.getAccessFlags() | Const.ACC_SYNTHETIC);
+                    break;
                 }
             }
         }

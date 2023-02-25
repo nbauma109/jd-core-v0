@@ -17,15 +17,17 @@
 package jd.core.model.classfile;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.classfile.Attribute;
 import org.apache.bcel.classfile.Constant;
+import org.apache.bcel.classfile.ConstantValue;
+import org.apache.bcel.classfile.FieldOrMethod;
 
-import jd.core.model.classfile.attribute.Attribute;
-import jd.core.model.classfile.attribute.AttributeConstantValue;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.util.UtilConstants;
 
-public class Field extends FieldOrMethod
+public class Field extends Base
 {
+    private FieldOrMethod fieldOrMethod;
     private ValueAndMethod valueAndMethod;
     /*
      * Attributs pour l'affichage des champs synthetique des classes anonymes.
@@ -42,27 +44,23 @@ public class Field extends FieldOrMethod
      */
     private int outerMethodLocalVariableNameIndex;
 
-    public Field(
-        int accessFlags, int nameIndex,
-        int descriptorIndex, Attribute[] attributes)
+    public Field(FieldOrMethod fieldOrMethod)
     {
-        super(accessFlags, nameIndex, descriptorIndex, attributes);
+        super(fieldOrMethod.getAccessFlags(), fieldOrMethod.getAttributes());
+        this.fieldOrMethod = fieldOrMethod;
         this.setAnonymousClassConstructorParameterIndex(UtilConstants.INVALID_INDEX);
         this.setOuterMethodLocalVariableNameIndex(UtilConstants.INVALID_INDEX);
     }
 
     public Constant getConstantValue(ConstantPool constants)
     {
-        if (this.getAttributes() != null) {
-            for (Attribute attribute : this.getAttributes()) {
-                if (attribute.getTag() == Const.ATTR_CONSTANT_VALUE)
-                {
-                    AttributeConstantValue acv = (AttributeConstantValue)attribute;
-                    return constants.getConstantValue(acv.getConstantvalueIndex());
-                }
+        for (Attribute attribute : fieldOrMethod.getAttributes()) {
+            if (attribute.getTag() == Const.ATTR_CONSTANT_VALUE)
+            {
+                ConstantValue acv = (ConstantValue)attribute;
+                return constants.getConstantValue(acv.getConstantValueIndex());
             }
         }
-
         return null;
     }
 
@@ -93,5 +91,17 @@ public class Field extends FieldOrMethod
     }
 
     public record ValueAndMethod(Instruction value, Method method) {
+    }
+
+    public int getNameIndex() {
+        return fieldOrMethod.getNameIndex();
+    }
+
+    public int getDescriptorIndex() {
+        return fieldOrMethod.getSignatureIndex();
+    }
+
+    public void setNameIndex(int newNameIndex) {
+        fieldOrMethod.setNameIndex(newNameIndex);
     }
 }

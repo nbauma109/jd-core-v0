@@ -36,15 +36,10 @@ public class DefaultVariableNameGenerator implements VariableNameGenerator
         this.localNames = new HashSet<>();
 
         // Add field names
-        Field[] fields = classFile.getFields();
-
-        if (fields != null)
-        {
-            for (int i=0; i<fields.length; i++) {
-                this.fieldNames.add(
-                    classFile.getConstantPool().
-                        getConstantUtf8(fields[i].getNameIndex()));
-            }
+        for (Field field : classFile.getFields()) {
+            this.fieldNames.add(
+                classFile.getConstantPool().
+                    getConstantUtf8(field.getNameIndex()));
         }
     }
 

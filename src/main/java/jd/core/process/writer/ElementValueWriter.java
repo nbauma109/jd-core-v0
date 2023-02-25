@@ -16,17 +16,15 @@
  ******************************************************************************/
 package jd.core.process.writer;
 
+import org.apache.bcel.classfile.AnnotationElementValue;
+import org.apache.bcel.classfile.ArrayElementValue;
+import org.apache.bcel.classfile.ClassElementValue;
+import org.apache.bcel.classfile.ElementValue;
+import org.apache.bcel.classfile.EnumElementValue;
+import org.apache.bcel.classfile.SimpleElementValue;
 import org.jd.core.v1.api.loader.Loader;
 
 import jd.core.model.classfile.ClassFile;
-import jd.core.model.classfile.ConstantPool;
-import jd.core.model.classfile.attribute.ElementValue;
-import jd.core.model.classfile.attribute.ElementValueAnnotationValue;
-import jd.core.model.classfile.attribute.ElementValueArrayValue;
-import jd.core.model.classfile.attribute.ElementValueClassInfo;
-import jd.core.model.classfile.attribute.ElementValueContants;
-import jd.core.model.classfile.attribute.ElementValueEnumConstValue;
-import jd.core.model.classfile.attribute.ElementValuePrimitiveType;
 import jd.core.model.reference.ReferenceMap;
 import jd.core.printer.Printer;
 import jd.core.util.SignatureUtil;
@@ -41,36 +39,31 @@ public final class ElementValueWriter
         Loader loader, Printer printer, ReferenceMap referenceMap,
         ClassFile classFile, ElementValue ev)
     {
-        ConstantPool constants = classFile.getConstantPool();
-
-        switch (ev.tag())
-        {
-        case ElementValueContants.EV_PRIMITIVE_TYPE:
-            ElementValuePrimitiveType evpt = (ElementValuePrimitiveType)ev;
+        if (ev instanceof SimpleElementValue) {
+            SimpleElementValue evpt = (SimpleElementValue)ev;
             ElementValuePrimitiveTypeWriter.write(
                 loader, printer, referenceMap, classFile, evpt);
-            break;
+        }
 
-        case ElementValueContants.EV_CLASS_INFO:
-            ElementValueClassInfo evci = (ElementValueClassInfo)ev;
-            String signature =
-                constants.getConstantUtf8(evci.classInfoIndex());
+        if (ev instanceof ClassElementValue) {
+            ClassElementValue evci = (ClassElementValue)ev;
+            String signature = evci.getClassString();
             SignatureWriter.writeSignature(
                 loader, printer, referenceMap, classFile, signature);
             printer.print('.');
             printer.printKeyword("class");
-            break;
+        }
 
-        case ElementValueContants.EV_ANNOTATION_VALUE:
-            ElementValueAnnotationValue evav = (ElementValueAnnotationValue)ev;
+        if (ev instanceof AnnotationElementValue) {
+            AnnotationElementValue evav = (AnnotationElementValue)ev;
             AnnotationWriter.writeAnnotation(
                 loader, printer, referenceMap,
-                classFile, evav.annotationValue());
-            break;
+                classFile, evav.getAnnotationEntry());
+        }
 
-        case ElementValueContants.EV_ARRAY_VALUE:
-            ElementValueArrayValue evarv = (ElementValueArrayValue)ev;
-            ElementValue[] values = evarv.values();
+        if (ev instanceof ArrayElementValue) {
+            ArrayElementValue evarv = (ArrayElementValue)ev;
+            ElementValue[] values = evarv.getElementValuesArray();
             printer.print('{');
 
             if (values != null && values.length > 0)
@@ -85,12 +78,12 @@ public final class ElementValueWriter
                 }
             }
             printer.print('}');
-            break;
+        }
 
-        case ElementValueContants.EV_ENUM_CONST_VALUE:
-            ElementValueEnumConstValue evecv = (ElementValueEnumConstValue)ev;
-            signature = constants.getConstantUtf8(evecv.typeNameIndex());
-            String constName = constants.getConstantUtf8(evecv.constNameIndex());
+        if (ev instanceof EnumElementValue) {
+            EnumElementValue evecv = (EnumElementValue)ev;
+            String signature = evecv.getEnumTypeString();
+            String constName = evecv.getEnumValueString();
             String internalClassName = SignatureUtil.getInternalName(signature);
 
             SignatureWriter.writeSignature(
