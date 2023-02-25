@@ -342,7 +342,7 @@ public final class ByteCodeWriter
     {
         // Ecriture de la table des numéros de ligne
         LineNumber[] lineNumbers = method.getLineNumbers();
-        if (lineNumbers != null && lineNumbers.length > 0)
+        if (lineNumbers.length > 0)
         {
             printer.endOfLine();
             printer.startOfLine(Instruction.UNKNOWN_LINE_NUMBER);

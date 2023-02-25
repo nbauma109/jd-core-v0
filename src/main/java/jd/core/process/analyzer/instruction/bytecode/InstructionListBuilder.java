@@ -94,7 +94,7 @@ public final class InstructionListBuilder
                 int exceptionOffset;
                 ConstantPool constants = classFile.getConstantPool();
 
-                if (codeExceptions == null || codeExceptions.length == 0)
+                if (codeExceptions.length == 0)
                 {
                     exceptionOffset = -1;
                 }
