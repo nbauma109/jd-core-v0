@@ -1,0 +1,48 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ public class InnerClassMadness
+/*    */ {
+/*    */   public static void main(String[] args)
+/*    */   {
+/*  9 */     InnerClassMadness t = new InnerClassMadness();
+/* 10 */     A a = t.new A();
+/* 11 */     InnerClassMadness.A.B b = a.new B(a);
+/* 12 */     InnerClassMadness.A.D d = a.new D(a, b);
+/* 13 */     InnerClassMadness.A.D d2 = new Object() {
+/*    */       class Inner {
+/*    */         InnerClassMadness.A.D getD() {
+/* 16 */           InnerClassMadness t = new InnerClassMadness();
+/* 17 */           InnerClassMadness.A a = t.new A();
+/* 18 */           InnerClassMadness.A.B b = a.new B(a);
+/* 19 */           InnerClassMadness.A.D d = a.new D(a, b);
+/* 20 */           return d;
+/*    */         }
+/*    */       }
+/*    */     }.new Inner().getD();
+/*    */   }
+/*    */   
+/*    */   public class A extends InnerClassMadness
+/*    */   {
+/*    */     public class B extends InnerClassMadness.A
+/*    */     {
+/*    */       public B(InnerClassMadness.A a)
+/*    */       {
+/* 32 */         a.super();
+/*    */       }
+/*    */       
+/*    */       public class C extends InnerClassMadness.A.B {
+/*    */         public C(InnerClassMadness.A a) {
+/* 37 */           a.super(a);
+/*    */         }
+/*    */       }
+/*    */     }
+/*    */     
+/*    */     public class D extends InnerClassMadness.A.B.C {
+/*    */       public D(InnerClassMadness.A a, InnerClassMadness.A.B b) {
+/* 44 */         b.super(a);
+/*    */       }
+/*    */     }
+/*    */   }
+/*    */ }
