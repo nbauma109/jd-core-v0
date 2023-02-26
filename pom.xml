@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.github.nbauma109</groupId>
   <artifactId>jd-core-v0</artifactId>
-  <version>0.8.17-SNAPSHOT</version>
+  <version>0.8.17</version>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <plexus.compiler.version>2.13.0</plexus.compiler.version>
@@ -11,7 +11,7 @@
     <connection>scm:git:https://github.com/nbauma109/jd-core-v0.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/nbauma109/jd-core-v0.git</developerConnection>
     <url>https://github.com/nbauma109/jd-core-v0</url>
-    <tag>HEAD</tag>
+    <tag>0.8.17</tag>
   </scm>
   <profiles>
     <profile>
