@@ -174,6 +174,9 @@ public abstract class BaseInstructionSplitterVisitor
         case ByteCodeConstants.INVOKENEW:
             {
                 InvokeNew in = (InvokeNew)instruction;
+                if (in.getPrefix() != null) {
+                    visit(in.getPrefix());
+                }
                 List<Instruction> args = in.getArgs();
                 int length = args.size();
                 for (int i=0; i<length; i++) {

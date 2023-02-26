@@ -23,6 +23,7 @@ import jd.core.model.instruction.fast.FastConstants;
 public class InvokeNew extends InvokeInstruction
 {
     private int enumValueFieldRefIndex;
+    private Instruction prefix; // x in x.new A(...)
 
     public InvokeNew(
         int opcode, int offset, int lineNumber,
@@ -44,5 +45,13 @@ public class InvokeNew extends InvokeInstruction
 
     private void setEnumValueFieldRefIndex(int enumValueFieldRefIndex) {
         this.enumValueFieldRefIndex = enumValueFieldRefIndex;
+    }
+
+    public Instruction getPrefix() {
+        return prefix;
+    }
+
+    public void setPrefix(Instruction prefix) {
+        this.prefix = prefix;
     }
 }

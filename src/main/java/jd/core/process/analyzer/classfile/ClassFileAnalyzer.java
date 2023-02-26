@@ -58,6 +58,8 @@ import jd.core.model.reference.ReferenceMap;
 import jd.core.process.analyzer.classfile.reconstructor.AssignmentInstructionReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.DotClass118AReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.DotClass14Reconstructor;
+import jd.core.process.analyzer.classfile.reconstructor.DotNewReconstructor;
+import jd.core.process.analyzer.classfile.reconstructor.DotSuperReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.DupStoreThisReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.InitDexEnumFieldsReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.InitInstanceFieldsReconstructor;
@@ -853,6 +855,10 @@ public final class ClassFileAnalyzer
         // constantes numeriques si necessaire.
         CheckCastAndConvertInstructionVisitor.visit(
                 classFile.getConstantPool(), list);
+        // Reconstruction du pattern a.new A(...)
+        DotNewReconstructor.reconstruct(classFile, list);
+        // Reconstruction du pattern a.super(...)
+        DotSuperReconstructor.reconstruct(classFile, list);
 
         // Build fast instructions
         List<Instruction> fastList =
@@ -1120,8 +1126,11 @@ public final class ClassFileAnalyzer
                                 } else if (count == 0)
                                 {
                                     // Retrait de l'appel du constructeur s'il
-                                    // n'a aucun parametre.
-                                    list.remove(0);
+                                    // n'a aucun parametre, sauf s'il est préfixé comme
+                                    // dans a.super()
+                                    if (is.getPrefix() == null) {
+                                        list.remove(0);
+                                    }
                                 } else if (count == 1 && args.get(0).getOpcode() == Const.ACONST_NULL) {
                                     String signature = constants.getConstantUtf8(cnat.getSignatureIndex());
                                     if (signature.endsWith("$1;)V")) {

@@ -67,6 +67,7 @@ import jd.core.model.instruction.bytecode.instruction.InstanceOf;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNew;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
+import jd.core.model.instruction.bytecode.instruction.Invokespecial;
 import jd.core.model.instruction.bytecode.instruction.Invokestatic;
 import jd.core.model.instruction.bytecode.instruction.Jsr;
 import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
@@ -1362,12 +1363,15 @@ public class SourceWriterVisitor
         String prefix =
             this.classFile.getThisClassName() +
             StringConstants.INTERNAL_INNER_SEPARATOR;
-        ClassFile innerClassFile;
+        ClassFile innerClassFile = null;
 
         if (internalClassName.startsWith(prefix)) {
             innerClassFile = this.classFile.getInnerClassFile(internalClassName);
-        } else {
-            innerClassFile = null;
+        }
+
+        if (in.getPrefix() != null) {
+            // print 'dot new' pattern 'exp.' in 'exp.new A(...)'
+            visit(in.getPrefix());
         }
 
         int lineNumber = in.getLineNumber();
@@ -1408,18 +1412,33 @@ public class SourceWriterVisitor
             }
         }
 
-        if (this.firstOffset <= this.previousOffset)
+        if (this.firstOffset <= this.previousOffset && this.previousOffset < this.lastOffset)
         {
+            if (in.getPrefix() != null) {
+                this.printer.print('.');  
+            }
             this.printer.printKeyword(lineNumber, "new");
             this.printer.print(' ');
 
             if (innerClassFile == null || innerClassFile.getInternalAnonymousClassName() == null)
             {
                 // Normal or inner class new invoke
+                String typeName;
+                int idxOfDollar = internalClassName.indexOf('$');
+                int lastIdxOfDollar = internalClassName.lastIndexOf('$');
+                if (idxOfDollar != lastIdxOfDollar && internalClassName.substring(idxOfDollar + 1, lastIdxOfDollar).matches("\\d+")) {
+                    typeName = SignatureUtil.createTypeName(internalClassName.substring(lastIdxOfDollar + 1));
+                } else {
+                    typeName = SignatureUtil.createTypeName(internalClassName);
+                    if (in.getPrefix() != null) {
+                        String sig = SignatureUtil.getInternalName(in.getPrefix().getReturnedSignature(constants, localVariables));
+                        typeName = typeName.replace(sig + '$', "");
+                    }
+                }
                 SignatureWriter.writeConstructor(
                     this.loader, this.printer, this.referenceMap,
                     this.classFile,
-                    SignatureUtil.createTypeName(internalClassName),
+                    typeName,
                     constructorDescriptor);
                 //writeArgs(in.lineNumber, 0, in.args);
             } else {
@@ -1800,6 +1819,13 @@ public class SourceWriterVisitor
                     }
                     else
                     {
+                        if (insi instanceof Invokespecial) {
+                            Invokespecial is = (Invokespecial) insi;
+                            if (is.getPrefix() != null) {
+                                visit(is.getPrefix());
+                                this.printer.print('.');
+                            }
+                        }
                         // Appel d'un constructeur de la classe mere
                         this.printer.printKeyword(lineNumber, "super");
                     }
