@@ -11,9 +11,13 @@ import java.nio.file.StandardCopyOption;
   
   Class<?> clazz() default Integer.class;
   
+  Class<?>[] classes() default {Integer.class, Long.class};
+  
   StandardCopyOption option() default StandardCopyOption.COPY_ATTRIBUTES;
   
   char[] characters() default {'a', 'b'};
+  
+  byte[] bytes() default {};
   
   int integer() default 0;
   
