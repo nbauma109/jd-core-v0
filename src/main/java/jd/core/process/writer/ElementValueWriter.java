@@ -66,7 +66,7 @@ public final class ElementValueWriter
             ElementValue[] values = evarv.getElementValuesArray();
             printer.print('{');
 
-            if (values != null && values.length > 0)
+            if (values.length > 0)
             {
                 writeElementValue(
                     loader, printer, referenceMap, classFile, values[0]);
