@@ -1,4 +1,4 @@
-/*     */ package net.sourceforge.plantuml.command.regex;
+/*     */ package net.sourceforge.plantuml.regex;
 /*     */ 
 /*     */ import java.util.HashMap;
 /*     */ import java.util.Map;

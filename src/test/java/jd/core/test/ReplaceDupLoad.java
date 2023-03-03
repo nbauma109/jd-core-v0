@@ -5,7 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import h.ST_pointnlink_t;
 import h.ST_triangle_t;
 import smetana.core.CArray;
-import smetana.core.Z;
+import smetana.core.Globals;
 import smetana.core.__ptr__;
 
 public abstract class ReplaceDupLoad {
@@ -28,9 +28,8 @@ public abstract class ReplaceDupLoad {
     /*
      * FOR
      */
-    public static void loadtriangle(__ptr__ pnlap, __ptr__ pnlbp, __ptr__ pnlcp) {
-        CArray<ST_triangle_t> trip;
-        trip = Z.z().tris.plus_(Z.z().tril++);
+    public static void loadtriangle(Globals zz, __ptr__ pnlap, __ptr__ pnlbp, __ptr__ pnlcp) {
+        CArray<ST_triangle_t> trip = zz.tris.plus_(zz.tril++);
         trip.get__(0).mark = 0;
         trip.get__(0).e[0].pnl0p = (ST_pointnlink_t) pnlap;
         trip.get__(0).e[0].pnl1p = (ST_pointnlink_t) pnlbp;

@@ -11,18 +11,18 @@ import java.util.function.Supplier;
 
 import net.sourceforge.plantuml.FileFormatOption;
 import net.sourceforge.plantuml.FileImageData;
-import net.sourceforge.plantuml.SplitParam;
-import net.sourceforge.plantuml.SuggestedFile;
 import net.sourceforge.plantuml.TitledDiagram;
-import net.sourceforge.plantuml.awt.geom.XPoint2D;
 import net.sourceforge.plantuml.core.ImageData;
-import net.sourceforge.plantuml.graphic.SymbolContext;
-import net.sourceforge.plantuml.graphic.TextBlock;
+import net.sourceforge.plantuml.file.SuggestedFile;
+import net.sourceforge.plantuml.klimt.Fashion;
+import net.sourceforge.plantuml.klimt.color.HColors;
+import net.sourceforge.plantuml.klimt.geom.XPoint2D;
+import net.sourceforge.plantuml.klimt.shape.TextBlock;
 import net.sourceforge.plantuml.png.PngSplitter;
 import net.sourceforge.plantuml.project.GanttDiagram;
 import net.sourceforge.plantuml.security.SFile;
+import net.sourceforge.plantuml.skin.SplitParam;
 import net.sourceforge.plantuml.svek.Boundary;
-import net.sourceforge.plantuml.ugraphic.color.HColors;
 
 public class ReplaceInstruction {
 
@@ -84,7 +84,7 @@ public class ReplaceInstruction {
     /*
      * INVOKENEW
      */
-    TextBlock getDrawing(SymbolContext symbolContext) {
+    TextBlock getDrawing(Fashion symbolContext) {
         return new Boundary(symbolContext.withDeltaShadow(symbolContext.isShadowing() ? 4.0 : 0.0));
     }
 

@@ -10,7 +10,7 @@ import static org.junit.Assert.assertEquals;
 public class Matcher2Test extends AbstractTestCase {
     @Test
     public void test() throws Exception {
-        String output = decompile("net/sourceforge/plantuml/command/regex/Matcher2");
+        String output = decompile("net/sourceforge/plantuml/regex/Matcher2");
         assertEquals(IOUtils.toString(getClass().getResource("Matcher2.txt"), StandardCharsets.UTF_8), output);
     }
 }
