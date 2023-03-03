@@ -5,7 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import h.ST_pointnlink_t;
 import h.ST_triangle_t;
 import smetana.core.CArray;
-import smetana.core.Z;
+import smetana.core.Globals;
 import smetana.core.__ptr__;
 
 public abstract class ReplaceDupLoad {
@@ -44,5 +44,9 @@ public abstract class ReplaceDupLoad {
         for (int ei = 0; ei < 3; ei++) {
             trip.get__(0).e[ei].lrp = trip;
         }
+    }
+
+    class Z {
+        native static Globals z();
     }
 }

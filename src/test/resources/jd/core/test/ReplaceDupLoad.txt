@@ -4,7 +4,7 @@
 /*    */ import h.ST_triangle_t;
 /*    */ import org.apache.commons.lang3.StringUtils;
 /*    */ import smetana.core.CArray;
-/*    */ import smetana.core.Z;
+/*    */ import smetana.core.Globals;
 /*    */ import smetana.core.__ptr__;
 /*    */ 
 /*    */ 
@@ -44,5 +44,10 @@
 /* 44 */     for (int ei = 0; ei < 3; ei++) {
 /* 45 */       ((ST_triangle_t)trip.get__(0)).e[ei].lrp = trip;
 /*    */     }
+/*    */   }
+/*    */   
+/*    */   class Z
+/*    */   {
+/*    */     static native Globals z();
 /*    */   }
 /*    */ }
