@@ -2790,14 +2790,23 @@ public final class FastInstructionListBuilder {
         return offset > lastBodyWhileLoop.getOffset() ? offset : lastBodyWhileLoop.getOffset();
     }
 
-    private static Instruction createForEachVariableInstruction(Instruction i) {
+    private static Instruction createForEachVariableInstruction(Instruction i, LocalVariables localVariables) {
+        FastDeclaration fd;
         switch (i.getOpcode()) {
         case FastConstants.DECLARE:
-            ((FastDeclaration) i).setInstruction(null);
-            ((FastDeclaration) i).getLv().setDeclarationFlag(DECLARED);
+            fd = (FastDeclaration) i;
+            fd.setInstruction(null);
+            fd.getLv().setDeclarationFlag(DECLARED);
             return i;
         case Const.ASTORE:
-            return new ALoad(Const.ALOAD, i.getOffset(), i.getLineNumber(), ((AStore) i).getIndex());
+            ALoad aLoad = new ALoad(Const.ALOAD, i.getOffset(), i.getLineNumber(), ((AStore) i).getIndex());
+            LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(aLoad.getIndex(), aLoad.getOffset());
+            if (lv != null && !lv.hasDeclarationFlag()) {
+                fd = new FastDeclaration(FastConstants.DECLARE, aLoad.getOffset(), aLoad.getLineNumber(), lv, null);
+                lv.setDeclarationFlag(DECLARED);
+                return fd;
+            }
+            return aLoad;
         case Const.ISTORE:
             return new ILoad(Const.ILOAD, i.getOffset(), i.getLineNumber(), ((IStore) i).getIndex());
         case ByteCodeConstants.STORE:
@@ -2826,7 +2835,7 @@ public final class FastInstructionListBuilder {
 
         // Is a for-each pattern ?
         if (isAForEachIteratorPattern(classFile, method, beforeWhileLoop, test, subList)) {
-            Instruction variable = createForEachVariableInstruction(subList.remove(0));
+            Instruction variable = createForEachVariableInstruction(subList.remove(0), method.getLocalVariables());
             InvokeNoStaticInstruction insi = (InvokeNoStaticInstruction) ((AStore) beforeWhileLoop).getValueref();
             Instruction values = insi.getObjectref();
 
@@ -2858,7 +2867,7 @@ public final class FastInstructionListBuilder {
                 beforeWhileLoopIndex, subList)) {
         case 1: // SUN 1.5
         {
-            Instruction variable = createForEachVariableInstruction(subList.remove(0));
+            Instruction variable = createForEachVariableInstruction(subList.remove(0), localVariables);
 
             beforeWhileLoopIndex--;
             StoreInstruction beforeBeforeWhileLoop = (StoreInstruction) list.remove(beforeWhileLoopIndex);
@@ -2878,7 +2887,7 @@ public final class FastInstructionListBuilder {
             break;
         case 2: // SUN 1.6
         {
-            Instruction variable = createForEachVariableInstruction(subList.remove(0));
+            Instruction variable = createForEachVariableInstruction(subList.remove(0), localVariables);
 
             beforeWhileLoopIndex--;
             StoreInstruction beforeBeforeWhileLoop = (StoreInstruction) list.remove(beforeWhileLoopIndex);
@@ -2900,7 +2909,7 @@ public final class FastInstructionListBuilder {
             break;
         case 3: // IBM
         {
-            Instruction variable = createForEachVariableInstruction(subList.remove(0));
+            Instruction variable = createForEachVariableInstruction(subList.remove(0), localVariables);
 
             beforeWhileLoopIndex--;
             StoreInstruction siIndex = (StoreInstruction) list.remove(beforeWhileLoopIndex);
@@ -2926,7 +2935,7 @@ public final class FastInstructionListBuilder {
                 if (lastBodyWhileLoop.getOpcode() != Const.GOTO) {
                     subList.add(lastBodyWhileLoop);
                 }
-                Instruction variable = createForEachVariableInstruction(subList.remove(0));
+                Instruction variable = createForEachVariableInstruction(subList.remove(0), localVariables);
                 InvokeNoStaticInstruction insi = (InvokeNoStaticInstruction) ((AStore) beforeWhileLoop).getValueref();
                 Instruction values = insi.getObjectref();
 
@@ -3197,7 +3206,7 @@ public final class FastInstructionListBuilder {
         }
         IConst iconst = (IConst) siIndex.getValueref();
         // Test 'test' instruction: i < j
-        if (iconst.getValue() != 0 || !"I".equals(iconst.getSignature()) || test.getOpcode() != ByteCodeConstants.IFCMP) {
+        if (iconst.getValue() != 0 || test.getOpcode() != ByteCodeConstants.IFCMP) {
             return 0;
         }
         IfCmp ifcmp = (IfCmp) test;
