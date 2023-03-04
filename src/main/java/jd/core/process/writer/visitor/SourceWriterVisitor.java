@@ -1539,6 +1539,12 @@ public class SourceWriterVisitor
                 }
             }
 
+            String fieldName = this.constants.getConstantUtf8(cnat.getNameIndex());
+            if (fieldName.startsWith("val$")) {
+                fieldName = fieldName.substring(4);
+                getField.getObjectref().setHidden(true);
+            }
+
             if (this.firstOffset <= this.previousOffset &&
                 getField.getObjectref().getOffset() <= this.lastOffset)
             {
@@ -1549,7 +1555,9 @@ public class SourceWriterVisitor
                 }
 
                 lineNumber = visit(getField, getField.getObjectref());
-                this.printer.print(lineNumber, '.');
+                if (!getField.getObjectref().isHidden()) {
+                    this.printer.print(lineNumber, '.');
+                }
 
                 if (!displayPrefix)
                 {
@@ -1562,8 +1570,6 @@ public class SourceWriterVisitor
             {
                 String internalClassName =
                     this.constants.getConstantClassName(cfr.getClassIndex());
-                String fieldName =
-                    this.constants.getConstantUtf8(cnat.getNameIndex());
                 if (this.keywordSet.contains(fieldName)) {
                     fieldName = StringConstants.JD_FIELD_PREFIX + fieldName;
                 }
