@@ -32,6 +32,7 @@ import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.ALoad;
 import jd.core.model.instruction.bytecode.instruction.AStore;
+import jd.core.model.instruction.bytecode.instruction.ArrayLoadInstruction;
 import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.DupLoad;
@@ -1354,17 +1355,24 @@ public final class LocalVariableAnalyzer
         final int length = listForAnalyze.size();
 
         // Affection du type des constantes depuis les instructions mères
-        for (int i=0; i<length; i++)
+        for (final Instruction instruction : listForAnalyze)
         {
-            final Instruction instruction = listForAnalyze.get(i);
-
             switch (instruction.getOpcode())
             {
+            case ByteCodeConstants.ARRAYLOAD:
+            {
+                setConstantTypesArrayLoad(
+                        constants, localVariables,
+                        (ArrayLoadInstruction)instruction);
+            }
+            break;
             case ByteCodeConstants.ARRAYSTORE:
+            {
                 setConstantTypesArrayStore(
                         constants, localVariables,
                         (ArrayStoreInstruction)instruction);
-                break;
+            }
+            break;
             case ByteCodeConstants.BINARYOP:
             {
                 BinaryOperatorInstruction boi =
@@ -1385,11 +1393,15 @@ public final class LocalVariableAnalyzer
                  Const.INVOKESPECIAL,
                  Const.INVOKESTATIC,
                  ByteCodeConstants.INVOKENEW:
+            {
                 setConstantTypesInvokeInstruction(constants, instruction);
-                break;
+            }
+            break;
             case Const.ISTORE:
+            {
                 setConstantTypesIStore(constants, localVariables, instruction);
-                break;
+            }
+            break;
             case Const.PUTFIELD:
             {
                 PutField putField = (PutField)instruction;
@@ -1498,6 +1510,23 @@ public final class LocalVariableAnalyzer
         }
     }
 
+    private static void setConstantTypesArrayLoad(
+            ConstantPool constants,
+            LocalVariables localVariables,
+            ArrayLoadInstruction ali)
+    {
+        if (ali.getArrayref() instanceof ALoad && "B".equals(ali.getReturnedSignature(constants, localVariables))) {
+            ALoad aload = (ALoad) ali.getArrayref();
+            LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(
+                    aload.getIndex(), aload.getOffset());
+            if (lv != null) {
+                String signature =
+                        constants.getConstantUtf8(lv.getSignatureIndex());
+                ali.setReturnedSignature(SignatureUtil.cutArrayDimensionPrefix(signature));
+            }
+        }
+    }
+
     private static void setConstantTypesArrayStore(
             ConstantPool constants,
             LocalVariables localVariables,
@@ -1510,20 +1539,20 @@ public final class LocalVariableAnalyzer
                 ALoad aload = (ALoad)asi.getArrayref();
                 LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(
                         aload.getIndex(), aload.getOffset());
-
+                
                 if (lv == null)
                 {
                     new Throwable("lv is null. index=" + aload.getIndex()).printStackTrace();
                     return;
                 }
-
+                
                 String signature =
                         constants.getConstantUtf8(lv.getSignatureIndex());
                 ((IConst)asi.getValueref()).setReturnedSignature(
                         SignatureUtil.cutArrayDimensionPrefix(signature));
             }
             else if (asiArrayRefOpCode == Const.GETFIELD
-                  || asiArrayRefOpCode == Const.GETSTATIC)
+                    || asiArrayRefOpCode == Const.GETSTATIC)
             {
                 IndexInstruction ii = (IndexInstruction)asi.getArrayref();
                 ConstantFieldref cfr = constants.getConstantFieldref(ii.getIndex());
@@ -1536,7 +1565,7 @@ public final class LocalVariableAnalyzer
             }
         }
     }
-
+    
     private static void setConstantTypesIStore(
             ConstantPool constants,
             LocalVariables localVariables,
