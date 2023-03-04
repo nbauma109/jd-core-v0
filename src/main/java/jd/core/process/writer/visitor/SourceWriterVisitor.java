@@ -1540,7 +1540,7 @@ public class SourceWriterVisitor
             }
 
             String fieldName = this.constants.getConstantUtf8(cnat.getNameIndex());
-            if (fieldName.startsWith("val$")) {
+            if (fieldName.startsWith("val$") && field != null && (field.getAccessFlags() & Const.ACC_SYNTHETIC) != 0) {
                 fieldName = fieldName.substring(4);
                 getField.getObjectref().setHidden(true);
             }
