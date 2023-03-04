@@ -21,7 +21,7 @@ import jd.core.model.classfile.LocalVariables;
 
 public class ArrayLoadInstruction extends ArrayInstruction
 {
-    private final String signature;
+    private String signature;
     private Instruction indexref;
 
     public ArrayLoadInstruction(
@@ -38,6 +38,10 @@ public class ArrayLoadInstruction extends ArrayInstruction
             ConstantPool constants, LocalVariables localVariables)
     {
         return this.getSignature();
+    }
+
+    public void setReturnedSignature(String signature) {
+        this.signature = signature;
     }
 
     public String getSignature() {
