@@ -167,7 +167,7 @@ public class AddCheckCastVisitor
                     if (lv.getSignatureIndex() > 0 && lv.getSignatureIndex() != this.constants.getObjectSignatureIndex())
                     {
                         String signature =
-                            this.constants.getConstantUtf8(lv.getSignatureIndex());
+                            lv.getSignature(constants);
                         storeInstruction.setValueref(newInstruction(
                             signature, storeInstruction.getValueref()));
                     }

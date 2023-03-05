@@ -2481,7 +2481,7 @@ public class SourceWriterVisitor
             {
                 this.printer.addNewLinesAndPrefix(lineNumber);
                 String signature =
-                    this.constants.getConstantUtf8(lv.getSignatureIndex());
+                    lv.getSignature(constants);
                 String internalName =
                         SignatureUtil.getInternalName(signature);
                 ClassFile innerClassFile =

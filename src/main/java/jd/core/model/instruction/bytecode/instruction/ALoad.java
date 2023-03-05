@@ -40,7 +40,7 @@ public class ALoad extends LoadInstruction
         LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(this.getIndex(), this.getOffset());
 
         if (lv != null && lv.getSignatureIndex() > 0) {
-            return constants.getConstantUtf8(lv.getSignatureIndex());
+            return lv.getSignature(constants);
         }
 
         return StringConstants.INTERNAL_OBJECT_SIGNATURE;

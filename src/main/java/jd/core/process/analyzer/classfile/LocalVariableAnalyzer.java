@@ -995,7 +995,7 @@ public final class LocalVariableAnalyzer
                 break;
             default:
                 String signatureLV =
-                constants.getConstantUtf8(lv.getSignatureIndex());
+                lv.getSignature(constants);
                 int typesBitFieldLV =
                         SignatureUtil.createTypesBitField(signatureLV);
 
@@ -1326,7 +1326,7 @@ public final class LocalVariableAnalyzer
                 //    modification du type de la variable en 'Object' puis
                 //    ajout d'instruction cast.
                 String signatureLV =
-                        constants.getConstantUtf8(lv.getSignatureIndex());
+                        lv.getSignature(constants);
 
                 if (SignatureUtil.isPrimitiveSignature(signatureLV))
                 {
@@ -1523,7 +1523,7 @@ public final class LocalVariableAnalyzer
                     aload.getIndex(), aload.getOffset());
             if (lv != null) {
                 String signature =
-                        constants.getConstantUtf8(lv.getSignatureIndex());
+                        lv.getSignature(constants);
                 ali.setReturnedSignature(SignatureUtil.cutArrayDimensionPrefix(signature));
             }
         }
@@ -1549,7 +1549,7 @@ public final class LocalVariableAnalyzer
                 }
                 
                 String signature =
-                        constants.getConstantUtf8(lv.getSignatureIndex());
+                        lv.getSignature(constants);
                 ((IConst)asi.getValueref()).setReturnedSignature(
                         SignatureUtil.cutArrayDimensionPrefix(signature));
             }
@@ -1581,7 +1581,7 @@ public final class LocalVariableAnalyzer
             final LocalVariable lv =
                     localVariables.getLocalVariableWithIndexAndOffset(
                             store.getIndex(), store.getOffset());
-            String signature = constants.getConstantUtf8(lv.getSignatureIndex());
+            String signature = lv.getSignature(constants);
             ((IConst)store.getValueref()).setReturnedSignature(signature);
         }
     }
@@ -1716,7 +1716,7 @@ public final class LocalVariableAnalyzer
 
             if (lv != null && lv.getNameIndex() <= 0)
             {
-                String signature = constants.getConstantUtf8(lv.getSignatureIndex());
+                String signature = lv.getSignature(constants);
                 boolean appearsOnce = signatureAppearsOnceInLocalVariables(
                         localVariables, length, lv.getSignatureIndex());
                 String name =

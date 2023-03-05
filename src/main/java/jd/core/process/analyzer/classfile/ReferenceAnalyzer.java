@@ -302,7 +302,7 @@ public final class ReferenceAnalyzer
             if (lv != null && lv.getSignatureIndex() > 0)
             {
                 String signature =
-                    constants.getConstantUtf8(lv.getSignatureIndex());
+                    lv.getSignature(constants);
                 SignatureAnalyzer.analyzeSimpleSignature(referenceMap, signature);
             }
         }
