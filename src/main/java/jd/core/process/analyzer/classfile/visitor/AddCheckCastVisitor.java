@@ -21,6 +21,9 @@ import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
+import org.jd.core.v1.model.javasyntax.type.ObjectType;
+import org.jd.core.v1.model.javasyntax.type.Type;
+import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.List;
@@ -72,14 +75,16 @@ public class AddCheckCastVisitor
     private final ConstantPool constants;
     private final LocalVariables localVariables;
     private final LocalVariable localVariable;
+    private final TypeMaker typeMaker;
 
     public AddCheckCastVisitor(
             ConstantPool constants, LocalVariables localVariables,
-            LocalVariable localVariable)
+            LocalVariable localVariable, TypeMaker typeMaker)
     {
         this.constants = constants;
         this.localVariables = localVariables;
         this.localVariable = localVariable;
+        this.typeMaker = typeMaker;
     }
 
     public void visit(Instruction instruction)
@@ -166,10 +171,16 @@ public class AddCheckCastVisitor
                     // AStore est associé à  une variable correctement typée
                     if (lv.getSignatureIndex() > 0 && lv.getSignatureIndex() != this.constants.getObjectSignatureIndex())
                     {
-                        String signature =
-                            this.constants.getConstantUtf8(lv.getSignatureIndex());
-                        storeInstruction.setValueref(newInstruction(
-                            signature, storeInstruction.getValueref()));
+                        String signature = lv.getSignature(constants);
+//                        Type left = typeMaker.makeFromDescriptorOrInternalTypeName(signature);
+//                        Type right = typeMaker.makeFromDescriptorOrInternalTypeName(storeInstruction.getReturnedSignature(constants, localVariables));
+//                        if (!(left instanceof ObjectType)
+//                         || !(right instanceof ObjectType)
+//                         || !typeMaker.isAssignable((ObjectType) left, (ObjectType) right))
+//                        {
+                            storeInstruction.setValueref(newInstruction(
+                                signature, storeInstruction.getValueref()));
+//                        }
                     }
                 }
                 else
@@ -222,10 +233,18 @@ public class AddCheckCastVisitor
 
                     if (this.constants.getObjectClassNameIndex() != cc.getNameIndex())
                     {
-                        Instruction i = insi.getObjectref();
-                        insi.setObjectref(new CheckCast(
-                            Const.CHECKCAST, i.getOffset(),
-                            i.getLineNumber(), cmr.getClassIndex(), i));
+//                        String signature = constants.getConstantUtf8(cc.getNameIndex());
+//                        Type left = typeMaker.makeFromDescriptorOrInternalTypeName(signature);
+//                        Type right = typeMaker.makeFromDescriptorOrInternalTypeName(insi.getObjectref().getReturnedSignature(constants, localVariables));
+//                        if (!(left instanceof ObjectType)
+//                         || !(right instanceof ObjectType)
+//                         || !typeMaker.isAssignable((ObjectType) left, (ObjectType) right))
+//                        {
+                            Instruction i = insi.getObjectref();
+                            insi.setObjectref(new CheckCast(
+                                Const.CHECKCAST, i.getOffset(),
+                                i.getLineNumber(), cmr.getClassIndex(), i));
+//                        }
                     }
                 }
                 else
@@ -250,7 +269,14 @@ public class AddCheckCastVisitor
 
                         if (! StringConstants.INTERNAL_OBJECT_SIGNATURE.equals(signature))
                         {
-                            list.set(i, newInstruction(signature, arg));
+//                            Type left = typeMaker.makeFromDescriptorOrInternalTypeName(signature);
+//                            Type right = typeMaker.makeFromDescriptorOrInternalTypeName(arg.getReturnedSignature(constants, localVariables));
+//                            if (!(left instanceof ObjectType)
+//                             || !(right instanceof ObjectType)
+//                             || !typeMaker.isAssignable((ObjectType) left, (ObjectType) right))
+//                            {
+                                list.set(i, newInstruction(signature, arg));
+//                            }
                         }
                     }
                     else
@@ -298,9 +324,17 @@ public class AddCheckCastVisitor
                     if (this.constants.getObjectClassNameIndex() != cc.getNameIndex())
                     {
                         Instruction i = getField.getObjectref();
-                        getField.setObjectref(new CheckCast(
-                            Const.CHECKCAST, i.getOffset(),
-                            i.getLineNumber(), cfr.getClassIndex(), i));
+//                        String signature = constants.getConstantUtf8(cc.getNameIndex());
+//                        Type left = typeMaker.makeFromDescriptorOrInternalTypeName(signature);
+//                        Type right = typeMaker.makeFromDescriptorOrInternalTypeName(i.getReturnedSignature(constants, localVariables));
+//                        if (!(left instanceof ObjectType)
+//                         || !(right instanceof ObjectType)
+//                         || !typeMaker.isAssignable((ObjectType) left, (ObjectType) right))
+//                        {
+                            getField.setObjectref(new CheckCast(
+                                Const.CHECKCAST, i.getOffset(),
+                                i.getLineNumber(), cfr.getClassIndex(), i));
+//                        }
                     }
                 }
                 else
@@ -321,9 +355,17 @@ public class AddCheckCastVisitor
                     if (this.constants.getObjectClassNameIndex() != cc.getNameIndex())
                     {
                         Instruction i = putField.getObjectref();
-                        putField.setObjectref(new CheckCast(
-                            Const.CHECKCAST, i.getOffset(),
-                            i.getLineNumber(), cfr.getClassIndex(), i));
+                        String signature = constants.getConstantUtf8(cc.getNameIndex());
+//                        Type left = typeMaker.makeFromDescriptorOrInternalTypeName(signature);
+//                        Type right = typeMaker.makeFromDescriptorOrInternalTypeName(i.getReturnedSignature(constants, localVariables));
+//                        if (!(left instanceof ObjectType)
+//                         || !(right instanceof ObjectType)
+//                         || !typeMaker.isAssignable((ObjectType) left, (ObjectType) right))
+//                        {
+                            putField.setObjectref(new CheckCast(
+                                Const.CHECKCAST, i.getOffset(),
+                                i.getLineNumber(), cfr.getClassIndex(), i));
+//                        }
                     }
                 }
                 else
@@ -338,10 +380,17 @@ public class AddCheckCastVisitor
 
                     if (cnat.getSignatureIndex() != this.constants.getObjectSignatureIndex())
                     {
-                        String signature =
-                            this.constants.getConstantUtf8(cnat.getSignatureIndex());
-                        putField.setValueref(newInstruction(
-                            signature, putField.getValueref()));
+                        Instruction i = putField.getValueref();
+                        String signature = this.constants.getConstantUtf8(cnat.getSignatureIndex());
+//                        Type left = typeMaker.makeFromDescriptorOrInternalTypeName(signature);
+//                        Type right = typeMaker.makeFromDescriptorOrInternalTypeName(i.getReturnedSignature(constants, localVariables));
+//                        if (!(left instanceof ObjectType)
+//                         || !(right instanceof ObjectType)
+//                         || !typeMaker.isAssignable((ObjectType) left, (ObjectType) right))
+//                        {
+                            putField.setValueref(newInstruction(
+                                signature, putField.getValueref()));
+//                        }
                     }
                 }
                 else

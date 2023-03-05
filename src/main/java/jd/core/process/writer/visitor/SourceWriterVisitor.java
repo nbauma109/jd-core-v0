@@ -24,6 +24,11 @@ import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.ConstantUtf8;
 import org.jd.core.v1.api.loader.Loader;
+import org.jd.core.v1.model.javasyntax.type.BaseTypeArgument;
+import org.jd.core.v1.model.javasyntax.type.ObjectType;
+import org.jd.core.v1.model.javasyntax.type.TypeArgument;
+import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
+import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker.TypeTypes;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.Arrays;
@@ -111,6 +116,7 @@ public class SourceWriterVisitor
     private int firstOffset;
     private int lastOffset;
     private int previousOffset;
+    private TypeMaker typeMaker;
 
     public SourceWriterVisitor(
         Loader loader,
@@ -122,6 +128,7 @@ public class SourceWriterVisitor
         this.printer = printer;
         this.referenceMap = referenceMap;
         this.keywordSet = keywordSet;
+        this.typeMaker = new TypeMaker(loader);
     }
 
     /**
@@ -1430,7 +1437,7 @@ public class SourceWriterVisitor
                     typeName = SignatureUtil.createTypeName(internalClassName.substring(lastIdxOfDollar + 1));
                 } else {
                     typeName = SignatureUtil.createTypeName(internalClassName);
-                    if (in.getPrefix() != null) {
+                    if (in.getPrefix() != null) { // pattern a.new A(...)
                         String sig = SignatureUtil.getInternalName(in.getPrefix().getReturnedSignature(constants, localVariables));
                         typeName = typeName.replace(sig + '$', "");
                     }
@@ -1440,6 +1447,12 @@ public class SourceWriterVisitor
                     this.classFile,
                     typeName,
                     constructorDescriptor);
+//                if (this.classFile.getMajorVersion() >= Const.MAJOR_1_7) {
+//                    TypeTypes newInvokeType = typeMaker.makeTypeTypes(internalClassName);
+//                    if (newInvokeType.getTypeParameters() != null) {
+//                        this.printer.print("<>");
+//                    }
+//                }
                 //writeArgs(in.lineNumber, 0, in.args);
             } else {
                 // Anonymous new invoke
@@ -1447,6 +1460,32 @@ public class SourceWriterVisitor
                     this.loader, this.printer, this.referenceMap, this.classFile,
                     SignatureUtil.createTypeName(innerClassFile.getInternalAnonymousClassName()),
                     constructorDescriptor);
+//                TypeTypes newInvokeType = typeMaker.makeTypeTypes(internalClassName);
+//                ObjectType newInvokeSuperType = newInvokeType.getSuperType();
+//                if (newInvokeSuperType != null && newInvokeSuperType.getTypeArguments() != null) {
+//                    this.printer.print('<');
+//                    BaseTypeArgument typeArguments = newInvokeSuperType.getTypeArguments();
+//                    if (typeArguments.isTypeArgumentList()) {
+//                        for (TypeArgument typeArgument : typeArguments.getTypeArgumentList()) {
+//                            if (typeArgument instanceof ObjectType) {
+//                                ObjectType ot = (ObjectType) typeArgument;
+//                                SignatureWriter.writeSignature(
+//                                        this.loader, this.printer, this.referenceMap,
+//                                        this.classFile, ot.getDescriptor());
+//                                this.printer.print(", ");
+//                            }
+//                        }
+//                    } else {
+//                        TypeArgument typeArgument = typeArguments.getTypeArgumentFirst();
+//                        if (typeArgument instanceof ObjectType) {
+//                            ObjectType ot = (ObjectType) typeArgument;
+//                            SignatureWriter.writeSignature(
+//                                    this.loader, this.printer, this.referenceMap,
+//                                    this.classFile, ot.getDescriptor());
+//                        }
+//                    }
+//                    this.printer.print('>');
+//                }
             }
         }
 

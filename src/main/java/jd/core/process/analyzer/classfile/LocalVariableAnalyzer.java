@@ -20,6 +20,7 @@ import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.Signature;
+import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.List;
@@ -209,7 +210,7 @@ public final class LocalVariableAnalyzer
 
             analyzeMethodCode(
                     constants, localVariables, list, listForAnalyze,
-                    returnedSignature);
+                    returnedSignature, new TypeMaker(classFile.getLoader()));
 
             // Upgrade byte type to char type
             // Substitution des types byte par char dans les instructions
@@ -684,11 +685,12 @@ public final class LocalVariableAnalyzer
      *  - Si la variable n'est pas encore definie, ajouter une entrée dans la
      *    Liste
      *  - Sinon, si le type est compatible
+     * @param typeMaker 
      */
     private static void analyzeMethodCode(
             ConstantPool constants,
             LocalVariables localVariables, List<Instruction> list,
-            List<Instruction> listForAnalyze, String returnedSignature)
+            List<Instruction> listForAnalyze, String returnedSignature, TypeMaker typeMaker)
     {
         // Recherche des instructions d'ecriture des variables locales.
         int length = listForAnalyze.size();
@@ -800,9 +802,7 @@ public final class LocalVariableAnalyzer
         for (int i=0; i<length; i++)
         {
             lv = localVariables.getLocalVariableAt(i);
-            if (lv.getSignatureIndex() == internalObjectSignatureIndex) {
-                addCastInstruction(constants, list, localVariables, lv);
-            }
+            addCastInstruction(constants, list, localVariables, lv, typeMaker);
         }
     }
 
@@ -1828,12 +1828,12 @@ public final class LocalVariableAnalyzer
 
     private static void addCastInstruction(
             ConstantPool constants, List<Instruction> list,
-            LocalVariables localVariables, LocalVariable lv)
+            LocalVariables localVariables, LocalVariable lv, TypeMaker typeMaker)
     {
         // Add cast instruction before all 'ALoad' instruction for local
         // variable le used type is not 'Object'.
         AddCheckCastVisitor visitor = new AddCheckCastVisitor(
-                constants, localVariables, lv);
+                constants, localVariables, lv, typeMaker);
 
         final int length = list.size();
 
