@@ -410,7 +410,7 @@ public final class ByteCodeWriter
                     {
                         SignatureWriter.writeSignature(
                                 loader, printer, referenceMap,
-                                classFile, constants.getConstantUtf8(lv.getSignatureIndex()));
+                                classFile, lv.getSignature(constants));
                     }
                     else
                     {

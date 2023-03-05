@@ -127,7 +127,7 @@
 /* 127 */       (diagram instanceof GanttDiagram) ? new SplitParam(HColors.BLACK, null, 5) : 
 /* 128 */       diagram.getSkinParam().getSplitParam()).getFiles();
 /*     */     
-/* 130 */     List<FileImageData> result = new ArrayList();
+/* 130 */     List<FileImageData> result = new ArrayList<>();
 /* 131 */     for (SFile f : files) {
 /* 132 */       result.add(new FileImageData(f, imageData));
 /*     */     }

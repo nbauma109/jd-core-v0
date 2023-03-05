@@ -906,7 +906,7 @@
 /*      */   public static Path setReadOnly(Path path, boolean readOnly, LinkOption... linkOptions)
 /*      */     throws IOException
 /*      */   {
-/*  909 */     List<Exception> causeList = new ArrayList(2);
+/*  909 */     List<Exception> causeList = new ArrayList<>(2);
 /*  910 */     DosFileAttributeView fileAttributeView = (DosFileAttributeView)Files.getFileAttributeView(path, DosFileAttributeView.class, linkOptions);
 /*      */     
 /*  912 */     if (fileAttributeView != null) {

@@ -44,7 +44,7 @@ public class IInc extends IndexInstruction
             return null;
         }
 
-        return constants.getConstantUtf8(lv.getSignatureIndex());
+        return lv.getSignature(constants);
     }
 
     @Override

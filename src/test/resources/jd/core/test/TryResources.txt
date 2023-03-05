@@ -20,7 +20,7 @@
 /*    */ {
 /*    */   List<String> readFile(Path path)
 /*    */   {
-/* 23 */     List<String> lines = new ArrayList();
+/* 23 */     List<String> lines = new ArrayList<>();
 /* 24 */     try (BufferedReader br = java.nio.file.Files.newBufferedReader(path, java.nio.charset.StandardCharsets.UTF_8);Scanner sc = new Scanner(br);) {
 /* 25 */       while (sc.hasNextLine()) {
 /* 26 */         lines.add(sc.nextLine());
@@ -32,7 +32,7 @@
 /*    */   }
 /*    */   
 /*    */   List<String> readFile(File file) {
-/* 35 */     List<String> lines = new ArrayList();
+/* 35 */     List<String> lines = new ArrayList<>();
 /* 36 */     try (InputStream in = java.nio.file.Files.newInputStream(file.toPath(), new java.nio.file.OpenOption[0]);
 /* 37 */     InputStreamReader isr = new InputStreamReader(in);
 /* 38 */     Scanner sc = new Scanner(isr);) {
@@ -51,7 +51,7 @@
 /* 51 */       try (ResultSet rs = ps.executeQuery()) {
 /* 52 */         if (rs.next()) {
 /* 53 */           String employeeName = rs.getString("employee_name");
-/* 54 */           return new SimpleEntry(Integer.valueOf(employeeId), employeeName);
+/* 54 */           return new SimpleEntry<>(Integer.valueOf(employeeId), employeeName);
 /*    */         }
 /*    */       }
 /*    */     } catch (Throwable e) {

@@ -214,7 +214,7 @@
 /*     */   public static List<Field> getAllFieldsList(Class<?> cls)
 /*     */   {
 /* 216 */     Validate.notNull(cls, "cls", new Object[0]);
-/* 217 */     List<Field> allFields = new ArrayList();
+/* 217 */     List<Field> allFields = new ArrayList<>();
 /* 218 */     Class<?> currentClass = cls;
 /* 219 */     while (currentClass != null) {
 /* 220 */       Field[] declaredFields = currentClass.getDeclaredFields();
@@ -254,7 +254,7 @@
 /*     */   {
 /* 255 */     Validate.notNull(annotationCls, "annotationCls", new Object[0]);
 /* 256 */     List<Field> allFields = getAllFieldsList(cls);
-/* 257 */     List<Field> annotatedFields = new ArrayList();
+/* 257 */     List<Field> annotatedFields = new ArrayList<>();
 /* 258 */     for (Field field : allFields) {
 /* 259 */       if (field.getAnnotation(annotationCls) != null) {
 /* 260 */         annotatedFields.add(field);

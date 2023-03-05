@@ -161,6 +161,10 @@ public class LocalVariable
         return index;
     }
 
+    public String getSignature(ConstantPool constants) {
+        return constants.getConstantUtf8(signatureIndex);
+    }
+
     public int getSignatureIndex() {
         return signatureIndex;
     }

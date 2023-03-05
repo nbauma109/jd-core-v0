@@ -120,7 +120,7 @@
 /*     */ {
 /*     */   private static final int DEFAULT_INITIAL_VALUE = 17;
 /*     */   private static final int DEFAULT_MULTIPLIER_VALUE = 37;
-/* 123 */   private static final ThreadLocal<Set<IDKey>> REGISTRY = new ThreadLocal();
+/* 123 */   private static final ThreadLocal<Set<IDKey>> REGISTRY = new ThreadLocal<>();
 /*     */   
 /*     */ 
 /*     */ 
@@ -500,7 +500,7 @@
 /*     */   {
 /* 501 */     Set<IDKey> registry = getRegistry();
 /* 502 */     if (registry == null) {
-/* 503 */       registry = new HashSet();
+/* 503 */       registry = new HashSet<>();
 /* 504 */       REGISTRY.set(registry);
 /*     */     }
 /* 506 */     registry.add(new IDKey(value));

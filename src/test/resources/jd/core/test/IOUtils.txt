@@ -1985,7 +1985,7 @@
 /*      */     throws IOException
 /*      */   {
 /* 1987 */     BufferedReader bufReader = toBufferedReader(reader);
-/* 1988 */     List<String> list = new ArrayList();
+/* 1988 */     List<String> list = new ArrayList<>();
 /*      */     String line;
 /* 1990 */     while ((line = bufReader.readLine()) != null) {
 /* 1991 */       list.add(line);
@@ -3523,6 +3523,6 @@
 /* 3523 */     if ((appendable instanceof StringBuilder)) {
 /* 3524 */       return new StringBuilderWriter((StringBuilder)appendable);
 /*      */     }
-/* 3526 */     return new AppendableWriter(appendable);
+/* 3526 */     return new AppendableWriter<>(appendable);
 /*      */   }
 /*      */ }

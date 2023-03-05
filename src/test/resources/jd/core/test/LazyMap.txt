@@ -86,7 +86,7 @@
 /*     */   
 /*     */   public static <K, V> LazyMap<K, V> lazyMap(Map<K, V> map, Factory<? extends V> factory)
 /*     */   {
-/*  89 */     return new LazyMap(map, factory);
+/*  89 */     return new LazyMap<>(map, factory);
 /*     */   }
 /*     */   
 /*     */ 
@@ -101,7 +101,7 @@
 /*     */ 
 /*     */   public static <V, K> LazyMap<K, V> lazyMap(Map<K, V> map, Transformer<? super K, ? extends V> factory)
 /*     */   {
-/* 104 */     return new LazyMap(map, factory);
+/* 104 */     return new LazyMap<>(map, factory);
 /*     */   }
 /*     */   
 /*     */ 

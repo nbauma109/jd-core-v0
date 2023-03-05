@@ -122,7 +122,7 @@
 /*     */   implements Serializable
 /*     */ {
 /*     */   private static final long serialVersionUID = 1185122225658782848L;
-/* 125 */   private final List<FileAlterationListener> listeners = new CopyOnWriteArrayList();
+/* 125 */   private final List<FileAlterationListener> listeners = new CopyOnWriteArrayList<>();
 /*     */   
 /*     */   private final FileEntry rootEntry;
 /*     */   

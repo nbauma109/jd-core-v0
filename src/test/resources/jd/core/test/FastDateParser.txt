@@ -156,7 +156,7 @@
 /*      */ 
 /*      */   private void init(Calendar definingCalendar)
 /*      */   {
-/*  159 */     this.patterns = new ArrayList();
+/*  159 */     this.patterns = new ArrayList<>();
 /*      */     
 /*  161 */     StrategyParser fm = new StrategyParser(definingCalendar);
 /*      */     for (;;) {
@@ -476,10 +476,10 @@
 /*      */ 
 /*      */   private static Map<String, Integer> appendDisplayNames(Calendar calendar, Locale locale, int field, StringBuilder regex)
 /*      */   {
-/*  479 */     Map<String, Integer> values = new HashMap();
+/*  479 */     Map<String, Integer> values = new HashMap<>();
 /*  480 */     locale = LocaleUtils.toLocale(locale);
 /*  481 */     Map<String, Integer> displayNames = calendar.getDisplayNames(field, 0, locale);
-/*  482 */     TreeSet<String> sorted = new TreeSet(LONGER_FIRST_LOWERCASE);
+/*  482 */     TreeSet<String> sorted = new TreeSet<>(LONGER_FIRST_LOWERCASE);
 /*  483 */     for (Entry<String, Integer> displayName : displayNames.entrySet()) {
 /*  484 */       String key = ((String)displayName.getKey()).toLowerCase(locale);
 /*  485 */       if (sorted.add(key)) {
@@ -642,7 +642,7 @@
 /*      */   {
 /*  643 */     synchronized (caches) {
 /*  644 */       if (caches[field] == null) {
-/*  645 */         caches[field] = new ConcurrentHashMap(3);
+/*  645 */         caches[field] = new ConcurrentHashMap<>(3);
 /*      */       }
 /*  647 */       return caches[field];
 /*      */     }
@@ -880,7 +880,7 @@
 /*      */     
 /*      */     private static final String GMT_OPTION = "GMT[+-]\\d{1,2}:\\d{2}";
 /*      */     private final Locale locale;
-/*  883 */     private final Map<String, TzInfo> tzNames = new HashMap();
+/*  883 */     private final Map<String, TzInfo> tzNames = new HashMap<>();
 /*      */     private static final int ID = 0;
 /*      */     
 /*      */     private static class TzInfo {
@@ -908,7 +908,7 @@
 /*  908 */       StringBuilder sb = new StringBuilder();
 /*  909 */       sb.append("((?iu)[+-]\\d{4}|GMT[+-]\\d{1,2}:\\d{2}");
 /*      */       
-/*  911 */       Set<String> sorted = new TreeSet(FastDateParser.LONGER_FIRST_LOWERCASE);
+/*  911 */       Set<String> sorted = new TreeSet<>(FastDateParser.LONGER_FIRST_LOWERCASE);
 /*      */       
 /*  913 */       String[][] zones = DateFormatSymbols.getInstance(locale).getZoneStrings();
 /*  914 */       for (String[] zoneNames : zones)

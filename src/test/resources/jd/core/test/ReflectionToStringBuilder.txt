@@ -411,7 +411,7 @@
 /*     */ 
 /*     */   static String[] toNoNullStringArray(Object[] array)
 /*     */   {
-/* 414 */     List<String> list = new ArrayList(array.length);
+/* 414 */     List<String> list = new ArrayList<>(array.length);
 /* 415 */     for (Object e : array) {
 /* 416 */       if (e != null) {
 /* 417 */         list.add(e.toString());

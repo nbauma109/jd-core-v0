@@ -6702,8 +6702,8 @@
 /*      */   private static String replaceEach(String text, String[] searchList, String[] replacementList, boolean repeat, int timeToLive)
 /*      */   {
 /* 6704 */     if (timeToLive < 0) {
-/* 6705 */       Set<String> searchSet = new HashSet(Arrays.asList(searchList));
-/* 6706 */       Set<String> replacementSet = new HashSet(Arrays.asList(replacementList));
+/* 6705 */       Set<String> searchSet = new HashSet<>(Arrays.asList(searchList));
+/* 6706 */       Set<String> replacementSet = new HashSet<>(Arrays.asList(replacementList));
 /* 6707 */       searchSet.retainAll(replacementSet);
 /* 6708 */       if (!searchSet.isEmpty()) {
 /* 6709 */         throw new IllegalStateException("Aborting to protect against StackOverflowError - output of one loop is the input of another");
@@ -7486,7 +7486,7 @@
 /* 7486 */       return ArrayUtils.EMPTY_STRING_ARRAY;
 /*      */     }
 /* 7488 */     char[] c = str.toCharArray();
-/* 7489 */     List<String> list = new ArrayList();
+/* 7489 */     List<String> list = new ArrayList<>();
 /* 7490 */     int tokenStart = 0;
 /* 7491 */     int currentType = Character.getType(c[tokenStart]);
 /* 7492 */     for (int pos = tokenStart + 1; pos < c.length; pos++) {
@@ -7691,7 +7691,7 @@
 /*      */     
 /* 7692 */     int separatorLength = separator.length();
 /*      */     
-/* 7694 */     ArrayList<String> substrings = new ArrayList();
+/* 7694 */     ArrayList<String> substrings = new ArrayList<>();
 /* 7695 */     int numberOfSubstrings = 0;
 /* 7696 */     int beg = 0;
 /* 7697 */     int end = 0;
@@ -7901,7 +7901,7 @@
 /* 7901 */     if (len == 0) {
 /* 7902 */       return ArrayUtils.EMPTY_STRING_ARRAY;
 /*      */     }
-/* 7904 */     List<String> list = new ArrayList();
+/* 7904 */     List<String> list = new ArrayList<>();
 /* 7905 */     int i = 0;
 /* 7906 */     int start = 0;
 /* 7907 */     boolean match = false;
@@ -7952,7 +7952,7 @@
 /* 7952 */     if (len == 0) {
 /* 7953 */       return ArrayUtils.EMPTY_STRING_ARRAY;
 /*      */     }
-/* 7955 */     List<String> list = new ArrayList();
+/* 7955 */     List<String> list = new ArrayList<>();
 /* 7956 */     int sizePlus1 = 1;
 /* 7957 */     int i = 0;
 /* 7958 */     int start = 0;
@@ -8911,7 +8911,7 @@
 /*      */     }
 /* 8912 */     int closeLen = close.length();
 /* 8913 */     int openLen = open.length();
-/* 8914 */     List<String> list = new ArrayList();
+/* 8914 */     List<String> list = new ArrayList<>();
 /* 8915 */     int pos = 0;
 /* 8916 */     while (pos < strLen - closeLen) {
 /* 8917 */       int start = str.indexOf(open, pos);

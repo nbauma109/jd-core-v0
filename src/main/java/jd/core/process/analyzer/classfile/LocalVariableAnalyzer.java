@@ -20,6 +20,7 @@ import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.Signature;
+import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.List;
@@ -209,7 +210,7 @@ public final class LocalVariableAnalyzer
 
             analyzeMethodCode(
                     constants, localVariables, list, listForAnalyze,
-                    returnedSignature);
+                    returnedSignature, new TypeMaker(classFile.getLoader()));
 
             // Upgrade byte type to char type
             // Substitution des types byte par char dans les instructions
@@ -684,11 +685,12 @@ public final class LocalVariableAnalyzer
      *  - Si la variable n'est pas encore definie, ajouter une entrée dans la
      *    Liste
      *  - Sinon, si le type est compatible
+     * @param typeMaker 
      */
     private static void analyzeMethodCode(
             ConstantPool constants,
             LocalVariables localVariables, List<Instruction> list,
-            List<Instruction> listForAnalyze, String returnedSignature)
+            List<Instruction> listForAnalyze, String returnedSignature, TypeMaker typeMaker)
     {
         // Recherche des instructions d'ecriture des variables locales.
         int length = listForAnalyze.size();
@@ -993,7 +995,7 @@ public final class LocalVariableAnalyzer
                 break;
             default:
                 String signatureLV =
-                constants.getConstantUtf8(lv.getSignatureIndex());
+                lv.getSignature(constants);
                 int typesBitFieldLV =
                         SignatureUtil.createTypesBitField(signatureLV);
 
@@ -1324,7 +1326,7 @@ public final class LocalVariableAnalyzer
                 //    modification du type de la variable en 'Object' puis
                 //    ajout d'instruction cast.
                 String signatureLV =
-                        constants.getConstantUtf8(lv.getSignatureIndex());
+                        lv.getSignature(constants);
 
                 if (SignatureUtil.isPrimitiveSignature(signatureLV))
                 {
@@ -1521,7 +1523,7 @@ public final class LocalVariableAnalyzer
                     aload.getIndex(), aload.getOffset());
             if (lv != null) {
                 String signature =
-                        constants.getConstantUtf8(lv.getSignatureIndex());
+                        lv.getSignature(constants);
                 ali.setReturnedSignature(SignatureUtil.cutArrayDimensionPrefix(signature));
             }
         }
@@ -1547,7 +1549,7 @@ public final class LocalVariableAnalyzer
                 }
                 
                 String signature =
-                        constants.getConstantUtf8(lv.getSignatureIndex());
+                        lv.getSignature(constants);
                 ((IConst)asi.getValueref()).setReturnedSignature(
                         SignatureUtil.cutArrayDimensionPrefix(signature));
             }
@@ -1579,7 +1581,7 @@ public final class LocalVariableAnalyzer
             final LocalVariable lv =
                     localVariables.getLocalVariableWithIndexAndOffset(
                             store.getIndex(), store.getOffset());
-            String signature = constants.getConstantUtf8(lv.getSignatureIndex());
+            String signature = lv.getSignature(constants);
             ((IConst)store.getValueref()).setReturnedSignature(signature);
         }
     }
@@ -1714,7 +1716,7 @@ public final class LocalVariableAnalyzer
 
             if (lv != null && lv.getNameIndex() <= 0)
             {
-                String signature = constants.getConstantUtf8(lv.getSignatureIndex());
+                String signature = lv.getSignature(constants);
                 boolean appearsOnce = signatureAppearsOnceInLocalVariables(
                         localVariables, length, lv.getSignatureIndex());
                 String name =
@@ -1835,10 +1837,6 @@ public final class LocalVariableAnalyzer
         AddCheckCastVisitor visitor = new AddCheckCastVisitor(
                 constants, localVariables, lv);
 
-        final int length = list.size();
-
-        for (int i=0; i<length; i++) {
-            visitor.visit(list.get(i));
-        }
+        list.forEach(visitor::visit);
     }
 }

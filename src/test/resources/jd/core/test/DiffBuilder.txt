@@ -107,7 +107,7 @@
 /* 107 */     Validate.notNull(lhs, "lhs", new Object[0]);
 /* 108 */     Validate.notNull(rhs, "rhs", new Object[0]);
 /*     */     
-/* 110 */     this.diffs = new ArrayList();
+/* 110 */     this.diffs = new ArrayList<>();
 /* 111 */     this.left = lhs;
 /* 112 */     this.right = rhs;
 /* 113 */     this.style = style;
@@ -171,7 +171,7 @@
 /* 171 */       return this;
 /*     */     }
 /* 173 */     if (lhs != rhs) {
-/* 174 */       this.diffs.add(new Diff(fieldName)
+/* 174 */       this.diffs.add(new Diff<Boolean>(fieldName)
 /*     */       {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
@@ -210,7 +210,7 @@
 /* 210 */       return this;
 /*     */     }
 /* 212 */     if (!Arrays.equals(lhs, rhs)) {
-/* 213 */       this.diffs.add(new Diff(fieldName)
+/* 213 */       this.diffs.add(new Diff<Boolean[]>(fieldName)
 /*     */       {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
@@ -249,7 +249,7 @@
 /* 249 */       return this;
 /*     */     }
 /* 251 */     if (lhs != rhs) {
-/* 252 */       this.diffs.add(new Diff(fieldName)
+/* 252 */       this.diffs.add(new Diff<Byte>(fieldName)
 /*     */       {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
@@ -289,7 +289,7 @@
 /* 289 */       return this;
 /*     */     }
 /* 291 */     if (!Arrays.equals(lhs, rhs)) {
-/* 292 */       this.diffs.add(new Diff(fieldName)
+/* 292 */       this.diffs.add(new Diff<Byte[]>(fieldName)
 /*     */       {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
@@ -329,7 +329,7 @@
 /* 329 */       return this;
 /*     */     }
 /* 331 */     if (lhs != rhs) {
-/* 332 */       this.diffs.add(new Diff(fieldName)
+/* 332 */       this.diffs.add(new Diff<Character>(fieldName)
 /*     */       {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
@@ -369,7 +369,7 @@
 /* 369 */       return this;
 /*     */     }
 /* 371 */     if (!Arrays.equals(lhs, rhs)) {
-/* 372 */       this.diffs.add(new Diff(fieldName)
+/* 372 */       this.diffs.add(new Diff<Character[]>(fieldName)
 /*     */       {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
@@ -409,7 +409,7 @@
 /* 409 */       return this;
 /*     */     }
 /* 411 */     if (Double.doubleToLongBits(lhs) != Double.doubleToLongBits(rhs)) {
-/* 412 */       this.diffs.add(new Diff(fieldName)
+/* 412 */       this.diffs.add(new Diff<Double>(fieldName)
 /*     */       {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
@@ -449,7 +449,7 @@
 /* 449 */       return this;
 /*     */     }
 /* 451 */     if (!Arrays.equals(lhs, rhs)) {
-/* 452 */       this.diffs.add(new Diff(fieldName)
+/* 452 */       this.diffs.add(new Diff<Double[]>(fieldName)
 /*     */       {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
@@ -489,7 +489,7 @@
 /* 489 */       return this;
 /*     */     }
 /* 491 */     if (Float.floatToIntBits(lhs) != Float.floatToIntBits(rhs)) {
-/* 492 */       this.diffs.add(new Diff(fieldName)
+/* 492 */       this.diffs.add(new Diff<Float>(fieldName)
 /*     */       {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
@@ -529,7 +529,7 @@
 /* 529 */       return this;
 /*     */     }
 /* 531 */     if (!Arrays.equals(lhs, rhs)) {
-/* 532 */       this.diffs.add(new Diff(fieldName)
+/* 532 */       this.diffs.add(new Diff<Float[]>(fieldName)
 /*     */       {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
@@ -569,7 +569,7 @@
 /* 569 */       return this;
 /*     */     }
 /* 571 */     if (lhs != rhs) {
-/* 572 */       this.diffs.add(new Diff(fieldName)
+/* 572 */       this.diffs.add(new Diff<Integer>(fieldName)
 /*     */       {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
@@ -609,7 +609,7 @@
 /* 609 */       return this;
 /*     */     }
 /* 611 */     if (!Arrays.equals(lhs, rhs)) {
-/* 612 */       this.diffs.add(new Diff(fieldName)
+/* 612 */       this.diffs.add(new Diff<Integer[]>(fieldName)
 /*     */       {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
@@ -649,7 +649,7 @@
 /* 649 */       return this;
 /*     */     }
 /* 651 */     if (lhs != rhs) {
-/* 652 */       this.diffs.add(new Diff(fieldName)
+/* 652 */       this.diffs.add(new Diff<Long>(fieldName)
 /*     */       {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
@@ -689,7 +689,7 @@
 /* 689 */       return this;
 /*     */     }
 /* 691 */     if (!Arrays.equals(lhs, rhs)) {
-/* 692 */       this.diffs.add(new Diff(fieldName)
+/* 692 */       this.diffs.add(new Diff<Long[]>(fieldName)
 /*     */       {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
@@ -729,7 +729,7 @@
 /* 729 */       return this;
 /*     */     }
 /* 731 */     if (lhs != rhs) {
-/* 732 */       this.diffs.add(new Diff(fieldName)
+/* 732 */       this.diffs.add(new Diff<Short>(fieldName)
 /*     */       {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
@@ -769,7 +769,7 @@
 /* 769 */       return this;
 /*     */     }
 /* 771 */     if (!Arrays.equals(lhs, rhs)) {
-/* 772 */       this.diffs.add(new Diff(fieldName)
+/* 772 */       this.diffs.add(new Diff<Short[]>(fieldName)
 /*     */       {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
@@ -853,7 +853,7 @@
 /* 853 */       return this;
 /*     */     }
 /*     */     
-/* 856 */     this.diffs.add(new Diff(fieldName)
+/* 856 */     this.diffs.add(new Diff<Object>(fieldName)
 /*     */     {
 /*     */       private static final long serialVersionUID = 1L;
 /*     */       
@@ -893,7 +893,7 @@
 /*     */     }
 /*     */     
 /* 895 */     if (!Arrays.equals(lhs, rhs)) {
-/* 896 */       this.diffs.add(new Diff(fieldName)
+/* 896 */       this.diffs.add(new Diff<Object[]>(fieldName)
 /*     */       {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
@@ -973,7 +973,7 @@
 /*     */ 
 /*     */   public DiffResult<T> build()
 /*     */   {
-/* 976 */     return new DiffResult(this.left, this.right, this.diffs, this.style);
+/* 976 */     return new DiffResult<>(this.left, this.right, this.diffs, this.style);
 /*     */   }
 /*     */   
 /*     */   private void validateFieldNameNotNull(String fieldName) {

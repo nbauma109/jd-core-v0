@@ -45,7 +45,7 @@
 /*      */   extends AbstractBitwiseTrie<K, V>
 /*      */ {
 /*      */   private static final long serialVersionUID = 5155253417231339498L;
-/*   48 */   private transient TrieEntry<K, V> root = new TrieEntry(null, null, -1);
+/*   48 */   private transient TrieEntry<K, V> root = new TrieEntry<>(null, null, -1);
 /*      */   
 /*      */ 
 /*      */   private volatile transient Set<K> keySet;
@@ -157,7 +157,7 @@
 /*  157 */     if (!KeyAnalyzer.isOutOfBoundsIndex(bitIndex)) {
 /*  158 */       if (KeyAnalyzer.isValidBitIndex(bitIndex))
 /*      */       {
-/*  160 */         TrieEntry<K, V> t = new TrieEntry(key, value, bitIndex);
+/*  160 */         TrieEntry<K, V> t = new TrieEntry<>(key, value, bitIndex);
 /*  161 */         addEntry(t, lengthInBits);
 /*  162 */         incrementSize();
 /*  163 */         return null; }
@@ -280,7 +280,7 @@
 /*      */   public Entry<K, V> select(K key)
 /*      */   {
 /*  282 */     int lengthInBits = lengthInBits(key);
-/*  283 */     Reference<Entry<K, V>> reference = new Reference();
+/*  283 */     Reference<Entry<K, V>> reference = new Reference<>();
 /*  284 */     if (!selectR(this.root.left, -1, key, lengthInBits, reference)) {
 /*  285 */       return (Entry)reference.get();
 /*      */     }
@@ -909,7 +909,7 @@
 /*      */     
 /*  910 */     int bitIndex = bitIndex(key, found.key);
 /*  911 */     if (KeyAnalyzer.isValidBitIndex(bitIndex)) {
-/*  912 */       TrieEntry<K, V> added = new TrieEntry(key, null, bitIndex);
+/*  912 */       TrieEntry<K, V> added = new TrieEntry<>(key, null, bitIndex);
 /*  913 */       addEntry(added, lengthInBits);
 /*  914 */       incrementSize();
 /*  915 */       TrieEntry<K, V> ceil = nextEntry(added);
@@ -971,7 +971,7 @@
 /*      */     
 /*  972 */     int bitIndex = bitIndex(key, found.key);
 /*  973 */     if (KeyAnalyzer.isValidBitIndex(bitIndex)) {
-/*  974 */       TrieEntry<K, V> added = new TrieEntry(key, null, bitIndex);
+/*  974 */       TrieEntry<K, V> added = new TrieEntry<>(key, null, bitIndex);
 /*  975 */       addEntry(added, lengthInBits);
 /*  976 */       incrementSize();
 /*  977 */       TrieEntry<K, V> ceil = nextEntry(added);
@@ -1026,7 +1026,7 @@
 /*      */     
 /* 1027 */     int bitIndex = bitIndex(key, found.key);
 /* 1028 */     if (KeyAnalyzer.isValidBitIndex(bitIndex)) {
-/* 1029 */       TrieEntry<K, V> added = new TrieEntry(key, null, bitIndex);
+/* 1029 */       TrieEntry<K, V> added = new TrieEntry<>(key, null, bitIndex);
 /* 1030 */       addEntry(added, lengthInBits);
 /* 1031 */       incrementSize();
 /* 1032 */       TrieEntry<K, V> prior = previousEntry(added);
@@ -1067,7 +1067,7 @@
 /*      */     
 /* 1068 */     int bitIndex = bitIndex(key, found.key);
 /* 1069 */     if (KeyAnalyzer.isValidBitIndex(bitIndex)) {
-/* 1070 */       TrieEntry<K, V> added = new TrieEntry(key, null, bitIndex);
+/* 1070 */       TrieEntry<K, V> added = new TrieEntry<>(key, null, bitIndex);
 /* 1071 */       addEntry(added, lengthInBits);
 /* 1072 */       incrementSize();
 /* 1073 */       TrieEntry<K, V> floor = previousEntry(added);
@@ -2426,7 +2426,7 @@
 /*      */     throws IOException, ClassNotFoundException
 /*      */   {
 /* 2428 */     stream.defaultReadObject();
-/* 2429 */     this.root = new TrieEntry(null, null, -1);
+/* 2429 */     this.root = new TrieEntry<>(null, null, -1);
 /* 2430 */     int size = stream.readInt();
 /* 2431 */     for (int i = 0; i < size; i++) {
 /* 2432 */       K k = stream.readObject();
