@@ -93,7 +93,7 @@
 /*     */     {
 /*  94 */       this.target = target;
 /*  95 */       this.methodName = methodName;
-/*  96 */       this.eventTypes = new HashSet(Arrays.asList(eventTypes));
+/*  96 */       this.eventTypes = new HashSet<>(Arrays.asList(eventTypes));
 /*     */     }
 /*     */     
 /*     */ 

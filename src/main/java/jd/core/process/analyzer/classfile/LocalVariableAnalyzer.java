@@ -802,7 +802,9 @@ public final class LocalVariableAnalyzer
         for (int i=0; i<length; i++)
         {
             lv = localVariables.getLocalVariableAt(i);
-            addCastInstruction(constants, list, localVariables, lv, typeMaker);
+            if (lv.getSignatureIndex() == internalObjectSignatureIndex) {
+                addCastInstruction(constants, list, localVariables, lv);
+            }
         }
     }
 
@@ -1828,17 +1830,13 @@ public final class LocalVariableAnalyzer
 
     private static void addCastInstruction(
             ConstantPool constants, List<Instruction> list,
-            LocalVariables localVariables, LocalVariable lv, TypeMaker typeMaker)
+            LocalVariables localVariables, LocalVariable lv)
     {
         // Add cast instruction before all 'ALoad' instruction for local
         // variable le used type is not 'Object'.
         AddCheckCastVisitor visitor = new AddCheckCastVisitor(
-                constants, localVariables, lv, typeMaker);
+                constants, localVariables, lv);
 
-        final int length = list.size();
-
-        for (int i=0; i<length; i++) {
-            visitor.visit(list.get(i));
-        }
+        list.forEach(visitor::visit);
     }
 }

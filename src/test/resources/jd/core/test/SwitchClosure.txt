@@ -64,7 +64,7 @@
 /*  64 */     if (predicates.length == 0) {
 /*  65 */       return defaultClosure == null ? NOPClosure.nopClosure() : defaultClosure;
 /*     */     }
-/*  67 */     return new SwitchClosure(predicates, closures, defaultClosure);
+/*  67 */     return new SwitchClosure<>(predicates, closures, defaultClosure);
 /*     */   }
 /*     */   
 /*     */ 
@@ -104,7 +104,7 @@
 /* 104 */       closures[i] = ((Closure)entry.getValue());
 /* 105 */       i++;
 /*     */     }
-/* 107 */     return new SwitchClosure(false, preds, closures, defaultClosure);
+/* 107 */     return new SwitchClosure<>(false, preds, closures, defaultClosure);
 /*     */   }
 /*     */   
 /*     */ 

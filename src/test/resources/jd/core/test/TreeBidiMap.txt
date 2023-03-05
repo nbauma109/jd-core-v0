@@ -516,7 +516,7 @@
 /*  516 */     Node<K, V> node = this.rootNode[DataElement.KEY.ordinal()];
 /*  517 */     if (node == null)
 /*      */     {
-/*  519 */       Node<K, V> root = new Node(key, value);
+/*  519 */       Node<K, V> root = new Node<>(key, value);
 /*  520 */       this.rootNode[DataElement.KEY.ordinal()] = root;
 /*  521 */       this.rootNode[DataElement.VALUE.ordinal()] = root;
 /*  522 */       grow();
@@ -533,7 +533,7 @@
 /*  533 */           if (node.getLeft(DataElement.KEY) != null) {
 /*  534 */             node = node.getLeft(DataElement.KEY);
 /*      */           } else {
-/*  536 */             Node<K, V> newNode = new Node(key, value);
+/*  536 */             Node<K, V> newNode = new Node<>(key, value);
 /*      */             
 /*  538 */             insertValue(newNode);
 /*  539 */             node.setLeft(newNode, DataElement.KEY);
@@ -547,7 +547,7 @@
 /*  547 */         else if (node.getRight(DataElement.KEY) != null) {
 /*  548 */           node = node.getRight(DataElement.KEY);
 /*      */         } else {
-/*  550 */           Node<K, V> newNode = new Node(key, value);
+/*  550 */           Node<K, V> newNode = new Node<>(key, value);
 /*      */           
 /*  552 */           insertValue(newNode);
 /*  553 */           node.setRight(newNode, DataElement.KEY);
@@ -1877,7 +1877,7 @@
 /*      */     }
 /*      */     
 /*      */     private Entry<V, K> createEntry(TreeBidiMap.Node<K, V> node) {
-/* 1880 */       return new UnmodifiableMapEntry(node.getValue(), node.getKey());
+/* 1880 */       return new UnmodifiableMapEntry<>(node.getValue(), node.getKey());
 /*      */     }
 /*      */   }
 /*      */   

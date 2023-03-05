@@ -1,0 +1,31 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.util.Map.Entry;
+/*    */ 
+/*    */ public class LRUCache
+/*    */ {
+/*    */   private java.util.LinkedHashMap<Integer, Integer> map;
+/*    */   private final int CAPACITY;
+/*    */   
+/*    */   public LRUCache(int capacity)
+/*    */   {
+/* 12 */     this.CAPACITY = capacity;
+/* 13 */     this.map = new java.util.LinkedHashMap<>(capacity, 0.75F, true)
+/*    */     {
+/*    */       private static final long serialVersionUID = 1L;
+/*    */       
+/*    */       protected boolean removeEldestEntry(Entry<Integer, Integer> eldest)
+/*    */       {
+/* 19 */         return size() > LRUCache.this.CAPACITY;
+/*    */       }
+/*    */     };
+/*    */   }
+/*    */   
+/*    */   public int get(int key) {
+/* 25 */     return ((Integer)this.map.getOrDefault(Integer.valueOf(key), Integer.valueOf(-1))).intValue();
+/*    */   }
+/*    */   
+/*    */   public void set(int key, int value) {
+/* 29 */     this.map.put(Integer.valueOf(key), Integer.valueOf(value));
+/*    */   }
+/*    */ }

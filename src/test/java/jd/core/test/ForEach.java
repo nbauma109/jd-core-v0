@@ -23,14 +23,10 @@ public class ForEach {
         elements.forEach(f::print);
     }
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
     void forEachWithAnonymousClass(List<String> elements) {
-        elements.forEach(new Consumer() {
-            /*
-             * TODO FIXME Anonymous Consumer only works with Object
-             */
+        elements.forEach(new Consumer<String>() {
             @Override
-            public void accept(Object o) {
+            public void accept(String o) {
                 print(o);
             }
         });

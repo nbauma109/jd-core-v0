@@ -53,7 +53,7 @@
 /*     */ public class Memoizer<I, O>
 /*     */   implements Computable<I, O>
 /*     */ {
-/*  56 */   private final ConcurrentMap<I, Future<O>> cache = new ConcurrentHashMap();
+/*  56 */   private final ConcurrentMap<I, Future<O>> cache = new ConcurrentHashMap<>();
 /*     */   
 /*     */ 
 /*     */ 
@@ -116,7 +116,7 @@
 /* 116 */       Future<O> future = (Future)this.cache.get(arg);
 /* 117 */       if (future == null) {
 /* 118 */         Callable<O> eval = () -> this.computable.compute(arg);
-/* 119 */         FutureTask<O> futureTask = new FutureTask(eval);
+/* 119 */         FutureTask<O> futureTask = new FutureTask<>(eval);
 /* 120 */         future = (Future)this.cache.putIfAbsent(arg, futureTask);
 /* 121 */         if (future == null) {
 /* 122 */           future = futureTask;

@@ -361,7 +361,7 @@
 /*     */ 
 /*     */   public static <O> ReadWriteLockVisitor<O> reentrantReadWriteLockVisitor(O object)
 /*     */   {
-/* 364 */     return new ReadWriteLockVisitor(object, new ReentrantReadWriteLock());
+/* 364 */     return new ReadWriteLockVisitor<>(object, new ReentrantReadWriteLock());
 /*     */   }
 /*     */   
 /*     */ 
@@ -372,6 +372,6 @@
 /*     */ 
 /*     */   public static <O> StampedLockVisitor<O> stampedLockVisitor(O object)
 /*     */   {
-/* 375 */     return new StampedLockVisitor(object, new StampedLock());
+/* 375 */     return new StampedLockVisitor<>(object, new StampedLock());
 /*     */   }
 /*     */ }

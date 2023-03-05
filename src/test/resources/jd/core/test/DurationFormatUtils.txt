@@ -492,7 +492,7 @@
 /*     */ 
 /*     */   static Token[] lexx(String format)
 /*     */   {
-/* 495 */     ArrayList<Token> list = new ArrayList(format.length());
+/* 495 */     ArrayList<Token> list = new ArrayList<>(format.length());
 /*     */     
 /* 497 */     boolean inLiteral = false;
 /*     */     

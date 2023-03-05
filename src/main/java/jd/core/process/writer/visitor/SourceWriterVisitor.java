@@ -22,16 +22,18 @@ import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
-import org.apache.bcel.classfile.ConstantUtf8;
 import org.jd.core.v1.api.loader.Loader;
+import org.jd.core.v1.model.javasyntax.type.BaseType;
 import org.jd.core.v1.model.javasyntax.type.BaseTypeArgument;
 import org.jd.core.v1.model.javasyntax.type.ObjectType;
+import org.jd.core.v1.model.javasyntax.type.Type;
 import org.jd.core.v1.model.javasyntax.type.TypeArgument;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker.TypeTypes;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -380,23 +382,7 @@ public class SourceWriterVisitor
                     {
                         this.printer.print(lineNumber, '(');
     
-                        String signature;
-                        Constant c = constants.get(checkCast.getIndex());
-    
-                        if (c instanceof ConstantUtf8)
-                        {
-                            // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
-                            ConstantUtf8 cutf8 = (ConstantUtf8) c;
-                            signature = cutf8.getBytes();
-                        }
-                        else
-                        {
-                            ConstantClass cc = (ConstantClass)c;
-                            signature = constants.getConstantUtf8(cc.getNameIndex());
-                            if (signature.charAt(0) != '[') {
-                                signature = SignatureUtil.createTypeName(signature);
-                            }
-                        }
+                        String signature = checkCast.getReturnedSignature(constants, localVariables);
     
                         SignatureWriter.writeSignature(
                             this.loader, this.printer, this.referenceMap,
@@ -1447,12 +1433,12 @@ public class SourceWriterVisitor
                     this.classFile,
                     typeName,
                     constructorDescriptor);
-//                if (this.classFile.getMajorVersion() >= Const.MAJOR_1_7) {
-//                    TypeTypes newInvokeType = typeMaker.makeTypeTypes(internalClassName);
-//                    if (newInvokeType.getTypeParameters() != null) {
-//                        this.printer.print("<>");
-//                    }
-//                }
+                if (this.classFile.getMajorVersion() >= Const.MAJOR_1_7) {
+                    TypeTypes newInvokeType = typeMaker.makeTypeTypes(internalClassName);
+                    if (newInvokeType.getTypeParameters() != null) {
+                        this.printer.print("<>");
+                    }
+                }
                 //writeArgs(in.lineNumber, 0, in.args);
             } else {
                 // Anonymous new invoke
@@ -1460,36 +1446,59 @@ public class SourceWriterVisitor
                     this.loader, this.printer, this.referenceMap, this.classFile,
                     SignatureUtil.createTypeName(innerClassFile.getInternalAnonymousClassName()),
                     constructorDescriptor);
-//                TypeTypes newInvokeType = typeMaker.makeTypeTypes(internalClassName);
-//                ObjectType newInvokeSuperType = newInvokeType.getSuperType();
-//                if (newInvokeSuperType != null && newInvokeSuperType.getTypeArguments() != null) {
-//                    this.printer.print('<');
-//                    BaseTypeArgument typeArguments = newInvokeSuperType.getTypeArguments();
-//                    if (typeArguments.isTypeArgumentList()) {
-//                        for (TypeArgument typeArgument : typeArguments.getTypeArgumentList()) {
-//                            if (typeArgument instanceof ObjectType) {
-//                                ObjectType ot = (ObjectType) typeArgument;
-//                                SignatureWriter.writeSignature(
-//                                        this.loader, this.printer, this.referenceMap,
-//                                        this.classFile, ot.getDescriptor());
-//                                this.printer.print(", ");
-//                            }
-//                        }
-//                    } else {
-//                        TypeArgument typeArgument = typeArguments.getTypeArgumentFirst();
-//                        if (typeArgument instanceof ObjectType) {
-//                            ObjectType ot = (ObjectType) typeArgument;
-//                            SignatureWriter.writeSignature(
-//                                    this.loader, this.printer, this.referenceMap,
-//                                    this.classFile, ot.getDescriptor());
-//                        }
-//                    }
-//                    this.printer.print('>');
-//                }
+                TypeTypes newInvokeType = typeMaker.makeTypeTypes(internalClassName);
+                BaseTypeArgument typeArguments = searchTypeArguments(newInvokeType);
+                if (typeArguments != null) {
+                    this.printer.print('<');
+                    if (this.classFile.getMajorVersion() < Const.MAJOR_9) {
+                        if (typeArguments.isTypeArgumentList()) {
+                            for (Iterator<TypeArgument> it = typeArguments.getTypeArgumentList().iterator(); it.hasNext();) {
+                                TypeArgument typeArgument = it.next();
+                                if (typeArgument instanceof ObjectType) {
+                                    ObjectType ot = (ObjectType) typeArgument;
+                                    SignatureWriter.writeSignature(
+                                            this.loader, this.printer, this.referenceMap,
+                                            this.classFile, ot.getDescriptor());
+                                    if (it.hasNext()) {
+                                        this.printer.print(", ");
+                                    }
+                                }
+                            }
+                        } else {
+                            TypeArgument typeArgument = typeArguments.getTypeArgumentFirst();
+                            if (typeArgument instanceof ObjectType) {
+                                ObjectType ot = (ObjectType) typeArgument;
+                                SignatureWriter.writeSignature(
+                                        this.loader, this.printer, this.referenceMap,
+                                        this.classFile, ot.getDescriptor());
+                            }
+                        }
+                    }
+                    this.printer.print('>');
+                }
             }
         }
 
         return writeArgs(in.getLineNumber(), firstIndex, length, in.getArgs());
+    }
+
+    private static BaseTypeArgument searchTypeArguments(TypeTypes newInvokeType) {
+        ObjectType superType = newInvokeType.getSuperType();
+        if (superType != null && superType.getTypeArguments() != null) {
+            return superType.getTypeArguments();
+        }
+        BaseType interfaces = newInvokeType.getInterfaces();
+        if (interfaces != null) {
+            for (Type interf : interfaces) {
+                if (interf instanceof ObjectType) {
+                    ObjectType ot = (ObjectType) interf;
+                    if (ot.getTypeArguments() != null) {
+                        return ot.getTypeArguments();
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     private static int computeFirstIndex(int accessFlags, InvokeNew in)

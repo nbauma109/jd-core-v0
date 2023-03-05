@@ -446,7 +446,7 @@
 /*     */ 
 /*     */   public static <E> FailableStream<E> stream(Collection<E> collection)
 /*     */   {
-/* 449 */     return new FailableStream(collection.stream());
+/* 449 */     return new FailableStream<>(collection.stream());
 /*     */   }
 /*     */   
 /*     */ 
@@ -460,7 +460,7 @@
 /*     */ 
 /*     */   public static <T> FailableStream<T> stream(Stream<T> stream)
 /*     */   {
-/* 463 */     return new FailableStream(stream);
+/* 463 */     return new FailableStream<>(stream);
 /*     */   }
 /*     */   
 /*     */ 

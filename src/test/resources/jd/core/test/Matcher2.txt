@@ -82,7 +82,7 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*  85 */   private static final Map<String, Long> durations = new HashMap();
+/*  85 */   private static final Map<String, Long> durations = new HashMap<>();
 /*     */   
 /*     */   private void addTime(long duration) {}
 /*     */   

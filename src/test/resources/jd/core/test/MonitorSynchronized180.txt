@@ -1,0 +1,49 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.util.Collections;
+/*    */ import java.util.HashMap;
+/*    */ import java.util.Iterator;
+/*    */ import java.util.Map;
+/*    */ import java.util.Set;
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ public class MonitorSynchronized
+/*    */ {
+/*    */   private volatile Object resource;
+/*    */   
+/*    */   public Object getResource()
+/*    */   {
+/* 23 */     Object localResource = this.resource;
+/* 24 */     if (localResource == null) {
+/* 25 */       synchronized (this) {
+/* 26 */         localResource = this.resource;
+/* 27 */         if (localResource == null) {
+/* 28 */           this.resource = (localResource = new Object());
+/*    */         }
+/*    */       }
+/*    */     }
+/* 32 */     return localResource;
+/*    */   }
+/*    */   
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */   void navigate()
+/*    */   {
+/* 40 */     Map m = Collections.synchronizedMap(new HashMap<>());
+/* 41 */     Set s = m.keySet();
+/* 42 */     synchronized (m) {
+/* 43 */       Iterator i = s.iterator();
+/* 44 */       while (i.hasNext()) {
+/* 45 */         System.out.println(i.next());
+/*    */       }
+/*    */     }
+/*    */   }
+/*    */ }

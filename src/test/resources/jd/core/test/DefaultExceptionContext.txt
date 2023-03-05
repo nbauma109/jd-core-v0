@@ -43,14 +43,14 @@
 /*     */   implements ExceptionContext, Serializable
 /*     */ {
 /*     */   private static final long serialVersionUID = 20110706L;
-/*  46 */   private final List<Pair<String, Object>> contextValues = new ArrayList();
+/*  46 */   private final List<Pair<String, Object>> contextValues = new ArrayList<>();
 /*     */   
 /*     */ 
 /*     */ 
 /*     */ 
 /*     */   public DefaultExceptionContext addContextValue(String label, Object value)
 /*     */   {
-/*  53 */     this.contextValues.add(new ImmutablePair(label, value));
+/*  53 */     this.contextValues.add(new ImmutablePair<>(label, value));
 /*  54 */     return this;
 /*     */   }
 /*     */   
@@ -69,7 +69,7 @@
 /*     */ 
 /*     */   public List<Object> getContextValues(String label)
 /*     */   {
-/*  72 */     List<Object> values = new ArrayList();
+/*  72 */     List<Object> values = new ArrayList<>();
 /*  73 */     for (Pair<String, Object> pair : this.contextValues) {
 /*  74 */       if (StringUtils.equals(label, (CharSequence)pair.getKey())) {
 /*  75 */         values.add(pair.getValue());
@@ -96,7 +96,7 @@
 /*     */ 
 /*     */   public Set<String> getContextLabels()
 /*     */   {
-/*  99 */     Set<String> labels = new HashSet();
+/*  99 */     Set<String> labels = new HashSet<>();
 /* 100 */     for (Pair<String, Object> pair : this.contextValues) {
 /* 101 */       labels.add(pair.getKey());
 /*     */     }

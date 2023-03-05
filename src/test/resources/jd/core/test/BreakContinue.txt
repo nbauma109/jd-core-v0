@@ -9,7 +9,7 @@
 /*    */ {
 /*    */   Collection process(Collection collection)
 /*    */   {
-/* 12 */     Collection result = new LinkedList();
+/* 12 */     Collection result = new LinkedList<>();
 /* 13 */     for (Object o : collection) {
 /* 14 */       if (!result.isEmpty()) {
 /*    */         break;

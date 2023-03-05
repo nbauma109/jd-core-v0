@@ -47,7 +47,7 @@ public class MonitorSynchronizedTest extends AbstractTestCase {
             ZipLoader loader = new ZipLoader(in);
             String internalClassName = "jd/core/test/MonitorSynchronized";
             String output = decompile(internalClassName, loader);
-            assertEquals(IOUtils.toString(getClass().getResource("MonitorSynchronized.txt"), StandardCharsets.UTF_8), output);
+            assertEquals(IOUtils.toString(getClass().getResource("MonitorSynchronized180.txt"), StandardCharsets.UTF_8), output);
         }
     }
 }
