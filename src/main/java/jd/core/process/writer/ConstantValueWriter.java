@@ -255,7 +255,7 @@ public final class ConstantValueWriter
             break;
         case Const.CONSTANT_Long:
             printer.printNumeric(
-                "0x" + Long.toHexString( ((ConstantLong)cv).getBytes() ).toUpperCase());
+                "0x" + Long.toHexString( ((ConstantLong)cv).getBytes() ).toUpperCase() + "L");
             break;
         default:
             write(loader, printer, referenceMap, classFile, cv, (byte)0);
