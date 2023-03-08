@@ -100,7 +100,7 @@ public final class TernaryOpReconstructor
 
                 fto.setValue2(visitor.getOldInstruction());
 
-                if ((isBooleanConstant(fto.getValue1()) &&
+                if ((isBooleanConstant(fto.getValue1()) ||
                     isBooleanConstant(fto.getValue2())))
                 {
                     if (((IConst)fto.getValue1()).getValue() == 0) {
