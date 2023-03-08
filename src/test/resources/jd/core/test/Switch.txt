@@ -4,7 +4,7 @@
 /*    */   public void testSwitch() {
 /*  5 */     System.out.println("start");
 /*    */     
-/*  7 */     switch ((int)(System.currentTimeMillis() & 0xF)) {
+/*  7 */     switch ((int)(System.currentTimeMillis() & 0xFL)) {
 /*    */     case 0: 
 /*  9 */       System.out.println("0");
 /*    */     case 1: 
@@ -41,7 +41,7 @@
 /*    */     {
 /* 42 */       System.out.println("in try");
 /*    */       
-/* 44 */       switch ((int)(System.currentTimeMillis() & 0xF)) {
+/* 44 */       switch ((int)(System.currentTimeMillis() & 0xFL)) {
 /*    */       case 0: 
 /* 46 */         System.out.println("0");
 /* 47 */         break;
