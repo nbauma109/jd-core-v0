@@ -124,7 +124,7 @@
 /*     */         }
 /*     */       }
 /*     */       try {
-/* 127 */         return (O)future.get();
+/* 127 */         return future.get();
 /*     */       } catch (CancellationException e) {
 /* 129 */         this.cache.remove(arg, future);
 /*     */       } catch (ExecutionException e) {

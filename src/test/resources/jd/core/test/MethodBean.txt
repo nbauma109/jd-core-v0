@@ -37,8 +37,8 @@
 /*    */       }
 /*    */     }
 /*    */     
-/* 40 */     throw new IllegalStateException(String.format("Could not find method %s on class %s", new Object[] {
-/* 41 */       methodName + (String)Arrays.stream(parameterTypes).map(String::valueOf).collect(Collectors.joining(",", "(", ")")), cls.getName() }));
+/* 40 */     throw new IllegalStateException(String.format("Could not find method %s on class %s", 
+/* 41 */       methodName + (String)Arrays.stream(parameterTypes).map(String::valueOf).collect(Collectors.joining(",", "(", ")")), cls.getName()));
 /*    */   }
 /*    */   
 /*    */   public boolean matchName(Method method) {

@@ -98,7 +98,15 @@ public final class TernaryOpReconstructor
                     visitor.visit(list.get(indexVisitor++));
                 }
 
-                fto.setValue2(visitor.getOldInstruction());
+                if (visitor.getOldInstruction() instanceof TernaryOperator) {
+                    TernaryOperator op = (TernaryOperator) visitor.getOldInstruction();
+                    fto.setValue1(op);
+                    Instruction value2 = op.getValue2();
+                    op.setValue2(value1.getObjectref());
+                    fto.setValue2(value2);
+                } else {
+                    fto.setValue2(visitor.getOldInstruction());
+                }
 
                 if ((isBooleanConstant(fto.getValue1()) ||
                     isBooleanConstant(fto.getValue2())))

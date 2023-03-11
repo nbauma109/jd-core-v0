@@ -16,8 +16,13 @@
  ******************************************************************************/
 package jd.core.model.instruction.bytecode.instruction;
 
+import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantNameAndType;
+import org.apache.bcel.classfile.JavaClass;
+import org.apache.bcel.classfile.Method;
+import org.jd.core.v1.service.converter.classfiletojavasyntax.util.ExceptionUtil;
+import org.jd.core.v1.util.StringConstants;
 
 import java.util.List;
 
@@ -46,14 +51,31 @@ public abstract class InvokeInstruction extends IndexInstruction
         }
 
         ConstantCP cmr = constants.getConstantMethodref(this.getIndex());
+        String internalClassName = constants.getConstantClassName(cmr.getClassIndex());
         ConstantNameAndType cnat = constants.getConstantNameAndType(
                 cmr.getNameAndTypeIndex());
 
-        String methodDescriptor =
-            constants.getConstantUtf8(cnat.getSignatureIndex());
+        String methodName = constants.getConstantUtf8(cnat.getNameIndex());
+        String methodDescriptor = constants.getConstantUtf8(cnat.getSignatureIndex());
 
-
-        return SignatureUtil.getMethodReturnedSignature(methodDescriptor);
+        String methodReturnedSignature = SignatureUtil.getMethodReturnedSignature(methodDescriptor);
+        if (StringConstants.INTERNAL_OBJECT_SIGNATURE.equals(methodReturnedSignature) && internalClassName.charAt(0) != '[') {
+            try {
+                JavaClass javaClass = Repository.lookupClass(internalClassName);
+                Method[] methods = javaClass.getMethods();
+                for (Method method : methods) {
+                    if (method.getName().equals(methodName) && method.getSignature().equals(methodDescriptor)) {
+                        String genericSignature = method.getGenericSignature();
+                        if (genericSignature != null) {
+                            return SignatureUtil.getMethodReturnedSignature(genericSignature);
+                        }
+                    }
+                }
+            } catch (ClassNotFoundException e) {
+                assert ExceptionUtil.printStackTrace(e);
+            }
+        }
+        return methodReturnedSignature;
     }
 
     public List<String> getListOfParameterSignatures(ConstantPool constants)

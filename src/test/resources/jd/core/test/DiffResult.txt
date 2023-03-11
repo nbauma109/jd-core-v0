@@ -202,8 +202,8 @@
 /* 202 */       rhsBuilder.append(diff.getFieldName(), diff.getRight());
 /*     */     }
 /*     */     
-/* 205 */     return String.format("%s %s %s", new Object[] { lhsBuilder.build(), "differs from", rhsBuilder
-/* 206 */       .build() });
+/* 205 */     return String.format("%s %s %s", lhsBuilder.build(), "differs from", rhsBuilder
+/* 206 */       .build());
 /*     */   }
 /*     */   
 /*     */ 

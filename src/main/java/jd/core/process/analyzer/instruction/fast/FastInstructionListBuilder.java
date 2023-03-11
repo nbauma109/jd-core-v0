@@ -21,6 +21,8 @@ import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.Signature;
+import org.jd.core.v1.model.javasyntax.type.Type;
+import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.ArrayList;
@@ -98,6 +100,7 @@ import jd.core.model.instruction.fast.instruction.FastTry;
 import jd.core.model.instruction.fast.instruction.FastTry.FastCatch;
 import jd.core.model.reference.ReferenceMap;
 import jd.core.process.analyzer.classfile.reconstructor.AssignmentOperatorReconstructor;
+import jd.core.process.analyzer.classfile.visitor.RemoveCheckCastVisitor;
 import jd.core.process.analyzer.classfile.visitor.SearchInstructionByOpcodeVisitor;
 import jd.core.process.analyzer.instruction.bytecode.ComparisonInstructionAnalyzer;
 import jd.core.process.analyzer.instruction.bytecode.reconstructor.AssertInstructionReconstructor;
@@ -1289,6 +1292,11 @@ public final class FastInstructionListBuilder {
                     }
                 }
 
+                TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
+                Type returnedType = typeMaker.makeFromSignature(methodReturnedSignature);
+                RemoveCheckCastVisitor visitor = new RemoveCheckCastVisitor(constants, localVariables, typeMaker, returnedType);
+                visitor.visit(ri.getValueref());
+
                 /* if (! methodReturnedSignature.equals(returnedSignature))
                 {
                     if (SignatureUtil.IsPrimitiveSignature(methodReturnedSignature))
@@ -1552,6 +1560,15 @@ public final class FastInstructionListBuilder {
                             if (beforeListOffset < lv.getStartPc()
                                     && lv.getStartPc() + lv.getLength() - 1 <= lastOffset) {
                                 list.set(i, new FastDeclaration(FastConstants.DECLARE, si.getOffset(), si.getLineNumber(), lv, si));
+                                Instruction valueref = si.getValueref();
+                                if (valueref instanceof CheckCast) {
+                                    CheckCast cc = (CheckCast) valueref;
+                                    String castSignature = cc.getReturnedSignature(classFile.getConstantPool(), localVariables);
+                                    String lvSignature = lv.getSignature(classFile.getConstantPool());
+                                    if ("[Ljava/lang/Object;".equals(castSignature) && "[TT;".equals(lvSignature)) {
+                                        cc.setGenericSignature(lvSignature);
+                                    }
+                                }
                                 lv.setDeclarationFlag(DECLARED);
                                 updateNewAndInitArrayInstruction(si);
                             }

@@ -46,7 +46,7 @@
 /*     */   {
 /*     */     try
 /*     */     {
-/*  49 */       MethodUtils.invokeMethod(eventSource, "add" + listenerType.getSimpleName(), new Object[] { listener });
+/*  49 */       MethodUtils.invokeMethod(eventSource, "add" + listenerType.getSimpleName(), listener);
 /*     */     }
 /*     */     catch (NoSuchMethodException e)
 /*     */     {
