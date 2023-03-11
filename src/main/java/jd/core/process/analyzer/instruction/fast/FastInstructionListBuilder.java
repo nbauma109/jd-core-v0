@@ -21,6 +21,8 @@ import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.Signature;
+import org.jd.core.v1.model.javasyntax.type.Type;
+import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.ArrayList;
@@ -98,6 +100,7 @@ import jd.core.model.instruction.fast.instruction.FastTry;
 import jd.core.model.instruction.fast.instruction.FastTry.FastCatch;
 import jd.core.model.reference.ReferenceMap;
 import jd.core.process.analyzer.classfile.reconstructor.AssignmentOperatorReconstructor;
+import jd.core.process.analyzer.classfile.visitor.RemoveCheckCastVisitor;
 import jd.core.process.analyzer.classfile.visitor.SearchInstructionByOpcodeVisitor;
 import jd.core.process.analyzer.instruction.bytecode.ComparisonInstructionAnalyzer;
 import jd.core.process.analyzer.instruction.bytecode.reconstructor.AssertInstructionReconstructor;
@@ -1289,25 +1292,21 @@ public final class FastInstructionListBuilder {
                     }
                 }
 
-                /* if (! methodReturnedSignature.equals(returnedSignature))
+                // Remove unnecessary cast to T
+                TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
+                Type methodReturnedType = typeMaker.makeFromSignature(methodReturnedSignature);
+                RemoveCheckCastVisitor visitor = new RemoveCheckCastVisitor(constants, localVariables, typeMaker, methodReturnedType);
+                visitor.visit(ri.getValueref());
+
+                // Update cast (Object[]) to (T[])
+                if ("[Ljava/lang/Object;".equals(returnedSignature) && methodReturnedType.isGenericType())
                 {
-                    if (SignatureUtil.IsPrimitiveSignature(methodReturnedSignature))
-                    {
-                        ri.valueref = new ConvertInstruction(
-                            ByteCodeConstants.CONVERT, ri.valueref.offset,
-                            ri.valueref.lineNumber, ri.valueref,
-                            methodReturnedSignature);
+                    Instruction valueref = ri.getValueref();
+                    if (valueref instanceof CheckCast) {
+                        CheckCast cc = (CheckCast) valueref;
+                        cc.setGenericSignature(methodReturnedSignature);
                     }
-                    else if (! StringConstants.INTERNAL_OBJECT_SIGNATURE.equals(methodReturnedSignature))
-                    {
-                        signature = SignatureUtil.getInnerName(methodReturnedSignature);
-                        signatureIndex = constants.addConstantUtf8(signature);
-                        int classIndex = constants.addConstantClass(signatureIndex);
-                        ri.valueref = new CheckCast(
-                            Const.CHECKCAST, ri.valueref.offset,
-                            ri.valueref.lineNumber, classIndex, ri.valueref);
-                    }
-                }*/
+                }
             }
         }
     }
@@ -1552,6 +1551,15 @@ public final class FastInstructionListBuilder {
                             if (beforeListOffset < lv.getStartPc()
                                     && lv.getStartPc() + lv.getLength() - 1 <= lastOffset) {
                                 list.set(i, new FastDeclaration(FastConstants.DECLARE, si.getOffset(), si.getLineNumber(), lv, si));
+                                Instruction valueref = si.getValueref();
+                                if (valueref instanceof CheckCast) {
+                                    CheckCast cc = (CheckCast) valueref;
+                                    String castSignature = cc.getReturnedSignature(classFile.getConstantPool(), localVariables);
+                                    String lvSignature = lv.getSignature(classFile.getConstantPool());
+                                    if ("[Ljava/lang/Object;".equals(castSignature) && "[TT;".equals(lvSignature)) {
+                                        cc.setGenericSignature(lvSignature);
+                                    }
+                                }
                                 lv.setDeclarationFlag(DECLARED);
                                 updateNewAndInitArrayInstruction(si);
                             }

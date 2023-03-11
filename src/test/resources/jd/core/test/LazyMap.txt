@@ -173,6 +173,6 @@
 /* 173 */       this.map.put(castKey, value);
 /* 174 */       return value;
 /*     */     }
-/* 176 */     return (V)this.map.get(key);
+/* 176 */     return this.map.get(key);
 /*     */   }
 /*     */ }

@@ -362,7 +362,7 @@
 /*      */   public static Counters.PathCounters delete(Path path, DeleteOption... deleteOptions)
 /*      */     throws IOException
 /*      */   {
-/*  365 */     return Files.isDirectory(path, new LinkOption[] { LinkOption.NOFOLLOW_LINKS }) ? deleteDirectory(path, deleteOptions) : 
+/*  365 */     return Files.isDirectory(path, LinkOption.NOFOLLOW_LINKS) ? deleteDirectory(path, deleteOptions) : 
 /*  366 */       deleteFile(path, deleteOptions);
 /*      */   }
 /*      */   
@@ -693,9 +693,9 @@
 /*  693 */     Objects.requireNonNull(filter, "filter");
 /*  694 */     Objects.requireNonNull(collector, "collector");
 /*  695 */     if (stream == null) {
-/*  696 */       return (R)Stream.empty().collect(collector);
+/*  696 */       return Stream.empty().collect(collector);
 /*      */     }
-/*  698 */     return (R)stream.filter(p ->  {
+/*  698 */     return stream.filter(p ->  {
 /*      */       try {
 /*  700 */         return (p != null) && (filter.accept(p, readBasicFileAttributes(p)) == java.nio.file.FileVisitResult.CONTINUE);
 /*      */       } catch (IOException e) {}
@@ -939,8 +939,8 @@
 /*  939 */       throw new IOExceptionList(path.toString(), causeList);
 /*      */     }
 /*      */     
-/*  942 */     throw new IOException(String.format("No DosFileAttributeView or PosixFileAttributeView for '%s' (linkOptions=%s)", new Object[] { path, 
-/*  943 */       Arrays.toString(linkOptions) }));
+/*  942 */     throw new IOException(String.format("No DosFileAttributeView or PosixFileAttributeView for '%s' (linkOptions=%s)", path, 
+/*  943 */       Arrays.toString(linkOptions)));
 /*      */   }
 /*      */   
 /*      */ 

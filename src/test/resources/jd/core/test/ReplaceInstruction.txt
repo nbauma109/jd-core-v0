@@ -64,7 +64,7 @@
 /*     */ 
 /*     */   String toString(Object obj, Supplier<String> supplier)
 /*     */   {
-/*  67 */     return obj == null ? (String)supplier.get() : supplier == null ? null : obj.toString();
+/*  67 */     return obj == null ? supplier == null ? null : (String)supplier.get() : obj.toString();
 /*     */   }
 /*     */   
 /*     */ 
@@ -92,27 +92,27 @@
 /*     */ 
 /*     */   boolean[] addFirst(boolean[] array, boolean element)
 /*     */   {
-/*  95 */     return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, new boolean[] { element });
+/*  95 */     return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, element);
 /*     */   }
 /*     */   
 /*     */   float[] addFirst(float[] array, float element) {
-/*  99 */     return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, new float[] { element });
+/*  99 */     return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, element);
 /*     */   }
 /*     */   
 /*     */   double[] addFirst(double[] array, double element) {
-/* 103 */     return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, new double[] { element });
+/* 103 */     return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, element);
 /*     */   }
 /*     */   
 /*     */   byte[] addFirst(byte[] array, byte element) {
-/* 107 */     return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, new byte[] { element });
+/* 107 */     return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, element);
 /*     */   }
 /*     */   
 /*     */   short[] addFirst(short[] array, short element) {
-/* 111 */     return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, new short[] { element });
+/* 111 */     return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, element);
 /*     */   }
 /*     */   
 /*     */   long[] addFirst(long[] array, long element) {
-/* 115 */     return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, new long[] { element });
+/* 115 */     return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, element);
 /*     */   }
 /*     */   
 /*     */ 
@@ -138,7 +138,7 @@
 /*     */ 
 /*     */   <E extends Enum<E>> void checkBitVectorable(Class<E> enumClass, E[] constants)
 /*     */   {
-/* 141 */     Validate.isTrue(constants.length <= 64, "Cannot store %s %s values in %s bits", new Object[] {
-/* 142 */       Integer.valueOf(constants.length), enumClass.getSimpleName(), Integer.valueOf(64) });
+/* 141 */     Validate.isTrue(constants.length <= 64, "Cannot store %s %s values in %s bits", 
+/* 142 */       Integer.valueOf(constants.length), enumClass.getSimpleName(), Integer.valueOf(64));
 /*     */   }
 /*     */ }

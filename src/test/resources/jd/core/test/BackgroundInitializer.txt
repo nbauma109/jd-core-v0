@@ -208,7 +208,7 @@
 /*     */   {
 /*     */     try
 /*     */     {
-/* 211 */       return (T)getFuture().get();
+/* 211 */       return getFuture().get();
 /*     */     } catch (ExecutionException execex) {
 /* 213 */       ConcurrentUtils.handleCause(execex);
 /* 214 */       return null;
@@ -323,7 +323,7 @@
 /*     */     {
 /*     */       try
 /*     */       {
-/* 326 */         return (T)BackgroundInitializer.this.initialize();
+/* 326 */         return BackgroundInitializer.this.initialize();
 /*     */       } finally {
 /* 328 */         if (this.execFinally != null) {
 /* 329 */           this.execFinally.shutdown();

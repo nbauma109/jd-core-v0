@@ -27,6 +27,7 @@ import jd.core.util.SignatureUtil;
 public class CheckCast extends IndexInstruction
 {
     private Instruction objectref;
+    private String genericSignature;
 
     public CheckCast(
         int opcode, int offset, int lineNumber,
@@ -40,6 +41,10 @@ public class CheckCast extends IndexInstruction
     public String getReturnedSignature(
             ConstantPool constants, LocalVariables localVariables)
     {
+        if (genericSignature != null) {
+            return genericSignature;
+        }
+
         if (constants == null) {
             return null;
         }
@@ -72,5 +77,9 @@ public class CheckCast extends IndexInstruction
 
     public void setObjectref(Instruction objectref) {
         this.objectref = objectref;
+    }
+
+    public void setGenericSignature(String genericSignature) {
+        this.genericSignature = genericSignature;
     }
 }

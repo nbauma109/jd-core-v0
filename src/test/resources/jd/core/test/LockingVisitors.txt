@@ -206,7 +206,7 @@
 /*     */ 
 /*     */     public <T> T applyReadLocked(FailableFunction<O, T, ?> function)
 /*     */     {
-/* 209 */       return (T)lockApplyUnlock(this.readLockSupplier, function);
+/* 209 */       return lockApplyUnlock(this.readLockSupplier, function);
 /*     */     }
 /*     */     
 /*     */ 
@@ -234,7 +234,7 @@
 /*     */ 
 /*     */     public <T> T applyWriteLocked(FailableFunction<O, T, ?> function)
 /*     */     {
-/* 237 */       return (T)lockApplyUnlock(this.writeLockSupplier, function);
+/* 237 */       return lockApplyUnlock(this.writeLockSupplier, function);
 /*     */     }
 /*     */     
 /*     */ 
@@ -297,7 +297,7 @@
 /* 297 */       Lock lock = (Lock)lockSupplier.get();
 /* 298 */       lock.lock();
 /*     */       try {
-/* 300 */         return (T)function.apply(this.object);
+/* 300 */         return function.apply(this.object);
 /*     */       } catch (Throwable t) {
 /* 302 */         throw Failable.rethrow(t);
 /*     */       } finally {

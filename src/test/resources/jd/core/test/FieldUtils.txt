@@ -126,7 +126,7 @@
 /* 126 */     for (Class<?> class1 : ClassUtils.getAllInterfaces(cls)) {
 /*     */       try {
 /* 128 */         Field test = class1.getField(fieldName);
-/* 129 */         Validate.isTrue(match == null, "Reference to field %s is ambiguous relative to %s; a matching field exists on two or more implemented interfaces.", new Object[] { fieldName, cls });
+/* 129 */         Validate.isTrue(match == null, "Reference to field %s is ambiguous relative to %s; a matching field exists on two or more implemented interfaces.", fieldName, cls);
 /*     */         
 /* 131 */         match = test;
 /*     */       }
@@ -294,7 +294,7 @@
 /*     */     throws IllegalAccessException
 /*     */   {
 /* 296 */     Validate.notNull(field, "field", new Object[0]);
-/* 297 */     Validate.isTrue(Modifier.isStatic(field.getModifiers()), "The field '%s' is not static", new Object[] { field.getName() });
+/* 297 */     Validate.isTrue(Modifier.isStatic(field.getModifiers()), "The field '%s' is not static", field.getName());
 /* 298 */     return readField(field, null, forceAccess);
 /*     */   }
 /*     */   
@@ -336,7 +336,7 @@
 /*     */     throws IllegalAccessException
 /*     */   {
 /* 338 */     Field field = getField(cls, fieldName, forceAccess);
-/* 339 */     Validate.notNull(field, "Cannot locate field '%s' on %s", new Object[] { fieldName, cls });
+/* 339 */     Validate.notNull(field, "Cannot locate field '%s' on %s", fieldName, cls);
 /*     */     
 /* 341 */     return readStaticField(field, false);
 /*     */   }
@@ -380,7 +380,7 @@
 /*     */     throws IllegalAccessException
 /*     */   {
 /* 382 */     Field field = getDeclaredField(cls, fieldName, forceAccess);
-/* 383 */     Validate.notNull(field, "Cannot locate declared field %s.%s", new Object[] { cls.getName(), fieldName });
+/* 383 */     Validate.notNull(field, "Cannot locate declared field %s.%s", cls.getName(), fieldName);
 /*     */     
 /* 385 */     return readStaticField(field, false);
 /*     */   }
@@ -466,7 +466,7 @@
 /* 466 */     Validate.notNull(target, "target", new Object[0]);
 /* 467 */     Class<?> cls = target.getClass();
 /* 468 */     Field field = getField(cls, fieldName, forceAccess);
-/* 469 */     Validate.isTrue(field != null, "Cannot locate field %s on %s", new Object[] { fieldName, cls });
+/* 469 */     Validate.isTrue(field != null, "Cannot locate field %s on %s", fieldName, cls);
 /*     */     
 /* 471 */     return readField(field, target, false);
 /*     */   }
@@ -509,7 +509,7 @@
 /* 509 */     Validate.notNull(target, "target", new Object[0]);
 /* 510 */     Class<?> cls = target.getClass();
 /* 511 */     Field field = getDeclaredField(cls, fieldName, forceAccess);
-/* 512 */     Validate.isTrue(field != null, "Cannot locate declared field %s.%s", new Object[] { cls, fieldName });
+/* 512 */     Validate.isTrue(field != null, "Cannot locate declared field %s.%s", cls, fieldName);
 /*     */     
 /* 514 */     return readField(field, target, false);
 /*     */   }
@@ -548,8 +548,8 @@
 /*     */     throws IllegalAccessException
 /*     */   {
 /* 550 */     Validate.notNull(field, "field", new Object[0]);
-/* 551 */     Validate.isTrue(Modifier.isStatic(field.getModifiers()), "The field %s.%s is not static", new Object[] { field.getDeclaringClass().getName(), field
-/* 552 */       .getName() });
+/* 551 */     Validate.isTrue(Modifier.isStatic(field.getModifiers()), "The field %s.%s is not static", field.getDeclaringClass().getName(), field
+/* 552 */       .getName());
 /* 553 */     writeField(field, null, value, forceAccess);
 /*     */   }
 /*     */   
@@ -594,7 +594,7 @@
 /*     */     throws IllegalAccessException
 /*     */   {
 /* 596 */     Field field = getField(cls, fieldName, forceAccess);
-/* 597 */     Validate.notNull(field, "Cannot locate field %s on %s", new Object[] { fieldName, cls });
+/* 597 */     Validate.notNull(field, "Cannot locate field %s on %s", fieldName, cls);
 /*     */     
 /* 599 */     writeStaticField(field, value, false);
 /*     */   }
@@ -639,7 +639,7 @@
 /*     */     throws IllegalAccessException
 /*     */   {
 /* 641 */     Field field = getDeclaredField(cls, fieldName, forceAccess);
-/* 642 */     Validate.notNull(field, "Cannot locate declared field %s.%s", new Object[] { cls.getName(), fieldName });
+/* 642 */     Validate.notNull(field, "Cannot locate declared field %s.%s", cls.getName(), fieldName);
 /*     */     
 /* 644 */     writeField(field, null, value, false);
 /*     */   }
@@ -793,7 +793,7 @@
 /* 793 */     Validate.notNull(target, "target", new Object[0]);
 /* 794 */     Class<?> cls = target.getClass();
 /* 795 */     Field field = getField(cls, fieldName, forceAccess);
-/* 796 */     Validate.isTrue(field != null, "Cannot locate declared field %s.%s", new Object[] { cls.getName(), fieldName });
+/* 796 */     Validate.isTrue(field != null, "Cannot locate declared field %s.%s", cls.getName(), fieldName);
 /*     */     
 /* 798 */     writeField(field, target, value, false);
 /*     */   }
@@ -841,7 +841,7 @@
 /* 841 */     Validate.notNull(target, "target", new Object[0]);
 /* 842 */     Class<?> cls = target.getClass();
 /* 843 */     Field field = getDeclaredField(cls, fieldName, forceAccess);
-/* 844 */     Validate.isTrue(field != null, "Cannot locate declared field %s.%s", new Object[] { cls.getName(), fieldName });
+/* 844 */     Validate.isTrue(field != null, "Cannot locate declared field %s.%s", cls.getName(), fieldName);
 /*     */     
 /* 846 */     writeField(field, target, value, false);
 /*     */   }

@@ -351,7 +351,7 @@ public final class SignatureUtil
         {
         case 'I' -> ByteCodeConstants.TBF_INT_INT;
         case 'S' -> ByteCodeConstants.TBF_INT_INT | ByteCodeConstants.TBF_INT_SHORT;
-        case 'B' -> ByteCodeConstants.TBF_INT_INT | ByteCodeConstants.TBF_INT_SHORT | ByteCodeConstants.TBF_INT_BYTE;
+        case 'B' -> ByteCodeConstants.TBF_INT_INT | ByteCodeConstants.TBF_INT_SHORT | ByteCodeConstants.TBF_INT_BYTE | ByteCodeConstants.TBF_INT_BOOLEAN;
         case 'C' -> ByteCodeConstants.TBF_INT_INT | ByteCodeConstants.TBF_INT_SHORT | ByteCodeConstants.TBF_INT_CHAR;
         case 'X' -> ByteCodeConstants.TBF_INT_INT | ByteCodeConstants.TBF_INT_SHORT | ByteCodeConstants.TBF_INT_BYTE | ByteCodeConstants.TBF_INT_CHAR | ByteCodeConstants.TBF_INT_BOOLEAN;
         case 'Y' -> ByteCodeConstants.TBF_INT_INT | ByteCodeConstants.TBF_INT_SHORT | ByteCodeConstants.TBF_INT_BYTE | ByteCodeConstants.TBF_INT_CHAR;

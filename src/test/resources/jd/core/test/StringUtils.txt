@@ -348,7 +348,7 @@
 /*  348 */     int minAbbrevWidthOffset = abbrevMarkerLength + abbrevMarkerLength + 1;
 /*      */     
 /*  350 */     if (maxWidth < minAbbrevWidth) {
-/*  351 */       throw new IllegalArgumentException(String.format("Minimum abbreviation width is %d", new Object[] { Integer.valueOf(minAbbrevWidth) }));
+/*  351 */       throw new IllegalArgumentException(String.format("Minimum abbreviation width is %d", Integer.valueOf(minAbbrevWidth)));
 /*      */     }
 /*  353 */     int strLen = str.length();
 /*  354 */     if (strLen <= maxWidth) {
@@ -364,7 +364,7 @@
 /*  364 */       return str.substring(0, maxWidth - abbrevMarkerLength) + abbrevMarker;
 /*      */     }
 /*  366 */     if (maxWidth < minAbbrevWidthOffset) {
-/*  367 */       throw new IllegalArgumentException(String.format("Minimum abbreviation width with offset is %d", new Object[] { Integer.valueOf(minAbbrevWidthOffset) }));
+/*  367 */       throw new IllegalArgumentException(String.format("Minimum abbreviation width with offset is %d", Integer.valueOf(minAbbrevWidthOffset)));
 /*      */     }
 /*  369 */     if (offset + maxWidth - abbrevMarkerLength < strLen) {
 /*  370 */       return abbrevMarker + abbreviate(str.substring(offset), abbrevMarker, maxWidth - abbrevMarkerLength);
@@ -2210,7 +2210,7 @@
 /*      */ 
 /*      */   public static <T extends CharSequence> T getIfBlank(T str, Supplier<T> defaultSupplier)
 /*      */   {
-/* 2213 */     return isBlank(str) ? (CharSequence)defaultSupplier.get() : defaultSupplier == null ? null : str;
+/* 2213 */     return isBlank(str) ? defaultSupplier == null ? null : defaultSupplier.get() : str;
 /*      */   }
 /*      */   
 /*      */ 
@@ -2238,7 +2238,7 @@
 /*      */ 
 /*      */   public static <T extends CharSequence> T getIfEmpty(T str, Supplier<T> defaultSupplier)
 /*      */   {
-/* 2241 */     return isEmpty(str) ? (CharSequence)defaultSupplier.get() : defaultSupplier == null ? null : str;
+/* 2241 */     return isEmpty(str) ? defaultSupplier == null ? null : defaultSupplier.get() : str;
 /*      */   }
 /*      */   
 /*      */ 

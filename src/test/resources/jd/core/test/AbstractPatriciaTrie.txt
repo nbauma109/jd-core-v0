@@ -311,7 +311,7 @@
 /*  311 */     if (entry == null) {
 /*  312 */       return null;
 /*      */     }
-/*  314 */     return (K)entry.getKey();
+/*  314 */     return entry.getKey();
 /*      */   }
 /*      */   
 /*      */ 
@@ -339,7 +339,7 @@
 /*  339 */     if (entry == null) {
 /*  340 */       return null;
 /*      */     }
-/*  342 */     return (V)entry.getValue();
+/*  342 */     return entry.getValue();
 /*      */   }
 /*      */   
 /*      */ 
@@ -427,7 +427,7 @@
 /*      */     for (;;) {
 /*  428 */       if (current.bitIndex <= path.bitIndex) {
 /*  429 */         if ((!current.isEmpty()) && (compareKeys(key, current.key))) {
-/*  430 */           return (V)removeEntry(current);
+/*  430 */           return removeEntry(current);
 /*      */         }
 /*  432 */         return null;
 /*      */       }
@@ -1727,7 +1727,7 @@
 /* 1727 */         return null;
 /*      */       }
 /*      */       
-/* 1730 */       return (V)AbstractPatriciaTrie.this.remove(key);
+/* 1730 */       return AbstractPatriciaTrie.this.remove(key);
 /*      */     }
 /*      */     
 /*      */     public V get(Object key)
@@ -1736,7 +1736,7 @@
 /* 1736 */         return null;
 /*      */       }
 /*      */       
-/* 1739 */       return (V)AbstractPatriciaTrie.this.get(key);
+/* 1739 */       return AbstractPatriciaTrie.this.get(key);
 /*      */     }
 /*      */     
 /*      */     public V put(K key, V value)
@@ -1744,7 +1744,7 @@
 /* 1744 */       if (!inRange(key)) {
 /* 1745 */         throw new IllegalArgumentException("Key is out of range: " + key);
 /*      */       }
-/* 1747 */       return (V)AbstractPatriciaTrie.this.put(key, value);
+/* 1747 */       return AbstractPatriciaTrie.this.put(key, value);
 /*      */     }
 /*      */     
 /*      */     public Set<Entry<K, V>> entrySet()

@@ -29,6 +29,7 @@ import org.jd.core.v1.model.javasyntax.type.ObjectType;
 import org.jd.core.v1.model.javasyntax.type.Type;
 import org.jd.core.v1.model.javasyntax.type.TypeArgument;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
+import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker.MethodTypes;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker.TypeTypes;
 import org.jd.core.v1.util.StringConstants;
 
@@ -1373,8 +1374,15 @@ public class SourceWriterVisitor
 
         ConstantNameAndType cnat =
             this.constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
+        String constructorName =
+            this.constants.getConstantUtf8(cnat.getNameIndex());
         String constructorDescriptor =
-            this.constants.getConstantUtf8(cnat.getSignatureIndex());
+                this.constants.getConstantUtf8(cnat.getSignatureIndex());
+
+        MethodTypes methodTypes =
+                typeMaker.makeMethodTypes(internalClassName, constructorName, constructorDescriptor);
+
+        boolean varArgs = methodTypes.isVarArgs();
 
         if (innerClassFile == null)
         {
@@ -1391,8 +1399,6 @@ public class SourceWriterVisitor
             // Anonymous new invoke
             firstIndex = computeFirstIndex(this.methodAccessFlags, in);
             // Search parameter count of super constructor
-            String constructorName =
-                this.constants.getConstantUtf8(cnat.getNameIndex());
             Method constructor =
                 innerClassFile.getMethod(constructorName, constructorDescriptor);
             if (constructor != null)
@@ -1479,7 +1485,7 @@ public class SourceWriterVisitor
             }
         }
 
-        return writeArgs(in.getLineNumber(), firstIndex, length, in.getArgs());
+        return writeArgs(in.getLineNumber(), firstIndex, length, in.getArgs(), varArgs);
     }
 
     private static BaseTypeArgument searchTypeArguments(TypeTypes newInvokeType) {
@@ -1532,7 +1538,7 @@ public class SourceWriterVisitor
             internalClassName, name, descriptor);
 
         if (in.getArgs().size() > 2) {
-            lineNumber = writeArgs(lineNumber, 2, in.getArgs().size(), in.getArgs());
+            lineNumber = writeArgs(lineNumber, 2, in.getArgs().size(), in.getArgs(), false);
         }
 
         return lineNumber;
@@ -1656,6 +1662,8 @@ public class SourceWriterVisitor
             }
         }
 
+        boolean varArgs = false;
+
         if (thisInvoke)
         {
             int nextOffset = this.previousOffset + 1;
@@ -1675,6 +1683,9 @@ public class SourceWriterVisitor
                 this.printer.printMethod(
                     insi.getLineNumber(), internalClassName, methodName,
                     descriptor, this.classFile.getThisClassName());
+
+                MethodTypes methodTypes = typeMaker.makeMethodTypes(internalClassName, methodName, descriptor);
+                varArgs = methodTypes.isVarArgs();
             }
         }
         else
@@ -1725,10 +1736,13 @@ public class SourceWriterVisitor
                 this.printer.printMethod(
                     lineNumber, internalClassName, methodName,
                     descriptor, this.classFile.getThisClassName());
+
+                MethodTypes methodTypes = typeMaker.makeMethodTypes(internalClassName, methodName, descriptor);
+                varArgs = methodTypes.isVarArgs();
             }
         }
 
-        return writeArgs(insi.getLineNumber(), 0, insi.getArgs().size(), insi.getArgs());
+        return writeArgs(insi.getLineNumber(), 0, insi.getArgs().size(), insi.getArgs(), varArgs);
     }
 
     private boolean needAPrefixForThisMethod(
@@ -1854,6 +1868,8 @@ public class SourceWriterVisitor
             firstIndex = 0;
         }
 
+        boolean varArgs = false;
+
         if (thisInvoke)
         {
             int nextOffset = this.previousOffset + 1;
@@ -1938,6 +1954,11 @@ public class SourceWriterVisitor
                 String descriptor =
                     this.constants.getConstantUtf8(cnat.getSignatureIndex());
 
+                MethodTypes methodTypes =
+                        typeMaker.makeMethodTypes(internalClassName, methodName, descriptor);
+
+                varArgs  = methodTypes.isVarArgs();
+
                 this.printer.printMethod(
                     internalClassName, methodName,
                     descriptor, this.classFile.getThisClassName());
@@ -1945,11 +1966,13 @@ public class SourceWriterVisitor
         }
 
         return writeArgs(
-            insi.getLineNumber(), firstIndex, insi.getArgs().size(), insi.getArgs());
+            insi.getLineNumber(), firstIndex, insi.getArgs().size(), insi.getArgs(), varArgs);
     }
 
     private int writeInvokestatic(Invokestatic invokestatic)
     {
+        boolean varArgs = false;
+
         int nextOffset = this.previousOffset + 1;
 
         if (this.firstOffset <= this.previousOffset &&
@@ -1986,6 +2009,11 @@ public class SourceWriterVisitor
             String descriptor =
                     this.constants.getConstantUtf8(cnat.getSignatureIndex());
 
+            MethodTypes methodTypes =
+                    typeMaker.makeMethodTypes(internalClassName, methodName, descriptor);
+
+            varArgs = methodTypes.isVarArgs();
+
             this.printer.printStaticMethod(
                 lineNumber, internalClassName, methodName, descriptor,
                 this.classFile.getThisClassName());
@@ -1993,11 +2021,11 @@ public class SourceWriterVisitor
 
         return writeArgs(
             invokestatic.getLineNumber(), 0,
-            invokestatic.getArgs().size(), invokestatic.getArgs());
+            invokestatic.getArgs().size(), invokestatic.getArgs(), varArgs);
     }
 
     private int writeArgs(
-        int lineNumber, int firstIndex, int length, List<Instruction> args)
+        int lineNumber, int firstIndex, int length, List<Instruction> args, boolean varArgs)
     {
         if (length > firstIndex)
         {
@@ -2020,7 +2048,18 @@ public class SourceWriterVisitor
                     this.printer.print(lineNumber, ", ");
                 }
 
-                lineNumber = visit(args.get(i));
+                if (varArgs && i == args.size() - 1 && args.get(i) instanceof InitArrayInstruction) {
+                    InitArrayInstruction iai = (InitArrayInstruction) args.get(i);
+                    for (Iterator<Instruction> it = iai.getValues().iterator(); it.hasNext();) {
+                        Instruction varArg = it.next();
+                        lineNumber = visit(varArg);
+                        if (it.hasNext()) {
+                            this.printer.print(lineNumber, ", ");
+                        }
+                    }
+                } else {
+                    lineNumber = visit(args.get(i));
+                }
             }
 
             nextOffset = this.previousOffset + 1;
