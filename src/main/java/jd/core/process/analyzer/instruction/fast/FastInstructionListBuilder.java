@@ -1292,30 +1292,21 @@ public final class FastInstructionListBuilder {
                     }
                 }
 
+                // Remove unnecessary cast to T
                 TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
-                Type returnedType = typeMaker.makeFromSignature(methodReturnedSignature);
-                RemoveCheckCastVisitor visitor = new RemoveCheckCastVisitor(constants, localVariables, typeMaker, returnedType);
+                Type methodReturnedType = typeMaker.makeFromSignature(methodReturnedSignature);
+                RemoveCheckCastVisitor visitor = new RemoveCheckCastVisitor(constants, localVariables, typeMaker, methodReturnedType);
                 visitor.visit(ri.getValueref());
 
-                /* if (! methodReturnedSignature.equals(returnedSignature))
+                // Update cast (Object[]) to (T[])
+                if ("[Ljava/lang/Object;".equals(returnedSignature) && methodReturnedType.isGenericType())
                 {
-                    if (SignatureUtil.IsPrimitiveSignature(methodReturnedSignature))
-                    {
-                        ri.valueref = new ConvertInstruction(
-                            ByteCodeConstants.CONVERT, ri.valueref.offset,
-                            ri.valueref.lineNumber, ri.valueref,
-                            methodReturnedSignature);
+                    Instruction valueref = ri.getValueref();
+                    if (valueref instanceof CheckCast) {
+                        CheckCast cc = (CheckCast) valueref;
+                        cc.setGenericSignature(methodReturnedSignature);
                     }
-                    else if (! StringConstants.INTERNAL_OBJECT_SIGNATURE.equals(methodReturnedSignature))
-                    {
-                        signature = SignatureUtil.getInnerName(methodReturnedSignature);
-                        signatureIndex = constants.addConstantUtf8(signature);
-                        int classIndex = constants.addConstantClass(signatureIndex);
-                        ri.valueref = new CheckCast(
-                            Const.CHECKCAST, ri.valueref.offset,
-                            ri.valueref.lineNumber, classIndex, ri.valueref);
-                    }
-                }*/
+                }
             }
         }
     }
