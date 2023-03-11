@@ -6289,7 +6289,7 @@
 /* 6289 */     switch (inputLength) {
 /*      */     case 1: 
 /* 6291 */       return repeat(str.charAt(0), repeat);
-/*      */     case 2: 
+/*      */     case 2: {
 /* 6293 */       char ch0 = str.charAt(0);
 /* 6294 */       char ch1 = str.charAt(1);
 /* 6295 */       char[] output2 = new char[outputLength];
@@ -6298,7 +6298,7 @@
 /* 6298 */         output2[(i + 1)] = ch1;
 /*      */       }
 /* 6300 */       return new String(output2);
-/*      */     }
+/*      */     }}
 /* 6302 */     StringBuilder buf = new StringBuilder(outputLength);
 /* 6303 */     for (int i = 0; i < repeat; i++) {
 /* 6304 */       buf.append(str);

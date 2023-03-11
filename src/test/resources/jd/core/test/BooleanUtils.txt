@@ -1,0 +1,1128 @@
+/*      */ package org.apache.commons.lang3;
+/*      */ 
+/*      */ import org.apache.commons.lang3.math.NumberUtils;
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ public class BooleanUtils
+/*      */ {
+/*      */   public static final String FALSE = "false";
+/*      */   public static final String NO = "no";
+/*      */   public static final String OFF = "off";
+/*      */   public static final String ON = "on";
+/*      */   public static final String TRUE = "true";
+/*      */   public static final String YES = "yes";
+/*      */   
+/*      */   public static boolean and(boolean... array)
+/*      */   {
+/*   93 */     ObjectUtils.requireNonEmpty(array, "array");
+/*   94 */     for (boolean element : array) {
+/*   95 */       if (!element) {
+/*   96 */         return false;
+/*      */       }
+/*      */     }
+/*   99 */     return true;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static Boolean and(Boolean... array)
+/*      */   {
+/*  123 */     ObjectUtils.requireNonEmpty(array, "array");
+/*      */     try {
+/*  125 */       boolean[] primitive = ArrayUtils.toPrimitive(array);
+/*  126 */       return and(primitive) ? Boolean.TRUE : Boolean.FALSE;
+/*      */     } catch (NullPointerException ex) {
+/*  128 */       throw new IllegalArgumentException("The array must not contain any null elements");
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static Boolean[] booleanValues()
+/*      */   {
+/*  138 */     return new Boolean[] { Boolean.FALSE, Boolean.TRUE };
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static int compare(boolean x, boolean y)
+/*      */   {
+/*  152 */     if (x == y) {
+/*  153 */       return 0;
+/*      */     }
+/*  155 */     return x ? 1 : -1;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static boolean isFalse(Boolean bool)
+/*      */   {
+/*  173 */     return Boolean.FALSE.equals(bool);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static boolean isNotFalse(Boolean bool)
+/*      */   {
+/*  191 */     return !isFalse(bool);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static boolean isNotTrue(Boolean bool)
+/*      */   {
+/*  209 */     return !isTrue(bool);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static boolean isTrue(Boolean bool)
+/*      */   {
+/*  227 */     return Boolean.TRUE.equals(bool);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static Boolean negate(Boolean bool)
+/*      */   {
+/*  248 */     if (bool == null) {
+/*  249 */       return null;
+/*      */     }
+/*  251 */     return bool.booleanValue() ? Boolean.FALSE : Boolean.TRUE;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static boolean or(boolean... array)
+/*      */   {
+/*  272 */     ObjectUtils.requireNonEmpty(array, "array");
+/*  273 */     for (boolean element : array) {
+/*  274 */       if (element) {
+/*  275 */         return true;
+/*      */       }
+/*      */     }
+/*  278 */     return false;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static Boolean or(Boolean... array)
+/*      */   {
+/*  302 */     ObjectUtils.requireNonEmpty(array, "array");
+/*      */     try {
+/*  304 */       boolean[] primitive = ArrayUtils.toPrimitive(array);
+/*  305 */       return or(primitive) ? Boolean.TRUE : Boolean.FALSE;
+/*      */     } catch (NullPointerException ex) {
+/*  307 */       throw new IllegalArgumentException("The array must not contain any null elements");
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static boolean[] primitiveValues()
+/*      */   {
+/*  317 */     return new boolean[] { false, true };
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static boolean toBoolean(Boolean bool)
+/*      */   {
+/*  334 */     return (bool != null) && (bool.booleanValue());
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static boolean toBoolean(int value)
+/*      */   {
+/*  352 */     return value != 0;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static boolean toBoolean(int value, int trueValue, int falseValue)
+/*      */   {
+/*  377 */     if (value == trueValue) {
+/*  378 */       return true;
+/*      */     }
+/*  380 */     if (value == falseValue) {
+/*  381 */       return false;
+/*      */     }
+/*  383 */     throw new IllegalArgumentException("The Integer did not match either specified value");
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static boolean toBoolean(Integer value, Integer trueValue, Integer falseValue)
+/*      */   {
+/*  404 */     if (value == null) {
+/*  405 */       if (trueValue == null) {
+/*  406 */         return true;
+/*      */       }
+/*  408 */       if (falseValue == null)
+/*  409 */         return false;
+/*      */     } else {
+/*  411 */       if (value.equals(trueValue))
+/*  412 */         return true;
+/*  413 */       if (value.equals(falseValue))
+/*  414 */         return false;
+/*      */     }
+/*  416 */     throw new IllegalArgumentException("The Integer did not match either specified value");
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static boolean toBoolean(String str)
+/*      */   {
+/*  449 */     return toBooleanObject(str) == Boolean.TRUE;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static boolean toBoolean(String str, String trueString, String falseString)
+/*      */   {
+/*  467 */     if (str == trueString)
+/*  468 */       return true;
+/*  469 */     if (str == falseString)
+/*  470 */       return false;
+/*  471 */     if (str != null) {
+/*  472 */       if (str.equals(trueString))
+/*  473 */         return true;
+/*  474 */       if (str.equals(falseString)) {
+/*  475 */         return false;
+/*      */       }
+/*      */     }
+/*  478 */     throw new IllegalArgumentException("The String did not match either specified value");
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static boolean toBooleanDefaultIfNull(Boolean bool, boolean valueIfNull)
+/*      */   {
+/*  498 */     if (bool == null) {
+/*  499 */       return valueIfNull;
+/*      */     }
+/*  501 */     return bool.booleanValue();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static Boolean toBooleanObject(int value)
+/*      */   {
+/*  519 */     return value == 0 ? Boolean.FALSE : Boolean.TRUE;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static Boolean toBooleanObject(int value, int trueValue, int falseValue, int nullValue)
+/*      */   {
+/*  548 */     if (value == trueValue) {
+/*  549 */       return Boolean.TRUE;
+/*      */     }
+/*  551 */     if (value == falseValue) {
+/*  552 */       return Boolean.FALSE;
+/*      */     }
+/*  554 */     if (value == nullValue) {
+/*  555 */       return null;
+/*      */     }
+/*  557 */     throw new IllegalArgumentException("The Integer did not match any specified value");
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static Boolean toBooleanObject(Integer value)
+/*      */   {
+/*  580 */     if (value == null) {
+/*  581 */       return null;
+/*      */     }
+/*  583 */     return value.intValue() == 0 ? Boolean.FALSE : Boolean.TRUE;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static Boolean toBooleanObject(Integer value, Integer trueValue, Integer falseValue, Integer nullValue)
+/*      */   {
+/*  612 */     if (value == null) {
+/*  613 */       if (trueValue == null) {
+/*  614 */         return Boolean.TRUE;
+/*      */       }
+/*  616 */       if (falseValue == null) {
+/*  617 */         return Boolean.FALSE;
+/*      */       }
+/*  619 */       if (nullValue == null)
+/*  620 */         return null;
+/*      */     } else {
+/*  622 */       if (value.equals(trueValue))
+/*  623 */         return Boolean.TRUE;
+/*  624 */       if (value.equals(falseValue))
+/*  625 */         return Boolean.FALSE;
+/*  626 */       if (value.equals(nullValue))
+/*  627 */         return null;
+/*      */     }
+/*  629 */     throw new IllegalArgumentException("The Integer did not match any specified value");
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static Boolean toBooleanObject(String str)
+/*      */   {
+/*  676 */     if (str == "true") {
+/*  677 */       return Boolean.TRUE;
+/*      */     }
+/*  679 */     if (str == null) {
+/*  680 */       return null;
+/*      */     }
+/*  682 */     switch (str.length()) {
+/*      */     case 1: {
+/*  684 */       char ch0 = str.charAt(0);
+/*  685 */       if ((ch0 == 'y') || (ch0 == 'Y') || (ch0 == 't') || (ch0 == 'T') || (ch0 == '1'))
+/*      */       {
+/*      */ 
+/*  688 */         return Boolean.TRUE;
+/*      */       }
+/*  690 */       if ((ch0 == 'n') || (ch0 == 'N') || (ch0 == 'f') || (ch0 == 'F') || (ch0 == '0'))
+/*      */       {
+/*      */ 
+/*  693 */         return Boolean.FALSE;
+/*      */       }
+/*      */       
+/*      */       break;
+/*      */     } case 2: {
+/*  698 */       char ch0 = str.charAt(0);
+/*  699 */       char ch1 = str.charAt(1);
+/*  700 */       if (((ch0 == 'o') || (ch0 == 'O')) && ((ch1 == 'n') || (ch1 == 'N')))
+/*      */       {
+/*  702 */         return Boolean.TRUE;
+/*      */       }
+/*  704 */       if (((ch0 == 'n') || (ch0 == 'N')) && ((ch1 == 'o') || (ch1 == 'O')))
+/*      */       {
+/*  706 */         return Boolean.FALSE;
+/*      */       }
+/*      */       
+/*      */       break;
+/*      */     } case 3: {
+/*  711 */       char ch0 = str.charAt(0);
+/*  712 */       char ch1 = str.charAt(1);
+/*  713 */       char ch2 = str.charAt(2);
+/*  714 */       if (((ch0 == 'y') || (ch0 == 'Y')) && ((ch1 == 'e') || (ch1 == 'E')) && ((ch2 == 's') || (ch2 == 'S')))
+/*      */       {
+/*      */ 
+/*  717 */         return Boolean.TRUE;
+/*      */       }
+/*  719 */       if (((ch0 == 'o') || (ch0 == 'O')) && ((ch1 == 'f') || (ch1 == 'F')) && ((ch2 == 'f') || (ch2 == 'F')))
+/*      */       {
+/*      */ 
+/*  722 */         return Boolean.FALSE;
+/*      */       }
+/*      */       
+/*      */       break;
+/*      */     } case 4: {
+/*  727 */       char ch0 = str.charAt(0);
+/*  728 */       char ch1 = str.charAt(1);
+/*  729 */       char ch2 = str.charAt(2);
+/*  730 */       char ch3 = str.charAt(3);
+/*  731 */       if (((ch0 == 't') || (ch0 == 'T')) && ((ch1 == 'r') || (ch1 == 'R')) && ((ch2 == 'u') || (ch2 == 'U')) && ((ch3 == 'e') || (ch3 == 'E')))
+/*      */       {
+/*      */ 
+/*      */ 
+/*  735 */         return Boolean.TRUE;
+/*      */       }
+/*      */       
+/*      */       break;
+/*      */     } case 5: {
+/*  740 */       char ch0 = str.charAt(0);
+/*  741 */       char ch1 = str.charAt(1);
+/*  742 */       char ch2 = str.charAt(2);
+/*  743 */       char ch3 = str.charAt(3);
+/*  744 */       char ch4 = str.charAt(4);
+/*  745 */       if (((ch0 == 'f') || (ch0 == 'F')) && ((ch1 == 'a') || (ch1 == 'A')) && ((ch2 == 'l') || (ch2 == 'L')) && ((ch3 == 's') || (ch3 == 'S')) && ((ch4 == 'e') || (ch4 == 'E')))
+/*      */       {
+/*      */ 
+/*      */ 
+/*      */ 
+/*  750 */         return Boolean.FALSE;
+/*      */       }
+/*      */       
+/*      */ 
+/*      */       break;
+/*      */     }}
+/*      */     
+/*      */     
+/*  758 */     return null;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static Boolean toBooleanObject(String str, String trueString, String falseString, String nullString)
+/*      */   {
+/*  788 */     if (str == null) {
+/*  789 */       if (trueString == null) {
+/*  790 */         return Boolean.TRUE;
+/*      */       }
+/*  792 */       if (falseString == null) {
+/*  793 */         return Boolean.FALSE;
+/*      */       }
+/*  795 */       if (nullString == null)
+/*  796 */         return null;
+/*      */     } else {
+/*  798 */       if (str.equals(trueString))
+/*  799 */         return Boolean.TRUE;
+/*  800 */       if (str.equals(falseString))
+/*  801 */         return Boolean.FALSE;
+/*  802 */       if (str.equals(nullString)) {
+/*  803 */         return null;
+/*      */       }
+/*      */     }
+/*  806 */     throw new IllegalArgumentException("The String did not match any specified value");
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static int toInteger(boolean bool)
+/*      */   {
+/*  822 */     return bool ? 1 : 0;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static int toInteger(boolean bool, int trueValue, int falseValue)
+/*      */   {
+/*  839 */     return bool ? trueValue : falseValue;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static int toInteger(Boolean bool, int trueValue, int falseValue, int nullValue)
+/*      */   {
+/*  858 */     if (bool == null) {
+/*  859 */       return nullValue;
+/*      */     }
+/*  861 */     return bool.booleanValue() ? trueValue : falseValue;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static Integer toIntegerObject(boolean bool)
+/*      */   {
+/*  877 */     return bool ? NumberUtils.INTEGER_ONE : NumberUtils.INTEGER_ZERO;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static Integer toIntegerObject(boolean bool, Integer trueValue, Integer falseValue)
+/*      */   {
+/*  894 */     return bool ? trueValue : falseValue;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static Integer toIntegerObject(Boolean bool)
+/*      */   {
+/*  912 */     if (bool == null) {
+/*  913 */       return null;
+/*      */     }
+/*  915 */     return bool.booleanValue() ? NumberUtils.INTEGER_ONE : NumberUtils.INTEGER_ZERO;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static Integer toIntegerObject(Boolean bool, Integer trueValue, Integer falseValue, Integer nullValue)
+/*      */   {
+/*  934 */     if (bool == null) {
+/*  935 */       return nullValue;
+/*      */     }
+/*  937 */     return bool.booleanValue() ? trueValue : falseValue;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static String toString(boolean bool, String trueString, String falseString)
+/*      */   {
+/*  954 */     return bool ? trueString : falseString;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static String toString(Boolean bool, String trueString, String falseString, String nullString)
+/*      */   {
+/*  973 */     if (bool == null) {
+/*  974 */       return nullString;
+/*      */     }
+/*  976 */     return bool.booleanValue() ? trueString : falseString;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static String toStringOnOff(boolean bool)
+/*      */   {
+/*  992 */     return toString(bool, "on", "off");
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static String toStringOnOff(Boolean bool)
+/*      */   {
+/* 1009 */     return toString(bool, "on", "off", null);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static String toStringTrueFalse(boolean bool)
+/*      */   {
+/* 1025 */     return toString(bool, "true", "false");
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static String toStringTrueFalse(Boolean bool)
+/*      */   {
+/* 1042 */     return toString(bool, "true", "false", null);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static String toStringYesNo(boolean bool)
+/*      */   {
+/* 1058 */     return toString(bool, "yes", "no");
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static String toStringYesNo(Boolean bool)
+/*      */   {
+/* 1075 */     return toString(bool, "yes", "no", null);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static boolean xor(boolean... array)
+/*      */   {
+/* 1093 */     ObjectUtils.requireNonEmpty(array, "array");
+/*      */     
+/* 1095 */     boolean result = false;
+/* 1096 */     for (boolean element : array) {
+/* 1097 */       result ^= element;
+/*      */     }
+/*      */     
+/* 1100 */     return result;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static Boolean xor(Boolean... array)
+/*      */   {
+/* 1120 */     ObjectUtils.requireNonEmpty(array, "array");
+/*      */     try {
+/* 1122 */       boolean[] primitive = ArrayUtils.toPrimitive(array);
+/* 1123 */       return xor(primitive) ? Boolean.TRUE : Boolean.FALSE;
+/*      */     } catch (NullPointerException ex) {
+/* 1125 */       throw new IllegalArgumentException("The array must not contain any null elements");
+/*      */     }
+/*      */   }
+/*      */ }

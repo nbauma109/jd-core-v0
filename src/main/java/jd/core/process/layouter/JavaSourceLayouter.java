@@ -20,6 +20,7 @@ import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
+
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -603,10 +604,11 @@ public class JavaSourceLayouter
                         tagCase, classFile, method, fs, firstIndex, i));
                 firstIndex = i+1;
 
-                layoutBlockList.add(new CaseBlockStartLayoutBlock());
+                boolean needBrackets = pair.hasDeclaration();
+                layoutBlockList.add(new CaseBlockStartLayoutBlock(needBrackets));
                 createBlocks(
                         preferences, layoutBlockList, classFile, method, instructions);
-                layoutBlockList.add(new CaseBlockEndLayoutBlock());
+                layoutBlockList.add(new CaseBlockEndLayoutBlock(needBrackets));
             }
         }
 
@@ -702,10 +704,11 @@ public class JavaSourceLayouter
                         classFile, method, fs, firstIndex, i, switchMapKey));
                 firstIndex = i+1;
 
-                layoutBlockList.add(new CaseBlockStartLayoutBlock());
+                boolean needBrackets = pair.hasDeclaration();
+                layoutBlockList.add(new CaseBlockStartLayoutBlock(needBrackets));
                 createBlocks(
                         preferences, layoutBlockList, classFile, method, instructions);
-                layoutBlockList.add(new CaseBlockEndLayoutBlock());
+                layoutBlockList.add(new CaseBlockEndLayoutBlock(needBrackets));
             }
         }
 
