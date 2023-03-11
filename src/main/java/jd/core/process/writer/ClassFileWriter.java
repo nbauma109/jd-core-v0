@@ -50,6 +50,8 @@ import jd.core.model.instruction.fast.instruction.FastTry.FastCatch;
 import jd.core.model.layout.block.AnnotationsLayoutBlock;
 import jd.core.model.layout.block.BlockLayoutBlock;
 import jd.core.model.layout.block.ByteCodeLayoutBlock;
+import jd.core.model.layout.block.CaseBlockEndLayoutBlock;
+import jd.core.model.layout.block.CaseBlockStartLayoutBlock;
 import jd.core.model.layout.block.CaseEnumLayoutBlock;
 import jd.core.model.layout.block.CaseLayoutBlock;
 import jd.core.model.layout.block.DeclareLayoutBlock;
@@ -285,10 +287,10 @@ public final class ClassFileWriter
                 writeSwitchBlockEnd(lb);
                 break;
             case LayoutBlockConstants.CASE_BLOCK_START:
-                writeCaseBlockStart(lb);
+                writeCaseBlockStart((CaseBlockStartLayoutBlock) lb);
                 break;
             case LayoutBlockConstants.CASE_BLOCK_END:
-                writeCaseBlockEnd(lb);
+                writeCaseBlockEnd((CaseBlockEndLayoutBlock) lb);
                 break;
             case LayoutBlockConstants.FOR_BLOCK_START:
                 writeForBlockStart(lb);
@@ -1334,11 +1336,13 @@ public final class ClassFileWriter
             lb.getMinimalLineCount(), lb.getLineCount(), lb.getMaximalLineCount());
     }
 
-    private void writeCaseBlockStart(LayoutBlock lb)
+    private void writeCaseBlockStart(CaseBlockStartLayoutBlock lb)
     {
         this.printer.indent();
         this.printer.debugStartOfCaseBlockLayoutBlock();
-        //writeSeparator(lb);
+        if (lb.isBracketNeeded()) {
+            this.printer.print('{');
+        }
         int lineCount = lb.getLineCount();
 
         //DEBUG this.printer.print('^');
@@ -1368,7 +1372,7 @@ public final class ClassFileWriter
         this.printer.debugEndOfCaseBlockLayoutBlock();
     }
 
-    private void writeCaseBlockEnd(LayoutBlock lb)
+    private void writeCaseBlockEnd(CaseBlockEndLayoutBlock lb)
     {
         this.printer.desindent();
         this.printer.debugStartOfCaseBlockLayoutBlock();
@@ -1398,6 +1402,10 @@ public final class ClassFileWriter
         else
         {
             this.printer.print(' ');
+        }
+        if (lb.isBracketNeeded()) {
+            this.printer.print('}');
+            this.addSpace = true;
         }
         this.printer.debugEndOfCaseBlockLayoutBlock();
     }

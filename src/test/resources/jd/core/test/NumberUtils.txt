@@ -751,7 +751,7 @@
 /*      */         }
 /*  752 */         throw new NumberFormatException(str + " is not a valid number.");
 /*      */       case 'F': 
-/*      */       case 'f': 
+/*      */       case 'f': {
 /*      */         try {
 /*  756 */           Float f = createFloat(str);
 /*  757 */           if ((!f.isInfinite()) && ((f.floatValue() != 0.0F) || (allZeros)))
@@ -763,8 +763,8 @@
 /*      */         catch (NumberFormatException localNumberFormatException1) {}
 /*      */       
 /*      */ 
-/*      */       case 'D': 
-/*      */       case 'd': 
+/*      */       } case 'D': 
+/*      */       case 'd': {
 /*      */         try
 /*      */         {
 /*  770 */           Double d = createDouble(str);
@@ -778,7 +778,7 @@
 /*  778 */           return createBigDecimal(numeric);
 /*      */         }
 /*      */         catch (NumberFormatException localNumberFormatException3) {}
-/*      */       }
+/*      */       }}
 /*      */       
 /*      */       
 /*  784 */       throw new NumberFormatException(str + " is not a valid number.");

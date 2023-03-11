@@ -20,12 +20,19 @@ import jd.core.model.instruction.bytecode.instruction.Instruction;
 
 public class CaseBlockEndLayoutBlock extends LayoutBlock
 {
-    public CaseBlockEndLayoutBlock()
+    private final boolean bracketNeeded;
+
+    public CaseBlockEndLayoutBlock(boolean bracketNeeded)
     {
         super(
             LayoutBlockConstants.CASE_BLOCK_END,
             Instruction.UNKNOWN_LINE_NUMBER,
             Instruction.UNKNOWN_LINE_NUMBER,
             0, LayoutBlockConstants.UNLIMITED_LINE_COUNT, 1);
+        this.bracketNeeded = bracketNeeded;
+    }
+
+    public boolean isBracketNeeded() {
+        return bracketNeeded;
     }
 }
