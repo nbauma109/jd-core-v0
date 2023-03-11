@@ -19,7 +19,7 @@ package jd.core.model.instruction.fast.instruction;
 import java.util.List;
 import java.util.Objects;
 
-import jd.core.model.classfile.ConstantPool;
+import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.instruction.bytecode.instruction.BranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
@@ -131,7 +131,7 @@ public class FastSwitch extends BranchInstruction
 
     @Override
     public String getReturnedSignature(
-            ConstantPool constants, LocalVariables localVariables)
+            ClassFile classFile, LocalVariables localVariables)
     {
         return null;
     }

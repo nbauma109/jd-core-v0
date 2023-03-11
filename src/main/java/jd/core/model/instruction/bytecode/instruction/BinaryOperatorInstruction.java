@@ -16,7 +16,8 @@
  ******************************************************************************/
 package jd.core.model.instruction.bytecode.instruction;
 
-import jd.core.model.classfile.ConstantPool;
+
+import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariables;
 
 /* Priority  Operator   Operation                            Order of Evaluation
@@ -82,7 +83,7 @@ public class BinaryOperatorInstruction extends Instruction
 
     @Override
     public String getReturnedSignature(
-            ConstantPool constants, LocalVariables localVariables)
+            ClassFile classFile, LocalVariables localVariables)
     {
         return this.getSignature();
     }

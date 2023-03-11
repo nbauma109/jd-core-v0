@@ -45,12 +45,12 @@ public final class DupLocalVariableAnalyzer
         ClassFile classFile, Method method, List<Instruction> list)
     {
         recursiveDeclare(
-            classFile.getConstantPool(), method.getLocalVariables(),
+            classFile, method.getLocalVariables(),
             method.getCode().length, list);
     }
 
     private static void recursiveDeclare(
-            ConstantPool constants,
+            ClassFile classFile,
             LocalVariables localVariables,
             int codeLength,
             List<Instruction> list)
@@ -76,7 +76,7 @@ public final class DupLocalVariableAnalyzer
                         ((FastList)instruction).getInstructions();
                     if (instructions != null) {
                         recursiveDeclare(
-                            constants, localVariables, codeLength, instructions);
+                            classFile, localVariables, codeLength, instructions);
                     }
                 }
                 break;
@@ -85,9 +85,9 @@ public final class DupLocalVariableAnalyzer
                 {
                     FastTest2Lists ft2l = (FastTest2Lists)instruction;
                     recursiveDeclare(
-                        constants, localVariables, codeLength, ft2l.getInstructions());
+                        classFile, localVariables, codeLength, ft2l.getInstructions());
                     recursiveDeclare(
-                        constants, localVariables, codeLength, ft2l.getInstructions2());
+                        classFile, localVariables, codeLength, ft2l.getInstructions2());
                 }
                 break;
 
@@ -102,7 +102,7 @@ public final class DupLocalVariableAnalyzer
                             List<Instruction> instructions = pairs[i].getInstructions();
                             if (instructions != null) {
                                 recursiveDeclare(
-                                    constants, localVariables, codeLength, instructions);
+                                    classFile, localVariables, codeLength, instructions);
                             }
                         }
                     }
@@ -113,19 +113,19 @@ public final class DupLocalVariableAnalyzer
                 {
                     FastTry ft = (FastTry)instruction;
                     recursiveDeclare(
-                        constants, localVariables, codeLength, ft.getInstructions());
+                        classFile, localVariables, codeLength, ft.getInstructions());
 
                     if (ft.getCatches() != null) {
                         for (int i=ft.getCatches().size()-1; i>=0; --i) {
                             recursiveDeclare(
-                                constants, localVariables,
+                                classFile, localVariables,
                                 codeLength, ft.getCatches().get(i).instructions());
                         }
                     }
 
                     if (ft.getFinallyInstructions() != null) {
                         recursiveDeclare(
-                            constants, localVariables,
+                            classFile, localVariables,
                             codeLength, ft.getFinallyInstructions());
                     }
                 }
@@ -144,8 +144,9 @@ public final class DupLocalVariableAnalyzer
             DupStore dupStore = (DupStore)instruction;
 
             String signature =
-                dupStore.getObjectref().getReturnedSignature(constants, localVariables);
+                dupStore.getObjectref().getReturnedSignature(classFile, localVariables);
 
+            ConstantPool constants = classFile.getConstantPool();
             int signatureIndex = constants.addConstantUtf8(signature);
             int nameIndex = constants.addConstantUtf8(
                 StringConstants.TMP_LOCAL_VARIABLE_NAME +

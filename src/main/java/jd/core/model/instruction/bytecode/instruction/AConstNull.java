@@ -16,7 +16,7 @@
  ******************************************************************************/
 package jd.core.model.instruction.bytecode.instruction;
 
-import jd.core.model.classfile.ConstantPool;
+import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariables;
 
 public class AConstNull extends Instruction
@@ -28,7 +28,7 @@ public class AConstNull extends Instruction
 
     @Override
     public String getReturnedSignature(
-            ConstantPool constants, LocalVariables localVariables)
+            ClassFile classFile, LocalVariables localVariables)
     {
         return null;
     }

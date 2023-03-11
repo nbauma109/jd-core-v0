@@ -16,7 +16,7 @@
  ******************************************************************************/
 package jd.core.model.instruction.bytecode.instruction;
 
-import jd.core.model.classfile.ConstantPool;
+import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariables;
 
 public class DupLoad extends Instruction
@@ -31,13 +31,13 @@ public class DupLoad extends Instruction
 
     @Override
     public String getReturnedSignature(
-            ConstantPool constants, LocalVariables localVariables)
+            ClassFile classFile, LocalVariables localVariables)
     {
         if (getDupStore() == null) {
             throw new IllegalStateException("DupLoad without DupStore");
         }
 
-        return getDupStore().getReturnedSignature(constants, localVariables);
+        return getDupStore().getReturnedSignature(classFile, localVariables);
     }
 
     public DupStore getDupStore() {

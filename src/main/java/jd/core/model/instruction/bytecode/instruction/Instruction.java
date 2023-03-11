@@ -16,7 +16,7 @@
  ******************************************************************************/
 package jd.core.model.instruction.bytecode.instruction;
 
-import jd.core.model.classfile.ConstantPool;
+import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariables;
 
 public abstract class Instruction
@@ -38,7 +38,7 @@ public abstract class Instruction
     }
 
     public abstract String getReturnedSignature(
-            ConstantPool constants, LocalVariables localVariables);
+            ClassFile classFile, LocalVariables localVariables);
 
     public int getPriority()
     {

@@ -16,7 +16,7 @@
  ******************************************************************************/
 package jd.core.model.instruction.bytecode.instruction;
 
-import jd.core.model.classfile.ConstantPool;
+import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariables;
 
 public class IncInstruction extends Instruction
@@ -34,10 +34,10 @@ public class IncInstruction extends Instruction
 
     @Override
     public String getReturnedSignature(
-            ConstantPool constants, LocalVariables localVariables)
+            ClassFile classFile, LocalVariables localVariables)
     {
         return this.getValue() == null ? null :
-            this.getValue().getReturnedSignature(constants, localVariables);
+            this.getValue().getReturnedSignature(classFile, localVariables);
     }
 
     @Override

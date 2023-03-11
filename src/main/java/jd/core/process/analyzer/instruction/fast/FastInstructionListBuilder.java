@@ -1274,7 +1274,7 @@ public final class FastInstructionListBuilder {
             {
                 ReturnInstruction ri = (ReturnInstruction)instruction;
                 String returnedSignature =
-                    ri.getValueref().getReturnedSignature(constants, localVariables);
+                    ri.getValueref().getReturnedSignature(classFile, localVariables);
 
                 if (INTERNAL_OBJECT_SIGNATURE.equals(returnedSignature) && ! INTERNAL_OBJECT_SIGNATURE.equals(methodReturnedSignature))
                 {
@@ -1295,7 +1295,7 @@ public final class FastInstructionListBuilder {
                 // Remove unnecessary cast to T
                 TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
                 Type methodReturnedType = typeMaker.makeFromSignature(methodReturnedSignature);
-                RemoveCheckCastVisitor visitor = new RemoveCheckCastVisitor(constants, localVariables, typeMaker, methodReturnedType);
+                RemoveCheckCastVisitor visitor = new RemoveCheckCastVisitor(classFile, localVariables, typeMaker, methodReturnedType);
                 visitor.visit(ri.getValueref());
 
                 // Update cast (Object[]) to (T[])
@@ -1554,7 +1554,7 @@ public final class FastInstructionListBuilder {
                                 Instruction valueref = si.getValueref();
                                 if (valueref instanceof CheckCast) {
                                     CheckCast cc = (CheckCast) valueref;
-                                    String castSignature = cc.getReturnedSignature(classFile.getConstantPool(), localVariables);
+                                    String castSignature = cc.getReturnedSignature(classFile, localVariables);
                                     String lvSignature = lv.getSignature(classFile.getConstantPool());
                                     if ("[Ljava/lang/Object;".equals(castSignature) && "[TT;".equals(lvSignature)) {
                                         cc.setGenericSignature(lvSignature);

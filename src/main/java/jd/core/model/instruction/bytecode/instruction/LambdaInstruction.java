@@ -21,7 +21,6 @@ import org.jd.core.v1.model.javasyntax.type.Type;
 import java.util.List;
 
 import jd.core.model.classfile.ClassFile;
-import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.classfile.Method;
 
@@ -41,7 +40,7 @@ public class LambdaInstruction extends Instruction {
     }
 
     @Override
-    public String getReturnedSignature(ConstantPool constants, LocalVariables localVariables) {
+    public String getReturnedSignature(ClassFile classFile, LocalVariables localVariables) {
         return returnType.getDescriptor();
     }
 

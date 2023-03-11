@@ -19,7 +19,7 @@ package jd.core.process.analyzer.classfile.visitor;
 import org.jd.core.v1.model.javasyntax.type.Type;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
 
-import jd.core.model.classfile.ConstantPool;
+import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.instruction.bytecode.instruction.CheckCast;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
@@ -27,16 +27,16 @@ import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 
 public class RemoveCheckCastVisitor
 {
-    private final ConstantPool constants;
+    private final ClassFile classFile;
     private final LocalVariables localVariables;
     private final TypeMaker typeMaker;
     private final Type returnedType;
 
     public RemoveCheckCastVisitor(
-            ConstantPool constants, LocalVariables localVariables,
+            ClassFile classFile, LocalVariables localVariables,
             TypeMaker typeMaker, Type returnedType)
     {
-        this.constants = constants;
+        this.classFile = classFile;
         this.localVariables = localVariables;
         this.typeMaker = typeMaker;
         this.returnedType = returnedType;
@@ -48,7 +48,7 @@ public class RemoveCheckCastVisitor
             TernaryOperator fto = (TernaryOperator) instruction;
             if (fto.getValue1() instanceof CheckCast) {
                 CheckCast cc = (CheckCast) fto.getValue1();
-                String expSignature = cc.getObjectref().getReturnedSignature(constants, localVariables);
+                String expSignature = cc.getObjectref().getReturnedSignature(classFile, localVariables);
                 Type expType = typeMaker.makeFromSignature(expSignature);
                 if (returnedType.equals(expType)) {
                     fto.setValue1(cc.getObjectref());
@@ -58,7 +58,7 @@ public class RemoveCheckCastVisitor
             }
             if (fto.getValue2() instanceof CheckCast) {
                 CheckCast cc = (CheckCast) fto.getValue2();
-                String expSignature = cc.getObjectref().getReturnedSignature(constants, localVariables);
+                String expSignature = cc.getObjectref().getReturnedSignature(classFile, localVariables);
                 Type expType = typeMaker.makeFromSignature(expSignature);
                 if (returnedType.equals(expType)) {
                     fto.setValue2(cc.getObjectref());

@@ -18,7 +18,7 @@ package jd.core.model.instruction.bytecode.instruction;
 
 import java.util.List;
 
-import jd.core.model.classfile.ConstantPool;
+import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariables;
 
 public class InitArrayInstruction extends Instruction
@@ -37,9 +37,9 @@ public class InitArrayInstruction extends Instruction
 
     @Override
     public String getReturnedSignature(
-            ConstantPool constants, LocalVariables localVariables)
+            ClassFile classFile, LocalVariables localVariables)
     {
-        return this.getNewArray().getReturnedSignature(constants, localVariables);
+        return this.getNewArray().getReturnedSignature(classFile, localVariables);
     }
 
     public List<Instruction> getValues() {

@@ -16,7 +16,7 @@
  ******************************************************************************/
 package jd.core.model.instruction.fast.instruction;
 
-import jd.core.model.classfile.ConstantPool;
+import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 
@@ -33,7 +33,7 @@ public class FastInstruction extends Instruction
 
     @Override
     public String getReturnedSignature(
-            ConstantPool constants, LocalVariables localVariables)
+            ClassFile classFile, LocalVariables localVariables)
     {
         return null;
     }

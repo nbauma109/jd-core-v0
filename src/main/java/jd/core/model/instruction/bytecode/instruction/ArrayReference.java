@@ -18,7 +18,7 @@ package jd.core.model.instruction.bytecode.instruction;
 
 import org.jd.core.v1.model.javasyntax.type.ObjectType;
 
-import jd.core.model.classfile.ConstantPool;
+import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.printer.Printer;
 import jd.core.process.writer.SourceWriteable;
@@ -49,7 +49,7 @@ public class ArrayReference extends Instruction implements SourceWriteable {
     }
 
     @Override
-    public String getReturnedSignature(ConstantPool constants, LocalVariables localVariables) {
+    public String getReturnedSignature(ClassFile classFile, LocalVariables localVariables) {
         throw new UnsupportedOperationException();
     }
 

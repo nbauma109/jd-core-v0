@@ -18,6 +18,7 @@ package jd.core.model.instruction.bytecode.instruction;
 
 import org.jd.core.v1.util.StringConstants;
 
+import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
@@ -31,11 +32,13 @@ public class ALoad extends LoadInstruction
 
     @Override
     public String getReturnedSignature(
-            ConstantPool constants, LocalVariables localVariables)
+            ClassFile classFile, LocalVariables localVariables)
     {
-        if (constants == null || localVariables == null) {
+        if (classFile == null) {
             return null;
         }
+
+        ConstantPool constants = classFile.getConstantPool();
 
         LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(this.getIndex(), this.getOffset());
 

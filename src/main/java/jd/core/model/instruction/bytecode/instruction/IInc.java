@@ -16,8 +16,7 @@
  ******************************************************************************/
 package jd.core.model.instruction.bytecode.instruction;
 
-import jd.core.model.classfile.ConstantPool;
-import jd.core.model.classfile.LocalVariable;
+import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariables;
 
 public class IInc extends IndexInstruction
@@ -32,19 +31,9 @@ public class IInc extends IndexInstruction
 
     @Override
     public String getReturnedSignature(
-            ConstantPool constants, LocalVariables localVariables)
+            ClassFile classFile, LocalVariables localVariables)
     {
-        if (constants == null || localVariables == null) {
-            return null;
-        }
-
-        LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(this.getIndex(), this.getOffset());
-
-        if (lv == null || lv.getSignatureIndex() <= 0) {
-            return null;
-        }
-
-        return lv.getSignature(constants);
+        throw new UnsupportedOperationException();
     }
 
     @Override

@@ -2036,7 +2036,7 @@ public final class ClassFileWriter
         }
 
         String signature = clb.getFs().getTest().getReturnedSignature(
-            clb.getClassFile().getConstantPool(), clb.getMethod().getLocalVariables());
+            clb.getClassFile(), clb.getMethod().getLocalVariables());
         char type = signature == null ? 'X' : signature.charAt(0);
 
         FastSwitch.Pair[] pairs = clb.getFs().getPairs();
