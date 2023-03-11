@@ -142,8 +142,8 @@
 /* 142 */           buffer.append("null");
 /*     */         } else {
 /*     */           String valueStr;
-/*     */           String valueStr;
-/* 146 */           try { valueStr = value.toString();
+/*     */           try {
+/* 146 */             valueStr = value.toString();
 /*     */           } catch (Exception e) {
 /* 148 */             valueStr = "Exception thrown on toString(): " + ExceptionUtils.getStackTrace(e);
 /*     */           }

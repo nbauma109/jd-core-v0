@@ -1633,7 +1633,9 @@ public final class FastInstructionListBuilder {
                     FastDeclaration fastDeclaration = new FastDeclaration(FastConstants.DECLARE, lv.getStartPc(),
                             Instruction.UNKNOWN_LINE_NUMBER, lv, null);
                     if (addDeclarations) {
-                        list.add(indexForNewDeclaration, fastDeclaration);
+                        if (!variableFound(list, lv)) {
+                            list.add(indexForNewDeclaration, fastDeclaration);
+                        }
                     } else {
                         outerDeclarations.add(fastDeclaration);
                     }
@@ -1642,6 +1644,12 @@ public final class FastInstructionListBuilder {
             }
         }
         return outerDeclarations;
+    }
+
+    private static boolean variableFound(List<Instruction> list, LocalVariable lv) {
+        return list.stream()
+                .filter(FastDeclaration.class::isInstance)
+                .anyMatch(i -> ((FastDeclaration)i).getLv().getNameIndex() == lv.getNameIndex());
     }
 
     private static ReturnInstruction findReturnInstructionForStore(List<Instruction> list, int length, int i, StoreInstruction si) {
