@@ -38,10 +38,6 @@ public class ILoad extends LoadInstruction
 
         ConstantPool constants = classFile.getConstantPool();
 
-        if (constants == null || localVariables == null) {
-            return null;
-        }
-
         LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(this.getIndex(), this.getOffset());
 
         if (lv == null || lv.getSignatureIndex() < 0) {
