@@ -20,6 +20,7 @@ import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantUtf8;
 
+import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.util.SignatureUtil;
@@ -39,11 +40,13 @@ public class CheckCast extends IndexInstruction
 
     @Override
     public String getReturnedSignature(
-            ConstantPool constants, LocalVariables localVariables)
+            ClassFile classFile, LocalVariables localVariables)
     {
         if (genericSignature != null) {
             return genericSignature;
         }
+
+        ConstantPool constants = classFile.getConstantPool();
 
         if (constants == null) {
             return null;

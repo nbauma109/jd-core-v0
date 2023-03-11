@@ -20,7 +20,6 @@ import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.Signature;
-import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.List;
@@ -209,14 +208,14 @@ public final class LocalVariableAnalyzer
             String returnedSignature = getReturnedSignature(classFile, method);
 
             analyzeMethodCode(
-                    constants, localVariables, list, listForAnalyze,
-                    returnedSignature, new TypeMaker(classFile.getLoader()));
+                    classFile, localVariables, list, listForAnalyze,
+                    returnedSignature);
 
             // Upgrade byte type to char type
             // Substitution des types byte par char dans les instructions
             // bipush et sipush
             setConstantTypes(
-                    constants, localVariables,
+                    classFile, localVariables,
                     list, listForAnalyze, returnedSignature);
 
             initialyzeExceptionLoad(listForAnalyze, localVariables);
@@ -678,20 +677,21 @@ public final class LocalVariableAnalyzer
 
     // Create new local variables, set range and type, update attribute
     // 'exception'
-    /**
+    /*
      * Strategie :
      *     - Recherche de tous les instructions '?store' et '?load'
      *  - Determiner le type de la viariable
      *  - Si la variable n'est pas encore definie, ajouter une entrée dans la
      *    Liste
      *  - Sinon, si le type est compatible
-     * @param typeMaker 
      */
     private static void analyzeMethodCode(
-            ConstantPool constants,
+            ClassFile classFile,
             LocalVariables localVariables, List<Instruction> list,
-            List<Instruction> listForAnalyze, String returnedSignature, TypeMaker typeMaker)
+            List<Instruction> listForAnalyze, String returnedSignature)
     {
+        ConstantPool constants = classFile.getConstantPool();
+
         // Recherche des instructions d'ecriture des variables locales.
         int length = listForAnalyze.size();
 
@@ -707,7 +707,7 @@ public final class LocalVariableAnalyzer
              || instruction.getOpcode() == Const.ALOAD
              || instruction.getOpcode() == Const.IINC) {
                 subAnalyzeMethodCode(
-                        constants, localVariables, listForAnalyze,
+                        classFile, localVariables, listForAnalyze,
                         ((IndexInstruction)instruction).getIndex(), i,
                         returnedSignature);
             }
@@ -810,7 +810,7 @@ public final class LocalVariableAnalyzer
 
     /** Analyse du type de la variable locale No varIndex. */
     private static void subAnalyzeMethodCode(
-            ConstantPool constants, LocalVariables localVariables,
+            ClassFile classFile, LocalVariables localVariables,
             List<Instruction> listForAnalyze,
             int varIndex, int startIndex, String returnedSignature)
     {
@@ -850,17 +850,17 @@ public final class LocalVariableAnalyzer
             {
             case Const.ISTORE:
                 if (((IndexInstruction)instruction).getIndex() == varIndex) {
-                    analyzeIStore(constants, localVariables, instruction);
+                    analyzeIStore(classFile, localVariables, instruction);
                 }
                 break;
             case ByteCodeConstants.STORE:
                 if (((IndexInstruction)instruction).getIndex() == varIndex) {
-                    analyzeStore(constants, localVariables, instruction);
+                    analyzeStore(classFile, localVariables, instruction);
                 }
                 break;
             case Const.ASTORE:
                 if (((IndexInstruction)instruction).getIndex() == varIndex) {
-                    analyzeAStore(constants, localVariables, instruction);
+                    analyzeAStore(classFile, localVariables, instruction);
                 }
                 break;
             case ByteCodeConstants.PREINC,
@@ -893,24 +893,24 @@ public final class LocalVariableAnalyzer
                  Const.INVOKESPECIAL,
                  Const.INVOKESTATIC:
                 analyzeInvokeInstruction(
-                        constants, localVariables, instruction, varIndex);
+                        classFile.getConstantPool(), localVariables, instruction, varIndex);
                 break;
             case ByteCodeConstants.BINARYOP:
                 BinaryOperatorInstruction boi =
                 (BinaryOperatorInstruction)instruction;
                 analyzeBinaryOperator(
-                        constants, localVariables, instruction,
+                        classFile, localVariables, instruction,
                         boi.getValue1(), boi.getValue2(), varIndex);
                 break;
             case ByteCodeConstants.IFCMP:
                 IfCmp ic = (IfCmp)instruction;
                 analyzeBinaryOperator(
-                        constants, localVariables, instruction,
+                        classFile, localVariables, instruction,
                         ic.getValue1(), ic.getValue2(), varIndex);
                 break;
             case ByteCodeConstants.XRETURN:
                 analyzeReturnInstruction(
-                        constants, localVariables, instruction,
+                        classFile, localVariables, instruction,
                         varIndex, returnedSignature);
                 break;
             }
@@ -918,7 +918,7 @@ public final class LocalVariableAnalyzer
     }
 
     private static void analyzeIStore(
-            ConstantPool constants, LocalVariables localVariables,
+            ClassFile classFile, LocalVariables localVariables,
             Instruction instruction)
     {
         StoreInstruction store = (StoreInstruction)instruction;
@@ -928,7 +928,7 @@ public final class LocalVariableAnalyzer
         LocalVariable lv =
                 localVariables.searchLocalVariableWithIndexAndOffset(index, offset);
         String signature =
-                store.getReturnedSignature(constants, localVariables);
+                store.getReturnedSignature(classFile, localVariables);
 
         if (lv == null)
         {
@@ -994,8 +994,8 @@ public final class LocalVariableAnalyzer
                         offset, 1, -1, NUMBER_TYPE, index, typesBitField));
                 break;
             default:
-                String signatureLV =
-                lv.getSignature(constants);
+                ConstantPool constants = classFile.getConstantPool();
+                String signatureLV = lv.getSignature(constants);
                 int typesBitFieldLV =
                         SignatureUtil.createTypesBitField(signatureLV);
 
@@ -1153,7 +1153,7 @@ public final class LocalVariableAnalyzer
 
     /** Reduction de l'ensemble des types entiers. */
     private static void analyzeBinaryOperator(
-            ConstantPool constants, LocalVariables localVariables,
+            ClassFile classFile, LocalVariables localVariables,
             Instruction instruction, Instruction i1, Instruction i2,
             int varIndex)
     {
@@ -1198,7 +1198,7 @@ public final class LocalVariableAnalyzer
                 else
                 {
                     String signature =
-                            i2.getReturnedSignature(constants, localVariables);
+                            i2.getReturnedSignature(classFile, localVariables);
 
                     if (SignatureUtil.isIntegerSignature(signature))
                     {
@@ -1223,7 +1223,7 @@ public final class LocalVariableAnalyzer
             {
                 // Reduction des types de lv2
                 String signature =
-                        i1.getReturnedSignature(constants, localVariables);
+                        i1.getReturnedSignature(classFile, localVariables);
 
                 if (SignatureUtil.isIntegerSignature(signature))
                 {
@@ -1237,17 +1237,18 @@ public final class LocalVariableAnalyzer
     }
 
     private static void analyzeReturnInstruction(
-            ConstantPool constants, LocalVariables localVariables,
+            ClassFile classFile, LocalVariables localVariables,
             Instruction instruction, int varIndex, String returnedSignature)
     {
         ReturnInstruction ri = (ReturnInstruction)instruction;
+        ConstantPool constants = classFile.getConstantPool();
         analyzeArgOrReturnedInstruction(
                 constants, localVariables, ri.getValueref(),
                 varIndex, returnedSignature);
     }
 
     private static void analyzeStore(
-            ConstantPool constants, LocalVariables localVariables,
+            ClassFile classFile, LocalVariables localVariables,
             Instruction instruction)
     {
         StoreInstruction store = (StoreInstruction)instruction;
@@ -1256,8 +1257,9 @@ public final class LocalVariableAnalyzer
 
         LocalVariable lv =
                 localVariables.searchLocalVariableWithIndexAndOffset(index, offset);
+        ConstantPool constants = classFile.getConstantPool();
         String signature =
-                instruction.getReturnedSignature(constants, localVariables);
+                instruction.getReturnedSignature(classFile, localVariables);
         int signatureIndex =
                 signature != null ? constants.addConstantUtf8(signature) : -1;
 
@@ -1272,7 +1274,7 @@ public final class LocalVariableAnalyzer
     }
 
     private static void analyzeAStore(
-            ConstantPool constants, LocalVariables localVariables,
+            ClassFile classFile, LocalVariables localVariables,
             Instruction instruction)
     {
         StoreInstruction store = (StoreInstruction)instruction;
@@ -1282,7 +1284,8 @@ public final class LocalVariableAnalyzer
         LocalVariable lv =
                 localVariables.searchLocalVariableWithIndexAndOffset(index, offset);
         String signatureInstruction =
-                instruction.getReturnedSignature(constants, localVariables);
+                instruction.getReturnedSignature(classFile, localVariables);
+        ConstantPool constants = classFile.getConstantPool();
         int signatureInstructionIndex = signatureInstruction != null ?
                 constants.addConstantUtf8(signatureInstruction) : UNDEFINED_TYPE;
         boolean isExceptionOrReturnAddress =
@@ -1350,11 +1353,12 @@ public final class LocalVariableAnalyzer
      * bipush, sipush et iconst suivants les instructions istore et invoke.
      */
     private static void setConstantTypes(
-            ConstantPool constants,
+            ClassFile classFile,
             LocalVariables localVariables, List<Instruction> list,
             List<Instruction> listForAnalyze, String returnedSignature)
     {
         final int length = listForAnalyze.size();
+        ConstantPool constants = classFile.getConstantPool();
 
         // Affection du type des constantes depuis les instructions mères
         for (final Instruction instruction : listForAnalyze)
@@ -1364,14 +1368,14 @@ public final class LocalVariableAnalyzer
             case ByteCodeConstants.ARRAYLOAD:
             {
                 setConstantTypesArrayLoad(
-                        constants, localVariables,
+                        classFile, localVariables,
                         (ArrayLoadInstruction)instruction);
             }
             break;
             case ByteCodeConstants.ARRAYSTORE:
             {
                 setConstantTypesArrayStore(
-                        constants, localVariables,
+                        classFile.getConstantPool(), localVariables,
                         (ArrayStoreInstruction)instruction);
             }
             break;
@@ -1380,14 +1384,14 @@ public final class LocalVariableAnalyzer
                 BinaryOperatorInstruction boi =
                         (BinaryOperatorInstruction)instruction;
                 setConstantTypesBinaryOperator(
-                        constants, localVariables, boi.getValue1(), boi.getValue2());
+                        classFile, localVariables, boi.getValue1(), boi.getValue2());
             }
             break;
             case ByteCodeConstants.IFCMP:
             {
                 IfCmp ic = (IfCmp)instruction;
                 setConstantTypesBinaryOperator(
-                        constants, localVariables, ic.getValue1(), ic.getValue2());
+                        classFile, localVariables, ic.getValue1(), ic.getValue2());
             }
             break;
             case Const.INVOKEINTERFACE,
@@ -1437,7 +1441,7 @@ public final class LocalVariableAnalyzer
             {
                 TernaryOpStore tos = (TernaryOpStore)instruction;
                 setConstantTypesTernaryOpStore(
-                        constants, localVariables, list, tos);
+                        classFile, localVariables, list, tos);
             }
         }
     }
@@ -1479,7 +1483,7 @@ public final class LocalVariableAnalyzer
     }
 
     private static void setConstantTypesTernaryOpStore(
-            ConstantPool constants, LocalVariables localVariables,
+            ClassFile classFile, LocalVariables localVariables,
             List<Instruction> list, TernaryOpStore tos)
     {
         if (tos.getObjectref().getOpcode() == Const.BIPUSH || tos.getObjectref().getOpcode() == ByteCodeConstants.ICONST
@@ -1501,7 +1505,7 @@ public final class LocalVariableAnalyzer
                     if (result != null)
                     {
                         String signature =
-                                result.getReturnedSignature(constants, localVariables);
+                                result.getReturnedSignature(classFile, localVariables);
                         ((IConst)tos.getObjectref()).setReturnedSignature(signature);
                         break;
                     }
@@ -1513,15 +1517,16 @@ public final class LocalVariableAnalyzer
     }
 
     private static void setConstantTypesArrayLoad(
-            ConstantPool constants,
+            ClassFile classFile,
             LocalVariables localVariables,
             ArrayLoadInstruction ali)
     {
-        if (ali.getArrayref() instanceof ALoad && "B".equals(ali.getReturnedSignature(constants, localVariables))) {
+        if (ali.getArrayref() instanceof ALoad && "B".equals(ali.getReturnedSignature(classFile, localVariables))) {
             ALoad aload = (ALoad) ali.getArrayref();
             LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(
                     aload.getIndex(), aload.getOffset());
             if (lv != null) {
+                ConstantPool constants = classFile.getConstantPool();
                 String signature =
                         lv.getSignature(constants);
                 ali.setReturnedSignature(SignatureUtil.cutArrayDimensionPrefix(signature));
@@ -1587,7 +1592,7 @@ public final class LocalVariableAnalyzer
     }
 
     private static void setConstantTypesBinaryOperator(
-            ConstantPool constants,
+            ClassFile classFile,
             LocalVariables localVariables,
             Instruction i1, Instruction i2)
     {
@@ -1598,7 +1603,7 @@ public final class LocalVariableAnalyzer
              && i2.getOpcode() != ByteCodeConstants.ICONST
              && i2.getOpcode() != Const.SIPUSH) {
                 String signature = i2.getReturnedSignature(
-                        constants, localVariables);
+                        classFile, localVariables);
                 if (signature != null) {
                     ((IConst)i1).setReturnedSignature(signature);
                 }
@@ -1607,7 +1612,7 @@ public final class LocalVariableAnalyzer
                 || i2.getOpcode() == ByteCodeConstants.ICONST
                 || i2.getOpcode() == Const.SIPUSH) {
             String signature = i1.getReturnedSignature(
-                    constants, localVariables);
+                    classFile, localVariables);
             if (signature != null) {
                 ((IConst)i2).setReturnedSignature(signature);
             }

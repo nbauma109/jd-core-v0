@@ -383,7 +383,7 @@ public class SourceWriterVisitor
                     {
                         this.printer.print(lineNumber, '(');
     
-                        String signature = checkCast.getReturnedSignature(constants, localVariables);
+                        String signature = checkCast.getReturnedSignature(classFile, localVariables);
     
                         SignatureWriter.writeSignature(
                             this.loader, this.printer, this.referenceMap,
@@ -1094,7 +1094,7 @@ public class SourceWriterVisitor
     protected int writeIfTest(IfInstruction ifInstruction)
     {
         Instruction value = ifInstruction.getValue();
-        String signature = value.getReturnedSignature(constants, localVariables);
+        String signature = value.getReturnedSignature(classFile, localVariables);
 
         if (signature != null && signature.charAt(0) == 'Z')
         {
@@ -1430,7 +1430,7 @@ public class SourceWriterVisitor
                 } else {
                     typeName = SignatureUtil.createTypeName(internalClassName);
                     if (in.getPrefix() != null) { // pattern a.new A(...)
-                        String sig = SignatureUtil.getInternalName(in.getPrefix().getReturnedSignature(constants, localVariables));
+                        String sig = SignatureUtil.getInternalName(in.getPrefix().getReturnedSignature(classFile, localVariables));
                         typeName = typeName.replace(sig + '$', "");
                     }
                 }

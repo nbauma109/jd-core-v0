@@ -16,7 +16,7 @@
  ******************************************************************************/
 package jd.core.model.instruction.bytecode.instruction;
 
-import jd.core.model.classfile.ConstantPool;
+import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
 
@@ -33,19 +33,19 @@ public class IBinaryOperatorInstruction extends BinaryOperatorInstruction
 
     @Override
     public String getReturnedSignature(
-            ConstantPool constants, LocalVariables localVariables)
+            ClassFile classFile, LocalVariables localVariables)
     {
         String signature;
         if (ByteCodeUtil.isLoadIntValue(this.getValue1().getOpcode()))
         {
-            signature = this.getValue2().getReturnedSignature(constants, localVariables);
+            signature = this.getValue2().getReturnedSignature(classFile, localVariables);
             if (signature == null) {
-                signature = this.getValue1().getReturnedSignature(constants, localVariables);
+                signature = this.getValue1().getReturnedSignature(classFile, localVariables);
             }
         } else {
-            signature = this.getValue1().getReturnedSignature(constants, localVariables);
+            signature = this.getValue1().getReturnedSignature(classFile, localVariables);
             if (signature == null) {
-                signature = this.getValue2().getReturnedSignature(constants, localVariables);
+                signature = this.getValue2().getReturnedSignature(classFile, localVariables);
             }
         }
         return signature;

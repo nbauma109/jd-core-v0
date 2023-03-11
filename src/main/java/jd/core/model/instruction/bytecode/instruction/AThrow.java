@@ -16,7 +16,7 @@
  ******************************************************************************/
 package jd.core.model.instruction.bytecode.instruction;
 
-import jd.core.model.classfile.ConstantPool;
+import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariables;
 
 public class AThrow extends Instruction
@@ -32,9 +32,9 @@ public class AThrow extends Instruction
 
     @Override
     public String getReturnedSignature(
-            ConstantPool constants, LocalVariables localVariables)
+            ClassFile classFile, LocalVariables localVariables)
     {
-        return this.getValue().getReturnedSignature(constants, localVariables);
+        return this.getValue().getReturnedSignature(classFile, localVariables);
     }
 
     public Instruction getValue() {

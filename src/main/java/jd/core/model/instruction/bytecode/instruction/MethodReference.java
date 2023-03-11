@@ -18,7 +18,7 @@ package jd.core.model.instruction.bytecode.instruction;
 
 import java.util.List;
 
-import jd.core.model.classfile.ConstantPool;
+import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.printer.Printer;
 import jd.core.process.writer.SourceWriteable;
@@ -40,7 +40,7 @@ public class MethodReference extends Instruction implements SourceWriteable {
     }
 
     @Override
-    public String getReturnedSignature(ConstantPool constants, LocalVariables localVariables) {
+    public String getReturnedSignature(ClassFile classFile, LocalVariables localVariables) {
         return descriptor;
     }
 

@@ -16,18 +16,18 @@
  ******************************************************************************/
 package jd.core.model.instruction.bytecode.instruction;
 
-import org.apache.bcel.Repository;
 import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantNameAndType;
-import org.apache.bcel.classfile.JavaClass;
-import org.apache.bcel.classfile.Method;
-import org.jd.core.v1.service.converter.classfiletojavasyntax.util.ExceptionUtil;
+import org.apache.bcel.classfile.Signature;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.List;
 
+import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariables;
+import jd.core.model.classfile.Method;
+import jd.core.process.deserializer.ClassFileDeserializer;
 import jd.core.util.SignatureUtil;
 
 public abstract class InvokeInstruction extends IndexInstruction
@@ -44,8 +44,9 @@ public abstract class InvokeInstruction extends IndexInstruction
 
     @Override
     public String getReturnedSignature(
-            ConstantPool constants, LocalVariables localVariables)
+            ClassFile classFile, LocalVariables localVariables)
     {
+        ConstantPool constants = classFile.getConstantPool();
         if (constants == null) {
             return null;
         }
@@ -59,20 +60,16 @@ public abstract class InvokeInstruction extends IndexInstruction
         String methodDescriptor = constants.getConstantUtf8(cnat.getSignatureIndex());
 
         String methodReturnedSignature = SignatureUtil.getMethodReturnedSignature(methodDescriptor);
-        if (StringConstants.INTERNAL_OBJECT_SIGNATURE.equals(methodReturnedSignature) && internalClassName.charAt(0) != '[') {
-            try {
-                JavaClass javaClass = Repository.lookupClass(internalClassName);
-                Method[] methods = javaClass.getMethods();
-                for (Method method : methods) {
-                    if (method.getName().equals(methodName) && method.getSignature().equals(methodDescriptor)) {
-                        String genericSignature = method.getGenericSignature();
-                        if (genericSignature != null) {
-                            return SignatureUtil.getMethodReturnedSignature(genericSignature);
-                        }
-                    }
+        if (StringConstants.INTERNAL_OBJECT_SIGNATURE.equals(methodReturnedSignature)
+                && internalClassName.charAt(0) != '['
+                && classFile.getLoader().canLoad(internalClassName)) {
+            ClassFile javaClass = ClassFileDeserializer.deserialize(classFile.getLoader(), internalClassName);
+            Method method = javaClass.getMethod(methodName, methodDescriptor);
+            if (method != null) {
+                Signature genericSignature = method.getAttributeSignature();
+                if (genericSignature != null) {
+                    return SignatureUtil.getMethodReturnedSignature(genericSignature.getSignature());
                 }
-            } catch (ClassNotFoundException e) {
-                assert ExceptionUtil.printStackTrace(e);
             }
         }
         return methodReturnedSignature;

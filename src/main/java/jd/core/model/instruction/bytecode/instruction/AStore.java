@@ -16,7 +16,7 @@
  ******************************************************************************/
 package jd.core.model.instruction.bytecode.instruction;
 
-import jd.core.model.classfile.ConstantPool;
+import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariables;
 
 public class AStore extends StoreInstruction
@@ -30,9 +30,9 @@ public class AStore extends StoreInstruction
 
     @Override
     public String getReturnedSignature(
-            ConstantPool constants, LocalVariables localVariables)
+            ClassFile classFile, LocalVariables localVariables)
     {
-        return this.getValueref().getReturnedSignature(constants, localVariables);
+        return this.getValueref().getReturnedSignature(classFile, localVariables);
     }
 
     public boolean isIdentityExceptionAssignment() {

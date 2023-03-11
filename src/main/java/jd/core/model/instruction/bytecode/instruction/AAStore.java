@@ -16,7 +16,7 @@
  ******************************************************************************/
 package jd.core.model.instruction.bytecode.instruction;
 
-import jd.core.model.classfile.ConstantPool;
+import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariables;
 
 public class AAStore extends ArrayStoreInstruction
@@ -30,10 +30,10 @@ public class AAStore extends ArrayStoreInstruction
 
     @Override
     public String getReturnedSignature(
-            ConstantPool constants, LocalVariables localVariables)
+            ClassFile classFile, LocalVariables localVariables)
     {
         String signature =
-            this.getArrayref().getReturnedSignature(constants, localVariables);
+            this.getArrayref().getReturnedSignature(classFile, localVariables);
 
         if (signature == null || signature.isEmpty() ||
             signature.charAt(0) != '[') {

@@ -20,6 +20,7 @@ import org.apache.bcel.Const;
 import org.apache.bcel.classfile.Constant;
 import org.jd.core.v1.util.StringConstants;
 
+import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariables;
 
@@ -32,8 +33,10 @@ public class Ldc extends LdcInstruction
 
     @Override
     public String getReturnedSignature(
-            ConstantPool constants, LocalVariables localVariables)
+            ClassFile classFile, LocalVariables localVariables)
     {
+        ConstantPool constants = classFile.getConstantPool();
+
         if (constants == null) {
             return null;
         }

@@ -41,7 +41,7 @@ public class Dup2X1Factory implements InstructionFactory
         Instruction i2 = stack.pop();
 
         String signature1 = i1.getReturnedSignature(
-                classFile.getConstantPool(), method.getLocalVariables());
+                classFile, method.getLocalVariables());
 
         if ("J".equals(signature1) || "D".equals(signature1))
         {
