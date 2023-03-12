@@ -1,0 +1,513 @@
+/*     */ package org.apache.commons.lang3.stream;
+/*     */ 
+/*     */ import java.util.ArrayList;
+/*     */ import java.util.Collection;
+/*     */ import java.util.Collections;
+/*     */ import java.util.List;
+/*     */ import java.util.Set;
+/*     */ import java.util.function.BiConsumer;
+/*     */ import java.util.function.BinaryOperator;
+/*     */ import java.util.function.Function;
+/*     */ import java.util.function.Supplier;
+/*     */ import java.util.stream.Collector;
+/*     */ import java.util.stream.Collector.Characteristics;
+/*     */ import java.util.stream.Stream;
+/*     */ import org.apache.commons.lang3.function.Failable;
+/*     */ import org.apache.commons.lang3.function.FailableConsumer;
+/*     */ import org.apache.commons.lang3.function.FailableFunction;
+/*     */ import org.apache.commons.lang3.function.FailablePredicate;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class Streams
+/*     */ {
+/*     */   public static class ArrayCollector<O>
+/*     */     implements Collector<O, List<O>, O[]>
+/*     */   {
+/*     */     private final Class<O> elementType;
+/*  75 */     private static final Set<Characteristics> characteristics = Collections.emptySet();
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public ArrayCollector(Class<O> elementType)
+/*     */     {
+/*  84 */       this.elementType = elementType;
+/*     */     }
+/*     */     
+/*     */     public BiConsumer<List<O>, O> accumulator()
+/*     */     {
+/*  89 */       return List::add;
+/*     */     }
+/*     */     
+/*     */     public Set<Characteristics> characteristics()
+/*     */     {
+/*  94 */       return characteristics;
+/*     */     }
+/*     */     
+/*     */     public BinaryOperator<List<O>> combiner()
+/*     */     {
+/*  99 */       return (left, right) ->  {
+/* 100 */         left.addAll(right);
+/* 101 */         return left;
+/*     */       };
+/*     */     }
+/*     */     
+/*     */     public Function<List<O>, O[]> finisher()
+/*     */     {
+/* 107 */       return list -> 
+/*     */       {
+/* 109 */         O[] array = (O[])java.lang.reflect.Array.newInstance(this.elementType, list.size());
+/* 110 */         return list.toArray(array);
+/*     */       };
+/*     */     }
+/*     */     
+/*     */     public Supplier<List<O>> supplier()
+/*     */     {
+/* 116 */       return ArrayList::new;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public static class FailableStream<O>
+/*     */   {
+/*     */     private Stream<O> stream;
+/*     */     
+/*     */ 
+/*     */ 
+/*     */     private boolean terminated;
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public FailableStream(Stream<O> stream)
+/*     */     {
+/* 136 */       this.stream = stream;
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public boolean allMatch(FailablePredicate<O, ?> predicate)
+/*     */     {
+/* 156 */       assertNotTerminated();
+/* 157 */       return stream().allMatch(Failable.asPredicate(predicate));
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public boolean anyMatch(FailablePredicate<O, ?> predicate)
+/*     */     {
+/* 175 */       assertNotTerminated();
+/* 176 */       return stream().anyMatch(Failable.asPredicate(predicate));
+/*     */     }
+/*     */     
+/*     */     protected void assertNotTerminated() {
+/* 180 */       if (this.terminated) {
+/* 181 */         throw new IllegalStateException("This stream is already terminated.");
+/*     */       }
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public <A, R> R collect(Collector<? super O, A, R> collector)
+/*     */     {
+/* 241 */       makeTerminated();
+/* 242 */       return stream().collect(collector);
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public <A, R> R collect(Supplier<R> pupplier, BiConsumer<R, ? super O> accumulator, BiConsumer<R, R> combiner)
+/*     */     {
+/* 299 */       makeTerminated();
+/* 300 */       return stream().collect(pupplier, accumulator, combiner);
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public FailableStream<O> filter(FailablePredicate<O, ?> predicate)
+/*     */     {
+/* 314 */       assertNotTerminated();
+/* 315 */       this.stream = this.stream.filter(Failable.asPredicate(predicate));
+/* 316 */       return this;
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public void forEach(FailableConsumer<O, ?> action)
+/*     */     {
+/* 335 */       makeTerminated();
+/* 336 */       stream().forEach(Failable.asConsumer(action));
+/*     */     }
+/*     */     
+/*     */     protected void makeTerminated() {
+/* 340 */       assertNotTerminated();
+/* 341 */       this.terminated = true;
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public <R> FailableStream<R> map(FailableFunction<O, R, ?> mapper)
+/*     */     {
+/* 355 */       assertNotTerminated();
+/* 356 */       return new FailableStream<>(this.stream.map(Failable.asFunction(mapper)));
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public O reduce(O identity, BinaryOperator<O> accumulator)
+/*     */     {
+/* 409 */       makeTerminated();
+/* 410 */       return stream().reduce(identity, accumulator);
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public Stream<O> stream()
+/*     */     {
+/* 419 */       return this.stream;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public static <O> FailableStream<O> stream(Collection<O> stream)
+/*     */   {
+/* 460 */     return stream(stream.stream());
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public static <O> FailableStream<O> stream(Stream<O> stream)
+/*     */   {
+/* 500 */     return new FailableStream<>(stream);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public static <O> Collector<O, ?, O[]> toArray(Class<O> pElementType)
+/*     */   {
+/* 511 */     return new ArrayCollector<>(pElementType);
+/*     */   }
+/*     */ }

@@ -1467,8 +1467,8 @@
 /* 1467 */     this.rootNode = new Node[2];
 /* 1468 */     int size = stream.readInt();
 /* 1469 */     for (int i = 0; i < size; i++) {
-/* 1470 */       K k = (Comparable)stream.readObject();
-/* 1471 */       V v = (Comparable)stream.readObject();
+/* 1470 */       K k = (K)stream.readObject();
+/* 1471 */       V v = (V)stream.readObject();
 /* 1472 */       put(k, v);
 /*      */     }
 /*      */   }

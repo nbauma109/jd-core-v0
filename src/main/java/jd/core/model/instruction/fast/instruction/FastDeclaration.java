@@ -43,7 +43,7 @@ public class FastDeclaration extends Instruction
     public String getReturnedSignature(
             ClassFile classFile, LocalVariables localVariables)
     {
-        return null;
+        return lv.getSignature(classFile.getConstantPool());
     }
 
     @Override

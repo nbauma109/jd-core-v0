@@ -60,7 +60,7 @@ public abstract class InvokeInstruction extends IndexInstruction
         String methodDescriptor = constants.getConstantUtf8(cnat.getSignatureIndex());
 
         String methodReturnedSignature = SignatureUtil.getMethodReturnedSignature(methodDescriptor);
-        if (StringConstants.INTERNAL_OBJECT_SIGNATURE.equals(methodReturnedSignature)
+        if (methodReturnedSignature.endsWith(StringConstants.INTERNAL_OBJECT_SIGNATURE)
                 && internalClassName.charAt(0) != '['
                 && classFile.getLoader().canLoad(internalClassName)) {
             ClassFile javaClass = ClassFileDeserializer.deserialize(classFile.getLoader(), internalClassName);
