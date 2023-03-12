@@ -680,7 +680,7 @@ public final class LocalVariableAnalyzer
     /*
      * Strategie :
      *     - Recherche de tous les instructions '?store' et '?load'
-     *  - Determiner le type de la viariable
+     *  - Determiner le type de la variable
      *  - Si la variable n'est pas encore definie, ajouter une entrée dans la
      *    Liste
      *  - Sinon, si le type est compatible
