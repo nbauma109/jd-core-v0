@@ -533,7 +533,7 @@ public final class LocalVariableAnalyzer
                             }
                             else
                             {
-                                // Variable trouvée. Mise à  jour de 'startPc' de la
+                                // Variable trouvée. Mise à jour de 'startPc' de la
                                 // portée.
                                 lv.updateRange(astore.getOffset());
                             }
@@ -731,8 +731,8 @@ public final class LocalVariableAnalyzer
                     StoreInstruction si = (StoreInstruction)instruction;
                     if (si.getValueref().getOpcode() == Const.ILOAD)
                     {
-                        // Contrainte du type de la variable liée à  ILoad par
-                        // le type de la variable liée à  IStore.
+                        // Contrainte du type de la variable liée à ILoad par
+                        // le type de la variable liée à IStore.
                         change |= reverseAnalyzeIStore(localVariables, si);
                     }
                 }
@@ -741,8 +741,8 @@ public final class LocalVariableAnalyzer
                 {
                     PutStatic ps = (PutStatic)instruction;
                     if (ps.getValueref().getOpcode() == Const.ILOAD || ps.getValueref().getOpcode() == Const.ALOAD) {
-                        // Contrainte du type de la variable liée à  ILoad par
-                        // le type de la variable liée à  PutStatic.
+                        // Contrainte du type de la variable liée à ILoad par
+                        // le type de la variable liée à PutStatic.
                         LoadInstruction load = (LoadInstruction)ps.getValueref();
                         change |= reverseAnalyzePutStaticPutField(
                                 constants, localVariables, ps, load);
@@ -753,8 +753,8 @@ public final class LocalVariableAnalyzer
                 {
                     PutField pf = (PutField)instruction;
                     if (pf.getValueref().getOpcode() == Const.ILOAD || pf.getValueref().getOpcode() == Const.ALOAD) {
-                        // Contrainte du type de la variable liée à  ILoad
-                        // par le type de la variable liée à  PutField.
+                        // Contrainte du type de la variable liée à ILoad
+                        // par le type de la variable liée à PutField.
                         LoadInstruction load = (LoadInstruction)pf.getValueref();
                         change |= reverseAnalyzePutStaticPutField(
                                 constants, localVariables, pf, load);
@@ -787,7 +787,7 @@ public final class LocalVariableAnalyzer
                         SignatureUtil.getSignatureFromTypesBitField(lv.getTypesBitField())));
                 break;
             case OBJECT_TYPE:
-                // Plusieurs types sont affectés à  la même variable. Le
+                // Plusieurs types sont affectés à la même variable. Le
                 // decompilateur ne connait pas le graphe d'heritage des
                 // classes decompilées. Le type de la variable est valué à 
                 // 'Object'. Des instructions 'cast' supplémentaires doivent
@@ -1683,7 +1683,7 @@ public final class LocalVariableAnalyzer
          * aucune variable locale n'est créée. Une pseudo variable locale est
          * alors créée pour afficher correctement l'instruction
          * "catch (Exception localException)".
-         * Aucun ajout d'instruction si "ExceptionLoad" correspond à  une
+         * Aucun ajout d'instruction si "ExceptionLoad" correspond à une
          * instruction "finally".
          */
         for (int index=0; index<length; index++)

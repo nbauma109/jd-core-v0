@@ -807,7 +807,7 @@ public final class ComparisonInstructionAnalyzer
         while (--index > firstIndex)
         {
             // Verification que la potentielle derniere instruction de saut a
-            // comme premiere instruction l'instruction à  l'indexe 'firstIndex'
+            // comme premiere instruction l'instruction à l'indexe 'firstIndex'
             // Recherche de l'indexe de la premiere instruction 'if' du bloc et
             // initialisation de 'offsetToPreviousGotoFlag'
             BranchInstruction lastBi = (BranchInstruction)list.get(index);

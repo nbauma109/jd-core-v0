@@ -2,7 +2,7 @@ package jd.core.test;
 
 public class TryCatchFinallyClassForTesting {
 
-    // Retrait de la sous procédure allant de "monitorexit" à  "ret"
+    // Retrait de la sous procédure allant de "monitorexit" à "ret"
     // Byte code:
     // 0: aload_1
     // 1: astore_3
