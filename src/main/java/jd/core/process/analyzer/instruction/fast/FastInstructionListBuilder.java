@@ -1556,7 +1556,10 @@ public final class FastInstructionListBuilder {
                                     CheckCast cc = (CheckCast) valueref;
                                     String castSignature = cc.getReturnedSignature(classFile, localVariables);
                                     String lvSignature = lv.getSignature(classFile.getConstantPool());
-                                    if ("[Ljava/lang/Object;".equals(castSignature) && "[TT;".equals(lvSignature)) {
+                                    TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
+                                    Type lvType = typeMaker.makeFromSignature(lvSignature);
+                                    Type castType = typeMaker.makeFromSignature(castSignature);
+                                    if (castType.isObjectType() && lvType.isGenericType() && lvType.getDimension() == castType.getDimension()) {
                                         cc.setGenericSignature(lvSignature);
                                     }
                                 }
@@ -2910,6 +2913,12 @@ public final class FastInstructionListBuilder {
 
             beforeWhileLoopIndex--;
             StoreInstruction beforeBeforeBeforeWhileLoop = (StoreInstruction) list.remove(beforeWhileLoopIndex);
+            Instruction valueref = beforeBeforeBeforeWhileLoop.getValueref();
+            if (valueref instanceof CheckCast) {
+                CheckCast cc = (CheckCast) valueref;
+                String lvSignature = variable.getReturnedSignature(classFile, localVariables);
+                cc.setGenericSignature("[" + lvSignature);
+            }
             Instruction values = beforeBeforeBeforeWhileLoop.getValueref();
 
             // Remove length local variable
