@@ -71,31 +71,31 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ public class FastDateParser
 /*      */   implements DateParser, Serializable
 /*      */ {
 /*      */   private static final long serialVersionUID = 3L;
+/*      */   private final String pattern;
+/*      */   private final TimeZone timeZone;
+/*      */   private final Locale locale;
+/*      */   private final int century;
+/*      */   private final int startYear;
+/*      */   private transient List<StrategyAndWidth> patterns;
 /*   84 */   static final Locale JAPANESE_IMPERIAL = new Locale("ja", "JP", "JP");
 /*      */   
 /*      */ 
-/*      */   private final String pattern;
-/*      */   
-/*      */   private final TimeZone timeZone;
-/*      */   
-/*      */   private final Locale locale;
-/*      */   
-/*      */   private final int century;
-/*      */   
-/*      */   private final int startYear;
-/*      */   
-/*      */   private transient List<StrategyAndWidth> patterns;
-/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
 /*   99 */   private static final Comparator<String> LONGER_FIRST_LOWERCASE = Comparator.reverseOrder();
 /*      */   
 /*      */ 
@@ -877,17 +877,17 @@
 /*      */     extends FastDateParser.PatternStrategy
 /*      */   {
 /*      */     private static final String RFC_822_TIME_ZONE = "[+-]\\d{4}";
-/*      */     
 /*      */     private static final String GMT_OPTION = "GMT[+-]\\d{1,2}:\\d{2}";
 /*      */     private final Locale locale;
-/*  883 */     private final Map<String, TzInfo> tzNames = new HashMap<>();
 /*      */     private static final int ID = 0;
+/*  883 */     private final Map<String, TzInfo> tzNames = new HashMap<>();
 /*      */     
 /*      */     private static class TzInfo {
 /*      */       final TimeZone zone;
 /*      */       final int dstOffset;
 /*      */       
-/*  890 */       TzInfo(TimeZone tz, boolean useDst) { this.zone = tz;
+/*      */       TzInfo(TimeZone tz, boolean useDst) {
+/*  890 */         this.zone = tz;
 /*  891 */         this.dstOffset = (useDst ? tz.getDSTSavings() : 0);
 /*      */       }
 /*      */     }

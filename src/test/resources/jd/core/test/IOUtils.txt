@@ -115,28 +115,28 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ public class IOUtils
 /*      */ {
 /*      */   public static final int CR = 13;
 /*      */   public static final int DEFAULT_BUFFER_SIZE = 8192;
+/*      */   public static final char DIR_SEPARATOR_UNIX = '/';
+/*      */   public static final char DIR_SEPARATOR_WINDOWS = '\\';
+/*      */   public static final int EOF = -1;
+/*      */   public static final int LF = 10;
 /*  126 */   public static final char DIR_SEPARATOR = File.separatorChar;
 /*      */   
 /*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   public static final char DIR_SEPARATOR_UNIX = '/';
-/*      */   
 /*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   public static final char DIR_SEPARATOR_WINDOWS = '\\';
-/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -147,15 +147,15 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   public static final int EOF = -1;
-/*      */   
 /*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   public static final int LF = 10;
-/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 

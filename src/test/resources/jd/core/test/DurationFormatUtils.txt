@@ -565,18 +565,18 @@
 /*     */   }
 /*     */   
 /*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
 /*     */   static class Token
 /*     */   {
-/* 573 */     private static final Token[] EMPTY_ARRAY = new Token[0];
-/*     */     
-/*     */ 
 /*     */     private final Object value;
 /*     */     
 /*     */     private int count;
+/* 573 */     private static final Token[] EMPTY_ARRAY = new Token[0];
 /*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */ 
 /*     */     static boolean containsTokenWithValue(Token[] tokens, Object value)
 /*     */     {

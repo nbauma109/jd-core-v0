@@ -113,13 +113,13 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
-/*     */ 
 /*     */ public class HashCodeBuilder
 /*     */   implements Builder<Integer>
 /*     */ {
 /*     */   private static final int DEFAULT_INITIAL_VALUE = 17;
 /*     */   private static final int DEFAULT_MULTIPLIER_VALUE = 37;
+/*     */   private final int iConstant;
+/*     */   private int iTotal;
 /* 123 */   private static final ThreadLocal<Set<IDKey>> REGISTRY = new ThreadLocal<>();
 /*     */   
 /*     */ 
@@ -129,16 +129,16 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */   private final int iConstant;
-/*     */   
 /*     */ 
 /*     */ 
 /*     */ 
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */   private int iTotal;
-/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */ 
 /*     */ 
 /*     */ 

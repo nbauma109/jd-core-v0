@@ -30,16 +30,16 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
 /*     */ public abstract class AbstractCircuitBreaker<T>
 /*     */   implements CircuitBreaker<T>
 /*     */ {
 /*     */   public static final String PROPERTY_NAME = "open";
+/*     */   private final PropertyChangeSupport changeSupport;
 /*  38 */   protected final AtomicReference<State> state = new AtomicReference<>(State.CLOSED);
 /*     */   
 /*     */ 
-/*     */   private final PropertyChangeSupport changeSupport;
-/*     */   
+/*     */ 
+/*     */ 
 /*     */ 
 /*     */ 
 /*     */   public AbstractCircuitBreaker()

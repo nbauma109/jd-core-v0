@@ -38,24 +38,24 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ abstract class AbstractPatriciaTrie<K, V>
 /*      */   extends AbstractBitwiseTrie<K, V>
 /*      */ {
 /*      */   private static final long serialVersionUID = 5155253417231339498L;
+/*      */   private volatile transient Set<K> keySet;
+/*      */   private volatile transient Collection<V> values;
+/*      */   private volatile transient Set<Entry<K, V>> entrySet;
 /*   48 */   private transient TrieEntry<K, V> root = new TrieEntry<>(null, null, -1);
 /*      */   
 /*      */ 
-/*      */   private volatile transient Set<K> keySet;
-/*      */   
 /*      */ 
-/*      */   private volatile transient Collection<V> values;
-/*      */   
 /*      */ 
-/*      */   private volatile transient Set<Entry<K, V>> entrySet;
-/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
 /*      */ 
 /*   60 */   private transient int size = 0;
 /*      */   
@@ -1530,17 +1530,17 @@
 /*      */   }
 /*      */   
 /*      */ 
-/*      */ 
-/*      */ 
 /*      */   abstract class TrieIterator<E>
 /*      */     implements Iterator<E>
 /*      */   {
+/*      */     protected AbstractPatriciaTrie.TrieEntry<K, V> next;
+/*      */     protected AbstractPatriciaTrie.TrieEntry<K, V> current;
 /* 1538 */     protected int expectedModCount = AbstractPatriciaTrie.this.modCount;
 /*      */     
-/*      */     protected AbstractPatriciaTrie.TrieEntry<K, V> next;
-/*      */     
-/*      */     protected AbstractPatriciaTrie.TrieEntry<K, V> current;
-/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
 /*      */ 
 /*      */     protected TrieIterator()
 /*      */     {
@@ -1957,17 +1957,17 @@
 /*      */   }
 /*      */   
 /*      */ 
-/*      */ 
 /*      */   private class RangeEntrySet
 /*      */     extends AbstractSet<Entry<K, V>>
 /*      */   {
 /*      */     private final AbstractPatriciaTrie<K, V>.RangeMap delegate;
 /*      */     
+/*      */     private transient int expectedModCount;
 /* 1966 */     private transient int size = -1;
 /*      */     
 /*      */ 
-/*      */     private transient int expectedModCount;
-/*      */     
+/*      */ 
+/*      */ 
 /*      */ 
 /*      */     public RangeEntrySet(AbstractPatriciaTrie<K, V>.RangeMap delegate)
 /*      */     {

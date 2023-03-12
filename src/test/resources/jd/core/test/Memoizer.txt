@@ -48,23 +48,23 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
-/*     */ 
 /*     */ public class Memoizer<I, O>
 /*     */   implements Computable<I, O>
 /*     */ {
+/*     */   private final Computable<I, O> computable;
+/*     */   private final boolean recalculate;
 /*  56 */   private final ConcurrentMap<I, Future<O>> cache = new ConcurrentHashMap<>();
 /*     */   
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */   private final Computable<I, O> computable;
-/*     */   
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */   private final boolean recalculate;
-/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */ 
 /*     */ 
 /*     */ 
