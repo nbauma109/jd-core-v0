@@ -23,11 +23,18 @@ import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.jd.core.v1.api.loader.Loader;
+import org.jd.core.v1.model.javasyntax.AbstractJavaSyntaxVisitor;
 import org.jd.core.v1.model.javasyntax.type.BaseType;
 import org.jd.core.v1.model.javasyntax.type.BaseTypeArgument;
+import org.jd.core.v1.model.javasyntax.type.GenericType;
+import org.jd.core.v1.model.javasyntax.type.InnerObjectType;
 import org.jd.core.v1.model.javasyntax.type.ObjectType;
 import org.jd.core.v1.model.javasyntax.type.Type;
-import org.jd.core.v1.model.javasyntax.type.TypeArgument;
+import org.jd.core.v1.model.javasyntax.type.TypeArgumentVisitable;
+import org.jd.core.v1.model.javasyntax.type.TypeArguments;
+import org.jd.core.v1.model.javasyntax.type.WildcardExtendsTypeArgument;
+import org.jd.core.v1.model.javasyntax.type.WildcardSuperTypeArgument;
+import org.jd.core.v1.model.javasyntax.type.WildcardTypeArgument;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker.MethodTypes;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker.TypeTypes;
@@ -101,7 +108,7 @@ import jd.core.util.SignatureUtil;
 import jd.core.util.StringUtil;
 import jd.core.util.UtilConstants;
 
-public class SourceWriterVisitor
+public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
 {
     private static final String[] CMP_NAMES = {
             "==", "<", ">", "", "!", "<=", ">=", "!=" };
@@ -1454,34 +1461,7 @@ public class SourceWriterVisitor
                     constructorDescriptor);
                 TypeTypes newInvokeType = typeMaker.makeTypeTypes(internalClassName);
                 BaseTypeArgument typeArguments = searchTypeArguments(newInvokeType);
-                if (typeArguments != null) {
-                    this.printer.print('<');
-                    if (this.classFile.getMajorVersion() < Const.MAJOR_9) {
-                        if (typeArguments.isTypeArgumentList()) {
-                            for (Iterator<TypeArgument> it = typeArguments.getTypeArgumentList().iterator(); it.hasNext();) {
-                                TypeArgument typeArgument = it.next();
-                                if (typeArgument instanceof ObjectType) {
-                                    ObjectType ot = (ObjectType) typeArgument;
-                                    SignatureWriter.writeSignature(
-                                            this.loader, this.printer, this.referenceMap,
-                                            this.classFile, ot.getDescriptor());
-                                    if (it.hasNext()) {
-                                        this.printer.print(", ");
-                                    }
-                                }
-                            }
-                        } else {
-                            TypeArgument typeArgument = typeArguments.getTypeArgumentFirst();
-                            if (typeArgument instanceof ObjectType) {
-                                ObjectType ot = (ObjectType) typeArgument;
-                                SignatureWriter.writeSignature(
-                                        this.loader, this.printer, this.referenceMap,
-                                        this.classFile, ot.getDescriptor());
-                            }
-                        }
-                    }
-                    this.printer.print('>');
-                }
+                visitTypeArgumentList(typeArguments);
             }
         }
 
@@ -2665,5 +2645,85 @@ public class SourceWriterVisitor
         }
 
         return writeInitArrayInstruction(iai);
+    }
+
+    @Override
+    public void visit(TypeArguments arguments) {
+        printTokensForList(arguments, ", ");
+    }
+
+    @Override
+    public void visit(WildcardExtendsTypeArgument argument) {
+        this.printer.print("? extends ");
+
+        BaseType type = argument.type();
+
+        type.accept(this);
+    }
+
+    @Override
+    public void visit(ObjectType type) {
+        Type zeroDimType = type.getDimension() == 0 ? type : type.createType(0);
+        SignatureWriter.writeSignature(loader, printer, referenceMap, classFile, zeroDimType.getDescriptor());
+
+        if (this.classFile.getMajorVersion() >= Const.MAJOR_1_5) {
+            BaseTypeArgument typeArguments = type.getTypeArguments();
+
+            if (typeArguments != null) {
+                visitTypeArgumentList(typeArguments);
+            }
+        }
+
+        visitDimension(type.getDimension());
+    }
+
+    @Override
+    public void visit(InnerObjectType type) {
+        visit((ObjectType) type);
+    }
+
+    protected void visitTypeArgumentList(BaseTypeArgument arguments) {
+        if (arguments != null) {
+            this.printer.print('<');
+            if (this.classFile.getMajorVersion() < Const.MAJOR_9) {
+                arguments.accept(this);
+            }
+            this.printer.print('>');
+        }
+    }
+
+    protected void visitDimension(int dimension) {
+        for (int i = 0; i < dimension; i++) {
+            this.printer.print("[]");
+        }
+    }
+
+    @Override
+    public void visit(WildcardSuperTypeArgument argument) {
+        this.printer.print("? super ");
+
+        BaseType type = argument.type();
+
+        type.accept(this);
+    }
+
+    @Override
+    public void visit(GenericType type) {
+        this.printer.print(type.getName());
+        visitDimension(type.getDimension());
+    }
+
+    @Override
+    public void visit(WildcardTypeArgument type) {
+        this.printer.print('?');
+    }
+
+    protected <T extends TypeArgumentVisitable> void printTokensForList(List<T> list, String separator) {
+        for (Iterator<T> it = list.iterator(); it.hasNext();) {
+            it.next().accept(this);
+            if (it.hasNext()) {
+                this.printer.print(separator);
+            }
+        }
     }
 }
