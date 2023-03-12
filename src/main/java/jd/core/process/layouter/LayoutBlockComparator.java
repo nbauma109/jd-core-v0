@@ -22,7 +22,8 @@ import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.layout.block.LayoutBlock;
 
 /*
- * Tri par ordre croissant, les blocs sans numéro de ligne sont places a la fin.
+ * Tri par ordre croissant, les blocs sans numéro de ligne sont places a la fin
+ * sauf pour les champs, les blocs sans numéro de ligne sont places en premier
  */
 public class LayoutBlockComparator implements java.io.Serializable, Comparator<LayoutBlock>
 {
@@ -30,6 +31,12 @@ public class LayoutBlockComparator implements java.io.Serializable, Comparator<L
      * Comparators should be Serializable: A non-serializable Comparator can prevent an otherwise-Serializable ordered collection from being serializable.
      */
     private static final long serialVersionUID = 1L;
+
+    private final boolean reverse;
+
+    public LayoutBlockComparator(boolean reverse) {
+        this.reverse = reverse;
+    }
 
     @Override
     public int compare(LayoutBlock lb1, LayoutBlock lb2) {
@@ -42,12 +49,12 @@ public class LayoutBlockComparator implements java.io.Serializable, Comparator<L
                 return lb1.getIndex() - lb2.getIndex();
             }
             // lb1 > lb2
-            return 1;
+            return reverse ? -1 : 1;
         }
         if (lb2.getLastLineNumber() == Instruction.UNKNOWN_LINE_NUMBER)
         {
             // lb1 < lb2
-            return -1;
+            return reverse ? 1 : -1;
         }
         return lb1.getLastLineNumber() - lb2.getLastLineNumber();
     }

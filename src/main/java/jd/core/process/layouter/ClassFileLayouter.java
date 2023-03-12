@@ -504,17 +504,14 @@ public final class ClassFileLayouter {
             new ArrayList<>(length);
         InstructionSplitterVisitor visitor =
             new InstructionSplitterVisitor();
-        Field field;
         List<LayoutBlock> subLayoutBlockList;
         MarkerLayoutBlock fmslb;
         int firstLineNumber;
         int lastLineNumber;
         int preferedLineNumber;
         MarkerLayoutBlock fmelb;
-        for (int i=0; i<length; i++)
+        for (Field field : fields)
         {
-            field = fields[i];
-
             if ((field.getAccessFlags() & (Const.ACC_SYNTHETIC|Const.ACC_ENUM)) != 0) {
                 continue;
             }
@@ -574,7 +571,7 @@ public final class ClassFileLayouter {
                 subLayoutBlockList, firstLineNumber,
                 lastLineNumber, preferedLineNumber));
         }
-        return sortBlocks(sortedFieldBlockList);
+        return sortBlocks(sortedFieldBlockList, true);
     }
 
     /**
@@ -605,7 +602,6 @@ public final class ClassFileLayouter {
         boolean showDefaultConstructor =
             preferences.getShowDefaultConstructor();
         JavaSourceLayouter javaSourceLayouter = new JavaSourceLayouter();
-        Method method;
         Signature as;
         int signatureIndex;
         String signature;
@@ -617,10 +613,8 @@ public final class ClassFileLayouter {
         int lastLineNumber;
         int preferedLineNumber;
         MarkerLayoutBlock mmelb;
-        for (int i=0; i<length; i++)
+        for (Method method : methods)
         {
-            method = methods[i];
-
             if ((method.getAccessFlags() &
                     (Const.ACC_SYNTHETIC|Const.ACC_BRIDGE)) != 0) {
                 continue;
@@ -843,7 +837,7 @@ public final class ClassFileLayouter {
                 subLayoutBlockList, firstLineNumber,
                 lastLineNumber, preferedLineNumber));
         }
-        return sortBlocks(sortedMethodBlockList);
+        return sortBlocks(sortedMethodBlockList, false);
     }
 
     private static List<SubListLayoutBlock> createSortedBlocksForInnerClasses(
@@ -858,16 +852,13 @@ public final class ClassFileLayouter {
         int length = innerClassFiles.size();
         List<SubListLayoutBlock> sortedInnerClassBlockList =
             new ArrayList<>(length);
-        ClassFile innerClassFile;
         List<LayoutBlock> innerClassLayoutBlockList;
         int afterIndex;
         int firstLineNumber;
         int lastLineNumber;
         int preferedLineCount;
-        for (int i=0; i<length; i++)
+        for (ClassFile innerClassFile : innerClassFiles)
         {
-            innerClassFile = innerClassFiles.get(i);
-
             if ((innerClassFile.getAccessFlags() & Const.ACC_SYNTHETIC) != 0 ||
                 innerClassFile.getInternalAnonymousClassName() != null) {
                 continue;
@@ -897,7 +888,7 @@ public final class ClassFileLayouter {
                 innerClassLayoutBlockList, firstLineNumber,
                 lastLineNumber, preferedLineCount));
         }
-        return sortBlocks(sortedInnerClassBlockList);
+        return sortBlocks(sortedInnerClassBlockList, false);
     }
 
     private static int searchFirstLineNumber(
@@ -931,19 +922,16 @@ public final class ClassFileLayouter {
     }
 
     private static List<SubListLayoutBlock> sortBlocks(
-        List<SubListLayoutBlock> blockList)
+        List<SubListLayoutBlock> blockList, boolean fields)
     {
         // Detection de l'ordre de génération des champs par le compilateur:
         // ascendant (1), descendant (2) ou aleatoire (3)
-        int length = blockList.size();
         int lineNumber = Instruction.UNKNOWN_LINE_NUMBER;
         int order = 0;
 
-        SubListLayoutBlock layoutBlock;
         int newLineNumber;
-        for (int i=0; i<length; i++)
+        for (SubListLayoutBlock layoutBlock : blockList)
         {
-            layoutBlock = blockList.get(i);
             newLineNumber = layoutBlock.getLastLineNumber();
 
             if (newLineNumber != Instruction.UNKNOWN_LINE_NUMBER)
@@ -975,14 +963,14 @@ public final class ClassFileLayouter {
         // Trie
         if (order == 2) {
             Collections.reverse(blockList);
-        } else if (order == 3) {
-            for (int i=0; i<length; i++)
+        } else if (order == 3 || fields) {
+            for (int i=0; i<blockList.size(); i++)
             {
                 blockList.get(i).setIndex(i);
             }
             // Tri par ordre croissant, les blocs sans numéro de ligne
             // sont places a la fin.
-            Collections.sort(blockList, new LayoutBlockComparator());
+            Collections.sort(blockList, new LayoutBlockComparator(fields));
         }
 
         return blockList;
@@ -1049,7 +1037,7 @@ public final class ClassFileLayouter {
 
     /** Premiere phase du realignement,
      * 3 jeux de cartes,
-     * Conserver l'ordre naturel jusqu'à  une impossibilite:
+     * Conserver l'ordre naturel jusqu'à une impossibilite:
      * Copie des blocs sans numéro de ligne des champs au plus tot
      * Copie des blocs sans numéro de ligne des méthodes et des classes internes au plus tard
      */
@@ -1091,7 +1079,7 @@ public final class ClassFileLayouter {
                 // Copie de toutes les méthodes sans numéro de ligne
                 maxLineNumber = mergeBlockList(
                     layoutBlockList, sortedMethodBlockList, maxLineNumber);
-                // Copie des classes internes jusqu'à  l'inner classe ayant
+                // Copie des classes internes jusqu'à l'inner classe ayant
                 // le plus petit numéro de ligne
                 maxLineNumber = inclusiveMergeBlockList(
                     layoutBlockList, sortedInnerClassBlockList,
@@ -1105,7 +1093,7 @@ public final class ClassFileLayouter {
                 maxLineNumber = exclusiveMergeFieldBlockList(
                     layoutBlockList, sortedFieldBlockList,
                     minLineNumberMethod, maxLineNumber);
-                // Copie des méthodes jusqu'à  la méthode ayant le plus
+                // Copie des méthodes jusqu'à la méthode ayant le plus
                 // petit numéro de ligne
                 maxLineNumber = inclusiveMergeBlockList(
                     layoutBlockList, sortedMethodBlockList,
@@ -1123,7 +1111,7 @@ public final class ClassFileLayouter {
                 maxLineNumber = exclusiveMergeMethodOrInnerClassBlockList(
                     layoutBlockList, sortedMethodBlockList,
                     minLineNumberInnerClass, maxLineNumber);
-                // Copie des classes internes jusqu'à  l'inner classe ayant
+                // Copie des classes internes jusqu'à l'inner classe ayant
                 // le plus petit numéro de ligne
                 maxLineNumber = inclusiveMergeBlockList(
                     layoutBlockList, sortedInnerClassBlockList,
@@ -1146,7 +1134,7 @@ public final class ClassFileLayouter {
             maxLineNumber = exclusiveMergeMethodOrInnerClassBlockList(
                 layoutBlockList, sortedMethodBlockList,
                 minLineNumberInnerClass, maxLineNumber);
-            // Copie des classes internes jusqu'à  l'inner classe ayant le
+            // Copie des classes internes jusqu'à l'inner classe ayant le
             // plus petit numéro de ligne
             maxLineNumber = inclusiveMergeBlockList(
                 layoutBlockList, sortedInnerClassBlockList,
@@ -2806,7 +2794,7 @@ public final class ClassFileLayouter {
                 // Un ou plusieurs blocs a deplacer trouvés.
 
                 // Rechercher de l'index d'insertion =>
-                //  Trouver la section ayant le score le plus bas jusqu'à  la
+                //  Trouver la section ayant le score le plus bas jusqu'à la
                 //  section contenant un block de type 'tag' ayant un numéro
                 //  de ligne defini
                 int blockLength = layoutBlockList.size();
@@ -3219,7 +3207,7 @@ public final class ClassFileLayouter {
                 // Un ou plusieurs blocs a deplacer trouvés.
 
                 // Rechercher de l'index d'insertion =>
-                //  Trouver la section ayant le score le plus bas jusqu'à  la
+                //  Trouver la section ayant le score le plus bas jusqu'à la
                 //  section contenant un block de type 'tag' ayant un numéro
                 //  de ligne defini
                 blockIndex = firstStartTagBlockIndex;
@@ -3634,6 +3622,6 @@ public final class ClassFileLayouter {
             LayoutBlockConstants.SUBLIST_METHOD,
             subLayoutBlockList, firstLineNumber,
             lastLineNumber, preferedLineNumber));
-        return sortBlocks(sortedMethodBlockList);
+        return sortBlocks(sortedMethodBlockList, false);
     }
 }

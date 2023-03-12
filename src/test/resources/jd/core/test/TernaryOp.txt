@@ -3,14 +3,14 @@
 /*     */ import java.awt.Point;
 /*     */ import java.util.Map;
 /*     */ 
-/*     */ 
 /*     */ public class TernaryOp
 /*     */ {
 /*     */   Point p;
-/*  10 */   static int[] NEW_INIT_ARRAY = { Math.random() > 0.5D ? 1 : 0 };
 /*     */   static int i;
+/*  10 */   static int[] NEW_INIT_ARRAY = { Math.random() > 0.5D ? 1 : 0 };
 /*     */   
-/*     */   int arrayLength(int[] a, int[] b) {
+/*     */   int arrayLength(int[] a, int[] b)
+/*     */   {
 /*  14 */     return (Math.random() > 0.5D ? a : b).length;
 /*     */   }
 /*     */   
