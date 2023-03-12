@@ -1,0 +1,8 @@
+/*   */ package jd.core.test;
+/*   */ 
+/*   */ public class FieldsAndMethods { static final String A = "A";
+/*   */   
+/* 5 */   static { System.out.println("A"); }
+/*   */   
+/*   */   static final String B = "B";
+/*   */ }
