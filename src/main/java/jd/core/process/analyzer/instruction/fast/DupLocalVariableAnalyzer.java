@@ -160,8 +160,7 @@ public final class DupLocalVariableAnalyzer
             lv.setDeclarationFlag(true);
             localVariables.add(lv);
 
-            list.set(i, new FastDeclaration(
-                FastConstants.DECLARE, dupStore.getOffset(),
+            list.set(i, new FastDeclaration(dupStore.getOffset(),
                 Instruction.UNKNOWN_LINE_NUMBER, lv, dupStore));
         }
     }

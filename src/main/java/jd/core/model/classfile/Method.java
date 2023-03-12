@@ -35,6 +35,7 @@ import org.apache.bcel.classfile.RuntimeInvisibleParameterAnnotations;
 import org.apache.bcel.classfile.RuntimeVisibleParameterAnnotations;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import jd.core.model.instruction.bytecode.instruction.Instruction;
@@ -115,21 +116,20 @@ public class Method extends Base
             {
                 LocalVariableTypeTable alvtt = (LocalVariableTypeTable) Stream.of(ac.getAttributes())
                         .filter(LocalVariableTypeTable.class::isInstance).findAny().orElse(null);
-                LocalVariable[] localVariableTypeTable =
-                    alvtt == null ? null : alvtt.getLocalVariableTypeTable();
+                LocalVariable[] localVariableTypeTable = Optional.ofNullable(alvtt)
+                        .map(LocalVariableTypeTable::getLocalVariableTypeTable).orElse(null);
                 this.localVariables = new LocalVariables(
                     Stream.of(alvt.getLocalVariableTable())
                         .map(jd.core.model.classfile.LocalVariable::new)
                         .toArray(jd.core.model.classfile.LocalVariable[]::new),
-                    localVariableTypeTable == null ? null :
-                    Stream.of(localVariableTypeTable)
+                    Optional.ofNullable(localVariableTypeTable).map(Stream::of).orElseGet(Stream::empty)
                         .map(jd.core.model.classfile.LocalVariable::new)
                         .toArray(jd.core.model.classfile.LocalVariable[]::new));
             }
 
             // lineNumbers
             LineNumberTable ant = ac.getLineNumberTable();
-            this.lineNumbers = ant == null ? null : ant.getLineNumberTable();
+            this.lineNumbers = Optional.ofNullable(ant).map(LineNumberTable::getLineNumberTable).orElse(null);
 
             // codeExceptions
             this.codeExceptions = ac.getExceptionTable();

@@ -23,6 +23,7 @@ import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
+import jd.core.model.instruction.fast.FastConstants;
 
 /** List & while(true). */
 public class FastDeclaration extends Instruction
@@ -30,11 +31,10 @@ public class FastDeclaration extends Instruction
     private final LocalVariable lv;
     private Instruction instruction;
 
-    public FastDeclaration(
-        int opcode, int offset, int lineNumber,
+    public FastDeclaration(int offset, int lineNumber,
         LocalVariable lv, Instruction instruction)
     {
-        super(opcode, offset, lineNumber);
+        super(FastConstants.DECLARE, offset, lineNumber);
         this.lv = lv;
         this.setInstruction(instruction);
     }

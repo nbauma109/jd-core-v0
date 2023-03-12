@@ -1340,7 +1340,7 @@ public final class LocalVariableAnalyzer
                     if (signatureInstructionIndex != UNDEFINED_TYPE)
                     {
                         // Modification du type de variable
-                        lv.setSignatureIndex(OBJECT_TYPE);
+                        //lv.setSignatureIndex(OBJECT_TYPE);
                     }
                     lv.updateRange(offset);
                 }

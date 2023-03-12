@@ -35,7 +35,6 @@ import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
-import jd.core.model.instruction.fast.FastConstants;
 import jd.core.process.layouter.visitor.MinMaxLineNumberVisitor;
 
 /**
@@ -199,7 +198,7 @@ public class FastTry extends FastList {
     }
 
     public void addResource(StoreInstruction si, LocalVariable lv) {
-        resources.add(new FastDeclaration(FastConstants.DECLARE, si.getOffset(), si.getLineNumber(), lv, si));
+        resources.add(new FastDeclaration(si.getOffset(), si.getLineNumber(), lv, si));
         lv.setDeclarationFlag(true);
     }
 

@@ -6490,8 +6490,8 @@
 /*      */       }
 /*      */     }
 /*      */     
-/* 6493 */     Object result = (Object[])removeAll(array, toRemove);
-/* 6494 */     return (T[])result;
+/* 6493 */     T[] result = (T[])removeAll(array, toRemove);
+/* 6494 */     return result;
 /*      */   }
 /*      */   
 /*      */ 
