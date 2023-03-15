@@ -1811,12 +1811,14 @@ public final class FastInstructionListBuilder {
                         // L'instruction 'goto' est la derniere instruction
                         // a s'executer dans la boucle. Elle ne sert a rien.
                         list.remove(index);
-                    } else if (index + 1 < length && index > 0 && list.get(index - 1) instanceof FastTry) {
+                    } else if (index + 1 < length && index > 0
+                            && list.get(index - 1) instanceof FastTry
+                            && ((FastTry) list.get(index - 1)).hasCatch()) {
                         FastTry fastTry = (FastTry) list.get(index - 1);
-                        for (FastCatch fastCatch : fastTry.getCatches()) {
-                            fastCatch.instructions().add(new FastInstruction(
-                                FastConstants.GOTO_CONTINUE, g.getOffset(), lineNumber, null));
-                        }
+                        List<FastCatch> catches = fastTry.getCatches();
+                        FastCatch fastCatch = catches.get(catches.size() - 1);
+                        fastCatch.instructions().add(new FastInstruction(
+                            FastConstants.GOTO_CONTINUE, g.getOffset(), lineNumber, null));
                         list.remove(index);
                         index--;
                         length--;

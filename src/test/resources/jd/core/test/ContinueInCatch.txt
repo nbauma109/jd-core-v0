@@ -1,0 +1,42 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.lang.reflect.Method;
+/*    */ import java.lang.reflect.Modifier;
+/*    */ import java.util.ArrayList;
+/*    */ import java.util.List;
+/*    */ import org.apache.commons.lang3.ClassUtils;
+/*    */ 
+/*    */ 
+/*    */ public class ContinueInCatch
+/*    */ {
+/*    */   public static Method getPublicMethod(Class<?> cls, String methodName, Class<?>... parameterTypes)
+/*    */     throws NoSuchMethodException
+/*    */   {
+/* 15 */     Method declaredMethod = cls.getMethod(methodName, parameterTypes);
+/* 16 */     if (Modifier.isPublic(declaredMethod.getDeclaringClass().getModifiers())) {
+/* 17 */       return declaredMethod;
+/*    */     }
+/*    */     
+/* 20 */     List<Class<?>> candidateClasses = new ArrayList<>(ClassUtils.getAllInterfaces(cls));
+/* 21 */     candidateClasses.addAll(ClassUtils.getAllSuperclasses(cls));
+/*    */     
+/* 23 */     for (Class<?> candidateClass : candidateClasses) {
+/* 24 */       if (!Modifier.isPublic(candidateClass.getModifiers())) {
+/*    */         continue;
+/*    */       }
+/* 27 */       Method candidateMethod = null;
+/*    */       try {
+/* 29 */         candidateMethod = candidateClass.getMethod(methodName, parameterTypes);
+/*    */       } catch (RuntimeException ex) {
+/* 31 */         ex.printStackTrace();
+/*    */       } catch (NoSuchMethodException ex) {
+/* 33 */         continue;
+/*    */       }
+/* 35 */       if (Modifier.isPublic(candidateMethod.getDeclaringClass().getModifiers())) {
+/* 36 */         return candidateMethod;
+/*    */       }
+/*    */     }
+/*    */     
+/* 40 */     throw new NoSuchMethodException();
+/*    */   }
+/*    */ }
