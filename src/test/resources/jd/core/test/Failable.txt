@@ -530,7 +530,7 @@
 /*     */     try {
 /* 531 */       action.run();
 /*     */     } catch (Throwable t) {
-/* 533 */       th = (Throwable)t;
+/* 533 */       th = t;
 /*     */     }
 /* 535 */     if (resources != null) {
 /* 536 */       for (FailableRunnable<?> runnable : resources) {

@@ -1384,7 +1384,7 @@ public final class FastInstructionListBuilder {
         // StoreReturnAnalyzer.Cleanup(list, localVariables);
 
         // Add local variable declarations
-        Set<FastDeclaration> outerDeclarations = addDeclarations(list, localVariables, beforeListOffset, addDeclarations, classFile);
+        Set<FastDeclaration> outerDeclarations = addDeclarations(list, localVariables, beforeListOffset, addDeclarations, classFile, method);
 
         // Remove 'goto' jumping on next instruction
         // A VALIDER A LONG TERME.
@@ -1522,7 +1522,8 @@ public final class FastInstructionListBuilder {
      * non encore déclarées et dont la portée est incluse à la liste courante,
      * on declare les variables en début de bloc.
      */
-    private static Set<FastDeclaration> addDeclarations(List<Instruction> list, LocalVariables localVariables, int beforeListOffset, boolean addDeclarations, ClassFile classFile) {
+    private static Set<FastDeclaration> addDeclarations(List<Instruction> list, LocalVariables localVariables,
+            int beforeListOffset, boolean addDeclarations, ClassFile classFile, Method method) {
 
         Set<FastDeclaration> outerDeclarations = new HashSet<>();
         
@@ -1549,8 +1550,9 @@ public final class FastInstructionListBuilder {
                         ReturnInstruction returnInstruction = findReturnInstructionForStore(list, length, i, si);
                         if (returnInstruction == null || returnInstruction.getLineNumber() != si.getLineNumber()) {
                             if (beforeListOffset < lv.getStartPc()
-                                    && lv.getStartPc() + lv.getLength() - 1 <= lastOffset) {
-                                list.set(i, new FastDeclaration(FastConstants.DECLARE, si.getOffset(), si.getLineNumber(), lv, si));
+                                    && (lv.getStartPc() + lv.getLength() - 1 <= lastOffset
+                                    || method.getNameIndex() == classFile.getConstantPool().getClassConstructorIndex())) {
+                                list.set(i, new FastDeclaration(si.getOffset(), si.getLineNumber(), lv, si));
                                 Instruction valueref = si.getValueref();
                                 if (valueref instanceof CheckCast) {
                                     CheckCast cc = (CheckCast) valueref;
@@ -1559,7 +1561,9 @@ public final class FastInstructionListBuilder {
                                     TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
                                     Type lvType = typeMaker.makeFromSignature(lvSignature);
                                     Type castType = typeMaker.makeFromSignature(castSignature);
-                                    if (castType.isObjectType() && lvType.isGenericType() && lvType.getDimension() == castType.getDimension()) {
+                                    if (castType.isObjectType()
+                                            && lvType.isGenericType()
+                                            && lvType.getDimension() == castType.getDimension()) {
                                         cc.setGenericSignature(lvSignature);
                                     }
                                 }
@@ -1585,7 +1589,7 @@ public final class FastInstructionListBuilder {
                         lv = localVariables.getLocalVariableWithIndexAndOffset(si.getIndex(), si.getOffset());
                         if (lv != null && lv.hasDeclarationFlag() == NOT_DECLARED
                                 && beforeListOffset < lv.getStartPc() && lv.getStartPc() + lv.getLength() - 1 <= lastOffset) {
-                            ff.setInit(new FastDeclaration(FastConstants.DECLARE, si.getOffset(), si.getLineNumber(), lv, si));
+                            ff.setInit(new FastDeclaration(si.getOffset(), si.getLineNumber(), lv, si));
                             lv.setDeclarationFlag(DECLARED);
                             updateNewAndInitArrayInstruction(si);
                         }
@@ -1633,7 +1637,7 @@ public final class FastInstructionListBuilder {
                          */
                         continue;
                     }
-                    FastDeclaration fastDeclaration = new FastDeclaration(FastConstants.DECLARE, lv.getStartPc(),
+                    FastDeclaration fastDeclaration = new FastDeclaration(lv.getStartPc(),
                             Instruction.UNKNOWN_LINE_NUMBER, lv, null);
                     if (addDeclarations) {
                         if (!variableFound(list, lv)) {
@@ -1807,6 +1811,17 @@ public final class FastInstructionListBuilder {
                         // L'instruction 'goto' est la derniere instruction
                         // a s'executer dans la boucle. Elle ne sert a rien.
                         list.remove(index);
+                    } else if (index + 1 < length && index > 0
+                            && list.get(index - 1) instanceof FastTry
+                            && ((FastTry) list.get(index - 1)).hasCatch()) {
+                        FastTry fastTry = (FastTry) list.get(index - 1);
+                        List<FastCatch> catches = fastTry.getCatches();
+                        FastCatch fastCatch = catches.get(catches.size() - 1);
+                        fastCatch.instructions().add(new FastInstruction(
+                            FastConstants.GOTO_CONTINUE, g.getOffset(), lineNumber, null));
+                        list.remove(index);
+                        index--;
+                        length--;
                     } else {
                         // Creation d'une instruction 'continue'
                         list.set(index, new FastInstruction(
@@ -2821,7 +2836,7 @@ public final class FastInstructionListBuilder {
             ALoad aLoad = new ALoad(Const.ALOAD, i.getOffset(), i.getLineNumber(), ((AStore) i).getIndex());
             LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(aLoad.getIndex(), aLoad.getOffset());
             if (lv != null && !lv.hasDeclarationFlag()) {
-                fd = new FastDeclaration(FastConstants.DECLARE, aLoad.getOffset(), aLoad.getLineNumber(), lv, null);
+                fd = new FastDeclaration(aLoad.getOffset(), aLoad.getLineNumber(), lv, null);
                 lv.setDeclarationFlag(DECLARED);
                 return fd;
             }
@@ -2849,7 +2864,7 @@ public final class FastInstructionListBuilder {
         if (subList.get(0) instanceof AStore) {
             AStore astore = (AStore) subList.get(0);
             LocalVariable lv = method.getLocalVariables().getLocalVariableWithIndexAndOffset(astore.getIndex(), astore.getOffset());
-            subList.set(0, new FastDeclaration(FastConstants.DECLARE, astore.getOffset(), astore.getLineNumber(), lv, astore));
+            subList.set(0, new FastDeclaration(astore.getOffset(), astore.getLineNumber(), lv, astore));
         }
 
         // Is a for-each pattern ?
