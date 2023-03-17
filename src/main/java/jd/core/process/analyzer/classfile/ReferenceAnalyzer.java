@@ -52,11 +52,12 @@ public final class ReferenceAnalyzer
 {
     private ReferenceAnalyzer() {
     }
-        public static void analyze(
+
+    public static void analyze(
         ReferenceMap referenceMap, ClassFile classFile)
     {
         collectReferences(referenceMap, classFile);
-        reduceReferences(referenceMap, classFile);
+        reduceReferences(referenceMap);
     }
 
     private static void collectReferences(
@@ -339,8 +340,7 @@ public final class ReferenceAnalyzer
         }
     }
 
-    private static void reduceReferences(
-        ReferenceMap referenceMap, ClassFile classFile)
+    private static void reduceReferences(ReferenceMap referenceMap)
     {
         Map<String, Boolean> multipleInternalClassName =
             new HashMap<>();
@@ -360,42 +360,6 @@ public final class ReferenceAnalyzer
                 multipleInternalClassName.put(internalClassName, Boolean.TRUE);
             } else {
                 multipleInternalClassName.put(internalClassName, Boolean.FALSE);
-            }
-        }
-
-        iterator = referenceMap.values().iterator();
-        Reference reference;
-        String internalName;
-        int index;
-        String internalPackageName;
-        String internalClassName;
-        String internalPackageNameClassName;
-        while (iterator.hasNext())
-        {
-            reference = iterator.next();
-            internalName = reference.getInternalName();
-            index = internalName.lastIndexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR);
-            if (index != -1)
-            {
-                internalPackageName = internalName.substring(0, index);
-                internalClassName = internalName.substring(index+1);
-            }
-            else
-            {
-                internalPackageName = "";
-                internalClassName = internalName;
-            }
-
-            internalPackageNameClassName = classFile.getInternalPackageName() +
-            StringConstants.INTERNAL_PACKAGE_SEPARATOR + internalClassName;
-
-            if (!classFile.getInternalPackageName().equals(internalPackageName) &&
-                Boolean.TRUE.equals(multipleInternalClassName.get(internalClassName)) ||
-                referenceMap.contains(internalPackageNameClassName))
-            {
-                // Remove references with same name and different packages
-                // or with a name of same package of current class
-                iterator.remove();
             }
         }
     }

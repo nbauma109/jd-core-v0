@@ -15,9 +15,9 @@ public class InitDexEnumFieldsReconstructorTest extends AbstractTestCase {
     public void test() throws Exception {
         try (InputStream in = getClass().getResourceAsStream("/fuelprices-dex2jar.jar")) {
             ZipLoader loader = new ZipLoader(in);
-            String internalClassName = "gr/androiddev/FuelPrices/StaticTools$LocationProvider";
+            String internalClassName = "gr/androiddev/FuelPrices/StaticTools";
             String output = decompile(internalClassName, loader);
-            assertEquals(IOUtils.toString(getClass().getResource("LocationProvider.txt"), StandardCharsets.UTF_8), output);
+            assertEquals(IOUtils.toString(getClass().getResource("StaticTools.txt"), StandardCharsets.UTF_8), output);
         }
     }
 }

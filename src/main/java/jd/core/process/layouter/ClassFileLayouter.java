@@ -28,6 +28,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
@@ -152,16 +153,20 @@ public final class ClassFileLayouter {
         String internalPackageName = classFile.getInternalPackageName();
         Iterator<Reference> iterator = collection.iterator();
         String internalReferencePackageName;
+        Set<String> typeArgumentInnerClasses = classFile.getTypeArgumentInnerClasses();
         // Filtrage
         while (iterator.hasNext())
         {
+            Reference reference = iterator.next();
+            String refInternalName = reference.getInternalName();
             internalReferencePackageName = TypeNameUtil.internalTypeNameToInternalPackageName(
-                iterator.next().getInternalName());
+                refInternalName);
 
-            // No import for same package classes
             // No import for 'java/lang' classes
-            if (internalReferencePackageName.equals(internalPackageName) || StringConstants.INTERNAL_JAVA_LANG_PACKAGE_NAME.equals(
-                    internalReferencePackageName))
+            // No import for same package classes except type argument inner classes
+            if (StringConstants.INTERNAL_JAVA_LANG_PACKAGE_NAME.equals(internalReferencePackageName)
+            || (internalReferencePackageName.equals(internalPackageName)
+                    && !typeArgumentInnerClasses.contains(refInternalName)))
             {
                 continue;
             }

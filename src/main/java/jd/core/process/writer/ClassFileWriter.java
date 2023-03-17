@@ -560,23 +560,24 @@ public final class ClassFileWriter
             String internalPackageName = classFile.getInternalPackageName();
 
             Iterator<Reference> iterator = collection.iterator();
-            List<Reference> references =
-                new ArrayList<>(length);
+            List<Reference> references = new ArrayList<>(length);
 
+            Set<String> typeArgumentInnerClasses = classFile.getTypeArgumentInnerClasses();
             String internalReferencePackageName;
             // Filtrage
             while (iterator.hasNext())
             {
                 Reference reference = iterator.next();
+                String refInternalName = reference.getInternalName();
                 internalReferencePackageName = TypeNameUtil.internalTypeNameToInternalPackageName(
-                    reference.getInternalName());
+                        refInternalName);
 
-                // No import for same package classes
                 // No import for 'java/lang' classes
-                if (internalReferencePackageName.equals(internalPackageName) || StringConstants.INTERNAL_JAVA_LANG_PACKAGE_NAME.equals(
-                        internalReferencePackageName))
+                // No import for same package classes except type argument inner classes
+                if (StringConstants.INTERNAL_JAVA_LANG_PACKAGE_NAME.equals(internalReferencePackageName)
+                || (internalReferencePackageName.equals(internalPackageName)
+                        && !typeArgumentInnerClasses.contains(refInternalName)))
                 {
-                    // TODO
                     continue;
                 }
 
