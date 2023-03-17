@@ -1554,17 +1554,24 @@ public final class FastInstructionListBuilder {
                                     || method.getNameIndex() == classFile.getConstantPool().getClassConstructorIndex())) {
                                 list.set(i, new FastDeclaration(si.getOffset(), si.getLineNumber(), lv, si));
                                 Instruction valueref = si.getValueref();
+                                String expressionSignature = valueref.getReturnedSignature(classFile, localVariables);
+                                String lvSignature = lv.getSignature(classFile.getConstantPool());
+                                TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
+                                Type lvType = typeMaker.makeFromSignature(lvSignature);
                                 if (valueref instanceof CheckCast) {
                                     CheckCast cc = (CheckCast) valueref;
                                     String castSignature = cc.getReturnedSignature(classFile, localVariables);
-                                    String lvSignature = lv.getSignature(classFile.getConstantPool());
-                                    TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
-                                    Type lvType = typeMaker.makeFromSignature(lvSignature);
                                     Type castType = typeMaker.makeFromSignature(castSignature);
                                     if (castType.isObjectType()
                                             && lvType.isGenericType()
                                             && lvType.getDimension() == castType.getDimension()) {
                                         cc.setGenericSignature(lvSignature);
+                                    }
+                                } else if (lvType.isGenericType() && expressionSignature != null) {
+                                    Type expressionType = typeMaker.makeFromSignature(expressionSignature);
+                                    if (!expressionType.isGenericType()) {
+                                        si.setValueref(new CheckCast(Const.CHECKCAST, si.getOffset(),
+                                            si.getLineNumber(), lv.getSignatureIndex(), valueref));
                                     }
                                 }
                                 lv.setDeclarationFlag(DECLARED);
@@ -3273,10 +3280,15 @@ public final class FastInstructionListBuilder {
             return 0;
         }
         StoreInstruction siVariable = (StoreInstruction) firstInstruction;
-        if (siVariable.getValueref().getOpcode() != ByteCodeConstants.ARRAYLOAD) {
+        Instruction valueref = siVariable.getValueref();
+        if (valueref instanceof CheckCast) {
+            CheckCast cc = (CheckCast) valueref;
+            valueref = cc.getObjectref();
+        }
+        if (valueref.getOpcode() != ByteCodeConstants.ARRAYLOAD) {
             return 0;
         }
-        ArrayLoadInstruction ali = (ArrayLoadInstruction) siVariable.getValueref();
+        ArrayLoadInstruction ali = (ArrayLoadInstruction) valueref;
         if (ali.getArrayref().getOpcode() != Const.ALOAD || ali.getIndexref().getOpcode() != Const.ILOAD
                 || ((ALoad) ali.getArrayref()).getIndex() != siTmpArray.getIndex()
                 || ((ILoad) ali.getIndexref()).getIndex() != siIndex.getIndex()) {

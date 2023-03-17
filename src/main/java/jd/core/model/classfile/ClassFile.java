@@ -61,6 +61,7 @@ public class ClassFile extends Base
     private final String internalPackageName;
 
     private ClassFile outerClass;
+    private ClassFile superClassFile;
     private Field outerThisField;
     private List<ClassFile> innerClassFiles;
 
@@ -382,7 +383,7 @@ public class ClassFile extends Base
                 return method;
             }
         }
-        return null;
+        return superClassFile == null ? null : superClassFile.getMethod(methodNameIndex, methodDescriptorIndex);
     }
 
     public Method getMethod(String methodName, String methodDescriptor)
@@ -402,7 +403,7 @@ public class ClassFile extends Base
                 }
             }
         }
-        return null;
+        return superClassFile == null ? null : superClassFile.getMethod(methodName, methodDescriptor);
     }
 
     public List<Instruction> getEnumValues()
@@ -442,6 +443,14 @@ public class ClassFile extends Base
 
     public VariableNameGenerator getVariableNameGenerator() {
         return variableNameGenerator;
+    }
+
+    public ClassFile getSuperClassFile() {
+        return superClassFile;
+    }
+
+    public void setSuperClassFile(ClassFile superClassFile) {
+        this.superClassFile = superClassFile;
     }
 
     @Override

@@ -10,14 +10,14 @@
 /*    */   
 /*    */   int getField(Component paramComponent)
 /*    */   {
-/* 13 */     Object localObject = paramComponent != null ? paramComponent.getLocation() : null;
-/* 14 */     return ((java.awt.Point)localObject).x;
+/* 13 */     java.awt.Point localPoint = paramComponent != null ? paramComponent.getLocation() : null;
+/* 14 */     return localPoint.x;
 /*    */   }
 /*    */   
 /*    */   void putField(Component paramComponent) {
 /* 18 */     int i = paramComponent != null ? paramComponent.getWidth() : 0;
-/* 19 */     Object localObject = paramComponent != null ? paramComponent.getLocation() : null;
-/* 20 */     ((java.awt.Point)localObject).x = i;
+/* 19 */     java.awt.Point localPoint = paramComponent != null ? paramComponent.getLocation() : null;
+/* 20 */     localPoint.x = i;
 /*    */   }
 /*    */   
 /*    */   Constructor<?>[] privateGetDeclaredConstructors(Class<?> paramClass, boolean paramBoolean)

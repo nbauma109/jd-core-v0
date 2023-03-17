@@ -140,7 +140,7 @@
 /*      */       } else {
 /*  141 */         incrementModCount();
 /*      */       }
-/*  143 */       return (V)this.root.setKeyValue(key, value);
+/*  143 */       return this.root.setKeyValue(key, value);
 /*      */     }
 /*      */     
 /*  146 */     TrieEntry<K, V> found = getNearestEntryForKey(key, lengthInBits);
@@ -150,7 +150,7 @@
 /*      */       } else {
 /*  151 */         incrementModCount();
 /*      */       }
-/*  153 */       return (V)found.setKeyValue(key, value);
+/*  153 */       return found.setKeyValue(key, value);
 /*      */     }
 /*      */     
 /*  156 */     int bitIndex = bitIndex(key, found.key);
@@ -171,7 +171,7 @@
 /*      */         } else {
 /*  172 */           incrementModCount();
 /*      */         }
-/*  174 */         return (V)this.root.setKeyValue(key, value);
+/*  174 */         return this.root.setKeyValue(key, value);
 /*      */       }
 /*  176 */       if ((KeyAnalyzer.isEqualBitKey(bitIndex)) && 
 /*      */       
@@ -179,7 +179,7 @@
 /*      */ 
 /*  180 */         (found != this.root)) {
 /*  181 */         incrementModCount();
-/*  182 */         return (V)found.setKeyValue(key, value);
+/*  182 */         return found.setKeyValue(key, value);
 /*      */       }
 /*      */     }
 /*      */     
@@ -238,7 +238,7 @@
 /*      */   public V get(Object k)
 /*      */   {
 /*  240 */     TrieEntry<K, V> entry = getEntry(k);
-/*  241 */     return (V)(entry != null ? entry.getValue() : null);
+/*  241 */     return entry != null ? entry.getValue() : null;
 /*      */   }
 /*      */   
 /*      */ 
@@ -485,7 +485,7 @@
 /*      */     }
 /*      */     
 /*  487 */     decrementSize();
-/*  488 */     return (V)h.setKeyValue(null, null);
+/*  488 */     return h.setKeyValue(null, null);
 /*      */   }
 /*      */   
 /*      */ 
@@ -780,14 +780,14 @@
 /*  780 */     if (size() == 0) {
 /*  781 */       throw new NoSuchElementException();
 /*      */     }
-/*  783 */     return (K)firstEntry().getKey();
+/*  783 */     return firstEntry().getKey();
 /*      */   }
 /*      */   
 /*      */   public K lastKey()
 /*      */   {
 /*  788 */     TrieEntry<K, V> entry = lastEntry();
 /*  789 */     if (entry != null) {
-/*  790 */       return (K)entry.getKey();
+/*  790 */       return entry.getKey();
 /*      */     }
 /*  792 */     throw new NoSuchElementException();
 /*      */   }
@@ -800,7 +800,7 @@
 /*  800 */     TrieEntry<K, V> entry = getEntry(key);
 /*  801 */     if (entry != null) {
 /*  802 */       TrieEntry<K, V> nextEntry = nextEntry(entry);
-/*  803 */       return (K)(nextEntry != null ? nextEntry.getKey() : null);
+/*  803 */       return nextEntry != null ? nextEntry.getKey() : null;
 /*      */     }
 /*  805 */     return null;
 /*      */   }
@@ -813,7 +813,7 @@
 /*  813 */     TrieEntry<K, V> entry = getEntry(key);
 /*  814 */     if (entry != null) {
 /*  815 */       TrieEntry<K, V> prevEntry = previousEntry(entry);
-/*  816 */       return (K)(prevEntry != null ? prevEntry.getKey() : null);
+/*  816 */       return prevEntry != null ? prevEntry.getKey() : null;
 /*      */     }
 /*  818 */     return null;
 /*      */   }
@@ -1476,7 +1476,7 @@
 /*      */     {
 /*      */       public K next()
 /*      */       {
-/* 1479 */         return (K)nextEntry().getKey();
+/* 1479 */         return nextEntry().getKey();
 /*      */       }
 /*      */     }
 /*      */   }
@@ -1524,7 +1524,7 @@
 /*      */     {
 /*      */       public V next()
 /*      */       {
-/* 1527 */         return (V)nextEntry().getValue();
+/* 1527 */         return nextEntry().getValue();
 /*      */       }
 /*      */     }
 /*      */   }
@@ -1611,7 +1611,7 @@
 /*      */     
 /*      */     public K next()
 /*      */     {
-/* 1614 */       return (K)nextEntry().getKey();
+/* 1614 */       return nextEntry().getKey();
 /*      */     }
 /*      */     
 /*      */     public K getKey()
@@ -1619,7 +1619,7 @@
 /* 1619 */       if (this.current == null) {
 /* 1620 */         throw new IllegalStateException();
 /*      */       }
-/* 1622 */       return (K)this.current.getKey();
+/* 1622 */       return this.current.getKey();
 /*      */     }
 /*      */     
 /*      */     public V getValue()
@@ -1627,7 +1627,7 @@
 /* 1627 */       if (this.current == null) {
 /* 1628 */         throw new IllegalStateException();
 /*      */       }
-/* 1630 */       return (V)this.current.getValue();
+/* 1630 */       return this.current.getValue();
 /*      */     }
 /*      */     
 /*      */     public V setValue(V value)
@@ -1635,7 +1635,7 @@
 /* 1635 */       if (this.current == null) {
 /* 1636 */         throw new IllegalStateException();
 /*      */       }
-/* 1638 */       return (V)this.current.setValue(value);
+/* 1638 */       return this.current.setValue(value);
 /*      */     }
 /*      */     
 /*      */     public boolean hasPrevious()
@@ -1645,7 +1645,7 @@
 /*      */     
 /*      */     public K previous()
 /*      */     {
-/* 1648 */       return (K)previousEntry().getKey();
+/* 1648 */       return previousEntry().getKey();
 /*      */     }
 /*      */     
 /*      */     protected AbstractPatriciaTrie.TrieEntry<K, V> nextEntry()
@@ -2429,8 +2429,8 @@
 /* 2429 */     this.root = new TrieEntry<>(null, null, -1);
 /* 2430 */     int size = stream.readInt();
 /* 2431 */     for (int i = 0; i < size; i++) {
-/* 2432 */       K k = stream.readObject();
-/* 2433 */       V v = stream.readObject();
+/* 2432 */       K k = (K)stream.readObject();
+/* 2433 */       V v = (V)stream.readObject();
 /* 2434 */       put(k, v);
 /*      */     }
 /*      */   }
