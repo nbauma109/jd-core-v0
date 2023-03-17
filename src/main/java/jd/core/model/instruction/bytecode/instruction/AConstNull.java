@@ -16,20 +16,29 @@
  ******************************************************************************/
 package jd.core.model.instruction.bytecode.instruction;
 
+import java.util.function.BiFunction;
+
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariables;
 
 public class AConstNull extends Instruction
 {
+    private BiFunction<ClassFile, LocalVariables, String> signatureFunction;
+
     public AConstNull(int opcode, int offset, int lineNumber)
     {
         super(opcode, offset, lineNumber);
+    }
+
+    public void setSignatureFunction(BiFunction<ClassFile, LocalVariables, String> signatureFunction)
+    {
+        this.signatureFunction = signatureFunction;
     }
 
     @Override
     public String getReturnedSignature(
             ClassFile classFile, LocalVariables localVariables)
     {
-        return null;
+        return signatureFunction == null ? null : signatureFunction.apply(classFile, localVariables);
     }
 }

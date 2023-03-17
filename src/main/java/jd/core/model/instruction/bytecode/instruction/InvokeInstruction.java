@@ -19,7 +19,6 @@ package jd.core.model.instruction.bytecode.instruction;
 import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.Signature;
-import org.jd.core.v1.util.StringConstants;
 
 import java.util.List;
 
@@ -60,8 +59,7 @@ public abstract class InvokeInstruction extends IndexInstruction
         String methodDescriptor = constants.getConstantUtf8(cnat.getSignatureIndex());
 
         String methodReturnedSignature = SignatureUtil.getMethodReturnedSignature(methodDescriptor);
-        if (methodReturnedSignature.endsWith(StringConstants.INTERNAL_OBJECT_SIGNATURE)
-                && internalClassName.charAt(0) != '['
+        if (internalClassName.charAt(0) != '['
                 && classFile.getLoader().canLoad(internalClassName)) {
             ClassFile javaClass = ClassFileDeserializer.deserialize(classFile.getLoader(), internalClassName);
             Method method = javaClass.getMethod(methodName, methodDescriptor);

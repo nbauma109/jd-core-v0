@@ -30,6 +30,7 @@ import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
+import jd.core.model.instruction.bytecode.instruction.AConstNull;
 import jd.core.model.instruction.bytecode.instruction.ALoad;
 import jd.core.model.instruction.bytecode.instruction.AStore;
 import jd.core.model.instruction.bytecode.instruction.ArrayLoadInstruction;
@@ -52,7 +53,6 @@ import jd.core.model.instruction.bytecode.instruction.PutStatic;
 import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
-import jd.core.process.analyzer.classfile.visitor.AddCheckCastVisitor;
 import jd.core.process.analyzer.classfile.visitor.SearchInstructionByOffsetVisitor;
 import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
 import jd.core.process.analyzer.util.InstructionUtil;
@@ -208,7 +208,7 @@ public final class LocalVariableAnalyzer
             String returnedSignature = getReturnedSignature(classFile, method);
 
             analyzeMethodCode(
-                    classFile, localVariables, list, listForAnalyze,
+                    classFile, localVariables, listForAnalyze,
                     returnedSignature);
 
             // Upgrade byte type to char type
@@ -687,8 +687,7 @@ public final class LocalVariableAnalyzer
      */
     private static void analyzeMethodCode(
             ClassFile classFile,
-            LocalVariables localVariables, List<Instruction> list,
-            List<Instruction> listForAnalyze, String returnedSignature)
+            LocalVariables localVariables, List<Instruction> listForAnalyze, String returnedSignature)
     {
         ConstantPool constants = classFile.getConstantPool();
 
@@ -710,6 +709,16 @@ public final class LocalVariableAnalyzer
                         classFile, localVariables, listForAnalyze,
                         ((IndexInstruction)instruction).getIndex(), i,
                         returnedSignature);
+            }
+
+            if (instruction.getOpcode() == ByteCodeConstants.TERNARYOPSTORE && i<length-1) {
+                TernaryOpStore ternaryOpStore = (TernaryOpStore) instruction;
+                int ternaryOp2ndValueOffset = ternaryOpStore.getTernaryOp2ndValueOffset();
+                Instruction ternaryOp2ndValue = SearchInstructionByOffsetVisitor.visit(listForAnalyze.get(i+1), ternaryOp2ndValueOffset);
+                if (ternaryOp2ndValue instanceof AConstNull) {
+                    AConstNull aConstNull = (AConstNull) ternaryOp2ndValue;
+                    aConstNull.setSignatureFunction(ternaryOpStore::getReturnedSignature);
+                }
             }
         }
 
@@ -794,16 +803,6 @@ public final class LocalVariableAnalyzer
                 // être ajoutés. Voir la limitation de JAD sur ce point.
                 lv.setSignatureIndex(internalObjectSignatureIndex);
                 break;
-            }
-        }
-
-        LocalVariable lv;
-        // Ajout d'instructions "cast"
-        for (int i=0; i<length; i++)
-        {
-            lv = localVariables.getLocalVariableAt(i);
-            if (lv.getSignatureIndex() == internalObjectSignatureIndex) {
-                addCastInstruction(constants, list, localVariables, lv);
             }
         }
     }
@@ -1831,17 +1830,5 @@ public final class LocalVariableAnalyzer
         }
 
         return false;
-    }
-
-    private static void addCastInstruction(
-            ConstantPool constants, List<Instruction> list,
-            LocalVariables localVariables, LocalVariable lv)
-    {
-        // Add cast instruction before all 'ALoad' instruction for local
-        // variable le used type is not 'Object'.
-        AddCheckCastVisitor visitor = new AddCheckCastVisitor(
-                constants, localVariables, lv);
-
-        list.forEach(visitor::visit);
     }
 }

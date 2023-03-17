@@ -49,6 +49,11 @@ public final class ClassFileDeserializer
             return null;
         }
 
+        if (classFile.getSuperClassName() != null && loader.canLoad(classFile.getSuperClassName())) {
+            ClassFile superClass = loadSingleClass(loader, classFile.getSuperClassName());
+            classFile.setSuperClassFile(superClass);
+        }
+
         InnerClasses aics = classFile.getAttributeInnerClasses();
         if (aics == null) {
             return classFile;
