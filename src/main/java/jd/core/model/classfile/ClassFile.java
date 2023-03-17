@@ -61,7 +61,7 @@ public class ClassFile extends Base
     private final String internalPackageName;
 
     private ClassFile outerClass;
-    private ClassFile superClassFile;
+    private final Map<String, ClassFile> superClassAndInterfaces;
     private Field outerThisField;
     private List<ClassFile> innerClassFiles;
 
@@ -127,6 +127,7 @@ public class ClassFile extends Base
         // SwitchMap for Switch+Enum instructions
         this.switchMaps = new HashMap<>();
         this.variableNameGenerator = new DefaultVariableNameGenerator(this);
+        this.superClassAndInterfaces = new HashMap<>();
     }
 
     private Method findStaticMethod() {
@@ -383,7 +384,13 @@ public class ClassFile extends Base
                 return method;
             }
         }
-        return superClassFile == null ? null : superClassFile.getMethod(methodNameIndex, methodDescriptorIndex);
+        for (ClassFile classFile : superClassAndInterfaces.values()) {
+            Method method = classFile.getMethod(methodNameIndex, methodDescriptorIndex);
+            if (method != null) {
+                return method;
+            }
+        }
+        return null;
     }
 
     public Method getMethod(String methodName, String methodDescriptor)
@@ -403,7 +410,13 @@ public class ClassFile extends Base
                 }
             }
         }
-        return superClassFile == null ? null : superClassFile.getMethod(methodName, methodDescriptor);
+        for (ClassFile classFile : superClassAndInterfaces.values()) {
+            Method method = classFile.getMethod(methodName, methodDescriptor);
+            if (method != null) {
+                return method;
+            }
+        }
+        return null;
     }
 
     public List<Instruction> getEnumValues()
@@ -445,12 +458,8 @@ public class ClassFile extends Base
         return variableNameGenerator;
     }
 
-    public ClassFile getSuperClassFile() {
-        return superClassFile;
-    }
-
-    public void setSuperClassFile(ClassFile superClassFile) {
-        this.superClassFile = superClassFile;
+    public Map<String, ClassFile> getSuperClassAndInterfaces() {
+        return superClassAndInterfaces;
     }
 
     @Override

@@ -51,7 +51,15 @@ public final class ClassFileDeserializer
 
         if (classFile.getSuperClassName() != null && loader.canLoad(classFile.getSuperClassName())) {
             ClassFile superClass = loadSingleClass(loader, classFile.getSuperClassName());
-            classFile.setSuperClassFile(superClass);
+            classFile.getSuperClassAndInterfaces().put(classFile.getSuperClassName(), superClass);
+        }
+
+        for (int interfaceIndex : classFile.getInterfaces()) {
+            String interfaceName = classFile.getConstantPool().getConstantClassName(interfaceIndex);
+            if (loader.canLoad(interfaceName)) {
+                ClassFile interfass = loadSingleClass(loader, interfaceName);
+                classFile.getSuperClassAndInterfaces().put(interfaceName, interfass);
+            }
         }
 
         InnerClasses aics = classFile.getAttributeInnerClasses();
