@@ -22,12 +22,20 @@ import org.apache.bcel.classfile.BootstrapMethods;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.InnerClasses;
 import org.apache.bcel.classfile.MethodParameters;
+import org.apache.bcel.classfile.Signature;
 import org.jd.core.v1.api.loader.Loader;
+import org.jd.core.v1.model.javasyntax.type.AbstractTypeArgumentVisitor;
+import org.jd.core.v1.model.javasyntax.type.InnerObjectType;
+import org.jd.core.v1.model.javasyntax.type.ObjectType;
+import org.jd.core.v1.model.javasyntax.type.Type;
+import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import jd.core.model.classfile.accessor.Accessor;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
@@ -439,5 +447,24 @@ public class ClassFile extends Base
     @Override
     public String toString() {
         return internalClassName;
+    }
+
+    public Set<String> getTypeArgumentInnerClasses() {
+        Set<String> typeArgumentInnerClasses = new HashSet<>();
+        Signature signature = this.getAttributeSignature();
+        if (signature != null) {
+            TypeMaker typeMaker = new TypeMaker(loader);
+            Type type = typeMaker.makeFromSignature(signature.getSignature());
+            if (type instanceof ObjectType) {
+                ObjectType ot = (ObjectType) type;
+                ot.accept(new AbstractTypeArgumentVisitor() {
+                    @Override
+                    public void visit(InnerObjectType type) {
+                        typeArgumentInnerClasses.add(type.getInternalName());
+                    }
+                });
+            }
+        }
+        return typeArgumentInnerClasses;
     }
 }

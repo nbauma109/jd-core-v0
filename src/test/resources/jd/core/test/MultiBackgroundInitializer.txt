@@ -1,0 +1,345 @@
+/*     */ package org.apache.commons.lang3.concurrent;
+/*     */ 
+/*     */ import java.util.Collections;
+/*     */ import java.util.HashMap;
+/*     */ import java.util.Map;
+/*     */ import java.util.Map.Entry;
+/*     */ import java.util.NoSuchElementException;
+/*     */ import java.util.Set;
+/*     */ import java.util.concurrent.ExecutorService;
+/*     */ import org.apache.commons.lang3.Validate;
+/*     */ import org.apache.commons.lang3.concurrent.MultiBackgroundInitializer.MultiBackgroundInitializerResults;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class MultiBackgroundInitializer
+/*     */   extends BackgroundInitializer<MultiBackgroundInitializerResults>
+/*     */ {
+/* 102 */   private final Map<String, BackgroundInitializer<?>> childInitializers = new HashMap<>();
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public MultiBackgroundInitializer() {}
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public MultiBackgroundInitializer(ExecutorService exec)
+/*     */   {
+/* 119 */     super(exec);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void addInitializer(String name, BackgroundInitializer<?> backgroundInitializer)
+/*     */   {
+/* 135 */     Validate.notNull(name, "name", new Object[0]);
+/* 136 */     Validate.notNull(backgroundInitializer, "backgroundInitializer", new Object[0]);
+/*     */     
+/* 138 */     synchronized (this) {
+/* 139 */       if (isStarted()) {
+/* 140 */         throw new IllegalStateException("addInitializer() must not be called after start()!");
+/*     */       }
+/* 142 */       this.childInitializers.put(name, backgroundInitializer);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   protected int getTaskCount()
+/*     */   {
+/* 158 */     int result = 1;
+/*     */     
+/* 160 */     for (BackgroundInitializer<?> bi : this.childInitializers.values()) {
+/* 161 */       result += bi.getTaskCount();
+/*     */     }
+/*     */     
+/* 164 */     return result;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   protected MultiBackgroundInitializerResults initialize()
+/*     */     throws Exception
+/*     */   {
+/*     */     Map<String, BackgroundInitializer<?>> inits;
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/* 180 */     synchronized (this)
+/*     */     {
+/* 182 */       inits = new HashMap<>(this.childInitializers);
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/* 187 */     ExecutorService exec = getActiveExecutor();
+/* 188 */     for (BackgroundInitializer<?> bi : inits.values()) {
+/* 189 */       if (bi.getExternalExecutor() == null)
+/*     */       {
+/* 191 */         bi.setExternalExecutor(exec);
+/*     */       }
+/* 193 */       bi.start();
+/*     */     }
+/*     */     
+/*     */ 
+/* 197 */     Map<String, Object> results = new HashMap<>();
+/* 198 */     Map<String, ConcurrentException> excepts = new HashMap<>();
+/* 199 */     for (Entry<String, BackgroundInitializer<?>> e : inits.entrySet()) {
+/*     */       try {
+/* 201 */         results.put(e.getKey(), ((BackgroundInitializer)e.getValue()).get());
+/*     */       } catch (ConcurrentException cex) {
+/* 203 */         excepts.put(e.getKey(), cex);
+/*     */       }
+/*     */     }
+/*     */     
+/* 207 */     return new MultiBackgroundInitializerResults(inits, results, excepts);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public static class MultiBackgroundInitializerResults
+/*     */   {
+/*     */     private final Map<String, BackgroundInitializer<?>> initializers;
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     private final Map<String, Object> resultObjects;
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     private final Map<String, ConcurrentException> exceptions;
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     private MultiBackgroundInitializerResults(Map<String, BackgroundInitializer<?>> inits, Map<String, Object> results, Map<String, ConcurrentException> excepts)
+/*     */     {
+/* 243 */       this.initializers = inits;
+/* 244 */       this.resultObjects = results;
+/* 245 */       this.exceptions = excepts;
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public BackgroundInitializer<?> getInitializer(String name)
+/*     */     {
+/* 257 */       return checkName(name);
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public Object getResultObject(String name)
+/*     */     {
+/* 273 */       checkName(name);
+/* 274 */       return this.resultObjects.get(name);
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public boolean isException(String name)
+/*     */     {
+/* 286 */       checkName(name);
+/* 287 */       return this.exceptions.containsKey(name);
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public ConcurrentException getException(String name)
+/*     */     {
+/* 301 */       checkName(name);
+/* 302 */       return (ConcurrentException)this.exceptions.get(name);
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public Set<String> initializerNames()
+/*     */     {
+/* 313 */       return Collections.unmodifiableSet(this.initializers.keySet());
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public boolean isSuccessful()
+/*     */     {
+/* 323 */       return this.exceptions.isEmpty();
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     private BackgroundInitializer<?> checkName(String name)
+/*     */     {
+/* 336 */       BackgroundInitializer<?> init = (BackgroundInitializer)this.initializers.get(name);
+/* 337 */       if (init == null) {
+/* 338 */         throw new NoSuchElementException("No child initializer with name " + name);
+/*     */       }
+/*     */       
+/*     */ 
+/* 342 */       return init;
+/*     */     }
+/*     */   }
+/*     */ }
