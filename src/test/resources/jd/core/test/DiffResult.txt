@@ -73,9 +73,9 @@
 /*     */   
 /*     */   DiffResult(T lhs, T rhs, List<Diff<?>> diffList, ToStringStyle style)
 /*     */   {
-/*  76 */     Validate.notNull(lhs, "lhs", new Object[0]);
-/*  77 */     Validate.notNull(rhs, "rhs", new Object[0]);
-/*  78 */     Validate.notNull(diffList, "diffList", new Object[0]);
+/*  76 */     Validate.notNull(lhs, "lhs");
+/*  77 */     Validate.notNull(rhs, "rhs");
+/*  78 */     Validate.notNull(diffList, "diffList");
 /*     */     
 /*  80 */     this.diffList = diffList;
 /*  81 */     this.lhs = lhs;

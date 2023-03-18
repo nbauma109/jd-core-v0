@@ -435,7 +435,7 @@
 /*     */   }
 /*     */   
 /*     */   private static Object checkNotNull(Object obj) {
-/* 438 */     return Validate.notNull(obj, "obj", new Object[0]);
+/* 438 */     return Validate.notNull(obj, "obj");
 /*     */   }
 /*     */   
 /*     */ 

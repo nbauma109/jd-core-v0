@@ -1319,8 +1319,8 @@
 /*      */ 
 /*      */   private static void validateArray(Object array)
 /*      */   {
-/* 1322 */     Validate.notNull(array, "array", new Object[0]);
-/* 1323 */     Validate.isTrue(Array.getLength(array) != 0, "Array cannot be empty.", new Object[0]);
+/* 1322 */     Validate.notNull(array, "array");
+/* 1323 */     Validate.isTrue(Array.getLength(array) != 0, "Array cannot be empty.");
 /*      */   }
 /*      */   
 /*      */ 

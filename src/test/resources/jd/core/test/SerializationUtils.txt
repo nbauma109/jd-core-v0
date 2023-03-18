@@ -175,7 +175,7 @@
 /*     */ 
 /*     */   public static <T> T deserialize(byte[] objectData)
 /*     */   {
-/* 178 */     Validate.notNull(objectData, "objectData", new Object[0]);
+/* 178 */     Validate.notNull(objectData, "objectData");
 /* 179 */     return deserialize(new ByteArrayInputStream(objectData));
 /*     */   }
 /*     */   
@@ -209,7 +209,7 @@
 /*     */ 
 /*     */   public static <T> T deserialize(InputStream inputStream)
 /*     */   {
-/* 212 */     Validate.notNull(inputStream, "inputStream", new Object[0]);
+/* 212 */     Validate.notNull(inputStream, "inputStream");
 /* 213 */     try (ObjectInputStream in = new ObjectInputStream(inputStream))
 /*     */     {
 /* 215 */       T obj = (T)in.readObject();
@@ -266,7 +266,7 @@
 /*     */ 
 /*     */   public static void serialize(Serializable obj, OutputStream outputStream)
 /*     */   {
-/* 269 */     Validate.notNull(outputStream, "outputStream", new Object[0]);
+/* 269 */     Validate.notNull(outputStream, "outputStream");
 /* 270 */     try (ObjectOutputStream out = new ObjectOutputStream(outputStream)) {
 /* 271 */       out.writeObject(obj);
 /*     */     } catch (IOException ex) {

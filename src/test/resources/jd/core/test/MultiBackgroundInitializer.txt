@@ -132,8 +132,8 @@
 /*     */ 
 /*     */   public void addInitializer(String name, BackgroundInitializer<?> backgroundInitializer)
 /*     */   {
-/* 135 */     Validate.notNull(name, "name", new Object[0]);
-/* 136 */     Validate.notNull(backgroundInitializer, "backgroundInitializer", new Object[0]);
+/* 135 */     Validate.notNull(name, "name");
+/* 136 */     Validate.notNull(backgroundInitializer, "backgroundInitializer");
 /*     */     
 /* 138 */     synchronized (this) {
 /* 139 */       if (isStarted()) {
