@@ -18,9 +18,11 @@ package jd.core.model.instruction.bytecode.instruction;
 
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
+import org.apache.bcel.classfile.Signature;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
+import jd.core.model.classfile.Field;
 import jd.core.model.classfile.LocalVariables;
 
 public class GetField extends IndexInstruction
@@ -56,6 +58,15 @@ public class GetField extends IndexInstruction
             return null;
         }
 
+        String fieldName = constants.getConstantUtf8(cnat.getNameIndex());
+        String fieldSignature = constants.getConstantUtf8(cnat.getSignatureIndex());
+        Field field = classFile.getField(fieldName, fieldSignature);
+        if (field != null) {
+            Signature attributeSignature = field.getAttributeSignature();
+            if (attributeSignature != null) {
+                return attributeSignature.getSignature();
+            }
+        }
         return constants.getConstantUtf8(cnat.getSignatureIndex());
     }
 

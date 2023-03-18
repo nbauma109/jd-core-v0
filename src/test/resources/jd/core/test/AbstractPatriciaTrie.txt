@@ -1262,7 +1262,7 @@
 /*      */     }
 /*      */     
 /*      */     public E get() {
-/* 1265 */       return (E)this.item;
+/* 1265 */       return this.item;
 /*      */     }
 /*      */   }
 /*      */   
@@ -1931,12 +1931,12 @@
 /*      */     
 /*      */     @Override
 /*      */     public K getFromKey() {
-/* 1934 */       return (K)this.fromKey;
+/* 1934 */       return this.fromKey;
 /*      */     }
 /*      */     
 /*      */     @Override
 /*      */     public K getToKey() {
-/* 1939 */       return (K)this.toKey;
+/* 1939 */       return this.toKey;
 /*      */     }
 /*      */     
 /*      */     @Override
@@ -2234,12 +2234,12 @@
 /*      */     
 /*      */     @Override
 /*      */     public K getFromKey() {
-/* 2237 */       return (K)this.fromKey;
+/* 2237 */       return this.fromKey;
 /*      */     }
 /*      */     
 /*      */     @Override
 /*      */     public K getToKey() {
-/* 2242 */       return (K)this.toKey;
+/* 2242 */       return this.toKey;
 /*      */     }
 /*      */     
 /*      */     @Override
