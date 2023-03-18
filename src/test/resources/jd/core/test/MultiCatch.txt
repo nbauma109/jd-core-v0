@@ -11,14 +11,14 @@
 /*    */   {
 /* 12 */     Method method = null;
 /*    */     try {
-/* 14 */       method = throwable.getClass().getMethod(methodName, new Class[0]);
+/* 14 */       method = throwable.getClass().getMethod(methodName);
 /*    */     }
 /*    */     catch (NoSuchMethodException|SecurityException localNoSuchMethodException) {}
 /*    */     
 /*    */ 
 /* 19 */     if (method != null && Throwable.class.isAssignableFrom(method.getReturnType())) {
 /*    */       try {
-/* 21 */         return (Throwable)method.invoke(throwable, new Object[0]);
+/* 21 */         return (Throwable)method.invoke(throwable);
 /*    */       }
 /*    */       catch (IllegalAccessException|IllegalArgumentException|InvocationTargetException localIllegalAccessException) {}
 /*    */     }

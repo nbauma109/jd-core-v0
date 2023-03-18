@@ -1197,7 +1197,7 @@
 /*      */   private static String toCanonicalName(String className)
 /*      */   {
 /* 1199 */     className = StringUtils.deleteWhitespace(className);
-/* 1200 */     Validate.notNull(className, "className", new Object[0]);
+/* 1200 */     Validate.notNull(className, "className");
 /* 1201 */     if (className.endsWith("[]")) {
 /* 1202 */       StringBuilder classNameBuffer = new StringBuilder();
 /* 1203 */       while (className.endsWith("[]")) {

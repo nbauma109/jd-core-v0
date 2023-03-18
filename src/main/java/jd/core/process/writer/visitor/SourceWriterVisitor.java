@@ -2021,6 +2021,15 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
             }
             for (int i=firstIndex+1; i<length && i<args.size(); i++)
             {
+                if (varArgs && i == args.size() - 1 && args.get(i) instanceof ANewArray) {
+                    ANewArray aNewArray = (ANewArray) args.get(i);
+                    if (aNewArray.getDimension() instanceof IConst) {
+                        IConst dimension = (IConst) aNewArray.getDimension();
+                        if (dimension.getValue() == 0) {
+                            break;
+                        }
+                    }
+                }
                 nextOffset = this.previousOffset + 1;
 
                 if (this.firstOffset <= this.previousOffset &&

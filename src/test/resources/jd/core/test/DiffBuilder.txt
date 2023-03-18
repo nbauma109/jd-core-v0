@@ -104,8 +104,8 @@
 /*     */   
 /*     */   public DiffBuilder(T lhs, T rhs, ToStringStyle style, boolean testTriviallyEqual)
 /*     */   {
-/* 107 */     Validate.notNull(lhs, "lhs", new Object[0]);
-/* 108 */     Validate.notNull(rhs, "rhs", new Object[0]);
+/* 107 */     Validate.notNull(lhs, "lhs");
+/* 108 */     Validate.notNull(rhs, "rhs");
 /*     */     
 /* 110 */     this.diffs = new ArrayList<>();
 /* 111 */     this.left = lhs;
@@ -949,7 +949,7 @@
 /*     */   public DiffBuilder<T> append(String fieldName, DiffResult<T> diffResult)
 /*     */   {
 /* 951 */     validateFieldNameNotNull(fieldName);
-/* 952 */     Validate.notNull(diffResult, "diffResult", new Object[0]);
+/* 952 */     Validate.notNull(diffResult, "diffResult");
 /* 953 */     if (this.objectsTriviallyEqual) {
 /* 954 */       return this;
 /*     */     }
@@ -977,6 +977,6 @@
 /*     */   }
 /*     */   
 /*     */   private void validateFieldNameNotNull(String fieldName) {
-/* 980 */     Validate.notNull(fieldName, "fieldName", new Object[0]);
+/* 980 */     Validate.notNull(fieldName, "fieldName");
 /*     */   }
 /*     */ }

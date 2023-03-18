@@ -22,8 +22,8 @@
 /*    */   }
 /*    */   
 /*    */   Method getMatchingMethod(Class<?> cls, String methodName, Class<?>... parameterTypes) {
-/* 25 */     Validate.notNull(cls, "cls", new Object[0]);
-/* 26 */     Validate.notEmpty(methodName, "methodName", new Object[0]);
+/* 25 */     Validate.notNull(cls, "cls");
+/* 26 */     Validate.notEmpty(methodName, "methodName");
 /*    */     
 /* 28 */     MethodBean methodBean = new MethodBean(methodName);
 /* 29 */     List<Method> methods = (List)Arrays.stream(cls.getDeclaredMethods()).filter(methodBean::matchName).collect(Collectors.toList());

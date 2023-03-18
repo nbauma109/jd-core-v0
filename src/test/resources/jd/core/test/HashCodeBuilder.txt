@@ -255,7 +255,7 @@
 /*     */ 
 /*     */   public static int reflectionHashCode(int initialNonZeroOddNumber, int multiplierNonZeroOddNumber, Object object)
 /*     */   {
-/* 258 */     return reflectionHashCode(initialNonZeroOddNumber, multiplierNonZeroOddNumber, object, false, null, new String[0]);
+/* 258 */     return reflectionHashCode(initialNonZeroOddNumber, multiplierNonZeroOddNumber, object, false, null);
 /*     */   }
 /*     */   
 /*     */ 
@@ -302,7 +302,7 @@
 /*     */ 
 /*     */   public static int reflectionHashCode(int initialNonZeroOddNumber, int multiplierNonZeroOddNumber, Object object, boolean testTransients)
 /*     */   {
-/* 305 */     return reflectionHashCode(initialNonZeroOddNumber, multiplierNonZeroOddNumber, object, testTransients, null, new String[0]);
+/* 305 */     return reflectionHashCode(initialNonZeroOddNumber, multiplierNonZeroOddNumber, object, testTransients, null);
 /*     */   }
 /*     */   
 /*     */ 
@@ -357,7 +357,7 @@
 /*     */ 
 /*     */   public static <T> int reflectionHashCode(int initialNonZeroOddNumber, int multiplierNonZeroOddNumber, T object, boolean testTransients, Class<? super T> reflectUpToClass, String... excludeFields)
 /*     */   {
-/* 360 */     Validate.notNull(object, "object", new Object[0]);
+/* 360 */     Validate.notNull(object, "object");
 /* 361 */     HashCodeBuilder builder = new HashCodeBuilder(initialNonZeroOddNumber, multiplierNonZeroOddNumber);
 /* 362 */     Class<?> clazz = object.getClass();
 /* 363 */     reflectionAppend(object, clazz, builder, testTransients, excludeFields);
@@ -404,7 +404,7 @@
 /*     */ 
 /*     */   public static int reflectionHashCode(Object object, boolean testTransients)
 /*     */   {
-/* 407 */     return reflectionHashCode(17, 37, object, testTransients, null, new String[0]);
+/* 407 */     return reflectionHashCode(17, 37, object, testTransients, null);
 /*     */   }
 /*     */   
 /*     */ 
@@ -566,8 +566,8 @@
 /*     */ 
 /*     */   public HashCodeBuilder(int initialOddNumber, int multiplierOddNumber)
 /*     */   {
-/* 569 */     Validate.isTrue(initialOddNumber % 2 != 0, "HashCodeBuilder requires an odd initial value", new Object[0]);
-/* 570 */     Validate.isTrue(multiplierOddNumber % 2 != 0, "HashCodeBuilder requires an odd multiplier", new Object[0]);
+/* 569 */     Validate.isTrue(initialOddNumber % 2 != 0, "HashCodeBuilder requires an odd initial value");
+/* 570 */     Validate.isTrue(multiplierOddNumber % 2 != 0, "HashCodeBuilder requires an odd multiplier");
 /* 571 */     this.iConstant = multiplierOddNumber;
 /* 572 */     this.iTotal = initialOddNumber;
 /*     */   }

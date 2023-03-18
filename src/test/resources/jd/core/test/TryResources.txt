@@ -33,7 +33,7 @@
 /*    */   
 /*    */   List<String> readFile(File file) {
 /* 35 */     List<String> lines = new ArrayList<>();
-/* 36 */     try (InputStream in = java.nio.file.Files.newInputStream(file.toPath(), new java.nio.file.OpenOption[0]);
+/* 36 */     try (InputStream in = java.nio.file.Files.newInputStream(file.toPath());
 /* 37 */     InputStreamReader isr = new InputStreamReader(in);
 /* 38 */     Scanner sc = new Scanner(isr);) {
 /* 39 */       while (sc.hasNextLine()) {

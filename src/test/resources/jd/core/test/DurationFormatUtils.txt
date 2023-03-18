@@ -277,7 +277,7 @@
 /*     */ 
 /*     */   public static String formatPeriod(long startMillis, long endMillis, String format, boolean padWithZeros, TimeZone timezone)
 /*     */   {
-/* 280 */     Validate.isTrue(startMillis <= endMillis, "startMillis must not be greater than endMillis", new Object[0]);
+/* 280 */     Validate.isTrue(startMillis <= endMillis, "startMillis must not be greater than endMillis");
 /*     */     
 /*     */ 
 /*     */ 

@@ -211,7 +211,7 @@
 /*      */   public static Counters.PathCounters cleanDirectory(Path directory, DeleteOption... deleteOptions)
 /*      */     throws IOException
 /*      */   {
-/*  214 */     return ((CleaningPathVisitor)visitFileTree(new CleaningPathVisitor(Counters.longPathCounters(), deleteOptions, new String[0]), directory))
+/*  214 */     return ((CleaningPathVisitor)visitFileTree(new CleaningPathVisitor(Counters.longPathCounters(), deleteOptions), directory))
 /*  215 */       .getPathCounters();
 /*      */   }
 /*      */   
@@ -319,7 +319,7 @@
 /*      */ 
 /*      */   public static Path current()
 /*      */   {
-/*  322 */     return Paths.get("", new String[0]);
+/*  322 */     return Paths.get("");
 /*      */   }
 /*      */   
 /*      */ 
@@ -415,7 +415,7 @@
 /*      */     throws IOException
 /*      */   {
 /*  417 */     return ((DeletingPathVisitor)visitFileTree(new DeletingPathVisitor(
-/*  418 */       Counters.longPathCounters(), NOFOLLOW_LINK_OPTION_ARRAY, deleteOptions, new String[0]), directory))
+/*  418 */       Counters.longPathCounters(), NOFOLLOW_LINK_OPTION_ARRAY, deleteOptions), directory))
 /*  419 */       .getPathCounters();
 /*      */   }
 /*      */   
@@ -431,7 +431,7 @@
 /*      */   public static Counters.PathCounters deleteDirectory(Path directory, LinkOption[] linkOptions, DeleteOption... deleteOptions)
 /*      */     throws IOException
 /*      */   {
-/*  434 */     return ((DeletingPathVisitor)visitFileTree(new DeletingPathVisitor(Counters.longPathCounters(), linkOptions, deleteOptions, new String[0]), directory))
+/*  434 */     return ((DeletingPathVisitor)visitFileTree(new DeletingPathVisitor(Counters.longPathCounters(), linkOptions, deleteOptions), directory))
 /*  435 */       .getPathCounters();
 /*      */   }
 /*      */   
@@ -527,7 +527,7 @@
 /*  527 */     if (path1 == null || path2 == null) {
 /*  528 */       return false;
 /*      */     }
-/*  530 */     if (Files.notExists(path1, new LinkOption[0]) && Files.notExists(path2, new LinkOption[0])) {
+/*  530 */     if (Files.notExists(path1) && Files.notExists(path2)) {
 /*  531 */       return true;
 /*      */     }
 /*  533 */     RelativeSortedPaths relativeSortedPaths = new RelativeSortedPaths(path1, path2, Integer.MAX_VALUE, linkOptions, fileVisitOption);
@@ -713,7 +713,7 @@
 /*      */   public static List<AclEntry> getAclEntryList(Path sourcePath)
 /*      */     throws IOException
 /*      */   {
-/*  716 */     AclFileAttributeView fileAttributeView = (AclFileAttributeView)Files.getFileAttributeView(sourcePath, AclFileAttributeView.class, new LinkOption[0]);
+/*  716 */     AclFileAttributeView fileAttributeView = (AclFileAttributeView)Files.getFileAttributeView(sourcePath, AclFileAttributeView.class);
 /*      */     
 /*  718 */     return fileAttributeView == null ? null : fileAttributeView.getAcl();
 /*      */   }
@@ -744,7 +744,7 @@
 /*      */   public static boolean isEmpty(Path path)
 /*      */     throws IOException
 /*      */   {
-/*  747 */     return Files.isDirectory(path, new LinkOption[0]) ? isEmptyDirectory(path) : isEmptyFile(path);
+/*  747 */     return Files.isDirectory(path) ? isEmptyDirectory(path) : isEmptyFile(path);
 /*      */   }
 /*      */   
 /*      */ 
@@ -794,7 +794,7 @@
 /*      */     throws IOException
 /*      */   {
 /*  796 */     Objects.requireNonNull(file, "file");
-/*  797 */     if (Files.notExists(file, new LinkOption[0])) {
+/*  797 */     if (Files.notExists(file)) {
 /*  798 */       return false;
 /*      */     }
 /*  800 */     return Files.getLastModifiedTime(file, options).toMillis() > timeMillis;
@@ -853,7 +853,7 @@
 /*      */   public static BasicFileAttributes readBasicFileAttributes(Path path)
 /*      */     throws IOException
 /*      */   {
-/*  856 */     return Files.readAttributes(path, BasicFileAttributes.class, new LinkOption[0]);
+/*  856 */     return Files.readAttributes(path, BasicFileAttributes.class);
 /*      */   }
 /*      */   
 /*      */ 

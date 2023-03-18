@@ -1230,7 +1230,7 @@
 /*      */   public static long copy(URL url, File file)
 /*      */     throws IOException
 /*      */   {
-/* 1233 */     try (OutputStream outputStream = java.nio.file.Files.newOutputStream(((File)Objects.requireNonNull(file, "file")).toPath(), new java.nio.file.OpenOption[0])) {
+/* 1233 */     try (OutputStream outputStream = java.nio.file.Files.newOutputStream(((File)Objects.requireNonNull(file, "file")).toPath())) {
 /* 1234 */       return copy(url, outputStream);
 /*      */     }
 /*      */     
