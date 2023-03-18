@@ -21,6 +21,8 @@ import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.Signature;
+import org.jd.core.v1.model.javasyntax.type.GenericType;
+import org.jd.core.v1.model.javasyntax.type.ObjectType;
 import org.jd.core.v1.model.javasyntax.type.Type;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
 import org.jd.core.v1.util.StringConstants;
@@ -1272,29 +1274,32 @@ public final class FastInstructionListBuilder {
 
             if (instruction.getOpcode() == ByteCodeConstants.XRETURN)
             {
+                TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
+                Type methodReturnedType = typeMaker.makeFromSignature(methodReturnedSignature);
                 ReturnInstruction ri = (ReturnInstruction)instruction;
                 String returnedSignature =
                     ri.getValueref().getReturnedSignature(classFile, localVariables);
-
-                if (INTERNAL_OBJECT_SIGNATURE.equals(returnedSignature) && ! INTERNAL_OBJECT_SIGNATURE.equals(methodReturnedSignature))
-                {
-                    signatureIndex = constants.addConstantUtf8(methodReturnedSignature);
-
-                    if (ri.getValueref().getOpcode() == Const.CHECKCAST)
+                if (returnedSignature != null) {
+                    Type expressionType = typeMaker.makeFromSignature(returnedSignature);
+                    if ((INTERNAL_OBJECT_SIGNATURE.equals(returnedSignature)
+                            && ! INTERNAL_OBJECT_SIGNATURE.equals(methodReturnedSignature))
+                    || (expressionType instanceof ObjectType && methodReturnedType instanceof GenericType))
                     {
-                        ((CheckCast)ri.getValueref()).setIndex(signatureIndex);
-                    }
-                    else
-                    {
-                        ri.setValueref(new CheckCast(
-                            Const.CHECKCAST, ri.getValueref().getOffset(),
-                            ri.getValueref().getLineNumber(), signatureIndex, ri.getValueref()));
+                        signatureIndex = constants.addConstantUtf8(methodReturnedSignature);
+    
+                        if (ri.getValueref().getOpcode() == Const.CHECKCAST)
+                        {
+                            ((CheckCast)ri.getValueref()).setIndex(signatureIndex);
+                        }
+                        else
+                        {
+                            ri.setValueref(new CheckCast(
+                                Const.CHECKCAST, ri.getValueref().getOffset(),
+                                ri.getValueref().getLineNumber(), signatureIndex, ri.getValueref()));
+                        }
                     }
                 }
-
                 // Remove unnecessary cast to T
-                TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
-                Type methodReturnedType = typeMaker.makeFromSignature(methodReturnedSignature);
                 RemoveCheckCastVisitor visitor = new RemoveCheckCastVisitor(classFile, localVariables, typeMaker, methodReturnedType);
                 visitor.visit(ri.getValueref());
 
@@ -1304,7 +1309,7 @@ public final class FastInstructionListBuilder {
                     Instruction valueref = ri.getValueref();
                     if (valueref instanceof CheckCast) {
                         CheckCast cc = (CheckCast) valueref;
-                        cc.setGenericSignature(methodReturnedSignature);
+                        cc.setIndex(constants.addConstantUtf8(methodReturnedSignature));
                     }
                 }
             }
@@ -1565,7 +1570,7 @@ public final class FastInstructionListBuilder {
                                     if (castType.isObjectType()
                                             && lvType.isGenericType()
                                             && lvType.getDimension() == castType.getDimension()) {
-                                        cc.setGenericSignature(lvSignature);
+                                        cc.setIndex(lv.getSignatureIndex());
                                     }
                                 } else if (lvType.isGenericType() && expressionSignature != null) {
                                     Type expressionType = typeMaker.makeFromSignature(expressionSignature);
@@ -2939,7 +2944,7 @@ public final class FastInstructionListBuilder {
             if (valueref instanceof CheckCast) {
                 CheckCast cc = (CheckCast) valueref;
                 String lvSignature = variable.getReturnedSignature(classFile, localVariables);
-                cc.setGenericSignature("[" + lvSignature);
+                cc.setIndex(classFile.getConstantPool().addConstantUtf8("[" + lvSignature));
             }
             Instruction values = beforeBeforeBeforeWhileLoop.getValueref();
 

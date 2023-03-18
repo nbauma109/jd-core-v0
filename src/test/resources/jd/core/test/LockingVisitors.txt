@@ -243,7 +243,7 @@
 /*     */ 
 /*     */     public L getLock()
 /*     */     {
-/* 246 */       return (L)this.lock;
+/* 246 */       return this.lock;
 /*     */     }
 /*     */     
 /*     */ 
@@ -252,7 +252,7 @@
 /*     */ 
 /*     */     public O getObject()
 /*     */     {
-/* 255 */       return (O)this.object;
+/* 255 */       return this.object;
 /*     */     }
 /*     */     
 /*     */ 

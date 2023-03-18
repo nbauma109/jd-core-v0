@@ -95,7 +95,7 @@
 /*     */ 
 /*     */   public T getLeft()
 /*     */   {
-/*  98 */     return (T)this.lhs;
+/*  98 */     return this.lhs;
 /*     */   }
 /*     */   
 /*     */ 
@@ -105,7 +105,7 @@
 /*     */ 
 /*     */   public T getRight()
 /*     */   {
-/* 108 */     return (T)this.rhs;
+/* 108 */     return this.rhs;
 /*     */   }
 /*     */   
 /*     */ 
