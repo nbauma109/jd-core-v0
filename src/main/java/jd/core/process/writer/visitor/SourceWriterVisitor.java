@@ -2452,7 +2452,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
                 this.printer.printKeyword("int");
                 this.printer.print(')');
                 break;
-            case 'L':
+            case 'J':
                 this.printer.print(lineNumber, '(');
                 this.printer.printKeyword("long");
                 this.printer.print(')');
