@@ -240,7 +240,7 @@
 /*  240 */         arrayPrefix.append("[]");
 /*      */       }
 /*      */       
-/*  243 */       if ((className.charAt(0) == 'L') && (className.charAt(className.length() - 1) == ';')) {
+/*  243 */       if (className.charAt(0) == 'L' && className.charAt(className.length() - 1) == ';') {
 /*  244 */         className = className.substring(1, className.length() - 1);
 /*      */       }
 /*      */       
@@ -415,7 +415,7 @@
 /*  415 */       className = className.substring(1);
 /*      */     }
 /*      */     
-/*  418 */     if ((className.charAt(0) == 'L') && (className.charAt(className.length() - 1) == ';')) {
+/*  418 */     if (className.charAt(0) == 'L' && className.charAt(className.length() - 1) == ';') {
 /*  419 */       className = className.substring(1);
 /*      */     }
 /*      */     
@@ -501,12 +501,12 @@
 /*  501 */     while (source < abbreviated.length)
 /*      */     {
 /*  503 */       int runAheadTarget = target;
-/*  504 */       while ((source < abbreviated.length) && (abbreviated[source] != '.')) {
+/*  504 */       while (source < abbreviated.length && abbreviated[source] != '.') {
 /*  505 */         abbreviated[(runAheadTarget++)] = abbreviated[(source++)];
 /*      */       }
 /*      */       
 /*  508 */       target++;
-/*  509 */       if ((useFull(runAheadTarget, source, abbreviated.length, lengthHint)) || (target > runAheadTarget))
+/*  509 */       if (useFull(runAheadTarget, source, abbreviated.length, lengthHint) || target > runAheadTarget)
 /*      */       {
 /*  511 */         target = runAheadTarget;
 /*      */       }
@@ -551,7 +551,7 @@
 /*      */ 
 /*      */   private static boolean useFull(int runAheadTarget, int source, int originalLength, int desiredLength)
 /*      */   {
-/*  554 */     return (source >= originalLength) || (runAheadTarget + originalLength - source <= desiredLength);
+/*  554 */     return source >= originalLength || runAheadTarget + originalLength - source <= desiredLength;
 /*      */   }
 /*      */   
 /*      */ 
@@ -783,7 +783,7 @@
 /*  783 */     if (type == null) {
 /*  784 */       return false;
 /*      */     }
-/*  786 */     return (type.isPrimitive()) || (isPrimitiveWrapper(type));
+/*  786 */     return type.isPrimitive() || isPrimitiveWrapper(type);
 /*      */   }
 /*      */   
 /*      */ 
@@ -872,13 +872,13 @@
 /*      */     }
 /*      */     
 /*  874 */     if (autoboxing) {
-/*  875 */       if ((cls.isPrimitive()) && (!toClass.isPrimitive())) {
+/*  875 */       if (cls.isPrimitive() && !toClass.isPrimitive()) {
 /*  876 */         cls = primitiveToWrapper(cls);
 /*  877 */         if (cls == null) {
 /*  878 */           return false;
 /*      */         }
 /*      */       }
-/*  881 */       if ((toClass.isPrimitive()) && (!cls.isPrimitive())) {
+/*  881 */       if (toClass.isPrimitive() && !cls.isPrimitive()) {
 /*  882 */         cls = wrapperToPrimitive(cls);
 /*  883 */         if (cls == null) {
 /*  884 */           return false;
@@ -893,13 +893,13 @@
 /*  893 */         return false;
 /*      */       }
 /*  895 */       if (Integer.TYPE.equals(cls)) {
-/*  896 */         return (Long.TYPE.equals(toClass)) || 
-/*  897 */           (Float.TYPE.equals(toClass)) || 
-/*  898 */           (Double.TYPE.equals(toClass));
+/*  896 */         return Long.TYPE.equals(toClass) || 
+/*  897 */           Float.TYPE.equals(toClass) || 
+/*  898 */           Double.TYPE.equals(toClass);
 /*      */       }
 /*  900 */       if (Long.TYPE.equals(cls)) {
-/*  901 */         return (Float.TYPE.equals(toClass)) || 
-/*  902 */           (Double.TYPE.equals(toClass));
+/*  901 */         return Float.TYPE.equals(toClass) || 
+/*  902 */           Double.TYPE.equals(toClass);
 /*      */       }
 /*  904 */       if (Boolean.TYPE.equals(cls)) {
 /*  905 */         return false;
@@ -911,23 +911,23 @@
 /*  911 */         return Double.TYPE.equals(toClass);
 /*      */       }
 /*  913 */       if (Character.TYPE.equals(cls)) {
-/*  914 */         return (Integer.TYPE.equals(toClass)) || 
-/*  915 */           (Long.TYPE.equals(toClass)) || 
-/*  916 */           (Float.TYPE.equals(toClass)) || 
-/*  917 */           (Double.TYPE.equals(toClass));
+/*  914 */         return Integer.TYPE.equals(toClass) || 
+/*  915 */           Long.TYPE.equals(toClass) || 
+/*  916 */           Float.TYPE.equals(toClass) || 
+/*  917 */           Double.TYPE.equals(toClass);
 /*      */       }
 /*  919 */       if (Short.TYPE.equals(cls)) {
-/*  920 */         return (Integer.TYPE.equals(toClass)) || 
-/*  921 */           (Long.TYPE.equals(toClass)) || 
-/*  922 */           (Float.TYPE.equals(toClass)) || 
-/*  923 */           (Double.TYPE.equals(toClass));
+/*  920 */         return Integer.TYPE.equals(toClass) || 
+/*  921 */           Long.TYPE.equals(toClass) || 
+/*  922 */           Float.TYPE.equals(toClass) || 
+/*  923 */           Double.TYPE.equals(toClass);
 /*      */       }
 /*  925 */       if (Byte.TYPE.equals(cls)) {
-/*  926 */         return (Short.TYPE.equals(toClass)) || 
-/*  927 */           (Integer.TYPE.equals(toClass)) || 
-/*  928 */           (Long.TYPE.equals(toClass)) || 
-/*  929 */           (Float.TYPE.equals(toClass)) || 
-/*  930 */           (Double.TYPE.equals(toClass));
+/*  926 */         return Short.TYPE.equals(toClass) || 
+/*  927 */           Integer.TYPE.equals(toClass) || 
+/*  928 */           Long.TYPE.equals(toClass) || 
+/*  929 */           Float.TYPE.equals(toClass) || 
+/*  930 */           Double.TYPE.equals(toClass);
 /*      */       }
 /*      */       
 /*  933 */       return false;
@@ -949,7 +949,7 @@
 /*      */   public static Class<?> primitiveToWrapper(Class<?> cls)
 /*      */   {
 /*  951 */     Class<?> convertedClass = cls;
-/*  952 */     if ((cls != null) && (cls.isPrimitive())) {
+/*  952 */     if (cls != null && cls.isPrimitive()) {
 /*  953 */       convertedClass = (Class)primitiveWrapperMap.get(cls);
 /*      */     }
 /*  955 */     return convertedClass;
@@ -1041,7 +1041,7 @@
 /*      */ 
 /*      */   public static boolean isInnerClass(Class<?> cls)
 /*      */   {
-/* 1044 */     return (cls != null) && (cls.getEnclosingClass() != null);
+/* 1044 */     return cls != null && cls.getEnclosingClass() != null;
 /*      */   }
 /*      */   
 /*      */ 
@@ -1524,7 +1524,7 @@
 /*      */         
 /*      */         @Override
 /*      */         public boolean hasNext() {
-/* 1527 */           return (this.interfaces.hasNext()) || (wrapped.hasNext());
+/* 1527 */           return this.interfaces.hasNext() || wrapped.hasNext();
 /*      */         }
 /*      */         
 /*      */         public Class<?> next()

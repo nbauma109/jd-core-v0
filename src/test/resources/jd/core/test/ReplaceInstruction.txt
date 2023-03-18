@@ -44,7 +44,7 @@
 /*  44 */       char actualChar = str.charAt(i);
 /*  45 */       boolean isWhitespace = Character.isWhitespace(actualChar);
 /*  46 */       if (isWhitespace) {
-/*  47 */         if ((whitespacesCount == 0) && (!startWhitespaces)) {
+/*  47 */         if (whitespacesCount == 0 && !startWhitespaces) {
 /*  48 */           newChars[(count++)] = " ".charAt(0);
 /*     */         }
 /*  50 */         whitespacesCount++;

@@ -208,7 +208,7 @@
 /*     */     }
 /* 209 */     this.rootEntry = rootEntry;
 /* 210 */     this.fileFilter = fileFilter;
-/* 211 */     if ((caseSensitivity == null) || (caseSensitivity.equals(IOCase.SYSTEM))) {
+/* 211 */     if (caseSensitivity == null || caseSensitivity.equals(IOCase.SYSTEM)) {
 /* 212 */       this.comparator = NameFileComparator.NAME_SYSTEM_COMPARATOR;
 /* 213 */     } else if (caseSensitivity.equals(IOCase.INSENSITIVE)) {
 /* 214 */       this.comparator = NameFileComparator.NAME_INSENSITIVE_COMPARATOR;
@@ -253,8 +253,8 @@
 /*     */ 
 /*     */   public void removeListener(FileAlterationListener listener)
 /*     */   {
-/* 256 */     while ((listener != null) && 
-/* 257 */       (this.listeners.remove(listener))) {}
+/* 256 */     while (listener != null && 
+/* 257 */       this.listeners.remove(listener)) {}
 /*     */   }
 /*     */   
 /*     */ 
@@ -328,12 +328,12 @@
 /* 328 */     int c = 0;
 /* 329 */     FileEntry[] current = files.length > 0 ? new FileEntry[files.length] : FileEntry.EMPTY_FILE_ENTRY_ARRAY;
 /* 330 */     for (FileEntry entry : previous) {
-/* 331 */       while ((c < files.length) && (this.comparator.compare(entry.getFile(), files[c]) > 0)) {
+/* 331 */       while (c < files.length && this.comparator.compare(entry.getFile(), files[c]) > 0) {
 /* 332 */         current[c] = createFileEntry(parent, files[c]);
 /* 333 */         doCreate(current[c]);
 /* 334 */         c++;
 /*     */       }
-/* 336 */       if ((c < files.length) && (this.comparator.compare(entry.getFile(), files[c]) == 0)) {
+/* 336 */       if (c < files.length && this.comparator.compare(entry.getFile(), files[c]) == 0) {
 /* 337 */         doMatch(entry, files[c]);
 /* 338 */         checkAndNotify(entry, entry.getChildren(), listFiles(files[c]));
 /* 339 */         current[c] = entry;
@@ -447,7 +447,7 @@
 /* 447 */     if (children == null) {
 /* 448 */       children = FileUtils.EMPTY_FILE_ARRAY;
 /*     */     }
-/* 450 */     if ((this.comparator != null) && (children.length > 1)) {
+/* 450 */     if (this.comparator != null && children.length > 1) {
 /* 451 */       Arrays.sort(children, this.comparator);
 /*     */     }
 /* 453 */     return children;

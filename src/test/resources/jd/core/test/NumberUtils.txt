@@ -688,10 +688,10 @@
 /*      */ 
 /*      */ 
 /*  690 */       int hexDigits = length - pfxLen;
-/*  691 */       if ((hexDigits > 16) || ((hexDigits == 16) && (firstSigDigit > '7'))) {
+/*  691 */       if (hexDigits > 16 || hexDigits == 16 && firstSigDigit > '7') {
 /*  692 */         return createBigInteger(str);
 /*      */       }
-/*  694 */       if ((hexDigits > 8) || ((hexDigits == 8) && (firstSigDigit > '7'))) {
+/*  694 */       if (hexDigits > 8 || hexDigits == 8 && firstSigDigit > '7') {
 /*  695 */         return createLong(str);
 /*      */       }
 /*  697 */       return createInteger(str);
@@ -707,7 +707,7 @@
 /*      */     String dec;
 /*  708 */     if (decPos > -1) {
 /*  709 */       if (expPos > -1) {
-/*  710 */         if ((expPos < decPos) || (expPos > length)) {
+/*  710 */         if (expPos < decPos || expPos > length) {
 /*  711 */           throw new NumberFormatException(str + " is not a valid number.");
 /*      */         }
 /*  713 */         dec = str.substring(decPos + 1, expPos);
@@ -726,21 +726,21 @@
 /*      */       }
 /*  727 */       dec = null;
 /*      */     }
-/*  729 */     if ((!Character.isDigit(lastChar)) && (lastChar != '.')) { String exp;
-/*  730 */       if ((expPos > -1) && (expPos < length - 1)) {
+/*  729 */     if (!Character.isDigit(lastChar) && lastChar != '.') { String exp;
+/*  730 */       if (expPos > -1 && expPos < length - 1) {
 /*  731 */         exp = str.substring(expPos + 1, length - 1);
 /*      */       } else {
 /*  733 */         exp = null;
 /*      */       }
 /*      */       
 /*  736 */       String numeric = str.substring(0, length - 1);
-/*  737 */       boolean allZeros = (isAllZeros(mant)) && (isAllZeros(exp));
+/*  737 */       boolean allZeros = isAllZeros(mant) && isAllZeros(exp);
 /*  738 */       switch (lastChar) {
 /*      */       case 'L': 
 /*      */       case 'l': 
-/*  741 */         if ((dec == null) && (exp == null) && (
+/*  741 */         if (dec == null && exp == null && 
 /*      */         
-/*  743 */           ((!numeric.isEmpty()) && (numeric.charAt(0) == '-') && (isDigits(numeric.substring(1)))) || (isDigits(numeric)))) {
+/*  743 */           !numeric.isEmpty() && numeric.charAt(0) == '-' && isDigits(numeric.substring(1)) || isDigits(numeric)) {
 /*      */           try {
 /*  745 */             return createLong(numeric);
 /*      */           }
@@ -754,7 +754,7 @@
 /*      */       case 'f': {
 /*      */         try {
 /*  756 */           Float f = createFloat(str);
-/*  757 */           if ((!f.isInfinite()) && ((f.floatValue() != 0.0F) || (allZeros)))
+/*  757 */           if (!f.isInfinite() && f.floatValue() != 0.0F || allZeros)
 /*      */           {
 /*      */ 
 /*  760 */             return f;
@@ -768,7 +768,7 @@
 /*      */         try
 /*      */         {
 /*  770 */           Double d = createDouble(str);
-/*  771 */           if ((!d.isInfinite()) && ((d.doubleValue() != 0.0D) || (allZeros))) {
+/*  771 */           if (!d.isInfinite() && d.doubleValue() != 0.0D || allZeros) {
 /*  772 */             return d;
 /*      */           }
 /*      */         }
@@ -787,12 +787,12 @@
 /*      */ 
 /*      */     String exp;
 /*      */     
-/*  790 */     if ((expPos > -1) && (expPos < length - 1)) {
+/*  790 */     if (expPos > -1 && expPos < length - 1) {
 /*  791 */       exp = str.substring(expPos + 1);
 /*      */     } else {
 /*  793 */       exp = null;
 /*      */     }
-/*  795 */     if ((dec == null) && (exp == null)) {
+/*  795 */     if (dec == null && exp == null) {
 /*      */       try
 /*      */       {
 /*  798 */         return createInteger(str);
@@ -808,16 +808,16 @@
 /*      */         }
 /*      */       }
 /*      */     }
-/*  811 */     boolean allZeros = (isAllZeros(mant)) && (isAllZeros(exp));
+/*  811 */     boolean allZeros = isAllZeros(mant) && isAllZeros(exp);
 /*      */     try {
 /*  813 */       Float f = createFloat(str);
 /*  814 */       Double d = createDouble(str);
-/*  815 */       if ((!f.isInfinite()) && 
-/*  816 */         ((f.floatValue() != 0.0F) || (allZeros)) && 
-/*  817 */         (f.toString().equals(d.toString()))) {
+/*  815 */       if (!f.isInfinite() && 
+/*  816 */         f.floatValue() != 0.0F || allZeros && 
+/*  817 */         f.toString().equals(d.toString())) {
 /*  818 */         return f;
 /*      */       }
-/*  820 */       if ((!d.isInfinite()) && ((d.doubleValue() != 0.0D) || (allZeros))) {
+/*  820 */       if (!d.isInfinite() && d.doubleValue() != 0.0D || allZeros) {
 /*  821 */         BigDecimal b = createBigDecimal(str);
 /*  822 */         if (b.compareTo(BigDecimal.valueOf(d.doubleValue())) == 0) {
 /*  823 */           return d;
@@ -853,7 +853,7 @@
 /*      */   private static String getMantissa(String str, int stopPos)
 /*      */   {
 /*  855 */     char firstChar = str.charAt(0);
-/*  856 */     boolean hasSign = (firstChar == '-') || (firstChar == '+');
+/*  856 */     boolean hasSign = firstChar == '-' || firstChar == '+';
 /*      */     
 /*  858 */     return hasSign ? str.substring(1, stopPos) : str.substring(0, stopPos);
 /*      */   }
@@ -969,13 +969,13 @@
 /*  969 */       negate = true;
 /*  970 */       pos = 1;
 /*      */     }
-/*  972 */     if ((str.startsWith("0x", pos)) || (str.startsWith("0X", pos))) {
+/*  972 */     if (str.startsWith("0x", pos) || str.startsWith("0X", pos)) {
 /*  973 */       radix = 16;
 /*  974 */       pos += 2;
 /*  975 */     } else if (str.startsWith("#", pos)) {
 /*  976 */       radix = 16;
 /*  977 */       pos++;
-/*  978 */     } else if ((str.startsWith("0", pos)) && (str.length() > pos + 1)) {
+/*  978 */     } else if (str.startsWith("0", pos) && str.length() > pos + 1) {
 /*  979 */       radix = 8;
 /*  980 */       pos++;
 /*      */     }
@@ -1613,16 +1613,16 @@
 /* 1613 */     boolean allowSigns = false;
 /* 1614 */     boolean foundDigit = false;
 /*      */     
-/* 1616 */     int start = (chars[0] == '-') || (chars[0] == '+') ? 1 : 0;
-/* 1617 */     if ((sz > start + 1) && (chars[start] == '0') && (!StringUtils.contains(str, 46))) {
-/* 1618 */       if ((chars[(start + 1)] == 'x') || (chars[(start + 1)] == 'X')) {
+/* 1616 */     int start = chars[0] == '-' || chars[0] == '+' ? 1 : 0;
+/* 1617 */     if (sz > start + 1 && chars[start] == '0' && !StringUtils.contains(str, 46)) {
+/* 1618 */       if (chars[(start + 1)] == 'x' || chars[(start + 1)] == 'X') {
 /* 1619 */         int i = start + 2;
 /* 1620 */         if (i == sz) {
 /* 1621 */           return false;
 /*      */         }
 /* 1624 */         for (; 
 /* 1624 */             i < chars.length; i++) {
-/* 1625 */           if (((chars[i] < '0') || (chars[i] > '9')) && ((chars[i] < 'a') || (chars[i] > 'f')) && ((chars[i] < 'A') || (chars[i] > 'F')))
+/* 1625 */           if (chars[i] < '0' || chars[i] > '9' && chars[i] < 'a' || chars[i] > 'f' && chars[i] < 'A' || chars[i] > 'F')
 /*      */           {
 /*      */ 
 /* 1628 */             return false;
@@ -1633,7 +1633,7 @@
 /*      */       {
 /* 1634 */         for (int i = start + 1; 
 /* 1635 */             i < chars.length; i++) {
-/* 1636 */           if ((chars[i] < '0') || (chars[i] > '7')) {
+/* 1636 */           if (chars[i] < '0' || chars[i] > '7') {
 /* 1637 */             return false;
 /*      */           }
 /*      */         }
@@ -1645,18 +1645,18 @@
 /* 1645 */     int i = start;
 /*      */     
 /*      */ 
-/* 1648 */     while ((i < sz) || ((i < sz + 1) && (allowSigns) && (!foundDigit))) {
-/* 1649 */       if ((chars[i] >= '0') && (chars[i] <= '9')) {
+/* 1648 */     while (i < sz || i < sz + 1 && allowSigns && !foundDigit) {
+/* 1649 */       if (chars[i] >= '0' && chars[i] <= '9') {
 /* 1650 */         foundDigit = true;
 /* 1651 */         allowSigns = false;
 /*      */       }
 /* 1653 */       else if (chars[i] == '.') {
-/* 1654 */         if ((hasDecPoint) || (hasExp))
+/* 1654 */         if (hasDecPoint || hasExp)
 /*      */         {
 /* 1656 */           return false;
 /*      */         }
 /* 1658 */         hasDecPoint = true;
-/* 1659 */       } else if ((chars[i] == 'e') || (chars[i] == 'E'))
+/* 1659 */       } else if (chars[i] == 'e' || chars[i] == 'E')
 /*      */       {
 /* 1661 */         if (hasExp)
 /*      */         {
@@ -1667,7 +1667,7 @@
 /*      */         }
 /* 1668 */         hasExp = true;
 /* 1669 */         allowSigns = true;
-/* 1670 */       } else if ((chars[i] == '+') || (chars[i] == '-')) {
+/* 1670 */       } else if (chars[i] == '+' || chars[i] == '-') {
 /* 1671 */         if (!allowSigns) {
 /* 1672 */           return false;
 /*      */         }
@@ -1679,40 +1679,40 @@
 /* 1679 */       i++;
 /*      */     }
 /* 1681 */     if (i < chars.length) {
-/* 1682 */       if ((chars[i] >= '0') && (chars[i] <= '9'))
+/* 1682 */       if (chars[i] >= '0' && chars[i] <= '9')
 /*      */       {
 /* 1684 */         return true;
 /*      */       }
-/* 1686 */       if ((chars[i] == 'e') || (chars[i] == 'E'))
+/* 1686 */       if (chars[i] == 'e' || chars[i] == 'E')
 /*      */       {
 /* 1688 */         return false;
 /*      */       }
 /* 1690 */       if (chars[i] == '.') {
-/* 1691 */         if ((hasDecPoint) || (hasExp))
+/* 1691 */         if (hasDecPoint || hasExp)
 /*      */         {
 /* 1693 */           return false;
 /*      */         }
 /*      */         
 /* 1696 */         return foundDigit;
 /*      */       }
-/* 1698 */       if ((!allowSigns) && ((chars[i] == 'd') || (chars[i] == 'D') || (chars[i] == 'f') || (chars[i] == 'F')))
+/* 1698 */       if (!allowSigns && chars[i] == 'd' || chars[i] == 'D' || chars[i] == 'f' || chars[i] == 'F')
 /*      */       {
 /*      */ 
 /*      */ 
 /*      */ 
 /* 1703 */         return foundDigit;
 /*      */       }
-/* 1705 */       if ((chars[i] == 'l') || (chars[i] == 'L'))
+/* 1705 */       if (chars[i] == 'l' || chars[i] == 'L')
 /*      */       {
 /*      */ 
-/* 1708 */         return (foundDigit) && (!hasExp) && (!hasDecPoint);
+/* 1708 */         return foundDigit && !hasExp && !hasDecPoint;
 /*      */       }
 /*      */       
 /* 1711 */       return false;
 /*      */     }
 /*      */     
 /*      */ 
-/* 1715 */     return (!allowSigns) && (foundDigit);
+/* 1715 */     return !allowSigns && foundDigit;
 /*      */   }
 /*      */   
 /*      */ 
@@ -1758,7 +1758,7 @@
 /* 1758 */       if (decimalPoints > 1) {
 /* 1759 */         return false;
 /*      */       }
-/* 1761 */       if ((!isDecimalPoint) && (!Character.isDigit(str.charAt(i)))) {
+/* 1761 */       if (!isDecimalPoint && !Character.isDigit(str.charAt(i))) {
 /* 1762 */         return false;
 /*      */       }
 /*      */     }

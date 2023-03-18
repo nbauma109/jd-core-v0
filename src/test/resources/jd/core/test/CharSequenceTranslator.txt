@@ -94,7 +94,7 @@
 /*  94 */         char c1 = input.charAt(pos);
 /*  95 */         out.write(c1);
 /*  96 */         pos++;
-/*  97 */         if ((Character.isHighSurrogate(c1)) && (pos < len)) {
+/*  97 */         if (Character.isHighSurrogate(c1) && pos < len) {
 /*  98 */           char c2 = input.charAt(pos);
 /*  99 */           if (Character.isLowSurrogate(c2)) {
 /* 100 */             out.write(c2);

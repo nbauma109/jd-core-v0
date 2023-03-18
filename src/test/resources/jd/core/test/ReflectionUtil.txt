@@ -6,10 +6,10 @@
 /*    */ {
 /*    */   <T> T invokeMethod(Class<?> clazz, Object object, String methodName, Class<?>[] parameterTypes, Object[] parameters) {
 /*  8 */     T value = null;
-/*  9 */     if ((clazz != null) && (object != null)) {
+/*  9 */     if (clazz != null && object != null) {
 /* 10 */       Method method = null;
 /* 11 */       Class<?> superClass = clazz;
-/* 12 */       while ((superClass != null) && (superClass != Object.class) && (method == null)) {
+/* 12 */       while (superClass != null && superClass != Object.class && method == null) {
 /*    */         try {
 /* 14 */           method = superClass.getMethod(methodName, parameterTypes);
 /*    */         } catch (Exception e) {

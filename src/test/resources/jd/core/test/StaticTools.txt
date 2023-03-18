@@ -188,7 +188,7 @@ public class StaticTools
       {
         public void run()
         {
-          if ((StaticTools.locationManager == null) || (StaticTools.gpsReceiver == null)) {
+          if (StaticTools.locationManager == null || StaticTools.gpsReceiver == null) {
             return;
           }
           StaticTools.Log("getLocationManager", "Timeout for retrieving location"); StaticTools.stopLocationManager();

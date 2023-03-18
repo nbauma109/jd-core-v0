@@ -606,16 +606,16 @@
 /*     */     {
 /* 607 */       return false;
 /*     */     }
-/* 609 */     if ((Modifier.isTransient(field.getModifiers())) && (!isAppendTransients()))
+/* 609 */     if (Modifier.isTransient(field.getModifiers()) && !isAppendTransients())
 /*     */     {
 /* 611 */       return false;
 /*     */     }
-/* 613 */     if ((Modifier.isStatic(field.getModifiers())) && (!isAppendStatics()))
+/* 613 */     if (Modifier.isStatic(field.getModifiers()) && !isAppendStatics())
 /*     */     {
 /* 615 */       return false;
 /*     */     }
-/* 617 */     if ((this.excludeFieldNames != null) && 
-/* 618 */       (Arrays.binarySearch(this.excludeFieldNames, field.getName()) >= 0))
+/* 617 */     if (this.excludeFieldNames != null && 
+/* 618 */       Arrays.binarySearch(this.excludeFieldNames, field.getName()) >= 0)
 /*     */     {
 /* 620 */       return false;
 /*     */     }
@@ -650,7 +650,7 @@
 /*     */       }
 /*     */       try {
 /* 652 */         Object fieldValue = getValue(field);
-/* 653 */         if ((!this.excludeNullValues) || (fieldValue != null)) {
+/* 653 */         if (!this.excludeNullValues || fieldValue != null) {
 /* 654 */           append(fieldName, fieldValue, !field.isAnnotationPresent(ToStringSummary.class));
 /*     */         }
 /*     */         
@@ -817,7 +817,7 @@
 /*     */   {
 /* 818 */     if (clazz != null) {
 /* 819 */       Object object = getObject();
-/* 820 */       if ((object != null) && (!clazz.isInstance(object))) {
+/* 820 */       if (object != null && !clazz.isInstance(object)) {
 /* 821 */         throw new IllegalArgumentException("Specified class is not a superclass of the object");
 /*     */       }
 /*     */     }
@@ -838,7 +838,7 @@
 /*     */     }
 /* 839 */     Class<?> clazz = getObject().getClass();
 /* 840 */     appendFieldsIn(clazz);
-/* 841 */     while ((clazz.getSuperclass() != null) && (clazz != getUpToClass())) {
+/* 841 */     while (clazz.getSuperclass() != null && clazz != getUpToClass()) {
 /* 842 */       clazz = clazz.getSuperclass();
 /* 843 */       appendFieldsIn(clazz);
 /*     */     }

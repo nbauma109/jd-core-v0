@@ -14,7 +14,7 @@
 /*    */ {
 /*    */   public static String abbreviateMiddle(String str, String middle, int length)
 /*    */   {
-/* 17 */     if ((StringUtils.isAnyEmpty(new CharSequence[] { str, middle })) || (length >= str.length()) || (length < middle.length() + 2)) {
+/* 17 */     if (StringUtils.isAnyEmpty(new CharSequence[] { str, middle }) || length >= str.length() || length < middle.length() + 2) {
 /* 18 */       return str;
 /*    */     }
 /*    */     

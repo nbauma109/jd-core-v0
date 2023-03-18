@@ -420,7 +420,7 @@
 /*     */     throws IllegalAccessException
 /*     */   {
 /* 422 */     Validate.notNull(field, "field", new Object[0]);
-/* 423 */     if ((forceAccess) && (!field.isAccessible())) {
+/* 423 */     if (forceAccess && !field.isAccessible()) {
 /* 424 */       field.setAccessible(true);
 /*     */     } else {
 /* 426 */       MemberUtils.setAccessibleWorkaround(field);
@@ -682,7 +682,7 @@
 /*     */     throws IllegalAccessException
 /*     */   {
 /* 684 */     Validate.notNull(field, "field", new Object[0]);
-/* 685 */     if ((forceAccess) && (!field.isAccessible())) {
+/* 685 */     if (forceAccess && !field.isAccessible()) {
 /* 686 */       field.setAccessible(true);
 /*     */     } else {
 /* 688 */       MemberUtils.setAccessibleWorkaround(field);
@@ -727,7 +727,7 @@
 /* 727 */       if (Modifier.isFinal(field.getModifiers()))
 /*     */       {
 /* 729 */         Field modifiersField = Field.class.getDeclaredField("modifiers");
-/* 730 */         boolean doForceAccess = (forceAccess) && (!modifiersField.isAccessible());
+/* 730 */         boolean doForceAccess = forceAccess && !modifiersField.isAccessible();
 /* 731 */         if (doForceAccess) {
 /* 732 */           modifiersField.setAccessible(true);
 /*     */         }

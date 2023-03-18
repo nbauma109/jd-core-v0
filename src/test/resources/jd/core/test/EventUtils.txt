@@ -107,7 +107,7 @@
 /*     */     public Object invoke(Object proxy, Method method, Object[] parameters)
 /*     */       throws Throwable
 /*     */     {
-/* 110 */       if ((this.eventTypes.isEmpty()) || (this.eventTypes.contains(method.getName()))) {
+/* 110 */       if (this.eventTypes.isEmpty() || this.eventTypes.contains(method.getName())) {
 /* 111 */         if (hasMatchingParametersMethod(method)) {
 /* 112 */           return MethodUtils.invokeMethod(this.target, this.methodName, parameters);
 /*     */         }

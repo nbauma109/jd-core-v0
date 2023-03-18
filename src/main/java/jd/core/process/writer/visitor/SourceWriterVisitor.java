@@ -1192,7 +1192,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
 
             if (this.firstOffset <= this.previousOffset &&
                 nextOffset <= this.lastOffset) {
-                this.printer.print(lineNumber, '(');
+                this.printer.print(lineNumber, "");
             }
 
             lineNumber = visit(instruction);
@@ -1201,7 +1201,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
 
             if (this.firstOffset <= this.previousOffset &&
                 nextOffset <= this.lastOffset) {
-                this.printer.print(lineNumber, ')');
+                this.printer.print(lineNumber, "");
             }
 
             for (int i=1; i<length; i++)
@@ -1214,14 +1214,14 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
                     nextOffset <= this.lastOffset)
                 {
                     this.printer.print(lineNumber, operator);
-                    this.printer.print(instruction.getLineNumber(), '(');
+                    this.printer.print(instruction.getLineNumber(), "");
                 }
 
                 lineNumber = visit(instruction);
 
                 if (this.firstOffset <= this.previousOffset &&
                     ccbi.getOffset() <= this.lastOffset) {
-                    this.printer.print(lineNumber, ')');
+                    this.printer.print(lineNumber, "");
                 }
             }
 

@@ -640,7 +640,7 @@
 /*  640 */       Node<K, V> parent = node.getParent(dataElement);
 /*  641 */       Node<K, V> child = node;
 /*      */       
-/*  643 */       while ((parent != null) && (child == parent.getRight(dataElement))) {
+/*  643 */       while (parent != null && child == parent.getRight(dataElement)) {
 /*  644 */         child = parent;
 /*  645 */         parent = parent.getParent(dataElement);
 /*      */       }
@@ -675,7 +675,7 @@
 /*  675 */       Node<K, V> parent = node.getParent(dataElement);
 /*  676 */       Node<K, V> child = node;
 /*      */       
-/*  678 */       while ((parent != null) && (child == parent.getLeft(dataElement))) {
+/*  678 */       while (parent != null && child == parent.getLeft(dataElement)) {
 /*  679 */         child = parent;
 /*  680 */         parent = parent.getParent(dataElement);
 /*      */       }
@@ -765,7 +765,7 @@
 /*      */ 
 /*      */   private static boolean isRed(Node<?, ?> node, DataElement dataElement)
 /*      */   {
-/*  768 */     return (node != null) && (node.isRed(dataElement));
+/*  768 */     return node != null && node.isRed(dataElement);
 /*      */   }
 /*      */   
 /*      */ 
@@ -777,7 +777,7 @@
 /*      */ 
 /*      */   private static boolean isBlack(Node<?, ?> node, DataElement dataElement)
 /*      */   {
-/*  780 */     return (node == null) || (node.isBlack(dataElement));
+/*  780 */     return node == null || node.isBlack(dataElement);
 /*      */   }
 /*      */   
 /*      */ 
@@ -922,9 +922,9 @@
 /*  922 */     Node<K, V> currentNode = insertedNode;
 /*  923 */     makeRed(currentNode, dataElement);
 /*      */     
-/*  925 */     while ((currentNode != null) && 
-/*  926 */       (currentNode != this.rootNode[dataElement.ordinal()]) && 
-/*  927 */       (isRed(currentNode.getParent(dataElement), dataElement))) {
+/*  925 */     while (currentNode != null && 
+/*  926 */       currentNode != this.rootNode[dataElement.ordinal()] && 
+/*  927 */       isRed(currentNode.getParent(dataElement), dataElement)) {
 /*  928 */       if (currentNode.isLeftChild(dataElement)) {
 /*  929 */         Node<K, V> y = getRightChild(getGrandParent(currentNode, dataElement), dataElement);
 /*      */         
@@ -991,7 +991,7 @@
 /*  991 */     for (DataElement dataElement : DataElement.values())
 /*      */     {
 /*      */ 
-/*  994 */       if ((deletedNode.getLeft(dataElement) != null) && (deletedNode.getRight(dataElement) != null)) {
+/*  994 */       if (deletedNode.getLeft(dataElement) != null && deletedNode.getRight(dataElement) != null) {
 /*  995 */         swapPosition(nextGreater(deletedNode, dataElement), deletedNode, dataElement);
 /*      */       }
 /*      */       
@@ -1057,7 +1057,7 @@
 /*      */   {
 /* 1058 */     Node<K, V> currentNode = replacementNode;
 /*      */     
-/* 1060 */     while ((currentNode != this.rootNode[dataElement.ordinal()]) && (isBlack(currentNode, dataElement))) {
+/* 1060 */     while (currentNode != this.rootNode[dataElement.ordinal()] && isBlack(currentNode, dataElement)) {
 /* 1061 */       if (currentNode.isLeftChild(dataElement)) {
 /* 1062 */         Node<K, V> siblingNode = getRightChild(getParent(currentNode, dataElement), dataElement);
 /*      */         
@@ -1069,8 +1069,8 @@
 /* 1069 */           siblingNode = getRightChild(getParent(currentNode, dataElement), dataElement);
 /*      */         }
 /*      */         
-/* 1072 */         if ((isBlack(getLeftChild(siblingNode, dataElement), dataElement)) && 
-/* 1073 */           (isBlack(getRightChild(siblingNode, dataElement), dataElement))) {
+/* 1072 */         if (isBlack(getLeftChild(siblingNode, dataElement), dataElement) && 
+/* 1073 */           isBlack(getRightChild(siblingNode, dataElement), dataElement)) {
 /* 1074 */           makeRed(siblingNode, dataElement);
 /*      */           
 /* 1076 */           currentNode = getParent(currentNode, dataElement);
@@ -1101,8 +1101,8 @@
 /* 1101 */           siblingNode = getLeftChild(getParent(currentNode, dataElement), dataElement);
 /*      */         }
 /*      */         
-/* 1104 */         if ((isBlack(getRightChild(siblingNode, dataElement), dataElement)) && 
-/* 1105 */           (isBlack(getLeftChild(siblingNode, dataElement), dataElement))) {
+/* 1104 */         if (isBlack(getRightChild(siblingNode, dataElement), dataElement) && 
+/* 1105 */           isBlack(getLeftChild(siblingNode, dataElement), dataElement)) {
 /* 1106 */           makeRed(siblingNode, dataElement);
 /*      */           
 /* 1108 */           currentNode = getParent(currentNode, dataElement);
@@ -1146,9 +1146,9 @@
 /* 1146 */     Node<K, V> yFormerLeftChild = y.getLeft(dataElement);
 /* 1147 */     Node<K, V> yFormerRightChild = y.getRight(dataElement);
 /*      */     
-/* 1149 */     boolean xWasLeftChild = (x.getParent(dataElement) != null) && (x == x.getParent(dataElement).getLeft(dataElement));
+/* 1149 */     boolean xWasLeftChild = x.getParent(dataElement) != null && x == x.getParent(dataElement).getLeft(dataElement);
 /*      */     
-/* 1151 */     boolean yWasLeftChild = (y.getParent(dataElement) != null) && (y == y.getParent(dataElement).getLeft(dataElement));
+/* 1151 */     boolean yWasLeftChild = y.getParent(dataElement) != null && y == y.getParent(dataElement).getLeft(dataElement);
 /*      */     
 /*      */ 
 /* 1154 */     if (x == yFormerParent) {
@@ -1588,7 +1588,7 @@
 /* 1588 */       Entry<?, ?> entry = (Entry)obj;
 /* 1589 */       Object value = entry.getValue();
 /* 1590 */       TreeBidiMap.Node<K, V> node = TreeBidiMap.this.lookupKey(entry.getKey());
-/* 1591 */       return (node != null) && (node.getValue().equals(value));
+/* 1591 */       return node != null && node.getValue().equals(value);
 /*      */     }
 /*      */     
 /*      */     @Override
@@ -1599,7 +1599,7 @@
 /* 1599 */       Entry<?, ?> entry = (Entry)obj;
 /* 1600 */       Object value = entry.getValue();
 /* 1601 */       TreeBidiMap.Node<K, V> node = TreeBidiMap.this.lookupKey(entry.getKey());
-/* 1602 */       if ((node != null) && (node.getValue().equals(value))) {
+/* 1602 */       if (node != null && node.getValue().equals(value)) {
 /* 1603 */         TreeBidiMap.this.doRedBlackDelete(node);
 /* 1604 */         return true;
 /*      */       }
@@ -1629,7 +1629,7 @@
 /* 1629 */       Entry<?, ?> entry = (Entry)obj;
 /* 1630 */       Object value = entry.getValue();
 /* 1631 */       TreeBidiMap.Node<K, V> node = TreeBidiMap.this.lookupValue(entry.getKey());
-/* 1632 */       return (node != null) && (node.getKey().equals(value));
+/* 1632 */       return node != null && node.getKey().equals(value);
 /*      */     }
 /*      */     
 /*      */     @Override
@@ -1640,7 +1640,7 @@
 /* 1640 */       Entry<?, ?> entry = (Entry)obj;
 /* 1641 */       Object value = entry.getValue();
 /* 1642 */       TreeBidiMap.Node<K, V> node = TreeBidiMap.this.lookupValue(entry.getKey());
-/* 1643 */       if ((node != null) && (node.getKey().equals(value))) {
+/* 1643 */       if (node != null && node.getKey().equals(value)) {
 /* 1644 */         TreeBidiMap.this.doRedBlackDelete(node);
 /* 1645 */         return true;
 /*      */       }
@@ -2033,13 +2033,13 @@
 /*      */     }
 /*      */     
 /*      */     private boolean isLeftChild(TreeBidiMap.DataElement dataElement) {
-/* 2036 */       return (this.parentNode[dataElement.ordinal()] != null) && 
-/* 2037 */         (this.parentNode[dataElement.ordinal()].leftNode[dataElement.ordinal()] == this);
+/* 2036 */       return this.parentNode[dataElement.ordinal()] != null && 
+/* 2037 */         this.parentNode[dataElement.ordinal()].leftNode[dataElement.ordinal()] == this;
 /*      */     }
 /*      */     
 /*      */     private boolean isRightChild(TreeBidiMap.DataElement dataElement) {
-/* 2041 */       return (this.parentNode[dataElement.ordinal()] != null) && 
-/* 2042 */         (this.parentNode[dataElement.ordinal()].rightNode[dataElement.ordinal()] == this);
+/* 2041 */       return this.parentNode[dataElement.ordinal()] != null && 
+/* 2042 */         this.parentNode[dataElement.ordinal()].rightNode[dataElement.ordinal()] == this;
 /*      */     }
 /*      */     
 /*      */ 
@@ -2092,7 +2092,7 @@
 /* 2092 */         return false;
 /*      */       }
 /* 2094 */       Entry<?, ?> e = (Entry)obj;
-/* 2095 */       return (getKey().equals(e.getKey())) && (getValue().equals(e.getValue()));
+/* 2095 */       return getKey().equals(e.getKey()) && getValue().equals(e.getValue());
 /*      */     }
 /*      */     
 /*      */ 

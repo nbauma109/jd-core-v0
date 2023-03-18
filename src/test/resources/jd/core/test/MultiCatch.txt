@@ -16,7 +16,7 @@
 /*    */     catch (NoSuchMethodException|SecurityException localNoSuchMethodException) {}
 /*    */     
 /*    */ 
-/* 19 */     if ((method != null) && (Throwable.class.isAssignableFrom(method.getReturnType()))) {
+/* 19 */     if (method != null && Throwable.class.isAssignableFrom(method.getReturnType())) {
 /*    */       try {
 /* 21 */         return (Throwable)method.invoke(throwable, new Object[0]);
 /*    */       }

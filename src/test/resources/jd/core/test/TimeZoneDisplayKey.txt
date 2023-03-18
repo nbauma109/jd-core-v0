@@ -1565,9 +1565,9 @@
 /* 1565 */     if ((obj instanceof TimeZoneDisplayKey)) {
 /* 1566 */       TimeZoneDisplayKey other = (TimeZoneDisplayKey)obj;
 /* 1567 */       return 
-/* 1568 */         (this.mTimeZone.equals(other.mTimeZone)) && (this.mStyle == other.mStyle) && 
+/* 1568 */         this.mTimeZone.equals(other.mTimeZone) && this.mStyle == other.mStyle && 
 /*      */         
-/* 1570 */         (this.mLocale.equals(other.mLocale));
+/* 1570 */         this.mLocale.equals(other.mLocale);
 /*      */     }
 /* 1572 */     return false;
 /*      */   }

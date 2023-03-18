@@ -164,7 +164,7 @@
 /*     */   static boolean isRegistered(Object value)
 /*     */   {
 /* 166 */     Set<IDKey> registry = getRegistry();
-/* 167 */     return (registry != null) && (registry.contains(new IDKey(value)));
+/* 167 */     return registry != null && registry.contains(new IDKey(value));
 /*     */   }
 /*     */   
 /*     */ 
@@ -194,11 +194,11 @@
 /* 194 */       Field[] fields = (Field[])ArraySorter.sort(clazz.getDeclaredFields(), Comparator.comparing(Field::getName));
 /* 195 */       AccessibleObject.setAccessible(fields, true);
 /* 196 */       for (Field field : fields) {
-/* 197 */         if ((ArrayUtils.contains(excludeFields, field.getName())) || 
-/* 198 */           (field.getName().contains("$")) || ((!useTransients) && 
-/* 199 */           (Modifier.isTransient(field.getModifiers()))) || 
-/* 200 */           (Modifier.isStatic(field.getModifiers())) || 
-/* 201 */           (field.isAnnotationPresent(HashCodeExclude.class)))
+/* 197 */         if (ArrayUtils.contains(excludeFields, field.getName()) || 
+/* 198 */           field.getName().contains("$") || !useTransients && 
+/* 199 */           Modifier.isTransient(field.getModifiers()) || 
+/* 200 */           Modifier.isStatic(field.getModifiers()) || 
+/* 201 */           field.isAnnotationPresent(HashCodeExclude.class))
 /*     */           continue;
 /* 203 */         try { Object fieldValue = field.get(object);
 /* 204 */           builder.append(fieldValue);
@@ -361,7 +361,7 @@
 /* 361 */     HashCodeBuilder builder = new HashCodeBuilder(initialNonZeroOddNumber, multiplierNonZeroOddNumber);
 /* 362 */     Class<?> clazz = object.getClass();
 /* 363 */     reflectionAppend(object, clazz, builder, testTransients, excludeFields);
-/* 364 */     while ((clazz.getSuperclass() != null) && (clazz != reflectUpToClass)) {
+/* 364 */     while (clazz.getSuperclass() != null && clazz != reflectUpToClass) {
 /* 365 */       clazz = clazz.getSuperclass();
 /* 366 */       reflectionAppend(object, clazz, builder, testTransients, excludeFields);
 /*     */     }
