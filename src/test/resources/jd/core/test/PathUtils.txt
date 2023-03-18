@@ -96,20 +96,20 @@
 /*      */     {
 /*   97 */       List<Path> tmpRelativeFileList1 = null;
 /*   98 */       List<Path> tmpRelativeFileList2 = null;
-/*   99 */       if ((dir1 == null) && (dir2 == null)) {
+/*   99 */       if (dir1 == null && dir2 == null) {
 /*  100 */         this.equals = true;
 /*  101 */       } else if (((dir1 == null ? 1 : 0) ^ (dir2 == null ? 1 : 0)) != 0) {
 /*  102 */         this.equals = false;
 /*      */       } else {
 /*  104 */         boolean parentDirNotExists1 = Files.notExists(dir1, linkOptions);
 /*  105 */         boolean parentDirNotExists2 = Files.notExists(dir2, linkOptions);
-/*  106 */         if ((parentDirNotExists1) || (parentDirNotExists2)) {
-/*  107 */           this.equals = ((parentDirNotExists1) && (parentDirNotExists2));
+/*  106 */         if (parentDirNotExists1 || parentDirNotExists2) {
+/*  107 */           this.equals = (parentDirNotExists1 && parentDirNotExists2);
 /*      */         } else {
 /*  109 */           AccumulatorPathVisitor visitor1 = PathUtils.accumulate(dir1, maxDepth, fileVisitOptions);
 /*  110 */           AccumulatorPathVisitor visitor2 = PathUtils.accumulate(dir2, maxDepth, fileVisitOptions);
-/*  111 */           if ((visitor1.getDirList().size() != visitor2.getDirList().size()) || 
-/*  112 */             (visitor1.getFileList().size() != visitor2.getFileList().size())) {
+/*  111 */           if (visitor1.getDirList().size() != visitor2.getDirList().size() || 
+/*  112 */             visitor1.getFileList().size() != visitor2.getFileList().size()) {
 /*  113 */             this.equals = false;
 /*      */           } else {
 /*  115 */             List<Path> tmpRelativeDirList1 = visitor1.relativizeDirectories(dir1, true, null);
@@ -480,8 +480,8 @@
 /*      */     }
 /*  481 */     Counters.PathCounters pathCounts = Counters.longPathCounters();
 /*  482 */     boolean exists = Files.exists(file, linkOptions);
-/*  483 */     long size = (exists) && (!Files.isSymbolicLink(file)) ? Files.size(file) : 0L;
-/*  484 */     if ((overrideReadOnly(deleteOptions)) && (exists)) {
+/*  483 */     long size = exists && !Files.isSymbolicLink(file) ? Files.size(file) : 0L;
+/*  484 */     if (overrideReadOnly(deleteOptions) && exists) {
 /*  485 */       setReadOnly(file, false, linkOptions);
 /*      */     }
 /*  487 */     if (Files.deleteIfExists(file)) {
@@ -521,13 +521,13 @@
 /*      */   public static boolean directoryAndFileContentEquals(Path path1, Path path2, LinkOption[] linkOptions, OpenOption[] openOptions, FileVisitOption[] fileVisitOption)
 /*      */     throws IOException
 /*      */   {
-/*  524 */     if ((path1 == null) && (path2 == null)) {
+/*  524 */     if (path1 == null && path2 == null) {
 /*  525 */       return true;
 /*      */     }
-/*  527 */     if ((path1 == null) || (path2 == null)) {
+/*  527 */     if (path1 == null || path2 == null) {
 /*  528 */       return false;
 /*      */     }
-/*  530 */     if ((Files.notExists(path1, new LinkOption[0])) && (Files.notExists(path2, new LinkOption[0]))) {
+/*  530 */     if (Files.notExists(path1, new LinkOption[0]) && Files.notExists(path2, new LinkOption[0])) {
 /*  531 */       return true;
 /*      */     }
 /*  533 */     RelativeSortedPaths relativeSortedPaths = new RelativeSortedPaths(path1, path2, Integer.MAX_VALUE, linkOptions, fileVisitOption);
@@ -616,10 +616,10 @@
 /*      */   public static boolean fileContentEquals(Path path1, Path path2, LinkOption[] linkOptions, OpenOption[] openOptions)
 /*      */     throws IOException
 /*      */   {
-/*  619 */     if ((path1 == null) && (path2 == null)) {
+/*  619 */     if (path1 == null && path2 == null) {
 /*  620 */       return true;
 /*      */     }
-/*  622 */     if ((path1 == null) || (path2 == null)) {
+/*  622 */     if (path1 == null || path2 == null) {
 /*  623 */       return false;
 /*      */     }
 /*  625 */     Path nPath1 = path1.normalize();
@@ -697,7 +697,7 @@
 /*      */     }
 /*  698 */     return stream.filter(p ->  {
 /*      */       try {
-/*  700 */         return (p != null) && (filter.accept(p, readBasicFileAttributes(p)) == java.nio.file.FileVisitResult.CONTINUE);
+/*  700 */         return p != null && filter.accept(p, readBasicFileAttributes(p)) == java.nio.file.FileVisitResult.CONTINUE;
 /*      */       } catch (IOException e) {}
 /*  702 */       return false; })
 /*      */     
@@ -733,7 +733,7 @@
 /*      */ 
 /*      */   public static boolean isDirectory(Path path, LinkOption... options)
 /*      */   {
-/*  736 */     return (path != null) && (Files.isDirectory(path, options));
+/*  736 */     return path != null && Files.isDirectory(path, options);
 /*      */   }
 /*      */   
 /*      */ 
@@ -815,7 +815,7 @@
 /*      */ 
 /*      */   public static boolean isRegularFile(Path path, LinkOption... options)
 /*      */   {
-/*  818 */     return (path != null) && (Files.isRegularFile(path, options));
+/*  818 */     return path != null && Files.isRegularFile(path, options);
 /*      */   }
 /*      */   
 /*      */ 

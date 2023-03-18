@@ -253,7 +253,7 @@
 /*     */ 
 /*     */   public static <E extends Enum<E>> E getEnumIgnoreCase(Class<E> enumClass, String enumName, E defaultEnum)
 /*     */   {
-/* 256 */     if ((enumName == null) || (!enumClass.isEnum())) {
+/* 256 */     if (enumName == null || !enumClass.isEnum()) {
 /* 257 */       return defaultEnum;
 /*     */     }
 /* 259 */     for (E each : (E[])enumClass.getEnumConstants()) {
@@ -363,7 +363,7 @@
 /* 363 */     ArrayUtils.reverse(lvalues);
 /* 364 */     for (E constant : (E[])enumClass.getEnumConstants()) {
 /* 365 */       int block = constant.ordinal() / 64;
-/* 366 */       if ((block < lvalues.length) && ((lvalues[block] & 1L << constant.ordinal() % 64) != 0L)) {
+/* 366 */       if (block < lvalues.length && (lvalues[block] & 1L << constant.ordinal() % 64) != 0L) {
 /* 367 */         results.add(constant);
 /*     */       }
 /*     */     }

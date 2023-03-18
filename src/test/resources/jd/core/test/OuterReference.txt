@@ -60,7 +60,7 @@
 /*    */       }
 /*    */       
 /* 62 */       synchronized (OuterReference.this.o) {
-/* 63 */         if (((OuterReference.this.flag) && ((OuterReference.this.d instanceof Double))) || ((OuterReference.this.x < OuterReference.this.y) && (OuterReference.this.y < OuterReference.this.a.length))) {
+/* 63 */         if (OuterReference.this.flag && (OuterReference.this.d instanceof Double) || OuterReference.this.x < OuterReference.this.y && OuterReference.this.y < OuterReference.this.a.length) {
 /* 64 */           System.out.println("ok");
 /*    */         }
 /*    */       }

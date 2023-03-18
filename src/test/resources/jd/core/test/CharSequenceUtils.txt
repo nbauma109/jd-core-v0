@@ -117,7 +117,7 @@
 /* 117 */       for (int i = start; i < sz - 1; i++) {
 /* 118 */         char high = cs.charAt(i);
 /* 119 */         char low = cs.charAt(i + 1);
-/* 120 */         if ((high == chars[0]) && (low == chars[1])) {
+/* 120 */         if (high == chars[0] && low == chars[1]) {
 /* 121 */           return i;
 /*     */         }
 /*     */       }
@@ -209,7 +209,7 @@
 /* 209 */       for (int i = start; i >= 0; i--) {
 /* 210 */         char high = cs.charAt(i);
 /* 211 */         char low = cs.charAt(i + 1);
-/* 212 */         if ((chars[0] == high) && (chars[1] == low)) {
+/* 212 */         if (chars[0] == high && chars[1] == low) {
 /* 213 */           return i;
 /*     */         }
 /*     */       }
@@ -228,7 +228,7 @@
 /*     */ 
 /*     */   static int lastIndexOf(CharSequence cs, CharSequence searchChar, int start)
 /*     */   {
-/* 231 */     if ((searchChar == null) || (cs == null)) {
+/* 231 */     if (searchChar == null || cs == null) {
 /* 232 */       return -1;
 /*     */     }
 /* 234 */     if ((searchChar instanceof String)) {
@@ -248,7 +248,7 @@
 /* 248 */       start = len1;
 /*     */     }
 /*     */     
-/* 251 */     if ((start < 0) || (len2 < 0) || (len2 > len1)) {
+/* 251 */     if (start < 0 || len2 < 0 || len2 > len1) {
 /* 252 */       return -1;
 /*     */     }
 /*     */     
@@ -292,9 +292,9 @@
 /*     */   private static boolean checkLaterThan1(CharSequence cs, CharSequence searchChar, int len2, int start1)
 /*     */   {
 /* 294 */     int i = 1; for (int j = len2 - 1; i <= j; i++, j--) {
-/* 295 */       if ((cs.charAt(start1 + i) != searchChar.charAt(i)) || 
+/* 295 */       if (cs.charAt(start1 + i) != searchChar.charAt(i) || 
 /*     */       
-/* 297 */         (cs.charAt(start1 + j) != searchChar.charAt(j)))
+/* 297 */         cs.charAt(start1 + j) != searchChar.charAt(j))
 /*     */       {
 /* 299 */         return false;
 /*     */       }
@@ -337,7 +337,7 @@
 /*     */ 
 /*     */   static boolean regionMatches(CharSequence cs, boolean ignoreCase, int thisStart, CharSequence substring, int start, int length)
 /*     */   {
-/* 340 */     if (((cs instanceof String)) && ((substring instanceof String))) {
+/* 340 */     if ((cs instanceof String) && (substring instanceof String)) {
 /* 341 */       return ((String)cs).regionMatches(ignoreCase, thisStart, (String)substring, start, length);
 /*     */     }
 /* 343 */     int index1 = thisStart;
@@ -349,12 +349,12 @@
 /* 349 */     int otherLen = substring.length() - start;
 /*     */     
 /*     */ 
-/* 352 */     if ((thisStart < 0) || (start < 0) || (length < 0)) {
+/* 352 */     if (thisStart < 0 || start < 0 || length < 0) {
 /* 353 */       return false;
 /*     */     }
 /*     */     
 /*     */ 
-/* 357 */     if ((srcLen < length) || (otherLen < length)) {
+/* 357 */     if (srcLen < length || otherLen < length) {
 /* 358 */       return false;
 /*     */     }
 /*     */     
@@ -373,7 +373,7 @@
 /*     */ 
 /* 374 */       char u1 = Character.toUpperCase(c1);
 /* 375 */       char u2 = Character.toUpperCase(c2);
-/* 376 */       if ((u1 != u2) && (Character.toLowerCase(u1) != Character.toLowerCase(u2))) {
+/* 376 */       if (u1 != u2 && Character.toLowerCase(u1) != Character.toLowerCase(u2)) {
 /* 377 */         return false;
 /*     */       }
 /*     */     }

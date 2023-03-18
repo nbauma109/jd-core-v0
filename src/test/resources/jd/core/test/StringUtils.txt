@@ -338,7 +338,7 @@
 /*      */ 
 /*      */   public static String abbreviate(String str, String abbrevMarker, int offset, int maxWidth)
 /*      */   {
-/*  341 */     if ((isNotEmpty(str)) && ("".equals(abbrevMarker)) && (maxWidth > 0))
+/*  341 */     if (isNotEmpty(str) && "".equals(abbrevMarker) && maxWidth > 0)
 /*  342 */       return substring(str, 0, maxWidth);
 /*  343 */     if (isAnyEmpty(new CharSequence[] { str, abbrevMarker })) {
 /*  344 */       return str;
@@ -402,7 +402,7 @@
 /*      */ 
 /*      */   public static String abbreviateMiddle(String str, String middle, int length)
 /*      */   {
-/*  405 */     if ((isAnyEmpty(new CharSequence[] { str, middle })) || (length >= str.length()) || (length < middle.length() + 2)) {
+/*  405 */     if (isAnyEmpty(new CharSequence[] { str, middle }) || length >= str.length() || length < middle.length() + 2) {
 /*  406 */       return str;
 /*      */     }
 /*      */     
@@ -427,7 +427,7 @@
 /*      */ 
 /*      */   private static String appendIfMissing(String str, CharSequence suffix, boolean ignoreCase, CharSequence... suffixes)
 /*      */   {
-/*  430 */     if ((str == null) || (isEmpty(suffix)) || (endsWith(str, suffix, ignoreCase))) {
+/*  430 */     if (str == null || isEmpty(suffix) || endsWith(str, suffix, ignoreCase)) {
 /*  431 */       return str;
 /*      */     }
 /*  433 */     if (ArrayUtils.isNotEmpty(suffixes)) {
@@ -613,7 +613,7 @@
 /*      */ 
 /*      */   public static String center(String str, int size, char padChar)
 /*      */   {
-/*  616 */     if ((str == null) || (size <= 0)) {
+/*  616 */     if (str == null || size <= 0) {
 /*  617 */       return str;
 /*      */     }
 /*  619 */     int strLen = str.length();
@@ -653,7 +653,7 @@
 /*      */ 
 /*      */   public static String center(String str, int size, String padStr)
 /*      */   {
-/*  656 */     if ((str == null) || (size <= 0)) {
+/*  656 */     if (str == null || size <= 0) {
 /*  657 */       return str;
 /*      */     }
 /*  659 */     if (isEmpty(padStr)) {
@@ -701,7 +701,7 @@
 /*      */     
 /*  702 */     if (str.length() == 1) {
 /*  703 */       char ch = str.charAt(0);
-/*  704 */       if ((ch == '\r') || (ch == '\n')) {
+/*  704 */       if (ch == '\r' || ch == '\n') {
 /*  705 */         return "";
 /*      */       }
 /*  707 */       return str;
@@ -786,7 +786,7 @@
 /*  786 */     int lastIdx = strLen - 1;
 /*  787 */     String ret = str.substring(0, lastIdx);
 /*  788 */     char last = str.charAt(lastIdx);
-/*  789 */     if ((last == '\n') && (ret.charAt(lastIdx - 1) == '\r')) {
+/*  789 */     if (last == '\n' && ret.charAt(lastIdx - 1) == '\r') {
 /*  790 */       return ret.substring(0, lastIdx - 1);
 /*      */     }
 /*  792 */     return ret;
@@ -991,7 +991,7 @@
 /*      */ 
 /*      */   public static boolean contains(CharSequence seq, CharSequence searchSeq)
 /*      */   {
-/*  994 */     if ((seq == null) || (searchSeq == null)) {
+/*  994 */     if (seq == null || searchSeq == null) {
 /*  995 */       return false;
 /*      */     }
 /*  997 */     return CharSequenceUtils.indexOf(seq, searchSeq, 0) >= 0;
@@ -1050,7 +1050,7 @@
 /*      */ 
 /*      */   public static boolean containsAny(CharSequence cs, char... searchChars)
 /*      */   {
-/* 1053 */     if ((isEmpty(cs)) || (ArrayUtils.isEmpty(searchChars))) {
+/* 1053 */     if (isEmpty(cs) || ArrayUtils.isEmpty(searchChars)) {
 /* 1054 */       return false;
 /*      */     }
 /* 1056 */     int csLength = cs.length();
@@ -1066,7 +1066,7 @@
 /*      */             {
 /* 1067 */               return true;
 /*      */             }
-/* 1069 */             if ((i < csLast) && (searchChars[(j + 1)] == cs.charAt(i + 1))) {
+/* 1069 */             if (i < csLast && searchChars[(j + 1)] == cs.charAt(i + 1)) {
 /* 1070 */               return true;
 /*      */             }
 /*      */           }
@@ -1166,7 +1166,7 @@
 /*      */ 
 /*      */   private static boolean containsAny(ToBooleanBiFunction<CharSequence, CharSequence> test, CharSequence cs, CharSequence... searchCharSequences)
 /*      */   {
-/* 1169 */     if ((isEmpty(cs)) || (ArrayUtils.isEmpty(searchCharSequences))) {
+/* 1169 */     if (isEmpty(cs) || ArrayUtils.isEmpty(searchCharSequences)) {
 /* 1170 */       return false;
 /*      */     }
 /* 1172 */     for (CharSequence searchCharSequence : searchCharSequences) {
@@ -1235,7 +1235,7 @@
 /*      */ 
 /*      */   public static boolean containsIgnoreCase(CharSequence str, CharSequence searchStr)
 /*      */   {
-/* 1238 */     if ((str == null) || (searchStr == null)) {
+/* 1238 */     if (str == null || searchStr == null) {
 /* 1239 */       return false;
 /*      */     }
 /* 1241 */     int len = searchStr.length();
@@ -1272,7 +1272,7 @@
 /*      */ 
 /*      */   public static boolean containsNone(CharSequence cs, char... searchChars)
 /*      */   {
-/* 1275 */     if ((cs == null) || (searchChars == null)) {
+/* 1275 */     if (cs == null || searchChars == null) {
 /* 1276 */       return true;
 /*      */     }
 /* 1278 */     int csLen = cs.length();
@@ -1288,7 +1288,7 @@
 /*      */             {
 /* 1289 */               return false;
 /*      */             }
-/* 1291 */             if ((i < csLast) && (searchChars[(j + 1)] == cs.charAt(i + 1))) {
+/* 1291 */             if (i < csLast && searchChars[(j + 1)] == cs.charAt(i + 1)) {
 /* 1292 */               return false;
 /*      */             }
 /*      */           }
@@ -1355,7 +1355,7 @@
 /*      */ 
 /*      */   public static boolean containsOnly(CharSequence cs, char... valid)
 /*      */   {
-/* 1358 */     if ((valid == null) || (cs == null)) {
+/* 1358 */     if (valid == null || cs == null) {
 /* 1359 */       return false;
 /*      */     }
 /* 1361 */     if (cs.length() == 0) {
@@ -1391,7 +1391,7 @@
 /*      */ 
 /*      */   public static boolean containsOnly(CharSequence cs, String validChars)
 /*      */   {
-/* 1394 */     if ((cs == null) || (validChars == null)) {
+/* 1394 */     if (cs == null || validChars == null) {
 /* 1395 */       return false;
 /*      */     }
 /* 1397 */     return containsOnly(cs, validChars.toCharArray());
@@ -1487,7 +1487,7 @@
 /*      */ 
 /*      */   public static int countMatches(CharSequence str, CharSequence sub)
 /*      */   {
-/* 1490 */     if ((isEmpty(str)) || (isEmpty(sub))) {
+/* 1490 */     if (isEmpty(str) || isEmpty(sub)) {
 /* 1491 */       return 0;
 /*      */     }
 /* 1493 */     int count = 0;
@@ -1703,7 +1703,7 @@
 /*      */ 
 /*      */   private static boolean endsWith(CharSequence str, CharSequence suffix, boolean ignoreCase)
 /*      */   {
-/* 1706 */     if ((str == null) || (suffix == null)) {
+/* 1706 */     if (str == null || suffix == null) {
 /* 1707 */       return str == suffix;
 /*      */     }
 /* 1709 */     if (suffix.length() > str.length()) {
@@ -1735,7 +1735,7 @@
 /*      */ 
 /*      */   public static boolean endsWithAny(CharSequence sequence, CharSequence... searchStrings)
 /*      */   {
-/* 1738 */     if ((isEmpty(sequence)) || (ArrayUtils.isEmpty(searchStrings))) {
+/* 1738 */     if (isEmpty(sequence) || ArrayUtils.isEmpty(searchStrings)) {
 /* 1739 */       return false;
 /*      */     }
 /* 1741 */     for (CharSequence searchString : searchStrings) {
@@ -1799,13 +1799,13 @@
 /* 1799 */     if (cs1 == cs2) {
 /* 1800 */       return true;
 /*      */     }
-/* 1802 */     if ((cs1 == null) || (cs2 == null)) {
+/* 1802 */     if (cs1 == null || cs2 == null) {
 /* 1803 */       return false;
 /*      */     }
 /* 1805 */     if (cs1.length() != cs2.length()) {
 /* 1806 */       return false;
 /*      */     }
-/* 1808 */     if (((cs1 instanceof String)) && ((cs2 instanceof String))) {
+/* 1808 */     if ((cs1 instanceof String) && (cs2 instanceof String)) {
 /* 1809 */       return cs1.equals(cs2);
 /*      */     }
 /*      */     
@@ -1903,7 +1903,7 @@
 /* 1903 */     if (cs1 == cs2) {
 /* 1904 */       return true;
 /*      */     }
-/* 1906 */     if ((cs1 == null) || (cs2 == null)) {
+/* 1906 */     if (cs1 == null || cs2 == null) {
 /* 1907 */       return false;
 /*      */     }
 /* 1909 */     if (cs1.length() != cs2.length()) {
@@ -2132,7 +2132,7 @@
 /*      */   @Deprecated
 /*      */   public static int getFuzzyDistance(CharSequence term, CharSequence query, Locale locale)
 /*      */   {
-/* 2135 */     if ((term == null) || (query == null))
+/* 2135 */     if (term == null || query == null)
 /* 2136 */       throw new IllegalArgumentException("Strings must not be null");
 /* 2137 */     if (locale == null) {
 /* 2138 */       throw new IllegalArgumentException("Locale must not be null");
@@ -2159,7 +2159,7 @@
 /* 2159 */       char queryChar = queryLowerCase.charAt(queryIndex);
 /*      */       
 /* 2161 */       boolean termCharacterMatchFound = false;
-/* 2162 */       for (; (termIndex < termLowerCase.length()) && (!termCharacterMatchFound); termIndex++) {
+/* 2162 */       for (; termIndex < termLowerCase.length() && !termCharacterMatchFound; termIndex++) {
 /* 2163 */         char termChar = termLowerCase.charAt(termIndex);
 /*      */         
 /* 2165 */         if (queryChar != termChar)
@@ -2280,7 +2280,7 @@
 /*      */   {
 /* 2281 */     double DEFAULT_SCALING_FACTOR = 0.1D;
 /*      */     
-/* 2283 */     if ((first == null) || (second == null)) {
+/* 2283 */     if (first == null || second == null) {
 /* 2284 */       throw new IllegalArgumentException("Strings must not be null");
 /*      */     }
 /*      */     
@@ -2331,7 +2331,7 @@
 /*      */   @Deprecated
 /*      */   public static int getLevenshteinDistance(CharSequence s, CharSequence t)
 /*      */   {
-/* 2334 */     if ((s == null) || (t == null)) {
+/* 2334 */     if (s == null || t == null) {
 /* 2335 */       throw new IllegalArgumentException("Strings must not be null");
 /*      */     }
 /*      */     
@@ -2421,7 +2421,7 @@
 /*      */   @Deprecated
 /*      */   public static int getLevenshteinDistance(CharSequence s, CharSequence t, int threshold)
 /*      */   {
-/* 2424 */     if ((s == null) || (t == null)) {
+/* 2424 */     if (s == null || t == null) {
 /* 2425 */       throw new IllegalArgumentException("Strings must not be null");
 /*      */     }
 /* 2427 */     if (threshold < 0) {
@@ -2577,7 +2577,7 @@
 /*      */ 
 /*      */   public static int indexOf(CharSequence seq, CharSequence searchSeq)
 /*      */   {
-/* 2580 */     if ((seq == null) || (searchSeq == null)) {
+/* 2580 */     if (seq == null || searchSeq == null) {
 /* 2581 */       return -1;
 /*      */     }
 /* 2583 */     return CharSequenceUtils.indexOf(seq, searchSeq, 0);
@@ -2617,7 +2617,7 @@
 /*      */ 
 /*      */   public static int indexOf(CharSequence seq, CharSequence searchSeq, int startPos)
 /*      */   {
-/* 2620 */     if ((seq == null) || (searchSeq == null)) {
+/* 2620 */     if (seq == null || searchSeq == null) {
 /* 2621 */       return -1;
 /*      */     }
 /* 2623 */     return CharSequenceUtils.indexOf(seq, searchSeq, startPos);
@@ -2751,7 +2751,7 @@
 /*      */ 
 /*      */   public static int indexOfAny(CharSequence cs, char... searchChars)
 /*      */   {
-/* 2754 */     if ((isEmpty(cs)) || (ArrayUtils.isEmpty(searchChars))) {
+/* 2754 */     if (isEmpty(cs) || ArrayUtils.isEmpty(searchChars)) {
 /* 2755 */       return -1;
 /*      */     }
 /* 2757 */     int csLen = cs.length();
@@ -2762,7 +2762,7 @@
 /* 2762 */       char ch = cs.charAt(i);
 /* 2763 */       for (int j = 0; j < searchLen; j++) {
 /* 2764 */         if (searchChars[j] == ch) {
-/* 2765 */           if ((i < csLast) && (j < searchLast) && (Character.isHighSurrogate(ch)))
+/* 2765 */           if (i < csLast && j < searchLast && Character.isHighSurrogate(ch))
 /*      */           {
 /* 2767 */             if (searchChars[(j + 1)] == cs.charAt(i + 1)) {
 /* 2768 */               return i;
@@ -2804,7 +2804,7 @@
 /*      */ 
 /*      */   public static int indexOfAny(CharSequence str, CharSequence... searchStrs)
 /*      */   {
-/* 2807 */     if ((str == null) || (searchStrs == null)) {
+/* 2807 */     if (str == null || searchStrs == null) {
 /* 2808 */       return -1;
 /*      */     }
 /*      */     
@@ -2817,11 +2817,11 @@
 /*      */         continue;
 /*      */       }
 /* 2819 */       tmp = CharSequenceUtils.indexOf(str, search, 0);
-/* 2820 */       if ((tmp == -1) || 
+/* 2820 */       if (tmp == -1 || 
 /*      */       
 /*      */ 
 /*      */ 
-/* 2824 */         (tmp >= ret)) continue;
+/* 2824 */         tmp >= ret) continue;
 /* 2825 */       ret = tmp;
 /*      */     }
 /*      */     
@@ -2853,7 +2853,7 @@
 /*      */ 
 /*      */   public static int indexOfAny(CharSequence cs, String searchChars)
 /*      */   {
-/* 2856 */     if ((isEmpty(cs)) || (isEmpty(searchChars))) {
+/* 2856 */     if (isEmpty(cs) || isEmpty(searchChars)) {
 /* 2857 */       return -1;
 /*      */     }
 /* 2859 */     return indexOfAny(cs, searchChars.toCharArray());
@@ -2884,7 +2884,7 @@
 /*      */ 
 /*      */   public static int indexOfAnyBut(CharSequence cs, char... searchChars)
 /*      */   {
-/* 2887 */     if ((isEmpty(cs)) || (ArrayUtils.isEmpty(searchChars))) {
+/* 2887 */     if (isEmpty(cs) || ArrayUtils.isEmpty(searchChars)) {
 /* 2888 */       return -1;
 /*      */     }
 /* 2890 */     int csLen = cs.length();
@@ -2895,9 +2895,9 @@
 /* 2895 */     for (int i = 0; i < csLen; i++) {
 /* 2896 */       char ch = cs.charAt(i);
 /* 2897 */       for (int j = 0; j < searchLen; j++) {
-/* 2898 */         if ((searchChars[j] == ch) && (
-/* 2899 */           (i >= csLast) || (j >= searchLast) || (!Character.isHighSurrogate(ch)) || 
-/* 2900 */           (searchChars[(j + 1)] == cs.charAt(i + 1)))) {
+/* 2898 */         if (searchChars[j] == ch && 
+/* 2899 */           i >= csLast || j >= searchLast || !Character.isHighSurrogate(ch) || 
+/* 2900 */           searchChars[(j + 1)] == cs.charAt(i + 1)) {
 /*      */           break label127;
 /*      */         }
 /*      */       }
@@ -2934,16 +2934,16 @@
 /*      */ 
 /*      */   public static int indexOfAnyBut(CharSequence seq, CharSequence searchChars)
 /*      */   {
-/* 2937 */     if ((isEmpty(seq)) || (isEmpty(searchChars))) {
+/* 2937 */     if (isEmpty(seq) || isEmpty(searchChars)) {
 /* 2938 */       return -1;
 /*      */     }
 /* 2940 */     int strLen = seq.length();
 /* 2941 */     for (int i = 0; i < strLen; i++) {
 /* 2942 */       char ch = seq.charAt(i);
 /* 2943 */       boolean chFound = CharSequenceUtils.indexOf(searchChars, ch, 0) >= 0;
-/* 2944 */       if ((i + 1 < strLen) && (Character.isHighSurrogate(ch))) {
+/* 2944 */       if (i + 1 < strLen && Character.isHighSurrogate(ch)) {
 /* 2945 */         char ch2 = seq.charAt(i + 1);
-/* 2946 */         if ((chFound) && (CharSequenceUtils.indexOf(searchChars, ch2, 0) < 0)) {
+/* 2946 */         if (chFound && CharSequenceUtils.indexOf(searchChars, ch2, 0) < 0) {
 /* 2947 */           return i;
 /*      */         }
 /* 2949 */       } else if (!chFound) {
@@ -3010,7 +3010,7 @@
 /*      */     }
 /*      */     
 /*      */ 
-/* 3013 */     if ((allStringsNull) || ((longestStrLen == 0) && (!anyStringNull))) {
+/* 3013 */     if (allStringsNull || longestStrLen == 0 && !anyStringNull) {
 /* 3014 */       return -1;
 /*      */     }
 /*      */     
@@ -3034,7 +3034,7 @@
 /*      */       }
 /*      */     }
 /*      */     
-/* 3037 */     if ((firstDiff == -1) && (shortestStrLen != longestStrLen))
+/* 3037 */     if (firstDiff == -1 && shortestStrLen != longestStrLen)
 /*      */     {
 /*      */ 
 /*      */ 
@@ -3072,16 +3072,16 @@
 /* 3072 */     if (cs1 == cs2) {
 /* 3073 */       return -1;
 /*      */     }
-/* 3075 */     if ((cs1 == null) || (cs2 == null)) {
+/* 3075 */     if (cs1 == null || cs2 == null) {
 /* 3076 */       return 0;
 /*      */     }
 /*      */     
-/* 3079 */     for (int i = 0; (i < cs1.length()) && (i < cs2.length()); i++) {
+/* 3079 */     for (int i = 0; i < cs1.length() && i < cs2.length(); i++) {
 /* 3080 */       if (cs1.charAt(i) != cs2.charAt(i)) {
 /*      */         break;
 /*      */       }
 /*      */     }
-/* 3084 */     if ((i < cs2.length()) || (i < cs1.length())) {
+/* 3084 */     if (i < cs2.length() || i < cs1.length()) {
 /* 3085 */       return i;
 /*      */     }
 /* 3087 */     return -1;
@@ -3149,7 +3149,7 @@
 /*      */ 
 /*      */   public static int indexOfIgnoreCase(CharSequence str, CharSequence searchStr, int startPos)
 /*      */   {
-/* 3152 */     if ((str == null) || (searchStr == null)) {
+/* 3152 */     if (str == null || searchStr == null) {
 /* 3153 */       return -1;
 /*      */     }
 /* 3155 */     if (startPos < 0) {
@@ -3401,7 +3401,7 @@
 /* 3401 */     int sz = cs.length();
 /* 3402 */     for (int i = 0; i < sz; i++) {
 /* 3403 */       char nowChar = cs.charAt(i);
-/* 3404 */       if ((nowChar != ' ') && (!Character.isLetterOrDigit(nowChar))) {
+/* 3404 */       if (nowChar != ' ' && !Character.isLetterOrDigit(nowChar)) {
 /* 3405 */         return false;
 /*      */       }
 /*      */     }
@@ -3437,7 +3437,7 @@
 /* 3437 */     int sz = cs.length();
 /* 3438 */     for (int i = 0; i < sz; i++) {
 /* 3439 */       char nowChar = cs.charAt(i);
-/* 3440 */       if ((nowChar != ' ') && (!Character.isLetter(nowChar))) {
+/* 3440 */       if (nowChar != ' ' && !Character.isLetter(nowChar)) {
 /* 3441 */         return false;
 /*      */       }
 /*      */     }
@@ -3601,7 +3601,7 @@
 /*      */ 
 /*      */   public static boolean isEmpty(CharSequence cs)
 /*      */   {
-/* 3604 */     return (cs == null) || (cs.length() == 0);
+/* 3604 */     return cs == null || cs.length() == 0;
 /*      */   }
 /*      */   
 /*      */ 
@@ -3627,14 +3627,14 @@
 /*      */ 
 /*      */   public static boolean isMixedCase(CharSequence cs)
 /*      */   {
-/* 3630 */     if ((isEmpty(cs)) || (cs.length() == 1)) {
+/* 3630 */     if (isEmpty(cs) || cs.length() == 1) {
 /* 3631 */       return false;
 /*      */     }
 /* 3633 */     boolean containsUppercase = false;
 /* 3634 */     boolean containsLowercase = false;
 /* 3635 */     int sz = cs.length();
 /* 3636 */     for (int i = 0; i < sz; i++) {
-/* 3637 */       if ((containsUppercase) && (containsLowercase))
+/* 3637 */       if (containsUppercase && containsLowercase)
 /* 3638 */         return true;
 /* 3639 */       if (Character.isUpperCase(cs.charAt(i))) {
 /* 3640 */         containsUppercase = true;
@@ -3642,7 +3642,7 @@
 /* 3642 */         containsLowercase = true;
 /*      */       }
 /*      */     }
-/* 3645 */     return (containsUppercase) && (containsLowercase);
+/* 3645 */     return containsUppercase && containsLowercase;
 /*      */   }
 /*      */   
 /*      */ 
@@ -3815,7 +3815,7 @@
 /* 3815 */     int sz = cs.length();
 /* 3816 */     for (int i = 0; i < sz; i++) {
 /* 3817 */       char nowChar = cs.charAt(i);
-/* 3818 */       if ((nowChar != ' ') && (!Character.isDigit(nowChar))) {
+/* 3818 */       if (nowChar != ' ' && !Character.isDigit(nowChar)) {
 /* 3819 */         return false;
 /*      */       }
 /*      */     }
@@ -5070,7 +5070,7 @@
 /*      */ 
 /*      */   public static int lastIndexOfAny(CharSequence str, CharSequence... searchStrs)
 /*      */   {
-/* 5073 */     if ((str == null) || (searchStrs == null)) {
+/* 5073 */     if (str == null || searchStrs == null) {
 /* 5074 */       return -1;
 /*      */     }
 /* 5076 */     int ret = -1;
@@ -5111,7 +5111,7 @@
 /*      */ 
 /*      */   public static int lastIndexOfIgnoreCase(CharSequence str, CharSequence searchStr)
 /*      */   {
-/* 5114 */     if ((str == null) || (searchStr == null)) {
+/* 5114 */     if (str == null || searchStr == null) {
 /* 5115 */       return -1;
 /*      */     }
 /* 5117 */     return lastIndexOfIgnoreCase(str, searchStr, str.length());
@@ -5150,7 +5150,7 @@
 /*      */ 
 /*      */   public static int lastIndexOfIgnoreCase(CharSequence str, CharSequence searchStr, int startPos)
 /*      */   {
-/* 5153 */     if ((str == null) || (searchStr == null)) {
+/* 5153 */     if (str == null || searchStr == null) {
 /* 5154 */       return -1;
 /*      */     }
 /* 5156 */     int searchStrLength = searchStr.length();
@@ -5338,7 +5338,7 @@
 /* 5338 */     if (pads <= 0) {
 /* 5339 */       return str;
 /*      */     }
-/* 5341 */     if ((padLen == 1) && (pads <= 8192)) {
+/* 5341 */     if (padLen == 1 && pads <= 8192) {
 /* 5342 */       return leftPad(str, size, padStr.charAt(0));
 /*      */     }
 /*      */     
@@ -5438,7 +5438,7 @@
 /* 5438 */     for (int mi = 0; mi < min.length(); mi++) {
 /* 5439 */       char c1 = min.charAt(mi);
 /* 5440 */       for (int xi = Math.max(mi - range, 0), xn = Math.min(mi + range + 1, max.length()); xi < xn; xi++) {
-/* 5441 */         if ((!matchFlags[xi]) && (c1 == max.charAt(xi))) {
+/* 5441 */         if (!matchFlags[xi] && c1 == max.charAt(xi)) {
 /* 5442 */           matchIndexes[mi] = xi;
 /* 5443 */           matchFlags[xi] = true;
 /* 5444 */           matches++;
@@ -5506,7 +5506,7 @@
 /* 5506 */     if (str == null) {
 /* 5507 */       return null;
 /*      */     }
-/* 5509 */     if ((len < 0) || (pos > str.length())) {
+/* 5509 */     if (len < 0 || pos > str.length()) {
 /* 5510 */       return "";
 /*      */     }
 /* 5512 */     if (pos < 0) {
@@ -5578,7 +5578,7 @@
 /* 5578 */       char actualChar = str.charAt(i);
 /* 5579 */       boolean isWhitespace = Character.isWhitespace(actualChar);
 /* 5580 */       if (isWhitespace) {
-/* 5581 */         if ((whitespacesCount == 0) && (!startWhitespaces)) {
+/* 5581 */         if (whitespacesCount == 0 && !startWhitespaces) {
 /* 5582 */           newChars[(count++)] = " ".charAt(0);
 /*      */         }
 /* 5584 */         whitespacesCount++;
@@ -5664,7 +5664,7 @@
 /*      */ 
 /*      */   private static int ordinalIndexOf(CharSequence str, CharSequence searchStr, int ordinal, boolean lastIndex)
 /*      */   {
-/* 5667 */     if ((str == null) || (searchStr == null) || (ordinal <= 0)) {
+/* 5667 */     if (str == null || searchStr == null || ordinal <= 0) {
 /* 5668 */       return -1;
 /*      */     }
 /* 5670 */     if (searchStr.length() == 0) {
@@ -5759,7 +5759,7 @@
 /*      */ 
 /*      */   private static String prependIfMissing(String str, CharSequence prefix, boolean ignoreCase, CharSequence... prefixes)
 /*      */   {
-/* 5762 */     if ((str == null) || (isEmpty(prefix)) || (startsWith(str, prefix, ignoreCase))) {
+/* 5762 */     if (str == null || isEmpty(prefix) || startsWith(str, prefix, ignoreCase)) {
 /* 5763 */       return str;
 /*      */     }
 /* 5765 */     if (ArrayUtils.isNotEmpty(prefixes)) {
@@ -5868,7 +5868,7 @@
 /*      */ 
 /*      */   public static String remove(String str, char remove)
 /*      */   {
-/* 5871 */     if ((isEmpty(str)) || (str.indexOf(remove) == -1)) {
+/* 5871 */     if (isEmpty(str) || str.indexOf(remove) == -1) {
 /* 5872 */       return str;
 /*      */     }
 /* 5874 */     char[] chars = str.toCharArray();
@@ -5905,7 +5905,7 @@
 /*      */ 
 /*      */   public static String remove(String str, String remove)
 /*      */   {
-/* 5908 */     if ((isEmpty(str)) || (isEmpty(remove))) {
+/* 5908 */     if (isEmpty(str) || isEmpty(remove)) {
 /* 5909 */       return str;
 /*      */     }
 /* 5911 */     return replace(str, remove, "", -1);
@@ -5986,7 +5986,7 @@
 /*      */ 
 /*      */   public static String removeEnd(String str, String remove)
 /*      */   {
-/* 5989 */     if ((isEmpty(str)) || (isEmpty(remove))) {
+/* 5989 */     if (isEmpty(str) || isEmpty(remove)) {
 /* 5990 */       return str;
 /*      */     }
 /* 5992 */     if (str.endsWith(remove)) {
@@ -6022,7 +6022,7 @@
 /*      */ 
 /*      */   public static String removeEndIgnoreCase(String str, String remove)
 /*      */   {
-/* 6025 */     if ((isEmpty(str)) || (isEmpty(remove))) {
+/* 6025 */     if (isEmpty(str) || isEmpty(remove)) {
 /* 6026 */       return str;
 /*      */     }
 /* 6028 */     if (endsWithIgnoreCase(str, remove)) {
@@ -6179,7 +6179,7 @@
 /*      */ 
 /*      */   public static String removeStart(String str, String remove)
 /*      */   {
-/* 6182 */     if ((isEmpty(str)) || (isEmpty(remove))) {
+/* 6182 */     if (isEmpty(str) || isEmpty(remove)) {
 /* 6183 */       return str;
 /*      */     }
 /* 6185 */     if (str.startsWith(remove)) {
@@ -6214,7 +6214,7 @@
 /*      */ 
 /*      */   public static String removeStartIgnoreCase(String str, String remove)
 /*      */   {
-/* 6217 */     if ((str != null) && (startsWithIgnoreCase(str, remove))) {
+/* 6217 */     if (str != null && startsWithIgnoreCase(str, remove)) {
 /* 6218 */       return str.substring(length(remove));
 /*      */     }
 /* 6220 */     return str;
@@ -6278,10 +6278,10 @@
 /* 6278 */       return "";
 /*      */     }
 /* 6280 */     int inputLength = str.length();
-/* 6281 */     if ((repeat == 1) || (inputLength == 0)) {
+/* 6281 */     if (repeat == 1 || inputLength == 0) {
 /* 6282 */       return str;
 /*      */     }
-/* 6284 */     if ((inputLength == 1) && (repeat <= 8192)) {
+/* 6284 */     if (inputLength == 1 && repeat <= 8192) {
 /* 6285 */       return repeat(str.charAt(0), repeat);
 /*      */     }
 /*      */     
@@ -6328,7 +6328,7 @@
 /*      */ 
 /*      */   public static String repeat(String str, String separator, int repeat)
 /*      */   {
-/* 6331 */     if ((str == null) || (separator == null)) {
+/* 6331 */     if (str == null || separator == null) {
 /* 6332 */       return repeat(str, repeat);
 /*      */     }
 /*      */     
@@ -6427,7 +6427,7 @@
 /*      */ 
 /*      */   private static String replace(String text, String searchString, String replacement, int max, boolean ignoreCase)
 /*      */   {
-/* 6430 */     if ((isEmpty(text)) || (isEmpty(searchString)) || (replacement == null) || (max == 0)) {
+/* 6430 */     if (isEmpty(text) || isEmpty(searchString) || replacement == null || max == 0) {
 /* 6431 */       return text;
 /*      */     }
 /* 6433 */     if (ignoreCase) {
@@ -6573,7 +6573,7 @@
 /*      */ 
 /*      */   public static String replaceChars(String str, String searchChars, String replaceChars)
 /*      */   {
-/* 6576 */     if ((isEmpty(str)) || (isEmpty(searchChars))) {
+/* 6576 */     if (isEmpty(str) || isEmpty(searchChars)) {
 /* 6577 */       return str;
 /*      */     }
 /* 6579 */     if (replaceChars == null) {
@@ -6711,7 +6711,7 @@
 /*      */     }
 /*      */     
 /*      */ 
-/* 6714 */     if ((isEmpty(text)) || (ArrayUtils.isEmpty(searchList)) || (ArrayUtils.isEmpty(replacementList)) || ((ArrayUtils.isNotEmpty(searchList)) && (timeToLive == -1))) {
+/* 6714 */     if (isEmpty(text) || ArrayUtils.isEmpty(searchList) || ArrayUtils.isEmpty(replacementList) || ArrayUtils.isNotEmpty(searchList) && timeToLive == -1) {
 /* 6715 */       return text;
 /*      */     }
 /*      */     
@@ -6737,7 +6737,7 @@
 /*      */ 
 /*      */ 
 /* 6739 */     for (int i = 0; i < searchLength; i++) {
-/* 6740 */       if ((noMoreMatchesForReplIndex[i]) || (isEmpty(searchList[i])) || (replacementList[i] == null)) {
+/* 6740 */       if (noMoreMatchesForReplIndex[i] || isEmpty(searchList[i]) || replacementList[i] == null) {
 /*      */         continue;
 /*      */       }
 /* 6743 */       tempIndex = text.indexOf(searchList[i]);
@@ -6745,7 +6745,7 @@
 /*      */ 
 /* 6746 */       if (tempIndex == -1) {
 /* 6747 */         noMoreMatchesForReplIndex[i] = true;
-/* 6748 */       } else if ((textIndex == -1) || (tempIndex < textIndex)) {
+/* 6748 */       } else if (textIndex == -1 || tempIndex < textIndex) {
 /* 6749 */         textIndex = tempIndex;
 /* 6750 */         replaceIndex = i;
 /*      */       }
@@ -6764,7 +6764,7 @@
 /*      */     
 /*      */ 
 /* 6766 */     for (int i = 0; i < searchList.length; i++) {
-/* 6767 */       if ((searchList[i] == null) || (replacementList[i] == null)) {
+/* 6767 */       if (searchList[i] == null || replacementList[i] == null) {
 /*      */         continue;
 /*      */       }
 /* 6770 */       int greater = replacementList[i].length() - searchList[i].length();
@@ -6791,8 +6791,8 @@
 /*      */       
 /*      */ 
 /* 6793 */       for (int i = 0; i < searchLength; i++) {
-/* 6794 */         if ((noMoreMatchesForReplIndex[i]) || (searchList[i] == null) || 
-/* 6795 */           (searchList[i].isEmpty()) || (replacementList[i] == null)) {
+/* 6794 */         if (noMoreMatchesForReplIndex[i] || searchList[i] == null || 
+/* 6795 */           searchList[i].isEmpty() || replacementList[i] == null) {
 /*      */           continue;
 /*      */         }
 /* 6798 */         tempIndex = text.indexOf(searchList[i], start);
@@ -6800,7 +6800,7 @@
 /*      */ 
 /* 6801 */         if (tempIndex == -1) {
 /* 6802 */           noMoreMatchesForReplIndex[i] = true;
-/* 6803 */         } else if ((textIndex == -1) || (tempIndex < textIndex)) {
+/* 6803 */         } else if (textIndex == -1 || tempIndex < textIndex) {
 /* 6804 */           textIndex = tempIndex;
 /* 6805 */           replaceIndex = i;
 /*      */         }
@@ -7263,7 +7263,7 @@
 /* 7263 */     if (pads <= 0) {
 /* 7264 */       return str;
 /*      */     }
-/* 7266 */     if ((padLen == 1) && (pads <= 8192)) {
+/* 7266 */     if (padLen == 1 && pads <= 8192) {
 /* 7267 */       return rightPad(str, size, padStr.charAt(0));
 /*      */     }
 /*      */     
@@ -7313,7 +7313,7 @@
 /*      */     }
 /*      */     
 /* 7315 */     int strLen = str.length();
-/* 7316 */     if ((shift == 0) || (strLen == 0) || (shift % strLen == 0)) {
+/* 7316 */     if (shift == 0 || strLen == 0 || shift % strLen == 0) {
 /* 7317 */       return str;
 /*      */     }
 /*      */     
@@ -7494,7 +7494,7 @@
 /* 7494 */       if (type == currentType) {
 /*      */         continue;
 /*      */       }
-/* 7497 */       if ((camelCase) && (type == 2) && (currentType == 1)) {
+/* 7497 */       if (camelCase && type == 2 && currentType == 1) {
 /* 7498 */         int newTokenStart = pos - 1;
 /* 7499 */         if (newTokenStart != tokenStart) {
 /* 7500 */           list.add(new String(c, tokenStart, newTokenStart - tokenStart));
@@ -7684,7 +7684,7 @@
 /* 7684 */       return ArrayUtils.EMPTY_STRING_ARRAY;
 /*      */     }
 /*      */     
-/* 7687 */     if ((separator == null) || ("".equals(separator)))
+/* 7687 */     if (separator == null || "".equals(separator))
 /*      */     {
 /* 7689 */       return splitWorker(str, null, max, preserveAllTokens);
 /*      */     }
@@ -7908,7 +7908,7 @@
 /* 7908 */     boolean lastMatch = false;
 /* 7909 */     while (i < len)
 /* 7910 */       if (str.charAt(i) == separatorChar) {
-/* 7911 */         if ((match) || (preserveAllTokens)) {
+/* 7911 */         if (match || preserveAllTokens) {
 /* 7912 */           list.add(str.substring(start, i));
 /* 7913 */           match = false;
 /* 7914 */           lastMatch = true;
@@ -7920,7 +7920,7 @@
 /* 7920 */         match = true;
 /* 7921 */         i++;
 /*      */       }
-/* 7923 */     if ((match) || ((preserveAllTokens) && (lastMatch))) {
+/* 7923 */     if (match || preserveAllTokens && lastMatch) {
 /* 7924 */       list.add(str.substring(start, i));
 /*      */     }
 /* 7926 */     return (String[])list.toArray(ArrayUtils.EMPTY_STRING_ARRAY);
@@ -7962,7 +7962,7 @@
 /*      */     {
 /* 7963 */       while (i < len)
 /* 7964 */         if (Character.isWhitespace(str.charAt(i))) {
-/* 7965 */           if ((match) || (preserveAllTokens)) {
+/* 7965 */           if (match || preserveAllTokens) {
 /* 7966 */             lastMatch = true;
 /* 7967 */             if (sizePlus1++ == max) {
 /* 7968 */               i = len;
@@ -7983,7 +7983,7 @@
 /* 7983 */       char sep = separatorChars.charAt(0);
 /* 7984 */       while (i < len) {
 /* 7985 */         if (str.charAt(i) == sep) {
-/* 7986 */           if ((match) || (preserveAllTokens)) {
+/* 7986 */           if (match || preserveAllTokens) {
 /* 7987 */             lastMatch = true;
 /* 7988 */             if (sizePlus1++ == max) {
 /* 7989 */               i = len;
@@ -8003,7 +8003,7 @@
 /*      */     } else {
 /* 8004 */       while (i < len)
 /* 8005 */         if (separatorChars.indexOf(str.charAt(i)) >= 0) {
-/* 8006 */           if ((match) || (preserveAllTokens)) {
+/* 8006 */           if (match || preserveAllTokens) {
 /* 8007 */             lastMatch = true;
 /* 8008 */             if (sizePlus1++ == max) {
 /* 8009 */               i = len;
@@ -8020,7 +8020,7 @@
 /* 8020 */           i++;
 /*      */         }
 /*      */     }
-/* 8023 */     if ((match) || ((preserveAllTokens) && (lastMatch))) {
+/* 8023 */     if (match || preserveAllTokens && lastMatch) {
 /* 8024 */       list.add(str.substring(start, i));
 /*      */     }
 /* 8026 */     return (String[])list.toArray(ArrayUtils.EMPTY_STRING_ARRAY);
@@ -8064,7 +8064,7 @@
 /*      */ 
 /*      */   private static boolean startsWith(CharSequence str, CharSequence prefix, boolean ignoreCase)
 /*      */   {
-/* 8067 */     if ((str == null) || (prefix == null)) {
+/* 8067 */     if (str == null || prefix == null) {
 /* 8068 */       return str == prefix;
 /*      */     }
 /*      */     
@@ -8098,7 +8098,7 @@
 /*      */ 
 /*      */   public static boolean startsWithAny(CharSequence sequence, CharSequence... searchStrings)
 /*      */   {
-/* 8101 */     if ((isEmpty(sequence)) || (ArrayUtils.isEmpty(searchStrings))) {
+/* 8101 */     if (isEmpty(sequence) || ArrayUtils.isEmpty(searchStrings)) {
 /* 8102 */       return false;
 /*      */     }
 /* 8104 */     for (CharSequence searchString : searchStrings) {
@@ -8312,13 +8312,13 @@
 /*      */     }
 /*      */     
 /* 8314 */     if (stripChars == null) {
-/* 8315 */       while ((end != 0) && (Character.isWhitespace(str.charAt(end - 1))))
+/* 8315 */       while (end != 0 && Character.isWhitespace(str.charAt(end - 1)))
 /* 8316 */         end--;
 /*      */     }
 /* 8318 */     if (stripChars.isEmpty()) {
 /* 8319 */       return str;
 /*      */     }
-/* 8321 */     while ((end != 0) && (stripChars.indexOf(str.charAt(end - 1)) != -1)) {
+/* 8321 */     while (end != 0 && stripChars.indexOf(str.charAt(end - 1)) != -1) {
 /* 8322 */       end--;
 /*      */     }
 /*      */     
@@ -8356,13 +8356,13 @@
 /*      */     }
 /* 8357 */     int start = 0;
 /* 8358 */     if (stripChars == null) {
-/* 8359 */       while ((start != strLen) && (Character.isWhitespace(str.charAt(start))))
+/* 8359 */       while (start != strLen && Character.isWhitespace(str.charAt(start)))
 /* 8360 */         start++;
 /*      */     }
 /* 8362 */     if (stripChars.isEmpty()) {
 /* 8363 */       return str;
 /*      */     }
-/* 8365 */     while ((start != strLen) && (stripChars.indexOf(str.charAt(start)) != -1)) {
+/* 8365 */     while (start != strLen && stripChars.indexOf(str.charAt(start)) != -1) {
 /* 8366 */       start++;
 /*      */     }
 /*      */     
@@ -8647,7 +8647,7 @@
 /* 8647 */       return str;
 /*      */     }
 /* 8649 */     int pos = str.lastIndexOf(separator);
-/* 8650 */     if ((pos == -1) || (pos == str.length() - 1)) {
+/* 8650 */     if (pos == -1 || pos == str.length() - 1) {
 /* 8651 */       return "";
 /*      */     }
 /* 8653 */     return str.substring(pos + 1);
@@ -8690,7 +8690,7 @@
 /* 8690 */       return "";
 /*      */     }
 /* 8692 */     int pos = str.lastIndexOf(separator);
-/* 8693 */     if ((pos == -1) || (pos == str.length() - separator.length())) {
+/* 8693 */     if (pos == -1 || pos == str.length() - separator.length()) {
 /* 8694 */       return "";
 /*      */     }
 /* 8696 */     return str.substring(pos + separator.length());
@@ -8762,7 +8762,7 @@
 /*      */ 
 /*      */   public static String substringBefore(String str, String separator)
 /*      */   {
-/* 8765 */     if ((isEmpty(str)) || (separator == null)) {
+/* 8765 */     if (isEmpty(str) || separator == null) {
 /* 8766 */       return str;
 /*      */     }
 /* 8768 */     if (separator.isEmpty()) {
@@ -8803,7 +8803,7 @@
 /*      */ 
 /*      */   public static String substringBeforeLast(String str, String separator)
 /*      */   {
-/* 8806 */     if ((isEmpty(str)) || (isEmpty(separator))) {
+/* 8806 */     if (isEmpty(str) || isEmpty(separator)) {
 /* 8807 */       return str;
 /*      */     }
 /* 8809 */     int pos = str.lastIndexOf(separator);
@@ -8902,7 +8902,7 @@
 /*      */ 
 /*      */   public static String[] substringsBetween(String str, String open, String close)
 /*      */   {
-/* 8905 */     if ((str == null) || (isEmpty(open)) || (isEmpty(close))) {
+/* 8905 */     if (str == null || isEmpty(open) || isEmpty(close)) {
 /* 8906 */       return null;
 /*      */     }
 /* 8908 */     int strLen = str.length();
@@ -8970,7 +8970,7 @@
 /* 8970 */     for (int i = 0; i < strLen;) {
 /* 8971 */       int oldCodepoint = str.codePointAt(i);
 /*      */       int newCodePoint;
-/* 8973 */       if ((Character.isUpperCase(oldCodepoint)) || (Character.isTitleCase(oldCodepoint))) {
+/* 8973 */       if (Character.isUpperCase(oldCodepoint) || Character.isTitleCase(oldCodepoint)) {
 /* 8974 */         newCodePoint = Character.toLowerCase(oldCodepoint);
 /* 8975 */       } else if (Character.isLowerCase(oldCodepoint)) {
 /* 8976 */         newCodePoint = Character.toUpperCase(oldCodepoint);
@@ -9347,11 +9347,11 @@
 /*      */ 
 /*      */   public static String unwrap(String str, char wrapChar)
 /*      */   {
-/* 9350 */     if ((isEmpty(str)) || (wrapChar == 0) || (str.length() == 1)) {
+/* 9350 */     if (isEmpty(str) || wrapChar == 0 || str.length() == 1) {
 /* 9351 */       return str;
 /*      */     }
 /*      */     
-/* 9354 */     if ((str.charAt(0) == wrapChar) && (str.charAt(str.length() - 1) == wrapChar)) {
+/* 9354 */     if (str.charAt(0) == wrapChar && str.charAt(str.length() - 1) == wrapChar) {
 /* 9355 */       int startIndex = 0;
 /* 9356 */       int endIndex = str.length() - 1;
 /*      */       
@@ -9389,16 +9389,16 @@
 /*      */ 
 /*      */   public static String unwrap(String str, String wrapToken)
 /*      */   {
-/* 9392 */     if ((isEmpty(str)) || (isEmpty(wrapToken)) || (str.length() < 2 * wrapToken.length())) {
+/* 9392 */     if (isEmpty(str) || isEmpty(wrapToken) || str.length() < 2 * wrapToken.length()) {
 /* 9393 */       return str;
 /*      */     }
 /*      */     
-/* 9396 */     if ((startsWith(str, wrapToken)) && (endsWith(str, wrapToken))) {
+/* 9396 */     if (startsWith(str, wrapToken) && endsWith(str, wrapToken)) {
 /* 9397 */       int startIndex = str.indexOf(wrapToken);
 /* 9398 */       int endIndex = str.lastIndexOf(wrapToken);
 /* 9399 */       int wrapLength = wrapToken.length();
 /*      */       
-/* 9401 */       if ((startIndex != -1) && (endIndex != -1)) {
+/* 9401 */       if (startIndex != -1 && endIndex != -1) {
 /* 9402 */         return str.substring(startIndex + wrapLength, endIndex);
 /*      */       }
 /*      */     }
@@ -9490,7 +9490,7 @@
 /*      */ 
 /*      */   public static String wrap(String str, char wrapWith)
 /*      */   {
-/* 9493 */     if ((isEmpty(str)) || (wrapWith == 0)) {
+/* 9493 */     if (isEmpty(str) || wrapWith == 0) {
 /* 9494 */       return str;
 /*      */     }
 /*      */     
@@ -9528,7 +9528,7 @@
 /*      */ 
 /*      */   public static String wrap(String str, String wrapWith)
 /*      */   {
-/* 9531 */     if ((isEmpty(str)) || (isEmpty(wrapWith))) {
+/* 9531 */     if (isEmpty(str) || isEmpty(wrapWith)) {
 /* 9532 */       return str;
 /*      */     }
 /*      */     
@@ -9563,12 +9563,12 @@
 /*      */ 
 /*      */   public static String wrapIfMissing(String str, char wrapWith)
 /*      */   {
-/* 9566 */     if ((isEmpty(str)) || (wrapWith == 0)) {
+/* 9566 */     if (isEmpty(str) || wrapWith == 0) {
 /* 9567 */       return str;
 /*      */     }
 /* 9569 */     boolean wrapStart = str.charAt(0) != wrapWith;
 /* 9570 */     boolean wrapEnd = str.charAt(str.length() - 1) != wrapWith;
-/* 9571 */     if ((!wrapStart) && (!wrapEnd)) {
+/* 9571 */     if (!wrapStart && !wrapEnd) {
 /* 9572 */       return str;
 /*      */     }
 /*      */     
@@ -9615,13 +9615,13 @@
 /*      */ 
 /*      */   public static String wrapIfMissing(String str, String wrapWith)
 /*      */   {
-/* 9618 */     if ((isEmpty(str)) || (isEmpty(wrapWith))) {
+/* 9618 */     if (isEmpty(str) || isEmpty(wrapWith)) {
 /* 9619 */       return str;
 /*      */     }
 /*      */     
 /* 9622 */     boolean wrapStart = !str.startsWith(wrapWith);
 /* 9623 */     boolean wrapEnd = !str.endsWith(wrapWith);
-/* 9624 */     if ((!wrapStart) && (!wrapEnd)) {
+/* 9624 */     if (!wrapStart && !wrapEnd) {
 /* 9625 */       return str;
 /*      */     }
 /*      */     

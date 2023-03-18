@@ -173,11 +173,11 @@
 /*      */         }
 /*  174 */         return this.root.setKeyValue(key, value);
 /*      */       }
-/*  176 */       if ((KeyAnalyzer.isEqualBitKey(bitIndex)) && 
+/*  176 */       if (KeyAnalyzer.isEqualBitKey(bitIndex) && 
 /*      */       
 /*      */ 
 /*      */ 
-/*  180 */         (found != this.root)) {
+/*  180 */         found != this.root) {
 /*  181 */         incrementModCount();
 /*  182 */         return found.setKeyValue(key, value);
 /*      */       }
@@ -194,7 +194,7 @@
 /*  194 */     TrieEntry<K, V> current = this.root.left;
 /*  195 */     TrieEntry<K, V> path = this.root;
 /*      */     for (;;) {
-/*  197 */       if ((current.bitIndex >= entry.bitIndex) || (current.bitIndex <= path.bitIndex))
+/*  197 */       if (current.bitIndex >= entry.bitIndex || current.bitIndex <= path.bitIndex)
 /*      */       {
 /*  199 */         entry.predecessor = entry;
 /*      */         
@@ -216,7 +216,7 @@
 /*  216 */           current.predecessor = entry;
 /*      */         }
 /*      */         
-/*  219 */         if ((path == this.root) || (!isBitSet(entry.key, path.bitIndex, lengthInBits))) {
+/*  219 */         if (path == this.root || !isBitSet(entry.key, path.bitIndex, lengthInBits)) {
 /*  220 */           path.left = entry;
 /*      */         } else {
 /*  222 */           path.right = entry;
@@ -256,7 +256,7 @@
 /*      */     
 /*  257 */     int lengthInBits = lengthInBits(key);
 /*  258 */     TrieEntry<K, V> entry = getNearestEntryForKey(key, lengthInBits);
-/*  259 */     return (!entry.isEmpty()) && (compareKeys(key, entry.key)) ? entry : null;
+/*  259 */     return !entry.isEmpty() && compareKeys(key, entry.key) ? entry : null;
 /*      */   }
 /*      */   
 /*      */ 
@@ -382,7 +382,7 @@
 /*  382 */     K key = castKey(k);
 /*  383 */     int lengthInBits = lengthInBits(key);
 /*  384 */     TrieEntry<K, V> entry = getNearestEntryForKey(key, lengthInBits);
-/*  385 */     return (!entry.isEmpty()) && (compareKeys(key, entry.key));
+/*  385 */     return !entry.isEmpty() && compareKeys(key, entry.key);
 /*      */   }
 /*      */   
 /*      */   @Override
@@ -426,7 +426,7 @@
 /*  426 */     TrieEntry<K, V> path = this.root;
 /*      */     for (;;) {
 /*  428 */       if (current.bitIndex <= path.bitIndex) {
-/*  429 */         if ((!current.isEmpty()) && (compareKeys(key, current.key))) {
+/*  429 */         if (!current.isEmpty() && compareKeys(key, current.key)) {
 /*  430 */           return removeEntry(current);
 /*      */         }
 /*  432 */         return null;
@@ -549,7 +549,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*  552 */     if ((p.predecessor == p) && (p.parent != h)) {
+/*  552 */     if (p.predecessor == p && p.parent != h) {
 /*  553 */       p.predecessor = p.parent;
 /*      */     }
 /*      */     
@@ -653,11 +653,11 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*  656 */     if ((previous == null) || (start != previous.predecessor)) {
-/*  657 */       while ((!current.left.isEmpty()) && 
+/*  656 */     if (previous == null || start != previous.predecessor) {
+/*  657 */       while (!current.left.isEmpty() && 
 /*      */       
 /*      */ 
-/*  660 */         (previous != current.left))
+/*  660 */         previous != current.left)
 /*      */       {
 /*      */ 
 /*      */ 
@@ -720,8 +720,8 @@
 /*      */     }
 /*      */     
 /*      */ 
-/*  723 */     if ((previous != current.parent.right) && 
-/*  724 */       (isValidUplink(current.parent.right, current.parent))) {
+/*  723 */     if (previous != current.parent.right && 
+/*  724 */       isValidUplink(current.parent.right, current.parent)) {
 /*  725 */       return current.parent.right;
 /*      */     }
 /*      */     
@@ -1097,7 +1097,7 @@
 /* 1097 */     TrieEntry<K, V> current = this.root.left;
 /* 1098 */     TrieEntry<K, V> path = this.root;
 /*      */     
-/* 1100 */     while ((current.bitIndex > path.bitIndex) && (lengthInBits > current.bitIndex))
+/* 1100 */     while (current.bitIndex > path.bitIndex && lengthInBits > current.bitIndex)
 /*      */     {
 /*      */ 
 /*      */ 
@@ -1123,7 +1123,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/* 1126 */     if ((entry == this.root) && (lengthInBits(entry.getKey()) < endIndexInBits)) {
+/* 1126 */     if (entry == this.root && lengthInBits(entry.getKey()) < endIndexInBits) {
 /* 1127 */       return null;
 /*      */     }
 /*      */     
@@ -1138,7 +1138,7 @@
 /* 1138 */     int bitIndex = getKeyAnalyzer().bitIndex(prefix, offsetInBits, lengthInBits, entry.key, 0, 
 /* 1139 */       lengthInBits(entry.getKey()));
 /*      */     
-/* 1141 */     if ((bitIndex >= 0) && (bitIndex < lengthInBits)) {
+/* 1141 */     if (bitIndex >= 0 && bitIndex < lengthInBits) {
 /* 1142 */       return null;
 /*      */     }
 /*      */     
@@ -1203,7 +1203,7 @@
 /* 1203 */       return followRight(start.predecessor.left);
 /*      */     }
 /* 1205 */     TrieEntry<K, V> node = start.predecessor;
-/* 1206 */     while ((node.parent != null) && (node == node.parent.left)) {
+/* 1206 */     while (node.parent != null && node == node.parent.left) {
 /* 1207 */       node = node.parent;
 /*      */     }
 /*      */     
@@ -1243,7 +1243,7 @@
 /*      */ 
 /*      */   static boolean isValidUplink(TrieEntry<?, ?> next, TrieEntry<?, ?> from)
 /*      */   {
-/* 1246 */     return (next != null) && (next.bitIndex <= from.bitIndex) && (!next.isEmpty());
+/* 1246 */     return next != null && next.bitIndex <= from.bitIndex && !next.isEmpty();
 /*      */   }
 /*      */   
 /*      */ 
@@ -1312,7 +1312,7 @@
 /*      */ 
 /*      */     public boolean isInternalNode()
 /*      */     {
-/* 1315 */       return (this.left != this) && (this.right != this);
+/* 1315 */       return this.left != this && this.right != this;
 /*      */     }
 /*      */     
 /*      */ 
@@ -1401,7 +1401,7 @@
 /*      */       }
 /*      */       
 /* 1403 */       AbstractPatriciaTrie.TrieEntry<K, V> candidate = AbstractPatriciaTrie.this.getEntry(((Entry)o).getKey());
-/* 1404 */       return (candidate != null) && (candidate.equals(o));
+/* 1404 */       return candidate != null && candidate.equals(o);
 /*      */     }
 /*      */     
 /*      */     @Override
@@ -1791,7 +1791,7 @@
 /* 1791 */       K fromKey = getFromKey();
 /* 1792 */       K toKey = getToKey();
 /*      */       
-/* 1794 */       return ((fromKey == null) || (inFromRange(key, false))) && ((toKey == null) || (inToRange(key, false)));
+/* 1794 */       return fromKey == null || inFromRange(key, false) && toKey == null || inToRange(key, false);
 /*      */     }
 /*      */     
 /*      */ 
@@ -1801,7 +1801,7 @@
 /* 1801 */       K fromKey = getFromKey();
 /* 1802 */       K toKey = getToKey();
 /*      */       
-/* 1804 */       return ((fromKey == null) || (inFromRange(key, false))) && ((toKey == null) || (inToRange(key, true)));
+/* 1804 */       return fromKey == null || inFromRange(key, false) && toKey == null || inToRange(key, true);
 /*      */     }
 /*      */     
 /*      */ 
@@ -1812,7 +1812,7 @@
 /* 1812 */       boolean fromInclusive = isFromInclusive();
 /*      */       
 /* 1814 */       int ret = AbstractPatriciaTrie.this.getKeyAnalyzer().compare(key, fromKey);
-/* 1815 */       if ((fromInclusive) || (forceInclusive)) {
+/* 1815 */       if (fromInclusive || forceInclusive) {
 /* 1816 */         return ret >= 0;
 /*      */       }
 /* 1818 */       return ret > 0;
@@ -1826,7 +1826,7 @@
 /* 1826 */       boolean toInclusive = isToInclusive();
 /*      */       
 /* 1828 */       int ret = AbstractPatriciaTrie.this.getKeyAnalyzer().compare(key, toKey);
-/* 1829 */       if ((toInclusive) || (forceInclusive)) {
+/* 1829 */       if (toInclusive || forceInclusive) {
 /* 1830 */         return ret <= 0;
 /*      */       }
 /* 1832 */       return ret < 0;
@@ -1870,11 +1870,11 @@
 /*      */ 
 /*      */     protected RangeEntryMap(K fromKey, boolean fromInclusive, K toKey, boolean toInclusive)
 /*      */     {
-/* 1873 */       if ((fromKey == null) && (toKey == null)) {
+/* 1873 */       if (fromKey == null && toKey == null) {
 /* 1874 */         throw new IllegalArgumentException("must have a from or to!");
 /*      */       }
 /*      */       
-/* 1877 */       if ((fromKey != null) && (toKey != null) && (AbstractPatriciaTrie.this.getKeyAnalyzer().compare(fromKey, toKey) > 0)) {
+/* 1877 */       if (fromKey != null && toKey != null && AbstractPatriciaTrie.this.getKeyAnalyzer().compare(fromKey, toKey) > 0) {
 /* 1878 */         throw new IllegalArgumentException("fromKey > toKey");
 /*      */       }
 /*      */       
@@ -1898,7 +1898,7 @@
 /*      */       
 /*      */ 
 /* 1900 */       K first = e != null ? e.getKey() : null;
-/* 1901 */       if ((e == null) || ((this.toKey != null) && (!inToRange(first, false)))) {
+/* 1901 */       if (e == null || this.toKey != null && !inToRange(first, false)) {
 /* 1902 */         throw new NoSuchElementException();
 /*      */       }
 /* 1904 */       return first;
@@ -1918,7 +1918,7 @@
 /*      */       
 /*      */ 
 /* 1920 */       K last = e != null ? e.getKey() : null;
-/* 1921 */       if ((e == null) || ((this.fromKey != null) && (!inFromRange(last, false)))) {
+/* 1921 */       if (e == null || this.fromKey != null && !inFromRange(last, false)) {
 /* 1922 */         throw new NoSuchElementException();
 /*      */       }
 /* 1924 */       return last;
@@ -2000,7 +2000,7 @@
 /*      */     
 /*      */     @Override
 /*      */     public int size() {
-/* 2003 */       if ((this.size == -1) || (this.expectedModCount != AbstractPatriciaTrie.this.modCount)) {
+/* 2003 */       if (this.size == -1 || this.expectedModCount != AbstractPatriciaTrie.this.modCount) {
 /* 2004 */         this.size = 0;
 /*      */         
 /* 2006 */         for (Iterator<?> it = iterator(); it.hasNext(); it.next()) {
@@ -2031,7 +2031,7 @@
 /*      */       }
 /*      */       
 /* 2033 */       AbstractPatriciaTrie.TrieEntry<K, V> node = AbstractPatriciaTrie.this.getEntry(key);
-/* 2034 */       return (node != null) && (AbstractBitwiseTrie.compare(node.getValue(), entry.getValue()));
+/* 2034 */       return node != null && AbstractBitwiseTrie.compare(node.getValue(), entry.getValue());
 /*      */     }
 /*      */     
 /*      */     @Override
@@ -2048,7 +2048,7 @@
 /*      */       }
 /*      */       
 /* 2050 */       AbstractPatriciaTrie.TrieEntry<K, V> node = AbstractPatriciaTrie.this.getEntry(key);
-/* 2051 */       if ((node != null) && (AbstractBitwiseTrie.compare(node.getValue(), entry.getValue()))) {
+/* 2051 */       if (node != null && AbstractBitwiseTrie.compare(node.getValue(), entry.getValue())) {
 /* 2052 */         AbstractPatriciaTrie.this.removeEntry(node);
 /* 2053 */         return true;
 /*      */       }
@@ -2072,12 +2072,12 @@
 /*      */       
 /*      */       @Override
 /*      */       public boolean hasNext() {
-/* 2075 */         return (this.next != null) && (!AbstractBitwiseTrie.compare(this.next.key, this.excludedKey));
+/* 2075 */         return this.next != null && !AbstractBitwiseTrie.compare(this.next.key, this.excludedKey);
 /*      */       }
 /*      */       
 /*      */       public Entry<K, V> next()
 /*      */       {
-/* 2080 */         if ((this.next == null) || (AbstractBitwiseTrie.compare(this.next.key, this.excludedKey))) {
+/* 2080 */         if (this.next == null || AbstractBitwiseTrie.compare(this.next.key, this.excludedKey)) {
 /* 2081 */           throw new NoSuchElementException();
 /*      */         }
 /* 2083 */         return nextEntry();
@@ -2121,7 +2121,7 @@
 /*      */ 
 /*      */     private int fixup()
 /*      */     {
-/* 2124 */       if ((this.size == -1) || (AbstractPatriciaTrie.this.modCount != this.expectedModCount)) {
+/* 2124 */       if (this.size == -1 || AbstractPatriciaTrie.this.modCount != this.expectedModCount) {
 /* 2125 */         Iterator<Entry<K, V>> it = super.entrySet().iterator();
 /* 2126 */         this.size = 0;
 /*      */         
@@ -2169,7 +2169,7 @@
 /*      */       }
 /*      */       
 /* 2171 */       K first = e != null ? e.getKey() : null;
-/* 2172 */       if ((e == null) || (!AbstractPatriciaTrie.this.getKeyAnalyzer().isPrefix(this.prefix, this.offsetInBits, this.lengthInBits, first))) {
+/* 2172 */       if (e == null || !AbstractPatriciaTrie.this.getKeyAnalyzer().isPrefix(this.prefix, this.offsetInBits, this.lengthInBits, first)) {
 /* 2173 */         throw new NoSuchElementException();
 /*      */       }
 /*      */       
@@ -2188,7 +2188,7 @@
 /*      */       }
 /*      */       
 /* 2190 */       K last = e != null ? e.getKey() : null;
-/* 2191 */       if ((e == null) || (!AbstractPatriciaTrie.this.getKeyAnalyzer().isPrefix(this.prefix, this.offsetInBits, this.lengthInBits, last))) {
+/* 2191 */       if (e == null || !AbstractPatriciaTrie.this.getKeyAnalyzer().isPrefix(this.prefix, this.offsetInBits, this.lengthInBits, last)) {
 /* 2192 */         throw new NoSuchElementException();
 /*      */       }
 /*      */       
@@ -2404,7 +2404,7 @@
 /*      */         
 /*      */ 
 /*      */ 
-/* 2407 */         if ((bitIdx != this.subtree.bitIndex) || (needsFixing)) {
+/* 2407 */         if (bitIdx != this.subtree.bitIndex || needsFixing) {
 /* 2408 */           this.subtree = AbstractPatriciaTrie.this.subtree(this.prefix, this.offset, this.lengthInBits);
 /*      */         }
 /*      */         

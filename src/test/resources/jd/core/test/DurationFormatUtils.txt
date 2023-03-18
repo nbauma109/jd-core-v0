@@ -334,7 +334,7 @@
 /* 334 */         years--;
 /*     */       }
 /*     */       
-/* 337 */       if ((!Token.containsTokenWithValue(tokens, "y")) && (years != 0)) {
+/* 337 */       if (!Token.containsTokenWithValue(tokens, "y") && years != 0) {
 /* 338 */         while (years != 0) {
 /* 339 */           months += 12 * years;
 /* 340 */           years = 0;
@@ -354,9 +354,9 @@
 /* 354 */           days += start.getActualMaximum(6) - start.get(6);
 /*     */           
 /*     */ 
-/* 357 */           if (((start instanceof GregorianCalendar)) && 
-/* 358 */             (start.get(2) == 1) && 
-/* 359 */             (start.get(5) == 29)) {
+/* 357 */           if ((start instanceof GregorianCalendar) && 
+/* 358 */             start.get(2) == 1 && 
+/* 359 */             start.get(5) == 29) {
 /* 360 */             days++;
 /*     */           }
 /*     */           
@@ -501,7 +501,7 @@
 /* 501 */     Token previous = null;
 /* 502 */     for (int i = 0; i < format.length(); i++) {
 /* 503 */       char ch = format.charAt(i);
-/* 504 */       if ((inLiteral) && (ch != '\'')) {
+/* 504 */       if (inLiteral && ch != '\'') {
 /* 505 */         buffer.append(ch);
 /*     */       }
 /*     */       else {
@@ -548,7 +548,7 @@
 /*     */         }
 /*     */         
 /* 550 */         if (value != null) {
-/* 551 */           if ((previous != null) && (previous.getValue().equals(value))) {
+/* 551 */           if (previous != null && previous.getValue().equals(value)) {
 /* 552 */             previous.increment();
 /*     */           } else {
 /* 554 */             Token token = new Token(value);

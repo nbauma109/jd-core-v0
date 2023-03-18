@@ -633,7 +633,7 @@
 /*  633 */       return joinedArray;
 /*      */     }
 /*  635 */     int length = Array.getLength(array);
-/*  636 */     if ((index > length) || (index < 0)) {
+/*  636 */     if (index > length || index < 0) {
 /*  637 */       throw new IndexOutOfBoundsException("Index: " + index + ", Length: " + length);
 /*      */     }
 /*  639 */     Object result = Array.newInstance(clss, length + 1);
@@ -2440,7 +2440,7 @@
 /* 2440 */     boolean searchNaN = Double.isNaN(valueToFind);
 /* 2441 */     for (int i = startIndex; i < array.length; i++) {
 /* 2442 */       double element = array[i];
-/* 2443 */       if ((valueToFind == element) || ((searchNaN) && (Double.isNaN(element)))) {
+/* 2443 */       if (valueToFind == element || searchNaN && Double.isNaN(element)) {
 /* 2444 */         return i;
 /*      */       }
 /*      */     }
@@ -2474,7 +2474,7 @@
 /* 2474 */     double min = valueToFind - tolerance;
 /* 2475 */     double max = valueToFind + tolerance;
 /* 2476 */     for (int i = startIndex; i < array.length; i++) {
-/* 2477 */       if ((array[i] >= min) && (array[i] <= max)) {
+/* 2477 */       if (array[i] >= min && array[i] <= max) {
 /* 2478 */         return i;
 /*      */       }
 /*      */     }
@@ -2521,7 +2521,7 @@
 /* 2521 */     boolean searchNaN = Float.isNaN(valueToFind);
 /* 2522 */     for (int i = startIndex; i < array.length; i++) {
 /* 2523 */       float element = array[i];
-/* 2524 */       if ((valueToFind == element) || ((searchNaN) && (Float.isNaN(element)))) {
+/* 2524 */       if (valueToFind == element || searchNaN && Float.isNaN(element)) {
 /* 2525 */         return i;
 /*      */       }
 /*      */     }
@@ -2742,7 +2742,7 @@
 /* 2742 */     if (isEmpty(values)) {
 /* 2743 */       return clone(array);
 /*      */     }
-/* 2745 */     if ((index < 0) || (index > array.length)) {
+/* 2745 */     if (index < 0 || index > array.length) {
 /* 2746 */       throw new IndexOutOfBoundsException("Index: " + index + ", Length: " + array.length);
 /*      */     }
 /*      */     
@@ -2784,7 +2784,7 @@
 /* 2784 */     if (isEmpty(values)) {
 /* 2785 */       return clone(array);
 /*      */     }
-/* 2787 */     if ((index < 0) || (index > array.length)) {
+/* 2787 */     if (index < 0 || index > array.length) {
 /* 2788 */       throw new IndexOutOfBoundsException("Index: " + index + ", Length: " + array.length);
 /*      */     }
 /*      */     
@@ -2826,7 +2826,7 @@
 /* 2826 */     if (isEmpty(values)) {
 /* 2827 */       return clone(array);
 /*      */     }
-/* 2829 */     if ((index < 0) || (index > array.length)) {
+/* 2829 */     if (index < 0 || index > array.length) {
 /* 2830 */       throw new IndexOutOfBoundsException("Index: " + index + ", Length: " + array.length);
 /*      */     }
 /*      */     
@@ -2868,7 +2868,7 @@
 /* 2868 */     if (isEmpty(values)) {
 /* 2869 */       return clone(array);
 /*      */     }
-/* 2871 */     if ((index < 0) || (index > array.length)) {
+/* 2871 */     if (index < 0 || index > array.length) {
 /* 2872 */       throw new IndexOutOfBoundsException("Index: " + index + ", Length: " + array.length);
 /*      */     }
 /*      */     
@@ -2910,7 +2910,7 @@
 /* 2910 */     if (isEmpty(values)) {
 /* 2911 */       return clone(array);
 /*      */     }
-/* 2913 */     if ((index < 0) || (index > array.length)) {
+/* 2913 */     if (index < 0 || index > array.length) {
 /* 2914 */       throw new IndexOutOfBoundsException("Index: " + index + ", Length: " + array.length);
 /*      */     }
 /*      */     
@@ -2952,7 +2952,7 @@
 /* 2952 */     if (isEmpty(values)) {
 /* 2953 */       return clone(array);
 /*      */     }
-/* 2955 */     if ((index < 0) || (index > array.length)) {
+/* 2955 */     if (index < 0 || index > array.length) {
 /* 2956 */       throw new IndexOutOfBoundsException("Index: " + index + ", Length: " + array.length);
 /*      */     }
 /*      */     
@@ -2994,7 +2994,7 @@
 /* 2994 */     if (isEmpty(values)) {
 /* 2995 */       return clone(array);
 /*      */     }
-/* 2997 */     if ((index < 0) || (index > array.length)) {
+/* 2997 */     if (index < 0 || index > array.length) {
 /* 2998 */       throw new IndexOutOfBoundsException("Index: " + index + ", Length: " + array.length);
 /*      */     }
 /*      */     
@@ -3036,7 +3036,7 @@
 /* 3036 */     if (isEmpty(values)) {
 /* 3037 */       return clone(array);
 /*      */     }
-/* 3039 */     if ((index < 0) || (index > array.length)) {
+/* 3039 */     if (index < 0 || index > array.length) {
 /* 3040 */       throw new IndexOutOfBoundsException("Index: " + index + ", Length: " + array.length);
 /*      */     }
 /*      */     
@@ -3088,7 +3088,7 @@
 /* 3088 */     if (isEmpty(values)) {
 /* 3089 */       return clone(array);
 /*      */     }
-/* 3091 */     if ((index < 0) || (index > array.length)) {
+/* 3091 */     if (index < 0 || index > array.length) {
 /* 3092 */       throw new IndexOutOfBoundsException("Index: " + index + ", Length: " + array.length);
 /*      */     }
 /*      */     
@@ -3123,7 +3123,7 @@
 /*      */ 
 /*      */   public static <T> boolean isArrayIndexValid(T[] array, int index)
 /*      */   {
-/* 3126 */     return (index >= 0) && (getLength(array) > index);
+/* 3126 */     return index >= 0 && getLength(array) > index;
 /*      */   }
 /*      */   
 /*      */ 
@@ -3495,7 +3495,7 @@
 /*      */ 
 /*      */   public static boolean isSameType(Object array1, Object array2)
 /*      */   {
-/* 3498 */     if ((array1 == null) || (array2 == null)) {
+/* 3498 */     if (array1 == null || array2 == null) {
 /* 3499 */       throw new IllegalArgumentException("The Array must not be null");
 /*      */     }
 /* 3501 */     return array1.getClass().getName().equals(array2.getClass().getName());
@@ -3510,7 +3510,7 @@
 /*      */ 
 /*      */   public static boolean isSorted(boolean[] array)
 /*      */   {
-/* 3513 */     if ((array == null) || (array.length < 2)) {
+/* 3513 */     if (array == null || array.length < 2) {
 /* 3514 */       return true;
 /*      */     }
 /*      */     
@@ -3535,7 +3535,7 @@
 /*      */ 
 /*      */   public static boolean isSorted(byte[] array)
 /*      */   {
-/* 3538 */     if ((array == null) || (array.length < 2)) {
+/* 3538 */     if (array == null || array.length < 2) {
 /* 3539 */       return true;
 /*      */     }
 /*      */     
@@ -3560,7 +3560,7 @@
 /*      */ 
 /*      */   public static boolean isSorted(char[] array)
 /*      */   {
-/* 3563 */     if ((array == null) || (array.length < 2)) {
+/* 3563 */     if (array == null || array.length < 2) {
 /* 3564 */       return true;
 /*      */     }
 /*      */     
@@ -3585,7 +3585,7 @@
 /*      */ 
 /*      */   public static boolean isSorted(double[] array)
 /*      */   {
-/* 3588 */     if ((array == null) || (array.length < 2)) {
+/* 3588 */     if (array == null || array.length < 2) {
 /* 3589 */       return true;
 /*      */     }
 /*      */     
@@ -3610,7 +3610,7 @@
 /*      */ 
 /*      */   public static boolean isSorted(float[] array)
 /*      */   {
-/* 3613 */     if ((array == null) || (array.length < 2)) {
+/* 3613 */     if (array == null || array.length < 2) {
 /* 3614 */       return true;
 /*      */     }
 /*      */     
@@ -3635,7 +3635,7 @@
 /*      */ 
 /*      */   public static boolean isSorted(int[] array)
 /*      */   {
-/* 3638 */     if ((array == null) || (array.length < 2)) {
+/* 3638 */     if (array == null || array.length < 2) {
 /* 3639 */       return true;
 /*      */     }
 /*      */     
@@ -3660,7 +3660,7 @@
 /*      */ 
 /*      */   public static boolean isSorted(long[] array)
 /*      */   {
-/* 3663 */     if ((array == null) || (array.length < 2)) {
+/* 3663 */     if (array == null || array.length < 2) {
 /* 3664 */       return true;
 /*      */     }
 /*      */     
@@ -3685,7 +3685,7 @@
 /*      */ 
 /*      */   public static boolean isSorted(short[] array)
 /*      */   {
-/* 3688 */     if ((array == null) || (array.length < 2)) {
+/* 3688 */     if (array == null || array.length < 2) {
 /* 3689 */       return true;
 /*      */     }
 /*      */     
@@ -3729,7 +3729,7 @@
 /* 3729 */       throw new IllegalArgumentException("Comparator should not be null.");
 /*      */     }
 /*      */     
-/* 3732 */     if ((array == null) || (array.length < 2)) {
+/* 3732 */     if (array == null || array.length < 2) {
 /* 3733 */       return true;
 /*      */     }
 /*      */     
@@ -3975,7 +3975,7 @@
 /* 3975 */     double min = valueToFind - tolerance;
 /* 3976 */     double max = valueToFind + tolerance;
 /* 3977 */     for (int i = startIndex; i >= 0; i--) {
-/* 3978 */       if ((array[i] >= min) && (array[i] <= max)) {
+/* 3978 */       if (array[i] >= min && array[i] <= max) {
 /* 3979 */         return i;
 /*      */       }
 /*      */     }
@@ -4872,7 +4872,7 @@
 /*      */   private static Object remove(Object array, int index)
 /*      */   {
 /* 4874 */     int length = getLength(array);
-/* 4875 */     if ((index < 0) || (index >= length)) {
+/* 4875 */     if (index < 0 || index >= length) {
 /* 4876 */       throw new IndexOutOfBoundsException("Index: " + index + ", Length: " + length);
 /*      */     }
 /*      */     
@@ -5239,7 +5239,7 @@
 /* 5239 */       int prevIndex = length;
 /* 5240 */       for (;;) { i--; if (i < 0) break;
 /* 5241 */         int index = clonedIndices[i];
-/* 5242 */         if ((index < 0) || (index >= length)) {
+/* 5242 */         if (index < 0 || index >= length) {
 /* 5243 */           throw new IndexOutOfBoundsException("Index: " + index + ", Length: " + length);
 /*      */         }
 /* 5245 */         if (index >= prevIndex) {
@@ -6024,7 +6024,7 @@
 /*      */ 
 /*      */   public static boolean[] removeElements(boolean[] array, boolean... values)
 /*      */   {
-/* 6027 */     if ((isEmpty(array)) || (isEmpty(values))) {
+/* 6027 */     if (isEmpty(array) || isEmpty(values)) {
 /* 6028 */       return clone(array);
 /*      */     }
 /* 6030 */     HashMap<Boolean, MutableInt> occurrences = new HashMap<>(2);
@@ -6079,7 +6079,7 @@
 /*      */ 
 /*      */   public static byte[] removeElements(byte[] array, byte... values)
 /*      */   {
-/* 6082 */     if ((isEmpty(array)) || (isEmpty(values))) {
+/* 6082 */     if (isEmpty(array) || isEmpty(values)) {
 /* 6083 */       return clone(array);
 /*      */     }
 /* 6085 */     Map<Byte, MutableInt> occurrences = new HashMap<>(values.length);
@@ -6134,7 +6134,7 @@
 /*      */ 
 /*      */   public static char[] removeElements(char[] array, char... values)
 /*      */   {
-/* 6137 */     if ((isEmpty(array)) || (isEmpty(values))) {
+/* 6137 */     if (isEmpty(array) || isEmpty(values)) {
 /* 6138 */       return clone(array);
 /*      */     }
 /* 6140 */     HashMap<Character, MutableInt> occurrences = new HashMap<>(values.length);
@@ -6189,7 +6189,7 @@
 /*      */ 
 /*      */   public static double[] removeElements(double[] array, double... values)
 /*      */   {
-/* 6192 */     if ((isEmpty(array)) || (isEmpty(values))) {
+/* 6192 */     if (isEmpty(array) || isEmpty(values)) {
 /* 6193 */       return clone(array);
 /*      */     }
 /* 6195 */     HashMap<Double, MutableInt> occurrences = new HashMap<>(values.length);
@@ -6244,7 +6244,7 @@
 /*      */ 
 /*      */   public static float[] removeElements(float[] array, float... values)
 /*      */   {
-/* 6247 */     if ((isEmpty(array)) || (isEmpty(values))) {
+/* 6247 */     if (isEmpty(array) || isEmpty(values)) {
 /* 6248 */       return clone(array);
 /*      */     }
 /* 6250 */     HashMap<Float, MutableInt> occurrences = new HashMap<>(values.length);
@@ -6299,7 +6299,7 @@
 /*      */ 
 /*      */   public static int[] removeElements(int[] array, int... values)
 /*      */   {
-/* 6302 */     if ((isEmpty(array)) || (isEmpty(values))) {
+/* 6302 */     if (isEmpty(array) || isEmpty(values)) {
 /* 6303 */       return clone(array);
 /*      */     }
 /* 6305 */     HashMap<Integer, MutableInt> occurrences = new HashMap<>(values.length);
@@ -6354,7 +6354,7 @@
 /*      */ 
 /*      */   public static long[] removeElements(long[] array, long... values)
 /*      */   {
-/* 6357 */     if ((isEmpty(array)) || (isEmpty(values))) {
+/* 6357 */     if (isEmpty(array) || isEmpty(values)) {
 /* 6358 */       return clone(array);
 /*      */     }
 /* 6360 */     HashMap<Long, MutableInt> occurrences = new HashMap<>(values.length);
@@ -6409,7 +6409,7 @@
 /*      */ 
 /*      */   public static short[] removeElements(short[] array, short... values)
 /*      */   {
-/* 6412 */     if ((isEmpty(array)) || (isEmpty(values))) {
+/* 6412 */     if (isEmpty(array) || isEmpty(values)) {
 /* 6413 */       return clone(array);
 /*      */     }
 /* 6415 */     HashMap<Short, MutableInt> occurrences = new HashMap<>(values.length);
@@ -6466,7 +6466,7 @@
 /*      */   @SafeVarargs
 /*      */   public static <T> T[] removeElements(T[] array, T... values)
 /*      */   {
-/* 6469 */     if ((isEmpty(array)) || (isEmpty(values))) {
+/* 6469 */     if (isEmpty(array) || isEmpty(values)) {
 /* 6470 */       return clone(array);
 /*      */     }
 /* 6472 */     HashMap<T, MutableInt> occurrences = new HashMap<>(values.length);
@@ -6961,7 +6961,7 @@
 /* 6961 */     if (array == null) {
 /* 6962 */       return;
 /*      */     }
-/* 6964 */     if ((startIndexInclusive >= array.length - 1) || (endIndexExclusive <= 0)) {
+/* 6964 */     if (startIndexInclusive >= array.length - 1 || endIndexExclusive <= 0) {
 /* 6965 */       return;
 /*      */     }
 /* 6967 */     if (startIndexInclusive < 0) {
@@ -6980,7 +6980,7 @@
 /*      */     }
 /*      */     
 /*      */ 
-/* 6983 */     while ((n > 1) && (offset > 0)) {
+/* 6983 */     while (n > 1 && offset > 0) {
 /* 6984 */       int n_offset = n - offset;
 /*      */       
 /* 6986 */       if (offset > n_offset) {
@@ -7040,7 +7040,7 @@
 /* 7040 */     if (array == null) {
 /* 7041 */       return;
 /*      */     }
-/* 7043 */     if ((startIndexInclusive >= array.length - 1) || (endIndexExclusive <= 0)) {
+/* 7043 */     if (startIndexInclusive >= array.length - 1 || endIndexExclusive <= 0) {
 /* 7044 */       return;
 /*      */     }
 /* 7046 */     if (startIndexInclusive < 0) {
@@ -7059,7 +7059,7 @@
 /*      */     }
 /*      */     
 /*      */ 
-/* 7062 */     while ((n > 1) && (offset > 0)) {
+/* 7062 */     while (n > 1 && offset > 0) {
 /* 7063 */       int n_offset = n - offset;
 /*      */       
 /* 7065 */       if (offset > n_offset) {
@@ -7119,7 +7119,7 @@
 /* 7119 */     if (array == null) {
 /* 7120 */       return;
 /*      */     }
-/* 7122 */     if ((startIndexInclusive >= array.length - 1) || (endIndexExclusive <= 0)) {
+/* 7122 */     if (startIndexInclusive >= array.length - 1 || endIndexExclusive <= 0) {
 /* 7123 */       return;
 /*      */     }
 /* 7125 */     if (startIndexInclusive < 0) {
@@ -7138,7 +7138,7 @@
 /*      */     }
 /*      */     
 /*      */ 
-/* 7141 */     while ((n > 1) && (offset > 0)) {
+/* 7141 */     while (n > 1 && offset > 0) {
 /* 7142 */       int n_offset = n - offset;
 /*      */       
 /* 7144 */       if (offset > n_offset) {
@@ -7198,7 +7198,7 @@
 /* 7198 */     if (array == null) {
 /* 7199 */       return;
 /*      */     }
-/* 7201 */     if ((startIndexInclusive >= array.length - 1) || (endIndexExclusive <= 0)) {
+/* 7201 */     if (startIndexInclusive >= array.length - 1 || endIndexExclusive <= 0) {
 /* 7202 */       return;
 /*      */     }
 /* 7204 */     if (startIndexInclusive < 0) {
@@ -7217,7 +7217,7 @@
 /*      */     }
 /*      */     
 /*      */ 
-/* 7220 */     while ((n > 1) && (offset > 0)) {
+/* 7220 */     while (n > 1 && offset > 0) {
 /* 7221 */       int n_offset = n - offset;
 /*      */       
 /* 7223 */       if (offset > n_offset) {
@@ -7277,7 +7277,7 @@
 /* 7277 */     if (array == null) {
 /* 7278 */       return;
 /*      */     }
-/* 7280 */     if ((startIndexInclusive >= array.length - 1) || (endIndexExclusive <= 0)) {
+/* 7280 */     if (startIndexInclusive >= array.length - 1 || endIndexExclusive <= 0) {
 /* 7281 */       return;
 /*      */     }
 /* 7283 */     if (startIndexInclusive < 0) {
@@ -7296,7 +7296,7 @@
 /*      */     }
 /*      */     
 /*      */ 
-/* 7299 */     while ((n > 1) && (offset > 0)) {
+/* 7299 */     while (n > 1 && offset > 0) {
 /* 7300 */       int n_offset = n - offset;
 /*      */       
 /* 7302 */       if (offset > n_offset) {
@@ -7356,7 +7356,7 @@
 /* 7356 */     if (array == null) {
 /* 7357 */       return;
 /*      */     }
-/* 7359 */     if ((startIndexInclusive >= array.length - 1) || (endIndexExclusive <= 0)) {
+/* 7359 */     if (startIndexInclusive >= array.length - 1 || endIndexExclusive <= 0) {
 /* 7360 */       return;
 /*      */     }
 /* 7362 */     if (startIndexInclusive < 0) {
@@ -7375,7 +7375,7 @@
 /*      */     }
 /*      */     
 /*      */ 
-/* 7378 */     while ((n > 1) && (offset > 0)) {
+/* 7378 */     while (n > 1 && offset > 0) {
 /* 7379 */       int n_offset = n - offset;
 /*      */       
 /* 7381 */       if (offset > n_offset) {
@@ -7435,7 +7435,7 @@
 /* 7435 */     if (array == null) {
 /* 7436 */       return;
 /*      */     }
-/* 7438 */     if ((startIndexInclusive >= array.length - 1) || (endIndexExclusive <= 0)) {
+/* 7438 */     if (startIndexInclusive >= array.length - 1 || endIndexExclusive <= 0) {
 /* 7439 */       return;
 /*      */     }
 /* 7441 */     if (startIndexInclusive < 0) {
@@ -7454,7 +7454,7 @@
 /*      */     }
 /*      */     
 /*      */ 
-/* 7457 */     while ((n > 1) && (offset > 0)) {
+/* 7457 */     while (n > 1 && offset > 0) {
 /* 7458 */       int n_offset = n - offset;
 /*      */       
 /* 7460 */       if (offset > n_offset) {
@@ -7516,7 +7516,7 @@
 /* 7516 */     if (array == null) {
 /* 7517 */       return;
 /*      */     }
-/* 7519 */     if ((startIndexInclusive >= array.length - 1) || (endIndexExclusive <= 0)) {
+/* 7519 */     if (startIndexInclusive >= array.length - 1 || endIndexExclusive <= 0) {
 /* 7520 */       return;
 /*      */     }
 /* 7522 */     if (startIndexInclusive < 0) {
@@ -7535,7 +7535,7 @@
 /*      */     }
 /*      */     
 /*      */ 
-/* 7538 */     while ((n > 1) && (offset > 0)) {
+/* 7538 */     while (n > 1 && offset > 0) {
 /* 7539 */       int n_offset = n - offset;
 /*      */       
 /* 7541 */       if (offset > n_offset) {
@@ -7595,7 +7595,7 @@
 /* 7595 */     if (array == null) {
 /* 7596 */       return;
 /*      */     }
-/* 7598 */     if ((startIndexInclusive >= array.length - 1) || (endIndexExclusive <= 0)) {
+/* 7598 */     if (startIndexInclusive >= array.length - 1 || endIndexExclusive <= 0) {
 /* 7599 */       return;
 /*      */     }
 /* 7601 */     if (startIndexInclusive < 0) {
@@ -7614,7 +7614,7 @@
 /*      */     }
 /*      */     
 /*      */ 
-/* 7617 */     while ((n > 1) && (offset > 0)) {
+/* 7617 */     while (n > 1 && offset > 0) {
 /* 7618 */       int n_offset = n - offset;
 /*      */       
 /* 7620 */       if (offset > n_offset) {
@@ -8285,7 +8285,7 @@
 /*      */ 
 /*      */   public static void swap(boolean[] array, int offset1, int offset2, int len)
 /*      */   {
-/* 8288 */     if ((isEmpty(array)) || (offset1 >= array.length) || (offset2 >= array.length)) {
+/* 8288 */     if (isEmpty(array) || offset1 >= array.length || offset2 >= array.length) {
 /* 8289 */       return;
 /*      */     }
 /* 8291 */     if (offset1 < 0) {
@@ -8356,7 +8356,7 @@
 /*      */ 
 /*      */   public static void swap(byte[] array, int offset1, int offset2, int len)
 /*      */   {
-/* 8359 */     if ((isEmpty(array)) || (offset1 >= array.length) || (offset2 >= array.length)) {
+/* 8359 */     if (isEmpty(array) || offset1 >= array.length || offset2 >= array.length) {
 /* 8360 */       return;
 /*      */     }
 /* 8362 */     if (offset1 < 0) {
@@ -8426,7 +8426,7 @@
 /*      */ 
 /*      */   public static void swap(char[] array, int offset1, int offset2, int len)
 /*      */   {
-/* 8429 */     if ((isEmpty(array)) || (offset1 >= array.length) || (offset2 >= array.length)) {
+/* 8429 */     if (isEmpty(array) || offset1 >= array.length || offset2 >= array.length) {
 /* 8430 */       return;
 /*      */     }
 /* 8432 */     if (offset1 < 0) {
@@ -8496,7 +8496,7 @@
 /*      */ 
 /*      */   public static void swap(double[] array, int offset1, int offset2, int len)
 /*      */   {
-/* 8499 */     if ((isEmpty(array)) || (offset1 >= array.length) || (offset2 >= array.length)) {
+/* 8499 */     if (isEmpty(array) || offset1 >= array.length || offset2 >= array.length) {
 /* 8500 */       return;
 /*      */     }
 /* 8502 */     if (offset1 < 0) {
@@ -8566,7 +8566,7 @@
 /*      */ 
 /*      */   public static void swap(float[] array, int offset1, int offset2, int len)
 /*      */   {
-/* 8569 */     if ((isEmpty(array)) || (offset1 >= array.length) || (offset2 >= array.length)) {
+/* 8569 */     if (isEmpty(array) || offset1 >= array.length || offset2 >= array.length) {
 /* 8570 */       return;
 /*      */     }
 /* 8572 */     if (offset1 < 0) {
@@ -8637,7 +8637,7 @@
 /*      */ 
 /*      */   public static void swap(int[] array, int offset1, int offset2, int len)
 /*      */   {
-/* 8640 */     if ((isEmpty(array)) || (offset1 >= array.length) || (offset2 >= array.length)) {
+/* 8640 */     if (isEmpty(array) || offset1 >= array.length || offset2 >= array.length) {
 /* 8641 */       return;
 /*      */     }
 /* 8643 */     if (offset1 < 0) {
@@ -8708,7 +8708,7 @@
 /*      */ 
 /*      */   public static void swap(long[] array, int offset1, int offset2, int len)
 /*      */   {
-/* 8711 */     if ((isEmpty(array)) || (offset1 >= array.length) || (offset2 >= array.length)) {
+/* 8711 */     if (isEmpty(array) || offset1 >= array.length || offset2 >= array.length) {
 /* 8712 */       return;
 /*      */     }
 /* 8714 */     if (offset1 < 0) {
@@ -8780,7 +8780,7 @@
 /*      */ 
 /*      */   public static void swap(Object[] array, int offset1, int offset2, int len)
 /*      */   {
-/* 8783 */     if ((isEmpty(array)) || (offset1 >= array.length) || (offset2 >= array.length)) {
+/* 8783 */     if (isEmpty(array) || offset1 >= array.length || offset2 >= array.length) {
 /* 8784 */       return;
 /*      */     }
 /* 8786 */     if (offset1 < 0) {
@@ -8850,7 +8850,7 @@
 /*      */ 
 /*      */   public static void swap(short[] array, int offset1, int offset2, int len)
 /*      */   {
-/* 8853 */     if ((isEmpty(array)) || (offset1 >= array.length) || (offset2 >= array.length)) {
+/* 8853 */     if (isEmpty(array) || offset1 >= array.length || offset2 >= array.length) {
 /* 8854 */       return;
 /*      */     }
 /* 8856 */     if (offset1 < 0) {

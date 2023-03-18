@@ -456,7 +456,7 @@
 /*     */ 
 /*     */   private boolean acquirePermit()
 /*     */   {
-/* 459 */     if ((getLimit() <= 0) || (this.acquireCount < getLimit())) {
+/* 459 */     if (getLimit() <= 0 || this.acquireCount < getLimit()) {
 /* 460 */       this.acquireCount++;
 /* 461 */       return true;
 /*     */     }

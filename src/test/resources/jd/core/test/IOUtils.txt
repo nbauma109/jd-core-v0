@@ -796,7 +796,7 @@
 /*  796 */     if (input1 == input2) {
 /*  797 */       return true;
 /*      */     }
-/*  799 */     if ((input1 == null) || (input2 == null)) {
+/*  799 */     if (input1 == null || input2 == null) {
 /*  800 */       return false;
 /*      */     }
 /*      */     
@@ -817,7 +817,7 @@
 /*  817 */           do { count1 = input1.read(array1, pos1, 8192 - pos1);
 /*  818 */           } while (count1 == 0);
 /*  819 */           if (count1 == -1) {
-/*  820 */             return (pos2 == index) && (input2.read() == -1);
+/*  820 */             return pos2 == index && input2.read() == -1;
 /*      */           }
 /*  822 */           pos1 += count1;
 /*      */         }
@@ -826,7 +826,7 @@
 /*  826 */           do { count2 = input2.read(array2, pos2, 8192 - pos2);
 /*  827 */           } while (count2 == 0);
 /*  828 */           if (count2 == -1) {
-/*  829 */             return (pos1 == index) && (input1.read() == -1);
+/*  829 */             return pos1 == index && input1.read() == -1;
 /*      */           }
 /*  831 */           pos2 += count2;
 /*      */         }
@@ -854,7 +854,7 @@
 /*  854 */     if (input1 == input2) {
 /*  855 */       return true;
 /*      */     }
-/*  857 */     if ((input1 == null) || (input2 == null)) {
+/*  857 */     if (input1 == null || input2 == null) {
 /*  858 */       return false;
 /*      */     }
 /*      */     
@@ -875,7 +875,7 @@
 /*  875 */           do { count1 = input1.read(array1, pos1, 8192 - pos1);
 /*  876 */           } while (count1 == 0);
 /*  877 */           if (count1 == -1) {
-/*  878 */             return (pos2 == index) && (input2.read() == -1);
+/*  878 */             return pos2 == index && input2.read() == -1;
 /*      */           }
 /*  880 */           pos1 += count1;
 /*      */         }
@@ -884,7 +884,7 @@
 /*  884 */           do { count2 = input2.read(array2, pos2, 8192 - pos2);
 /*  885 */           } while (count2 == 0);
 /*  886 */           if (count2 == -1) {
-/*  887 */             return (pos1 == index) && (input1.read() == -1);
+/*  887 */             return pos1 == index && input1.read() == -1;
 /*      */           }
 /*  889 */           pos2 += count2;
 /*      */         }
@@ -923,7 +923,7 @@
 /*      */     
 /*  924 */     String line1 = br1.readLine();
 /*  925 */     String line2 = br2.readLine();
-/*  926 */     while ((line1 != null) && (line1.equals(line2))) {
+/*  926 */     while (line1 != null && line1.equals(line2)) {
 /*  927 */       line1 = br1.readLine();
 /*  928 */       line2 = br2.readLine();
 /*      */     }
@@ -1376,12 +1376,12 @@
 /*      */     }
 /* 1377 */     int bufferLength = buffer.length;
 /* 1378 */     int bytesToRead = bufferLength;
-/* 1379 */     if ((length > 0L) && (length < bufferLength)) {
+/* 1379 */     if (length > 0L && length < bufferLength) {
 /* 1380 */       bytesToRead = (int)length;
 /*      */     }
 /*      */     
 /* 1383 */     long totalRead = 0L;
-/* 1384 */     int read; while ((bytesToRead > 0) && (-1 != (read = input.read(buffer, 0, bytesToRead)))) {
+/* 1384 */     int read; while (bytesToRead > 0 && -1 != (read = input.read(buffer, 0, bytesToRead))) {
 /* 1385 */       output.write(buffer, 0, read);
 /* 1386 */       totalRead += read;
 /* 1387 */       if (length <= 0L)
@@ -1489,12 +1489,12 @@
 /* 1489 */       return 0L;
 /*      */     }
 /* 1491 */     int bytesToRead = buffer.length;
-/* 1492 */     if ((length > 0L) && (length < buffer.length)) {
+/* 1492 */     if (length > 0L && length < buffer.length) {
 /* 1493 */       bytesToRead = (int)length;
 /*      */     }
 /*      */     
 /* 1496 */     long totalRead = 0L;
-/* 1497 */     int read; while ((bytesToRead > 0) && (-1 != (read = reader.read(buffer, 0, bytesToRead)))) {
+/* 1497 */     int read; while (bytesToRead > 0 && -1 != (read = reader.read(buffer, 0, bytesToRead))) {
 /* 1498 */       writer.write(buffer, 0, read);
 /* 1499 */       totalRead += read;
 /* 1500 */       if (length <= 0L)
@@ -2432,7 +2432,7 @@
 /* 2432 */     int offset = 0;
 /*      */     
 /*      */     int read;
-/* 2435 */     while ((offset < size) && ((read = input.read(data, offset, size - offset)) != -1)) {
+/* 2435 */     while (offset < size && (read = input.read(data, offset, size - offset)) != -1) {
 /* 2436 */       offset += read;
 /*      */     }
 /*      */     

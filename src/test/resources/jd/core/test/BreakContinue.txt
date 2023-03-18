@@ -14,11 +14,11 @@
 /* 14 */       if (!result.isEmpty()) {
 /*    */         break;
 /*    */       }
-/* 17 */       if ((Objects.isNull(o)) || (!(o instanceof Collection))) {
+/* 17 */       if (Objects.isNull(o) || !(o instanceof Collection)) {
 /*    */         continue;
 /*    */       }
 /* 20 */       Collection<?> c = (Collection)o;
-/* 21 */       if ((Objects.isNull(c)) || (c.isEmpty())) {
+/* 21 */       if (Objects.isNull(c) || c.isEmpty()) {
 /*    */         continue;
 /*    */       }
 /* 24 */       Iterator<?> iterator = c.iterator();
