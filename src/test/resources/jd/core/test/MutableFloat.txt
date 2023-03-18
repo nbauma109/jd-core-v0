@@ -1,0 +1,415 @@
+/*     */ package org.apache.commons.lang3.mutable;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class MutableFloat
+/*     */   extends Number
+/*     */   implements Comparable<MutableFloat>, Mutable<Number>
+/*     */ {
+/*     */   private static final long serialVersionUID = 5787169186L;
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   private float value;
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public MutableFloat() {}
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public MutableFloat(float value)
+/*     */   {
+/*  51 */     this.value = value;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public MutableFloat(Number value)
+/*     */   {
+/*  61 */     this.value = value.floatValue();
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public MutableFloat(String value)
+/*     */   {
+/*  72 */     this.value = Float.parseFloat(value);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public Float getValue()
+/*     */   {
+/*  83 */     return Float.valueOf(this.value);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void setValue(float value)
+/*     */   {
+/*  92 */     this.value = value;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void setValue(Number value)
+/*     */   {
+/* 103 */     this.value = value.floatValue();
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public boolean isNaN()
+/*     */   {
+/* 113 */     return Float.isNaN(this.value);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public boolean isInfinite()
+/*     */   {
+/* 122 */     return Float.isInfinite(this.value);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void increment()
+/*     */   {
+/* 132 */     this.value++;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public float getAndIncrement()
+/*     */   {
+/* 143 */     float last = this.value;
+/* 144 */     this.value++;
+/* 145 */     return last;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public float incrementAndGet()
+/*     */   {
+/* 156 */     this.value++;
+/* 157 */     return this.value;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void decrement()
+/*     */   {
+/* 166 */     this.value--;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public float getAndDecrement()
+/*     */   {
+/* 177 */     float last = this.value;
+/* 178 */     this.value--;
+/* 179 */     return last;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public float decrementAndGet()
+/*     */   {
+/* 190 */     this.value--;
+/* 191 */     return this.value;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void add(float operand)
+/*     */   {
+/* 202 */     this.value += operand;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void add(Number operand)
+/*     */   {
+/* 213 */     this.value += operand.floatValue();
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void subtract(float operand)
+/*     */   {
+/* 223 */     this.value -= operand;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void subtract(Number operand)
+/*     */   {
+/* 234 */     this.value -= operand.floatValue();
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public float addAndGet(float operand)
+/*     */   {
+/* 246 */     this.value += operand;
+/* 247 */     return this.value;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public float addAndGet(Number operand)
+/*     */   {
+/* 260 */     this.value += operand.floatValue();
+/* 261 */     return this.value;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public float getAndAdd(float operand)
+/*     */   {
+/* 273 */     float last = this.value;
+/* 274 */     this.value += operand;
+/* 275 */     return last;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public float getAndAdd(Number operand)
+/*     */   {
+/* 288 */     float last = this.value;
+/* 289 */     this.value += operand.floatValue();
+/* 290 */     return last;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int intValue()
+/*     */   {
+/* 302 */     return (int)this.value;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public long longValue()
+/*     */   {
+/* 312 */     return (long)this.value;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public float floatValue()
+/*     */   {
+/* 322 */     return this.value;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public double doubleValue()
+/*     */   {
+/* 332 */     return this.value;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public Float toFloat()
+/*     */   {
+/* 342 */     return Float.valueOf(floatValue());
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public boolean equals(Object obj)
+/*     */   {
+/* 379 */     return (obj instanceof MutableFloat) && 
+/* 380 */       Float.floatToIntBits(((MutableFloat)obj).value) == Float.floatToIntBits(this.value);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int hashCode()
+/*     */   {
+/* 390 */     return Float.floatToIntBits(this.value);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int compareTo(MutableFloat other)
+/*     */   {
+/* 402 */     return Float.compare(this.value, other.value);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public String toString()
+/*     */   {
+/* 413 */     return String.valueOf(this.value);
+/*     */   }
+/*     */ }
