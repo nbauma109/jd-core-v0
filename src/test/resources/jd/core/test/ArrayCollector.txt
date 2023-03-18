@@ -22,28 +22,28 @@
 /* 22 */     this.elementType = elementType;
 /*    */   }
 /*    */   
-/*    */   public BiConsumer<List<O>, O> accumulator()
-/*    */   {
+/*    */   @Override
+/*    */   public BiConsumer<List<O>, O> accumulator() {
 /* 27 */     return List::add;
 /*    */   }
 /*    */   
-/*    */   public Set<Characteristics> characteristics()
-/*    */   {
+/*    */   @Override
+/*    */   public Set<Characteristics> characteristics() {
 /* 32 */     return Collections.emptySet();
 /*    */   }
 /*    */   
-/*    */   public BinaryOperator<List<O>> combiner()
-/*    */   {
+/*    */   @Override
+/*    */   public BinaryOperator<List<O>> combiner() {
 /* 37 */     throw new UnsupportedOperationException();
 /*    */   }
 /*    */   
-/*    */   public Function<List<O>, O[]> finisher()
-/*    */   {
+/*    */   @Override
+/*    */   public Function<List<O>, O[]> finisher() {
 /* 42 */     throw new UnsupportedOperationException();
 /*    */   }
 /*    */   
-/*    */   public Supplier<List<O>> supplier()
-/*    */   {
+/*    */   @Override
+/*    */   public Supplier<List<O>> supplier() {
 /* 47 */     return ArrayList::new;
 /*    */   }
 /*    */   

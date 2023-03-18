@@ -66,7 +66,7 @@
 /*     */   
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */   @Override
 /*     */   public List<Object> getContextValues(String label)
 /*     */   {
 /*  72 */     List<Object> values = new ArrayList<>();
@@ -80,7 +80,7 @@
 /*     */   
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */   @Override
 /*     */   public Object getFirstContextValue(String label)
 /*     */   {
 /*  86 */     for (Pair<String, Object> pair : this.contextValues) {
@@ -93,7 +93,7 @@
 /*     */   
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */   @Override
 /*     */   public Set<String> getContextLabels()
 /*     */   {
 /*  99 */     Set<String> labels = new HashSet<>();
@@ -105,7 +105,7 @@
 /*     */   
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */   @Override
 /*     */   public List<Pair<String, Object>> getContextEntries()
 /*     */   {
 /* 111 */     return this.contextValues;
@@ -116,7 +116,7 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */   @Override
 /*     */   public String getFormattedExceptionMessage(String baseMessage)
 /*     */   {
 /* 122 */     StringBuilder buffer = new StringBuilder(256);

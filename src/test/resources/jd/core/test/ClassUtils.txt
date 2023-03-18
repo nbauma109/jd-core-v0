@@ -1493,8 +1493,8 @@
 /* 1493 */       MutableObject<Class<?>> next = new MutableObject<>(type);
 /* 1494 */       return new Iterator<Class<?>>()
 /*      */       {
-/*      */         public boolean hasNext()
-/*      */         {
+/*      */         @Override
+/*      */         public boolean hasNext() {
 /* 1498 */           return next.getValue() != null;
 /*      */         }
 /*      */         
@@ -1505,8 +1505,8 @@
 /* 1505 */           return result;
 /*      */         }
 /*      */         
-/*      */         public void remove()
-/*      */         {
+/*      */         @Override
+/*      */         public void remove() {
 /* 1510 */           throw new UnsupportedOperationException();
 /*      */         }
 /*      */       };
@@ -1522,8 +1522,8 @@
 /* 1522 */       return new Iterator<Class<?>>() {
 /* 1523 */         Iterator interfaces = Collections.emptySet().iterator();
 /*      */         
-/*      */         public boolean hasNext()
-/*      */         {
+/*      */         @Override
+/*      */         public boolean hasNext() {
 /* 1527 */           return (this.interfaces.hasNext()) || (wrapped.hasNext());
 /*      */         }
 /*      */         
@@ -1550,8 +1550,8 @@
 /*      */           }
 /*      */         }
 /*      */         
-/*      */         public void remove()
-/*      */         {
+/*      */         @Override
+/*      */         public void remove() {
 /* 1555 */           throw new UnsupportedOperationException();
 /*      */         }
 /*      */       };

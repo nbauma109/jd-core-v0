@@ -49,7 +49,7 @@
 /*     */   
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */   @Override
 /*     */   public boolean isOpen()
 /*     */   {
 /*  55 */     return isOpen((State)this.state.get());
@@ -57,7 +57,7 @@
 /*     */   
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */   @Override
 /*     */   public boolean isClosed()
 /*     */   {
 /*  63 */     return !isOpen();
@@ -66,18 +66,18 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */   @Override
 /*     */   public abstract boolean checkState();
 /*     */   
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */   @Override
 /*     */   public abstract boolean incrementAndCheckState(T paramT);
 /*     */   
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */   @Override
 /*     */   public void close()
 /*     */   {
 /*  83 */     changeState(State.CLOSED);
@@ -85,7 +85,7 @@
 /*     */   
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */   @Override
 /*     */   public void open()
 /*     */   {
 /*  91 */     changeState(State.OPEN);
@@ -145,9 +145,9 @@
 /* 145 */     CLOSED
 /*     */     {
 /*     */ 
+/*     */       @Override
 /*     */       public AbstractCircuitBreaker.State oppositeState()
 /*     */       {
-/*     */ 
 /* 151 */         return OPEN;
 /*     */       }
 /*     */     }, 
@@ -156,9 +156,9 @@
 /* 156 */     OPEN
 /*     */     {
 /*     */ 
+/*     */       @Override
 /*     */       public AbstractCircuitBreaker.State oppositeState()
 /*     */       {
-/*     */ 
 /* 162 */         return CLOSED;
 /*     */       }
 /*     */     };

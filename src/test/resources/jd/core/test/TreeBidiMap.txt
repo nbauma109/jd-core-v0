@@ -99,8 +99,8 @@
 /*   99 */       this.description = description;
 /*      */     }
 /*      */     
-/*      */     public String toString()
-/*      */     {
+/*      */     @Override
+/*      */     public String toString() {
 /*  104 */       return this.description;
 /*      */     }
 /*      */   }
@@ -143,7 +143,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public int size()
 /*      */   {
 /*  149 */     return this.nodeCount;
@@ -153,7 +153,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public boolean isEmpty()
 /*      */   {
 /*  159 */     return this.nodeCount == 0;
@@ -168,7 +168,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public boolean containsKey(Object key)
 /*      */   {
 /*  174 */     checkKey(key);
@@ -184,7 +184,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public boolean containsValue(Object value)
 /*      */   {
 /*  190 */     checkValue(value);
@@ -247,7 +247,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public void putAll(Map<? extends K, ? extends V> map)
 /*      */   {
 /*  253 */     for (Entry<? extends K, ? extends V> e : map.entrySet()) {
@@ -273,7 +273,7 @@
 /*      */   
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public void clear()
 /*      */   {
 /*  279 */     modify();
@@ -390,7 +390,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public Set<K> keySet()
 /*      */   {
 /*  396 */     if (this.keySet == null) {
@@ -412,7 +412,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public Set<V> values()
 /*      */   {
 /*  418 */     if (this.valuesSet == null) {
@@ -435,7 +435,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public Set<Entry<K, V>> entrySet()
 /*      */   {
 /*  441 */     if (this.entrySet == null) {
@@ -444,7 +444,7 @@
 /*  444 */     return this.entrySet;
 /*      */   }
 /*      */   
-/*      */ 
+/*      */   @Override
 /*      */   public OrderedMapIterator<K, V> mapIterator()
 /*      */   {
 /*  450 */     if (isEmpty()) {
@@ -458,7 +458,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public OrderedBidiMap<V, K> inverseBidiMap()
 /*      */   {
 /*  464 */     if (this.inverse == null) {
@@ -473,7 +473,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public boolean equals(Object obj)
 /*      */   {
 /*  479 */     return doEquals(obj, DataElement.KEY);
@@ -483,7 +483,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public int hashCode()
 /*      */   {
 /*  489 */     return doHashCode(DataElement.KEY);
@@ -493,7 +493,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public String toString()
 /*      */   {
 /*  499 */     return doToString(DataElement.KEY);
@@ -1506,13 +1506,13 @@
 /* 1506 */       this.orderType = orderType;
 /*      */     }
 /*      */     
-/*      */     public int size()
-/*      */     {
+/*      */     @Override
+/*      */     public int size() {
 /* 1511 */       return TreeBidiMap.this.size();
 /*      */     }
 /*      */     
-/*      */     public void clear()
-/*      */     {
+/*      */     @Override
+/*      */     public void clear() {
 /* 1516 */       TreeBidiMap.this.clear();
 /*      */     }
 /*      */   }
@@ -1526,19 +1526,19 @@
 /* 1526 */       super(orderType);
 /*      */     }
 /*      */     
-/*      */     public Iterator<K> iterator()
-/*      */     {
+/*      */     @Override
+/*      */     public Iterator<K> iterator() {
 /* 1531 */       return new TreeBidiMap.ViewMapIterator(this.orderType);
 /*      */     }
 /*      */     
-/*      */     public boolean contains(Object obj)
-/*      */     {
+/*      */     @Override
+/*      */     public boolean contains(Object obj) {
 /* 1536 */       TreeBidiMap.checkNonNullComparable(obj, TreeBidiMap.DataElement.KEY);
 /* 1537 */       return TreeBidiMap.this.lookupKey(obj) != null;
 /*      */     }
 /*      */     
-/*      */     public boolean remove(Object o)
-/*      */     {
+/*      */     @Override
+/*      */     public boolean remove(Object o) {
 /* 1542 */       return TreeBidiMap.this.doRemoveKey(o) != null;
 /*      */     }
 /*      */   }
@@ -1553,19 +1553,19 @@
 /* 1553 */       super(orderType);
 /*      */     }
 /*      */     
-/*      */     public Iterator<V> iterator()
-/*      */     {
+/*      */     @Override
+/*      */     public Iterator<V> iterator() {
 /* 1558 */       return new TreeBidiMap.InverseViewMapIterator(this.orderType);
 /*      */     }
 /*      */     
-/*      */     public boolean contains(Object obj)
-/*      */     {
+/*      */     @Override
+/*      */     public boolean contains(Object obj) {
 /* 1563 */       TreeBidiMap.checkNonNullComparable(obj, TreeBidiMap.DataElement.VALUE);
 /* 1564 */       return TreeBidiMap.this.lookupValue(obj) != null;
 /*      */     }
 /*      */     
-/*      */     public boolean remove(Object o)
-/*      */     {
+/*      */     @Override
+/*      */     public boolean remove(Object o) {
 /* 1569 */       return TreeBidiMap.this.doRemoveValue(o) != null;
 /*      */     }
 /*      */   }
@@ -1580,8 +1580,8 @@
 /* 1580 */       super(TreeBidiMap.DataElement.KEY);
 /*      */     }
 /*      */     
-/*      */     public boolean contains(Object obj)
-/*      */     {
+/*      */     @Override
+/*      */     public boolean contains(Object obj) {
 /* 1585 */       if (!(obj instanceof Entry)) {
 /* 1586 */         return false;
 /*      */       }
@@ -1591,8 +1591,8 @@
 /* 1591 */       return (node != null) && (node.getValue().equals(value));
 /*      */     }
 /*      */     
-/*      */     public boolean remove(Object obj)
-/*      */     {
+/*      */     @Override
+/*      */     public boolean remove(Object obj) {
 /* 1596 */       if (!(obj instanceof Entry)) {
 /* 1597 */         return false;
 /*      */       }
@@ -1606,8 +1606,8 @@
 /* 1606 */       return false;
 /*      */     }
 /*      */     
-/*      */     public Iterator<Entry<K, V>> iterator()
-/*      */     {
+/*      */     @Override
+/*      */     public Iterator<Entry<K, V>> iterator() {
 /* 1611 */       return new TreeBidiMap.ViewMapEntryIterator();
 /*      */     }
 /*      */   }
@@ -1621,8 +1621,8 @@
 /* 1621 */       super(TreeBidiMap.DataElement.VALUE);
 /*      */     }
 /*      */     
-/*      */     public boolean contains(Object obj)
-/*      */     {
+/*      */     @Override
+/*      */     public boolean contains(Object obj) {
 /* 1626 */       if (!(obj instanceof Entry)) {
 /* 1627 */         return false;
 /*      */       }
@@ -1632,8 +1632,8 @@
 /* 1632 */       return (node != null) && (node.getKey().equals(value));
 /*      */     }
 /*      */     
-/*      */     public boolean remove(Object obj)
-/*      */     {
+/*      */     @Override
+/*      */     public boolean remove(Object obj) {
 /* 1637 */       if (!(obj instanceof Entry)) {
 /* 1638 */         return false;
 /*      */       }
@@ -1647,8 +1647,8 @@
 /* 1647 */       return false;
 /*      */     }
 /*      */     
-/*      */     public Iterator<Entry<V, K>> iterator()
-/*      */     {
+/*      */     @Override
+/*      */     public Iterator<Entry<V, K>> iterator() {
 /* 1652 */       return new TreeBidiMap.InverseViewMapEntryIterator();
 /*      */     }
 /*      */   }
@@ -2082,7 +2082,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */     @Override
 /*      */     public boolean equals(Object obj)
 /*      */     {
 /* 2088 */       if (obj == this) {
@@ -2097,7 +2097,7 @@
 /*      */     
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */     @Override
 /*      */     public int hashCode()
 /*      */     {
 /* 2103 */       if (!this.calculatedHashCode) {
@@ -2115,19 +2115,19 @@
 /*      */   {
 /*      */     private Set<V> inverseKeySet;
 /*      */     
-/*      */ 
 /*      */     private Set<K> inverseValuesSet;
 /*      */     
 /*      */     private Set<Entry<V, K>> inverseEntrySet;
 /*      */     
 /*      */ 
+/*      */     @Override
 /*      */     public int size()
 /*      */     {
 /* 2126 */       return TreeBidiMap.this.size();
 /*      */     }
 /*      */     
-/*      */     public boolean isEmpty()
-/*      */     {
+/*      */     @Override
+/*      */     public boolean isEmpty() {
 /* 2131 */       return TreeBidiMap.this.isEmpty();
 /*      */     }
 /*      */     
@@ -2141,13 +2141,13 @@
 /* 2141 */       return TreeBidiMap.this.get(value);
 /*      */     }
 /*      */     
-/*      */     public boolean containsKey(Object key)
-/*      */     {
+/*      */     @Override
+/*      */     public boolean containsKey(Object key) {
 /* 2146 */       return TreeBidiMap.this.containsValue(key);
 /*      */     }
 /*      */     
-/*      */     public boolean containsValue(Object value)
-/*      */     {
+/*      */     @Override
+/*      */     public boolean containsValue(Object value) {
 /* 2151 */       return TreeBidiMap.this.containsKey(value);
 /*      */     }
 /*      */     
@@ -2188,8 +2188,8 @@
 /* 2188 */       return result;
 /*      */     }
 /*      */     
-/*      */     public void putAll(Map<? extends V, ? extends K> map)
-/*      */     {
+/*      */     @Override
+/*      */     public void putAll(Map<? extends V, ? extends K> map) {
 /* 2193 */       for (Entry<? extends V, ? extends K> e : map.entrySet()) {
 /* 2194 */         put((Comparable)e.getKey(), (Comparable)e.getValue());
 /*      */       }
@@ -2205,60 +2205,60 @@
 /* 2205 */       return TreeBidiMap.this.remove(value);
 /*      */     }
 /*      */     
-/*      */     public void clear()
-/*      */     {
+/*      */     @Override
+/*      */     public void clear() {
 /* 2210 */       TreeBidiMap.this.clear();
 /*      */     }
 /*      */     
-/*      */     public Set<V> keySet()
-/*      */     {
+/*      */     @Override
+/*      */     public Set<V> keySet() {
 /* 2215 */       if (this.inverseKeySet == null) {
 /* 2216 */         this.inverseKeySet = new TreeBidiMap.ValueView(TreeBidiMap.DataElement.VALUE);
 /*      */       }
 /* 2218 */       return this.inverseKeySet;
 /*      */     }
 /*      */     
-/*      */     public Set<K> values()
-/*      */     {
+/*      */     @Override
+/*      */     public Set<K> values() {
 /* 2223 */       if (this.inverseValuesSet == null) {
 /* 2224 */         this.inverseValuesSet = new TreeBidiMap.KeyView(TreeBidiMap.DataElement.VALUE);
 /*      */       }
 /* 2226 */       return this.inverseValuesSet;
 /*      */     }
 /*      */     
-/*      */     public Set<Entry<V, K>> entrySet()
-/*      */     {
+/*      */     @Override
+/*      */     public Set<Entry<V, K>> entrySet() {
 /* 2231 */       if (this.inverseEntrySet == null) {
 /* 2232 */         this.inverseEntrySet = new TreeBidiMap.InverseEntryView();
 /*      */       }
 /* 2234 */       return this.inverseEntrySet;
 /*      */     }
 /*      */     
-/*      */     public OrderedMapIterator<V, K> mapIterator()
-/*      */     {
+/*      */     @Override
+/*      */     public OrderedMapIterator<V, K> mapIterator() {
 /* 2239 */       if (isEmpty()) {
 /* 2240 */         return EmptyOrderedMapIterator.emptyOrderedMapIterator();
 /*      */       }
 /* 2242 */       return new TreeBidiMap.InverseViewMapIterator(TreeBidiMap.DataElement.VALUE);
 /*      */     }
 /*      */     
-/*      */     public OrderedBidiMap<K, V> inverseBidiMap()
-/*      */     {
+/*      */     @Override
+/*      */     public OrderedBidiMap<K, V> inverseBidiMap() {
 /* 2247 */       return TreeBidiMap.this;
 /*      */     }
 /*      */     
-/*      */     public boolean equals(Object obj)
-/*      */     {
+/*      */     @Override
+/*      */     public boolean equals(Object obj) {
 /* 2252 */       return TreeBidiMap.this.doEquals(obj, TreeBidiMap.DataElement.VALUE);
 /*      */     }
 /*      */     
-/*      */     public int hashCode()
-/*      */     {
+/*      */     @Override
+/*      */     public int hashCode() {
 /* 2257 */       return TreeBidiMap.this.doHashCode(TreeBidiMap.DataElement.VALUE);
 /*      */     }
 /*      */     
-/*      */     public String toString()
-/*      */     {
+/*      */     @Override
+/*      */     public String toString() {
 /* 2262 */       return TreeBidiMap.this.doToString(TreeBidiMap.DataElement.VALUE);
 /*      */     }
 /*      */   }

@@ -193,8 +193,8 @@
 /*  193 */       return nextStrategy.isNumber() ? this.width : 0;
 /*      */     }
 /*      */     
-/*      */     public String toString()
-/*      */     {
+/*      */     @Override
+/*      */     public String toString() {
 /*  198 */       return "StrategyAndWidth [strategy=" + this.strategy + ", width=" + this.width + "]";
 /*      */     }
 /*      */   }
@@ -267,7 +267,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public String getPattern()
 /*      */   {
 /*  273 */     return this.pattern;
@@ -275,7 +275,7 @@
 /*      */   
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public TimeZone getTimeZone()
 /*      */   {
 /*  281 */     return this.timeZone;
@@ -283,7 +283,7 @@
 /*      */   
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public Locale getLocale()
 /*      */   {
 /*  289 */     return this.locale;
@@ -297,7 +297,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public boolean equals(Object obj)
 /*      */   {
 /*  303 */     if (!(obj instanceof FastDateParser)) {
@@ -311,7 +311,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public int hashCode()
 /*      */   {
 /*  317 */     return this.pattern.hashCode() + 13 * (this.timeZone.hashCode() + 13 * this.locale.hashCode());
@@ -321,7 +321,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public String toString()
 /*      */   {
 /*  327 */     return "FastDateParser[" + this.pattern + ", " + this.locale + ", " + this.timeZone.getID() + "]";
@@ -355,7 +355,7 @@
 /*      */   }
 /*      */   
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public Object parseObject(String source)
 /*      */     throws ParseException
 /*      */   {
@@ -363,7 +363,7 @@
 /*      */   }
 /*      */   
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public Date parse(String source)
 /*      */     throws ParseException
 /*      */   {
@@ -382,7 +382,7 @@
 /*      */   
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public Object parseObject(String source, ParsePosition pos)
 /*      */   {
 /*  388 */     return parse(source, pos);
@@ -400,7 +400,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public Date parse(String source, ParsePosition pos)
 /*      */   {
 /*  406 */     Calendar cal = Calendar.getInstance(this.timeZone, this.locale);
@@ -421,7 +421,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public boolean parse(String source, ParsePosition pos, Calendar calendar)
 /*      */   {
 /*  427 */     ListIterator<StrategyAndWidth> lt = this.patterns.listIterator();
@@ -539,13 +539,13 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */     @Override
 /*      */     boolean isNumber()
 /*      */     {
 /*  545 */       return false;
 /*      */     }
 /*      */     
-/*      */ 
+/*      */     @Override
 /*      */     boolean parse(FastDateParser parser, Calendar calendar, String source, ParsePosition pos, int maxWidth)
 /*      */     {
 /*  551 */       Matcher matcher = this.pattern.matcher(source.substring(pos.getIndex()));
@@ -560,11 +560,11 @@
 /*      */     
 /*      */ 
 /*      */ 
-/*      */ 
 /*      */     abstract void setCalendar(FastDateParser paramFastDateParser, Calendar paramCalendar, String paramString);
 /*      */     
 /*      */ 
 /*      */ 
+/*      */     @Override
 /*      */     public String toString()
 /*      */     {
 /*  570 */       return getClass().getSimpleName() + " [pattern=" + this.pattern + "]";
@@ -686,13 +686,13 @@
 /*      */     
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */     @Override
 /*      */     boolean isNumber()
 /*      */     {
 /*  692 */       return false;
 /*      */     }
 /*      */     
-/*      */ 
+/*      */     @Override
 /*      */     boolean parse(FastDateParser parser, Calendar calendar, String source, ParsePosition pos, int maxWidth)
 /*      */     {
 /*  698 */       for (int idx = 0; idx < this.formatField.length(); idx++) {
@@ -714,7 +714,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */     @Override
 /*      */     public String toString()
 /*      */     {
 /*  720 */       return "CopyQuotedStrategy [formatField=" + this.formatField + "]";
@@ -750,7 +750,7 @@
 /*      */     
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */     @Override
 /*      */     void setCalendar(FastDateParser parser, Calendar calendar, String value)
 /*      */     {
 /*  756 */       String lowerCase = value.toLowerCase(this.locale);
@@ -766,7 +766,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */     @Override
 /*      */     public String toString()
 /*      */     {
 /*  772 */       return "CaseInsensitiveTextStrategy [field=" + this.field + ", locale=" + this.locale + ", lKeyValues=" + this.lKeyValues + ", pattern=" + this.pattern + "]";
@@ -793,13 +793,13 @@
 /*      */     
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */     @Override
 /*      */     boolean isNumber()
 /*      */     {
 /*  799 */       return true;
 /*      */     }
 /*      */     
-/*      */ 
+/*      */     @Override
 /*      */     boolean parse(FastDateParser parser, Calendar calendar, String source, ParsePosition pos, int maxWidth)
 /*      */     {
 /*  805 */       int idx = pos.getIndex();
@@ -855,7 +855,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */     @Override
 /*      */     public String toString()
 /*      */     {
 /*  861 */       return "NumberStrategy [field=" + this.field + "]";
@@ -865,9 +865,9 @@
 /*  865 */   private static final Strategy ABBREVIATED_YEAR_STRATEGY = new NumberStrategy(1)
 /*      */   {
 /*      */ 
+/*      */     @Override
 /*      */     int modify(FastDateParser parser, int iValue)
 /*      */     {
-/*      */ 
 /*  871 */       return iValue < 100 ? parser.adjustYear(iValue) : iValue;
 /*      */     }
 /*      */   };
@@ -955,7 +955,7 @@
 /*      */     
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */     @Override
 /*      */     void setCalendar(FastDateParser parser, Calendar calendar, String timeZone)
 /*      */     {
 /*  961 */       TimeZone tz = FastTimeZone.getGmtTimeZone(timeZone);
@@ -977,7 +977,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */     @Override
 /*      */     public String toString()
 /*      */     {
 /*  983 */       return "TimeZoneStrategy [locale=" + this.locale + ", tzNames=" + this.tzNames + ", pattern=" + this.pattern + "]";
@@ -998,7 +998,7 @@
 /*      */     
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */     @Override
 /*      */     void setCalendar(FastDateParser parser, Calendar calendar, String value)
 /*      */     {
 /* 1004 */       calendar.setTimeZone(FastTimeZone.getGmtTimeZone(value));
@@ -1029,8 +1029,8 @@
 /*      */   }
 /*      */   
 /*      */ 
-/* 1032 */   private static final Strategy NUMBER_MONTH_STRATEGY = new NumberStrategy(2)
-/*      */   {
+/* 1032 */   private static final Strategy NUMBER_MONTH_STRATEGY = new NumberStrategy(2) {
+/*      */     @Override
 /*      */     int modify(FastDateParser parser, int iValue) {
 /* 1035 */       return iValue - 1;
 /*      */     }
@@ -1041,8 +1041,8 @@
 /* 1041 */   private static final Strategy WEEK_OF_MONTH_STRATEGY = new NumberStrategy(4);
 /* 1042 */   private static final Strategy DAY_OF_YEAR_STRATEGY = new NumberStrategy(6);
 /* 1043 */   private static final Strategy DAY_OF_MONTH_STRATEGY = new NumberStrategy(5);
-/* 1044 */   private static final Strategy DAY_OF_WEEK_STRATEGY = new NumberStrategy(7)
-/*      */   {
+/* 1044 */   private static final Strategy DAY_OF_WEEK_STRATEGY = new NumberStrategy(7) {
+/*      */     @Override
 /*      */     int modify(FastDateParser parser, int iValue) {
 /* 1047 */       return iValue == 7 ? 1 : iValue + 1;
 /*      */     }
@@ -1050,15 +1050,15 @@
 /*      */   
 /* 1051 */   private static final Strategy DAY_OF_WEEK_IN_MONTH_STRATEGY = new NumberStrategy(8);
 /* 1052 */   private static final Strategy HOUR_OF_DAY_STRATEGY = new NumberStrategy(11);
-/* 1053 */   private static final Strategy HOUR24_OF_DAY_STRATEGY = new NumberStrategy(11)
-/*      */   {
+/* 1053 */   private static final Strategy HOUR24_OF_DAY_STRATEGY = new NumberStrategy(11) {
+/*      */     @Override
 /*      */     int modify(FastDateParser parser, int iValue) {
 /* 1056 */       return iValue == 24 ? 0 : iValue;
 /*      */     }
 /*      */   };
 /*      */   
-/* 1060 */   private static final Strategy HOUR12_STRATEGY = new NumberStrategy(10)
-/*      */   {
+/* 1060 */   private static final Strategy HOUR12_STRATEGY = new NumberStrategy(10) {
+/*      */     @Override
 /*      */     int modify(FastDateParser parser, int iValue) {
 /* 1063 */       return iValue == 12 ? 0 : iValue;
 /*      */     }

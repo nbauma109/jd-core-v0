@@ -24,7 +24,7 @@ public class OuterTest extends AbstractTestCase {
             ZipLoader loader = new ZipLoader(in);
             String internalClassName = "jd/core/test/Outer";
             String output = decompile(internalClassName, loader);
-            assertEquals(IOUtils.toString(getClass().getResource("Outer.txt"), StandardCharsets.UTF_8), output);
+            assertEquals(IOUtils.toString(getClass().getResource("Outer142.txt"), StandardCharsets.UTF_8), output);
         }
     }
 }

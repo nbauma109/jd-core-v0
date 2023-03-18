@@ -269,10 +269,12 @@ public class ClassFile extends Base
     {
         return this.outerClass != null;
     }
+
     public ClassFile getOuterClass()
     {
         return outerClass;
     }
+
     public void setOuterClass(ClassFile outerClass)
     {
         this.outerClass = outerClass;
@@ -309,6 +311,7 @@ public class ClassFile extends Base
     {
         return outerThisField;
     }
+
     public void setOuterThisField(Field outerThisField)
     {
         this.outerThisField = outerThisField;
@@ -318,10 +321,12 @@ public class ClassFile extends Base
     {
         return innerClassFiles;
     }
+
     public void setInnerClassFiles(List<ClassFile> innerClassFiles)
     {
         this.innerClassFiles = innerClassFiles;
     }
+
     public ClassFile getInnerClassFile(String internalClassName)
     {
         if (this.innerClassFiles != null &&
@@ -350,6 +355,7 @@ public class ClassFile extends Base
         }
         return null;
     }
+
     public Field getField(String fieldName, String fieldDescriptor)
     {
         String name;
@@ -374,6 +380,7 @@ public class ClassFile extends Base
     {
         return staticMethod;
     }
+
     public Method getMethod(int methodNameIndex, int methodDescriptorIndex)
     {
         for (Method method : methods)
@@ -384,6 +391,11 @@ public class ClassFile extends Base
                 return method;
             }
         }
+        return findMethodInSuperClassAndInterfaces(methodNameIndex, methodDescriptorIndex);
+    }
+
+    public Method findMethodInSuperClassAndInterfaces(int methodNameIndex, int methodDescriptorIndex)
+    {
         for (ClassFile classFile : superClassAndInterfaces.values()) {
             Method method = classFile.getMethod(methodNameIndex, methodDescriptorIndex);
             if (method != null) {
@@ -410,6 +422,11 @@ public class ClassFile extends Base
                 }
             }
         }
+        return findMethodInSuperClassAndInterfaces(methodName, methodDescriptor);
+    }
+
+    public Method findMethodInSuperClassAndInterfaces(String methodName, String methodDescriptor)
+    {
         for (ClassFile classFile : superClassAndInterfaces.values()) {
             Method method = classFile.getMethod(methodName, methodDescriptor);
             if (method != null) {

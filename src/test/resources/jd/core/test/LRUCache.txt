@@ -14,8 +14,8 @@
 /*    */     {
 /*    */       private static final long serialVersionUID = 1L;
 /*    */       
-/*    */       protected boolean removeEldestEntry(Entry<Integer, Integer> eldest)
-/*    */       {
+/*    */       @Override
+/*    */       protected boolean removeEldestEntry(Entry<Integer, Integer> eldest) {
 /* 19 */         return size() > LRUCache.this.CAPACITY;
 /*    */       }
 /*    */     };

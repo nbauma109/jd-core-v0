@@ -55,6 +55,8 @@ public class Method extends Base
     private List<Instruction> fastNodes;
     private LocalVariables localVariables;
     private final ConstantPool constants;
+    private boolean override;
+
     /**
      * Champs permettant l'affichage des parametres des instanciations des
      * classes anonymes.
@@ -236,11 +238,18 @@ public class Method extends Base
         return fieldOrMethod.getSignatureIndex();
     }
 
+    public boolean isOverride() {
+        return override;
+    }
+
+    public void setOverride(boolean override) {
+        this.override = override;
+    }
+
     @Override
     public String toString() {
         String methodName = getName();
         String methodDesc = getDescriptor();
         return methodName + methodDesc;
     }
-
 }

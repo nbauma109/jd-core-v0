@@ -10,6 +10,7 @@
 /*    */   private final String fieldDescriptor;
 /*    */   
 /*    */   /* Error */
+/*    */   @Override
 /*    */   public final boolean equals(Object arg1)
 /*    */   {
 /*    */     // Byte code:
@@ -22,6 +23,7 @@
 /*    */   }
 /*    */   
 /*    */   /* Error */
+/*    */   @Override
 /*    */   public final int hashCode()
 /*    */   {
 /*    */     // Byte code:
@@ -33,6 +35,7 @@
 /*    */   }
 /*    */   
 /*    */   /* Error */
+/*    */   @Override
 /*    */   public final String toString()
 /*    */   {
 /*    */     // Byte code:
@@ -58,6 +61,7 @@
 /* 19 */     return this.className;
 /*    */   }
 /*    */   
+/*    */   @Override
 /*    */   public byte tag()
 /*    */   {
 /* 19 */     return this.tag;
