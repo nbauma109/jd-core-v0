@@ -1,0 +1,12 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class Convert
+/*    */ {
+/*    */   char i2c(int i) {
+/*  6 */     return (char)i;
+/*    */   }
+/*    */   
+/*    */   float l2f(long l) {
+/* 10 */     return (float)l;
+/*    */   }
+/*    */ }
