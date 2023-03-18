@@ -16,6 +16,7 @@
  ******************************************************************************/
 package jd.core.process.deserializer;
 
+import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.InnerClass;
 import org.apache.bcel.classfile.InnerClasses;
@@ -44,26 +45,33 @@ public final class ClassFileDeserializer
 
     public static ClassFile deserialize(Loader loader, String internalClassPath)
     {
+        return deserialize(loader, internalClassPath, false);
+    }
+
+    public static ClassFile deserialize(Loader loader, String internalClassPath, boolean skipInnerClasses)
+    {
         ClassFile classFile = loadSingleClass(loader, internalClassPath);
         if (classFile == null) {
             return null;
         }
 
-        if (classFile.getSuperClassName() != null && loader.canLoad(classFile.getSuperClassName())) {
-            ClassFile superClass = loadSingleClass(loader, classFile.getSuperClassName());
+        if (classFile.getSuperClassName() != null
+                && !StringConstants.JAVA_LANG_OBJECT.equals(internalClassPath)
+                && loader.canLoad(classFile.getSuperClassName())) {
+            ClassFile superClass = deserialize(loader, classFile.getSuperClassName(), true);
             classFile.getSuperClassAndInterfaces().put(classFile.getSuperClassName(), superClass);
         }
 
         for (int interfaceIndex : classFile.getInterfaces()) {
             String interfaceName = classFile.getConstantPool().getConstantClassName(interfaceIndex);
             if (loader.canLoad(interfaceName)) {
-                ClassFile interfass = loadSingleClass(loader, interfaceName);
+                ClassFile interfass = deserialize(loader, interfaceName);
                 classFile.getSuperClassAndInterfaces().put(interfaceName, interfass);
             }
         }
 
         InnerClasses aics = classFile.getAttributeInnerClasses();
-        if (aics == null) {
+        if (aics == null || skipInnerClasses) {
             return classFile;
         }
 
@@ -118,7 +126,32 @@ public final class ClassFileDeserializer
         // Add inner classes
         classFile.setInnerClassFiles(innerClassFiles);
 
+        // Add @Override annotations
+        addOverrideFlag(classFile);
+
         return classFile;
+    }
+
+    private static void addOverrideFlag(ClassFile classFile) {
+        for (Method method : classFile.getMethods()) {
+            if (!method.isOverride() && addOverride(classFile, method)) {
+                method.setOverride(true);
+            }
+        }
+        classFile.getInnerClassFiles().forEach(ClassFileDeserializer::addOverrideFlag);
+    }
+
+    private static boolean addOverride(ClassFile classFile, Method method) {
+        if (method.getNameIndex() != classFile.getConstantPool().getInstanceConstructorIndex()
+         && method.getNameIndex() != classFile.getConstantPool().getClassConstructorIndex()
+         && (method.getAccessFlags() & Const.ACC_PRIVATE) == 0) {
+            Method overridenMethod = classFile.findMethodInSuperClassAndInterfaces(
+                    method.getName(), method.getDescriptor());
+            if (overridenMethod != null) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static ClassFile loadSingleClass(

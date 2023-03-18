@@ -20,12 +20,15 @@ import org.apache.bcel.Const;
 import org.apache.bcel.classfile.AnnotationEntry;
 import org.apache.bcel.classfile.Annotations;
 import org.apache.bcel.classfile.Attribute;
+import org.jd.core.v1.service.converter.classfiletojavasyntax.util.ExceptionUtil;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 import jd.core.model.classfile.ClassFile;
+import jd.core.model.classfile.ConstantPool;
 import jd.core.model.layout.block.AnnotationsLayoutBlock;
 import jd.core.model.layout.block.LayoutBlock;
 
@@ -36,7 +39,7 @@ public final class AnnotationLayouter
 
     public static void createBlocksForAnnotations(
             ClassFile classFile, Attribute[] attributes,
-            List<LayoutBlock> layoutBlockList)
+            List<LayoutBlock> layoutBlockList, boolean addOverride)
     {
         int attributesLength = attributes.length;
         List<AnnotationEntry> annotations =
@@ -55,10 +58,31 @@ public final class AnnotationLayouter
             }
         }
 
+        if (addOverride) {
+            ConstantPool constants = classFile.getConstantPool();
+            int typeIndex = constants.getOverrideSignatureIndex();
+            AnnotationEntry annotationEntry = new AnnotationEntry(typeIndex, constants.getConstantPool(), false);
+            try {
+                Field elementValuePairs = annotationEntry.getClass().getDeclaredField("elementValuePairs");
+                elementValuePairs.setAccessible(true);
+                elementValuePairs.set(annotationEntry, Collections.emptyList());
+            } catch (Exception e) {
+                assert ExceptionUtil.printStackTrace(e);
+            }
+            annotations.add(annotationEntry);
+        }
+
         if (!annotations.isEmpty())
         {
             layoutBlockList.add(new AnnotationsLayoutBlock(
                     classFile, annotations));
         }
+    }
+
+    public static void createBlocksForAnnotations(
+            ClassFile classFile, Attribute[] attributes,
+            List<LayoutBlock> layoutBlockList)
+    {
+        createBlocksForAnnotations(classFile, attributes, layoutBlockList, false);
     }
 }

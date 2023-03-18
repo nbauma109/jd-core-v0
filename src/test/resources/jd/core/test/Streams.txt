@@ -459,26 +459,26 @@
 /* 459 */       this.elementType = elementType;
 /*     */     }
 /*     */     
-/*     */     public Supplier<List<O>> supplier()
-/*     */     {
+/*     */     @Override
+/*     */     public Supplier<List<O>> supplier() {
 /* 464 */       return ArrayList::new;
 /*     */     }
 /*     */     
-/*     */     public BiConsumer<List<O>, O> accumulator()
-/*     */     {
+/*     */     @Override
+/*     */     public BiConsumer<List<O>, O> accumulator() {
 /* 469 */       return List::add;
 /*     */     }
 /*     */     
-/*     */     public BinaryOperator<List<O>> combiner()
-/*     */     {
+/*     */     @Override
+/*     */     public BinaryOperator<List<O>> combiner() {
 /* 474 */       return (left, right) ->  {
 /* 475 */         left.addAll(right);
 /* 476 */         return left;
 /*     */       };
 /*     */     }
 /*     */     
-/*     */     public Function<List<O>, O[]> finisher()
-/*     */     {
+/*     */     @Override
+/*     */     public Function<List<O>, O[]> finisher() {
 /* 482 */       return list -> 
 /*     */       {
 /* 484 */         O[] array = (O[])java.lang.reflect.Array.newInstance(this.elementType, list.size());
@@ -486,8 +486,8 @@
 /*     */       };
 /*     */     }
 /*     */     
-/*     */     public Set<Characteristics> characteristics()
-/*     */     {
+/*     */     @Override
+/*     */     public Set<Characteristics> characteristics() {
 /* 491 */       return characteristics;
 /*     */     }
 /*     */   }

@@ -853,16 +853,16 @@
 /* 853 */       return this;
 /*     */     }
 /*     */     
-/* 856 */     this.diffs.add(new Diff<Object>(fieldName)
-/*     */     {
+/* 856 */     this.diffs.add(new Diff<Object>(fieldName) {
 /*     */       private static final long serialVersionUID = 1L;
 /*     */       
+/*     */       @Override
 /*     */       public Object getLeft() {
 /* 861 */         return lhs;
 /*     */       }
 /*     */       
-/*     */       public Object getRight()
-/*     */       {
+/*     */       @Override
+/*     */       public Object getRight() {
 /* 866 */         return rhs;
 /*     */       }
 /*     */       

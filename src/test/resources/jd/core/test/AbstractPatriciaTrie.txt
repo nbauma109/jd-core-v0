@@ -80,7 +80,7 @@
 /*   80 */     putAll(map);
 /*      */   }
 /*      */   
-/*      */ 
+/*      */   @Override
 /*      */   public void clear()
 /*      */   {
 /*   86 */     this.root.key = null;
@@ -96,8 +96,8 @@
 /*   96 */     incrementModCount();
 /*      */   }
 /*      */   
-/*      */   public int size()
-/*      */   {
+/*      */   @Override
+/*      */   public int size() {
 /*  101 */     return this.size;
 /*      */   }
 /*      */   
@@ -124,8 +124,8 @@
 /*  124 */     this.modCount++;
 /*      */   }
 /*      */   
-/*      */   public V put(K key, V value)
-/*      */   {
+/*      */   @Override
+/*      */   public V put(K key, V value) {
 /*  129 */     if (key == null) {
 /*  130 */       throw new NullPointerException("Key cannot be null");
 /*      */     }
@@ -235,8 +235,8 @@
 /*      */     }
 /*      */   }
 /*      */   
-/*      */   public V get(Object k)
-/*      */   {
+/*      */   @Override
+/*      */   public V get(Object k) {
 /*  240 */     TrieEntry<K, V> entry = getEntry(k);
 /*  241 */     return entry != null ? entry.getValue() : null;
 /*      */   }
@@ -373,8 +373,8 @@
 /*  373 */     return false;
 /*      */   }
 /*      */   
-/*      */   public boolean containsKey(Object k)
-/*      */   {
+/*      */   @Override
+/*      */   public boolean containsKey(Object k) {
 /*  378 */     if (k == null) {
 /*  379 */       return false;
 /*      */     }
@@ -385,24 +385,24 @@
 /*  385 */     return (!entry.isEmpty()) && (compareKeys(key, entry.key));
 /*      */   }
 /*      */   
-/*      */   public Set<Entry<K, V>> entrySet()
-/*      */   {
+/*      */   @Override
+/*      */   public Set<Entry<K, V>> entrySet() {
 /*  390 */     if (this.entrySet == null) {
 /*  391 */       this.entrySet = new EntrySet();
 /*      */     }
 /*  393 */     return this.entrySet;
 /*      */   }
 /*      */   
-/*      */   public Set<K> keySet()
-/*      */   {
+/*      */   @Override
+/*      */   public Set<K> keySet() {
 /*  398 */     if (this.keySet == null) {
 /*  399 */       this.keySet = new KeySet();
 /*      */     }
 /*  401 */     return this.keySet;
 /*      */   }
 /*      */   
-/*      */   public Collection<V> values()
-/*      */   {
+/*      */   @Override
+/*      */   public Collection<V> values() {
 /*  406 */     if (this.values == null) {
 /*  407 */       this.values = new Values();
 /*      */     }
@@ -413,7 +413,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public V remove(Object k)
 /*      */   {
 /*  419 */     if (k == null) {
@@ -769,22 +769,22 @@
 /*      */   }
 /*      */   
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public Comparator<? super K> comparator()
 /*      */   {
 /*  775 */     return getKeyAnalyzer();
 /*      */   }
 /*      */   
-/*      */   public K firstKey()
-/*      */   {
+/*      */   @Override
+/*      */   public K firstKey() {
 /*  780 */     if (size() == 0) {
 /*  781 */       throw new NoSuchElementException();
 /*      */     }
 /*  783 */     return firstEntry().getKey();
 /*      */   }
 /*      */   
-/*      */   public K lastKey()
-/*      */   {
+/*      */   @Override
+/*      */   public K lastKey() {
 /*  788 */     TrieEntry<K, V> entry = lastEntry();
 /*  789 */     if (entry != null) {
 /*  790 */       return entry.getKey();
@@ -792,8 +792,8 @@
 /*  792 */     throw new NoSuchElementException();
 /*      */   }
 /*      */   
-/*      */   public K nextKey(K key)
-/*      */   {
+/*      */   @Override
+/*      */   public K nextKey(K key) {
 /*  797 */     if (key == null) {
 /*  798 */       throw new NullPointerException();
 /*      */     }
@@ -805,8 +805,8 @@
 /*  805 */     return null;
 /*      */   }
 /*      */   
-/*      */   public K previousKey(K key)
-/*      */   {
+/*      */   @Override
+/*      */   public K previousKey(K key) {
 /*  810 */     if (key == null) {
 /*  811 */       throw new NullPointerException();
 /*      */     }
@@ -818,13 +818,13 @@
 /*  818 */     return null;
 /*      */   }
 /*      */   
-/*      */   public OrderedMapIterator<K, V> mapIterator()
-/*      */   {
+/*      */   @Override
+/*      */   public OrderedMapIterator<K, V> mapIterator() {
 /*  823 */     return new TrieMapIterator();
 /*      */   }
 /*      */   
-/*      */   public SortedMap<K, V> prefixMap(K key)
-/*      */   {
+/*      */   @Override
+/*      */   public SortedMap<K, V> prefixMap(K key) {
 /*  828 */     return getPrefixMapByBits(key, 0, lengthInBits(key));
 /*      */   }
 /*      */   
@@ -864,18 +864,18 @@
 /*  864 */     return new PrefixRangeMap(key, offsetInBits, lengthInBits);
 /*      */   }
 /*      */   
-/*      */   public SortedMap<K, V> headMap(K toKey)
-/*      */   {
+/*      */   @Override
+/*      */   public SortedMap<K, V> headMap(K toKey) {
 /*  869 */     return new RangeEntryMap(null, toKey);
 /*      */   }
 /*      */   
-/*      */   public SortedMap<K, V> subMap(K fromKey, K toKey)
-/*      */   {
+/*      */   @Override
+/*      */   public SortedMap<K, V> subMap(K fromKey, K toKey) {
 /*  874 */     return new RangeEntryMap(fromKey, toKey);
 /*      */   }
 /*      */   
-/*      */   public SortedMap<K, V> tailMap(K fromKey)
-/*      */   {
+/*      */   @Override
+/*      */   public SortedMap<K, V> tailMap(K fromKey) {
 /*  879 */     return new RangeEntryMap(fromKey, null);
 /*      */   }
 /*      */   
@@ -1322,8 +1322,8 @@
 /* 1322 */       return !isInternalNode();
 /*      */     }
 /*      */     
-/*      */     public String toString()
-/*      */     {
+/*      */     @Override
+/*      */     public String toString() {
 /* 1327 */       StringBuilder buffer = new StringBuilder();
 /*      */       
 /* 1329 */       if (this.bitIndex == -1) {
@@ -1385,17 +1385,17 @@
 /*      */   
 /*      */ 
 /*      */ 
-/*      */ 
 /*      */   private class EntrySet
 /*      */     extends AbstractSet<Entry<K, V>>
 /*      */   {
+/*      */     @Override
 /*      */     public Iterator<Entry<K, V>> iterator()
 /*      */     {
 /* 1394 */       return new EntryIterator();
 /*      */     }
 /*      */     
-/*      */     public boolean contains(Object o)
-/*      */     {
+/*      */     @Override
+/*      */     public boolean contains(Object o) {
 /* 1399 */       if (!(o instanceof Entry)) {
 /* 1400 */         return false;
 /*      */       }
@@ -1404,8 +1404,8 @@
 /* 1404 */       return (candidate != null) && (candidate.equals(o));
 /*      */     }
 /*      */     
-/*      */     public boolean remove(Object obj)
-/*      */     {
+/*      */     @Override
+/*      */     public boolean remove(Object obj) {
 /* 1409 */       if (!(obj instanceof Entry)) {
 /* 1410 */         return false;
 /*      */       }
@@ -1417,13 +1417,13 @@
 /* 1417 */       return true;
 /*      */     }
 /*      */     
-/*      */     public int size()
-/*      */     {
+/*      */     @Override
+/*      */     public int size() {
 /* 1422 */       return AbstractPatriciaTrie.this.size();
 /*      */     }
 /*      */     
-/*      */     public void clear()
-/*      */     {
+/*      */     @Override
+/*      */     public void clear() {
 /* 1427 */       AbstractPatriciaTrie.this.clear();
 /*      */     }
 /*      */     
@@ -1439,41 +1439,41 @@
 /*      */   }
 /*      */   
 /*      */ 
-/*      */ 
 /*      */   private class KeySet
 /*      */     extends AbstractSet<K>
 /*      */   {
+/*      */     @Override
 /*      */     public Iterator<K> iterator()
 /*      */     {
 /* 1448 */       return new KeyIterator();
 /*      */     }
 /*      */     
-/*      */     public int size()
-/*      */     {
+/*      */     @Override
+/*      */     public int size() {
 /* 1453 */       return AbstractPatriciaTrie.this.size();
 /*      */     }
 /*      */     
-/*      */     public boolean contains(Object o)
-/*      */     {
+/*      */     @Override
+/*      */     public boolean contains(Object o) {
 /* 1458 */       return AbstractPatriciaTrie.this.containsKey(o);
 /*      */     }
 /*      */     
-/*      */     public boolean remove(Object o)
-/*      */     {
+/*      */     @Override
+/*      */     public boolean remove(Object o) {
 /* 1463 */       int size = size();
 /* 1464 */       AbstractPatriciaTrie.this.remove(o);
 /* 1465 */       return size != size();
 /*      */     }
 /*      */     
-/*      */     public void clear()
-/*      */     {
+/*      */     @Override
+/*      */     public void clear() {
 /* 1470 */       AbstractPatriciaTrie.this.clear();
 /*      */     }
 /*      */     
-/*      */ 
 /*      */     private class KeyIterator
 /*      */       extends AbstractPatriciaTrie<K, V>.TrieIterator<K>
 /*      */     {
+/*      */       @Override
 /*      */       public K next()
 /*      */       {
 /* 1479 */         return nextEntry().getKey();
@@ -1482,32 +1482,32 @@
 /*      */   }
 /*      */   
 /*      */ 
-/*      */ 
 /*      */   private class Values
 /*      */     extends AbstractCollection<V>
 /*      */   {
+/*      */     @Override
 /*      */     public Iterator<V> iterator()
 /*      */     {
 /* 1491 */       return new ValueIterator();
 /*      */     }
 /*      */     
-/*      */     public int size()
-/*      */     {
+/*      */     @Override
+/*      */     public int size() {
 /* 1496 */       return AbstractPatriciaTrie.this.size();
 /*      */     }
 /*      */     
-/*      */     public boolean contains(Object o)
-/*      */     {
+/*      */     @Override
+/*      */     public boolean contains(Object o) {
 /* 1501 */       return AbstractPatriciaTrie.this.containsValue(o);
 /*      */     }
 /*      */     
-/*      */     public void clear()
-/*      */     {
+/*      */     @Override
+/*      */     public void clear() {
 /* 1506 */       AbstractPatriciaTrie.this.clear();
 /*      */     }
 /*      */     
-/*      */     public boolean remove(Object o)
-/*      */     {
+/*      */     @Override
+/*      */     public boolean remove(Object o) {
 /* 1511 */       for (Iterator<V> it = iterator(); it.hasNext();) {
 /* 1512 */         V value = it.next();
 /* 1513 */         if (AbstractBitwiseTrie.compare(value, o)) {
@@ -1518,10 +1518,10 @@
 /* 1518 */       return false;
 /*      */     }
 /*      */     
-/*      */ 
 /*      */     private class ValueIterator
 /*      */       extends AbstractPatriciaTrie<K, V>.TrieIterator<V>
 /*      */     {
+/*      */       @Override
 /*      */       public V next()
 /*      */       {
 /* 1527 */         return nextEntry().getValue();
@@ -1579,13 +1579,13 @@
 /* 1579 */       return AbstractPatriciaTrie.this.nextEntry(prior);
 /*      */     }
 /*      */     
-/*      */     public boolean hasNext()
-/*      */     {
+/*      */     @Override
+/*      */     public boolean hasNext() {
 /* 1584 */       return this.next != null;
 /*      */     }
 /*      */     
-/*      */     public void remove()
-/*      */     {
+/*      */     @Override
+/*      */     public void remove() {
 /* 1589 */       if (this.current == null) {
 /* 1590 */         throw new IllegalStateException();
 /*      */       }
@@ -1602,54 +1602,54 @@
 /*      */     }
 /*      */   }
 /*      */   
-/*      */ 
 /*      */   private class TrieMapIterator
 /*      */     extends AbstractPatriciaTrie<K, V>.TrieIterator<K>
 /*      */     implements OrderedMapIterator<K, V>
 /*      */   {
 /*      */     protected AbstractPatriciaTrie.TrieEntry<K, V> previous;
 /*      */     
+/*      */     @Override
 /*      */     public K next()
 /*      */     {
 /* 1614 */       return nextEntry().getKey();
 /*      */     }
 /*      */     
-/*      */     public K getKey()
-/*      */     {
+/*      */     @Override
+/*      */     public K getKey() {
 /* 1619 */       if (this.current == null) {
 /* 1620 */         throw new IllegalStateException();
 /*      */       }
 /* 1622 */       return this.current.getKey();
 /*      */     }
 /*      */     
-/*      */     public V getValue()
-/*      */     {
+/*      */     @Override
+/*      */     public V getValue() {
 /* 1627 */       if (this.current == null) {
 /* 1628 */         throw new IllegalStateException();
 /*      */       }
 /* 1630 */       return this.current.getValue();
 /*      */     }
 /*      */     
-/*      */     public V setValue(V value)
-/*      */     {
+/*      */     @Override
+/*      */     public V setValue(V value) {
 /* 1635 */       if (this.current == null) {
 /* 1636 */         throw new IllegalStateException();
 /*      */       }
 /* 1638 */       return this.current.setValue(value);
 /*      */     }
 /*      */     
-/*      */     public boolean hasPrevious()
-/*      */     {
+/*      */     @Override
+/*      */     public boolean hasPrevious() {
 /* 1643 */       return this.previous != null;
 /*      */     }
 /*      */     
-/*      */     public K previous()
-/*      */     {
+/*      */     @Override
+/*      */     public K previous() {
 /* 1648 */       return previousEntry().getKey();
 /*      */     }
 /*      */     
-/*      */     protected AbstractPatriciaTrie.TrieEntry<K, V> nextEntry()
-/*      */     {
+/*      */     @Override
+/*      */     protected AbstractPatriciaTrie.TrieEntry<K, V> nextEntry() {
 /* 1653 */       AbstractPatriciaTrie.TrieEntry<K, V> nextEntry = super.nextEntry();
 /* 1654 */       this.previous = nextEntry;
 /* 1655 */       return nextEntry;
@@ -1698,7 +1698,6 @@
 /*      */     
 /*      */ 
 /*      */ 
-/*      */ 
 /*      */     protected abstract K getToKey();
 /*      */     
 /*      */ 
@@ -1707,13 +1706,14 @@
 /*      */     
 /*      */ 
 /*      */ 
+/*      */     @Override
 /*      */     public Comparator<? super K> comparator()
 /*      */     {
 /* 1712 */       return AbstractPatriciaTrie.this.comparator();
 /*      */     }
 /*      */     
-/*      */     public boolean containsKey(Object key)
-/*      */     {
+/*      */     @Override
+/*      */     public boolean containsKey(Object key) {
 /* 1717 */       if (!inRange(AbstractPatriciaTrie.this.castKey(key))) {
 /* 1718 */         return false;
 /*      */       }
@@ -1721,8 +1721,8 @@
 /* 1721 */       return AbstractPatriciaTrie.this.containsKey(key);
 /*      */     }
 /*      */     
-/*      */     public V remove(Object key)
-/*      */     {
+/*      */     @Override
+/*      */     public V remove(Object key) {
 /* 1726 */       if (!inRange(AbstractPatriciaTrie.this.castKey(key))) {
 /* 1727 */         return null;
 /*      */       }
@@ -1730,8 +1730,8 @@
 /* 1730 */       return AbstractPatriciaTrie.this.remove(key);
 /*      */     }
 /*      */     
-/*      */     public V get(Object key)
-/*      */     {
+/*      */     @Override
+/*      */     public V get(Object key) {
 /* 1735 */       if (!inRange(AbstractPatriciaTrie.this.castKey(key))) {
 /* 1736 */         return null;
 /*      */       }
@@ -1739,24 +1739,24 @@
 /* 1739 */       return AbstractPatriciaTrie.this.get(key);
 /*      */     }
 /*      */     
-/*      */     public V put(K key, V value)
-/*      */     {
+/*      */     @Override
+/*      */     public V put(K key, V value) {
 /* 1744 */       if (!inRange(key)) {
 /* 1745 */         throw new IllegalArgumentException("Key is out of range: " + key);
 /*      */       }
 /* 1747 */       return AbstractPatriciaTrie.this.put(key, value);
 /*      */     }
 /*      */     
-/*      */     public Set<Entry<K, V>> entrySet()
-/*      */     {
+/*      */     @Override
+/*      */     public Set<Entry<K, V>> entrySet() {
 /* 1752 */       if (this.entrySet == null) {
 /* 1753 */         this.entrySet = createEntrySet();
 /*      */       }
 /* 1755 */       return this.entrySet;
 /*      */     }
 /*      */     
-/*      */     public SortedMap<K, V> subMap(K fromKey, K toKey)
-/*      */     {
+/*      */     @Override
+/*      */     public SortedMap<K, V> subMap(K fromKey, K toKey) {
 /* 1760 */       if (!inRange2(fromKey)) {
 /* 1761 */         throw new IllegalArgumentException("FromKey is out of range: " + fromKey);
 /*      */       }
@@ -1768,16 +1768,16 @@
 /* 1768 */       return createRangeMap(fromKey, isFromInclusive(), toKey, isToInclusive());
 /*      */     }
 /*      */     
-/*      */     public SortedMap<K, V> headMap(K toKey)
-/*      */     {
+/*      */     @Override
+/*      */     public SortedMap<K, V> headMap(K toKey) {
 /* 1773 */       if (!inRange2(toKey)) {
 /* 1774 */         throw new IllegalArgumentException("ToKey is out of range: " + toKey);
 /*      */       }
 /* 1776 */       return createRangeMap(getFromKey(), isFromInclusive(), toKey, isToInclusive());
 /*      */     }
 /*      */     
-/*      */     public SortedMap<K, V> tailMap(K fromKey)
-/*      */     {
+/*      */     @Override
+/*      */     public SortedMap<K, V> tailMap(K fromKey) {
 /* 1781 */       if (!inRange2(fromKey)) {
 /* 1782 */         throw new IllegalArgumentException("FromKey is out of range: " + fromKey);
 /*      */       }
@@ -1884,8 +1884,8 @@
 /* 1884 */       this.toInclusive = toInclusive;
 /*      */     }
 /*      */     
-/*      */     public K firstKey()
-/*      */     {
+/*      */     @Override
+/*      */     public K firstKey() {
 /* 1889 */       Entry<K, V> e = null;
 /* 1890 */       if (this.fromKey == null) {
 /* 1891 */         e = AbstractPatriciaTrie.this.firstEntry();
@@ -1904,8 +1904,8 @@
 /* 1904 */       return first;
 /*      */     }
 /*      */     
-/*      */     public K lastKey()
-/*      */     {
+/*      */     @Override
+/*      */     public K lastKey() {
 /*      */       Entry<K, V> e;
 /* 1910 */       if (this.toKey == null) {
 /* 1911 */         e = AbstractPatriciaTrie.this.lastEntry();
@@ -1924,32 +1924,32 @@
 /* 1924 */       return last;
 /*      */     }
 /*      */     
-/*      */     protected Set<Entry<K, V>> createEntrySet()
-/*      */     {
+/*      */     @Override
+/*      */     protected Set<Entry<K, V>> createEntrySet() {
 /* 1929 */       return new AbstractPatriciaTrie.RangeEntrySet(this);
 /*      */     }
 /*      */     
-/*      */     public K getFromKey()
-/*      */     {
+/*      */     @Override
+/*      */     public K getFromKey() {
 /* 1934 */       return (K)this.fromKey;
 /*      */     }
 /*      */     
-/*      */     public K getToKey()
-/*      */     {
+/*      */     @Override
+/*      */     public K getToKey() {
 /* 1939 */       return (K)this.toKey;
 /*      */     }
 /*      */     
-/*      */     public boolean isFromInclusive()
-/*      */     {
+/*      */     @Override
+/*      */     public boolean isFromInclusive() {
 /* 1944 */       return this.fromInclusive;
 /*      */     }
 /*      */     
-/*      */     public boolean isToInclusive()
-/*      */     {
+/*      */     @Override
+/*      */     public boolean isToInclusive() {
 /* 1949 */       return this.toInclusive;
 /*      */     }
 /*      */     
-/*      */ 
+/*      */     @Override
 /*      */     protected SortedMap<K, V> createRangeMap(K fromKey, boolean fromInclusive, K toKey, boolean toInclusive)
 /*      */     {
 /* 1955 */       return new RangeEntryMap(fromKey, fromInclusive, toKey, toInclusive);
@@ -1978,8 +1978,8 @@
 /* 1978 */       this.delegate = delegate;
 /*      */     }
 /*      */     
-/*      */     public Iterator<Entry<K, V>> iterator()
-/*      */     {
+/*      */     @Override
+/*      */     public Iterator<Entry<K, V>> iterator() {
 /* 1983 */       K fromKey = this.delegate.getFromKey();
 /* 1984 */       K toKey = this.delegate.getToKey();
 /*      */       
@@ -1998,8 +1998,8 @@
 /* 1998 */       return new EntryIterator(first, last);
 /*      */     }
 /*      */     
-/*      */     public int size()
-/*      */     {
+/*      */     @Override
+/*      */     public int size() {
 /* 2003 */       if ((this.size == -1) || (this.expectedModCount != AbstractPatriciaTrie.this.modCount)) {
 /* 2004 */         this.size = 0;
 /*      */         
@@ -2012,12 +2012,12 @@
 /* 2012 */       return this.size;
 /*      */     }
 /*      */     
-/*      */     public boolean isEmpty()
-/*      */     {
+/*      */     @Override
+/*      */     public boolean isEmpty() {
 /* 2017 */       return !iterator().hasNext();
 /*      */     }
 /*      */     
-/*      */ 
+/*      */     @Override
 /*      */     public boolean contains(Object o)
 /*      */     {
 /* 2023 */       if (!(o instanceof Entry)) {
@@ -2034,7 +2034,7 @@
 /* 2034 */       return (node != null) && (AbstractBitwiseTrie.compare(node.getValue(), entry.getValue()));
 /*      */     }
 /*      */     
-/*      */ 
+/*      */     @Override
 /*      */     public boolean remove(Object o)
 /*      */     {
 /* 2040 */       if (!(o instanceof Entry)) {
@@ -2070,8 +2070,8 @@
 /* 2070 */         this.excludedKey = (last != null ? last.getKey() : null);
 /*      */       }
 /*      */       
-/*      */       public boolean hasNext()
-/*      */       {
+/*      */       @Override
+/*      */       public boolean hasNext() {
 /* 2075 */         return (this.next != null) && (!AbstractBitwiseTrie.compare(this.next.key, this.excludedKey));
 /*      */       }
 /*      */       
@@ -2157,8 +2157,8 @@
 /* 2157 */       return this.size;
 /*      */     }
 /*      */     
-/*      */     public K firstKey()
-/*      */     {
+/*      */     @Override
+/*      */     public K firstKey() {
 /* 2162 */       fixup();
 /*      */       
 /* 2164 */       Entry<K, V> e = null;
@@ -2176,8 +2176,8 @@
 /* 2176 */       return first;
 /*      */     }
 /*      */     
-/*      */     public K lastKey()
-/*      */     {
+/*      */     @Override
+/*      */     public K lastKey() {
 /* 2181 */       fixup();
 /*      */       
 /* 2183 */       Entry<K, V> e = null;
@@ -2197,7 +2197,7 @@
 /*      */     
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */     @Override
 /*      */     protected boolean inRange(K key)
 /*      */     {
 /* 2203 */       return AbstractPatriciaTrie.this.getKeyAnalyzer().isPrefix(this.prefix, this.offsetInBits, this.lengthInBits, key);
@@ -2205,7 +2205,7 @@
 /*      */     
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */     @Override
 /*      */     protected boolean inRange2(K key)
 /*      */     {
 /* 2211 */       return inRange(key);
@@ -2213,7 +2213,7 @@
 /*      */     
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */     @Override
 /*      */     protected boolean inFromRange(K key, boolean forceInclusive)
 /*      */     {
 /* 2219 */       return AbstractPatriciaTrie.this.getKeyAnalyzer().isPrefix(this.prefix, this.offsetInBits, this.lengthInBits, key);
@@ -2221,45 +2221,45 @@
 /*      */     
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */     @Override
 /*      */     protected boolean inToRange(K key, boolean forceInclusive)
 /*      */     {
 /* 2227 */       return AbstractPatriciaTrie.this.getKeyAnalyzer().isPrefix(this.prefix, this.offsetInBits, this.lengthInBits, key);
 /*      */     }
 /*      */     
-/*      */     protected Set<Entry<K, V>> createEntrySet()
-/*      */     {
+/*      */     @Override
+/*      */     protected Set<Entry<K, V>> createEntrySet() {
 /* 2232 */       return new AbstractPatriciaTrie.PrefixRangeEntrySet(this);
 /*      */     }
 /*      */     
-/*      */     public K getFromKey()
-/*      */     {
+/*      */     @Override
+/*      */     public K getFromKey() {
 /* 2237 */       return (K)this.fromKey;
 /*      */     }
 /*      */     
-/*      */     public K getToKey()
-/*      */     {
+/*      */     @Override
+/*      */     public K getToKey() {
 /* 2242 */       return (K)this.toKey;
 /*      */     }
 /*      */     
-/*      */     public boolean isFromInclusive()
-/*      */     {
+/*      */     @Override
+/*      */     public boolean isFromInclusive() {
 /* 2247 */       return false;
 /*      */     }
 /*      */     
-/*      */     public boolean isToInclusive()
-/*      */     {
+/*      */     @Override
+/*      */     public boolean isToInclusive() {
 /* 2252 */       return false;
 /*      */     }
 /*      */     
-/*      */ 
+/*      */     @Override
 /*      */     protected SortedMap<K, V> createRangeMap(K fromKey, boolean fromInclusive, K toKey, boolean toInclusive)
 /*      */     {
 /* 2258 */       return new AbstractPatriciaTrie.RangeEntryMap(fromKey, fromInclusive, toKey, toInclusive);
 /*      */     }
 /*      */     
-/*      */     public void clear()
-/*      */     {
+/*      */     @Override
+/*      */     public void clear() {
 /* 2263 */       Iterator<Entry<K, V>> it = AbstractPatriciaTrie.this.entrySet().iterator();
 /* 2264 */       Set<K> currentKeys = keySet();
 /* 2265 */       while (it.hasNext()) {
@@ -2289,13 +2289,13 @@
 /* 2289 */       this.delegate = delegate;
 /*      */     }
 /*      */     
-/*      */     public int size()
-/*      */     {
+/*      */     @Override
+/*      */     public int size() {
 /* 2294 */       return this.delegate.fixup();
 /*      */     }
 /*      */     
-/*      */     public Iterator<Entry<K, V>> iterator()
-/*      */     {
+/*      */     @Override
+/*      */     public Iterator<Entry<K, V>> iterator() {
 /* 2299 */       if (AbstractPatriciaTrie.this.modCount != this.expectedModCount) {
 /* 2300 */         this.prefixStart = AbstractPatriciaTrie.this.subtree(this.delegate.prefix, this.delegate.offsetInBits, this.delegate.lengthInBits);
 /* 2301 */         this.expectedModCount = AbstractPatriciaTrie.this.modCount;
@@ -2324,8 +2324,8 @@
 /* 2324 */         this.entry = entry;
 /*      */       }
 /*      */       
-/*      */       public boolean hasNext()
-/*      */       {
+/*      */       @Override
+/*      */       public boolean hasNext() {
 /* 2329 */         return this.hit == 0;
 /*      */       }
 /*      */       
@@ -2339,8 +2339,8 @@
 /* 2339 */         return this.entry;
 /*      */       }
 /*      */       
-/*      */       public void remove()
-/*      */       {
+/*      */       @Override
+/*      */       public void remove() {
 /* 2344 */         if (this.hit != 1) {
 /* 2345 */           throw new IllegalStateException();
 /*      */         }
@@ -2385,13 +2385,13 @@
 /* 2385 */         return entry;
 /*      */       }
 /*      */       
-/*      */       protected AbstractPatriciaTrie.TrieEntry<K, V> findNext(AbstractPatriciaTrie.TrieEntry<K, V> prior)
-/*      */       {
+/*      */       @Override
+/*      */       protected AbstractPatriciaTrie.TrieEntry<K, V> findNext(AbstractPatriciaTrie.TrieEntry<K, V> prior) {
 /* 2390 */         return AbstractPatriciaTrie.this.nextEntryInSubtree(prior, this.subtree);
 /*      */       }
 /*      */       
 /*      */ 
-/*      */ 
+/*      */       @Override
 /*      */       public void remove()
 /*      */       {
 /* 2397 */         boolean needsFixing = false;

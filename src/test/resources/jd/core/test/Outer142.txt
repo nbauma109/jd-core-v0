@@ -49,12 +49,12 @@
 /*  49 */       System.out.println("Inner1.method2");
 /*     */     }
 /*     */     
-/*     */     @Override
-/*  53 */     public String toString() { return Outer.this.id; }
+/*     */     public String toString() {
+/*  53 */       return Outer.this.id;
+/*     */     }
 /*     */   }
 /*     */   
-/*     */   public void method3()
-/*     */   {
+/*     */   public void method3() {
 /*  58 */     System.out.println("Test.method3");
 /*     */   }
 /*     */   

@@ -36,6 +36,7 @@ import jd.core.util.StringToIndexMap;
 
 public class ConstantPool
 {
+    private final org.apache.bcel.classfile.ConstantPool constantPool;
     private final List<Constant> listOfConstants;
     private final StringToIndexMap constantUtf8ToIndex;
     private final IndexToIndexMap constantClassToIndex;
@@ -43,6 +44,7 @@ public class ConstantPool
     private final int instanceConstructorIndex;
     private final int classConstructorIndex;
     private final int internalDeprecatedSignatureIndex;
+    private final int overrideSignatureIndex;
     private final int toStringIndex;
     private final int valueOfIndex;
     private final int appendIndex;
@@ -58,6 +60,7 @@ public class ConstantPool
 
     public ConstantPool(org.apache.bcel.classfile.ConstantPool constantPool)
     {
+        this.constantPool = constantPool;
         this.listOfConstants = new ArrayList<>();
         this.constantUtf8ToIndex = new StringToIndexMap();
         this.constantClassToIndex = new IndexToIndexMap();
@@ -96,6 +99,10 @@ public class ConstantPool
         // Add internal deprecated signature
         this.internalDeprecatedSignatureIndex =
             addConstantUtf8(StringConstants.INTERNAL_DEPRECATED_SIGNATURE);
+
+        // Add @Override signature
+        this.overrideSignatureIndex =
+            addConstantUtf8("Ljava/lang/Override;");
 
         // -- Add method names --------------------------------------------- //
         // Add 'toString'
@@ -338,6 +345,10 @@ public class ConstantPool
         return internalDeprecatedSignatureIndex;
     }
 
+    public int getOverrideSignatureIndex() {
+        return overrideSignatureIndex;
+    }
+
     public int getObjectClassNameIndex() {
         return objectClassNameIndex;
     }
@@ -372,5 +383,9 @@ public class ConstantPool
     
     public String getLocalVariableName(LocalVariable localVariable) {
         return getConstantUtf8(localVariable.getNameIndex());
+    }
+
+    public org.apache.bcel.classfile.ConstantPool getConstantPool() {
+        return constantPool;
     }
 }

@@ -8,8 +8,8 @@
 /*    */   {
 /*    */     void init()
 /*    */     {
-/* 11 */       new Thread()
-/*    */       {
+/* 11 */       new Thread() {
+/*    */         @Override
 /*    */         public void run() {
 /* 14 */           OuterAcessor.this.init();
 /*    */         }

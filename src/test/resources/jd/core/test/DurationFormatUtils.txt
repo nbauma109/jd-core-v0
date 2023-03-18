@@ -643,7 +643,7 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */     @Override
 /*     */     public boolean equals(Object obj2)
 /*     */     {
 /* 649 */       if ((obj2 instanceof Token)) {
@@ -671,7 +671,7 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */     @Override
 /*     */     public int hashCode()
 /*     */     {
 /* 677 */       return this.value.hashCode();
@@ -681,7 +681,7 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */     @Override
 /*     */     public String toString()
 /*     */     {
 /* 687 */       return StringUtils.repeat(this.value.toString(), this.count);
