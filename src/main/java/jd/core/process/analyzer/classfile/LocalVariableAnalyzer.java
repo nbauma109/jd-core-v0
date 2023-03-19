@@ -38,6 +38,7 @@ import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.DupLoad;
 import jd.core.model.instruction.bytecode.instruction.ExceptionLoad;
+import jd.core.model.instruction.bytecode.instruction.GetField;
 import jd.core.model.instruction.bytecode.instruction.IConst;
 import jd.core.model.instruction.bytecode.instruction.ILoad;
 import jd.core.model.instruction.bytecode.instruction.IfCmp;
@@ -1530,6 +1531,11 @@ public final class LocalVariableAnalyzer
                         lv.getSignature(constants);
                 ali.setReturnedSignature(SignatureUtil.cutArrayDimensionPrefix(signature));
             }
+        }
+        if (ali.getArrayref() instanceof GetField && "B".equals(ali.getReturnedSignature(classFile, localVariables))) {
+            GetField getField = (GetField) ali.getArrayref();
+            String signature = getField.getReturnedSignature(classFile, localVariables);
+            ali.setReturnedSignature(SignatureUtil.cutArrayDimensionPrefix(signature));
         }
     }
 

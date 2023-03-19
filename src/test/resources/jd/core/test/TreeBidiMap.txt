@@ -1998,7 +1998,7 @@
 /*      */ 
 /*      */     private boolean isRed(TreeBidiMap.DataElement dataElement)
 /*      */     {
-/* 2001 */       return this.blackColor[dataElement.ordinal()] == 0;
+/* 2001 */       return !this.blackColor[dataElement.ordinal()];
 /*      */     }
 /*      */     
 /*      */ 
