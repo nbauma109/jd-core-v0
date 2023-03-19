@@ -615,7 +615,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
                 }
                 break;
             case Const.POP:
-                lineNumber = visit(instruction, ((Pop)instruction).getObjectref());
+                lineNumber = visit(((Pop)instruction).getObjectref());
                 break;
             case Const.PUTFIELD:
                 {

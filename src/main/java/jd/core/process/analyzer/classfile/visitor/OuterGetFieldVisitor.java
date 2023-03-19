@@ -76,11 +76,16 @@ public class OuterGetFieldVisitor extends OuterGetStaticVisitor
         Accessor accessor = classFile.getAccessor(name, descriptor);
 
         if (accessor == null ||
-            accessor.tag() != AccessorConstants.ACCESSOR_GETFIELD) {
+            accessor.tag() != getTargetTag()) {
             return null;
         }
 
         return accessor;
+    }
+
+    protected byte getTargetTag()
+    {
+        return AccessorConstants.ACCESSOR_GETFIELD;
     }
 
     @Override

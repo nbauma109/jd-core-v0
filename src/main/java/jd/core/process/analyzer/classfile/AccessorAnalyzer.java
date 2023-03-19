@@ -28,6 +28,7 @@ import jd.core.model.classfile.Method;
 import jd.core.model.classfile.accessor.AccessorConstants;
 import jd.core.model.classfile.accessor.GetFieldAccessor;
 import jd.core.model.classfile.accessor.GetStaticAccessor;
+import jd.core.model.classfile.accessor.IncGetFieldAccessor;
 import jd.core.model.classfile.accessor.InvokeMethodAccessor;
 import jd.core.model.classfile.accessor.PutFieldAccessor;
 import jd.core.model.classfile.accessor.PutStaticAccessor;
@@ -35,6 +36,7 @@ import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.ALoad;
 import jd.core.model.instruction.bytecode.instruction.GetField;
 import jd.core.model.instruction.bytecode.instruction.GetStatic;
+import jd.core.model.instruction.bytecode.instruction.IncInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeInstruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
@@ -63,6 +65,11 @@ public final class AccessorAnalyzer
         // Recherche des accesseurs de champs statiques
         //   static void access$0(int)
         if (searchPutStaticAccessor(classFile, method)) {
+            return;
+        }
+
+        // Recherche des accesseurs de champs avec increment
+        if (searchIncGetFieldAccessor(classFile, method)) {
             return;
         }
 
@@ -261,6 +268,58 @@ public final class AccessorAnalyzer
         return true;
     }
 
+    private static boolean searchIncGetFieldAccessor(
+            ClassFile classFile, Method method)
+    {
+        List<Instruction> list = method.getInstructions();
+        if (list.size() != 1) {
+            return false;
+        }
+        
+        Instruction instruction = list.get(0);
+        if (instruction.getOpcode() != ByteCodeConstants.XRETURN) {
+            return false;
+        }
+        
+        instruction = ((ReturnInstruction)instruction).getValueref();
+        if (!(instruction instanceof IncInstruction)) {
+            return false;
+        }
+        IncInstruction inc = (IncInstruction) instruction;
+        ConstantPool constants = classFile.getConstantPool();
+        ConstantFieldref cfr = constants.getConstantFieldref(
+                ((GetField)inc.getValue()).getIndex());
+        
+        if (cfr.getClassIndex() != classFile.getThisClassIndex()) {
+            return false;
+        }
+        
+        String methodDescriptor =
+                constants.getConstantUtf8(method.getDescriptorIndex());
+        if (methodDescriptor.charAt(1) == ')') {
+            return false;
+        }
+        if (SignatureUtil.getParameterSignatureCount(methodDescriptor) != 1) {
+            return false;
+        }
+        
+        String methodName = constants.getConstantUtf8(method.getNameIndex());
+        
+        ConstantNameAndType cnat = constants.getConstantNameAndType(
+                cfr.getNameAndTypeIndex());
+        
+        String fieldDescriptor = constants.getConstantUtf8(cnat.getSignatureIndex());
+        String fieldName = constants.getConstantUtf8(cnat.getNameIndex());
+        
+        // Trouve ! Ajout de l'accesseur.
+        classFile.addAccessor(methodName, methodDescriptor,
+                new IncGetFieldAccessor(
+                        AccessorConstants.ACCESSOR_INC_GETFIELD,
+                        classFile.getThisClassName(), fieldName, fieldDescriptor,
+                        inc.getCount(), inc.getOpcode()));
+        return true;
+    }
+    
     /* Recherche des accesseurs de champs:
      *   static void access$0(TestInnerClass, int)
      *   {

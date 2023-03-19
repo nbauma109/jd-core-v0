@@ -27,6 +27,7 @@ import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.process.analyzer.classfile.visitor.OuterGetFieldVisitor;
 import jd.core.process.analyzer.classfile.visitor.OuterGetStaticVisitor;
+import jd.core.process.analyzer.classfile.visitor.OuterIncGetFieldVisitor;
 import jd.core.process.analyzer.classfile.visitor.OuterInvokeMethodVisitor;
 import jd.core.process.analyzer.classfile.visitor.OuterPutFieldVisitor;
 import jd.core.process.analyzer.classfile.visitor.OuterPutStaticVisitor;
@@ -49,6 +50,7 @@ public class OuterReferenceReconstructor
 
     private final OuterGetStaticVisitor outerGetStaticVisitor;
     private final OuterPutStaticVisitor outerPutStaticVisitor;
+    private final OuterIncGetFieldVisitor outerIncGetFieldVisitor;
     private final OuterGetFieldVisitor outerGetFieldVisitor;
     private final OuterPutFieldVisitor outerPutFieldVisitor;
     private final OuterInvokeMethodVisitor outerMethodVisitor;
@@ -69,8 +71,10 @@ public class OuterReferenceReconstructor
         this.outerAccessorVisitor =
             new ReplaceOuterAccessorVisitor(classFile);
         // Initialisation des visiteurs traitant l'acces des champs externes
+        this.outerIncGetFieldVisitor =
+            new OuterIncGetFieldVisitor(innerClassesMap, constants);
         this.outerGetFieldVisitor =
-            new OuterGetFieldVisitor(innerClassesMap, constants);
+                new OuterGetFieldVisitor(innerClassesMap, constants);
         this.outerPutFieldVisitor =
             new OuterPutFieldVisitor(innerClassesMap, constants);
         // Initialisation du visiteur traitant l'acces des champs statics externes
@@ -101,6 +105,7 @@ public class OuterReferenceReconstructor
         }
 
         // Replace outer field accessors
+        this.outerIncGetFieldVisitor.visit(list);
         this.outerGetFieldVisitor.visit(list);
         this.outerPutFieldVisitor.visit(list);
         // Replace outer static field accessors
