@@ -1532,7 +1532,20 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
             constants.getConstantNameAndType(cfr.getNameAndTypeIndex());
         Field field =
             this.classFile.getField(cnat.getNameIndex(), cnat.getSignatureIndex());
-
+        Instruction objectref = getField.getObjectref();
+        ClassFile outerClass = classFile.getOuterClass();
+        if (field == null && objectref instanceof GetStatic && outerClass != null)
+        {
+            GetStatic gs = (GetStatic) objectref;
+            String returnedSignature = gs.getReturnedSignature(classFile, localVariables);
+            String internalName = SignatureUtil.getInternalName(returnedSignature);
+            String outerClassName = outerClass.getThisClassName();
+            if (outerClassName.equals(internalName)) {
+                String fieldName = constants.getConstantUtf8(cnat.getNameIndex());
+                String fieldSignature = constants.getConstantUtf8(cnat.getSignatureIndex());
+                field = outerClass.getField(fieldName, fieldSignature);
+            }
+        }
         if (field != null &&
             field.getOuterMethodLocalVariableNameIndex() != UtilConstants.INVALID_INDEX)
         {
@@ -1562,13 +1575,13 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
 
             if (this.localVariables.containsLocalVariableWithNameIndex(cnat.getNameIndex()))
             {
-                if (getField.getObjectref().getOpcode() == Const.ALOAD) {
-                    if (((ALoad)getField.getObjectref()).getIndex() == 0) {
+                if (objectref.getOpcode() == Const.ALOAD) {
+                    if (((ALoad)objectref).getIndex() == 0) {
                         displayPrefix = true;
                     }
-                } else if (getField.getObjectref().getOpcode() == ByteCodeConstants.OUTERTHIS && !needAPrefixForThisField(
+                } else if (objectref.getOpcode() == ByteCodeConstants.OUTERTHIS && !needAPrefixForThisField(
                         cnat.getNameIndex(), cnat.getSignatureIndex(),
-                        (GetStatic)getField.getObjectref())) {
+                        (GetStatic)objectref)) {
                     displayPrefix = true;
                 }
             }
@@ -1576,11 +1589,11 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
             String fieldName = this.constants.getConstantUtf8(cnat.getNameIndex());
             if (fieldName.startsWith("val$") && field != null && (field.getAccessFlags() & Const.ACC_SYNTHETIC) != 0) {
                 fieldName = fieldName.substring(4);
-                getField.getObjectref().setHidden(true);
+                objectref.setHidden(true);
             }
 
             if (this.firstOffset <= this.previousOffset &&
-                getField.getObjectref().getOffset() <= this.lastOffset)
+                objectref.getOffset() <= this.lastOffset)
             {
                 if (!displayPrefix)
                 {
@@ -1588,8 +1601,8 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
                     this.printer.startOfOptionalPrefix();
                 }
 
-                lineNumber = visit(getField, getField.getObjectref());
-                if (!getField.getObjectref().isHidden()) {
+                lineNumber = visit(getField, objectref);
+                if (!objectref.isHidden()) {
                     this.printer.print(lineNumber, '.');
                 }
 
