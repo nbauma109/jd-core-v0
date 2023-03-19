@@ -315,8 +315,8 @@ public final class AccessorAnalyzer
         classFile.addAccessor(methodName, methodDescriptor,
                 new IncGetFieldAccessor(
                         AccessorConstants.ACCESSOR_INC_GETFIELD,
-                        classFile.getThisClassName(), fieldName, fieldDescriptor, inc.getCount(), inc.getOpcode()));
-        
+                        classFile.getThisClassName(), fieldName, fieldDescriptor,
+                        inc.getCount(), inc.getOpcode()));
         return true;
     }
     

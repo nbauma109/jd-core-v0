@@ -728,6 +728,7 @@ public final class ClassFileAnalyzer
         if ((method.getAccessFlags() & (Const.ACC_PUBLIC|Const.ACC_PROTECTED|Const.ACC_PRIVATE|Const.ACC_STATIC)) == Const.ACC_STATIC &&
                 hasAAccessorMethodName(classFile, method))
         {
+            PreIncReconstructor.reconstruct(list);
             PostIncReconstructor.reconstruct(list);
             DupStoreThisReconstructor.reconstruct(list);
             // Recherche des accesseurs
