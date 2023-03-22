@@ -21,9 +21,11 @@ import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.Signature;
+import org.jd.core.v1.model.javasyntax.type.BaseTypeArgument;
 import org.jd.core.v1.model.javasyntax.type.GenericType;
 import org.jd.core.v1.model.javasyntax.type.ObjectType;
 import org.jd.core.v1.model.javasyntax.type.Type;
+import org.jd.core.v1.model.javasyntax.type.WildcardTypeArgument;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
 import org.jd.core.v1.util.StringConstants;
 
@@ -1572,11 +1574,21 @@ public final class FastInstructionListBuilder {
                                             && lvType.getDimension() == castType.getDimension()) {
                                         cc.setIndex(lv.getSignatureIndex());
                                     }
-                                } else if (lvType.isGenericType() && expressionSignature != null) {
+                                } else if (expressionSignature != null) {
                                     Type expressionType = typeMaker.makeFromSignature(expressionSignature);
-                                    if (!expressionType.isGenericType()) {
+                                    if (lvType.isGenericType() && !expressionType.isGenericType()) {
                                         si.setValueref(new CheckCast(Const.CHECKCAST, si.getOffset(),
                                             si.getLineNumber(), lv.getSignatureIndex(), valueref));
+                                    }
+                                    if (lvType.isObjectType() && expressionType.isObjectType()) {
+                                        ObjectType otLeft = (ObjectType) lvType;
+                                        ObjectType otRight = (ObjectType) expressionType;
+                                        BaseTypeArgument typeArgsLeft = otLeft.getTypeArguments();
+                                        BaseTypeArgument typeArgsRight = otRight.getTypeArguments();
+                                        if (typeArgsLeft instanceof ObjectType && typeArgsRight instanceof WildcardTypeArgument) {
+                                            si.setValueref(new CheckCast(Const.CHECKCAST, si.getOffset(),
+                                                si.getLineNumber(), lv.getSignatureIndex(), valueref));
+                                        }
                                     }
                                 }
                                 lv.setDeclarationFlag(DECLARED);
