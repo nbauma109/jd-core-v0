@@ -70,8 +70,15 @@ public final class ClassFileDeserializer
             }
         }
 
+        // Add flag for @Override annotations
+        addOverrideFlag(classFile);
+
+        if (skipInnerClasses) {
+            return classFile;
+        }
+
         InnerClasses aics = classFile.getAttributeInnerClasses();
-        if (aics == null || skipInnerClasses) {
+        if (aics == null) {
             return classFile;
         }
 
@@ -126,19 +133,15 @@ public final class ClassFileDeserializer
         // Add inner classes
         classFile.setInnerClassFiles(innerClassFiles);
 
-        // Add @Override annotations
-        addOverrideFlag(classFile);
-
         return classFile;
     }
 
     private static void addOverrideFlag(ClassFile classFile) {
         for (Method method : classFile.getMethods()) {
-            if (!method.isOverride() && addOverride(classFile, method)) {
+            if (addOverride(classFile, method)) {
                 method.setOverride(true);
             }
         }
-        classFile.getInnerClassFiles().forEach(ClassFileDeserializer::addOverrideFlag);
     }
 
     private static boolean addOverride(ClassFile classFile, Method method) {

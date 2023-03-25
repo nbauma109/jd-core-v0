@@ -1427,10 +1427,10 @@
 /* 1427 */       AbstractPatriciaTrie.this.clear();
 /*      */     }
 /*      */     
-/*      */ 
 /*      */     private class EntryIterator
 /*      */       extends AbstractPatriciaTrie<K, V>.TrieIterator<Entry<K, V>>
 /*      */     {
+/*      */       @Override
 /*      */       public Entry<K, V> next()
 /*      */       {
 /* 1436 */         return nextEntry();
@@ -2075,8 +2075,8 @@
 /* 2075 */         return this.next != null && !AbstractBitwiseTrie.compare(this.next.key, this.excludedKey);
 /*      */       }
 /*      */       
-/*      */       public Entry<K, V> next()
-/*      */       {
+/*      */       @Override
+/*      */       public Entry<K, V> next() {
 /* 2080 */         if (this.next == null || AbstractBitwiseTrie.compare(this.next.key, this.excludedKey)) {
 /* 2081 */           throw new NoSuchElementException();
 /*      */         }
@@ -2329,8 +2329,8 @@
 /* 2329 */         return this.hit == 0;
 /*      */       }
 /*      */       
-/*      */       public Entry<K, V> next()
-/*      */       {
+/*      */       @Override
+/*      */       public Entry<K, V> next() {
 /* 2334 */         if (this.hit != 0) {
 /* 2335 */           throw new NoSuchElementException();
 /*      */         }
@@ -2376,8 +2376,8 @@
 /* 2376 */         this.lengthInBits = lengthInBits;
 /*      */       }
 /*      */       
-/*      */       public Entry<K, V> next()
-/*      */       {
+/*      */       @Override
+/*      */       public Entry<K, V> next() {
 /* 2381 */         Entry<K, V> entry = nextEntry();
 /* 2382 */         if (this.lastOne) {
 /* 2383 */           this.next = null;

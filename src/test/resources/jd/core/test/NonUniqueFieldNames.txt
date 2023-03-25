@@ -21,11 +21,13 @@ public class NonUniqueFieldNames
   List<T> jdField_xOfType_JavaUtilListOf_T;
   Map<? extends T, ? super T> jdField_xOfType_JavaUtilMapOf_Extends_TAnd_Super_T;
   
+  @java.lang.Override
   public int hashCode()
   {
     int i = 31; int j = 1; j = 31 * j + this.jdField_xOfType_Byte; j = 31 * j + Arrays.hashCode(this.jdField_xOfType_ArrayOfByte); j = 31 * j + Arrays.deepHashCode(this.jdField_xOfType_Array2dOfByte); j = 31 * j + this.jdField_xOfType_Char; long l = Double.doubleToLongBits(this.jdField_xOfType_Double); j = 31 * j + (int)(l ^ l >>> 32); j = 31 * j + Float.floatToIntBits(this.jdField_xOfType_Float); j = 31 * j + (this.jdField_xOfType_Boolean ? 1231 : 1237); j = 31 * j + this.jdField_xOfType_Int; j = 31 * j + (int)(this.jdField_xOfType_Long ^ this.jdField_xOfType_Long >>> 32); j = 31 * j + (this.jdField_xOfType_JavaUtilMap == null ? 0 : this.jdField_xOfType_JavaUtilMap.hashCode()); j = 31 * j + this.jdField_xOfType_Short; j = 31 * j + (this.jdField_xOfType_JavaLangString == null ? 0 : this.jdField_xOfType_JavaLangString.hashCode()); j = 31 * j + (this.jdField_xOfType_JavaUtilList == null ? 0 : this.jdField_xOfType_JavaUtilList.hashCode()); j = 31 * j + (this.jdField_xOfType_JavaUtilList == null ? 0 : this.jdField_xOfType_JavaUtilList.hashCode()); return j;
   }
   
+  @java.lang.Override
   public boolean equals(Object arg0)
   {
     if (this == arg0) {
