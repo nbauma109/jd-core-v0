@@ -77,7 +77,8 @@ public final class CheckLocalVariableUsedVisitor
 {
     private CheckLocalVariableUsedVisitor() {
     }
-        public static boolean visit(
+
+    public static boolean visit(
         LocalVariables localVariables, int maxOffset, Instruction instruction)
     {
         switch (instruction.getOpcode())
