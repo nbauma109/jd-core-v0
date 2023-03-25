@@ -138,7 +138,7 @@ public final class ClassFileDeserializer
 
     private static void addOverrideFlag(ClassFile classFile) {
         for (Method method : classFile.getMethods()) {
-            if (!method.isOverride() && addOverride(classFile, method)) {
+            if (addOverride(classFile, method)) {
                 method.setOverride(true);
             }
         }
