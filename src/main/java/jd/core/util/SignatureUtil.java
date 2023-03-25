@@ -189,6 +189,11 @@ public final class SignatureUtil
         };
     }
 
+    public static boolean isGenericSignature(String signature)
+    {
+        return signature.charAt(0) == 'T';
+    }
+
     public static boolean isPrimitiveSignature(String signature)
     {
         return isPrimitiveSignature(signature, PRIMITIVE_SIGNATURES);

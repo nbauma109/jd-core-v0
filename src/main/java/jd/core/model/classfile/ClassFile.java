@@ -428,8 +428,8 @@ public class ClassFile extends Base
                         List<String> methodParameters = SignatureUtil.getParameterSignatures(methodDescriptor);
                         List<String> genericParameters = SignatureUtil.getParameterSignatures(signature);
                         if (methodParameters.equals(genericParameters) ||
-                        (genericParameters.stream().allMatch(p -> p.charAt(0) == 'T')
-                         && methodParameters.stream().allMatch(p -> !SignatureUtil.isPrimitiveSignature(p)))) {
+                        (genericParameters.stream().allMatch(SignatureUtil::isGenericSignature)
+                         && methodParameters.stream().noneMatch(SignatureUtil::isPrimitiveSignature))) {
                             return method;
                         }
                     }
