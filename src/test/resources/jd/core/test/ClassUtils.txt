@@ -1498,8 +1498,8 @@
 /* 1498 */           return next.getValue() != null;
 /*      */         }
 /*      */         
-/*      */         public Class<?> next()
-/*      */         {
+/*      */         @Override
+/*      */         public Class<?> next() {
 /* 1503 */           Class result = (Class)next.getValue();
 /* 1504 */           next.setValue(result.getSuperclass());
 /* 1505 */           return result;
@@ -1527,8 +1527,8 @@
 /* 1527 */           return this.interfaces.hasNext() || wrapped.hasNext();
 /*      */         }
 /*      */         
-/*      */         public Class<?> next()
-/*      */         {
+/*      */         @Override
+/*      */         public Class<?> next() {
 /* 1532 */           if (this.interfaces.hasNext()) {
 /* 1533 */             Class nextInterface = (Class)this.interfaces.next();
 /* 1534 */             seenInterfaces.add(nextInterface);

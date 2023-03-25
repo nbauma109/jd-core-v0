@@ -172,7 +172,7 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */   @Override
 /*     */   public String toString()
 /*     */   {
 /* 178 */     return toString(this.style);
@@ -212,7 +212,7 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */   @Override
 /*     */   public Iterator<Diff<?>> iterator()
 /*     */   {
 /* 218 */     return this.diffList.iterator();

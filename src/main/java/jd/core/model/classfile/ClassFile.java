@@ -416,9 +416,23 @@ public class ClassFile extends Base
             {
                 String descriptor =
                     this.constants.getConstantUtf8(method.getDescriptorIndex());
-
+                Signature attributeSignature = method.getAttributeSignature();
                 if (methodDescriptor.equals(descriptor)) {
                     return method;
+                }
+                if (attributeSignature != null) {
+                    String signature = attributeSignature.getSignature();
+                    int nbrOfParameters1 = SignatureUtil.getParameterSignatureCount(methodDescriptor);
+                    int nbrOfParameters2 = SignatureUtil.getParameterSignatureCount(descriptor);
+                    if (nbrOfParameters1 == nbrOfParameters2) {
+                        List<String> methodParameters = SignatureUtil.getParameterSignatures(methodDescriptor);
+                        List<String> genericParameters = SignatureUtil.getParameterSignatures(signature);
+                        if (methodParameters.equals(genericParameters) ||
+                        (genericParameters.stream().allMatch(p -> p.charAt(0) == 'T')
+                         && methodParameters.stream().allMatch(p -> !SignatureUtil.isPrimitiveSignature(p)))) {
+                            return method;
+                        }
+                    }
                 }
             }
         }

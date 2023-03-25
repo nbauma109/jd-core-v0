@@ -24,8 +24,8 @@
 /*    */   }
 /*    */   
 /*    */   void forEachWithAnonymousClass(List<String> elements) {
-/* 27 */     elements.forEach(new java.util.function.Consumer<>()
-/*    */     {
+/* 27 */     elements.forEach(new java.util.function.Consumer<>() {
+/*    */       @Override
 /*    */       public void accept(String o) {
 /* 30 */         ForEach.this.print(o);
 /*    */       }

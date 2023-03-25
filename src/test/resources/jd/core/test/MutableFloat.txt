@@ -77,7 +77,7 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */   @Override
 /*     */   public Float getValue()
 /*     */   {
 /*  83 */     return Float.valueOf(this.value);
@@ -97,7 +97,7 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */   @Override
 /*     */   public void setValue(Number value)
 /*     */   {
 /* 103 */     this.value = value.floatValue();
@@ -296,7 +296,7 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */   @Override
 /*     */   public int intValue()
 /*     */   {
 /* 302 */     return (int)this.value;
@@ -306,7 +306,7 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */   @Override
 /*     */   public long longValue()
 /*     */   {
 /* 312 */     return (long)this.value;
@@ -316,7 +316,7 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */   @Override
 /*     */   public float floatValue()
 /*     */   {
 /* 322 */     return this.value;
@@ -326,7 +326,7 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */   @Override
 /*     */   public double doubleValue()
 /*     */   {
 /* 332 */     return this.value;
@@ -373,7 +373,7 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */   @Override
 /*     */   public boolean equals(Object obj)
 /*     */   {
 /* 379 */     return (obj instanceof MutableFloat) && 
@@ -384,7 +384,7 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */   @Override
 /*     */   public int hashCode()
 /*     */   {
 /* 390 */     return Float.floatToIntBits(this.value);
@@ -396,7 +396,7 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */   @Override
 /*     */   public int compareTo(MutableFloat other)
 /*     */   {
 /* 402 */     return Float.compare(this.value, other.value);
@@ -407,7 +407,7 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */   @Override
 /*     */   public String toString()
 /*     */   {
 /* 413 */     return String.valueOf(this.value);

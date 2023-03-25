@@ -171,16 +171,16 @@
 /* 171 */       return this;
 /*     */     }
 /* 173 */     if (lhs != rhs) {
-/* 174 */       this.diffs.add(new Diff<Boolean>(fieldName)
-/*     */       {
+/* 174 */       this.diffs.add(new Diff<Boolean>(fieldName) {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
+/*     */         @Override
 /*     */         public Boolean getLeft() {
 /* 179 */           return Boolean.valueOf(lhs);
 /*     */         }
 /*     */         
-/*     */         public Boolean getRight()
-/*     */         {
+/*     */         @Override
+/*     */         public Boolean getRight() {
 /* 184 */           return Boolean.valueOf(rhs);
 /*     */         }
 /*     */       });
@@ -210,16 +210,16 @@
 /* 210 */       return this;
 /*     */     }
 /* 212 */     if (!Arrays.equals(lhs, rhs)) {
-/* 213 */       this.diffs.add(new Diff<Boolean[]>(fieldName)
-/*     */       {
+/* 213 */       this.diffs.add(new Diff<Boolean[]>(fieldName) {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
+/*     */         @Override
 /*     */         public Boolean[] getLeft() {
 /* 218 */           return ArrayUtils.toObject(lhs);
 /*     */         }
 /*     */         
-/*     */         public Boolean[] getRight()
-/*     */         {
+/*     */         @Override
+/*     */         public Boolean[] getRight() {
 /* 223 */           return ArrayUtils.toObject(rhs);
 /*     */         }
 /*     */       });
@@ -249,16 +249,16 @@
 /* 249 */       return this;
 /*     */     }
 /* 251 */     if (lhs != rhs) {
-/* 252 */       this.diffs.add(new Diff<Byte>(fieldName)
-/*     */       {
+/* 252 */       this.diffs.add(new Diff<Byte>(fieldName) {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
+/*     */         @Override
 /*     */         public Byte getLeft() {
 /* 257 */           return Byte.valueOf(lhs);
 /*     */         }
 /*     */         
-/*     */         public Byte getRight()
-/*     */         {
+/*     */         @Override
+/*     */         public Byte getRight() {
 /* 262 */           return Byte.valueOf(rhs);
 /*     */         }
 /*     */       });
@@ -289,16 +289,16 @@
 /* 289 */       return this;
 /*     */     }
 /* 291 */     if (!Arrays.equals(lhs, rhs)) {
-/* 292 */       this.diffs.add(new Diff<Byte[]>(fieldName)
-/*     */       {
+/* 292 */       this.diffs.add(new Diff<Byte[]>(fieldName) {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
+/*     */         @Override
 /*     */         public Byte[] getLeft() {
 /* 297 */           return ArrayUtils.toObject(lhs);
 /*     */         }
 /*     */         
-/*     */         public Byte[] getRight()
-/*     */         {
+/*     */         @Override
+/*     */         public Byte[] getRight() {
 /* 302 */           return ArrayUtils.toObject(rhs);
 /*     */         }
 /*     */       });
@@ -329,16 +329,16 @@
 /* 329 */       return this;
 /*     */     }
 /* 331 */     if (lhs != rhs) {
-/* 332 */       this.diffs.add(new Diff<Character>(fieldName)
-/*     */       {
+/* 332 */       this.diffs.add(new Diff<Character>(fieldName) {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
+/*     */         @Override
 /*     */         public Character getLeft() {
 /* 337 */           return Character.valueOf(lhs);
 /*     */         }
 /*     */         
-/*     */         public Character getRight()
-/*     */         {
+/*     */         @Override
+/*     */         public Character getRight() {
 /* 342 */           return Character.valueOf(rhs);
 /*     */         }
 /*     */       });
@@ -369,16 +369,16 @@
 /* 369 */       return this;
 /*     */     }
 /* 371 */     if (!Arrays.equals(lhs, rhs)) {
-/* 372 */       this.diffs.add(new Diff<Character[]>(fieldName)
-/*     */       {
+/* 372 */       this.diffs.add(new Diff<Character[]>(fieldName) {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
+/*     */         @Override
 /*     */         public Character[] getLeft() {
 /* 377 */           return ArrayUtils.toObject(lhs);
 /*     */         }
 /*     */         
-/*     */         public Character[] getRight()
-/*     */         {
+/*     */         @Override
+/*     */         public Character[] getRight() {
 /* 382 */           return ArrayUtils.toObject(rhs);
 /*     */         }
 /*     */       });
@@ -409,16 +409,16 @@
 /* 409 */       return this;
 /*     */     }
 /* 411 */     if (Double.doubleToLongBits(lhs) != Double.doubleToLongBits(rhs)) {
-/* 412 */       this.diffs.add(new Diff<Double>(fieldName)
-/*     */       {
+/* 412 */       this.diffs.add(new Diff<Double>(fieldName) {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
+/*     */         @Override
 /*     */         public Double getLeft() {
 /* 417 */           return Double.valueOf(lhs);
 /*     */         }
 /*     */         
-/*     */         public Double getRight()
-/*     */         {
+/*     */         @Override
+/*     */         public Double getRight() {
 /* 422 */           return Double.valueOf(rhs);
 /*     */         }
 /*     */       });
@@ -449,16 +449,16 @@
 /* 449 */       return this;
 /*     */     }
 /* 451 */     if (!Arrays.equals(lhs, rhs)) {
-/* 452 */       this.diffs.add(new Diff<Double[]>(fieldName)
-/*     */       {
+/* 452 */       this.diffs.add(new Diff<Double[]>(fieldName) {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
+/*     */         @Override
 /*     */         public Double[] getLeft() {
 /* 457 */           return ArrayUtils.toObject(lhs);
 /*     */         }
 /*     */         
-/*     */         public Double[] getRight()
-/*     */         {
+/*     */         @Override
+/*     */         public Double[] getRight() {
 /* 462 */           return ArrayUtils.toObject(rhs);
 /*     */         }
 /*     */       });
@@ -489,16 +489,16 @@
 /* 489 */       return this;
 /*     */     }
 /* 491 */     if (Float.floatToIntBits(lhs) != Float.floatToIntBits(rhs)) {
-/* 492 */       this.diffs.add(new Diff<Float>(fieldName)
-/*     */       {
+/* 492 */       this.diffs.add(new Diff<Float>(fieldName) {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
+/*     */         @Override
 /*     */         public Float getLeft() {
 /* 497 */           return Float.valueOf(lhs);
 /*     */         }
 /*     */         
-/*     */         public Float getRight()
-/*     */         {
+/*     */         @Override
+/*     */         public Float getRight() {
 /* 502 */           return Float.valueOf(rhs);
 /*     */         }
 /*     */       });
@@ -529,16 +529,16 @@
 /* 529 */       return this;
 /*     */     }
 /* 531 */     if (!Arrays.equals(lhs, rhs)) {
-/* 532 */       this.diffs.add(new Diff<Float[]>(fieldName)
-/*     */       {
+/* 532 */       this.diffs.add(new Diff<Float[]>(fieldName) {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
+/*     */         @Override
 /*     */         public Float[] getLeft() {
 /* 537 */           return ArrayUtils.toObject(lhs);
 /*     */         }
 /*     */         
-/*     */         public Float[] getRight()
-/*     */         {
+/*     */         @Override
+/*     */         public Float[] getRight() {
 /* 542 */           return ArrayUtils.toObject(rhs);
 /*     */         }
 /*     */       });
@@ -569,16 +569,16 @@
 /* 569 */       return this;
 /*     */     }
 /* 571 */     if (lhs != rhs) {
-/* 572 */       this.diffs.add(new Diff<Integer>(fieldName)
-/*     */       {
+/* 572 */       this.diffs.add(new Diff<Integer>(fieldName) {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
+/*     */         @Override
 /*     */         public Integer getLeft() {
 /* 577 */           return Integer.valueOf(lhs);
 /*     */         }
 /*     */         
-/*     */         public Integer getRight()
-/*     */         {
+/*     */         @Override
+/*     */         public Integer getRight() {
 /* 582 */           return Integer.valueOf(rhs);
 /*     */         }
 /*     */       });
@@ -609,16 +609,16 @@
 /* 609 */       return this;
 /*     */     }
 /* 611 */     if (!Arrays.equals(lhs, rhs)) {
-/* 612 */       this.diffs.add(new Diff<Integer[]>(fieldName)
-/*     */       {
+/* 612 */       this.diffs.add(new Diff<Integer[]>(fieldName) {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
+/*     */         @Override
 /*     */         public Integer[] getLeft() {
 /* 617 */           return ArrayUtils.toObject(lhs);
 /*     */         }
 /*     */         
-/*     */         public Integer[] getRight()
-/*     */         {
+/*     */         @Override
+/*     */         public Integer[] getRight() {
 /* 622 */           return ArrayUtils.toObject(rhs);
 /*     */         }
 /*     */       });
@@ -649,16 +649,16 @@
 /* 649 */       return this;
 /*     */     }
 /* 651 */     if (lhs != rhs) {
-/* 652 */       this.diffs.add(new Diff<Long>(fieldName)
-/*     */       {
+/* 652 */       this.diffs.add(new Diff<Long>(fieldName) {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
+/*     */         @Override
 /*     */         public Long getLeft() {
 /* 657 */           return Long.valueOf(lhs);
 /*     */         }
 /*     */         
-/*     */         public Long getRight()
-/*     */         {
+/*     */         @Override
+/*     */         public Long getRight() {
 /* 662 */           return Long.valueOf(rhs);
 /*     */         }
 /*     */       });
@@ -689,16 +689,16 @@
 /* 689 */       return this;
 /*     */     }
 /* 691 */     if (!Arrays.equals(lhs, rhs)) {
-/* 692 */       this.diffs.add(new Diff<Long[]>(fieldName)
-/*     */       {
+/* 692 */       this.diffs.add(new Diff<Long[]>(fieldName) {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
+/*     */         @Override
 /*     */         public Long[] getLeft() {
 /* 697 */           return ArrayUtils.toObject(lhs);
 /*     */         }
 /*     */         
-/*     */         public Long[] getRight()
-/*     */         {
+/*     */         @Override
+/*     */         public Long[] getRight() {
 /* 702 */           return ArrayUtils.toObject(rhs);
 /*     */         }
 /*     */       });
@@ -729,16 +729,16 @@
 /* 729 */       return this;
 /*     */     }
 /* 731 */     if (lhs != rhs) {
-/* 732 */       this.diffs.add(new Diff<Short>(fieldName)
-/*     */       {
+/* 732 */       this.diffs.add(new Diff<Short>(fieldName) {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
+/*     */         @Override
 /*     */         public Short getLeft() {
 /* 737 */           return Short.valueOf(lhs);
 /*     */         }
 /*     */         
-/*     */         public Short getRight()
-/*     */         {
+/*     */         @Override
+/*     */         public Short getRight() {
 /* 742 */           return Short.valueOf(rhs);
 /*     */         }
 /*     */       });
@@ -769,16 +769,16 @@
 /* 769 */       return this;
 /*     */     }
 /* 771 */     if (!Arrays.equals(lhs, rhs)) {
-/* 772 */       this.diffs.add(new Diff<Short[]>(fieldName)
-/*     */       {
+/* 772 */       this.diffs.add(new Diff<Short[]>(fieldName) {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
+/*     */         @Override
 /*     */         public Short[] getLeft() {
 /* 777 */           return ArrayUtils.toObject(lhs);
 /*     */         }
 /*     */         
-/*     */         public Short[] getRight()
-/*     */         {
+/*     */         @Override
+/*     */         public Short[] getRight() {
 /* 782 */           return ArrayUtils.toObject(rhs);
 /*     */         }
 /*     */       });
@@ -893,16 +893,16 @@
 /*     */     }
 /*     */     
 /* 895 */     if (!Arrays.equals(lhs, rhs)) {
-/* 896 */       this.diffs.add(new Diff<Object[]>(fieldName)
-/*     */       {
+/* 896 */       this.diffs.add(new Diff<Object[]>(fieldName) {
 /*     */         private static final long serialVersionUID = 1L;
 /*     */         
+/*     */         @Override
 /*     */         public Object[] getLeft() {
 /* 901 */           return lhs;
 /*     */         }
 /*     */         
-/*     */         public Object[] getRight()
-/*     */         {
+/*     */         @Override
+/*     */         public Object[] getRight() {
 /* 906 */           return rhs;
 /*     */         }
 /*     */       });
@@ -970,7 +970,7 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
+/*     */   @Override
 /*     */   public DiffResult<T> build()
 /*     */   {
 /* 976 */     return new DiffResult<>(this.left, this.right, this.diffs, this.style);

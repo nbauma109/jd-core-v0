@@ -202,7 +202,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public V get(Object key)
 /*      */   {
 /*  208 */     checkKey(key);
@@ -233,7 +233,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public V put(K key, V value)
 /*      */   {
 /*  239 */     V result = get(key);
@@ -265,7 +265,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public V remove(Object key)
 /*      */   {
 /*  271 */     return doRemoveKey(key);
@@ -295,7 +295,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public K getKey(Object value)
 /*      */   {
 /*  301 */     checkValue(value);
@@ -313,7 +313,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public K removeValue(Object value)
 /*      */   {
 /*  319 */     return doRemoveValue(value);
@@ -325,7 +325,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public K firstKey()
 /*      */   {
 /*  331 */     if (this.nodeCount == 0) {
@@ -339,7 +339,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public K lastKey()
 /*      */   {
 /*  345 */     if (this.nodeCount == 0) {
@@ -355,7 +355,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public K nextKey(K key)
 /*      */   {
 /*  361 */     checkKey(key);
@@ -370,7 +370,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */   @Override
 /*      */   public K previousKey(K key)
 /*      */   {
 /*  376 */     checkKey(key);
@@ -1751,8 +1751,8 @@
 /* 1751 */       super(orderType);
 /*      */     }
 /*      */     
-/*      */     public K getKey()
-/*      */     {
+/*      */     @Override
+/*      */     public K getKey() {
 /* 1756 */       if (this.lastReturnedNode == null) {
 /* 1757 */         throw new IllegalStateException("Iterator getKey() can only be called after next() and before remove()");
 /*      */       }
@@ -1760,8 +1760,8 @@
 /* 1760 */       return this.lastReturnedNode.getKey();
 /*      */     }
 /*      */     
-/*      */     public V getValue()
-/*      */     {
+/*      */     @Override
+/*      */     public V getValue() {
 /* 1765 */       if (this.lastReturnedNode == null) {
 /* 1766 */         throw new IllegalStateException("Iterator getValue() can only be called after next() and before remove()");
 /*      */       }
@@ -1769,18 +1769,18 @@
 /* 1769 */       return this.lastReturnedNode.getValue();
 /*      */     }
 /*      */     
-/*      */     public V setValue(V obj)
-/*      */     {
+/*      */     @Override
+/*      */     public V setValue(V obj) {
 /* 1774 */       throw new UnsupportedOperationException();
 /*      */     }
 /*      */     
-/*      */     public K next()
-/*      */     {
+/*      */     @Override
+/*      */     public K next() {
 /* 1779 */       return navigateNext().getKey();
 /*      */     }
 /*      */     
-/*      */     public K previous()
-/*      */     {
+/*      */     @Override
+/*      */     public K previous() {
 /* 1784 */       return navigatePrevious().getKey();
 /*      */     }
 /*      */   }
@@ -1797,8 +1797,8 @@
 /* 1797 */       super(orderType);
 /*      */     }
 /*      */     
-/*      */     public V getKey()
-/*      */     {
+/*      */     @Override
+/*      */     public V getKey() {
 /* 1802 */       if (this.lastReturnedNode == null) {
 /* 1803 */         throw new IllegalStateException("Iterator getKey() can only be called after next() and before remove()");
 /*      */       }
@@ -1806,8 +1806,8 @@
 /* 1806 */       return this.lastReturnedNode.getValue();
 /*      */     }
 /*      */     
-/*      */     public K getValue()
-/*      */     {
+/*      */     @Override
+/*      */     public K getValue() {
 /* 1811 */       if (this.lastReturnedNode == null) {
 /* 1812 */         throw new IllegalStateException("Iterator getValue() can only be called after next() and before remove()");
 /*      */       }
@@ -1815,18 +1815,18 @@
 /* 1815 */       return this.lastReturnedNode.getKey();
 /*      */     }
 /*      */     
-/*      */     public K setValue(K obj)
-/*      */     {
+/*      */     @Override
+/*      */     public K setValue(K obj) {
 /* 1820 */       throw new UnsupportedOperationException();
 /*      */     }
 /*      */     
-/*      */     public V next()
-/*      */     {
+/*      */     @Override
+/*      */     public V next() {
 /* 1825 */       return navigateNext().getValue();
 /*      */     }
 /*      */     
-/*      */     public V previous()
-/*      */     {
+/*      */     @Override
+/*      */     public V previous() {
 /* 1830 */       return navigatePrevious().getValue();
 /*      */     }
 /*      */   }
@@ -1843,13 +1843,13 @@
 /* 1843 */       super(TreeBidiMap.DataElement.KEY);
 /*      */     }
 /*      */     
-/*      */     public Entry<K, V> next()
-/*      */     {
+/*      */     @Override
+/*      */     public Entry<K, V> next() {
 /* 1848 */       return navigateNext();
 /*      */     }
 /*      */     
-/*      */     public Entry<K, V> previous()
-/*      */     {
+/*      */     @Override
+/*      */     public Entry<K, V> previous() {
 /* 1853 */       return navigatePrevious();
 /*      */     }
 /*      */   }
@@ -1866,13 +1866,13 @@
 /* 1866 */       super(TreeBidiMap.DataElement.VALUE);
 /*      */     }
 /*      */     
-/*      */     public Entry<V, K> next()
-/*      */     {
+/*      */     @Override
+/*      */     public Entry<V, K> next() {
 /* 1871 */       return createEntry(navigateNext());
 /*      */     }
 /*      */     
-/*      */     public Entry<V, K> previous()
-/*      */     {
+/*      */     @Override
+/*      */     public Entry<V, K> previous() {
 /* 1876 */       return createEntry(navigatePrevious());
 /*      */     }
 /*      */     
@@ -2047,7 +2047,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */     @Override
 /*      */     public K getKey()
 /*      */     {
 /* 2053 */       return this.key;
@@ -2057,7 +2057,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */     @Override
 /*      */     public V getValue()
 /*      */     {
 /* 2063 */       return this.value;
@@ -2068,7 +2068,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
+/*      */     @Override
 /*      */     public V setValue(V ignored)
 /*      */       throws UnsupportedOperationException
 /*      */     {
@@ -2131,13 +2131,13 @@
 /* 2131 */       return TreeBidiMap.this.isEmpty();
 /*      */     }
 /*      */     
-/*      */     public K get(Object key)
-/*      */     {
+/*      */     @Override
+/*      */     public K get(Object key) {
 /* 2136 */       return TreeBidiMap.this.getKey(key);
 /*      */     }
 /*      */     
-/*      */     public V getKey(Object value)
-/*      */     {
+/*      */     @Override
+/*      */     public V getKey(Object value) {
 /* 2141 */       return TreeBidiMap.this.get(value);
 /*      */     }
 /*      */     
@@ -2151,38 +2151,38 @@
 /* 2151 */       return TreeBidiMap.this.containsKey(value);
 /*      */     }
 /*      */     
-/*      */     public V firstKey()
-/*      */     {
+/*      */     @Override
+/*      */     public V firstKey() {
 /* 2156 */       if (TreeBidiMap.this.nodeCount == 0) {
 /* 2157 */         throw new NoSuchElementException("Map is empty");
 /*      */       }
 /* 2159 */       return TreeBidiMap.this.leastNode(TreeBidiMap.this.rootNode[TreeBidiMap.DataElement.VALUE.ordinal()], TreeBidiMap.DataElement.VALUE).getValue();
 /*      */     }
 /*      */     
-/*      */     public V lastKey()
-/*      */     {
+/*      */     @Override
+/*      */     public V lastKey() {
 /* 2164 */       if (TreeBidiMap.this.nodeCount == 0) {
 /* 2165 */         throw new NoSuchElementException("Map is empty");
 /*      */       }
 /* 2167 */       return TreeBidiMap.this.greatestNode(TreeBidiMap.this.rootNode[TreeBidiMap.DataElement.VALUE.ordinal()], TreeBidiMap.DataElement.VALUE).getValue();
 /*      */     }
 /*      */     
-/*      */     public V nextKey(V key)
-/*      */     {
+/*      */     @Override
+/*      */     public V nextKey(V key) {
 /* 2172 */       TreeBidiMap.checkKey(key);
 /* 2173 */       TreeBidiMap.Node<K, V> node = TreeBidiMap.this.nextGreater(TreeBidiMap.this.lookup(key, TreeBidiMap.DataElement.VALUE), TreeBidiMap.DataElement.VALUE);
 /* 2174 */       return node == null ? null : node.getValue();
 /*      */     }
 /*      */     
-/*      */     public V previousKey(V key)
-/*      */     {
+/*      */     @Override
+/*      */     public V previousKey(V key) {
 /* 2179 */       TreeBidiMap.checkKey(key);
 /* 2180 */       TreeBidiMap.Node<K, V> node = TreeBidiMap.this.nextSmaller(TreeBidiMap.this.lookup(key, TreeBidiMap.DataElement.VALUE), TreeBidiMap.DataElement.VALUE);
 /* 2181 */       return node == null ? null : node.getValue();
 /*      */     }
 /*      */     
-/*      */     public K put(V key, K value)
-/*      */     {
+/*      */     @Override
+/*      */     public K put(V key, K value) {
 /* 2186 */       K result = get(key);
 /* 2187 */       TreeBidiMap.this.doPut(value, key);
 /* 2188 */       return result;
@@ -2195,13 +2195,13 @@
 /*      */       }
 /*      */     }
 /*      */     
-/*      */     public K remove(Object key)
-/*      */     {
+/*      */     @Override
+/*      */     public K remove(Object key) {
 /* 2200 */       return TreeBidiMap.this.removeValue(key);
 /*      */     }
 /*      */     
-/*      */     public V removeValue(Object value)
-/*      */     {
+/*      */     @Override
+/*      */     public V removeValue(Object value) {
 /* 2205 */       return TreeBidiMap.this.remove(value);
 /*      */     }
 /*      */     
