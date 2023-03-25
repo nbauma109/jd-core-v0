@@ -142,10 +142,6 @@ public final class ClassFileDeserializer
                 method.setOverride(true);
             }
         }
-        List<ClassFile> innerClassFiles = classFile.getInnerClassFiles();
-        if (innerClassFiles != null) {
-            innerClassFiles.forEach(ClassFileDeserializer::addOverrideFlag);
-        }
     }
 
     private static boolean addOverride(ClassFile classFile, Method method) {
