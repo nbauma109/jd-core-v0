@@ -1,0 +1,155 @@
+/*     */ package org.apache.commons.lang3.tuple;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class MutableTriple<L, M, R>
+/*     */   extends Triple<L, M, R>
+/*     */ {
+/*     */   private static final long serialVersionUID = 1L;
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public L left;
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public M middle;
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public R right;
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*  40 */   public static final MutableTriple<?, ?, ?>[] EMPTY_ARRAY = new MutableTriple[0];
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public static <L, M, R> MutableTriple<L, M, R>[] emptyArray()
+/*     */   {
+/*  57 */     return (MutableTriple[])EMPTY_ARRAY;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public static <L, M, R> MutableTriple<L, M, R> of(L left, M middle, R right)
+/*     */   {
+/*  75 */     return new MutableTriple<>(left, middle, right);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public MutableTriple() {}
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public MutableTriple(L left, M middle, R right)
+/*     */   {
+/*  99 */     this.left = left;
+/* 100 */     this.middle = middle;
+/* 101 */     this.right = right;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public L getLeft()
+/*     */   {
+/* 110 */     return this.left;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public M getMiddle()
+/*     */   {
+/* 118 */     return this.middle;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public R getRight()
+/*     */   {
+/* 126 */     return this.right;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void setLeft(L left)
+/*     */   {
+/* 135 */     this.left = left;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void setMiddle(M middle)
+/*     */   {
+/* 144 */     this.middle = middle;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void setRight(R right)
+/*     */   {
+/* 153 */     this.right = right;
+/*     */   }
+/*     */ }

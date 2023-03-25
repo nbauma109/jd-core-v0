@@ -147,7 +147,7 @@ public final class ClassFileDeserializer
     private static boolean addOverride(ClassFile classFile, Method method) {
         if (method.getNameIndex() != classFile.getConstantPool().getInstanceConstructorIndex()
          && method.getNameIndex() != classFile.getConstantPool().getClassConstructorIndex()
-         && (method.getAccessFlags() & Const.ACC_PRIVATE) == 0) {
+         && (method.getAccessFlags() & (Const.ACC_PRIVATE|Const.ACC_STATIC)) == 0) {
             Method overridenMethod = classFile.findMethodInSuperClassAndInterfaces(
                     method.getName(), method.getDescriptor());
             if (overridenMethod != null) {
