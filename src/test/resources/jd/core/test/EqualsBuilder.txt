@@ -1,0 +1,1145 @@
+/*      */ package org.apache.commons.lang3.builder;
+/*      */ 
+/*      */ import java.lang.reflect.AccessibleObject;
+/*      */ import java.lang.reflect.Field;
+/*      */ import java.lang.reflect.Modifier;
+/*      */ import java.util.ArrayList;
+/*      */ import java.util.Collection;
+/*      */ import java.util.HashSet;
+/*      */ import java.util.List;
+/*      */ import java.util.Set;
+/*      */ import org.apache.commons.lang3.ArrayUtils;
+/*      */ import org.apache.commons.lang3.ClassUtils;
+/*      */ import org.apache.commons.lang3.tuple.Pair;
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ public class EqualsBuilder
+/*      */   implements Builder<Boolean>
+/*      */ {
+/*      */   private boolean testTransients;
+/*      */   private boolean testRecursive;
+/*      */   private List<Class<?>> bypassReflectionClasses;
+/*      */   private Class<?> reflectUpToClass;
+/*      */   private String[] excludeFields;
+/*   98 */   private static final ThreadLocal<Set<Pair<IDKey, IDKey>>> REGISTRY = new ThreadLocal<>();
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   static Set<Pair<IDKey, IDKey>> getRegistry()
+/*      */   {
+/*  127 */     return (Set)REGISTRY.get();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   static Pair<IDKey, IDKey> getRegisterPair(Object lhs, Object rhs)
+/*      */   {
+/*  141 */     IDKey left = new IDKey(lhs);
+/*  142 */     IDKey right = new IDKey(rhs);
+/*  143 */     return Pair.of(left, right);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   static boolean isRegistered(Object lhs, Object rhs)
+/*      */   {
+/*  160 */     Set<Pair<IDKey, IDKey>> registry = getRegistry();
+/*  161 */     Pair<IDKey, IDKey> pair = getRegisterPair(lhs, rhs);
+/*  162 */     Pair<IDKey, IDKey> swappedPair = Pair.of(pair.getRight(), pair.getLeft());
+/*      */     
+/*  164 */     return registry != null && 
+/*  165 */       registry.contains(pair) || registry.contains(swappedPair);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static void register(Object lhs, Object rhs)
+/*      */   {
+/*  178 */     Set<Pair<IDKey, IDKey>> registry = getRegistry();
+/*  179 */     if (registry == null) {
+/*  180 */       registry = new HashSet<>();
+/*  181 */       REGISTRY.set(registry);
+/*      */     }
+/*  183 */     Pair<IDKey, IDKey> pair = getRegisterPair(lhs, rhs);
+/*  184 */     registry.add(pair);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static void unregister(Object lhs, Object rhs)
+/*      */   {
+/*  200 */     Set<Pair<IDKey, IDKey>> registry = getRegistry();
+/*  201 */     if (registry != null) {
+/*  202 */       Pair<IDKey, IDKey> pair = getRegisterPair(lhs, rhs);
+/*  203 */       registry.remove(pair);
+/*  204 */       if (registry.isEmpty()) {
+/*  205 */         REGISTRY.remove();
+/*      */       }
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*  214 */   private boolean isEquals = true;
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public EqualsBuilder()
+/*      */   {
+/*  230 */     this.bypassReflectionClasses = new ArrayList<>();
+/*  231 */     this.bypassReflectionClasses.add(String.class);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public EqualsBuilder setTestTransients(boolean testTransients)
+/*      */   {
+/*  243 */     this.testTransients = testTransients;
+/*  244 */     return this;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public EqualsBuilder setTestRecursive(boolean testRecursive)
+/*      */   {
+/*  257 */     this.testRecursive = testRecursive;
+/*  258 */     return this;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public EqualsBuilder setBypassReflectionClasses(List<Class<?>> bypassReflectionClasses)
+/*      */   {
+/*  275 */     this.bypassReflectionClasses = bypassReflectionClasses;
+/*  276 */     return this;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public EqualsBuilder setReflectUpToClass(Class<?> reflectUpToClass)
+/*      */   {
+/*  286 */     this.reflectUpToClass = reflectUpToClass;
+/*  287 */     return this;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public EqualsBuilder setExcludeFields(String... excludeFields)
+/*      */   {
+/*  297 */     this.excludeFields = excludeFields;
+/*  298 */     return this;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static boolean reflectionEquals(Object lhs, Object rhs, Collection<String> excludeFields)
+/*      */   {
+/*  325 */     return reflectionEquals(lhs, rhs, ReflectionToStringBuilder.toNoNullStringArray(excludeFields));
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static boolean reflectionEquals(Object lhs, Object rhs, String... excludeFields)
+/*      */   {
+/*  351 */     return reflectionEquals(lhs, rhs, false, null, excludeFields);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static boolean reflectionEquals(Object lhs, Object rhs, boolean testTransients)
+/*      */   {
+/*  378 */     return reflectionEquals(lhs, rhs, testTransients, null);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static boolean reflectionEquals(Object lhs, Object rhs, boolean testTransients, Class<?> reflectUpToClass, String... excludeFields)
+/*      */   {
+/*  412 */     return reflectionEquals(lhs, rhs, testTransients, reflectUpToClass, false, excludeFields);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static boolean reflectionEquals(Object lhs, Object rhs, boolean testTransients, Class<?> reflectUpToClass, boolean testRecursive, String... excludeFields)
+/*      */   {
+/*  453 */     if (lhs == rhs) {
+/*  454 */       return true;
+/*      */     }
+/*  456 */     if (lhs == null || rhs == null) {
+/*  457 */       return false;
+/*      */     }
+/*  459 */     return new EqualsBuilder()
+/*  460 */       .setExcludeFields(excludeFields)
+/*  461 */       .setReflectUpToClass(reflectUpToClass)
+/*  462 */       .setTestTransients(testTransients)
+/*  463 */       .setTestRecursive(testRecursive)
+/*  464 */       .reflectionAppend(lhs, rhs)
+/*  465 */       .isEquals();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public EqualsBuilder reflectionAppend(Object lhs, Object rhs)
+/*      */   {
+/*  496 */     if (!this.isEquals) {
+/*  497 */       return this;
+/*      */     }
+/*  499 */     if (lhs == rhs) {
+/*  500 */       return this;
+/*      */     }
+/*  502 */     if (lhs == null || rhs == null) {
+/*  503 */       this.isEquals = false;
+/*  504 */       return this;
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*  511 */     Class<?> lhsClass = lhs.getClass();
+/*  512 */     Class<?> rhsClass = rhs.getClass();
+/*      */     Class<?> testClass;
+/*  514 */     if (lhsClass.isInstance(rhs)) {
+/*  515 */       testClass = lhsClass;
+/*  516 */       if (!rhsClass.isInstance(lhs))
+/*      */       {
+/*  518 */         testClass = rhsClass;
+/*      */       }
+/*  520 */     } else if (rhsClass.isInstance(lhs)) {
+/*  521 */       testClass = rhsClass;
+/*  522 */       if (!lhsClass.isInstance(rhs))
+/*      */       {
+/*  524 */         testClass = lhsClass;
+/*      */       }
+/*      */     }
+/*      */     else {
+/*  528 */       this.isEquals = false;
+/*  529 */       return this;
+/*      */     }
+/*      */     try
+/*      */     {
+/*  533 */       if (testClass.isArray()) {
+/*  534 */         append(lhs, rhs);
+/*      */       }
+/*  536 */       else if (this.bypassReflectionClasses != null && 
+/*  537 */         this.bypassReflectionClasses.contains(lhsClass) || this.bypassReflectionClasses.contains(rhsClass)) {
+/*  538 */         this.isEquals = lhs.equals(rhs);
+/*      */       } else {
+/*  540 */         reflectionAppend(lhs, rhs, testClass);
+/*  541 */         while (testClass.getSuperclass() != null && testClass != this.reflectUpToClass) {
+/*  542 */           testClass = testClass.getSuperclass();
+/*  543 */           reflectionAppend(lhs, rhs, testClass);
+/*      */         }
+/*      */         
+/*      */       }
+/*      */       
+/*      */ 
+/*      */     }
+/*      */     catch (IllegalArgumentException e)
+/*      */     {
+/*  552 */       this.isEquals = false;
+/*      */     }
+/*  554 */     return this;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private void reflectionAppend(Object lhs, Object rhs, Class<?> clazz)
+/*      */   {
+/*  570 */     if (isRegistered(lhs, rhs)) {
+/*  571 */       return;
+/*      */     }
+/*      */     try
+/*      */     {
+/*  575 */       register(lhs, rhs);
+/*  576 */       Field[] fields = clazz.getDeclaredFields();
+/*  577 */       AccessibleObject.setAccessible(fields, true);
+/*  578 */       for (int i = 0; i < fields.length && this.isEquals; i++) {
+/*  579 */         Field f = fields[i];
+/*  580 */         if (ArrayUtils.contains(this.excludeFields, f.getName()) || 
+/*  581 */           f.getName().contains("$") || !this.testTransients && 
+/*  582 */           Modifier.isTransient(f.getModifiers()) || 
+/*  583 */           Modifier.isStatic(f.getModifiers()) || 
+/*  584 */           f.isAnnotationPresent(EqualsExclude.class))
+/*      */           continue;
+/*  586 */         try { append(f.get(lhs), f.get(rhs));
+/*      */         }
+/*      */         catch (IllegalAccessException e)
+/*      */         {
+/*  590 */           throw new InternalError("Unexpected IllegalAccessException");
+/*      */         }
+/*      */       }
+/*      */     }
+/*      */     finally {
+/*  595 */       unregister(lhs, rhs);
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public EqualsBuilder appendSuper(boolean superEquals)
+/*      */   {
+/*  609 */     if (!this.isEquals) {
+/*  610 */       return this;
+/*      */     }
+/*  612 */     this.isEquals = superEquals;
+/*  613 */     return this;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public EqualsBuilder append(Object lhs, Object rhs)
+/*      */   {
+/*  630 */     if (!this.isEquals) {
+/*  631 */       return this;
+/*      */     }
+/*  633 */     if (lhs == rhs) {
+/*  634 */       return this;
+/*      */     }
+/*  636 */     if (lhs == null || rhs == null) {
+/*  637 */       setEquals(false);
+/*  638 */       return this;
+/*      */     }
+/*  640 */     Class<?> lhsClass = lhs.getClass();
+/*  641 */     if (lhsClass.isArray())
+/*      */     {
+/*      */ 
+/*  644 */       appendArray(lhs, rhs);
+/*      */     }
+/*  646 */     else if (this.testRecursive && !ClassUtils.isPrimitiveOrWrapper(lhsClass)) {
+/*  647 */       reflectionAppend(lhs, rhs);
+/*      */     } else {
+/*  649 */       this.isEquals = lhs.equals(rhs);
+/*      */     }
+/*  651 */     return this;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private void appendArray(Object lhs, Object rhs)
+/*      */   {
+/*  664 */     if (lhs.getClass() != rhs.getClass()) {
+/*  665 */       setEquals(false);
+/*  666 */     } else if ((lhs instanceof long[])) {
+/*  667 */       append((long[])lhs, (long[])rhs);
+/*  668 */     } else if ((lhs instanceof int[])) {
+/*  669 */       append((int[])lhs, (int[])rhs);
+/*  670 */     } else if ((lhs instanceof short[])) {
+/*  671 */       append((short[])lhs, (short[])rhs);
+/*  672 */     } else if ((lhs instanceof char[])) {
+/*  673 */       append((char[])lhs, (char[])rhs);
+/*  674 */     } else if ((lhs instanceof byte[])) {
+/*  675 */       append((byte[])lhs, (byte[])rhs);
+/*  676 */     } else if ((lhs instanceof double[])) {
+/*  677 */       append((double[])lhs, (double[])rhs);
+/*  678 */     } else if ((lhs instanceof float[])) {
+/*  679 */       append((float[])lhs, (float[])rhs);
+/*  680 */     } else if ((lhs instanceof boolean[])) {
+/*  681 */       append((boolean[])lhs, (boolean[])rhs);
+/*      */     }
+/*      */     else {
+/*  684 */       append((Object[])lhs, (Object[])rhs);
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public EqualsBuilder append(long lhs, long rhs)
+/*      */   {
+/*  700 */     if (!this.isEquals) {
+/*  701 */       return this;
+/*      */     }
+/*  703 */     this.isEquals = (lhs == rhs);
+/*  704 */     return this;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public EqualsBuilder append(int lhs, int rhs)
+/*      */   {
+/*  715 */     if (!this.isEquals) {
+/*  716 */       return this;
+/*      */     }
+/*  718 */     this.isEquals = (lhs == rhs);
+/*  719 */     return this;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public EqualsBuilder append(short lhs, short rhs)
+/*      */   {
+/*  730 */     if (!this.isEquals) {
+/*  731 */       return this;
+/*      */     }
+/*  733 */     this.isEquals = (lhs == rhs);
+/*  734 */     return this;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public EqualsBuilder append(char lhs, char rhs)
+/*      */   {
+/*  745 */     if (!this.isEquals) {
+/*  746 */       return this;
+/*      */     }
+/*  748 */     this.isEquals = (lhs == rhs);
+/*  749 */     return this;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public EqualsBuilder append(byte lhs, byte rhs)
+/*      */   {
+/*  760 */     if (!this.isEquals) {
+/*  761 */       return this;
+/*      */     }
+/*  763 */     this.isEquals = (lhs == rhs);
+/*  764 */     return this;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public EqualsBuilder append(double lhs, double rhs)
+/*      */   {
+/*  781 */     if (!this.isEquals) {
+/*  782 */       return this;
+/*      */     }
+/*  784 */     return append(Double.doubleToLongBits(lhs), Double.doubleToLongBits(rhs));
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public EqualsBuilder append(float lhs, float rhs)
+/*      */   {
+/*  801 */     if (!this.isEquals) {
+/*  802 */       return this;
+/*      */     }
+/*  804 */     return append(Float.floatToIntBits(lhs), Float.floatToIntBits(rhs));
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public EqualsBuilder append(boolean lhs, boolean rhs)
+/*      */   {
+/*  815 */     if (!this.isEquals) {
+/*  816 */       return this;
+/*      */     }
+/*  818 */     this.isEquals = (lhs == rhs);
+/*  819 */     return this;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public EqualsBuilder append(Object[] lhs, Object[] rhs)
+/*      */   {
+/*  836 */     if (!this.isEquals) {
+/*  837 */       return this;
+/*      */     }
+/*  839 */     if (lhs == rhs) {
+/*  840 */       return this;
+/*      */     }
+/*  842 */     if (lhs == null || rhs == null) {
+/*  843 */       setEquals(false);
+/*  844 */       return this;
+/*      */     }
+/*  846 */     if (lhs.length != rhs.length) {
+/*  847 */       setEquals(false);
+/*  848 */       return this;
+/*      */     }
+/*  850 */     for (int i = 0; i < lhs.length && this.isEquals; i++) {
+/*  851 */       append(lhs[i], rhs[i]);
+/*      */     }
+/*  853 */     return this;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public EqualsBuilder append(long[] lhs, long[] rhs)
+/*      */   {
+/*  867 */     if (!this.isEquals) {
+/*  868 */       return this;
+/*      */     }
+/*  870 */     if (lhs == rhs) {
+/*  871 */       return this;
+/*      */     }
+/*  873 */     if (lhs == null || rhs == null) {
+/*  874 */       setEquals(false);
+/*  875 */       return this;
+/*      */     }
+/*  877 */     if (lhs.length != rhs.length) {
+/*  878 */       setEquals(false);
+/*  879 */       return this;
+/*      */     }
+/*  881 */     for (int i = 0; i < lhs.length && this.isEquals; i++) {
+/*  882 */       append(lhs[i], rhs[i]);
+/*      */     }
+/*  884 */     return this;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public EqualsBuilder append(int[] lhs, int[] rhs)
+/*      */   {
+/*  898 */     if (!this.isEquals) {
+/*  899 */       return this;
+/*      */     }
+/*  901 */     if (lhs == rhs) {
+/*  902 */       return this;
+/*      */     }
+/*  904 */     if (lhs == null || rhs == null) {
+/*  905 */       setEquals(false);
+/*  906 */       return this;
+/*      */     }
+/*  908 */     if (lhs.length != rhs.length) {
+/*  909 */       setEquals(false);
+/*  910 */       return this;
+/*      */     }
+/*  912 */     for (int i = 0; i < lhs.length && this.isEquals; i++) {
+/*  913 */       append(lhs[i], rhs[i]);
+/*      */     }
+/*  915 */     return this;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public EqualsBuilder append(short[] lhs, short[] rhs)
+/*      */   {
+/*  929 */     if (!this.isEquals) {
+/*  930 */       return this;
+/*      */     }
+/*  932 */     if (lhs == rhs) {
+/*  933 */       return this;
+/*      */     }
+/*  935 */     if (lhs == null || rhs == null) {
+/*  936 */       setEquals(false);
+/*  937 */       return this;
+/*      */     }
+/*  939 */     if (lhs.length != rhs.length) {
+/*  940 */       setEquals(false);
+/*  941 */       return this;
+/*      */     }
+/*  943 */     for (int i = 0; i < lhs.length && this.isEquals; i++) {
+/*  944 */       append(lhs[i], rhs[i]);
+/*      */     }
+/*  946 */     return this;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public EqualsBuilder append(char[] lhs, char[] rhs)
+/*      */   {
+/*  960 */     if (!this.isEquals) {
+/*  961 */       return this;
+/*      */     }
+/*  963 */     if (lhs == rhs) {
+/*  964 */       return this;
+/*      */     }
+/*  966 */     if (lhs == null || rhs == null) {
+/*  967 */       setEquals(false);
+/*  968 */       return this;
+/*      */     }
+/*  970 */     if (lhs.length != rhs.length) {
+/*  971 */       setEquals(false);
+/*  972 */       return this;
+/*      */     }
+/*  974 */     for (int i = 0; i < lhs.length && this.isEquals; i++) {
+/*  975 */       append(lhs[i], rhs[i]);
+/*      */     }
+/*  977 */     return this;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public EqualsBuilder append(byte[] lhs, byte[] rhs)
+/*      */   {
+/*  991 */     if (!this.isEquals) {
+/*  992 */       return this;
+/*      */     }
+/*  994 */     if (lhs == rhs) {
+/*  995 */       return this;
+/*      */     }
+/*  997 */     if (lhs == null || rhs == null) {
+/*  998 */       setEquals(false);
+/*  999 */       return this;
+/*      */     }
+/* 1001 */     if (lhs.length != rhs.length) {
+/* 1002 */       setEquals(false);
+/* 1003 */       return this;
+/*      */     }
+/* 1005 */     for (int i = 0; i < lhs.length && this.isEquals; i++) {
+/* 1006 */       append(lhs[i], rhs[i]);
+/*      */     }
+/* 1008 */     return this;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public EqualsBuilder append(double[] lhs, double[] rhs)
+/*      */   {
+/* 1022 */     if (!this.isEquals) {
+/* 1023 */       return this;
+/*      */     }
+/* 1025 */     if (lhs == rhs) {
+/* 1026 */       return this;
+/*      */     }
+/* 1028 */     if (lhs == null || rhs == null) {
+/* 1029 */       setEquals(false);
+/* 1030 */       return this;
+/*      */     }
+/* 1032 */     if (lhs.length != rhs.length) {
+/* 1033 */       setEquals(false);
+/* 1034 */       return this;
+/*      */     }
+/* 1036 */     for (int i = 0; i < lhs.length && this.isEquals; i++) {
+/* 1037 */       append(lhs[i], rhs[i]);
+/*      */     }
+/* 1039 */     return this;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public EqualsBuilder append(float[] lhs, float[] rhs)
+/*      */   {
+/* 1053 */     if (!this.isEquals) {
+/* 1054 */       return this;
+/*      */     }
+/* 1056 */     if (lhs == rhs) {
+/* 1057 */       return this;
+/*      */     }
+/* 1059 */     if (lhs == null || rhs == null) {
+/* 1060 */       setEquals(false);
+/* 1061 */       return this;
+/*      */     }
+/* 1063 */     if (lhs.length != rhs.length) {
+/* 1064 */       setEquals(false);
+/* 1065 */       return this;
+/*      */     }
+/* 1067 */     for (int i = 0; i < lhs.length && this.isEquals; i++) {
+/* 1068 */       append(lhs[i], rhs[i]);
+/*      */     }
+/* 1070 */     return this;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public EqualsBuilder append(boolean[] lhs, boolean[] rhs)
+/*      */   {
+/* 1084 */     if (!this.isEquals) {
+/* 1085 */       return this;
+/*      */     }
+/* 1087 */     if (lhs == rhs) {
+/* 1088 */       return this;
+/*      */     }
+/* 1090 */     if (lhs == null || rhs == null) {
+/* 1091 */       setEquals(false);
+/* 1092 */       return this;
+/*      */     }
+/* 1094 */     if (lhs.length != rhs.length) {
+/* 1095 */       setEquals(false);
+/* 1096 */       return this;
+/*      */     }
+/* 1098 */     for (int i = 0; i < lhs.length && this.isEquals; i++) {
+/* 1099 */       append(lhs[i], rhs[i]);
+/*      */     }
+/* 1101 */     return this;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public boolean isEquals()
+/*      */   {
+/* 1111 */     return this.isEquals;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public Boolean build()
+/*      */   {
+/* 1125 */     return Boolean.valueOf(isEquals());
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   protected void setEquals(boolean isEquals)
+/*      */   {
+/* 1135 */     this.isEquals = isEquals;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public void reset()
+/*      */   {
+/* 1143 */     this.isEquals = true;
+/*      */   }
+/*      */ }
