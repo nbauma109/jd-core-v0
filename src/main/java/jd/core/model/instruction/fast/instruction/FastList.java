@@ -16,7 +16,10 @@
  ******************************************************************************/
 package jd.core.model.instruction.fast.instruction;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariables;
@@ -47,5 +50,14 @@ public class FastList extends BranchInstruction
 
     public List<Instruction> getInstructions() {
         return instructions;
+    }
+
+    public boolean isFirstInstructionInstanceOf(Class<? extends Instruction> clazz) {
+        return Optional.ofNullable(instructions)
+                .map(Collection::stream)
+                .orElseGet(Stream::empty)
+                .findFirst()
+                .filter(clazz::isInstance)
+                .isPresent();
     }
 }

@@ -256,6 +256,41 @@ public final class FastInstructionListBuilder {
                     manageRedeclaredVariables(new HashSet<>(mergedDeclarations), new HashSet<>(), block);
                 }
             }
+            if (i + 1 < instructions.size() && instruction instanceof FastTest2Lists) {
+                FastTest2Lists fastTest2Lists = (FastTest2Lists) instruction;
+                List<Instruction> list1 = fastTest2Lists.getInstructions();
+                List<Instruction> list2 = fastTest2Lists.getInstructions2();
+                FastDeclaration fd1;
+                FastDeclaration fd2;
+                FastDeclaration fd3;
+                if (fastTest2Lists.isFirstInstructionInstanceOf(FastDeclaration.class) && !list2.isEmpty()) {
+                    fd1 = (FastDeclaration) list1.get(0);
+                    if (list2.get(0) instanceof FastTestList) {
+                        FastTestList fastTestList = (FastTestList) list2.get(0);
+                        List<Instruction> subList = fastTestList.getInstructions();
+                        if (fastTestList.isFirstInstructionInstanceOf(FastDeclaration.class)) {
+                            fd2 = (FastDeclaration) subList.get(0);
+                            if (fd1.equals(fd2)) {
+                                Instruction nextInstruction = instructions.get(i + 1);
+                                if (nextInstruction instanceof FastList) {
+                                    FastList fastList = (FastList) nextInstruction;
+                                    List<Instruction> nextSubList = fastList.getInstructions();
+                                    if (fastList.isFirstInstructionInstanceOf(FastDeclaration.class)) {
+                                        fd3 = (FastDeclaration) nextSubList.get(0);
+                                        if (fd3.getInstruction() == null && fd1.equals(fd3)) {
+                                            list1.set(0, fd1.getInstruction());
+                                            subList.set(0, fd2.getInstruction());
+                                            nextSubList.remove(0);
+                                            instructions.add(i, new FastDeclaration(fd1.getLv().getStartPc(),
+                                                    Instruction.UNKNOWN_LINE_NUMBER, fd1.getLv(), null));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 
