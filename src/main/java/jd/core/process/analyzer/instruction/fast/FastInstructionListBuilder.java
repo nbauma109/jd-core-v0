@@ -1632,8 +1632,7 @@ public final class FastInstructionListBuilder {
                                             for (int j = 0; j < typeArgsRight.getTypeArgumentList().size(); j++) {
                                                 TypeArgument typeArgumentLeft = typeArgsLeft.getTypeArgumentList().get(j);
                                                 TypeArgument typeArgumentRight = typeArgsRight.getTypeArgumentList().get(j);
-                                                if (typeArgumentLeft instanceof ObjectType && typeArgumentRight instanceof WildcardTypeArgument
-                                                 || typeArgumentLeft instanceof GenericType && typeArgumentRight instanceof WildcardExtendsTypeArgument) {
+                                                if (typeArgumentLeft instanceof GenericType && typeArgumentRight instanceof WildcardExtendsTypeArgument) {
                                                     si.setValueref(new CheckCast(Const.CHECKCAST, si.getOffset(),
                                                         si.getLineNumber(), lv.getSignatureIndex(), valueref));
                                                     break;
