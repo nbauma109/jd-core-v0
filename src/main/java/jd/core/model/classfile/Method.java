@@ -55,7 +55,6 @@ public class Method extends Base
     private List<Instruction> fastNodes;
     private LocalVariables localVariables;
     private final ConstantPool constants;
-    private boolean override;
 
     /**
      * Champs permettant l'affichage des parametres des instanciations des
@@ -137,7 +136,7 @@ public class Method extends Base
             this.codeExceptions = ac.getExceptionTable();
         }
     }
-    
+
     public boolean containsError()
     {
         return containsError;
@@ -238,12 +237,17 @@ public class Method extends Base
         return fieldOrMethod.getSignatureIndex();
     }
 
-    public boolean isOverride() {
-        return override;
-    }
-
-    public void setOverride(boolean override) {
-        this.override = override;
+    public boolean isOverride(ClassFile classFile) {
+        ConstantPool cp = classFile.getConstantPool();
+        if (getNameIndex() != cp.getInstanceConstructorIndex()
+         && getNameIndex() != cp.getClassConstructorIndex()
+         && (getAccessFlags() & (Const.ACC_PRIVATE | Const.ACC_STATIC)) == 0) {
+            Method overridenMethod = classFile.findMethodInSuperClassAndInterfaces(getName(), getDescriptor());
+            if (overridenMethod != null) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

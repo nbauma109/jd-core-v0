@@ -1741,7 +1741,9 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
     private boolean needAPrefixForThisMethod(
         int methodNameIndex, int methodDescriptorIndex, GetStatic getStatic)
     {
-        if (this.classFile.getMethod(methodNameIndex, methodDescriptorIndex) != null)
+        String methodName = constants.getConstantUtf8(methodNameIndex);
+        String methodDescriptor = constants.getConstantUtf8(methodDescriptorIndex);
+        if (this.classFile.getMethod(methodName, methodDescriptor) != null)
         {
             // La classe courante contient une method ayant le même nom et la
             // même signature
@@ -1752,9 +1754,6 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
             this.constants.getConstantFieldref(getStatic.getIndex());
         String getStaticOuterClassName =
             this.constants.getConstantClassName(cfr.getClassIndex());
-        String methodName = this.constants.getConstantUtf8(methodNameIndex);
-        String methodDescriptor =
-            this.constants.getConstantUtf8(methodDescriptorIndex);
 
         ClassFile outerClassFile = this.classFile.getOuterClass();
 
@@ -1896,8 +1895,9 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
                 else
                 {
                     // Appel a une méthode privee?
-                    Method method = this.classFile.getMethod(
-                        cnat.getNameIndex(), cnat.getSignatureIndex());
+                    String methodName = constants.getConstantUtf8(cnat.getNameIndex());
+                    String descriptor = constants.getConstantUtf8(cnat.getSignatureIndex());
+                    Method method = this.classFile.getMethod(methodName, descriptor);
 
                     if (method == null ||
                         (method.getAccessFlags() & Const.ACC_PRIVATE) == 0)
@@ -1913,12 +1913,9 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
 
                     String internalClassName =
                         this.constants.getConstantClassName(cmr.getClassIndex());
-                    String methodName = constants.getConstantUtf8(cnat.getNameIndex());
                     if (this.keywordSet.contains(methodName)) {
                         methodName = StringConstants.JD_METHOD_PREFIX + methodName;
                     }
-                    String descriptor =
-                        this.constants.getConstantUtf8(cnat.getSignatureIndex());
                     this.printer.printMethod(
                         lineNumber, internalClassName, methodName,
                         descriptor, this.classFile.getThisClassName());

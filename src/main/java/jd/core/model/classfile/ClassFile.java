@@ -381,30 +381,6 @@ public class ClassFile extends Base
         return staticMethod;
     }
 
-    public Method getMethod(int methodNameIndex, int methodDescriptorIndex)
-    {
-        for (Method method : methods)
-        {
-            if (methodNameIndex == method.getNameIndex() &&
-                methodDescriptorIndex == method.getDescriptorIndex())
-            {
-                return method;
-            }
-        }
-        return findMethodInSuperClassAndInterfaces(methodNameIndex, methodDescriptorIndex);
-    }
-
-    public Method findMethodInSuperClassAndInterfaces(int methodNameIndex, int methodDescriptorIndex)
-    {
-        for (ClassFile classFile : superClassAndInterfaces.values()) {
-            Method method = classFile.getMethod(methodNameIndex, methodDescriptorIndex);
-            if (method != null) {
-                return method;
-            }
-        }
-        return null;
-    }
-
     public Method getMethod(String methodName, String methodDescriptor)
     {
         String name;
@@ -446,6 +422,7 @@ public class ClassFile extends Base
             if (method != null) {
                 return method;
             }
+            
         }
         return null;
     }
