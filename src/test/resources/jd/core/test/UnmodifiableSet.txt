@@ -1,0 +1,119 @@
+/*     */ package org.apache.commons.collections4.set;
+/*     */ 
+/*     */ import java.util.Collection;
+/*     */ import java.util.Iterator;
+/*     */ import java.util.Set;
+/*     */ import java.util.function.Predicate;
+/*     */ import org.apache.commons.collections4.Unmodifiable;
+/*     */ import org.apache.commons.collections4.iterators.UnmodifiableIterator;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public final class UnmodifiableSet<E>
+/*     */   extends AbstractSerializableSetDecorator<E>
+/*     */   implements Unmodifiable
+/*     */ {
+/*     */   private static final long serialVersionUID = 6499119872185240161L;
+/*     */   
+/*     */   public static <E> Set<E> unmodifiableSet(Set<? extends E> set)
+/*     */   {
+/*  56 */     if ((set instanceof Unmodifiable))
+/*     */     {
+/*  58 */       Set<E> tmpSet = (Set<E>)set;
+/*  59 */       return tmpSet;
+/*     */     }
+/*  61 */     return new UnmodifiableSet<>(set);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   private UnmodifiableSet(Set<? extends E> set)
+/*     */   {
+/*  73 */     super(set);
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public Iterator<E> iterator()
+/*     */   {
+/*  79 */     return UnmodifiableIterator.unmodifiableIterator(decorated().iterator());
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public boolean add(E object) {
+/*  84 */     throw new UnsupportedOperationException();
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public boolean addAll(Collection<? extends E> coll) {
+/*  89 */     throw new UnsupportedOperationException();
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public void clear() {
+/*  94 */     throw new UnsupportedOperationException();
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public boolean remove(Object object) {
+/*  99 */     throw new UnsupportedOperationException();
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public boolean removeIf(Predicate<? super E> filter)
+/*     */   {
+/* 107 */     throw new UnsupportedOperationException();
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public boolean removeAll(Collection<?> coll) {
+/* 112 */     throw new UnsupportedOperationException();
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public boolean retainAll(Collection<?> coll) {
+/* 117 */     throw new UnsupportedOperationException();
+/*     */   }
+/*     */ }

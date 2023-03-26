@@ -1,0 +1,209 @@
+/*     */ package org.apache.commons.collections4.trie;
+/*     */ 
+/*     */ import java.io.Serializable;
+/*     */ import java.util.Collection;
+/*     */ import java.util.Collections;
+/*     */ import java.util.Comparator;
+/*     */ import java.util.Map;
+/*     */ import java.util.Map.Entry;
+/*     */ import java.util.Set;
+/*     */ import java.util.SortedMap;
+/*     */ import org.apache.commons.collections4.OrderedMapIterator;
+/*     */ import org.apache.commons.collections4.Trie;
+/*     */ import org.apache.commons.collections4.Unmodifiable;
+/*     */ import org.apache.commons.collections4.iterators.UnmodifiableOrderedMapIterator;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class UnmodifiableTrie<K, V>
+/*     */   implements Trie<K, V>, Serializable, Unmodifiable
+/*     */ {
+/*     */   private static final long serialVersionUID = -7156426030315945159L;
+/*     */   private final Trie<K, V> delegate;
+/*     */   
+/*     */   public static <K, V> Trie<K, V> unmodifiableTrie(Trie<K, ? extends V> trie)
+/*     */   {
+/*  56 */     if ((trie instanceof Unmodifiable))
+/*     */     {
+/*  58 */       Trie<K, V> tmpTrie = (Trie<K, V>)trie;
+/*  59 */       return tmpTrie;
+/*     */     }
+/*  61 */     return new UnmodifiableTrie<>(trie);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public UnmodifiableTrie(Trie<K, ? extends V> trie)
+/*     */   {
+/*  72 */     if (trie == null) {
+/*  73 */       throw new NullPointerException("Trie must not be null");
+/*     */     }
+/*     */     
+/*  76 */     Trie<K, V> tmpTrie = (Trie<K, V>)trie;
+/*  77 */     this.delegate = tmpTrie;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */   @Override
+/*     */   public Set<Entry<K, V>> entrySet()
+/*     */   {
+/*  84 */     return Collections.unmodifiableSet(this.delegate.entrySet());
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public Set<K> keySet() {
+/*  89 */     return Collections.unmodifiableSet(this.delegate.keySet());
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public Collection<V> values() {
+/*  94 */     return Collections.unmodifiableCollection(this.delegate.values());
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public void clear() {
+/*  99 */     throw new UnsupportedOperationException();
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public boolean containsKey(Object key) {
+/* 104 */     return this.delegate.containsKey(key);
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public boolean containsValue(Object value) {
+/* 109 */     return this.delegate.containsValue(value);
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public V get(Object key) {
+/* 114 */     return this.delegate.get(key);
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public boolean isEmpty() {
+/* 119 */     return this.delegate.isEmpty();
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public V put(K key, V value) {
+/* 124 */     throw new UnsupportedOperationException();
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public void putAll(Map<? extends K, ? extends V> m) {
+/* 129 */     throw new UnsupportedOperationException();
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public V remove(Object key) {
+/* 134 */     throw new UnsupportedOperationException();
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public int size() {
+/* 139 */     return this.delegate.size();
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public K firstKey() {
+/* 144 */     return this.delegate.firstKey();
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public SortedMap<K, V> headMap(K toKey) {
+/* 149 */     return Collections.unmodifiableSortedMap(this.delegate.headMap(toKey));
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public K lastKey() {
+/* 154 */     return this.delegate.lastKey();
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public SortedMap<K, V> subMap(K fromKey, K toKey) {
+/* 159 */     return Collections.unmodifiableSortedMap(this.delegate.subMap(fromKey, toKey));
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public SortedMap<K, V> tailMap(K fromKey) {
+/* 164 */     return Collections.unmodifiableSortedMap(this.delegate.tailMap(fromKey));
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public SortedMap<K, V> prefixMap(K key) {
+/* 169 */     return Collections.unmodifiableSortedMap(this.delegate.prefixMap(key));
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public Comparator<? super K> comparator() {
+/* 174 */     return this.delegate.comparator();
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public OrderedMapIterator<K, V> mapIterator()
+/*     */   {
+/* 180 */     OrderedMapIterator<K, V> it = this.delegate.mapIterator();
+/* 181 */     return UnmodifiableOrderedMapIterator.unmodifiableOrderedMapIterator(it);
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public K nextKey(K key) {
+/* 186 */     return this.delegate.nextKey(key);
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public K previousKey(K key) {
+/* 191 */     return this.delegate.previousKey(key);
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public int hashCode()
+/*     */   {
+/* 197 */     return this.delegate.hashCode();
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public boolean equals(Object obj) {
+/* 202 */     return this.delegate.equals(obj);
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public String toString() {
+/* 207 */     return this.delegate.toString();
+/*     */   }
+/*     */ }
