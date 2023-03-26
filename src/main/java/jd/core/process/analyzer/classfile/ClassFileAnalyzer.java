@@ -34,6 +34,7 @@ import java.util.Map;
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.Field;
+import jd.core.model.classfile.LocalVariables;
 import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.ALoad;
@@ -837,7 +838,7 @@ public final class ClassFileAnalyzer
         DotClass14Reconstructor.reconstruct(
                 referenceMap, classFile, list);
         // Replace StringBuffer and StringBuilder in java source line
-        replaceStringBufferAndStringBuilder(classFile, list);
+        replaceStringBufferAndStringBuilder(classFile, method.getLocalVariables(), list);
         // Remove unused pop instruction
         removeUnusedPopInstruction(list);
         // Transformation des tests sur des types 'long' et 'double'
@@ -1225,16 +1226,12 @@ public final class ClassFileAnalyzer
     }
 
     private static void replaceStringBufferAndStringBuilder(
-            ClassFile classFile, List<Instruction> list)
+            ClassFile classFile, LocalVariables localVariables, List<Instruction> list)
     {
         ReplaceStringBuxxxerVisitor visitor = new ReplaceStringBuxxxerVisitor(
-                classFile.getConstantPool());
+                classFile, localVariables);
 
-        int length = list.size();
-
-        for (int i=0; i<length; i++) {
-            visitor.visit(list.get(i));
-        }
+        list.forEach(visitor::visit);
     }
 
     private static void removeUnusedPopInstruction(List<Instruction> list)

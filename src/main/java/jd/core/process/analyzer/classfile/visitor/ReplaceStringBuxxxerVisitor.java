@@ -22,9 +22,13 @@ import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.jd.core.v1.util.StringConstants;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
+import jd.core.model.classfile.LocalVariables;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.ANewArray;
 import jd.core.model.instruction.bytecode.instruction.AThrow;
@@ -63,14 +67,17 @@ import jd.core.model.instruction.bytecode.instruction.TableSwitch;
 import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
+import jd.core.util.SignatureUtil;
 
 public class ReplaceStringBuxxxerVisitor
 {
-    private final ConstantPool constants;
+    private final ClassFile classFile;
+    private final LocalVariables localVariables;
 
-    public ReplaceStringBuxxxerVisitor(ConstantPool constants)
+    public ReplaceStringBuxxxerVisitor(ClassFile classFile, LocalVariables localVariables)
     {
-        this.constants = constants;
+        this.classFile = classFile;
+        this.localVariables = localVariables;
     }
 
     public void visit(Instruction instruction)
@@ -573,8 +580,10 @@ public class ReplaceStringBuxxxerVisitor
         if (i.getOpcode() == Const.INVOKEVIRTUAL)
         {
             Invokevirtual iv = (Invokevirtual)i;
-            ConstantCP cmr = this.constants.getConstantMethodref(iv.getIndex());
-            ConstantClass cc = this.constants.getConstantClass(cmr.getClassIndex());
+            
+            ConstantPool constants = classFile.getConstantPool();
+            ConstantCP cmr = constants .getConstantMethodref(iv.getIndex());
+            ConstantClass cc = constants.getConstantClass(cmr.getClassIndex());
 
             if (cc.getNameIndex() == constants.getStringBufferClassNameIndex() ||
                 cc.getNameIndex() == constants.getStringBuilderClassNameIndex())
@@ -583,7 +592,11 @@ public class ReplaceStringBuxxxerVisitor
                     constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
 
                 if (cnat.getNameIndex() == constants.getToStringIndex()) {
-                    return match(iv.getObjectref(), cmr.getClassIndex());
+                    SignatureInfo signatureInfo = new SignatureInfo();
+                    Instruction result = match(iv.getObjectref(), cmr.getClassIndex(), signatureInfo);
+                    if (signatureInfo.accept()) {
+                        return result;
+                    }
                 }
             }
         }
@@ -591,23 +604,26 @@ public class ReplaceStringBuxxxerVisitor
         return null;
     }
 
-    private Instruction match(Instruction i, int classIndex)
+    private Instruction match(Instruction i, int classIndex, SignatureInfo signatureInfo)
     {
+        ConstantPool constants = classFile.getConstantPool();
         if (i.getOpcode() == Const.INVOKEVIRTUAL)
         {
             InvokeNoStaticInstruction insi = (InvokeNoStaticInstruction)i;
-            ConstantCP cmr =
-                this.constants.getConstantMethodref(insi.getIndex());
+            ConstantCP cmr = constants .getConstantMethodref(insi.getIndex());
 
             if (cmr.getClassIndex() == classIndex)
             {
                 ConstantNameAndType cnat =
                     constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
 
-                if (cnat.getNameIndex() == this.constants.getAppendIndex() &&
+                if (cnat.getNameIndex() == constants.getAppendIndex() &&
                     insi.getArgs().size() == 1)
                 {
-                    Instruction result = match(insi.getObjectref(), cmr.getClassIndex());
+                    String descriptor = constants.getConstantUtf8(cnat.getSignatureIndex());
+                    List<String> parameterSignatures = SignatureUtil.getParameterSignatures(descriptor);
+                    signatureInfo.appendSignatures.add(parameterSignatures.get(0));
+                    Instruction result = match(insi.getObjectref(), cmr.getClassIndex(), signatureInfo);
 
                     if (result == null)
                     {
@@ -623,8 +639,7 @@ public class ReplaceStringBuxxxerVisitor
         else if (i.getOpcode() == ByteCodeConstants.INVOKENEW)
         {
             InvokeNew in = (InvokeNew)i;
-            ConstantCP cmr =
-                this.constants.getConstantMethodref(in.getIndex());
+            ConstantCP cmr = constants.getConstantMethodref(in.getIndex());
 
             if (cmr.getClassIndex() == classIndex && in.getArgs().size() == 1)
             {
@@ -634,25 +649,36 @@ public class ReplaceStringBuxxxerVisitor
                 if (arg0.getOpcode() == Const.INVOKESTATIC)
                 {
                     Invokestatic is = (Invokestatic)arg0;
-                    cmr = this.constants.getConstantMethodref(is.getIndex());
-                    ConstantClass cc = this.constants.getConstantClass(cmr.getClassIndex());
+                    cmr = constants.getConstantMethodref(is.getIndex());
+                    ConstantClass cc = constants.getConstantClass(cmr.getClassIndex());
 
-                    if (cc.getNameIndex() == this.constants.getStringClassNameIndex())
+                    if (cc.getNameIndex() == constants.getStringClassNameIndex())
                     {
                         ConstantNameAndType cnat =
-                            this.constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
+                            constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
 
-                        if (cnat.getNameIndex() == this.constants.getValueOfIndex() &&
+                        if (cnat.getNameIndex() == constants.getValueOfIndex() &&
                             is.getArgs().size() == 1) {
                             return is.getArgs().get(0);
                         }
                     }
                 }
 
+                signatureInfo.invokeNewSignature = arg0.getReturnedSignature(classFile, localVariables);
                 return arg0;
             }
         }
 
         return null;
+    }
+
+    private static class SignatureInfo {
+        private String invokeNewSignature;
+        private Set<String> appendSignatures = new HashSet<>();
+
+        private boolean accept() {
+            return !"I".equals(invokeNewSignature)
+                    && appendSignatures.contains(StringConstants.INTERNAL_STRING_SIGNATURE);
+        }
     }
 }
