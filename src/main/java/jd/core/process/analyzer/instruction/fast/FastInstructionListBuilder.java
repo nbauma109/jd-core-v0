@@ -991,30 +991,19 @@ public final class FastInstructionListBuilder {
                 Collections.reverse(instructions);
                 // Search exception type and local variables index
                 el = searchExceptionLoadInstruction(instructions);
-                if (el == null) {
-                    Instruction lastInstr = list.get(list.size() - 1);
-                    if (lastInstr instanceof FastTry) {
-                        FastTry fastTry = (FastTry) lastInstr;
-                        fastTry.removeOutOfBounds();
-                        el = searchExceptionLoadInstruction(fastTry.getInstructions());
-                        fastTry.removeIdentityExceptionAssignments();
-                    }
+                offset = lastInstruction.getOffset();
+                catches.add(0, new FastCatch(el.getOffset(), fcec.getType(), fcec.getOtherTypes(),
+                    el.getIndex(), instructions));
+                // Calcul de l'offset le plus haut pour le block 'try'
+                firstOffset = instructions.get(0).getOffset();
+                minimalJumpOffset = searchMinusJumpOffset(
+                        instructions, 0, instructions.size(),
+                        firstOffset, offset);
+                if (afterListOffset > firstOffset) {
+                    afterListOffset = firstOffset;
                 }
-                if (el != null) {
-                    offset = lastInstruction.getOffset();
-                    catches.add(0, new FastCatch(el.getOffset(), fcec.getType(), fcec.getOtherTypes(),
-                        el.getIndex(), instructions));
-                    // Calcul de l'offset le plus haut pour le block 'try'
-                    firstOffset = instructions.get(0).getOffset();
-                    minimalJumpOffset = searchMinusJumpOffset(
-                            instructions, 0, instructions.size(),
-                            firstOffset, offset);
-                    if (afterListOffset > firstOffset) {
-                        afterListOffset = firstOffset;
-                    }
-                    if (minimalJumpOffset != -1 && afterListOffset > minimalJumpOffset) {
-                        afterListOffset = minimalJumpOffset;
-                    }
+                if (minimalJumpOffset != -1 && afterListOffset > minimalJumpOffset) {
+                    afterListOffset = minimalJumpOffset;
                 }
             }
         }

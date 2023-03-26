@@ -34,12 +34,4 @@ public class AStore extends StoreInstruction
     {
         return this.getValueref().getReturnedSignature(classFile, localVariables);
     }
-
-    public boolean isIdentityExceptionAssignment() {
-        if (getValueref() instanceof ExceptionLoad) {
-            ExceptionLoad exceptionLoad = (ExceptionLoad) getValueref();
-            return exceptionLoad.getIndex() == getIndex();
-        }
-        return false;
-    }
 }
