@@ -1,0 +1,83 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.util.AbstractMap.SimpleEntry;
+/*    */ 
+/*    */ public class StringBuxxxer
+/*    */ {
+/*    */   class A<K, V> extends SimpleEntry<K, V>
+/*    */   {
+/*    */     private static final long serialVersionUID = 1L;
+/*    */     
+/*    */     public A(K key, V value) {
+/* 12 */       super(key, value);
+/*    */     }
+/*    */     
+/*    */     @Override
+/* 16 */     public String toString() { return new StringBuilder().append(getKey()).append('=').append(getValue()).toString(); }
+/*    */   }
+/*    */   
+/*    */   class B<K, V> extends SimpleEntry<K, V>
+/*    */   {
+/*    */     private static final long serialVersionUID = 1L;
+/*    */     
+/*    */     public B(K key, V value)
+/*    */     {
+/* 25 */       super(key, value);
+/*    */     }
+/*    */     
+/*    */     @Override
+/* 29 */     public String toString() { return getKey() + "=" + getValue(); }
+/*    */   }
+/*    */   
+/*    */   class C<K, V> extends SimpleEntry<K, V>
+/*    */   {
+/*    */     private static final long serialVersionUID = 1L;
+/*    */     
+/*    */     public C(K key, V value)
+/*    */     {
+/* 38 */       super(key, value);
+/*    */     }
+/*    */     
+/*    */     @Override
+/* 42 */     public String toString() { return new StringBuilder(16).append(getKey()).append("=").append(getValue()).toString(); }
+/*    */   }
+/*    */   
+/*    */   class D<K, V> extends SimpleEntry<K, V>
+/*    */   {
+/*    */     private static final long serialVersionUID = 1L;
+/*    */     
+/*    */     public D(K key, V value)
+/*    */     {
+/* 51 */       super(key, value);
+/*    */     }
+/*    */     
+/*    */     @Override
+/* 55 */     public String toString() { return new StringBuilder(128).append(getKey()).append("=").append(getValue()).toString(); }
+/*    */   }
+/*    */   
+/*    */   class E<K, V> extends SimpleEntry<K, V>
+/*    */   {
+/*    */     private static final long serialVersionUID = 1L;
+/*    */     
+/*    */     public E(K key, V value)
+/*    */     {
+/* 64 */       super(key, value);
+/*    */     }
+/*    */     
+/*    */     @Override
+/* 68 */     public String toString() { return new StringBuilder(Integer.MAX_VALUE).append(getKey()).append("=").append(getValue()).toString(); }
+/*    */   }
+/*    */   
+/*    */   class F<K, V> extends SimpleEntry<K, V>
+/*    */   {
+/*    */     private static final long serialVersionUID = 1L;
+/*    */     
+/*    */     public F(K key, V value)
+/*    */     {
+/* 77 */       super(key, value);
+/*    */     }
+/*    */     
+/*    */     @Override
+/* 81 */     public String toString() { return "" + getKey() + "=" + getValue(); }
+/*    */   }
+/*    */ }
