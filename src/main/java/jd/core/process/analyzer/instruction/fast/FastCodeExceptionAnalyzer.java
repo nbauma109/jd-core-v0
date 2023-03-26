@@ -2440,32 +2440,6 @@ public final class FastCodeExceptionAnalyzer
 
             switch (instruction.getOpcode())
             {
-            case Const.RETURN,
-                 Const.ATHROW:
-            {
-                match = index >= finallyInstructionsSize && visitor.visit(
-                        instructions, finallyInstructions,
-                        index-finallyInstructionsSize, 0, finallyInstructionsSize);
-
-                if (match)
-                {
-                    Instruction instr;
-                    // Remove finally instructions
-                    for (int j=0; j<finallyInstructionsSize && index>0; index--,++j) {
-                        instr = instructions.get(index-1);
-                        if (instr.getLineNumber() >= finallyInstructionsLineNumber) {
-                            instructions.remove(index-1);
-                        }
-                    }
-                }
-
-                if (instruction.getLineNumber() != Instruction.UNKNOWN_LINE_NUMBER &&
-                        instruction.getLineNumber() >= finallyInstructionsLineNumber)
-                {
-                    instruction.setLineNumber(Instruction.UNKNOWN_LINE_NUMBER);
-                }
-            }
-            break;
             case ByteCodeConstants.XRETURN:
             {
                 match = index >= finallyInstructionsSize && visitor.visit(

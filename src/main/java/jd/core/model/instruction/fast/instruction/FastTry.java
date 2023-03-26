@@ -122,8 +122,6 @@ public class FastTry extends FastList {
                 if (!fastTry.getInstructions().isEmpty()) {
                     fastTry.cleanUpCatches(fastTry.getInstructions().get(0).getLineNumber());
                 }
-            } else if (instruction.getLineNumber() < firstLineNumber) {
-                iterator.remove();
             }
         }
         cleanUpCatches(firstLineNumber);
@@ -133,18 +131,6 @@ public class FastTry extends FastList {
         for (Iterator<FastCatch> iterator = catches.iterator(); iterator.hasNext();) {
             FastCatch fastCatch = iterator.next();
             if (fastCatch.removeOutOfBounds(firstLineNumber) && fastCatch.instructions().isEmpty()) {
-                iterator.remove();
-            }
-        }
-    }
-
-    public void removeIdentityExceptionAssignments() {
-        for (Iterator<Instruction> iterator = getInstructions().iterator(); iterator.hasNext();) {
-            Instruction instruction = iterator.next();
-            if (instruction instanceof FastTry) {
-                FastTry fastTry = (FastTry) instruction;
-                fastTry.removeIdentityExceptionAssignments();
-            } else if (instruction instanceof AStore && ((AStore) instruction).isIdentityExceptionAssignment()) {
                 iterator.remove();
             }
         }

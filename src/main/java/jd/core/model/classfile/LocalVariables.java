@@ -17,6 +17,7 @@
 package jd.core.model.classfile;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class LocalVariables
@@ -28,6 +29,11 @@ public class LocalVariables
     public LocalVariables()
     {
         this.listOfLocalVariables = new ArrayList<>(1);
+    }
+
+    public LocalVariables(LocalVariable lv)
+    {
+        this.listOfLocalVariables = Collections.singletonList(lv);
     }
 
     public LocalVariables(

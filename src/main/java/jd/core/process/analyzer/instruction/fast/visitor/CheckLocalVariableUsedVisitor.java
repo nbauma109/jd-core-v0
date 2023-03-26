@@ -285,7 +285,9 @@ public final class CheckLocalVariableUsedVisitor
              FastConstants.IF_SIMPLE:
             {
                 Instruction test = ((FastTestList)instruction).getTest();
-                return test != null && visit(localVariables, maxOffset, test);
+                List<Instruction> instructions = ((FastTestList)instruction).getInstructions();
+                return (test != null && visit(localVariables, maxOffset, test))
+                    || (instructions != null && visit(localVariables, maxOffset, instructions));
             }
         case FastConstants.INFINITE_LOOP:
             {
@@ -392,7 +394,7 @@ public final class CheckLocalVariableUsedVisitor
         }
     }
 
-    private static boolean visit(
+    public static boolean visit(
         LocalVariables localVariables, int maxOffset,
         List<Instruction> instructions)
     {

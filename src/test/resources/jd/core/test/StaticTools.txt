@@ -63,17 +63,15 @@ public class StaticTools
   
   public static String getDateFromTimestamp(String paramString)
   {
-    String str = "N/A";
+    str = "N/A";
     try {} catch (Exception paramString)
     {
       for (;;)
       {
-        Calendar localCalendar;
-        int i;
-        int j;
         paramString = str;
       }
     }
+    return paramString;
   }
   
   public static Drawable getDrawablefromTitle(String paramString)
@@ -181,7 +179,7 @@ public class StaticTools
   
   public static LocationManager getLocationManager(LocationProvider paramLocationProvider)
   {
-    boolean bool1 = false; int i = 0;
+    bool1 = false; int i = 0;
     if (locationManager == null)
     {
       new Handler().postDelayed(new Runnable()
@@ -195,11 +193,11 @@ public class StaticTools
         }
       }, 60000L); bestProvider = ""; gpsReceiver = new GPSReceiver(); locationManager = (LocationManager)getActiveActivity().getSystemService("location");
     }
-    try {} catch (Exception localException2)
+    for (;;)
     {
-      for (;;)
+      try {} catch (Exception localException2)
       {
-        boolean bool2 = bool1;
+        boolean bool2 = bool1; continue;
       }
     }
   }
