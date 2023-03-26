@@ -18,12 +18,12 @@
 /*    */   }
 /*    */   
 /*    */   public ByteArray decompress(byte[] in) throws NoPlantumlCompressionException {
-/* 21 */     try (BrotliInputStream brotli = new BrotliInputStream(new java.io.ByteArrayInputStream(in))) {
-/* 22 */       try (ByteArrayOutputStream result = new ByteArrayOutputStream()) {
-/* 23 */         FileUtils.copyToStream(brotli, result);
-/* 24 */         return ByteArray.from(result.toByteArray());
-/*    */       }
-/* 26 */     } catch (IOException e) { Logme.error(e);
+/* 21 */     try (BrotliInputStream brotli = new BrotliInputStream(new java.io.ByteArrayInputStream(in));
+/* 22 */     ByteArrayOutputStream result = new ByteArrayOutputStream();) {
+/* 23 */       FileUtils.copyToStream(brotli, result);
+/* 24 */       return ByteArray.from(result.toByteArray());
+/*    */     } catch (IOException e) {
+/* 26 */       Logme.error(e);
 /* 27 */       throw new NoPlantumlCompressionException(e);
 /*    */     }
 /*    */   }

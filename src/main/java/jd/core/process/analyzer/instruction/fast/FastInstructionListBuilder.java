@@ -120,6 +120,7 @@ import jd.core.process.analyzer.instruction.fast.reconstructor.InitArrayInstruct
 import jd.core.process.analyzer.instruction.fast.reconstructor.RemoveDupConstantsAttributes;
 import jd.core.process.analyzer.instruction.fast.reconstructor.TernaryOpInReturnReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.TernaryOpReconstructor;
+import jd.core.process.analyzer.instruction.fast.visitor.CheckLocalVariableUsedVisitor;
 import jd.core.process.analyzer.util.InstructionUtil;
 import jd.core.process.layouter.visitor.MinMaxLineNumberVisitor;
 import jd.core.process.layouter.visitor.MinMaxLineNumberVisitor.MinMaxLineNumber;
@@ -1028,15 +1029,21 @@ public final class FastInstructionListBuilder {
         int tryFromOffset = fce.getTryFromOffset();
         Instruction i = list.get(index);
 
+        int outOfTryIndex = -1;
         if (i.getOffset() >= tryFromOffset) {
-            tryInstructions.add(i);
-
+            if (i.getOffset() < afterListOffset) {
+                tryInstructions.add(i);
+            } else {
+                outOfTryIndex = index;
+            }
             while (index-- > 0) {
                 i = list.get(index);
                 if (i.getOffset() < tryFromOffset) {
                     break;
                 }
-                list.remove(index + 1);
+                if (index + 1 != outOfTryIndex) {
+                    list.remove(index + 1);
+                }
                 tryInstructions.add(i);
             }
             list.set(index + 1, null);
@@ -1714,7 +1721,8 @@ public final class FastInstructionListBuilder {
                     FastDeclaration fastDeclaration = new FastDeclaration(lv.getStartPc(),
                             Instruction.UNKNOWN_LINE_NUMBER, lv, null);
                     if (addDeclarations) {
-                        if (!variableFound(list, lv)) {
+                        if (!variableFound(list, lv)
+                              && CheckLocalVariableUsedVisitor.visit(new LocalVariables(lv), lv.getStartPc(), list)) {
                             list.add(indexForNewDeclaration, fastDeclaration);
                         }
                     } else {

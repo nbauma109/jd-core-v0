@@ -12,8 +12,8 @@
 /*    */     try
 /*    */     {
 /* 14 */       System.out.println("in try");
-/*    */       int i;
-/*    */       try {
+/*    */       try
+/*    */       {
 /* 17 */         System.out.println("in inner try");
 /*    */         
 /* 19 */         if (r.nextBoolean()) {
