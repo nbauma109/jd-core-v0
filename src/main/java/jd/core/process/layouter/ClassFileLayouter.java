@@ -710,7 +710,7 @@ public final class ClassFileLayouter {
             }
 
             AnnotationLayouter.createBlocksForAnnotations(
-                classFile, method.getAttributes(), subLayoutBlockList, method.isOverride());
+                classFile, method.getAttributes(), subLayoutBlockList, method.isOverride(classFile));
 
             // Information utilisee par 'PrintWriter' pour afficher un ';'
             // après les méthodes sans code. Evite d'instancier un object

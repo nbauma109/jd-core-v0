@@ -16,7 +16,6 @@
  ******************************************************************************/
 package jd.core.process.deserializer;
 
-import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.InnerClass;
 import org.apache.bcel.classfile.InnerClasses;
@@ -69,9 +68,6 @@ public final class ClassFileDeserializer
                 classFile.getSuperClassAndInterfaces().put(interfaceName, interfass);
             }
         }
-
-        // Add flag for @Override annotations
-        addOverrideFlag(classFile);
 
         if (skipInnerClasses) {
             return classFile;
@@ -134,27 +130,6 @@ public final class ClassFileDeserializer
         classFile.setInnerClassFiles(innerClassFiles);
 
         return classFile;
-    }
-
-    private static void addOverrideFlag(ClassFile classFile) {
-        for (Method method : classFile.getMethods()) {
-            if (addOverride(classFile, method)) {
-                method.setOverride(true);
-            }
-        }
-    }
-
-    private static boolean addOverride(ClassFile classFile, Method method) {
-        if (method.getNameIndex() != classFile.getConstantPool().getInstanceConstructorIndex()
-         && method.getNameIndex() != classFile.getConstantPool().getClassConstructorIndex()
-         && (method.getAccessFlags() & (Const.ACC_PRIVATE|Const.ACC_STATIC)) == 0) {
-            Method overridenMethod = classFile.findMethodInSuperClassAndInterfaces(
-                    method.getName(), method.getDescriptor());
-            if (overridenMethod != null) {
-                return true;
-            }
-        }
-        return false;
     }
 
     private static ClassFile loadSingleClass(

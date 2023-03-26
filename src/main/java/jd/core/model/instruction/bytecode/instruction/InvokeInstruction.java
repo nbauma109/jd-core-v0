@@ -46,9 +46,6 @@ public abstract class InvokeInstruction extends IndexInstruction
             ClassFile classFile, LocalVariables localVariables)
     {
         ConstantPool constants = classFile.getConstantPool();
-        if (constants == null) {
-            return null;
-        }
 
         ConstantCP cmr = constants.getConstantMethodref(this.getIndex());
         String internalClassName = constants.getConstantClassName(cmr.getClassIndex());
@@ -59,8 +56,7 @@ public abstract class InvokeInstruction extends IndexInstruction
         String methodDescriptor = constants.getConstantUtf8(cnat.getSignatureIndex());
 
         String methodReturnedSignature = SignatureUtil.getMethodReturnedSignature(methodDescriptor);
-        if (internalClassName.charAt(0) != '['
-                && classFile.getLoader().canLoad(internalClassName)) {
+        if (classFile.getLoader().canLoad(internalClassName)) {
             ClassFile javaClass = ClassFileDeserializer.deserialize(classFile.getLoader(), internalClassName);
             Method method = javaClass.getMethod(methodName, methodDescriptor);
             if (method != null) {
