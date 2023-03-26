@@ -34,10 +34,6 @@ public class New extends IndexInstruction
     {
         ConstantPool constants = classFile.getConstantPool();
 
-        if (constants == null) {
-            return null;
-        }
-
         return SignatureUtil.createTypeName(
             constants.getConstantClassName(this.getIndex()));
     }

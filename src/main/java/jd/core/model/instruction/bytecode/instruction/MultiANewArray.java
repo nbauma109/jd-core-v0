@@ -38,10 +38,6 @@ public class MultiANewArray extends IndexInstruction
     {
         ConstantPool constants = classFile.getConstantPool();
 
-        if (constants == null) {
-            return null;
-        }
-
         return constants.getConstantClassName(this.getIndex());
     }
 

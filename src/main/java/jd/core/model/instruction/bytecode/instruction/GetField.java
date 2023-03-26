@@ -43,20 +43,9 @@ public class GetField extends IndexInstruction
     {
         ConstantPool constants = classFile.getConstantPool();
 
-        if (constants == null) {
-            return null;
-        }
-
         ConstantFieldref cfr = constants.getConstantFieldref(this.getIndex());
-        if (cfr == null) {
-            return null;
-        }
-
         ConstantNameAndType cnat =
             constants.getConstantNameAndType(cfr.getNameAndTypeIndex());
-        if (cnat == null) {
-            return null;
-        }
 
         String fieldName = constants.getConstantUtf8(cnat.getNameIndex());
         String fieldSignature = constants.getConstantUtf8(cnat.getSignatureIndex());

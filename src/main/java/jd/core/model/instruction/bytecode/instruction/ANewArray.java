@@ -38,10 +38,6 @@ public class ANewArray extends IndexInstruction
     {
         ConstantPool constants = classFile.getConstantPool();
 
-        if (constants == null) {
-            return null;
-        }
-
         String str = constants.getConstantClassName(this.getIndex());
 
         if (str.isEmpty())

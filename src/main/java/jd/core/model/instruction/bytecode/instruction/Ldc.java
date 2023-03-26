@@ -37,15 +37,7 @@ public class Ldc extends LdcInstruction
     {
         ConstantPool constants = classFile.getConstantPool();
 
-        if (constants == null) {
-            return null;
-        }
-
         Constant c = constants.get(this.getIndex());
-
-        if (c == null) {
-            return null;
-        }
 
         return switch (c.getTag())
         {
