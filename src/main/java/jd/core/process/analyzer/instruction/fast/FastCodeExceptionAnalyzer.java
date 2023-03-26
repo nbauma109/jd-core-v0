@@ -35,10 +35,8 @@ import jd.core.model.instruction.bytecode.instruction.AThrow;
 import jd.core.model.instruction.bytecode.instruction.AssignmentInstruction;
 import jd.core.model.instruction.bytecode.instruction.BranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.CheckCast;
-import jd.core.model.instruction.bytecode.instruction.ComplexConditionalBranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.ExceptionLoad;
 import jd.core.model.instruction.bytecode.instruction.Goto;
-import jd.core.model.instruction.bytecode.instruction.IfCmp;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
 import jd.core.model.instruction.bytecode.instruction.IndexInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
@@ -596,16 +594,8 @@ public final class FastCodeExceptionAnalyzer
                         if (list.get(index-2).getOpcode() == Const.MONITOREXIT) {
                             fastCodeException.setType(FastConstants.TYPE_118_SYNCHRONIZED);
                         } else {
-                            // TYPE_ECLIPSE_677_FINALLY or TYPE_118_FINALLY_2 ?
-                            int jumpOffset = ((Goto)instruction).getJumpOffset();
-                            instruction =
-                                    InstructionUtil.getInstructionAt(list, jumpOffset);
-
-                            if (instruction.getOpcode() == Const.JSR) {
-                                fastCodeException.setType(FastConstants.TYPE_118_FINALLY_2);
-                            } else {
-                                fastCodeException.setType(FastConstants.TYPE_ECLIPSE_677_FINALLY);
-                            }
+                            // TYPE_ECLIPSE_677_FINALLY
+                            fastCodeException.setType(FastConstants.TYPE_ECLIPSE_677_FINALLY);
                         }
                     break;
                 case Const.RETURN,
@@ -1088,23 +1078,6 @@ public final class FastCodeExceptionAnalyzer
             }
 
             fastCodeException.setAfterOffset(instruction.getOffset() + 1);
-        }
-        break;
-        case FastConstants.TYPE_118_FINALLY_2:
-        {
-            int index = InstructionUtil.getIndexForOffset(
-                    list, fastCodeException.getAfterOffset());
-            if (index < 0 || index >= list.size()) {
-                return;
-            }
-
-            index++;
-            Instruction i = list.get(index);
-            if (i.getOpcode() != Const.GOTO) {
-                return;
-            }
-
-            fastCodeException.setAfterOffset(((Goto)i).getJumpOffset());
         }
         break;
         case FastConstants.TYPE_JIKES_122:
@@ -1912,9 +1885,6 @@ public final class FastCodeExceptionAnalyzer
         case FastConstants.TYPE_118_FINALLY:
             format118Finally(localVariables, fce, fastTry);
             break;
-        case FastConstants.TYPE_118_FINALLY_2:
-            format118Finally2(fce, fastTry);
-            break;
         case FastConstants.TYPE_118_FINALLY_THROW:
             format118FinallyThrow(fastTry);
             break;
@@ -2055,102 +2025,6 @@ public final class FastCodeExceptionAnalyzer
                 tryInstructions, localVariables, finallyInstructionsLineNumber);
 
         format118FinallyThrow(fastTry);
-    }
-
-    private static void format118Finally2(
-            FastCodeExcepcion fce, FastTry fastTry)
-    {
-        List<Instruction> tryInstructions = fastTry.getInstructions();
-        int tryInstructionsLength = tryInstructions.size();
-
-        // Remove last 'goto' instruction in try block
-        if (tryInstructions.get(tryInstructionsLength-1).getOpcode() ==
-                Const.GOTO)
-        {
-            tryInstructionsLength--;
-            Goto g = (Goto)tryInstructions.remove(tryInstructionsLength);
-            fce.setTryToOffset(g.getOffset());
-        }
-
-        List<Instruction> finallyInstructions = fastTry.getFinallyInstructions();
-        int finallyInstructionsLength = finallyInstructions.size();
-
-        // Update all offset of instructions 'goto' and 'ifxxx' if
-        // (finallyInstructions.gt(0).offset) < (jump offset) &&
-        // (jump offset) < (finallyInstructions.gt(5).offset)
-        if (finallyInstructionsLength > 5)
-        {
-            int firstFinallyOffset = finallyInstructions.get(0).getOffset();
-            int lastFinallyOffset = finallyInstructions.get(5).getOffset();
-
-            Instruction instruction;
-            int jumpOffset;
-            while (tryInstructionsLength-- > 0)
-            {
-                instruction = tryInstructions.get(tryInstructionsLength);
-                switch (instruction.getOpcode())
-                {
-                case ByteCodeConstants.IFCMP:
-                {
-                    jumpOffset = ((IfCmp)instruction).getJumpOffset();
-
-                    if (firstFinallyOffset < jumpOffset &&
-                            jumpOffset <= lastFinallyOffset) {
-                        ((IfCmp)instruction).setBranch(firstFinallyOffset - instruction.getOffset());
-                    }
-                }
-                break;
-                case ByteCodeConstants.IF,
-                     ByteCodeConstants.IFXNULL:
-                {
-                    jumpOffset =
-                            ((IfInstruction)instruction).getJumpOffset();
-
-                    if (firstFinallyOffset < jumpOffset &&
-                            jumpOffset <= lastFinallyOffset) {
-                        ((IfInstruction)instruction).setBranch(firstFinallyOffset - instruction.getOffset());
-                    }
-                }
-                break;
-                case ByteCodeConstants.COMPLEXIF:
-                {
-                    jumpOffset =
-                            ((BranchInstruction)instruction).getJumpOffset();
-
-                    if (firstFinallyOffset < jumpOffset &&
-                            jumpOffset <= lastFinallyOffset) {
-                        ((ComplexConditionalBranchInstruction)instruction).setBranch(firstFinallyOffset - instruction.getOffset());
-                    }
-                }
-                break;
-                case Const.GOTO:
-                {
-                    jumpOffset = ((Goto)instruction).getJumpOffset();
-
-                    if (firstFinallyOffset < jumpOffset &&
-                            jumpOffset <= lastFinallyOffset) {
-                        ((Goto)instruction).setBranch(firstFinallyOffset - instruction.getOffset());
-                    }
-                }
-                break;
-                }
-            }
-        }
-
-        // Remove last 'ret' instruction in finally block
-        finallyInstructions.remove(finallyInstructionsLength - 1);
-        // Remove 'AStore ExceptionLoad' instruction in finally block
-        finallyInstructions.remove(0);
-        // Remove 'jsr' instruction in finally block
-        finallyInstructions.remove(0);
-        // Remove 'athrow' instruction in finally block
-        finallyInstructions.remove(0);
-        // Remove 'jsr' instruction in finally block
-        finallyInstructions.remove(0);
-        // Remove 'goto' instruction in finally block
-        finallyInstructions.remove(0);
-        // Remove 'AStore ReturnAddressLoad' instruction in finally block
-        finallyInstructions.remove(0);
     }
 
     private static void format118FinallyThrow(FastTry fastTry)

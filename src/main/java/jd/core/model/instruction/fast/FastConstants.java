@@ -54,7 +54,6 @@ public final class FastConstants
     public static final int TYPE_UNDEFINED                 = 0;
     public static final int TYPE_CATCH                     = 1;
     public static final int TYPE_118_FINALLY               = 2;
-    public static final int TYPE_118_FINALLY_2             = 3;
     public static final int TYPE_118_FINALLY_THROW         = 4;
     public static final int TYPE_118_SYNCHRONIZED          = 5;
     public static final int TYPE_118_SYNCHRONIZED_DOUBLE   = 6;
