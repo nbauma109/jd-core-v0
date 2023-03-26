@@ -25,6 +25,8 @@ import org.jd.core.v1.model.javasyntax.type.BaseTypeArgument;
 import org.jd.core.v1.model.javasyntax.type.GenericType;
 import org.jd.core.v1.model.javasyntax.type.ObjectType;
 import org.jd.core.v1.model.javasyntax.type.Type;
+import org.jd.core.v1.model.javasyntax.type.TypeArgument;
+import org.jd.core.v1.model.javasyntax.type.WildcardExtendsTypeArgument;
 import org.jd.core.v1.model.javasyntax.type.WildcardTypeArgument;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
 import org.jd.core.v1.util.StringConstants;
@@ -1620,9 +1622,23 @@ public final class FastInstructionListBuilder {
                                         ObjectType otRight = (ObjectType) expressionType;
                                         BaseTypeArgument typeArgsLeft = otLeft.getTypeArguments();
                                         BaseTypeArgument typeArgsRight = otRight.getTypeArguments();
-                                        if (typeArgsLeft instanceof ObjectType && typeArgsRight instanceof WildcardTypeArgument) {
+                                        if (typeArgsLeft instanceof ObjectType && typeArgsRight instanceof WildcardTypeArgument
+                                         || typeArgsLeft instanceof GenericType && typeArgsRight instanceof WildcardExtendsTypeArgument) {
                                             si.setValueref(new CheckCast(Const.CHECKCAST, si.getOffset(),
                                                 si.getLineNumber(), lv.getSignatureIndex(), valueref));
+                                        }
+                                        if (typeArgsLeft != null && typeArgsLeft.isTypeArgumentList()
+                                        && typeArgsRight != null && typeArgsRight.isTypeArgumentList()) {
+                                            for (int j = 0; j < typeArgsRight.getTypeArgumentList().size(); j++) {
+                                                TypeArgument typeArgumentLeft = typeArgsLeft.getTypeArgumentList().get(j);
+                                                TypeArgument typeArgumentRight = typeArgsRight.getTypeArgumentList().get(j);
+                                                if (typeArgumentLeft instanceof ObjectType && typeArgumentRight instanceof WildcardTypeArgument
+                                                 || typeArgumentLeft instanceof GenericType && typeArgumentRight instanceof WildcardExtendsTypeArgument) {
+                                                    si.setValueref(new CheckCast(Const.CHECKCAST, si.getOffset(),
+                                                        si.getLineNumber(), lv.getSignatureIndex(), valueref));
+                                                    break;
+                                                }
+                                            }
                                         }
                                     }
                                 }
