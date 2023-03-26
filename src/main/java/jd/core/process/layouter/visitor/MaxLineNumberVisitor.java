@@ -117,7 +117,8 @@ public final class MaxLineNumberVisitor
             }
             break;
         case ByteCodeConstants.IFCMP:
-            maxLineNumber = visit(((IfCmp)instruction).getValue2());
+            IfCmp ifCmp = (IfCmp)instruction;
+            maxLineNumber = Math.max(visit(ifCmp.getValue1()), visit(ifCmp.getValue2()));
             break;
         case ByteCodeConstants.IF,
              ByteCodeConstants.IFXNULL:
