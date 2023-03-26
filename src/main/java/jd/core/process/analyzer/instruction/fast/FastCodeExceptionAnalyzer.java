@@ -1634,7 +1634,7 @@ public final class FastCodeExceptionAnalyzer
             Goto g = (Goto)list.get(index-1);
             int jumpOffset = g.getJumpOffset();
             int returnOffset = list.get(index).getOffset();
-            if (g.getOffset() < jumpOffset && jumpOffset < returnOffset)
+            if (g.getOffset() < jumpOffset && jumpOffset <= returnOffset)
             {
                 return true;
             }
