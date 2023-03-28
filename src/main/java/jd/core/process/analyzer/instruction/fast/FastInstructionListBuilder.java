@@ -1658,7 +1658,8 @@ public final class FastInstructionListBuilder {
                         si = (StoreInstruction) ff.getInit();
                         lv = localVariables.getLocalVariableWithIndexAndOffset(si.getIndex(), si.getOffset());
                         if (lv != null && lv.hasDeclarationFlag() == NOT_DECLARED
-                                && beforeListOffset < lv.getStartPc() && lv.getStartPc() + lv.getLength() - 1 <= lastOffset) {
+                                && beforeListOffset < lv.getStartPc() && lv.getStartPc() + lv.getLength() - 1 <= lastOffset
+                                && !CheckLocalVariableUsedVisitor.visit(lv, list.subList(i+1, list.size()))) {
                             ff.setInit(new FastDeclaration(si.getOffset(), si.getLineNumber(), lv, si));
                             lv.setDeclarationFlag(DECLARED);
                             updateNewAndInitArrayInstruction(si);
@@ -1711,7 +1712,7 @@ public final class FastInstructionListBuilder {
                             Instruction.UNKNOWN_LINE_NUMBER, lv, null);
                     if (addDeclarations) {
                         if (!variableFound(list, lv)
-                              && CheckLocalVariableUsedVisitor.visit(new LocalVariables(lv), lv.getStartPc(), list)) {
+                              && CheckLocalVariableUsedVisitor.visit(lv, list)) {
                             list.add(indexForNewDeclaration, fastDeclaration);
                         }
                     } else {

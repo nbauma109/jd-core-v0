@@ -278,7 +278,8 @@ public final class CheckLocalVariableUsedVisitor
         case FastConstants.FOR:
             {
                 FastFor ff = (FastFor)instruction;
-                return ff.getInit() != null && visit(localVariables, maxOffset, ff.getInit()) || ff.getInc() != null && visit(localVariables, maxOffset, ff.getInc());
+                return ff.getInit() != null && visit(localVariables, maxOffset, ff.getInit()) || ff.getInc() != null && visit(localVariables, maxOffset, ff.getInc())
+                    || ff.getInstructions() != null && visit(localVariables, maxOffset, ff.getInstructions());
             }
         case FastConstants.WHILE,
              FastConstants.DO_WHILE,
@@ -404,5 +405,10 @@ public final class CheckLocalVariableUsedVisitor
             }
         }
         return false;
+    }
+
+    public static boolean visit(LocalVariable lv, List<Instruction> instructions)
+    {
+        return visit(new LocalVariables(lv), lv.getStartPc(), instructions);
     }
 }
