@@ -2358,12 +2358,12 @@
 /*      */ 
 /*      */ 
 /*      */ 
+/*      */     int i;
+/*      */     
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
-/*      */ 
-/* 2366 */     for (int i = 0; i <= n; i++) {
+/* 2366 */     for (i = 0; i <= n; i++) {
 /* 2367 */       p[i] = i;
 /*      */     }
 /*      */     
@@ -3075,8 +3075,8 @@
 /* 3075 */     if (cs1 == null || cs2 == null) {
 /* 3076 */       return 0;
 /*      */     }
-/*      */     
-/* 3079 */     for (int i = 0; i < cs1.length() && i < cs2.length(); i++) {
+/*      */     int i;
+/* 3079 */     for (i = 0; i < cs1.length() && i < cs2.length(); i++) {
 /* 3080 */       if (cs1.charAt(i) != cs2.charAt(i)) {
 /*      */         break;
 /*      */       }
