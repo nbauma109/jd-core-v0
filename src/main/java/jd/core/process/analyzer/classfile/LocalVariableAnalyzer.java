@@ -20,9 +20,11 @@ import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.Signature;
+import org.apache.commons.lang3.ArrayUtils;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.List;
+import java.util.Optional;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
@@ -96,7 +98,7 @@ public final class LocalVariableAnalyzer
 
         // Reconstruction de la liste des variables locales
         byte[] code = method.getCode();
-        int codeLength = code == null ? 0 : code.length;
+        int codeLength = ArrayUtils.getLength(code);
         LocalVariables localVariables = method.getLocalVariables();
 
         if (localVariables == null)
@@ -234,8 +236,10 @@ public final class LocalVariableAnalyzer
         // Le descripteur et la signature sont differentes pour les
         // constructeurs des Enums !
         Signature as = method.getAttributeSignature();
-        String methodSignature = constants.getConstantUtf8(
-                as == null ? method.getDescriptorIndex() : as.getSignatureIndex());
+        int methodSignatureIndex = Optional.ofNullable(as)
+                                           .map(Signature::getSignatureIndex)
+                                           .orElseGet(method::getDescriptorIndex);
+        String methodSignature = constants.getConstantUtf8(methodSignatureIndex);
         List<String> parameterTypes =
                 SignatureUtil.getParameterSignatures(methodSignature);
 
@@ -1260,8 +1264,7 @@ public final class LocalVariableAnalyzer
         ConstantPool constants = classFile.getConstantPool();
         String signature =
                 instruction.getReturnedSignature(classFile, localVariables);
-        int signatureIndex =
-                signature != null ? constants.addConstantUtf8(signature) : -1;
+        int signatureIndex = Optional.ofNullable(signature).map(constants::addConstantUtf8).orElse(-1);
 
         if (lv == null || lv.getSignatureIndex() != signatureIndex)
         {
@@ -1644,8 +1647,9 @@ public final class LocalVariableAnalyzer
             ClassFile classFile, Method method)
     {
         Signature as = method.getAttributeSignature();
-        int signatureIndex = as == null ?
-                method.getDescriptorIndex() : as.getSignatureIndex();
+        int signatureIndex = Optional.ofNullable(as)
+                                     .map(Signature::getSignatureIndex)
+                                     .orElseGet(method::getDescriptorIndex);
         String signature =
                 classFile.getConstantPool().getConstantUtf8(signatureIndex);
 

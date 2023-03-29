@@ -21,6 +21,7 @@ import org.apache.bcel.classfile.ConstantCP;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.List;
+import java.util.Optional;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
@@ -70,7 +71,7 @@ public abstract class BaseInstructionSplitterVisitor
     public void start(ClassFile classFile)
     {
         this.classFile = classFile;
-        this.constants = classFile == null ? null : classFile.getConstantPool();
+        this.constants = Optional.ofNullable(classFile).map(ClassFile::getConstantPool).orElse(null);
     }
 
     public void visit(Instruction instruction)

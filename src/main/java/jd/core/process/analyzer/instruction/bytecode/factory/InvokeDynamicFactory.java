@@ -35,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
+import java.util.Optional;
 
 import static org.apache.bcel.Const.ACC_PRIVATE;
 import static org.apache.bcel.Const.ACC_SYNTHETIC;
@@ -100,7 +101,7 @@ public class InvokeDynamicFactory implements InstructionFactory
         ConstantMethodType cmt0 = constants.getConstantMethodType(bootstrapArguments[0]);
         String descriptor0 = constants.getConstantUtf8(cmt0.getDescriptorIndex());
         TypeMaker.MethodTypes methodTypes0 = typeMaker.makeMethodTypes(descriptor0);
-        int parameterCount = methodTypes0.getParameterTypes() == null ? 0 : methodTypes0.getParameterTypes().size();
+        int parameterCount = Optional.ofNullable(methodTypes0.getParameterTypes()).map(BaseType::size).orElse(0);
         ConstantMethodHandle constantMethodHandle1 = constants.getConstantMethodHandle(bootstrapArguments[1]);
         
         ConstantCP cmr1 = constants.getConstantMethodref(constantMethodHandle1.getReferenceIndex());

@@ -16,6 +16,8 @@
  ******************************************************************************/
 package jd.core.model.instruction.bytecode.instruction;
 
+import java.util.Optional;
+
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariables;
 
@@ -50,7 +52,9 @@ public abstract class Instruction
     }
 
     public int getLastOffset() {
-        return next == null ? offset : next.getLastOffset();
+        return Optional.ofNullable(next)
+                       .map(Instruction::getLastOffset)
+                       .orElse(offset);
     }
 
     public int getLineNumber() {

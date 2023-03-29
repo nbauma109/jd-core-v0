@@ -39,6 +39,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -1294,8 +1295,9 @@ public final class FastInstructionListBuilder {
         LocalVariables localVariables = method.getLocalVariables();
 
         Signature as = method.getAttributeSignature();
-        int signatureIndex = as == null ?
-                method.getDescriptorIndex() : as.getSignatureIndex();
+        int signatureIndex = Optional.ofNullable(as)
+                                     .map(Signature::getSignatureIndex)
+                                     .orElseGet(method::getDescriptorIndex);
         String signature = constants.getConstantUtf8(signatureIndex);
         String methodReturnedSignature =
                 SignatureUtil.getMethodReturnedSignature(signature);
@@ -1692,7 +1694,7 @@ public final class FastInstructionListBuilder {
             // partnerParameters.getCpCode(), parameterName });
             // 231: this.loggerTarget.debug(message);
             // }
-            final int lvLength = localVariables == null ? 0 : localVariables.size();
+            final int lvLength = Optional.ofNullable(localVariables).map(LocalVariables::size).orElse(0);
             for (int i = 0; i < lvLength; i++) {
                 lv = localVariables.getLocalVariableAt(i);
                 if (lv.hasDeclarationFlag() == NOT_DECLARED && !lv.isToBeRemoved() && beforeListOffset < lv.getStartPc()

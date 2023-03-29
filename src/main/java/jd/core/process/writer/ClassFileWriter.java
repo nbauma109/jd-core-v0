@@ -32,6 +32,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import jd.core.model.classfile.ClassFile;
@@ -1611,8 +1612,9 @@ public final class ClassFileWriter
         ConstantPool constants = classFile.getConstantPool();
 
         Signature as = field.getAttributeSignature();
-        int signatureIndex = as == null ?
-                field.getDescriptorIndex() : as.getSignatureIndex();
+        int signatureIndex = Optional.ofNullable(as)
+                                     .map(Signature::getSignatureIndex)
+                                     .orElseGet(field::getDescriptorIndex);;
 
         String signature = constants.getConstantUtf8(signatureIndex);
 
@@ -2371,10 +2373,9 @@ public final class ClassFileWriter
 
         this.printer.print(' ');
 
-        LocalVariables localVariables = method == null ? null : method.getLocalVariables();
-        if (localVariables == null) {
-            localVariables = new LocalVariables();
-        }
+        LocalVariables localVariables = Optional.ofNullable(method)
+                                                .map(Method::getLocalVariables)
+                                                .orElseGet(LocalVariables::new);
         LocalVariable lv = localVariables.searchLocalVariableWithIndexAndOffset(
                 fc.localVarIndex(), fc.exceptionOffset());
 

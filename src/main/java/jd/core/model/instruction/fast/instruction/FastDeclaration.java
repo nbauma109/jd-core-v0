@@ -17,6 +17,7 @@
 package jd.core.model.instruction.fast.instruction;
 
 import java.util.Objects;
+import java.util.Optional;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariable;
@@ -79,7 +80,9 @@ public class FastDeclaration extends Instruction
 
     @Override
     public int getLastOffset() {
-        return instruction == null ? super.getLastOffset() : instruction.getLastOffset();
+        return Optional.ofNullable(instruction)
+                .map(Instruction::getLastOffset)
+                .orElseGet(super::getLastOffset);
     }
 
     @Override
