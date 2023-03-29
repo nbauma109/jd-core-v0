@@ -1820,11 +1820,7 @@ public final class ClassFileWriter
     {
         this.printer.debugStartOfInstructionBlockLayoutBlock();
 
-        if (this.addSpace)
-        {
-            this.printer.print(" ");
-            this.addSpace = false;
-        }
+        addSpaceIfNeeded();
 
         this.instructionPrinter.init(ilb.getFirstLineNumber());
         this.visitor.init(ilb.getClassFile(), ilb.getMethod(), ilb.getFirstOffset(), ilb.getLastOffset());
@@ -1840,11 +1836,7 @@ public final class ClassFileWriter
     {
         this.printer.debugStartOfInstructionBlockLayoutBlock();
 
-        if (this.addSpace)
-        {
-            this.printer.print(" ");
-            this.addSpace = false;
-        }
+        addSpaceIfNeeded();
 
         this.instructionPrinter.init(ilb.getFirstLineNumber());
         this.visitor.init(
@@ -1911,11 +1903,7 @@ public final class ClassFileWriter
     {
         this.printer.debugStartOfInstructionBlockLayoutBlock();
 
-        if (this.addSpace)
-        {
-            this.printer.print(" ");
-            this.addSpace = false;
-        }
+        addSpaceIfNeeded();
 
         this.instructionPrinter.init(dlb.getFirstLineNumber());
         FastDeclaration fd = (FastDeclaration) dlb.getInstruction();
@@ -1932,11 +1920,7 @@ public final class ClassFileWriter
 
     private void writeIf(/* InstructionLayoutBlock filb */)
     {
-        if (this.addSpace)
-        {
-            this.printer.print(" ");
-            this.addSpace = false;
-        }
+        addSpaceIfNeeded();
 
         this.printer.printKeyword("if");
         this.printer.print(" (");
@@ -1944,11 +1928,7 @@ public final class ClassFileWriter
 
     private void writeWhile(/* InstructionLayoutBlock filb */)
     {
-        if (this.addSpace)
-        {
-            this.printer.print(" ");
-            this.addSpace = false;
-        }
+        addSpaceIfNeeded();
 
         this.printer.printKeyword("while");
         this.printer.print(" (");
@@ -1956,11 +1936,7 @@ public final class ClassFileWriter
 
     private void writeFor()
     {
-        if (this.addSpace)
-        {
-            this.printer.print(" ");
-            this.addSpace = false;
-        }
+        addSpaceIfNeeded();
 
         this.printer.printKeyword("for");
         this.printer.print(" (");
@@ -1968,11 +1944,7 @@ public final class ClassFileWriter
 
     private void writeLabeledBreak(OffsetLayoutBlock olb)
     {
-        if (this.addSpace)
-        {
-            this.printer.print(" ");
-            this.addSpace = false;
-        }
+        addSpaceIfNeeded();
 
         this.printer.printKeyword(BREAK);
         this.printer.print(' ');
@@ -2018,11 +1990,7 @@ public final class ClassFileWriter
     
     private void writeSwitch()
     {
-        if (this.addSpace)
-        {
-            this.printer.print(" ");
-            this.addSpace = false;
-        }
+        addSpaceIfNeeded();
 
         this.printer.printKeyword("switch");
         this.printer.print(" (");
@@ -2030,11 +1998,7 @@ public final class ClassFileWriter
 
     private void writeCase(CaseLayoutBlock clb)
     {
-        if (this.addSpace)
-        {
-            this.printer.print(" ");
-            this.addSpace = false;
-        }
+        addSpaceIfNeeded();
 
         String signature = clb.getFs().getTest().getReturnedSignature(
             clb.getClassFile(), clb.getMethod().getLocalVariables());
@@ -2146,11 +2110,7 @@ public final class ClassFileWriter
 
     private void writeCaseEnum(CaseEnumLayoutBlock celb)
     {
-        if (this.addSpace)
-        {
-            this.printer.print(" ");
-            this.addSpace = false;
-        }
+        addSpaceIfNeeded();
 
         ClassFile classFile = celb.getClassFile();
         ConstantPool constants = classFile.getConstantPool();
@@ -2281,11 +2241,7 @@ public final class ClassFileWriter
 
     private void writeCaseString(CaseLayoutBlock clb)
     {
-        if (this.addSpace)
-        {
-            this.printer.print(" ");
-            this.addSpace = false;
-        }
+        addSpaceIfNeeded();
 
         ClassFile classFile = clb.getClassFile();
         ConstantPool constants = classFile.getConstantPool();
@@ -2384,11 +2340,7 @@ public final class ClassFileWriter
 
     private void writeCatch(FastCatchLayoutBlock fslb)
     {
-        if (this.addSpace)
-        {
-            this.printer.print(" ");
-            this.addSpace = false;
-        }
+        addSpaceIfNeeded();
 
         this.printer.printKeyword("catch");
         this.printer.print(" (");
@@ -2453,11 +2405,7 @@ public final class ClassFileWriter
 
     private void writeSynchronized()
     {
-        if (this.addSpace)
-        {
-            this.printer.print(" ");
-            this.addSpace = false;
-        }
+        addSpaceIfNeeded();
 
         this.printer.printKeyword(SYNCHRONIZED);
         this.printer.print(" (");
@@ -2465,11 +2413,7 @@ public final class ClassFileWriter
 
     private void writeLabel(OffsetLayoutBlock olb)
     {
-        if (this.addSpace)
-        {
-            this.printer.print(" ");
-            this.addSpace = false;
-        }
+        addSpaceIfNeeded();
 
         this.printer.print(FastConstants.LABEL_PREFIX);
         this.printer.print(olb.getOffset());
@@ -2479,22 +2423,14 @@ public final class ClassFileWriter
 
     private void writeElse()
     {
-        if (this.addSpace)
-        {
-            this.printer.print(" ");
-            this.addSpace = false;
-        }
+        addSpaceIfNeeded();
 
         this.printer.printKeyword("else");
     }
 
     private void writeElseSpace()
     {
-        if (this.addSpace)
-        {
-            this.printer.print(" ");
-            this.addSpace = false;
-        }
+        addSpaceIfNeeded();
 
         this.printer.printKeyword("else");
         this.printer.print(' ');
@@ -2502,22 +2438,14 @@ public final class ClassFileWriter
 
     private void writeDo()
     {
-        if (this.addSpace)
-        {
-            this.printer.print(" ");
-            this.addSpace = false;
-        }
+        addSpaceIfNeeded();
 
         this.printer.printKeyword("do");
     }
 
     private void writeInfiniteLoop()
     {
-        if (this.addSpace)
-        {
-            this.printer.print(" ");
-            this.addSpace = false;
-        }
+        addSpaceIfNeeded();
 
         this.printer.printKeyword("for");
         this.printer.print(" (;;)");
@@ -2525,44 +2453,28 @@ public final class ClassFileWriter
 
     private void writeTry()
     {
-        if (this.addSpace)
-        {
-            this.printer.print(" ");
-            this.addSpace = false;
-        }
+        addSpaceIfNeeded();
 
         this.printer.printKeyword("try");
     }
 
     private void writeTryWithResources()
     {
-        if (this.addSpace)
-        {
-            this.printer.print(" ");
-            this.addSpace = false;
-        }
+        addSpaceIfNeeded();
         
         this.printer.printKeyword("try (");
     }
     
     private void writeFinally()
     {
-        if (this.addSpace)
-        {
-            this.printer.print(" ");
-            this.addSpace = false;
-        }
+        addSpaceIfNeeded();
 
         this.printer.printKeyword("finally");
     }
 
     private void writeContinue()
     {
-        if (this.addSpace)
-        {
-            this.printer.print(" ");
-            this.addSpace = false;
-        }
+        addSpaceIfNeeded();
 
         this.printer.printKeyword("continue");
         this.printer.print(';');
@@ -2570,14 +2482,18 @@ public final class ClassFileWriter
 
     private void writeBreak()
     {
+        addSpaceIfNeeded();
+
+        this.printer.printKeyword(BREAK);
+        this.printer.print(';');
+    }
+
+    private void addSpaceIfNeeded() {
         if (this.addSpace)
         {
             this.printer.print(" ");
             this.addSpace = false;
         }
-
-        this.printer.printKeyword(BREAK);
-        this.printer.print(';');
     }
 
     private void endOfLine()
