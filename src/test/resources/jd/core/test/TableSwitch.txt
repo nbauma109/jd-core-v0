@@ -48,4 +48,31 @@
 /* 48 */       throw new IllegalArgumentException();
 /*    */     }
 /*    */   }
+/*    */   
+/*    */   public void tableSwitch3(char value) {
+/* 53 */     switch (value) {
+/*    */     case '1': 
+/* 55 */       System.out.println("One");
+/*    */       
+/* 57 */       break;
+/*    */     
+/*    */     case '2': 
+/* 60 */       System.out.println("Two");
+/*    */       
+/* 62 */       break;
+/*    */     
+/*    */     case '4': 
+/* 65 */       System.out.println("Four");
+/*    */       
+/* 67 */       break;
+/*    */     
+/*    */     case '8': 
+/* 70 */       System.out.println("Eight");
+/*    */       
+/* 72 */       break;
+/*    */     case '3': case '5': case '6': 
+/*    */     case '7': default: 
+/* 75 */       throw new IllegalArgumentException();
+/*    */     }
+/*    */   }
 /*    */ }
