@@ -11,13 +11,13 @@
 /*    */     case 1: 
 /* 12 */       System.out.println("One");
 /* 13 */       break;
-/*    */     case 2: 
+/*    */     case -2: case 2: 
 /* 15 */       System.out.println("Two");
 /* 16 */       break;
 /*    */     case 3: 
 /* 18 */       System.out.println("Three");
 /* 19 */       break;
-/*    */     default: 
+/*    */     case -1: case 0: default: 
 /* 21 */       throw new IllegalArgumentException();
 /*    */     }
 /*    */   }

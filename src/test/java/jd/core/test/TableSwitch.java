@@ -11,7 +11,7 @@ public class TableSwitch {
             case 1:
                 System.out.println("One");
                 break;
-            case 2:
+            case 2, -2:
                 System.out.println("Two");
                 break;
             case 3:
