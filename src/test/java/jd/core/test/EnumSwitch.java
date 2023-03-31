@@ -1,32 +1,36 @@
 package jd.core.test;
 /*
- * A test input for the string switch pattern.
+ * A test input for the enum switch pattern.
  */
-public class StringSwitch {
+public class EnumSwitch {
 
-    void stringSwitch(String inputValue) {
+    static enum Digit {
+        _0, _1, _2, _3, _4, _5, _6, _7, _8, _9
+    }
+
+    void stringSwitch(Digit inputValue) {
         switch (inputValue) {
-            case "1":
+            case _1:
                 System.out.println("One");
 
                 break;
 
-            case "2":
+            case _2:
                 System.out.println("Two");
 
                 break;
 
-            case "4":
+            case _4:
                 System.out.println("Four");
 
                 break;
 
-            case "8":
+            case _8:
                 System.out.println("Eight");
 
                 break;
-            case "3": case "5": case "6":
-            case "7": default:
+            case _3: case _5: case _6:
+            case _7: default:
                 throw new IllegalArgumentException();
         }
     }

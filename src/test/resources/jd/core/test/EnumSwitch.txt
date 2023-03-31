@@ -1,0 +1,37 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ 
+/*    */ public class EnumSwitch
+/*    */ {
+/*    */   static enum Digit
+/*    */   {
+/*  8 */     _0, _1, _2, _3, _4, _5, _6, _7, _8, _9;
+/*    */   }
+/*    */   
+/*    */   void stringSwitch(Digit inputValue) {
+/* 12 */     switch (inputValue) {
+/*    */     case _1: 
+/* 14 */       System.out.println("One");
+/*    */       
+/* 16 */       break;
+/*    */     
+/*    */     case _2: 
+/* 19 */       System.out.println("Two");
+/*    */       
+/* 21 */       break;
+/*    */     
+/*    */     case _4: 
+/* 24 */       System.out.println("Four");
+/*    */       
+/* 26 */       break;
+/*    */     
+/*    */     case _8: 
+/* 29 */       System.out.println("Eight");
+/*    */       
+/* 31 */       break;
+/*    */     case _3: case _5: case _6: 
+/*    */     case _7: default: 
+/* 34 */       throw new IllegalArgumentException();
+/*    */     }
+/*    */   }
+/*    */ }
