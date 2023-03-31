@@ -8,15 +8,26 @@
 /*  8 */     switch (inputValue) {
 /*    */     case "1": 
 /* 10 */       System.out.println("One");
-/* 11 */       break;
+/*    */       
+/* 12 */       break;
+/*    */     
 /*    */     case "2": 
-/* 13 */       System.out.println("Two");
-/* 14 */       break;
-/*    */     case "3": 
-/* 16 */       System.out.println("Three");
+/* 15 */       System.out.println("Two");
+/*    */       
 /* 17 */       break;
-/*    */     default: 
-/* 19 */       throw new IllegalArgumentException();
+/*    */     
+/*    */     case "4": 
+/* 20 */       System.out.println("Four");
+/*    */       
+/* 22 */       break;
+/*    */     
+/*    */     case "8": 
+/* 25 */       System.out.println("Eight");
+/*    */       
+/* 27 */       break;
+/*    */     case "3": case "5": case "6": 
+/*    */     case "7": default: 
+/* 30 */       throw new IllegalArgumentException();
 /*    */     }
 /*    */   }
 /*    */ }
