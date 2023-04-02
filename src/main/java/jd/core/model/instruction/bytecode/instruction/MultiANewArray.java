@@ -36,6 +36,10 @@ public class MultiANewArray extends IndexInstruction
     public String getReturnedSignature(
             ClassFile classFile, LocalVariables localVariables)
     {
+        if (classFile == null) {
+            return null;
+        }
+
         ConstantPool constants = classFile.getConstantPool();
 
         return constants.getConstantClassName(this.getIndex());

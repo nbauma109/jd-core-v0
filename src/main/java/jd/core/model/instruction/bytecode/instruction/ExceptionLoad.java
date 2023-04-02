@@ -36,6 +36,10 @@ public class ExceptionLoad extends IndexInstruction
     public String getReturnedSignature(
             ClassFile classFile, LocalVariables localVariables)
     {
+        if (classFile == null) {
+            return null;
+        }
+
         ConstantPool constants = classFile.getConstantPool();
 
         if (this.getExceptionNameIndex() == 0) {
