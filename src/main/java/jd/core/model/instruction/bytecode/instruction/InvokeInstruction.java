@@ -71,10 +71,6 @@ public abstract class InvokeInstruction extends IndexInstruction
 
     public List<String> getListOfParameterSignatures(ConstantPool constants)
     {
-        if (constants == null) {
-            return null;
-        }
-
         ConstantCP cmr = constants.getConstantMethodref(this.getIndex());
         ConstantNameAndType cnat = constants.getConstantNameAndType(
                 cmr.getNameAndTypeIndex());
