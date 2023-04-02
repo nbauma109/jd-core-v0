@@ -1,5 +1,6 @@
 /*     */ package jd.core.test;
 /*     */ 
+/*     */ import java.awt.Component;
 /*     */ import java.awt.Point;
 /*     */ import java.util.Map;
 /*     */ 
@@ -7,108 +8,112 @@
 /*     */ {
 /*     */   Point p;
 /*     */   static int i;
-/*  10 */   static int[] NEW_INIT_ARRAY = { Math.random() > 0.5D ? 1 : 0 };
+/*  11 */   static int[] NEW_INIT_ARRAY = { Math.random() > 0.5D ? 1 : 0 };
 /*     */   
 /*     */   int arrayLength(int[] a, int[] b)
 /*     */   {
-/*  14 */     return (Math.random() > 0.5D ? a : b).length;
+/*  15 */     return (Math.random() > 0.5D ? a : b).length;
 /*     */   }
 /*     */   
 /*     */   void arrayStore(int[] a) {
-/*  18 */     a[(Math.random() > 0.5D ? 1 : 0)] = 1;
+/*  19 */     a[(Math.random() > 0.5D ? 1 : 0)] = 1;
 /*     */   }
 /*     */   
 /*     */   void athrow(Throwable cause1, Throwable cause2) throws Exception {
-/*  22 */     throw new Exception(Math.random() > 0.5D ? cause1 : cause2);
+/*  23 */     throw new Exception(Math.random() > 0.5D ? cause1 : cause2);
 /*     */   }
 /*     */   
 /*     */   int unaryOp(int a, int b) throws Exception {
-/*  26 */     return -(Math.random() > 0.5D ? a : b);
+/*  27 */     return -(Math.random() > 0.5D ? a : b);
 /*     */   }
 /*     */   
 /*     */   int binaryOp(int a, int b) throws Exception {
-/*  30 */     return (Math.random() > 0.5D ? a : b) + (Math.random() > 0.5D ? a : b);
+/*  31 */     return (Math.random() > 0.5D ? a : b) + (Math.random() > 0.5D ? a : b);
 /*     */   }
 /*     */   
 /*     */   byte convert() throws Exception {
-/*  34 */     return (byte)(Math.random() > 0.5D ? 1 : 0);
+/*  35 */     return (byte)(Math.random() > 0.5D ? 1 : 0);
 /*     */   }
 /*     */   
 /*     */   void putfield() {
-/*  38 */     this.p.y = (Math.random() > 0.5D ? ++this.p.x : --this.p.y);
+/*  39 */     this.p.y = (Math.random() > 0.5D ? ++this.p.x : --this.p.y);
 /*     */   }
 /*     */   
 /*     */   void instanceOf(Object a, Object b) throws Exception {
-/*  42 */     if (((Math.random() > 0.5D ? a : b) instanceof Number)) {
-/*  43 */       System.out.println("ok");
+/*  43 */     if (((Math.random() > 0.5D ? a : b) instanceof Number)) {
+/*  44 */       System.out.println("ok");
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   void tableSwitch(int a, int b) {
-/*  48 */     switch (Math.random() > 0.5D ? a : b) {
+/*  49 */     switch (Math.random() > 0.5D ? a : b) {
 /*     */     case 1: 
-/*  50 */       System.out.println("One");
-/*  51 */       break;
+/*  51 */       System.out.println("One");
+/*  52 */       break;
 /*     */     case 2: 
-/*  53 */       System.out.println("Two");
-/*  54 */       break;
+/*  54 */       System.out.println("Two");
+/*  55 */       break;
 /*     */     case 3: 
-/*  56 */       System.out.println("Three");
-/*  57 */       break;
+/*  57 */       System.out.println("Three");
+/*  58 */       break;
 /*     */     default: 
-/*  59 */       throw new IllegalArgumentException();
+/*  60 */       throw new IllegalArgumentException();
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   void lookupSwitch(int a, int b) {
-/*  64 */     switch (Math.random() > 0.5D ? a : b) {
+/*  65 */     switch (Math.random() > 0.5D ? a : b) {
 /*     */     case 1: 
-/*  66 */       System.out.println("One");
-/*  67 */       break;
+/*  67 */       System.out.println("One");
+/*  68 */       break;
 /*     */     case 1000: 
-/*  69 */       System.out.println("One thousand");
-/*  70 */       break;
+/*  70 */       System.out.println("One thousand");
+/*  71 */       break;
 /*     */     case 1000000: 
-/*  72 */       System.out.println("One million");
-/*  73 */       break;
+/*  73 */       System.out.println("One million");
+/*  74 */       break;
 /*     */     default: 
-/*  75 */       throw new IllegalArgumentException();
+/*  76 */       throw new IllegalArgumentException();
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   void fastSynchronized(Object a, Object b) {
-/*  80 */     synchronized (Math.random() > 0.5D ? a : b) {
-/*  81 */       System.out.println("ok");
+/*  81 */     synchronized (Math.random() > 0.5D ? a : b) {
+/*  82 */       System.out.println("ok");
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   Object tryResources(AutoCloseable a, AutoCloseable b) {
-/*  86 */     Object o = null;
-/*  87 */     try (AutoCloseable ac = Math.random() > 0.5D ? a : b) {
-/*  88 */       System.out.println(ac);
+/*  87 */     Object o = null;
+/*  88 */     try (AutoCloseable ac = Math.random() > 0.5D ? a : b) {
+/*  89 */       System.out.println(ac);
 /*     */     } catch (Exception e) {
-/*  90 */       e.printStackTrace();
+/*  91 */       e.printStackTrace();
 /*     */     }
-/*  92 */     return o;
+/*  93 */     return o;
 /*     */   }
 /*     */   
 /*     */   Object[] aNewArray() {
-/*  96 */     return new Object[Math.random() > 0.5D ? 1 : 0];
+/*  97 */     return new Object[Math.random() > 0.5D ? 1 : 0];
 /*     */   }
 /*     */   
 /*     */   int[] newArray() {
-/* 100 */     return new int[Math.random() > 0.5D ? 1 : 0];
+/* 101 */     return new int[Math.random() > 0.5D ? 1 : 0];
 /*     */   }
 /*     */   
 /*     */   Object[][] multiANewArray() {
-/* 104 */     return new Object[Math.random() > 0.5D ? 1 : 0][Math.random() > 0.5D ? 1 : 0];
+/* 105 */     return new Object[Math.random() > 0.5D ? 1 : 0][Math.random() > 0.5D ? 1 : 0];
 /*     */   }
 /*     */   
 /*     */   static void putStatic(int a, int b) {
-/* 108 */     i = Math.random() > 0.5D ? a : b;
+/* 109 */     i = Math.random() > 0.5D ? a : b;
 /*     */   }
 /*     */   
 /*     */   void pop(Map<String, String> m1, Map<String, String> m2) {
-/* 112 */     (Math.random() > 0.5D ? m1 : m2).put("key", "value");
+/* 113 */     (Math.random() > 0.5D ? m1 : m2).put("key", "value");
+/*     */   }
+/*     */   
+/*     */   boolean isVisible(Component comp) {
+/* 117 */     return comp != null ? comp.isVisible() : false;
 /*     */   }
 /*     */ }

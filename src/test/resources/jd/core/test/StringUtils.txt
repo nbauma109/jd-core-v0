@@ -5584,7 +5584,7 @@
 /* 5584 */         whitespacesCount++;
 /*      */       } else {
 /* 5586 */         startWhitespaces = false;
-/* 5587 */         newChars[(count++)] = (actualChar == ' ' ? 32 : actualChar);
+/* 5587 */         newChars[(count++)] = (actualChar == ' ' ? ' ' : actualChar);
 /* 5588 */         whitespacesCount = 0;
 /*      */       }
 /*      */     }
