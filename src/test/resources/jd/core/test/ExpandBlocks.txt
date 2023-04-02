@@ -1,1 +1,142 @@
-
+/*     */ package jd.core.test;
+/*     */ 
+/*     */ public class ExpandBlocks
+/*     */ {
+/*     */   private String id;
+/*     */   static String name;
+/*     */   
+/*     */   private void init()
+/*     */   {
+/*  10 */     this.id = (name = "");
+/*     */   }
+/*     */   
+/*     */   private static void staticInit()
+/*     */   {
+/*  15 */     name = "";
+/*     */   }
+/*     */   
+/*     */   public void method1()
+/*     */   {
+/*  20 */     System.out.println("Test.method1");
+/*     */   }
+/*     */   
+/*     */   static
+/*     */   {
+/*  25 */     System.out.println("clinit1");
+/*     */   }
+/*     */   
+/*     */   public void method2()
+/*     */   {
+/*  30 */     System.out.println("Test.method2");
+/*     */   }
+/*     */   
+/*     */   public ExpandBlocks(String id)
+/*     */   {
+/*  35 */     this.id = id;
+/*     */   }
+/*     */   
+/*     */   class Inner1
+/*     */   {
+/*     */     int x;
+/*     */     int y;
+/*     */     
+/*     */     public Inner1(int x, int y)
+/*     */     {
+/*  45 */       System.out.println("Inner1 constructor");
+/*  46 */       this.x = x;
+/*  47 */       this.y = y;
+/*  48 */       ExpandBlocks.this.id = "";
+/*  49 */       ExpandBlocks.this.init();
+/*     */     }
+/*     */     
+/*     */     public void method1()
+/*     */     {
+/*  54 */       System.out.println("Inner1.method1");
+/*     */     }
+/*     */     
+/*     */     public void method2()
+/*     */     {
+/*  59 */       System.out.println("Inner1.method2");
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public String toString()
+/*     */     {
+/*  65 */       return ExpandBlocks.this.id;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   public void method3()
+/*     */   {
+/*  71 */     System.out.println("Test.method3");
+/*     */   }
+/*     */   
+/*     */   public void method4()
+/*     */   {
+/*  76 */     System.out.println("Test.method4");
+/*     */   }
+/*     */   
+/*     */   static class Inner2
+/*     */   {
+/*     */     int x;
+/*     */     int y;
+/*     */     
+/*     */     Inner2(int x, int y)
+/*     */     {
+/*  86 */       this.x = x;
+/*  87 */       this.y = y;
+/*  88 */       ExpandBlocks.name = "";
+/*  89 */       ExpandBlocks.staticInit();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */   class Inner3
+/*     */   {
+/*     */     public Inner3()
+/*     */     {
+/*  98 */       System.out.println("Inner3 constructor");
+/*     */     }
+/*     */     
+/*     */     public void method1()
+/*     */     {
+/* 103 */       System.out.println("Inner3.method1");
+/*     */     }
+/*     */     
+/*     */     public void method2()
+/*     */     {
+/* 108 */       System.out.println("Inner3.method2");
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */   class Inner4
+/*     */   {
+/*     */     public Inner4()
+/*     */     {
+/* 117 */       System.out.println("Inner4 constructor");
+/*     */     }
+/*     */     
+/*     */     public void method1()
+/*     */     {
+/* 122 */       System.out.println("Inner4.method1");
+/*     */     }
+/*     */     
+/*     */     public void method2()
+/*     */     {
+/* 127 */       System.out.println("Inner4.method2");
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   public void method5()
+/*     */   {
+/* 133 */     System.out.println("Test.method5");
+/*     */   }
+/*     */   
+/*     */   public void method6()
+/*     */   {
+/* 138 */     System.out.println("Test.method6");
+/*     */   }
+/*     */   
+/* 141 */   static String TEST = "TEST";
+/*     */ }
