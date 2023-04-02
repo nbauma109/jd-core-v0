@@ -91,6 +91,7 @@ public class NewInstructionReconstructorBase
                                 String name =
                                     constants.getConstantUtf8(lv.getNameIndex());
                                 innerField.setOuterMethodLocalVariableNameIndex(innerConstants.addConstantUtf8(name));
+                                innerField.setConstantPool(innerConstants);
                                 // Ajout du flag 'final' sur la variable
                                 // locale de la méthode contenant
                                 // l'instruction "new"

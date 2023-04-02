@@ -1556,7 +1556,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
             {
                 String internalClassName =
                     this.constants.getConstantClassName(cfr.getClassIndex());
-                String fieldName = this.constants.getConstantUtf8(
+                String fieldName = field.getConstantPool().getConstantUtf8(
                     field.getOuterMethodLocalVariableNameIndex());
                 if (this.keywordSet.contains(fieldName)) {
                     fieldName = StringConstants.JD_FIELD_PREFIX + fieldName;

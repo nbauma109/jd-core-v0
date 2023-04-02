@@ -29,6 +29,7 @@ public class Field extends Base
 {
     private FieldOrMethod fieldOrMethod;
     private ValueAndMethod valueAndMethod;
+    private ConstantPool constantPool;
     /*
      * Attributs pour l'affichage des champs synthetique des classes anonymes.
      * Champs modifié par:
@@ -103,5 +104,13 @@ public class Field extends Base
 
     public void setNameIndex(int newNameIndex) {
         fieldOrMethod.setNameIndex(newNameIndex);
+    }
+
+    public ConstantPool getConstantPool() {
+        return constantPool;
+    }
+
+    public void setConstantPool(ConstantPool constantPool) {
+        this.constantPool = constantPool;
     }
 }
