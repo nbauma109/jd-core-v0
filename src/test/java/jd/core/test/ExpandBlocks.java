@@ -30,7 +30,7 @@ public class ExpandBlocks {
         System.out.println("Test.method2");
     }
 
-    public Outer(String id)
+    public ExpandBlocks(String id)
     {
         this.id = id;
     }
@@ -45,7 +45,7 @@ public class ExpandBlocks {
             System.out.println("Inner1 constructor");
             this.x = x;
             this.y = y;
-            Outer.this.id = "";
+            ExpandBlocks.this.id = "";
             init();
         }
 
