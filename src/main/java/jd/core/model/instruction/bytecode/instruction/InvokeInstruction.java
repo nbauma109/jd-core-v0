@@ -45,6 +45,10 @@ public abstract class InvokeInstruction extends IndexInstruction
     public String getReturnedSignature(
             ClassFile classFile, LocalVariables localVariables)
     {
+        if (classFile == null) {
+            return null;
+        }
+
         ConstantPool constants = classFile.getConstantPool();
 
         ConstantCP cmr = constants.getConstantMethodref(this.getIndex());

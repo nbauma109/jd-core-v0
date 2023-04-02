@@ -41,6 +41,10 @@ public class CheckCast extends IndexInstruction
     public String getReturnedSignature(
             ClassFile classFile, LocalVariables localVariables)
     {
+        if (classFile == null) {
+            return null;
+        }
+
         ConstantPool constants = classFile.getConstantPool();
 
         Constant c = constants.get(this.getIndex());

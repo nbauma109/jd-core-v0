@@ -36,6 +36,10 @@ public class ANewArray extends IndexInstruction
     public String getReturnedSignature(
             ClassFile classFile, LocalVariables localVariables)
     {
+        if (classFile == null) {
+            return null;
+        }
+
         ConstantPool constants = classFile.getConstantPool();
 
         String str = constants.getConstantClassName(this.getIndex());
