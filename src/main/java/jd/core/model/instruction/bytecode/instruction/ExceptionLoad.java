@@ -38,7 +38,7 @@ public class ExceptionLoad extends IndexInstruction
     {
         ConstantPool constants = classFile.getConstantPool();
 
-        if (this.getExceptionNameIndex() == 0) {
+        if (constants == null || this.getExceptionNameIndex() == 0) {
             return null;
         }
 

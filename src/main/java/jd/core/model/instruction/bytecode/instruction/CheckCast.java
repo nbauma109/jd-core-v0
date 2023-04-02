@@ -43,6 +43,10 @@ public class CheckCast extends IndexInstruction
     {
         ConstantPool constants = classFile.getConstantPool();
 
+        if (constants == null) {
+            return null;
+        }
+
         Constant c = constants.get(this.getIndex());
 
         if (c instanceof ConstantUtf8)

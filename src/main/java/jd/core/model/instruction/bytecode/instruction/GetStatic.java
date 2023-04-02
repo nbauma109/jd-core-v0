@@ -36,9 +36,20 @@ public class GetStatic extends IndexInstruction
     {
         ConstantPool constants = classFile.getConstantPool();
 
+        if (constants == null) {
+            return null;
+        }
+
         ConstantFieldref cfr = constants.getConstantFieldref(this.getIndex());
+        if (cfr == null) {
+            return null;
+        }
+
         ConstantNameAndType cnat =
             constants.getConstantNameAndType(cfr.getNameAndTypeIndex());
+        if (cnat == null) {
+            return null;
+        }
 
         return constants.getConstantUtf8(cnat.getSignatureIndex());
     }

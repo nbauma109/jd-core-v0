@@ -36,7 +36,15 @@ public class Ldc2W extends LdcInstruction
     {
         ConstantPool constants = classFile.getConstantPool();
 
+        if (constants == null) {
+            return null;
+        }
+
         Constant cv = constants.getConstantValue(this.getIndex());
+
+        if (cv == null) {
+            return null;
+        }
 
         return cv instanceof ConstantDouble ? "D" : "J";
     }
