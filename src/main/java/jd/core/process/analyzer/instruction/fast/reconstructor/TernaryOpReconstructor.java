@@ -108,7 +108,7 @@ public final class TernaryOpReconstructor
                     fto.setValue2(visitor.getOldInstruction());
                 }
 
-                if ((isBooleanConstant(fto.getValue1()) && isBooleanConstant(fto.getValue2())))
+                if ((isBooleanConstant(fto.getValue1())))
                 {
                     if (((IConst)fto.getValue1()).getValue() == 0) {
                         ComparisonInstructionAnalyzer.inverseComparison(fto.getTest());
