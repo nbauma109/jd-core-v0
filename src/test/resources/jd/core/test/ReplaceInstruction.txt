@@ -50,7 +50,7 @@
 /*  50 */         whitespacesCount++;
 /*     */       } else {
 /*  52 */         startWhitespaces = false;
-/*  53 */         newChars[(count++)] = (actualChar == ' ' ? 32 : actualChar);
+/*  53 */         newChars[(count++)] = (actualChar == ' ' ? ' ' : actualChar);
 /*  54 */         whitespacesCount = 0;
 /*     */       }
 /*     */     }

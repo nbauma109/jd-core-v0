@@ -75,7 +75,7 @@ public final class SearchInstructionByOffsetVisitor
             return visit(((ArrayLength)instruction).getArrayref(), offset);
         case Const.AASTORE,
              ByteCodeConstants.ARRAYSTORE:
-            return visit(((ArrayStoreInstruction)instruction).getArrayref(), offset);
+            return visit(((ArrayStoreInstruction)instruction).getValueref(), offset);
         case ByteCodeConstants.ASSERT:
             {
                 AssertInstruction ai = (AssertInstruction)instruction;

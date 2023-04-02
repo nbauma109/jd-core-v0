@@ -1,5 +1,6 @@
 package jd.core.test;
 
+import java.awt.Component;
 import java.awt.Point;
 import java.util.Map;
 
@@ -110,5 +111,9 @@ public class TernaryOp {
 
     void pop(Map<String, String> m1, Map<String, String> m2) {
         (Math.random() > 0.5 ? m1 : m2).put("key", "value");
+    }
+
+    boolean isVisible(Component comp) {
+        return (comp != null) ? comp.isVisible() : false;
     }
 }
