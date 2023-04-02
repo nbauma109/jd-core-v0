@@ -7,7 +7,7 @@
 
 # JD-Core v0
 
-Original version of jd-core based on byte code pattern matching
+A Java decompiler built on top of Emmanuel Dupuy's original version of [jd-core](https://github.com/java-decompiler/jd-core/tree/branch-jd-core-v0) based on byte code pattern matching
 
 ## Code sample
 
