@@ -617,11 +617,16 @@ public class OuterGetStaticVisitor
         Accessor accessor = classFile.getAccessor(name, descriptor);
 
         if (accessor == null ||
-            accessor.tag() != AccessorConstants.ACCESSOR_GETSTATIC) {
+            accessor.tag() != getTargetTag()) {
             return null;
         }
 
         return accessor;
+    }
+
+    protected byte getTargetTag()
+    {
+        return AccessorConstants.ACCESSOR_GETSTATIC;
     }
 
     protected Instruction newInstruction(Instruction i, Accessor a)
