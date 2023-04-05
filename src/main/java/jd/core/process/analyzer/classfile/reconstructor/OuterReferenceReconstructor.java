@@ -28,6 +28,7 @@ import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.process.analyzer.classfile.visitor.OuterGetFieldVisitor;
 import jd.core.process.analyzer.classfile.visitor.OuterGetStaticVisitor;
 import jd.core.process.analyzer.classfile.visitor.OuterIncGetFieldVisitor;
+import jd.core.process.analyzer.classfile.visitor.OuterIncGetStaticVisitor;
 import jd.core.process.analyzer.classfile.visitor.OuterInvokeMethodVisitor;
 import jd.core.process.analyzer.classfile.visitor.OuterPutFieldVisitor;
 import jd.core.process.analyzer.classfile.visitor.OuterPutStaticVisitor;
@@ -48,6 +49,7 @@ public class OuterReferenceReconstructor
     private final ReplaceMultipleOuterReferenceVisitor multipleOuterReference;
     private final ReplaceOuterAccessorVisitor outerAccessorVisitor;
 
+    private final OuterGetStaticVisitor outerIncGetStaticVisitor;
     private final OuterGetStaticVisitor outerGetStaticVisitor;
     private final OuterPutStaticVisitor outerPutStaticVisitor;
     private final OuterIncGetFieldVisitor outerIncGetFieldVisitor;
@@ -78,8 +80,10 @@ public class OuterReferenceReconstructor
         this.outerPutFieldVisitor =
             new OuterPutFieldVisitor(innerClassesMap, constants);
         // Initialisation du visiteur traitant l'acces des champs statics externes
+        this.outerIncGetStaticVisitor =
+            new OuterIncGetStaticVisitor(innerClassesMap, constants);
         this.outerGetStaticVisitor =
-            new OuterGetStaticVisitor(innerClassesMap, constants);
+                new OuterGetStaticVisitor(innerClassesMap, constants);
         this.outerPutStaticVisitor =
             new OuterPutStaticVisitor(innerClassesMap, constants);
         // Initialisation du visiteur traitant l'acces des méthodes externes
@@ -109,6 +113,7 @@ public class OuterReferenceReconstructor
         this.outerGetFieldVisitor.visit(list);
         this.outerPutFieldVisitor.visit(list);
         // Replace outer static field accessors
+        this.outerIncGetStaticVisitor.visit(list);
         this.outerGetStaticVisitor.visit(list);
         this.outerPutStaticVisitor.visit(list);
         // Replace outer methods accessors
