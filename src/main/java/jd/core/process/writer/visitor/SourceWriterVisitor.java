@@ -26,6 +26,7 @@ import org.jd.core.v1.api.loader.Loader;
 import org.jd.core.v1.model.javasyntax.AbstractJavaSyntaxVisitor;
 import org.jd.core.v1.model.javasyntax.type.BaseType;
 import org.jd.core.v1.model.javasyntax.type.BaseTypeArgument;
+import org.jd.core.v1.model.javasyntax.type.BaseTypeParameter;
 import org.jd.core.v1.model.javasyntax.type.GenericType;
 import org.jd.core.v1.model.javasyntax.type.InnerObjectType;
 import org.jd.core.v1.model.javasyntax.type.ObjectType;
@@ -43,6 +44,7 @@ import org.jd.core.v1.util.StringConstants;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import jd.core.model.classfile.ClassFile;
@@ -1448,7 +1450,8 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
                     constructorDescriptor);
                 if (this.classFile.getMajorVersion() >= Const.MAJOR_1_7) {
                     TypeTypes newInvokeType = typeMaker.makeTypeTypes(internalClassName);
-                    if (newInvokeType.getTypeParameters() != null) {
+                    BaseTypeParameter typeParameters = Optional.ofNullable(newInvokeType).map(TypeTypes::getTypeParameters).orElse(null);
+                    if (typeParameters != null) {
                         this.printer.print("<>");
                     }
                 }
