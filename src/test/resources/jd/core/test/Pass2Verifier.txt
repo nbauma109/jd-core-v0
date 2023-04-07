@@ -1,0 +1,1455 @@
+/*      */ package org.apache.bcel.verifier.statics;
+/*      */ 
+/*      */ import java.util.HashMap;
+/*      */ import java.util.HashSet;
+/*      */ import java.util.Locale;
+/*      */ import java.util.Map;
+/*      */ import java.util.Objects;
+/*      */ import java.util.Set;
+/*      */ import org.apache.bcel.Constants;
+/*      */ import org.apache.bcel.Repository;
+/*      */ import org.apache.bcel.classfile.Attribute;
+/*      */ import org.apache.bcel.classfile.ClassFormatException;
+/*      */ import org.apache.bcel.classfile.Code;
+/*      */ import org.apache.bcel.classfile.CodeException;
+/*      */ import org.apache.bcel.classfile.Constant;
+/*      */ import org.apache.bcel.classfile.ConstantClass;
+/*      */ import org.apache.bcel.classfile.ConstantDouble;
+/*      */ import org.apache.bcel.classfile.ConstantFieldref;
+/*      */ import org.apache.bcel.classfile.ConstantFloat;
+/*      */ import org.apache.bcel.classfile.ConstantInteger;
+/*      */ import org.apache.bcel.classfile.ConstantInterfaceMethodref;
+/*      */ import org.apache.bcel.classfile.ConstantLong;
+/*      */ import org.apache.bcel.classfile.ConstantMethodref;
+/*      */ import org.apache.bcel.classfile.ConstantNameAndType;
+/*      */ import org.apache.bcel.classfile.ConstantPool;
+/*      */ import org.apache.bcel.classfile.ConstantString;
+/*      */ import org.apache.bcel.classfile.ConstantUtf8;
+/*      */ import org.apache.bcel.classfile.ConstantValue;
+/*      */ import org.apache.bcel.classfile.Deprecated;
+/*      */ import org.apache.bcel.classfile.DescendingVisitor;
+/*      */ import org.apache.bcel.classfile.EmptyVisitor;
+/*      */ import org.apache.bcel.classfile.ExceptionTable;
+/*      */ import org.apache.bcel.classfile.Field;
+/*      */ import org.apache.bcel.classfile.InnerClass;
+/*      */ import org.apache.bcel.classfile.InnerClasses;
+/*      */ import org.apache.bcel.classfile.JavaClass;
+/*      */ import org.apache.bcel.classfile.LineNumber;
+/*      */ import org.apache.bcel.classfile.LineNumberTable;
+/*      */ import org.apache.bcel.classfile.LocalVariable;
+/*      */ import org.apache.bcel.classfile.LocalVariableTable;
+/*      */ import org.apache.bcel.classfile.Method;
+/*      */ import org.apache.bcel.classfile.Node;
+/*      */ import org.apache.bcel.classfile.SourceFile;
+/*      */ import org.apache.bcel.classfile.Synthetic;
+/*      */ import org.apache.bcel.classfile.Unknown;
+/*      */ import org.apache.bcel.classfile.Utility;
+/*      */ import org.apache.bcel.generic.ArrayType;
+/*      */ import org.apache.bcel.generic.ObjectType;
+/*      */ import org.apache.bcel.generic.Type;
+/*      */ import org.apache.bcel.verifier.PassVerifier;
+/*      */ import org.apache.bcel.verifier.VerificationResult;
+/*      */ import org.apache.bcel.verifier.Verifier;
+/*      */ import org.apache.bcel.verifier.VerifierFactory;
+/*      */ import org.apache.bcel.verifier.exc.AssertionViolatedException;
+/*      */ import org.apache.bcel.verifier.exc.ClassConstraintException;
+/*      */ import org.apache.bcel.verifier.exc.LocalVariableInfoInconsistentException;
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ public final class Pass2Verifier
+/*      */   extends PassVerifier
+/*      */   implements Constants
+/*      */ {
+/*      */   private LocalVariablesInfo[] localVariablesInfos;
+/*      */   private final Verifier verifier;
+/*      */   
+/*      */   private final class CPESSC_Visitor
+/*      */     extends EmptyVisitor
+/*      */   {
+/*      */     private final Class<?> CONST_Class;
+/*      */     private final Class<?> CONST_String;
+/*      */     private final Class<?> CONST_Integer;
+/*      */     private final Class<?> CONST_Float;
+/*      */     private final Class<?> CONST_Long;
+/*      */     private final Class<?> CONST_Double;
+/*      */     private final Class<?> CONST_NameAndType;
+/*      */     private final Class<?> CONST_Utf8;
+/*      */     private final JavaClass jc;
+/*      */     private final ConstantPool cp;
+/*      */     private final int cplen;
+/*      */     private final DescendingVisitor carrier;
+/*  109 */     private final Set<String> fieldNames = new HashSet<>();
+/*  110 */     private final Set<String> fieldNamesAndDesc = new HashSet<>();
+/*  111 */     private final Set<String> methodNamesAndDesc = new HashSet<>();
+/*      */     
+/*      */     private CPESSC_Visitor(JavaClass jc) {
+/*  114 */       this.jc = jc;
+/*  115 */       this.cp = jc.getConstantPool();
+/*  116 */       this.cplen = this.cp.getLength();
+/*      */       
+/*  118 */       this.CONST_Class = ConstantClass.class;
+/*      */       
+/*      */ 
+/*      */ 
+/*      */ 
+/*  123 */       this.CONST_String = ConstantString.class;
+/*  124 */       this.CONST_Integer = ConstantInteger.class;
+/*  125 */       this.CONST_Float = ConstantFloat.class;
+/*  126 */       this.CONST_Long = ConstantLong.class;
+/*  127 */       this.CONST_Double = ConstantDouble.class;
+/*  128 */       this.CONST_NameAndType = ConstantNameAndType.class;
+/*  129 */       this.CONST_Utf8 = ConstantUtf8.class;
+/*      */       
+/*  131 */       this.carrier = new DescendingVisitor(jc, this);
+/*  132 */       this.carrier.visit();
+/*      */     }
+/*      */     
+/*      */     private void checkIndex(Node referrer, int index, Class<?> shouldbe) {
+/*  136 */       if (index < 0 || index >= this.cplen) {
+/*  137 */         throw new ClassConstraintException("Invalid index '" + index + "' used by '" + Pass2Verifier.tostring(referrer) + "'.");
+/*      */       }
+/*  139 */       Constant c = this.cp.getConstant(index);
+/*  140 */       if (shouldbe.isInstance(c)) {
+/*      */         return;
+/*      */       }
+/*  143 */       throw new ClassConstraintException("Illegal constant '" + Pass2Verifier.tostring(c) + "' at index '" + index + "'. '" + Pass2Verifier.tostring(referrer) + "' expects a '" + shouldbe + "'.");
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     @Override
+/*      */     public void visitCode(Code obj)
+/*      */     {
+/*      */       try
+/*      */       {
+/*  158 */         checkIndex(obj, obj.getNameIndex(), this.CONST_Utf8);
+/*      */         
+/*  160 */         String name = ((ConstantUtf8)this.cp.getConstant(obj.getNameIndex())).getBytes();
+/*  161 */         if (!name.equals("Code")) {
+/*  162 */           throw new ClassConstraintException("The Code attribute '" + Pass2Verifier.tostring(obj) + "' is not correctly named 'Code' but '" + name + "'.");
+/*      */         }
+/*      */         
+/*  165 */         if (!(this.carrier.predecessor() instanceof Method)) {
+/*  166 */           Pass2Verifier.this.addMessage("Code attribute '" + 
+/*  167 */             Pass2Verifier.tostring(obj) + "' is not declared in a method_info structure but in '" + this.carrier.predecessor() + "'. Ignored.");
+/*  168 */           return;
+/*      */         }
+/*  170 */         Method m = (Method)this.carrier.predecessor();
+/*      */         
+/*      */ 
+/*  173 */         if (obj.getCode().length == 0) {
+/*  174 */           throw new ClassConstraintException("Code array of Code attribute '" + Pass2Verifier.tostring(obj) + "' (method '" + m + "') must not be empty.");
+/*      */         }
+/*      */         
+/*      */ 
+/*  178 */         CodeException[] excTable = obj.getExceptionTable();
+/*  179 */         int excIndex; ConstantClass cc; String cname; JavaClass t; JavaClass o; for (CodeException element : excTable) {
+/*  180 */           excIndex = element.getCatchType();
+/*  181 */           if (excIndex != 0) {
+/*  182 */             checkIndex(obj, excIndex, this.CONST_Class);
+/*  183 */             cc = (ConstantClass)this.cp.getConstant(excIndex);
+/*      */             
+/*  185 */             checkIndex(cc, cc.getNameIndex(), this.CONST_Utf8);
+/*  186 */             cname = Utility.pathToPackage(((ConstantUtf8)this.cp.getConstant(cc.getNameIndex())).getBytes());
+/*      */             
+/*  188 */             Verifier v = VerifierFactory.getVerifier(cname);
+/*  189 */             VerificationResult vr = v.doPass1();
+/*      */             
+/*  191 */             if (vr != VerificationResult.VR_OK)
+/*      */             {
+/*  193 */               throw new ClassConstraintException("Code attribute '" + Pass2Verifier.tostring(obj) + "' (method '" + m + "') has an exception_table entry '" + Pass2Verifier.tostring(element) + "' that references '" + cname + "' as an Exception but it does not pass verification pass 1: " + vr);
+/*      */             }
+/*      */             
+/*      */ 
+/*  197 */             JavaClass e = Repository.lookupClass(cname);
+/*  198 */             t = Repository.lookupClass(Type.THROWABLE.getClassName());
+/*  199 */             o = Repository.lookupClass(Type.OBJECT.getClassName());
+/*  200 */             while (e != o && 
+/*  201 */               e != t)
+/*      */             {
+/*      */ 
+/*      */ 
+/*  205 */               v = VerifierFactory.getVerifier(e.getSuperclassName());
+/*  206 */               vr = v.doPass1();
+/*  207 */               if (vr != VerificationResult.VR_OK)
+/*      */               {
+/*  209 */                 throw new ClassConstraintException("Code attribute '" + Pass2Verifier.tostring(obj) + "' (method '" + m + "') has an exception_table entry '" + Pass2Verifier.tostring(element) + "' that references '" + cname + "' as an Exception but '" + e.getSuperclassName() + "' in the ancestor hierachy does not pass verification pass 1: " + vr);
+/*      */               }
+/*      */               
+/*  212 */               e = Repository.lookupClass(e.getSuperclassName());
+/*      */             }
+/*  214 */             if (e == t) {
+/*      */               continue;
+/*      */             }
+/*  217 */             throw new ClassConstraintException("Code attribute '" + Pass2Verifier.tostring(obj) + "' (method '" + m + "') has an exception_table entry '" + Pass2Verifier.tostring(element) + "' that references '" + cname + "' as an Exception but it is not a subclass of '" + t.getClassName() + "'.");
+/*      */           }
+/*      */         }
+/*      */         
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*  225 */         int methodNumber = -1;
+/*  226 */         Method[] ms = Repository.lookupClass(Pass2Verifier.this.verifier.getClassName()).getMethods();
+/*  227 */         for (int mn = 0; mn < ms.length; mn++) {
+/*  228 */           if (m == ms[mn]) {
+/*  229 */             methodNumber = mn;
+/*  230 */             break;
+/*      */           }
+/*      */         }
+/*      */         
+/*      */ 
+/*  235 */         if (methodNumber < 0) {
+/*  236 */           for (int mn = 0; mn < ms.length; mn++) {
+/*  237 */             if (m.getName().equals(ms[mn].getName())) {
+/*  238 */               methodNumber = mn;
+/*  239 */               break;
+/*      */             }
+/*      */           }
+/*      */         }
+/*      */         
+/*  244 */         if (methodNumber < 0) {
+/*  245 */           throw new AssertionViolatedException("Could not find a known BCEL Method object in the corresponding BCEL JavaClass object.");
+/*      */         }
+/*  247 */         Pass2Verifier.this.localVariablesInfos[methodNumber] = new LocalVariablesInfo(obj.getMaxLocals());
+/*      */         
+/*  249 */         int numOfLvtAttribs = 0;
+/*      */         
+/*  251 */         Attribute[] atts = obj.getAttributes();
+/*  252 */         for (Attribute att : atts) {
+/*  253 */           if (!(att instanceof LineNumberTable) && !(att instanceof LocalVariableTable)) {
+/*  254 */             Pass2Verifier.this.addMessage("Attribute '" + Pass2Verifier.tostring(att) + "' as an attribute of Code attribute '" + Pass2Verifier.tostring(obj) + "' (method '" + m + "') is unknown and will therefore be ignored.");
+/*      */           }
+/*      */           else {
+/*  257 */             Pass2Verifier.this.addMessage("Attribute '" + Pass2Verifier.tostring(att) + "' as an attribute of Code attribute '" + Pass2Verifier.tostring(obj) + "' (method '" + m + "') will effectively be ignored and is only useful for debuggers and such.");
+/*      */           }
+/*      */           
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*  265 */           if (!(att instanceof LocalVariableTable))
+/*      */             continue;
+/*  267 */           LocalVariableTable lvt = (LocalVariableTable)att;
+/*      */           
+/*  269 */           checkIndex(lvt, lvt.getNameIndex(), this.CONST_Utf8);
+/*      */           
+/*  271 */           String lvtname = ((ConstantUtf8)this.cp.getConstant(lvt.getNameIndex())).getBytes();
+/*  272 */           if (!lvtname.equals("LocalVariableTable"))
+/*      */           {
+/*  274 */             throw new ClassConstraintException("The LocalVariableTable attribute '" + Pass2Verifier.tostring(lvt) + "' is not correctly named 'LocalVariableTable' but '" + lvtname + "'.");
+/*      */           }
+/*      */           
+/*      */ 
+/*  278 */           for (LocalVariable localvariable : lvt.getLocalVariableTable()) {
+/*  279 */             checkIndex(lvt, localvariable.getNameIndex(), this.CONST_Utf8);
+/*  280 */             String localname = ((ConstantUtf8)this.cp.getConstant(localvariable.getNameIndex())).getBytes();
+/*  281 */             if (!Pass2Verifier.validJavaIdentifier(localname)) {
+/*  282 */               throw new ClassConstraintException("LocalVariableTable '" + Pass2Verifier.tostring(lvt) + "' references a local variable by the name '" + localname + "' which is not a legal Java simple name.");
+/*      */             }
+/*      */             
+/*      */ 
+/*  286 */             checkIndex(lvt, localvariable.getSignatureIndex(), this.CONST_Utf8);
+/*  287 */             String localsig = ((ConstantUtf8)this.cp.getConstant(localvariable.getSignatureIndex())).getBytes();
+/*      */             Type t;
+/*      */             try {
+/*  290 */               t = Type.getType(localsig);
+/*      */             }
+/*      */             catch (ClassFormatException cfe) {
+/*  293 */               throw new ClassConstraintException("Illegal descriptor (==signature) '" + localsig + "' used by LocalVariable '" + Pass2Verifier.tostring(localvariable) + "' referenced by '" + Pass2Verifier.tostring(lvt) + "'.", cfe);
+/*      */             }
+/*  295 */             int localindex = localvariable.getIndex();
+/*  296 */             if ((t == Type.LONG || t == Type.DOUBLE ? localindex + 1 : localindex) >= obj.getMaxLocals())
+/*      */             {
+/*      */ 
+/*  299 */               throw new ClassConstraintException("LocalVariableTable attribute '" + Pass2Verifier.tostring(lvt) + "' references a LocalVariable '" + Pass2Verifier.tostring(localvariable) + "' with an index that exceeds the surrounding Code attribute's max_locals value of '" + obj.getMaxLocals() + "'.");
+/*      */             }
+/*      */             try
+/*      */             {
+/*  303 */               Pass2Verifier.this.localVariablesInfos[methodNumber].add(localindex, localname, localvariable.getStartPC(), localvariable.getLength(), t);
+/*      */             }
+/*      */             catch (LocalVariableInfoInconsistentException lviie) {
+/*  306 */               throw new ClassConstraintException("Conflicting information in LocalVariableTable '" + Pass2Verifier.tostring(lvt) + "' found in Code attribute '" + Pass2Verifier.tostring(obj) + "' (method '" + Pass2Verifier.tostring(m) + "'). " + lviie.getMessage(), lviie);
+/*      */             }
+/*      */           }
+/*      */           
+/*  310 */           numOfLvtAttribs++;
+/*  311 */           if (m.isStatic() || numOfLvtAttribs <= obj.getMaxLocals())
+/*      */             continue;
+/*  313 */           throw new ClassConstraintException("Number of LocalVariableTable attributes of Code attribute '" + Pass2Verifier.tostring(obj) + "' (method '" + Pass2Verifier.tostring(m) + "') exceeds number of local variable slots '" + obj.getMaxLocals() + "' ('There may be at most one LocalVariableTable attribute per local variable in the Code attribute.').");
+/*      */         }
+/*      */         
+/*      */ 
+/*      */       }
+/*      */       catch (ClassNotFoundException e)
+/*      */       {
+/*      */ 
+/*  321 */         throw new AssertionViolatedException("Missing class: " + e, e);
+/*      */       }
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     @Override
+/*      */     public void visitCodeException(CodeException obj) {}
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     @Override
+/*      */     public void visitConstantClass(ConstantClass obj)
+/*      */     {
+/*  340 */       if (obj.getTag() != 7) {
+/*  341 */         throw new ClassConstraintException("Wrong constant tag in '" + Pass2Verifier.tostring(obj) + "'.");
+/*      */       }
+/*  343 */       checkIndex(obj, obj.getNameIndex(), this.CONST_Utf8);
+/*      */     }
+/*      */     
+/*      */     @Override
+/*      */     public void visitConstantDouble(ConstantDouble obj)
+/*      */     {
+/*  349 */       if (obj.getTag() != 6) {
+/*  350 */         throw new ClassConstraintException("Wrong constant tag in '" + Pass2Verifier.tostring(obj) + "'.");
+/*      */       }
+/*      */     }
+/*      */     
+/*      */     @Override
+/*      */     public void visitConstantFieldref(ConstantFieldref obj)
+/*      */     {
+/*  357 */       if (obj.getTag() != 9) {
+/*  358 */         throw new ClassConstraintException("Wrong constant tag in '" + Pass2Verifier.tostring(obj) + "'.");
+/*      */       }
+/*  360 */       checkIndex(obj, obj.getClassIndex(), this.CONST_Class);
+/*  361 */       checkIndex(obj, obj.getNameAndTypeIndex(), this.CONST_NameAndType);
+/*      */     }
+/*      */     
+/*      */     @Override
+/*      */     public void visitConstantFloat(ConstantFloat obj) {
+/*  366 */       if (obj.getTag() != 4) {
+/*  367 */         throw new ClassConstraintException("Wrong constant tag in '" + Pass2Verifier.tostring(obj) + "'.");
+/*      */       }
+/*      */     }
+/*      */     
+/*      */     @Override
+/*      */     public void visitConstantInteger(ConstantInteger obj)
+/*      */     {
+/*  374 */       if (obj.getTag() != 3) {
+/*  375 */         throw new ClassConstraintException("Wrong constant tag in '" + Pass2Verifier.tostring(obj) + "'.");
+/*      */       }
+/*      */     }
+/*      */     
+/*      */     @Override
+/*      */     public void visitConstantInterfaceMethodref(ConstantInterfaceMethodref obj)
+/*      */     {
+/*  382 */       if (obj.getTag() != 11) {
+/*  383 */         throw new ClassConstraintException("Wrong constant tag in '" + Pass2Verifier.tostring(obj) + "'.");
+/*      */       }
+/*  385 */       checkIndex(obj, obj.getClassIndex(), this.CONST_Class);
+/*  386 */       checkIndex(obj, obj.getNameAndTypeIndex(), this.CONST_NameAndType);
+/*      */     }
+/*      */     
+/*      */     @Override
+/*      */     public void visitConstantLong(ConstantLong obj) {
+/*  391 */       if (obj.getTag() != 5) {
+/*  392 */         throw new ClassConstraintException("Wrong constant tag in '" + Pass2Verifier.tostring(obj) + "'.");
+/*      */       }
+/*      */     }
+/*      */     
+/*      */     @Override
+/*      */     public void visitConstantMethodref(ConstantMethodref obj)
+/*      */     {
+/*  399 */       if (obj.getTag() != 10) {
+/*  400 */         throw new ClassConstraintException("Wrong constant tag in '" + Pass2Verifier.tostring(obj) + "'.");
+/*      */       }
+/*  402 */       checkIndex(obj, obj.getClassIndex(), this.CONST_Class);
+/*  403 */       checkIndex(obj, obj.getNameAndTypeIndex(), this.CONST_NameAndType);
+/*      */     }
+/*      */     
+/*      */     @Override
+/*      */     public void visitConstantNameAndType(ConstantNameAndType obj) {
+/*  408 */       if (obj.getTag() != 12) {
+/*  409 */         throw new ClassConstraintException("Wrong constant tag in '" + Pass2Verifier.tostring(obj) + "'.");
+/*      */       }
+/*  411 */       checkIndex(obj, obj.getNameIndex(), this.CONST_Utf8);
+/*      */       
+/*  413 */       checkIndex(obj, obj.getSignatureIndex(), this.CONST_Utf8);
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */     @Override
+/*      */     public void visitConstantPool(ConstantPool obj) {}
+/*      */     
+/*      */ 
+/*      */     @Override
+/*      */     public void visitConstantString(ConstantString obj)
+/*      */     {
+/*  425 */       if (obj.getTag() != 8) {
+/*  426 */         throw new ClassConstraintException("Wrong constant tag in '" + Pass2Verifier.tostring(obj) + "'.");
+/*      */       }
+/*  428 */       checkIndex(obj, obj.getStringIndex(), this.CONST_Utf8);
+/*      */     }
+/*      */     
+/*      */     @Override
+/*      */     public void visitConstantUtf8(ConstantUtf8 obj) {
+/*  433 */       if (obj.getTag() != 1) {
+/*  434 */         throw new ClassConstraintException("Wrong constant tag in '" + Pass2Verifier.tostring(obj) + "'.");
+/*      */       }
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     @Override
+/*      */     public void visitConstantValue(ConstantValue obj)
+/*      */     {
+/*  446 */       checkIndex(obj, obj.getNameIndex(), this.CONST_Utf8);
+/*      */       
+/*  448 */       String name = ((ConstantUtf8)this.cp.getConstant(obj.getNameIndex())).getBytes();
+/*  449 */       if (!name.equals("ConstantValue"))
+/*      */       {
+/*  451 */         throw new ClassConstraintException("The ConstantValue attribute '" + Pass2Verifier.tostring(obj) + "' is not correctly named 'ConstantValue' but '" + name + "'.");
+/*      */       }
+/*      */       
+/*  454 */       Object pred = this.carrier.predecessor();
+/*  455 */       if ((pred instanceof Field)) {
+/*  456 */         Field f = (Field)pred;
+/*      */         
+/*  458 */         Type fieldType = Type.getType(((ConstantUtf8)this.cp.getConstant(f.getSignatureIndex())).getBytes());
+/*      */         
+/*  460 */         int index = obj.getConstantValueIndex();
+/*  461 */         if (index < 0 || index >= this.cplen) {
+/*  462 */           throw new ClassConstraintException("Invalid index '" + index + "' used by '" + Pass2Verifier.tostring(obj) + "'.");
+/*      */         }
+/*  464 */         Constant c = this.cp.getConstant(index);
+/*      */         
+/*  466 */         if (this.CONST_Long.isInstance(c) && fieldType.equals(Type.LONG) || this.CONST_Float.isInstance(c) && fieldType.equals(Type.FLOAT)) {
+/*  467 */           return;
+/*      */         }
+/*  469 */         if (this.CONST_Double.isInstance(c) && fieldType.equals(Type.DOUBLE)) {
+/*  470 */           return;
+/*      */         }
+/*  472 */         if (this.CONST_Integer.isInstance(c) && fieldType.equals(Type.INT) || fieldType.equals(Type.SHORT) || fieldType.equals(Type.CHAR) || 
+/*  473 */           fieldType.equals(Type.BYTE) || fieldType.equals(Type.BOOLEAN)) {
+/*  474 */           return;
+/*      */         }
+/*  476 */         if (this.CONST_String.isInstance(c) && fieldType.equals(Type.STRING)) {
+/*  477 */           return;
+/*      */         }
+/*      */         
+/*      */ 
+/*  481 */         throw new ClassConstraintException("Illegal type of ConstantValue '" + obj + "' embedding Constant '" + c + "'. It is referenced by field '" + Pass2Verifier.tostring(f) + "' expecting a different type: '" + fieldType + "'.");
+/*      */       }
+/*      */     }
+/*      */     
+/*      */     @Override
+/*      */     public void visitDeprecated(Deprecated obj) {
+/*  487 */       checkIndex(obj, obj.getNameIndex(), this.CONST_Utf8);
+/*      */       
+/*  489 */       String name = ((ConstantUtf8)this.cp.getConstant(obj.getNameIndex())).getBytes();
+/*  490 */       if (!name.equals("Deprecated")) {
+/*  491 */         throw new ClassConstraintException("The Deprecated attribute '" + Pass2Verifier.tostring(obj) + "' is not correctly named 'Deprecated' but '" + name + "'.");
+/*      */       }
+/*      */     }
+/*      */     
+/*      */     @Override
+/*      */     public void visitExceptionTable(ExceptionTable obj)
+/*      */     {
+/*      */       try {
+/*  499 */         checkIndex(obj, obj.getNameIndex(), this.CONST_Utf8);
+/*      */         
+/*  501 */         String name = ((ConstantUtf8)this.cp.getConstant(obj.getNameIndex())).getBytes();
+/*  502 */         if (!name.equals("Exceptions"))
+/*      */         {
+/*  504 */           throw new ClassConstraintException("The Exceptions attribute '" + Pass2Verifier.tostring(obj) + "' is not correctly named 'Exceptions' but '" + name + "'.");
+/*      */         }
+/*      */         
+/*  507 */         int[] excIndices = obj.getExceptionIndexTable();
+/*      */         
+/*  509 */         for (int excIndice : excIndices) {
+/*  510 */           checkIndex(obj, excIndice, this.CONST_Class);
+/*      */           
+/*  512 */           ConstantClass cc = (ConstantClass)this.cp.getConstant(excIndice);
+/*  513 */           checkIndex(cc, cc.getNameIndex(), this.CONST_Utf8);
+/*      */           
+/*  515 */           String cname = Utility.pathToPackage(((ConstantUtf8)this.cp.getConstant(cc.getNameIndex())).getBytes());
+/*      */           
+/*  517 */           Verifier v = VerifierFactory.getVerifier(cname);
+/*  518 */           VerificationResult vr = v.doPass1();
+/*      */           
+/*  520 */           if (vr != VerificationResult.VR_OK) {
+/*  521 */             throw new ClassConstraintException("Exceptions attribute '" + Pass2Verifier.tostring(obj) + "' references '" + cname + "' as an Exception but it does not pass verification pass 1: " + vr);
+/*      */           }
+/*      */           
+/*      */ 
+/*      */ 
+/*  526 */           JavaClass e = Repository.lookupClass(cname);
+/*  527 */           JavaClass t = Repository.lookupClass(Type.THROWABLE.getClassName());
+/*  528 */           JavaClass o = Repository.lookupClass(Type.OBJECT.getClassName());
+/*  529 */           while (e != o && 
+/*  530 */             e != t)
+/*      */           {
+/*      */ 
+/*      */ 
+/*  534 */             v = VerifierFactory.getVerifier(e.getSuperclassName());
+/*  535 */             vr = v.doPass1();
+/*  536 */             if (vr != VerificationResult.VR_OK)
+/*      */             {
+/*  538 */               throw new ClassConstraintException("Exceptions attribute '" + Pass2Verifier.tostring(obj) + "' references '" + cname + "' as an Exception but '" + e.getSuperclassName() + "' in the ancestor hierachy does not pass verification pass 1: " + vr);
+/*      */             }
+/*  540 */             e = Repository.lookupClass(e.getSuperclassName());
+/*      */           }
+/*  542 */           if (e == t)
+/*      */             continue;
+/*  544 */           throw new ClassConstraintException("Exceptions attribute '" + Pass2Verifier.tostring(obj) + "' references '" + cname + "' as an Exception but it is not a subclass of '" + t.getClassName() + "'.");
+/*      */         }
+/*      */         
+/*      */       }
+/*      */       catch (ClassNotFoundException e)
+/*      */       {
+/*  550 */         throw new AssertionViolatedException("Missing class: " + e, e);
+/*      */       }
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     @Override
+/*      */     public void visitField(Field obj)
+/*      */     {
+/*  560 */       if (this.jc.isClass()) {
+/*  561 */         int maxone = 0;
+/*  562 */         if (obj.isPrivate()) {
+/*  563 */           maxone++;
+/*      */         }
+/*  565 */         if (obj.isProtected()) {
+/*  566 */           maxone++;
+/*      */         }
+/*  568 */         if (obj.isPublic()) {
+/*  569 */           maxone++;
+/*      */         }
+/*  571 */         if (maxone > 1)
+/*      */         {
+/*  573 */           throw new ClassConstraintException("Field '" + Pass2Verifier.tostring(obj) + "' must only have at most one of its ACC_PRIVATE, ACC_PROTECTED, ACC_PUBLIC modifiers set.");
+/*      */         }
+/*      */         
+/*  576 */         if (obj.isFinal() && obj.isVolatile())
+/*      */         {
+/*  578 */           throw new ClassConstraintException("Field '" + Pass2Verifier.tostring(obj) + "' must only have at most one of its ACC_FINAL, ACC_VOLATILE modifiers set.");
+/*      */         }
+/*      */       } else {
+/*  581 */         if (!obj.isPublic()) {
+/*  582 */           throw new ClassConstraintException("Interface field '" + Pass2Verifier.tostring(obj) + "' must have the ACC_PUBLIC modifier set but hasn't!");
+/*      */         }
+/*  584 */         if (!obj.isStatic()) {
+/*  585 */           throw new ClassConstraintException("Interface field '" + Pass2Verifier.tostring(obj) + "' must have the ACC_STATIC modifier set but hasn't!");
+/*      */         }
+/*  587 */         if (!obj.isFinal()) {
+/*  588 */           throw new ClassConstraintException("Interface field '" + Pass2Verifier.tostring(obj) + "' must have the ACC_FINAL modifier set but hasn't!");
+/*      */         }
+/*      */       }
+/*      */       
+/*  592 */       if ((obj.getAccessFlags() & 0xFF20) > 0)
+/*      */       {
+/*  594 */         Pass2Verifier.this.addMessage("Field '" + Pass2Verifier.tostring(obj) + "' has access flag(s) other than ACC_PUBLIC, ACC_PRIVATE, ACC_PROTECTED, ACC_STATIC, ACC_FINAL, ACC_VOLATILE, ACC_TRANSIENT set (ignored).");
+/*      */       }
+/*      */       
+/*      */ 
+/*  598 */       checkIndex(obj, obj.getNameIndex(), this.CONST_Utf8);
+/*      */       
+/*  600 */       String name = obj.getName();
+/*  601 */       if (!Pass2Verifier.validFieldName(name)) {
+/*  602 */         throw new ClassConstraintException("Field '" + Pass2Verifier.tostring(obj) + "' has illegal name '" + obj.getName() + "'.");
+/*      */       }
+/*      */       
+/*      */ 
+/*  606 */       checkIndex(obj, obj.getSignatureIndex(), this.CONST_Utf8);
+/*      */       
+/*  608 */       String sig = ((ConstantUtf8)this.cp.getConstant(obj.getSignatureIndex())).getBytes();
+/*      */       try
+/*      */       {
+/*  611 */         Type.getType(sig);
+/*      */       } catch (ClassFormatException cfe) {
+/*  613 */         throw new ClassConstraintException("Illegal descriptor (==signature) '" + sig + "' used by '" + Pass2Verifier.tostring(obj) + "'.", cfe);
+/*      */       }
+/*      */       
+/*  616 */       String nameanddesc = name + sig;
+/*  617 */       if (this.fieldNamesAndDesc.contains(nameanddesc)) {
+/*  618 */         throw new ClassConstraintException("No two fields (like '" + Pass2Verifier.tostring(obj) + "') are allowed have same names and descriptors!");
+/*      */       }
+/*  620 */       if (this.fieldNames.contains(name)) {
+/*  621 */         Pass2Verifier.this.addMessage("More than one field of name '" + name + "' detected (but with different type descriptors). This is very unusual.");
+/*      */       }
+/*  623 */       this.fieldNamesAndDesc.add(nameanddesc);
+/*  624 */       this.fieldNames.add(name);
+/*      */       
+/*  626 */       Attribute[] atts = obj.getAttributes();
+/*  627 */       for (Attribute att : atts) {
+/*  628 */         if (!(att instanceof ConstantValue) && !(att instanceof Synthetic) && !(att instanceof Deprecated)) {
+/*  629 */           Pass2Verifier.this.addMessage("Attribute '" + Pass2Verifier.tostring(att) + "' as an attribute of Field '" + Pass2Verifier.tostring(obj) + "' is unknown and will therefore be ignored.");
+/*      */         }
+/*  631 */         if (!(att instanceof ConstantValue)) {
+/*  632 */           Pass2Verifier.this.addMessage("Attribute '" + Pass2Verifier.tostring(att) + "' as an attribute of Field '" + Pass2Verifier.tostring(obj) + "' is not a ConstantValue and is therefore only of use for debuggers and such.");
+/*      */         }
+/*      */       }
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     @Override
+/*      */     public void visitInnerClass(InnerClass obj) {}
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     @Override
+/*      */     public void visitInnerClasses(InnerClasses innerClasses)
+/*      */     {
+/*  649 */       checkIndex(innerClasses, innerClasses.getNameIndex(), this.CONST_Utf8);
+/*      */       
+/*  651 */       String name = ((ConstantUtf8)this.cp.getConstant(innerClasses.getNameIndex())).getBytes();
+/*  652 */       if (!name.equals("InnerClasses"))
+/*      */       {
+/*  654 */         throw new ClassConstraintException("The InnerClasses attribute '" + Pass2Verifier.tostring(innerClasses) + "' is not correctly named 'InnerClasses' but '" + name + "'.");
+/*      */       }
+/*      */       
+/*  657 */       innerClasses.forEach(ic ->  {
+/*  658 */         checkIndex(innerClasses, ic.getInnerClassIndex(), this.CONST_Class);
+/*  659 */         int outerIdx = ic.getOuterClassIndex();
+/*  660 */         if (outerIdx != 0) {
+/*  661 */           checkIndex(innerClasses, outerIdx, this.CONST_Class);
+/*      */         }
+/*  663 */         int innernameIdx = ic.getInnerNameIndex();
+/*  664 */         if (innernameIdx != 0) {
+/*  665 */           checkIndex(innerClasses, innernameIdx, this.CONST_Utf8);
+/*      */         }
+/*  667 */         int acc = ic.getInnerAccessFlags();
+/*  668 */         acc &= 0xF9E0;
+/*      */         
+/*  670 */         if (acc != 0) {
+/*  671 */           Pass2Verifier.this.addMessage("Unknown access flag for inner class '" + Pass2Verifier.tostring(ic) + "' set (InnerClasses attribute '" + Pass2Verifier.tostring(innerClasses) + "').");
+/*      */         }
+/*      */       });
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     @Override
+/*      */     public void visitJavaClass(JavaClass obj)
+/*      */     {
+/*  683 */       Attribute[] atts = obj.getAttributes();
+/*  684 */       boolean foundSourceFile = false;
+/*  685 */       boolean foundInnerClasses = false;
+/*      */       
+/*      */ 
+/*      */ 
+/*  689 */       boolean hasInnerClass = new Pass2Verifier.InnerClassDetector(this.jc).innerClassReferenced();
+/*      */       
+/*  691 */       for (Attribute att : atts) {
+/*  692 */         if (!(att instanceof SourceFile) && !(att instanceof Deprecated) && !(att instanceof InnerClasses) && !(att instanceof Synthetic)) {
+/*  693 */           Pass2Verifier.this.addMessage("Attribute '" + Pass2Verifier.tostring(att) + "' as an attribute of the ClassFile structure '" + Pass2Verifier.tostring(obj) + "' is unknown and will therefore be ignored.");
+/*      */         }
+/*      */         
+/*      */ 
+/*  697 */         if ((att instanceof SourceFile)) {
+/*  698 */           if (foundSourceFile)
+/*      */           {
+/*  700 */             throw new ClassConstraintException("A ClassFile structure (like '" + Pass2Verifier.tostring(obj) + "') may have no more than one SourceFile attribute.");
+/*      */           }
+/*  702 */           foundSourceFile = true;
+/*      */         }
+/*      */         
+/*  705 */         if ((att instanceof InnerClasses)) {
+/*  706 */           if (!foundInnerClasses) {
+/*  707 */             foundInnerClasses = true;
+/*  708 */           } else if (hasInnerClass) {
+/*  709 */             throw new ClassConstraintException("A Classfile structure (like '" + Pass2Verifier.tostring(obj) + "') must have exactly one InnerClasses attribute if at least one Inner Class is referenced (which is the case). More than one InnerClasses attribute was found.");
+/*      */           }
+/*      */           
+/*  712 */           if (!hasInnerClass) {
+/*  713 */             Pass2Verifier.this.addMessage("No referenced Inner Class found, but InnerClasses attribute '" + Pass2Verifier.tostring(att) + "' found. Strongly suggest removal of that attribute.");
+/*      */           }
+/*      */         }
+/*      */       }
+/*      */       
+/*      */ 
+/*  719 */       if (!hasInnerClass || foundInnerClasses) {
+/*      */         return;
+/*      */       }
+/*      */       
+/*      */ 
+/*      */ 
+/*      */ 
+/*  726 */       Pass2Verifier.this.addMessage("A Classfile structure (like '" + Pass2Verifier.tostring(obj) + "') must have exactly one InnerClasses attribute if at least one Inner Class is referenced (which is the case). No InnerClasses attribute was found.");
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     @Override
+/*      */     public void visitLineNumber(LineNumber obj) {}
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     @Override
+/*      */     public void visitLineNumberTable(LineNumberTable obj)
+/*      */     {
+/*  747 */       checkIndex(obj, obj.getNameIndex(), this.CONST_Utf8);
+/*      */       
+/*  749 */       String name = ((ConstantUtf8)this.cp.getConstant(obj.getNameIndex())).getBytes();
+/*  750 */       if (name.equals("LineNumberTable"))
+/*      */         return;
+/*  752 */       throw new ClassConstraintException("The LineNumberTable attribute '" + Pass2Verifier.tostring(obj) + "' is not correctly named 'LineNumberTable' but '" + name + "'.");
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     @Override
+/*      */     public void visitLocalVariable(LocalVariable obj) {}
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     @Override
+/*      */     public void visitLocalVariableTable(LocalVariableTable obj) {}
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     @Override
+/*      */     public void visitMethod(Method obj)
+/*      */     {
+/*  784 */       checkIndex(obj, obj.getNameIndex(), this.CONST_Utf8);
+/*      */       
+/*  786 */       String name = obj.getName();
+/*  787 */       if (!Pass2Verifier.validMethodName(name, true)) {
+/*  788 */         throw new ClassConstraintException("Method '" + Pass2Verifier.tostring(obj) + "' has illegal name '" + name + "'.");
+/*      */       }
+/*      */       
+/*      */ 
+/*  792 */       checkIndex(obj, obj.getSignatureIndex(), this.CONST_Utf8);
+/*      */       
+/*  794 */       String sig = ((ConstantUtf8)this.cp.getConstant(obj.getSignatureIndex())).getBytes();
+/*      */       
+/*      */       Type[] ts;
+/*      */       try
+/*      */       {
+/*  799 */         Type t = Type.getReturnType(sig);
+/*  800 */         ts = Type.getArgumentTypes(sig);
+/*      */       } catch (ClassFormatException cfe) {
+/*  802 */         throw new ClassConstraintException("Illegal descriptor (==signature) '" + sig + "' used by Method '" + Pass2Verifier.tostring(obj) + "'.", cfe);
+/*      */       }
+/*      */       
+/*      */       Type t;
+/*  806 */       Type act = t;
+/*  807 */       if ((act instanceof ArrayType))
+/*  808 */         act = ((ArrayType)act).getBasicType();
+/*      */       Verifier v;
+/*  810 */       VerificationResult vr; if ((act instanceof ObjectType)) {
+/*  811 */         v = VerifierFactory.getVerifier(((ObjectType)act).getClassName());
+/*  812 */         vr = v.doPass1();
+/*  813 */         if (vr != VerificationResult.VR_OK)
+/*      */         {
+/*  815 */           throw new ClassConstraintException("Method '" + Pass2Verifier.tostring(obj) + "' has a return type that does not pass verification pass 1: '" + vr + "'.");
+/*      */         }
+/*      */       }
+/*      */       
+/*  819 */       for (Type element : ts) {
+/*  820 */         act = element;
+/*  821 */         if ((act instanceof ArrayType)) {
+/*  822 */           act = ((ArrayType)act).getBasicType();
+/*      */         }
+/*  824 */         if ((act instanceof ObjectType)) {
+/*  825 */           v = VerifierFactory.getVerifier(((ObjectType)act).getClassName());
+/*  826 */           vr = v.doPass1();
+/*  827 */           if (vr == VerificationResult.VR_OK)
+/*      */             continue;
+/*  829 */           throw new ClassConstraintException("Method '" + Pass2Verifier.tostring(obj) + "' has an argument type that does not pass verification pass 1: '" + vr + "'.");
+/*      */         }
+/*      */       }
+/*      */       
+/*      */ 
+/*      */ 
+/*      */ 
+/*  836 */       if (name.equals("<clinit>") && ts.length != 0) {
+/*  837 */         throw new ClassConstraintException("Method '" + Pass2Verifier.tostring(obj) + "' has illegal name '" + name + "'. Its name resembles the class or interface initialization method which it isn't because of its arguments (==descriptor).");
+/*      */       }
+/*      */       
+/*      */ 
+/*  841 */       if (this.jc.isClass()) {
+/*  842 */         int maxone = 0;
+/*  843 */         if (obj.isPrivate()) {
+/*  844 */           maxone++;
+/*      */         }
+/*  846 */         if (obj.isProtected()) {
+/*  847 */           maxone++;
+/*      */         }
+/*  849 */         if (obj.isPublic()) {
+/*  850 */           maxone++;
+/*      */         }
+/*  852 */         if (maxone > 1)
+/*      */         {
+/*  854 */           throw new ClassConstraintException("Method '" + Pass2Verifier.tostring(obj) + "' must only have at most one of its ACC_PRIVATE, ACC_PROTECTED, ACC_PUBLIC modifiers set.");
+/*      */         }
+/*      */         
+/*  857 */         if (obj.isAbstract()) {
+/*  858 */           if (obj.isFinal()) {
+/*  859 */             throw new ClassConstraintException("Abstract method '" + Pass2Verifier.tostring(obj) + "' must not have the ACC_FINAL modifier set.");
+/*      */           }
+/*  861 */           if (obj.isNative()) {
+/*  862 */             throw new ClassConstraintException("Abstract method '" + Pass2Verifier.tostring(obj) + "' must not have the ACC_NATIVE modifier set.");
+/*      */           }
+/*  864 */           if (obj.isPrivate()) {
+/*  865 */             throw new ClassConstraintException("Abstract method '" + Pass2Verifier.tostring(obj) + "' must not have the ACC_PRIVATE modifier set.");
+/*      */           }
+/*  867 */           if (obj.isStatic()) {
+/*  868 */             throw new ClassConstraintException("Abstract method '" + Pass2Verifier.tostring(obj) + "' must not have the ACC_STATIC modifier set.");
+/*      */           }
+/*  870 */           if (obj.isStrictfp()) {
+/*  871 */             throw new ClassConstraintException("Abstract method '" + Pass2Verifier.tostring(obj) + "' must not have the ACC_STRICT modifier set.");
+/*      */           }
+/*  873 */           if (obj.isSynchronized()) {
+/*  874 */             throw new ClassConstraintException("Abstract method '" + Pass2Verifier.tostring(obj) + "' must not have the ACC_SYNCHRONIZED modifier set.");
+/*      */           }
+/*      */         }
+/*      */         
+/*      */ 
+/*      */ 
+/*      */ 
+/*  881 */         if (name.equals("<init>") && obj.isStatic() || obj.isFinal() || obj.isSynchronized() || obj.isNative() || obj.isAbstract()) {
+/*  882 */           throw new ClassConstraintException("Instance initialization method '" + Pass2Verifier.tostring(obj) + "' must not have any of the ACC_STATIC, ACC_FINAL, ACC_SYNCHRONIZED, ACC_NATIVE, ACC_ABSTRACT modifiers set.");
+/*      */         }
+/*      */       }
+/*  885 */       else if (!name.equals("<clinit>")) {
+/*  886 */         if (this.jc.getMajor() >= 52) {
+/*  887 */           if (obj.isPublic() == obj.isPrivate())
+/*      */           {
+/*  889 */             throw new ClassConstraintException("Interface method '" + Pass2Verifier.tostring(obj) + "' must have exactly one of its ACC_PUBLIC and ACC_PRIVATE modifiers set.");
+/*      */           }
+/*  891 */           if (obj.isProtected() || obj.isFinal() || obj.isSynchronized() || obj.isNative()) {
+/*  892 */             throw new ClassConstraintException("Interface method '" + Pass2Verifier.tostring(obj) + "' must not have any of the ACC_PROTECTED, ACC_FINAL, ACC_SYNCHRONIZED, or ACC_NATIVE modifiers set.");
+/*      */           }
+/*      */         }
+/*      */         else
+/*      */         {
+/*  897 */           if (!obj.isPublic()) {
+/*  898 */             throw new ClassConstraintException("Interface method '" + Pass2Verifier.tostring(obj) + "' must have the ACC_PUBLIC modifier set but hasn't!");
+/*      */           }
+/*  900 */           if (!obj.isAbstract()) {
+/*  901 */             throw new ClassConstraintException("Interface method '" + Pass2Verifier.tostring(obj) + "' must have the ACC_ABSTRACT modifier set but hasn't!");
+/*      */           }
+/*  903 */           if (obj.isPrivate() || obj.isProtected() || obj.isStatic() || obj.isFinal() || obj.isSynchronized() || obj.isNative() || obj.isStrictfp()) {
+/*  904 */             throw new ClassConstraintException("Interface method '" + Pass2Verifier.tostring(obj) + "' must not have any of the ACC_PRIVATE, ACC_PROTECTED, ACC_STATIC, ACC_FINAL, ACC_SYNCHRONIZED, ACC_NATIVE, ACC_ABSTRACT, ACC_STRICT modifiers set.");
+/*      */           }
+/*      */         }
+/*      */       }
+/*      */       
+/*      */ 
+/*      */ 
+/*  911 */       if ((obj.getAccessFlags() & 0xF2C0) > 0)
+/*      */       {
+/*  913 */         Pass2Verifier.this.addMessage("Method '" + Pass2Verifier.tostring(obj) + "' has access flag(s) other than ACC_PUBLIC, ACC_PRIVATE, ACC_PROTECTED, ACC_STATIC, ACC_FINAL, ACC_SYNCHRONIZED, ACC_NATIVE, ACC_ABSTRACT, ACC_STRICT set (ignored).");
+/*      */       }
+/*      */       
+/*      */ 
+/*  917 */       String nameanddesc = name + sig;
+/*  918 */       if (this.methodNamesAndDesc.contains(nameanddesc)) {
+/*  919 */         throw new ClassConstraintException("No two methods (like '" + Pass2Verifier.tostring(obj) + "') are allowed have same names and desciptors!");
+/*      */       }
+/*  921 */       this.methodNamesAndDesc.add(nameanddesc);
+/*      */       
+/*  923 */       Attribute[] atts = obj.getAttributes();
+/*  924 */       int numCodeAtts = 0;
+/*  925 */       for (Attribute att : atts) {
+/*  926 */         if (!(att instanceof Code) && !(att instanceof ExceptionTable) && !(att instanceof Synthetic) && !(att instanceof Deprecated)) {
+/*  927 */           Pass2Verifier.this.addMessage("Attribute '" + Pass2Verifier.tostring(att) + "' as an attribute of Method '" + Pass2Verifier.tostring(obj) + "' is unknown and will therefore be ignored.");
+/*      */         }
+/*  929 */         if (!(att instanceof Code) && !(att instanceof ExceptionTable)) {
+/*  930 */           Pass2Verifier.this.addMessage("Attribute '" + Pass2Verifier.tostring(att) + "' as an attribute of Method '" + Pass2Verifier.tostring(obj) + "' is neither Code nor Exceptions and is therefore only of use for debuggers and such.");
+/*      */         }
+/*      */         
+/*  933 */         if ((att instanceof Code) && obj.isNative() || obj.isAbstract())
+/*      */         {
+/*  935 */           throw new ClassConstraintException("Native or abstract methods like '" + Pass2Verifier.tostring(obj) + "' must not have a Code attribute like '" + Pass2Verifier.tostring(att) + "'.");
+/*      */         }
+/*      */         
+/*      */ 
+/*  939 */         if ((att instanceof Code)) {
+/*  940 */           numCodeAtts++;
+/*      */         }
+/*      */       }
+/*  943 */       if (obj.isNative() || obj.isAbstract() || numCodeAtts == 1)
+/*      */         return;
+/*  945 */       throw new ClassConstraintException("Non-native, non-abstract methods like '" + Pass2Verifier.tostring(obj) + "' must have exactly one Code attribute (found: " + numCodeAtts + ").");
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     @Override
+/*      */     public void visitSourceFile(SourceFile obj)
+/*      */     {
+/*  957 */       checkIndex(obj, obj.getNameIndex(), this.CONST_Utf8);
+/*      */       
+/*  959 */       String name = ((ConstantUtf8)this.cp.getConstant(obj.getNameIndex())).getBytes();
+/*  960 */       if (!name.equals("SourceFile")) {
+/*  961 */         throw new ClassConstraintException("The SourceFile attribute '" + Pass2Verifier.tostring(obj) + "' is not correctly named 'SourceFile' but '" + name + "'.");
+/*      */       }
+/*      */       
+/*  964 */       checkIndex(obj, obj.getSourceFileIndex(), this.CONST_Utf8);
+/*      */       
+/*  966 */       String sourceFileName = ((ConstantUtf8)this.cp.getConstant(obj.getSourceFileIndex())).getBytes();
+/*  967 */       String sourceFileNameLc = sourceFileName.toLowerCase(Locale.ENGLISH);
+/*      */       
+/*  969 */       if (sourceFileName.indexOf('/') == -1 && sourceFileName.indexOf('\\') == -1 && sourceFileName.indexOf(':') == -1 && 
+/*  970 */         sourceFileNameLc.lastIndexOf(".java") != -1) return;
+/*  971 */       Pass2Verifier.this.addMessage("SourceFile attribute '" + Pass2Verifier.tostring(obj) + "' has a funny name: remember not to confuse certain parsers working on javap's output. Also, this name ('" + sourceFileName + "') is considered an unqualified (simple) file name only.");
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */     @Override
+/*      */     public void visitSynthetic(Synthetic obj)
+/*      */     {
+/*  979 */       checkIndex(obj, obj.getNameIndex(), this.CONST_Utf8);
+/*  980 */       String name = ((ConstantUtf8)this.cp.getConstant(obj.getNameIndex())).getBytes();
+/*  981 */       if (!name.equals("Synthetic")) {
+/*  982 */         throw new ClassConstraintException("The Synthetic attribute '" + Pass2Verifier.tostring(obj) + "' is not correctly named 'Synthetic' but '" + name + "'.");
+/*      */       }
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     @Override
+/*      */     public void visitUnknown(Unknown obj)
+/*      */     {
+/*  992 */       checkIndex(obj, obj.getNameIndex(), this.CONST_Utf8);
+/*      */       
+/*      */ 
+/*  995 */       Pass2Verifier.this.addMessage("Unknown attribute '" + Pass2Verifier.tostring(obj) + "'. This attribute is not known in any context!");
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   private final class FAMRAV_Visitor
+/*      */     extends EmptyVisitor
+/*      */   {
+/*      */     private final ConstantPool cp;
+/*      */     
+/*      */ 
+/*      */ 
+/*      */     private FAMRAV_Visitor(JavaClass jc)
+/*      */     {
+/* 1010 */       this.cp = jc.getConstantPool();
+/*      */     }
+/*      */     
+/*      */     @Override
+/*      */     public void visitConstantFieldref(ConstantFieldref obj) {
+/* 1015 */       if (obj.getTag() != 9) {
+/* 1016 */         throw new ClassConstraintException("ConstantFieldref '" + Pass2Verifier.tostring(obj) + "' has wrong tag!");
+/*      */       }
+/* 1018 */       int nameAndTypeIndex = obj.getNameAndTypeIndex();
+/* 1019 */       ConstantNameAndType cnat = (ConstantNameAndType)this.cp.getConstant(nameAndTypeIndex);
+/* 1020 */       String name = ((ConstantUtf8)this.cp.getConstant(cnat.getNameIndex())).getBytes();
+/* 1021 */       if (!Pass2Verifier.validFieldName(name)) {
+/* 1022 */         throw new ClassConstraintException("Invalid field name '" + name + "' referenced by '" + Pass2Verifier.tostring(obj) + "'.");
+/*      */       }
+/*      */       
+/* 1025 */       int classIndex = obj.getClassIndex();
+/* 1026 */       ConstantClass cc = (ConstantClass)this.cp.getConstant(classIndex);
+/* 1027 */       String className = ((ConstantUtf8)this.cp.getConstant(cc.getNameIndex())).getBytes();
+/* 1028 */       if (!Pass2Verifier.validClassName(className)) {
+/* 1029 */         throw new ClassConstraintException("Illegal class name '" + className + "' used by '" + Pass2Verifier.tostring(obj) + "'.");
+/*      */       }
+/*      */       
+/* 1032 */       String sig = ((ConstantUtf8)this.cp.getConstant(cnat.getSignatureIndex())).getBytes();
+/*      */       try
+/*      */       {
+/* 1035 */         Type.getType(sig);
+/*      */       } catch (ClassFormatException cfe) {
+/* 1037 */         throw new ClassConstraintException("Illegal descriptor (==signature) '" + sig + "' used by '" + Pass2Verifier.tostring(obj) + "'.", cfe);
+/*      */       }
+/*      */     }
+/*      */     
+/*      */     @Override
+/*      */     public void visitConstantInterfaceMethodref(ConstantInterfaceMethodref obj) {
+/* 1043 */       if (obj.getTag() != 11) {
+/* 1044 */         throw new ClassConstraintException("ConstantInterfaceMethodref '" + Pass2Verifier.tostring(obj) + "' has wrong tag!");
+/*      */       }
+/* 1046 */       int nameAndTypeIndex = obj.getNameAndTypeIndex();
+/* 1047 */       ConstantNameAndType cnat = (ConstantNameAndType)this.cp.getConstant(nameAndTypeIndex);
+/* 1048 */       String name = ((ConstantUtf8)this.cp.getConstant(cnat.getNameIndex())).getBytes();
+/* 1049 */       if (!Pass2Verifier.validInterfaceMethodName(name)) {
+/* 1050 */         throw new ClassConstraintException("Invalid (interface) method name '" + name + "' referenced by '" + Pass2Verifier.tostring(obj) + "'.");
+/*      */       }
+/*      */       
+/* 1053 */       int classIndex = obj.getClassIndex();
+/* 1054 */       ConstantClass cc = (ConstantClass)this.cp.getConstant(classIndex);
+/* 1055 */       String className = ((ConstantUtf8)this.cp.getConstant(cc.getNameIndex())).getBytes();
+/* 1056 */       if (!Pass2Verifier.validClassName(className)) {
+/* 1057 */         throw new ClassConstraintException("Illegal class name '" + className + "' used by '" + Pass2Verifier.tostring(obj) + "'.");
+/*      */       }
+/*      */       
+/* 1060 */       String sig = ((ConstantUtf8)this.cp.getConstant(cnat.getSignatureIndex())).getBytes();
+/*      */       try
+/*      */       {
+/* 1063 */         Type t = Type.getReturnType(sig);
+/* 1064 */         if (name.equals("<clinit>") && t != Type.VOID) {
+/* 1065 */           Pass2Verifier.this.addMessage("Class or interface initialization method '<clinit>' usually has VOID return type instead of '" + t + "'. Note this is really not a requirement of The Java Virtual Machine Specification, Second Edition.");
+/*      */         }
+/*      */       }
+/*      */       catch (ClassFormatException cfe) {
+/* 1069 */         throw new ClassConstraintException("Illegal descriptor (==signature) '" + sig + "' used by '" + Pass2Verifier.tostring(obj) + "'.", cfe);
+/*      */       }
+/*      */     }
+/*      */     
+/*      */     @Override
+/*      */     public void visitConstantMethodref(ConstantMethodref obj)
+/*      */     {
+/* 1076 */       if (obj.getTag() != 10) {
+/* 1077 */         throw new ClassConstraintException("ConstantMethodref '" + Pass2Verifier.tostring(obj) + "' has wrong tag!");
+/*      */       }
+/* 1079 */       int nameAndTypeIndex = obj.getNameAndTypeIndex();
+/* 1080 */       ConstantNameAndType cnat = (ConstantNameAndType)this.cp.getConstant(nameAndTypeIndex);
+/* 1081 */       String name = ((ConstantUtf8)this.cp.getConstant(cnat.getNameIndex())).getBytes();
+/* 1082 */       if (!Pass2Verifier.validClassMethodName(name)) {
+/* 1083 */         throw new ClassConstraintException("Invalid (non-interface) method name '" + name + "' referenced by '" + Pass2Verifier.tostring(obj) + "'.");
+/*      */       }
+/*      */       
+/* 1086 */       int classIndex = obj.getClassIndex();
+/* 1087 */       ConstantClass cc = (ConstantClass)this.cp.getConstant(classIndex);
+/* 1088 */       String className = ((ConstantUtf8)this.cp.getConstant(cc.getNameIndex())).getBytes();
+/* 1089 */       if (!Pass2Verifier.validClassName(className)) {
+/* 1090 */         throw new ClassConstraintException("Illegal class name '" + className + "' used by '" + Pass2Verifier.tostring(obj) + "'.");
+/*      */       }
+/*      */       
+/* 1093 */       String sig = ((ConstantUtf8)this.cp.getConstant(cnat.getSignatureIndex())).getBytes();
+/*      */       try
+/*      */       {
+/* 1096 */         Type t = Type.getReturnType(sig);
+/* 1097 */         if (name.equals("<init>") && t != Type.VOID) {
+/* 1098 */           throw new ClassConstraintException("Instance initialization method must have VOID return type.");
+/*      */         }
+/*      */       } catch (ClassFormatException cfe) {
+/* 1101 */         throw new ClassConstraintException("Illegal descriptor (==signature) '" + sig + "' used by '" + Pass2Verifier.tostring(obj) + "'.", cfe);
+/*      */       }
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static class InnerClassDetector
+/*      */     extends EmptyVisitor
+/*      */   {
+/*      */     private boolean hasInnerClass;
+/*      */     
+/*      */ 
+/*      */ 
+/*      */     private final JavaClass jc;
+/*      */     
+/*      */ 
+/*      */ 
+/*      */     private final ConstantPool cp;
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     public InnerClassDetector(JavaClass javaClass)
+/*      */     {
+/* 1127 */       this.jc = javaClass;
+/* 1128 */       this.cp = this.jc.getConstantPool();
+/* 1129 */       new DescendingVisitor(this.jc, this).visit();
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     public boolean innerClassReferenced()
+/*      */     {
+/* 1138 */       return this.hasInnerClass;
+/*      */     }
+/*      */     
+/*      */     @Override
+/*      */     public void visitConstantClass(ConstantClass obj)
+/*      */     {
+/* 1144 */       Constant c = this.cp.getConstant(obj.getNameIndex());
+/* 1145 */       if ((c instanceof ConstantUtf8)) {
+/* 1146 */         String className = ((ConstantUtf8)c).getBytes();
+/* 1147 */         if (className.startsWith(Utility.packageToPath(this.jc.getClassName()) + "$")) {
+/* 1148 */           this.hasInnerClass = true;
+/*      */         }
+/*      */       }
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   private static String tostring(Node n)
+/*      */   {
+/* 1158 */     return new StringRepresentation(n).toString();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static boolean validClassMethodName(String name)
+/*      */   {
+/* 1166 */     return validMethodName(name, false);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static boolean validClassName(String name)
+/*      */   {
+/* 1176 */     Objects.requireNonNull(name, "name");
+/* 1177 */     return true;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static boolean validFieldName(String name)
+/*      */   {
+/* 1185 */     return validJavaIdentifier(name);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static boolean validInterfaceMethodName(String name)
+/*      */   {
+/* 1194 */     if (name.startsWith("<")) {
+/* 1195 */       return false;
+/*      */     }
+/* 1197 */     return validJavaLangMethodName(name);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static boolean validJavaIdentifier(String name)
+/*      */   {
+/* 1206 */     if (name.isEmpty() || !Character.isJavaIdentifierStart(name.charAt(0))) {
+/* 1207 */       return false;
+/*      */     }
+/*      */     
+/* 1210 */     for (int i = 1; i < name.length(); i++) {
+/* 1211 */       if (!Character.isJavaIdentifierPart(name.charAt(i))) {
+/* 1212 */         return false;
+/*      */       }
+/*      */     }
+/* 1215 */     return true;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static boolean validJavaLangMethodName(String name)
+/*      */   {
+/* 1224 */     return validJavaIdentifier(name);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static boolean validMethodName(String name, boolean allowStaticInit)
+/*      */   {
+/* 1233 */     if (validJavaLangMethodName(name)) {
+/* 1234 */       return true;
+/*      */     }
+/*      */     
+/* 1237 */     if (allowStaticInit) {
+/* 1238 */       return name.equals("<init>") || name.equals("<clinit>");
+/*      */     }
+/* 1240 */     return name.equals("<init>");
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public Pass2Verifier(Verifier verifier)
+/*      */   {
+/* 1257 */     this.verifier = verifier;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private void constantPoolEntriesSatisfyStaticConstraints()
+/*      */   {
+/*      */     try
+/*      */     {
+/* 1271 */       JavaClass jc = Repository.lookupClass(this.verifier.getClassName());
+/* 1272 */       new CPESSC_Visitor(jc);
+/*      */     }
+/*      */     catch (ClassNotFoundException e)
+/*      */     {
+/* 1276 */       throw new AssertionViolatedException("Missing class: " + e, e);
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Override
+/*      */   public VerificationResult do_verify()
+/*      */   {
+/*      */     try
+/*      */     {
+/* 1296 */       VerificationResult vr1 = this.verifier.doPass1();
+/* 1297 */       if (vr1.equals(VerificationResult.VR_OK))
+/*      */       {
+/*      */ 
+/*      */ 
+/* 1301 */         this.localVariablesInfos = new LocalVariablesInfo[Repository.lookupClass(this.verifier.getClassName()).getMethods().length];
+/*      */         
+/* 1303 */         VerificationResult vr = VerificationResult.VR_OK;
+/*      */         try {
+/* 1305 */           constantPoolEntriesSatisfyStaticConstraints();
+/* 1306 */           fieldAndMethodRefsAreValid();
+/* 1307 */           everyClassHasAnAccessibleSuperclass();
+/* 1308 */           finalMethodsAreNotOverridden();
+/*      */         } catch (ClassConstraintException cce) {
+/* 1310 */           vr = new VerificationResult(2, cce.getMessage());
+/*      */         }
+/* 1312 */         return vr;
+/*      */       }
+/* 1314 */       return VerificationResult.VR_NOTYET;
+/*      */     }
+/*      */     catch (ClassNotFoundException e)
+/*      */     {
+/* 1318 */       throw new AssertionViolatedException("Missing class: " + e, e);
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private void everyClassHasAnAccessibleSuperclass()
+/*      */   {
+/*      */     try
+/*      */     {
+/* 1332 */       Set<String> hs = new HashSet<>();
+/* 1333 */       JavaClass jc = Repository.lookupClass(this.verifier.getClassName());
+/* 1334 */       int supidx = -1;
+/*      */       
+/* 1336 */       while (supidx != 0) {
+/* 1337 */         supidx = jc.getSuperclassNameIndex();
+/*      */         
+/* 1339 */         if (supidx == 0) {
+/* 1340 */           if (jc == Repository.lookupClass(Type.OBJECT.getClassName()))
+/*      */             continue;
+/* 1342 */           throw new ClassConstraintException("Superclass of '" + jc.getClassName() + "' missing but not " + Type.OBJECT.getClassName() + " itself!");
+/*      */         }
+/*      */         
+/* 1345 */         String supername = jc.getSuperclassName();
+/* 1346 */         if (!hs.add(supername)) {
+/* 1347 */           throw new ClassConstraintException("Circular superclass hierarchy detected.");
+/*      */         }
+/* 1349 */         Verifier v = VerifierFactory.getVerifier(supername);
+/* 1350 */         VerificationResult vr = v.doPass1();
+/*      */         
+/* 1352 */         if (vr != VerificationResult.VR_OK) {
+/* 1353 */           throw new ClassConstraintException("Could not load in ancestor class '" + supername + "'.");
+/*      */         }
+/* 1355 */         jc = Repository.lookupClass(supername);
+/*      */         
+/* 1357 */         if (jc.isFinal()) {
+/* 1358 */           throw new ClassConstraintException("Ancestor class '" + supername + "' has the FINAL access modifier and must therefore not be subclassed.");
+/*      */         }
+/*      */         
+/*      */       }
+/*      */       
+/*      */     }
+/*      */     catch (ClassNotFoundException e)
+/*      */     {
+/* 1366 */       throw new AssertionViolatedException("Missing class: " + e, e);
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private void fieldAndMethodRefsAreValid()
+/*      */   {
+/*      */     try
+/*      */     {
+/* 1382 */       JavaClass jc = Repository.lookupClass(this.verifier.getClassName());
+/* 1383 */       DescendingVisitor v = new DescendingVisitor(jc, new FAMRAV_Visitor(jc));
+/* 1384 */       v.visit();
+/*      */     }
+/*      */     catch (ClassNotFoundException e)
+/*      */     {
+/* 1388 */       throw new AssertionViolatedException("Missing class: " + e, e);
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private void finalMethodsAreNotOverridden()
+/*      */   {
+/*      */     try
+/*      */     {
+/* 1403 */       Map<String, String> map = new HashMap<>();
+/* 1404 */       JavaClass jc = Repository.lookupClass(this.verifier.getClassName());
+/*      */       
+/* 1406 */       int supidx = -1;
+/* 1407 */       while (supidx != 0) {
+/* 1408 */         supidx = jc.getSuperclassNameIndex();
+/*      */         
+/* 1410 */         Method[] methods = jc.getMethods();
+/* 1411 */         for (Method method : methods) {
+/* 1412 */           String nameAndSig = method.getName() + method.getSignature();
+/*      */           
+/* 1414 */           if (map.containsKey(nameAndSig) && method.isFinal()) {
+/* 1415 */             if (!method.isPrivate())
+/*      */             {
+/* 1417 */               throw new ClassConstraintException("Method '" + nameAndSig + "' in class '" + (String)map.get(nameAndSig) + "' overrides the final (not-overridable) definition in class '" + jc.getClassName() + "'.");
+/*      */             }
+/* 1419 */             addMessage("Method '" + nameAndSig + "' in class '" + (String)map.get(nameAndSig) + "' overrides the final (not-overridable) definition in class '" + jc
+/* 1420 */               .getClassName() + "'. This is okay, as the original definition was private; however this constraint leverage was introduced by JLS 8.4.6 (not vmspec2) and the behavior of the Sun verifiers.");
+/*      */ 
+/*      */           }
+/* 1423 */           else if (!method.isStatic()) {
+/* 1424 */             map.put(nameAndSig, jc.getClassName());
+/*      */           }
+/*      */         }
+/*      */         
+/* 1428 */         jc = Repository.lookupClass(jc.getSuperclassName());
+/*      */       }
+/*      */       
+/*      */     }
+/*      */     catch (ClassNotFoundException e)
+/*      */     {
+/* 1434 */       throw new AssertionViolatedException("Missing class: " + e, e);
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public LocalVariablesInfo getLocalVariablesInfo(int methodNr)
+/*      */   {
+/* 1447 */     if (verify() != VerificationResult.VR_OK) {
+/* 1448 */       return null;
+/*      */     }
+/* 1450 */     if (methodNr < 0 || methodNr >= this.localVariablesInfos.length) {
+/* 1451 */       throw new AssertionViolatedException("Method number out of range.");
+/*      */     }
+/* 1453 */     return this.localVariablesInfos[methodNr];
+/*      */   }
+/*      */ }

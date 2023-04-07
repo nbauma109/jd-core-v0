@@ -775,8 +775,9 @@ public final class ClassFileAnalyzer
 
         for (final Method method : methods)
         {
-            if ((method.getAccessFlags() &
-                    (Const.ACC_SYNTHETIC|Const.ACC_BRIDGE)) != 0 ||
+            if (((method.getAccessFlags() & Const.ACC_SYNTHETIC) != 0
+                    && !method.getName().startsWith("lambda$")) ||
+                    (method.getAccessFlags() & Const.ACC_BRIDGE) != 0 ||
                     method.getCode() == null ||
                     method.containsError()) {
                 continue;
@@ -806,8 +807,9 @@ public final class ClassFileAnalyzer
     private static void postAnalyzeMethods(ClassFile classFile, Method[] methods) {
         for (final Method method : methods)
         {
-            if ((method.getAccessFlags() &
-                    (Const.ACC_SYNTHETIC|Const.ACC_BRIDGE)) != 0 ||
+            if (((method.getAccessFlags() & Const.ACC_SYNTHETIC) != 0
+                    && !method.getName().startsWith("lambda$")) ||
+                    (method.getAccessFlags() & Const.ACC_BRIDGE) != 0 ||
                     method.getCode() == null ||
                     method.getFastNodes() == null ||
                     method.containsError()) {
