@@ -250,6 +250,14 @@ public class Method extends Base
         return false;
     }
 
+    public boolean isLambda() {
+        return isSynthetic() && getName().startsWith("lambda$");
+    }
+
+    public boolean isSynthetic() {
+        return (getAccessFlags() & Const.ACC_SYNTHETIC) != 0;
+    }
+
     @Override
     public String toString() {
         String methodName = getName();

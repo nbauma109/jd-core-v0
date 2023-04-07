@@ -80,7 +80,7 @@
 /*     */ {
 /*     */   public static <T, U, E extends Throwable> void accept(FailableBiConsumer<T, U, E> consumer, T object1, U object2)
 /*     */   {
-/*  83 */     run(() ->  consumer.accept(object1, object2));
+/*  83 */     run(() -> consumer.accept(object1, object2));
 /*     */   }
 /*     */   
 /*     */ 
@@ -92,7 +92,7 @@
 /*     */ 
 /*     */   public static <T, E extends Throwable> void accept(FailableConsumer<T, E> consumer, T object)
 /*     */   {
-/*  95 */     run(() ->  consumer.accept(object));
+/*  95 */     run(() -> consumer.accept(object));
 /*     */   }
 /*     */   
 /*     */ 
@@ -103,7 +103,7 @@
 /*     */ 
 /*     */   public static <E extends Throwable> void accept(FailableDoubleConsumer<E> consumer, double value)
 /*     */   {
-/* 106 */     run(() ->  consumer.accept(value));
+/* 106 */     run(() -> consumer.accept(value));
 /*     */   }
 /*     */   
 /*     */ 
@@ -114,7 +114,7 @@
 /*     */ 
 /*     */   public static <E extends Throwable> void accept(FailableIntConsumer<E> consumer, int value)
 /*     */   {
-/* 117 */     run(() ->  consumer.accept(value));
+/* 117 */     run(() -> consumer.accept(value));
 /*     */   }
 /*     */   
 /*     */ 
@@ -125,7 +125,7 @@
 /*     */ 
 /*     */   public static <E extends Throwable> void accept(FailableLongConsumer<E> consumer, long value)
 /*     */   {
-/* 128 */     run(() ->  consumer.accept(value));
+/* 128 */     run(() -> consumer.accept(value));
 /*     */   }
 /*     */   
 /*     */ 
@@ -182,7 +182,7 @@
 /*     */ 
 /*     */   public static <T, U> BiConsumer<T, U> asBiConsumer(FailableBiConsumer<T, U, ?> consumer)
 /*     */   {
-/* 185 */     return (input1, input2) ->  accept(consumer, input1, input2);
+/* 185 */     return (input1, input2) -> accept(consumer, input1, input2);
 /*     */   }
 /*     */   
 /*     */ 
@@ -229,7 +229,7 @@
 /*     */ 
 /*     */   public static <T> Consumer<T> asConsumer(FailableConsumer<T, ?> consumer)
 /*     */   {
-/* 232 */     return input ->  accept(consumer, input);
+/* 232 */     return input -> accept(consumer, input);
 /*     */   }
 /*     */   
 /*     */ 
@@ -262,7 +262,7 @@
 /*     */ 
 /*     */   public static Runnable asRunnable(FailableRunnable<?> runnable)
 /*     */   {
-/* 265 */     return () ->  run(runnable);
+/* 265 */     return () -> run(runnable);
 /*     */   }
 /*     */   
 /*     */ 
