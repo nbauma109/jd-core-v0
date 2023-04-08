@@ -55,7 +55,7 @@ public class ArrayReference extends Instruction implements SourceWriteable {
 
     @Override
     public void write(Printer printer, SourceWriterVisitor visitor) {
-        int dim = SignatureUtil.countDimensionOfArray(descriptor.replace("(I)", ""));
+        int dim = SignatureUtil.countDimensionOfArray(descriptor);
         printer.print(objectType.getName());
         for (int i = 0; i < dim; i++) {
             printer.print("[]");
