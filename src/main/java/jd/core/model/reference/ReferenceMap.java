@@ -16,21 +16,21 @@
  ******************************************************************************/
 package jd.core.model.reference;
 
+import org.jd.core.v1.util.StringConstants;
+
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public class ReferenceMap
 {
     private final Map<String, Reference> references;
-    private final Set<String> simpleInnerNames;
+    private final Map<String, String> simpleNameToInternalName;
 
     public ReferenceMap()
     {
         this.references = new HashMap<>();
-        this.simpleInnerNames = new HashSet<>();
+        this.simpleNameToInternalName = new HashMap<>();
     }
 
     public void add(String internalName)
@@ -48,9 +48,12 @@ public class ReferenceMap
 
             if (ref == null) {
                 this.references.put(internalName, new Reference(internalName));
+                int lastIndexOfSlash = internalName.lastIndexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR);
                 int lastIndexOfDollar = internalName.lastIndexOf('$');
                 if (lastIndexOfDollar != -1) {
-                    this.simpleInnerNames.add(internalName.substring(lastIndexOfDollar + 1));
+                    this.simpleNameToInternalName.put(internalName.substring(lastIndexOfDollar + 1), internalName);
+                } else {
+                    this.simpleNameToInternalName.put(internalName.substring(lastIndexOfSlash + 1), internalName);
                 }
             } else {
                 ref.incCounter();
@@ -78,11 +81,12 @@ public class ReferenceMap
         return this.references.containsKey(internalName);
     }
 
-    public boolean containsSimpleName(String internalName)
+    public boolean hasSimpleNameClashWith(String internalName)
     {
-        int lastIndexOfSlash = internalName.lastIndexOf('/');
+        int lastIndexOfSlash = internalName.lastIndexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR);
         if (lastIndexOfSlash != -1) {
-            return this.simpleInnerNames.contains(internalName.substring(lastIndexOfSlash + 1));
+            String importedInternalName = simpleNameToInternalName.get(internalName.substring(lastIndexOfSlash + 1));
+            return importedInternalName != null && !internalName.equals(importedInternalName);
         }
         return false;
     }

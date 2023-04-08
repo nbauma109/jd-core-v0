@@ -1,0 +1,871 @@
+/*     */ package org.apache.bcel.classfile;
+/*     */ 
+/*     */ import java.io.ByteArrayOutputStream;
+/*     */ import java.io.DataOutputStream;
+/*     */ import java.io.File;
+/*     */ import java.io.IOException;
+/*     */ import java.io.OutputStream;
+/*     */ import java.util.ArrayList;
+/*     */ import java.util.Arrays;
+/*     */ import java.util.List;
+/*     */ import java.util.Objects;
+/*     */ import java.util.Set;
+/*     */ import java.util.StringTokenizer;
+/*     */ import java.util.TreeSet;
+/*     */ import org.apache.bcel.generic.Type;
+/*     */ import org.apache.bcel.util.BCELComparator;
+/*     */ import org.apache.bcel.util.ClassQueue;
+/*     */ import org.apache.bcel.util.Repository;
+/*     */ import org.apache.bcel.util.SyntheticRepository;
+/*     */ import org.apache.commons.lang3.ArrayUtils;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class JavaClass
+/*     */   extends AccessFlags
+/*     */   implements Cloneable, Node, Comparable<JavaClass>
+/*     */ {
+/*     */   public static final String EXTENSION = ".class";
+/*     */   public static final byte HEAP = 1;
+/*     */   public static final byte FILE = 2;
+/*     */   public static final byte ZIP = 3;
+/*     */   private String fileName;
+/*     */   private final String packageName;
+/*     */   private int classNameIndex;
+/*     */   private int superclassNameIndex;
+/*     */   private String className;
+/*     */   private String superclassName;
+/*     */   private int major;
+/*     */   private int minor;
+/*     */   private ConstantPool constantPool;
+/*     */   private int[] interfaces;
+/*     */   private String[] interfaceNames;
+/*     */   private Field[] fields;
+/*     */   private Method[] methods;
+/*     */   private Attribute[] attributes;
+/*     */   private AnnotationEntry[] annotations;
+/*     */   private boolean isAnonymous;
+/*     */   private boolean isNested;
+/*     */   private boolean computedNestedTypeStatus;
+/*  62 */   public static final JavaClass[] EMPTY_ARRAY = new JavaClass[0];
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*  67 */   private static final boolean debug = Boolean.getBoolean("JavaClass.debug");
+/*  68 */   private static BCELComparator bcelComparator = new BCELComparator()
+/*     */   {
+/*     */     @Override
+/*     */     public boolean equals(Object o1, Object o2) {
+/*  72 */       JavaClass THIS = (JavaClass)o1;
+/*  73 */       JavaClass THAT = (JavaClass)o2;
+/*  74 */       return Objects.equals(THIS.getClassName(), THAT.getClassName());
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public int hashCode(Object o) {
+/*  79 */       JavaClass THIS = (JavaClass)o;
+/*  80 */       return THIS.getClassName().hashCode();
+/*     */     }
+/*     */   };
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   static void Debug(String str)
+/*     */   {
+/*  88 */     if (debug) {
+/*  89 */       System.out.println(str);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public static BCELComparator getComparator()
+/*     */   {
+/*  97 */     return bcelComparator;
+/*     */   }
+/*     */   
+/*     */   private static String indent(Object obj) {
+/* 101 */     StringTokenizer tokenizer = new StringTokenizer(obj.toString(), "\n");
+/* 102 */     StringBuilder buf = new StringBuilder();
+/* 103 */     while (tokenizer.hasMoreTokens()) {
+/* 104 */       buf.append("\t").append(tokenizer.nextToken()).append("\n");
+/*     */     }
+/* 106 */     return buf.toString();
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public static void setComparator(BCELComparator comparator)
+/*     */   {
+/* 113 */     bcelComparator = comparator;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/* 118 */   private String sourceFileName = "<Unknown>";
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/* 133 */   private byte source = 1;
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/* 145 */   private transient Repository repository = SyntheticRepository.getInstance();
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public JavaClass(int classNameIndex, int superclassNameIndex, String fileName, int major, int minor, int accessFlags, ConstantPool constantPool, int[] interfaces, Field[] fields, Method[] methods, Attribute[] attributes)
+/*     */   {
+/* 164 */     this(classNameIndex, superclassNameIndex, fileName, major, minor, accessFlags, constantPool, interfaces, fields, methods, attributes, (byte)1);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public JavaClass(int classNameIndex, int superclassNameIndex, String fileName, int major, int minor, int accessFlags, ConstantPool constantPool, int[] interfaces, Field[] fields, Method[] methods, Attribute[] attributes, byte source)
+/*     */   {
+/* 186 */     super(accessFlags);
+/* 187 */     if (interfaces == null) {
+/* 188 */       interfaces = ArrayUtils.EMPTY_INT_ARRAY;
+/*     */     }
+/* 190 */     if (attributes == null) {
+/* 191 */       attributes = Attribute.EMPTY_ARRAY;
+/*     */     }
+/* 193 */     if (fields == null) {
+/* 194 */       fields = Field.EMPTY_FIELD_ARRAY;
+/*     */     }
+/* 196 */     if (methods == null) {
+/* 197 */       methods = Method.EMPTY_METHOD_ARRAY;
+/*     */     }
+/* 199 */     this.classNameIndex = classNameIndex;
+/* 200 */     this.superclassNameIndex = superclassNameIndex;
+/* 201 */     this.fileName = fileName;
+/* 202 */     this.major = major;
+/* 203 */     this.minor = minor;
+/* 204 */     this.constantPool = constantPool;
+/* 205 */     this.interfaces = interfaces;
+/* 206 */     this.fields = fields;
+/* 207 */     this.methods = methods;
+/* 208 */     this.attributes = attributes;
+/* 209 */     this.source = source;
+/*     */     
+/* 211 */     for (Attribute attribute : attributes) {
+/* 212 */       if ((attribute instanceof SourceFile)) {
+/* 213 */         this.sourceFileName = ((SourceFile)attribute).getSourceFileName();
+/* 214 */         break;
+/*     */       }
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/* 221 */     this.className = constantPool.getConstantString(classNameIndex, (byte)7);
+/* 222 */     this.className = Utility.compactClassName(this.className, false);
+/* 223 */     int index = this.className.lastIndexOf('.');
+/* 224 */     if (index < 0) {
+/* 225 */       this.packageName = "";
+/*     */     } else {
+/* 227 */       this.packageName = this.className.substring(0, index);
+/*     */     }
+/* 229 */     if (superclassNameIndex > 0)
+/*     */     {
+/* 231 */       this.superclassName = constantPool.getConstantString(superclassNameIndex, (byte)7);
+/* 232 */       this.superclassName = Utility.compactClassName(this.superclassName, false);
+/*     */     } else {
+/* 234 */       this.superclassName = "java.lang.Object";
+/*     */     }
+/* 236 */     this.interfaceNames = new String[interfaces.length];
+/* 237 */     for (int i = 0; i < interfaces.length; i++) {
+/* 238 */       String str = constantPool.getConstantString(interfaces[i], (byte)7);
+/* 239 */       this.interfaceNames[i] = Utility.compactClassName(str, false);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public void accept(Visitor v)
+/*     */   {
+/* 251 */     v.visitJavaClass(this);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public int compareTo(JavaClass obj)
+/*     */   {
+/* 261 */     return getClassName().compareTo(obj.getClassName());
+/*     */   }
+/*     */   
+/*     */   private void computeNestedTypeStatus() {
+/* 265 */     if (this.computedNestedTypeStatus) {
+/* 266 */       return;
+/*     */     }
+/* 268 */     for (Attribute attribute : this.attributes) {
+/* 269 */       if ((attribute instanceof InnerClasses)) {
+/* 270 */         ((InnerClasses)attribute).forEach(innerClass ->  {
+/* 271 */           boolean innerClassAttributeRefersToMe = false;
+/* 272 */           String innerClassName = this.constantPool.getConstantString(innerClass.getInnerClassIndex(), (byte)7);
+/* 273 */           innerClassName = Utility.compactClassName(innerClassName, false);
+/* 274 */           if (innerClassName.equals(getClassName())) {
+/* 275 */             innerClassAttributeRefersToMe = true;
+/*     */           }
+/* 277 */           if (innerClassAttributeRefersToMe) {
+/* 278 */             this.isNested = true;
+/* 279 */             if (innerClass.getInnerNameIndex() == 0) {
+/* 280 */               this.isAnonymous = true;
+/*     */             }
+/*     */           }
+/*     */         });
+/*     */       }
+/*     */     }
+/* 286 */     this.computedNestedTypeStatus = true;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */   public JavaClass copy()
+/*     */   {
+/*     */     try
+/*     */     {
+/* 294 */       JavaClass c = (JavaClass)clone();
+/* 295 */       c.constantPool = this.constantPool.copy();
+/* 296 */       c.interfaces = ((int[])this.interfaces.clone());
+/* 297 */       c.interfaceNames = ((String[])this.interfaceNames.clone());
+/* 298 */       c.fields = new Field[this.fields.length];
+/* 299 */       Arrays.setAll(c.fields,  i -> this.fields[i].copy(c.constantPool));
+/* 300 */       c.methods = new Method[this.methods.length];
+/* 301 */       Arrays.setAll(c.methods,  i -> this.methods[i].copy(c.constantPool));
+/* 302 */       c.attributes = new Attribute[this.attributes.length];
+/* 303 */       Arrays.setAll(c.attributes,  i -> this.attributes[i].copy(c.constantPool));
+/* 304 */       return c;
+/*     */     } catch (CloneNotSupportedException e) {}
+/* 306 */     return null;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void dump(DataOutputStream file)
+/*     */     throws IOException
+/*     */   {
+/* 317 */     file.writeInt(-889275714);
+/* 318 */     file.writeShort(this.minor);
+/* 319 */     file.writeShort(this.major);
+/* 320 */     this.constantPool.dump(file);
+/* 321 */     file.writeShort(super.getAccessFlags());
+/* 322 */     file.writeShort(this.classNameIndex);
+/* 323 */     file.writeShort(this.superclassNameIndex);
+/* 324 */     file.writeShort(this.interfaces.length);
+/* 325 */     for (int interface1 : this.interfaces) {
+/* 326 */       file.writeShort(interface1);
+/*     */     }
+/* 328 */     file.writeShort(this.fields.length);
+/* 329 */     for (Field field : this.fields) {
+/* 330 */       field.dump(file);
+/*     */     }
+/* 332 */     file.writeShort(this.methods.length);
+/* 333 */     for (Method method : this.methods) {
+/* 334 */       method.dump(file);
+/*     */     }
+/* 336 */     if (this.attributes != null) {
+/* 337 */       file.writeShort(this.attributes.length);
+/* 338 */       for (Attribute attribute : this.attributes) {
+/* 339 */         attribute.dump(file);
+/*     */       }
+/*     */     } else {
+/* 342 */       file.writeShort(0);
+/*     */     }
+/* 344 */     file.flush();
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void dump(File file)
+/*     */     throws IOException
+/*     */   {
+/* 354 */     String parent = file.getParent();
+/* 355 */     if (parent != null) {
+/* 356 */       File dir = new File(parent);
+/* 357 */       if (!dir.mkdirs() && !dir.isDirectory()) {
+/* 358 */         throw new IOException("Could not create the directory " + dir);
+/*     */       }
+/*     */     }
+/* 361 */     try (DataOutputStream dos = new DataOutputStream(new java.io.FileOutputStream(file))) {
+/* 362 */       dump(dos);
+/*     */     }
+/*     */     
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void dump(OutputStream file)
+/*     */     throws IOException
+/*     */   {
+/* 373 */     dump(new DataOutputStream(file));
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void dump(String fileName)
+/*     */     throws IOException
+/*     */   {
+/* 383 */     dump(new File(fileName));
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public boolean equals(Object obj)
+/*     */   {
+/* 394 */     return bcelComparator.equals(this, obj);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public JavaClass[] getAllInterfaces()
+/*     */     throws ClassNotFoundException
+/*     */   {
+/* 403 */     ClassQueue queue = new ClassQueue();
+/* 404 */     Set<JavaClass> allInterfaces = new TreeSet<>();
+/* 405 */     queue.enqueue(this);
+/* 406 */     while (!queue.empty()) {
+/* 407 */       JavaClass clazz = queue.dequeue();
+/* 408 */       JavaClass souper = clazz.getSuperClass();
+/* 409 */       JavaClass[] interfaces = clazz.getInterfaces();
+/* 410 */       if (clazz.isInterface()) {
+/* 411 */         allInterfaces.add(clazz);
+/* 412 */       } else if (souper != null) {
+/* 413 */         queue.enqueue(souper);
+/*     */       }
+/* 415 */       for (JavaClass iface : interfaces) {
+/* 416 */         queue.enqueue(iface);
+/*     */       }
+/*     */     }
+/* 419 */     return (JavaClass[])allInterfaces.toArray(EMPTY_ARRAY);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public AnnotationEntry[] getAnnotationEntries()
+/*     */   {
+/* 427 */     if (this.annotations == null) {
+/* 428 */       this.annotations = AnnotationEntry.createAnnotationEntries(getAttributes());
+/*     */     }
+/*     */     
+/* 431 */     return this.annotations;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public Attribute[] getAttributes()
+/*     */   {
+/* 438 */     return this.attributes;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public byte[] getBytes()
+/*     */   {
+/* 445 */     ByteArrayOutputStream baos = new ByteArrayOutputStream();
+/* 446 */     try (DataOutputStream dos = new DataOutputStream(baos)) {
+/* 447 */       dump(dos);
+/*     */     } catch (IOException e) {
+/* 449 */       e.printStackTrace();
+/*     */     }
+/* 451 */     return baos.toByteArray();
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public String getClassName()
+/*     */   {
+/* 458 */     return this.className;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public int getClassNameIndex()
+/*     */   {
+/* 465 */     return this.classNameIndex;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public ConstantPool getConstantPool()
+/*     */   {
+/* 472 */     return this.constantPool;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public Field[] getFields()
+/*     */   {
+/* 480 */     return this.fields;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public String getFileName()
+/*     */   {
+/* 487 */     return this.fileName;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public int[] getInterfaceIndices()
+/*     */   {
+/* 494 */     return this.interfaces;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public String[] getInterfaceNames()
+/*     */   {
+/* 501 */     return this.interfaceNames;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public JavaClass[] getInterfaces()
+/*     */     throws ClassNotFoundException
+/*     */   {
+/* 510 */     String[] interfaces = getInterfaceNames();
+/* 511 */     JavaClass[] classes = new JavaClass[interfaces.length];
+/* 512 */     for (int i = 0; i < interfaces.length; i++) {
+/* 513 */       classes[i] = this.repository.loadClass(interfaces[i]);
+/*     */     }
+/* 515 */     return classes;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public int getMajor()
+/*     */   {
+/* 522 */     return this.major;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public Method getMethod(java.lang.reflect.Method m)
+/*     */   {
+/* 529 */     for (Method method : this.methods) {
+/* 530 */       if (m.getName().equals(method.getName()) && m.getModifiers() == method.getModifiers() && Type.getSignature(m).equals(method.getSignature())) {
+/* 531 */         return method;
+/*     */       }
+/*     */     }
+/* 534 */     return null;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public Method[] getMethods()
+/*     */   {
+/* 541 */     return this.methods;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public int getMinor()
+/*     */   {
+/* 548 */     return this.minor;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public String getPackageName()
+/*     */   {
+/* 555 */     return this.packageName;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public Repository getRepository()
+/*     */   {
+/* 563 */     return this.repository;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public final byte getSource()
+/*     */   {
+/* 570 */     return this.source;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public String getSourceFileName()
+/*     */   {
+/* 577 */     return this.sourceFileName;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public String getSourceFilePath()
+/*     */   {
+/* 587 */     StringBuilder outFileName = new StringBuilder();
+/* 588 */     if (!this.packageName.isEmpty()) {
+/* 589 */       outFileName.append(Utility.packageToPath(this.packageName));
+/* 590 */       outFileName.append('/');
+/*     */     }
+/* 592 */     outFileName.append(this.sourceFileName);
+/* 593 */     return outFileName.toString();
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public JavaClass getSuperClass()
+/*     */     throws ClassNotFoundException
+/*     */   {
+/* 601 */     if ("java.lang.Object".equals(getClassName())) {
+/* 602 */       return null;
+/*     */     }
+/* 604 */     return this.repository.loadClass(getSuperclassName());
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public JavaClass[] getSuperClasses()
+/*     */     throws ClassNotFoundException
+/*     */   {
+/* 612 */     JavaClass clazz = this;
+/* 613 */     List<JavaClass> allSuperClasses = new ArrayList<>();
+/* 614 */     for (clazz = clazz.getSuperClass(); clazz != null; clazz = clazz.getSuperClass()) {
+/* 615 */       allSuperClasses.add(clazz);
+/*     */     }
+/* 617 */     return (JavaClass[])allSuperClasses.toArray(EMPTY_ARRAY);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public String getSuperclassName()
+/*     */   {
+/* 627 */     return this.superclassName;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public int getSuperclassNameIndex()
+/*     */   {
+/* 634 */     return this.superclassNameIndex;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public int hashCode()
+/*     */   {
+/* 644 */     return bcelComparator.hashCode(this);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public boolean implementationOf(JavaClass inter)
+/*     */     throws ClassNotFoundException
+/*     */   {
+/* 652 */     if (!inter.isInterface()) {
+/* 653 */       throw new IllegalArgumentException(inter.getClassName() + " is no interface");
+/*     */     }
+/* 655 */     if (equals(inter)) {
+/* 656 */       return true;
+/*     */     }
+/* 658 */     JavaClass[] superInterfaces = getAllInterfaces();
+/* 659 */     for (JavaClass superInterface : superInterfaces) {
+/* 660 */       if (superInterface.equals(inter)) {
+/* 661 */         return true;
+/*     */       }
+/*     */     }
+/* 664 */     return false;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public final boolean instanceOf(JavaClass superclass)
+/*     */     throws ClassNotFoundException
+/*     */   {
+/* 674 */     if (equals(superclass)) {
+/* 675 */       return true;
+/*     */     }
+/* 677 */     for (JavaClass clazz : getSuperClasses()) {
+/* 678 */       if (clazz.equals(superclass)) {
+/* 679 */         return true;
+/*     */       }
+/*     */     }
+/* 682 */     if (superclass.isInterface()) {
+/* 683 */       return implementationOf(superclass);
+/*     */     }
+/* 685 */     return false;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public final boolean isAnonymous()
+/*     */   {
+/* 692 */     computeNestedTypeStatus();
+/* 693 */     return this.isAnonymous;
+/*     */   }
+/*     */   
+/*     */   public final boolean isClass() {
+/* 697 */     return (super.getAccessFlags() & 0x200) == 0;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public final boolean isNested()
+/*     */   {
+/* 704 */     computeNestedTypeStatus();
+/* 705 */     return this.isNested;
+/*     */   }
+/*     */   
+/*     */   public final boolean isSuper() {
+/* 709 */     return (super.getAccessFlags() & 0x20) != 0;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public void setAttributes(Attribute[] attributes)
+/*     */   {
+/* 716 */     this.attributes = attributes;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public void setClassName(String className)
+/*     */   {
+/* 723 */     this.className = className;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public void setClassNameIndex(int classNameIndex)
+/*     */   {
+/* 730 */     this.classNameIndex = classNameIndex;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public void setConstantPool(ConstantPool constantPool)
+/*     */   {
+/* 737 */     this.constantPool = constantPool;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public void setFields(Field[] fields)
+/*     */   {
+/* 744 */     this.fields = fields;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public void setFileName(String fileName)
+/*     */   {
+/* 751 */     this.fileName = fileName;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public void setInterfaceNames(String[] interfaceNames)
+/*     */   {
+/* 758 */     this.interfaceNames = interfaceNames;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public void setInterfaces(int[] interfaces)
+/*     */   {
+/* 765 */     this.interfaces = interfaces;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public void setMajor(int major)
+/*     */   {
+/* 772 */     this.major = major;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public void setMethods(Method[] methods)
+/*     */   {
+/* 779 */     this.methods = methods;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public void setMinor(int minor)
+/*     */   {
+/* 786 */     this.minor = minor;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public void setRepository(Repository repository)
+/*     */   {
+/* 793 */     this.repository = repository;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public void setSourceFileName(String sourceFileName)
+/*     */   {
+/* 800 */     this.sourceFileName = sourceFileName;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public void setSuperclassName(String superclassName)
+/*     */   {
+/* 807 */     this.superclassName = superclassName;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public void setSuperclassNameIndex(int superclassNameIndex)
+/*     */   {
+/* 814 */     this.superclassNameIndex = superclassNameIndex;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public String toString()
+/*     */   {
+/* 822 */     String access = Utility.accessToString(super.getAccessFlags(), true);
+/* 823 */     access = access + " ";
+/* 824 */     StringBuilder buf = new StringBuilder(128);
+/* 825 */     buf.append(access).append(Utility.classOrInterface(super.getAccessFlags())).append(" ").append(this.className).append(" extends ")
+/* 826 */       .append(Utility.compactClassName(this.superclassName, false)).append('\n');
+/* 827 */     int size = this.interfaces.length;
+/* 828 */     int i; if (size > 0) {
+/* 829 */       buf.append("implements\t\t");
+/* 830 */       for (i = 0; i < size; i++) {
+/* 831 */         buf.append(this.interfaceNames[i]);
+/* 832 */         if (i < size - 1) {
+/* 833 */           buf.append(", ");
+/*     */         }
+/*     */       }
+/* 836 */       buf.append('\n');
+/*     */     }
+/* 838 */     buf.append("file name\t\t").append(this.fileName).append('\n');
+/* 839 */     buf.append("compiled from\t\t").append(this.sourceFileName).append('\n');
+/* 840 */     buf.append("compiler version\t").append(this.major).append(".").append(this.minor).append('\n');
+/* 841 */     buf.append("access flags\t\t").append(super.getAccessFlags()).append('\n');
+/* 842 */     buf.append("constant pool\t\t").append(this.constantPool.getLength()).append(" entries\n");
+/* 843 */     buf.append("ACC_SUPER flag\t\t").append(isSuper()).append("\n");
+/* 844 */     if (this.attributes.length > 0) {
+/* 845 */       buf.append("\nAttribute(s):\n");
+/* 846 */       for (Attribute attribute : this.attributes) {
+/* 847 */         buf.append(indent(attribute));
+/*     */       }
+/*     */     }
+/* 850 */     AnnotationEntry[] annotations = getAnnotationEntries();
+/* 851 */     if (annotations != null && annotations.length > 0) {
+/* 852 */       buf.append("\nAnnotation(s):\n");
+/* 853 */       for (AnnotationEntry annotation : annotations) {
+/* 854 */         buf.append(indent(annotation));
+/*     */       }
+/*     */     }
+/* 857 */     if (this.fields.length > 0) {
+/* 858 */       buf.append("\n").append(this.fields.length).append(" fields:\n");
+/* 859 */       for (Field field : this.fields) {
+/* 860 */         buf.append("\t").append(field).append('\n');
+/*     */       }
+/*     */     }
+/* 863 */     if (this.methods.length > 0) {
+/* 864 */       buf.append("\n").append(this.methods.length).append(" methods:\n");
+/* 865 */       for (Method method : this.methods) {
+/* 866 */         buf.append("\t").append(method).append('\n');
+/*     */       }
+/*     */     }
+/* 869 */     return buf.toString();
+/*     */   }
+/*     */ }

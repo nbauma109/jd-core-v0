@@ -1,0 +1,180 @@
+/*     */ package org.apache.bcel.util;
+/*     */ 
+/*     */ import java.io.ByteArrayInputStream;
+/*     */ import java.io.IOException;
+/*     */ import java.util.Hashtable;
+/*     */ import org.apache.bcel.classfile.ClassParser;
+/*     */ import org.apache.bcel.classfile.ConstantClass;
+/*     */ import org.apache.bcel.classfile.ConstantPool;
+/*     */ import org.apache.bcel.classfile.ConstantUtf8;
+/*     */ import org.apache.bcel.classfile.JavaClass;
+/*     */ import org.apache.bcel.classfile.Utility;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ @Deprecated
+/*     */ public class ClassLoader
+/*     */   extends java.lang.ClassLoader
+/*     */ {
+/*     */   private static final String BCEL_TOKEN = "$$BCEL$$";
+/*     */   private final String[] ignoredPackages;
+/*  59 */   public static final String[] DEFAULT_IGNORED_PACKAGES = { "java.", "javax.", "sun." };
+/*     */   
+/*  61 */   private final Hashtable<String, Class<?>> classes = new Hashtable<>();
+/*     */   
+/*     */ 
+/*  64 */   private Repository repository = SyntheticRepository.getInstance();
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public ClassLoader()
+/*     */   {
+/*  70 */     this(DEFAULT_IGNORED_PACKAGES);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public ClassLoader(java.lang.ClassLoader deferTo)
+/*     */   {
+/*  77 */     super(deferTo);
+/*  78 */     this.ignoredPackages = DEFAULT_IGNORED_PACKAGES;
+/*  79 */     this.repository = new ClassLoaderRepository(deferTo);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public ClassLoader(java.lang.ClassLoader deferTo, String[] ignoredPackages)
+/*     */   {
+/*  87 */     this(ignoredPackages);
+/*  88 */     this.repository = new ClassLoaderRepository(deferTo);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public ClassLoader(String[] ignoredPackages)
+/*     */   {
+/*  95 */     this.ignoredPackages = ignoredPackages;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   protected JavaClass createClass(String className)
+/*     */   {
+/* 111 */     int index = className.indexOf("$$BCEL$$");
+/* 112 */     String realName = className.substring(index + "$$BCEL$$".length());
+/* 113 */     JavaClass clazz = null;
+/*     */     try {
+/* 115 */       byte[] bytes = Utility.decode(realName, true);
+/* 116 */       ClassParser parser = new ClassParser(new ByteArrayInputStream(bytes), "foo");
+/* 117 */       clazz = parser.parse();
+/*     */     } catch (IOException e) {
+/* 119 */       e.printStackTrace();
+/* 120 */       return null;
+/*     */     }
+/*     */     
+/* 123 */     ConstantPool cp = clazz.getConstantPool();
+/* 124 */     ConstantClass cl = (ConstantClass)cp.getConstant(clazz.getClassNameIndex(), (byte)7, ConstantClass.class);
+/* 125 */     ConstantUtf8 name = cp.getConstantUtf8(cl.getNameIndex());
+/* 126 */     name.setBytes(Utility.packageToPath(className));
+/* 127 */     return clazz;
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   protected Class<?> loadClass(String className, boolean resolve) throws ClassNotFoundException {
+/* 132 */     Class<?> cl = null;
+/*     */     
+/*     */ 
+/*     */ 
+/* 136 */     if ((cl = (Class)this.classes.get(className)) == null)
+/*     */     {
+/*     */ 
+/*     */ 
+/* 140 */       for (String ignoredPackage : this.ignoredPackages) {
+/* 141 */         if (className.startsWith(ignoredPackage)) {
+/* 142 */           cl = getParent().loadClass(className);
+/* 143 */           break;
+/*     */         }
+/*     */       }
+/* 146 */       if (cl == null) {
+/* 147 */         JavaClass clazz = null;
+/*     */         
+/*     */ 
+/*     */ 
+/* 151 */         if (className.contains("$$BCEL$$")) {
+/* 152 */           clazz = createClass(className);
+/*     */         } else {
+/* 154 */           if ((clazz = this.repository.loadClass(className)) == null) {
+/* 155 */             throw new ClassNotFoundException(className);
+/*     */           }
+/* 157 */           clazz = modifyClass(clazz);
+/*     */         }
+/* 159 */         if (clazz != null) {
+/* 160 */           byte[] bytes = clazz.getBytes();
+/* 161 */           cl = defineClass(className, bytes, 0, bytes.length);
+/*     */         } else {
+/* 163 */           cl = Class.forName(className);
+/*     */         }
+/*     */       }
+/* 166 */       if (resolve) {
+/* 167 */         resolveClass(cl);
+/*     */       }
+/*     */     }
+/* 170 */     this.classes.put(className, cl);
+/* 171 */     return cl;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   protected JavaClass modifyClass(JavaClass clazz)
+/*     */   {
+/* 178 */     return clazz;
+/*     */   }
+/*     */ }
