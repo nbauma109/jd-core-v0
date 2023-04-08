@@ -157,7 +157,7 @@ public final class LocalVariableAnalyzer
             // Traitement des entrées correspondant aux parametres
             Signature as = method.getAttributeSignature();
             String methodSignature = constants.getConstantUtf8(
-                    as==null ? method.getDescriptorIndex() : as.getSignatureIndex());
+                Optional.ofNullable(as).map(Signature::getSignatureIndex).orElseGet(method::getDescriptorIndex));
 
             int indexOfFirstLocalVariable =
                     ((method.getAccessFlags() & Const.ACC_STATIC) == 0 ? 1 : 0) +

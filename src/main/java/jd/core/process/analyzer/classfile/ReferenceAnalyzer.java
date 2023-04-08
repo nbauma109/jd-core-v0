@@ -35,6 +35,7 @@ import org.jd.core.v1.util.StringConstants;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
@@ -219,7 +220,7 @@ public final class ReferenceAnalyzer
 
             as = field.getAttributeSignature();
             signature = classFile.getConstantPool().getConstantUtf8(
-                as==null ? field.getDescriptorIndex() : as.getSignatureIndex());
+                Optional.ofNullable(as).map(Signature::getSignatureIndex).orElseGet(field::getDescriptorIndex));
             SignatureAnalyzer.analyzeSimpleSignature(referenceMap, signature);
 
             if (field.getValueAndMethod() != null) {
@@ -259,7 +260,7 @@ public final class ReferenceAnalyzer
             // Signature
             as = method.getAttributeSignature();
             signature = constants.getConstantUtf8(
-                    as==null ? method.getDescriptorIndex() : as.getSignatureIndex());
+                Optional.ofNullable(as).map(Signature::getSignatureIndex).orElseGet(method::getDescriptorIndex));
             SignatureAnalyzer.analyzeMethodSignature(referenceMap, signature);
 
             // Exceptions

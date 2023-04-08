@@ -202,7 +202,7 @@ public abstract class BaseInstructionSplitterVisitor
                     {
                         // Anonymous new invoke
                         visitAnonymousNewInvoke(
-                            parent==null ? in : parent, in, innerClassFile);
+                            Optional.ofNullable(parent).orElse(in), in, innerClassFile);
                     }
                     //else
                     //{
@@ -219,7 +219,7 @@ public abstract class BaseInstructionSplitterVisitor
             if (instruction instanceof LambdaInstruction) { // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
                 LambdaInstruction in = (LambdaInstruction) instruction;
                 // Anonymous lambda
-                visitAnonymousLambda(parent==null ? in : parent, in);
+                visitAnonymousLambda(Optional.ofNullable(parent).orElse(in), in);
             }
             break;
         case Const.INSTANCEOF:

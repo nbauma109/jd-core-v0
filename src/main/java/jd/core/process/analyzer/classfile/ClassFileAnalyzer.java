@@ -30,6 +30,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
@@ -918,7 +919,7 @@ public final class ClassFileAnalyzer
         // Is parameters counter greater than 0 ?
         Signature as = method.getAttributeSignature();
         String methodSignature = constants.getConstantUtf8(
-                as==null ? method.getDescriptorIndex() : as.getSignatureIndex());
+            Optional.ofNullable(as).map(Signature::getSignatureIndex).orElseGet(method::getDescriptorIndex));
 
         if (methodSignature.charAt(1) == ')') {
             return 0;
