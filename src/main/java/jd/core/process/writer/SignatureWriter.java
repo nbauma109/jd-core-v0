@@ -566,7 +566,7 @@ public final class SignatureWriter
                 {
                     // Si le nom interne fait parti de la liste des "import"
                     int lastIndexOfDollar = internalName.lastIndexOf('$');
-                    if (lastIndexOfDollar != -1 && !"java/lang".equals(internalPackageName)) {
+                    if (lastIndexOfDollar != -1) {
                         internalName = internalName.substring(lastIndexOfDollar + 1);
                     } else {
                         internalName = internalName.substring(index + 1);
