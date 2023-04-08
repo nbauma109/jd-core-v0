@@ -10,7 +10,6 @@ public class ThisDotValDollarInLambdaTest extends AbstractTestCase {
 
     /*
      * SourceWriterVisitor.writeGetField(GetField)
-     * TODO FIXME compilation errors left in decompiled ClassUtils.
      */
     @Test
     public void test() throws Exception {
