@@ -33,7 +33,6 @@ import org.apache.bcel.classfile.Signature;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -345,10 +344,8 @@ public final class ReferenceAnalyzer
         Map<String, Boolean> multipleInternalClassName =
             new HashMap<>();
 
-        Iterator<Reference> iterator = referenceMap.values().iterator();
-        while (iterator.hasNext())
+        for (Reference reference : referenceMap.values())
         {
-            Reference reference = iterator.next();
             String internalName = reference.getInternalName();
 
             int index =
@@ -356,11 +353,7 @@ public final class ReferenceAnalyzer
             String internalClassName =
                 index != -1 ? internalName.substring(index+1) : internalName;
 
-            if (multipleInternalClassName.containsKey(internalClassName)) {
-                multipleInternalClassName.put(internalClassName, Boolean.TRUE);
-            } else {
-                multipleInternalClassName.put(internalClassName, Boolean.FALSE);
-            }
+            multipleInternalClassName.put(internalClassName, multipleInternalClassName.containsKey(internalClassName));
         }
     }
 }

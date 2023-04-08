@@ -1,0 +1,162 @@
+/*     */ package org.apache.bcel.classfile;
+/*     */ 
+/*     */ import java.io.DataInput;
+/*     */ import java.io.DataOutputStream;
+/*     */ import java.io.IOException;
+/*     */ import java.util.ArrayList;
+/*     */ import java.util.List;
+/*     */ import java.util.stream.Stream;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class AnnotationEntry
+/*     */   implements Node
+/*     */ {
+/*     */   private final int typeIndex;
+/*     */   private final ConstantPool constantPool;
+/*     */   private final boolean isRuntimeVisible;
+/*     */   private List<ElementValuePair> elementValuePairs;
+/*  33 */   public static final AnnotationEntry[] EMPTY_ARRAY = new AnnotationEntry[0];
+/*     */   
+/*     */   public static AnnotationEntry[] createAnnotationEntries(Attribute[] attrs)
+/*     */   {
+/*  37 */     return (AnnotationEntry[])Stream.of(attrs).filter(Annotations.class::isInstance).flatMap(e -> Stream.of(((Annotations)e).getAnnotationEntries()))
+/*  38 */       .toArray(AnnotationEntry[]::new);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public static AnnotationEntry read(DataInput input, ConstantPool constantPool, boolean isRuntimeVisible)
+/*     */     throws IOException
+/*     */   {
+/*  51 */     AnnotationEntry annotationEntry = new AnnotationEntry(input.readUnsignedShort(), constantPool, isRuntimeVisible);
+/*  52 */     int numElementValuePairs = input.readUnsignedShort();
+/*  53 */     annotationEntry.elementValuePairs = new ArrayList<>();
+/*  54 */     for (int i = 0; i < numElementValuePairs; i++) {
+/*  55 */       annotationEntry.elementValuePairs
+/*  56 */         .add(new ElementValuePair(input.readUnsignedShort(), ElementValue.readElementValue(input, constantPool), constantPool));
+/*     */     }
+/*  58 */     return annotationEntry;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public AnnotationEntry(int typeIndex, ConstantPool constantPool, boolean isRuntimeVisible)
+/*     */   {
+/*  70 */     this.typeIndex = typeIndex;
+/*  71 */     this.constantPool = constantPool;
+/*  72 */     this.isRuntimeVisible = isRuntimeVisible;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public void accept(Visitor v)
+/*     */   {
+/*  83 */     v.visitAnnotationEntry(this);
+/*     */   }
+/*     */   
+/*     */   public void addElementNameValuePair(ElementValuePair elementNameValuePair) {
+/*  87 */     this.elementValuePairs.add(elementNameValuePair);
+/*     */   }
+/*     */   
+/*     */   public void dump(DataOutputStream dos) throws IOException {
+/*  91 */     dos.writeShort(this.typeIndex);
+/*  92 */     dos.writeShort(this.elementValuePairs.size());
+/*     */     
+/*  94 */     for (ElementValuePair envp : this.elementValuePairs) {
+/*  95 */       envp.dump(dos);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public String getAnnotationType()
+/*     */   {
+/* 103 */     return this.constantPool.getConstantUtf8(this.typeIndex).getBytes();
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public int getAnnotationTypeIndex()
+/*     */   {
+/* 110 */     return this.typeIndex;
+/*     */   }
+/*     */   
+/*     */   public ConstantPool getConstantPool() {
+/* 114 */     return this.constantPool;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public ElementValuePair[] getElementValuePairs()
+/*     */   {
+/* 122 */     return (ElementValuePair[])this.elementValuePairs.toArray(ElementValuePair.EMPTY_ARRAY);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public final int getNumElementValuePairs()
+/*     */   {
+/* 129 */     return this.elementValuePairs.size();
+/*     */   }
+/*     */   
+/*     */   public int getTypeIndex() {
+/* 133 */     return this.typeIndex;
+/*     */   }
+/*     */   
+/*     */   public boolean isRuntimeVisible() {
+/* 137 */     return this.isRuntimeVisible;
+/*     */   }
+/*     */   
+/*     */   public String toShortString() {
+/* 141 */     StringBuilder result = new StringBuilder();
+/* 142 */     result.append("@");
+/* 143 */     result.append(getAnnotationType());
+/* 144 */     ElementValuePair[] evPairs = getElementValuePairs();
+/* 145 */     if (evPairs.length > 0) {
+/* 146 */       result.append("(");
+/* 147 */       for (ElementValuePair element : evPairs) {
+/* 148 */         result.append(element.toShortString());
+/* 149 */         result.append(", ");
+/*     */       }
+/*     */       
+/* 152 */       result.setLength(result.length() - 2);
+/* 153 */       result.append(")");
+/*     */     }
+/* 155 */     return result.toString();
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public String toString() {
+/* 160 */     return toShortString();
+/*     */   }
+/*     */ }
