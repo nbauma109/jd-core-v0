@@ -17,6 +17,7 @@
 package jd.core.process.analyzer.classfile;
 
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.SignatureFormatException;
+import org.jd.core.v1.util.StringConstants;
 
 import jd.core.model.reference.ReferenceMap;
 import jd.core.util.CharArrayUtil;
@@ -179,7 +180,9 @@ public final class SignatureAnalyzer
 
                 if (classFlag) {
                     String internalName = CharArrayUtil.substring(caSignature, beginIndex, index);
-                    if (!referenceMap.containsSimpleName(internalName)) {
+                    String internalPackageName = internalName.substring(0, internalName.lastIndexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR));
+                    if (!referenceMap.containsSimpleName(internalName) && !StringConstants.INTERNAL_JAVA_LANG_PACKAGE_NAME.equals(internalPackageName))
+                    {
                         referenceMap.add(internalName);
                     }
                 }
