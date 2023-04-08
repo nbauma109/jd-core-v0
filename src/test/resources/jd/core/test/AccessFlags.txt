@@ -1,0 +1,211 @@
+/*     */ package org.apache.bcel.classfile;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public abstract class AccessFlags
+/*     */ {
+/*     */   @java.lang.Deprecated
+/*     */   protected int access_flags;
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public AccessFlags() {}
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public AccessFlags(int a)
+/*     */   {
+/*  39 */     this.access_flags = a;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public final int getAccessFlags()
+/*     */   {
+/*  46 */     return this.access_flags;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public final int getModifiers()
+/*     */   {
+/*  53 */     return this.access_flags;
+/*     */   }
+/*     */   
+/*     */   public final boolean isAbstract() {
+/*  57 */     return (this.access_flags & 0x400) != 0;
+/*     */   }
+/*     */   
+/*     */   public final void isAbstract(boolean flag) {
+/*  61 */     setFlag(1024, flag);
+/*     */   }
+/*     */   
+/*     */   public final boolean isAnnotation() {
+/*  65 */     return (this.access_flags & 0x2000) != 0;
+/*     */   }
+/*     */   
+/*     */   public final void isAnnotation(boolean flag) {
+/*  69 */     setFlag(8192, flag);
+/*     */   }
+/*     */   
+/*     */   public final boolean isEnum() {
+/*  73 */     return (this.access_flags & 0x4000) != 0;
+/*     */   }
+/*     */   
+/*     */   public final void isEnum(boolean flag) {
+/*  77 */     setFlag(16384, flag);
+/*     */   }
+/*     */   
+/*     */   public final boolean isFinal() {
+/*  81 */     return (this.access_flags & 0x10) != 0;
+/*     */   }
+/*     */   
+/*     */   public final void isFinal(boolean flag) {
+/*  85 */     setFlag(16, flag);
+/*     */   }
+/*     */   
+/*     */   public final boolean isInterface() {
+/*  89 */     return (this.access_flags & 0x200) != 0;
+/*     */   }
+/*     */   
+/*     */   public final void isInterface(boolean flag) {
+/*  93 */     setFlag(512, flag);
+/*     */   }
+/*     */   
+/*     */   public final boolean isNative() {
+/*  97 */     return (this.access_flags & 0x100) != 0;
+/*     */   }
+/*     */   
+/*     */   public final void isNative(boolean flag) {
+/* 101 */     setFlag(256, flag);
+/*     */   }
+/*     */   
+/*     */   public final boolean isPrivate() {
+/* 105 */     return (this.access_flags & 0x2) != 0;
+/*     */   }
+/*     */   
+/*     */   public final void isPrivate(boolean flag) {
+/* 109 */     setFlag(2, flag);
+/*     */   }
+/*     */   
+/*     */   public final boolean isProtected() {
+/* 113 */     return (this.access_flags & 0x4) != 0;
+/*     */   }
+/*     */   
+/*     */   public final void isProtected(boolean flag) {
+/* 117 */     setFlag(4, flag);
+/*     */   }
+/*     */   
+/*     */   public final boolean isPublic() {
+/* 121 */     return (this.access_flags & 0x1) != 0;
+/*     */   }
+/*     */   
+/*     */   public final void isPublic(boolean flag) {
+/* 125 */     setFlag(1, flag);
+/*     */   }
+/*     */   
+/*     */   public final boolean isStatic() {
+/* 129 */     return (this.access_flags & 0x8) != 0;
+/*     */   }
+/*     */   
+/*     */   public final void isStatic(boolean flag) {
+/* 133 */     setFlag(8, flag);
+/*     */   }
+/*     */   
+/*     */   public final boolean isStrictfp() {
+/* 137 */     return (this.access_flags & 0x800) != 0;
+/*     */   }
+/*     */   
+/*     */   public final void isStrictfp(boolean flag) {
+/* 141 */     setFlag(2048, flag);
+/*     */   }
+/*     */   
+/*     */   public final boolean isSynchronized() {
+/* 145 */     return (this.access_flags & 0x20) != 0;
+/*     */   }
+/*     */   
+/*     */   public final void isSynchronized(boolean flag) {
+/* 149 */     setFlag(32, flag);
+/*     */   }
+/*     */   
+/*     */   public final boolean isSynthetic() {
+/* 153 */     return (this.access_flags & 0x1000) != 0;
+/*     */   }
+/*     */   
+/*     */   public final void isSynthetic(boolean flag) {
+/* 157 */     setFlag(4096, flag);
+/*     */   }
+/*     */   
+/*     */   public final boolean isTransient() {
+/* 161 */     return (this.access_flags & 0x80) != 0;
+/*     */   }
+/*     */   
+/*     */   public final void isTransient(boolean flag) {
+/* 165 */     setFlag(128, flag);
+/*     */   }
+/*     */   
+/*     */   public final boolean isVarArgs() {
+/* 169 */     return (this.access_flags & 0x80) != 0;
+/*     */   }
+/*     */   
+/*     */   public final void isVarArgs(boolean flag) {
+/* 173 */     setFlag(128, flag);
+/*     */   }
+/*     */   
+/*     */   public final boolean isVolatile() {
+/* 177 */     return (this.access_flags & 0x40) != 0;
+/*     */   }
+/*     */   
+/*     */   public final void isVolatile(boolean flag) {
+/* 181 */     setFlag(64, flag);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public final void setAccessFlags(int accessFlags)
+/*     */   {
+/* 190 */     this.access_flags = accessFlags;
+/*     */   }
+/*     */   
+/*     */   private void setFlag(int flag, boolean set) {
+/* 194 */     if ((this.access_flags & flag) != 0) {
+/* 195 */       if (!set) {
+/* 196 */         this.access_flags ^= flag;
+/*     */       }
+/* 198 */     } else if (set) {
+/* 199 */       this.access_flags |= flag;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public final void setModifiers(int accessFlags)
+/*     */   {
+/* 209 */     setAccessFlags(accessFlags);
+/*     */   }
+/*     */ }

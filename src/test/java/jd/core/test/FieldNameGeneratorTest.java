@@ -2,6 +2,7 @@ package jd.core.test;
 
 import org.apache.commons.io.IOUtils;
 import org.jd.core.v1.api.loader.Loader;
+import org.jd.core.v1.loader.ClassPathLoader;
 import org.junit.Test;
 
 import java.io.ByteArrayOutputStream;
@@ -17,7 +18,7 @@ public class FieldNameGeneratorTest extends AbstractTestCase {
         NonUniqueFieldNamesCreator nonUniqueFieldNamesCreator = new NonUniqueFieldNamesCreator();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         nonUniqueFieldNamesCreator.create(out);
-        Loader loader = new Loader() {
+        Loader loader = new ClassPathLoader() {
             
             @Override
             public byte[] load(String internalName) throws IOException {
@@ -26,7 +27,7 @@ public class FieldNameGeneratorTest extends AbstractTestCase {
             
             @Override
             public boolean canLoad(String internalName) {
-                return true;
+                return "jd/core/test/NonUniqueFieldNames".equals(internalName) || super.canLoad(internalName);
             }
         };
         String output = decompile("jd/core/test/NonUniqueFieldNames", loader);
