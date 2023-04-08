@@ -54,7 +54,6 @@ public class Method extends Base
     private List<Instruction> instructions;
     private List<Instruction> fastNodes;
     private LocalVariables localVariables;
-    private final ConstantPool constants;
 
     /**
      * Champs permettant l'affichage des parametres des instanciations des
@@ -62,7 +61,7 @@ public class Method extends Base
      */
     private int superConstructorParameterCount;
 
-    public Method(FieldOrMethod fieldOrMethod, ConstantPool constants)
+    public Method(FieldOrMethod fieldOrMethod)
     {
         super(fieldOrMethod.getAccessFlags(), fieldOrMethod.getAttributes());
         this.fieldOrMethod = fieldOrMethod;
@@ -76,7 +75,6 @@ public class Method extends Base
         this.invisibleParameterAnnotations = null;
         this.defaultAnnotationValue = null;
         this.superConstructorParameterCount = 0;
-        this.constants = constants;
 
         Code ac = null;
 
@@ -225,11 +223,11 @@ public class Method extends Base
         return fieldOrMethod.getNameIndex();
     }
 
-    public String getName() {
+    public String getName(ConstantPool constants) {
         return constants.getConstantUtf8(fieldOrMethod.getNameIndex());
     }
 
-    public String getDescriptor() {
+    public String getDescriptor(ConstantPool constants) {
         return constants.getConstantUtf8(fieldOrMethod.getSignatureIndex());
     }
 
@@ -242,7 +240,9 @@ public class Method extends Base
         if (getNameIndex() != cp.getInstanceConstructorIndex()
          && getNameIndex() != cp.getClassConstructorIndex()
          && (getAccessFlags() & (Const.ACC_PRIVATE | Const.ACC_STATIC)) == 0) {
-            Method overridenMethod = classFile.findMethodInSuperClassAndInterfaces(getName(), getDescriptor());
+            String name = getName(cp);
+            String descriptor = getDescriptor(cp);
+            Method overridenMethod = classFile.findMethodInSuperClassAndInterfaces(name, descriptor);
             if (overridenMethod != null) {
                 return true;
             }
@@ -250,18 +250,11 @@ public class Method extends Base
         return false;
     }
 
-    public boolean isLambda() {
-        return isSynthetic() && getName().startsWith("lambda$");
+    public boolean isLambda(ConstantPool constants) {
+        return isSynthetic() && getName(constants).startsWith("lambda$");
     }
 
     public boolean isSynthetic() {
         return (getAccessFlags() & Const.ACC_SYNTHETIC) != 0;
-    }
-
-    @Override
-    public String toString() {
-        String methodName = getName();
-        String methodDesc = getDescriptor();
-        return methodName + methodDesc;
     }
 }

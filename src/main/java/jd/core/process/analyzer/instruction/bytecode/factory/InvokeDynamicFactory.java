@@ -128,7 +128,7 @@ public class InvokeDynamicFactory implements InstructionFactory
             }
         }
         
-        if (lambdaMethod != null && lambdaMethod.isLambda()) {
+        if (lambdaMethod != null && lambdaMethod.isLambda(constants)) {
             ClassFileAnalyzer.preAnalyzeSingleMethod(classFile, classFile.getVariableNameGenerator(), -1, lambdaMethod);
             ClassFileAnalyzer.analyzeSingleMethod(null, classFile, null, lambdaMethod);
             LocalVariables localVariables = lambdaMethod.getLocalVariables();

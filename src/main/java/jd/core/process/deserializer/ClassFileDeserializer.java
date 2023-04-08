@@ -161,7 +161,7 @@ public final class ClassFileDeserializer
 
         int[] interfaces = javaClass.getInterfaceIndices();
         Field[] fieldInfos = Stream.of(javaClass.getFields()).map(Field::new).toArray(Field[]::new);
-        Method[] methodInfos = Stream.of(javaClass.getMethods()).map(m -> new Method(m, constantPool)).toArray(Method[]::new);
+        Method[] methodInfos = Stream.of(javaClass.getMethods()).map(Method::new).toArray(Method[]::new);
 
         return new ClassFile(
                 javaClass.getMinor(),

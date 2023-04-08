@@ -738,7 +738,7 @@ public final class ClassFileAnalyzer
             method.setAccessFlags(method.getAccessFlags() | Const.ACC_SYNTHETIC);
         }
         else if ((method.getAccessFlags() &
-                (Const.ACC_SYNTHETIC|Const.ACC_BRIDGE)) == 0 || method.isLambda())
+                (Const.ACC_SYNTHETIC|Const.ACC_BRIDGE)) == 0 || method.isLambda(classFile.getConstantPool()))
         {
             // Create missing local variable table
             LocalVariableAnalyzer.analyze(
@@ -776,7 +776,7 @@ public final class ClassFileAnalyzer
         for (final Method method : methods)
         {
             if (((method.getAccessFlags() & (Const.ACC_SYNTHETIC|Const.ACC_BRIDGE)) != 0
-                    && !method.isLambda()) ||
+                    && !method.isLambda(classFile.getConstantPool())) ||
                     method.getCode() == null ||
                     method.containsError()) {
                 continue;
@@ -807,7 +807,7 @@ public final class ClassFileAnalyzer
         for (final Method method : methods)
         {
             if (((method.getAccessFlags() & Const.ACC_SYNTHETIC) != 0
-                    && !method.isLambda()) ||
+                    && !method.isLambda(classFile.getConstantPool())) ||
                     (method.getAccessFlags() & Const.ACC_BRIDGE) != 0 ||
                     method.getCode() == null ||
                     method.getFastNodes() == null ||
