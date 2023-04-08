@@ -251,6 +251,6 @@ public class Method extends Base
     }
 
     public boolean isLambda(ConstantPool constants) {
-        return (getAccessFlags() & Const.ACC_SYNTHETIC) != 0 && getName(constants).startsWith("lambda$");
+        return getName(constants).startsWith("lambda$");
     }
 }
