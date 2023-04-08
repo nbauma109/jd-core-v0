@@ -180,16 +180,10 @@ public final class SignatureAnalyzer
 
                 if (classFlag) {
                     String internalName = CharArrayUtil.substring(caSignature, beginIndex, index);
-                    if (!referenceMap.containsSimpleName(internalName)) {
-                        int idx = internalName.lastIndexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR);
-                        if (idx != -1)
-                        {
-                            String internalPackageName = internalName.substring(0, idx);
-                            if (!StringConstants.INTERNAL_JAVA_LANG_PACKAGE_NAME.equals(internalPackageName))
-                            {
-                                referenceMap.add(internalName);
-                            }
-                        }
+                    String internalPackageName = internalName.substring(0, internalName.lastIndexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR));
+                    if (!referenceMap.containsSimpleName(internalName) && !StringConstants.INTERNAL_JAVA_LANG_PACKAGE_NAME.equals(internalPackageName))
+                    {
+                        referenceMap.add(internalName);
                     }
                 }
 
