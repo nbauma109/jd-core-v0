@@ -19,8 +19,8 @@ public class NameClashTest extends AbstractTestCase {
     }
 
     @Test
-    public void testContainsSimpleNameReurnsFalse() throws Exception {
+    public void testContainsSimpleNameReturnsFalse() throws Exception {
         ReferenceMap map = new ReferenceMap();
-        assertFalse(map.containsSimpleName(""));
+        assertFalse(map.hasSimpleNameClashWith(""));
     }
 }

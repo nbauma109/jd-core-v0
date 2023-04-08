@@ -69,7 +69,8 @@ public final class ReferenceAnalyzer
         if (as == null)
         {
             // Super class
-            if (classFile.getSuperClassIndex() != 0) {
+            if (classFile.getSuperClassIndex() != 0
+                && !classFile.getClassName().equals(getSimpleName(classFile.getSuperClassName()))) {
                 referenceMap.add(classFile.getSuperClassName());
             }
             // Interfaces
@@ -78,7 +79,9 @@ public final class ReferenceAnalyzer
             for(int i=interfaces.length-1; i>=0; --i)
             {
                 internalInterfaceName = classFile.getConstantPool().getConstantClassName(interfaces[i]);
-                referenceMap.add(internalInterfaceName);
+                if (!classFile.getClassName().equals(getSimpleName(internalInterfaceName))) {
+                    referenceMap.add(internalInterfaceName);
+                }
             }
         }
         else
@@ -108,6 +111,10 @@ public final class ReferenceAnalyzer
 
         // Methods
         countReferencesInMethods(referenceMap, visitor, classFile);
+    }
+
+    private static String getSimpleName(String internalName) {
+        return internalName.substring(internalName.lastIndexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR) + 1); // strip the package name
     }
 
     private static void countReferencesInAttributes(
