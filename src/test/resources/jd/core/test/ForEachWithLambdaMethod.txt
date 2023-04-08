@@ -5,7 +5,7 @@
 /*    */ public class ForEachWithLambdaMethod
 /*    */ {
 /*    */   void forEachWithLambdaMethod(List<String> elements) {
-/*  8 */     elements.stream().sorted((a, b) -> a.compareTo(b)).forEach(o ->  System.out.print(o));
+/*  8 */     elements.stream().sorted((a, b) -> a.compareTo(b)).forEach(o -> System.out.print(o));
 /*    */   }
 /*    */   
 /*    */   void forEachWithLambdaMethodEmpty(List<String> elements) {

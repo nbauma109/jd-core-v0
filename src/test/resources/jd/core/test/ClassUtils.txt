@@ -1516,7 +1516,7 @@
 /* 1516 */       return classes;
 /*      */     }
 /* 1518 */     return () ->  {
-/* 1519 */       Set<Class<?>> seenInterfaces = new HashSet<>();
+/* 1519 */       final Set<Class<?>> seenInterfaces = new HashSet<>();
 /* 1520 */       Iterator<Class<?>> wrapped = classes.iterator();
 /*      */       
 /* 1522 */       return new Iterator<Class<?>>() {

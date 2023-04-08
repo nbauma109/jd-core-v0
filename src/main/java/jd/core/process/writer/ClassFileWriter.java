@@ -1859,10 +1859,6 @@ public final class ClassFileWriter
             }
 
             boolean inlineLambda = this.printer.toString().endsWith(" -> ");
-            String methodHeader = ilb.getMethod().toString();
-            if (inlineLambda && methodHeader.startsWith("lambda$") && methodHeader.endsWith(")V")) {
-                this.printer.print(' ');
-            }
 
             this.visitor.visit(instruction);
             
