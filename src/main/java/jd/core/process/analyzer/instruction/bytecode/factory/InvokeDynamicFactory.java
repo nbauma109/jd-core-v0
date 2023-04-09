@@ -135,7 +135,7 @@ public class InvokeDynamicFactory implements InstructionFactory
             List<String> localVariableNames = localVariables == null ? Collections.emptyList() : localVariables.getFormalParameterNames(constants);
             ClassFileAnalyzer.postAnalyzeSingleMethod(classFile, lambdaMethod);
             List<String> lambdaParameterNames = prepareLambdaParameterNames(localVariableNames, parameterCount);
-            stack.push(new LambdaInstruction(opcode, offset, lineNumber, lambdaParameterNames, indyMethodTypes.getReturnedType(), lambdaMethod, classFile));
+            stack.push(new LambdaInstruction(opcode, offset+1, lineNumber, lambdaParameterNames, indyMethodTypes.getReturnedType(), lambdaMethod, classFile));
             return Const.getNoOfOperands(opcode);
 
         }

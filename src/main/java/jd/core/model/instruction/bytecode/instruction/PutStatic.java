@@ -37,9 +37,4 @@ public class PutStatic extends GetStatic implements ValuerefAttribute
     public void setValueref(Instruction valueref) {
         this.valueref = valueref;
     }
-
-    @Override
-    public boolean holdsLambda() {
-        return valueref instanceof LambdaInstruction;
-    }
 }

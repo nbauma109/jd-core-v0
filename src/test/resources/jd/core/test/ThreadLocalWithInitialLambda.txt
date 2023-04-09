@@ -1,0 +1,6 @@
+/*   */ package jd.core.test;
+/*   */ 
+/*   */ public class ThreadLocalWithInitialLambda
+/*   */ {
+/* 5 */   static final ThreadLocal<Integer> TL = ThreadLocal.withInitial(() -> null);
+/*   */ }

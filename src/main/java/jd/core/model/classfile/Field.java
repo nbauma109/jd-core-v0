@@ -30,6 +30,7 @@ public class Field extends Base
     private FieldOrMethod fieldOrMethod;
     private ValueAndMethod valueAndMethod;
     private ConstantPool constantPool;
+    private boolean outerLocalVariable;
     /*
      * Attributs pour l'affichage des champs synthetique des classes anonymes.
      * Champs modifié par:
@@ -112,5 +113,13 @@ public class Field extends Base
 
     public void setConstantPool(ConstantPool constantPool) {
         this.constantPool = constantPool;
+    }
+
+    public boolean isOuterLocalVariable() {
+        return outerLocalVariable;
+    }
+
+    public void setOuterLocalVariable(boolean outerLocalVariable) {
+        this.outerLocalVariable = outerLocalVariable;
     }
 }

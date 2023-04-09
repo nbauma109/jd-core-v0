@@ -23,7 +23,6 @@ import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
-import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.model.instruction.fast.FastConstants;
 
 /** List & while(true). */
@@ -87,14 +86,5 @@ public class FastDeclaration extends Instruction
         return Optional.ofNullable(instruction)
                 .map(Instruction::getLastOffset)
                 .orElseGet(super::getLastOffset);
-    }
-
-    @Override
-    public boolean holdsLambda() {
-        if (instruction instanceof StoreInstruction) {
-            StoreInstruction si = (StoreInstruction) instruction;
-            return si.holdsLambda();
-        }
-        return false;
     }
 }

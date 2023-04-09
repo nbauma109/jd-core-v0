@@ -30,7 +30,6 @@ public abstract class Instruction
     private final int offset;
     private int lineNumber;
     private Instruction next; // comma-separated instruction in for and declarations
-    private boolean hidden;
     
     protected Instruction(int opcode, int offset, int lineNumber)
     {
@@ -79,17 +78,5 @@ public abstract class Instruction
 
     public void setNext(Instruction next) {
         this.next = next;
-    }
-
-    public boolean isHidden() {
-        return hidden;
-    }
-
-    public void setHidden(boolean hidden) {
-        this.hidden = hidden;
-    }
-
-    public boolean holdsLambda() {
-        return false;
     }
 }
