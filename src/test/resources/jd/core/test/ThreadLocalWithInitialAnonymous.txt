@@ -10,5 +10,5 @@
 /*   */     public Integer get() {
 /* ; */       return null;
 /*   */     }
-/* 7 */   });
+/*   */   });
 /*   */ }

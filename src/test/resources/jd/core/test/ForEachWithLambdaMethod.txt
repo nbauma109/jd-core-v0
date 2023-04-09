@@ -16,7 +16,7 @@
 /* 16 */     elements.stream().sorted((a, b) ->  {
 /* 17 */       System.out.println("comparing");
 /* 18 */       return a.compareTo(b);
-/* 19 */     }).forEach(o ->  {
+/*    */     }).forEach(o ->  {
 /* 20 */       System.out.print("printing");
 /* 21 */       System.out.print(o);
 /*    */     });

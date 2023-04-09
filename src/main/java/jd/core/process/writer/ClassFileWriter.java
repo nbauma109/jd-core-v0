@@ -1280,7 +1280,7 @@ public final class ClassFileWriter
             //DEBUG this.printer.print('^');
             endOfLine();
             this.printer.desindent();
-            this.printer.startOfLine(searchFirstLineNumber());
+            this.printer.startOfLine(Instruction.UNKNOWN_LINE_NUMBER);
             this.printer.print('}');
             break;
         default:
@@ -1291,7 +1291,7 @@ public final class ClassFileWriter
 
             this.printer.extraLine(lb.getLineCount()-1);
 
-            this.printer.startOfLine(searchFirstLineNumber());
+            this.printer.startOfLine(Instruction.UNKNOWN_LINE_NUMBER);
             this.printer.print('}');
             break;
         }
