@@ -1150,10 +1150,6 @@ public final class FastInstructionListBuilder {
             }
         }
 
-        // Remove try instructions that are out of bounds and should be found in catch instructions
-        if (fastTry.hasCatch() && fastTry.getInstructions().size() > 1) {
-            fastTry.getInstructions().removeIf(tryInstr -> tryInstr.getLineNumber() >= fastTry.minCatchLineNumber());
-        }
         // Store new FastTry instruction
         list.set(index + 1, fastTry);
         if (index >= 0) {

@@ -3,8 +3,10 @@ package gr.androiddev.FuelPrices;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
+import android.location.Criteria;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
+import android.net.NetworkInfo.State;
 import android.net.Uri;
 import android.os.Handler;
 import android.util.Log;
@@ -64,7 +66,11 @@ public class StaticTools
   public static String getDateFromTimestamp(String paramString)
   {
     str = "N/A";
-    try {} catch (Exception paramString)
+    try
+    {
+      Calendar localCalendar = Calendar.getInstance(); localCalendar.setTimeInMillis(Long.parseLong(paramString)); int i = localCalendar.get(5); int j = localCalendar.get(2); paramString = new java/lang/StringBuilder; paramString.<init>(); paramString = i + "/" + (j + 1);
+    }
+    catch (Exception paramString)
     {
       for (;;)
       {
@@ -195,7 +201,75 @@ public class StaticTools
     }
     for (;;)
     {
-      try {} catch (Exception localException2)
+      try
+      {
+        bool2 = locationManager.isProviderEnabled("gps");
+        try
+        {
+          bool1 = locationManager.isProviderEnabled("network"); i = bool1;
+        }
+        catch (Exception localException1)
+        {
+          continue;
+        }
+        switch (paramLocationProvider)
+        {
+        default: 
+          paramLocationProvider = locationManager; return paramLocationProvider;
+        case NETWORK: 
+          if (i == 0) {
+            continue;
+          }
+          paramLocationProvider = locationManager.getAllProviders().iterator();
+          if (paramLocationProvider.hasNext()) {
+            continue;
+          }
+          paramLocationProvider = new Criteria(); paramLocationProvider.setAccuracy(2); paramLocationProvider.setAltitudeRequired(false); paramLocationProvider.setPowerRequirement(0); bestProvider = locationManager.getBestProvider(paramLocationProvider, false); Log("BestProvider", bestProvider);
+          if (bestProvider.length() >= 3) {
+            continue;
+          }
+          bestProvider = "network"; locationManager.requestLocationUpdates(bestProvider, 2000L, 0.0F, gpsReceiver); paramLocationProvider = locationManager; continue; Log("LocationProvider", (String)paramLocationProvider.next()); break;
+        case GPS: 
+          if (!bool2) {
+            continue;
+          }
+          bestProvider = "gps";
+          if (bestProvider.length() >= 3) {
+            continue;
+          }
+          bestProvider = "network"; locationManager.requestLocationUpdates(bestProvider, 2000L, 0.0F, gpsReceiver); paramLocationProvider = locationManager; break;
+        case ANY: 
+          if (i == 0) {
+            continue;
+          }
+          paramLocationProvider = locationManager.getAllProviders().iterator();
+          if (paramLocationProvider.hasNext()) {
+            continue;
+          }
+          paramLocationProvider = new Criteria(); paramLocationProvider.setAccuracy(2); paramLocationProvider.setAltitudeRequired(false); paramLocationProvider.setPowerRequirement(0); paramLocationProvider = locationManager.getBestProvider(paramLocationProvider, false); Log("NetworkProvider", paramLocationProvider); locationManager.requestLocationUpdates(paramLocationProvider, 2000L, 0.0F, gpsReceiver);
+          if (!bool2) {
+            continue;
+          }
+          locationManager.requestLocationUpdates("gps", 2000L, 0.0F, gpsReceiver); paramLocationProvider = locationManager; continue; Log("LocationProvider", (String)paramLocationProvider.next()); break;
+        }
+        if (i == 0) {
+          continue;
+        }
+        paramLocationProvider = locationManager.getAllProviders().iterator();
+        if (paramLocationProvider.hasNext()) {
+          continue;
+        }
+        paramLocationProvider = new Criteria(); paramLocationProvider.setAccuracy(2); paramLocationProvider.setAltitudeRequired(false); paramLocationProvider.setPowerRequirement(0); bestProvider = locationManager.getBestProvider(paramLocationProvider, false); Log("BestProvider", bestProvider);
+        if (bestProvider.length() >= 1 || !bool2) {
+          continue;
+        }
+        bestProvider = "gps";
+        if (bestProvider.length() >= 3) {
+          continue;
+        }
+        bestProvider = "network"; locationManager.requestLocationUpdates(bestProvider, 2000L, 0.0F, gpsReceiver); paramLocationProvider = locationManager; continue; Log("LocationProvider", (String)paramLocationProvider.next());
+      }
+      catch (Exception localException2)
       {
         boolean bool2 = bool1; continue;
       }
@@ -205,7 +279,17 @@ public class StaticTools
   public static boolean isConnected(Activity paramActivity)
   {
     boolean bool = false; paramActivity = (ConnectivityManager)paramActivity.getSystemService("connectivity");
-    try {} catch (NullPointerException paramActivity)
+    try
+    {
+      paramActivity = paramActivity.getActiveNetworkInfo();
+      if (paramActivity == null) {
+        break label40;
+      }
+      if (paramActivity.getState() == State.CONNECTED) {
+        bool = true;
+      }
+    }
+    catch (NullPointerException paramActivity)
     {
       for (;;) {}
     }
