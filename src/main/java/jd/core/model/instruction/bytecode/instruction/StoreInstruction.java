@@ -39,9 +39,4 @@ public class StoreInstruction
     public void setValueref(Instruction valueref) {
         this.valueref = valueref;
     }
-
-    @Override
-    public boolean holdsLambda() {
-        return valueref instanceof LambdaInstruction;
-    }
 }
