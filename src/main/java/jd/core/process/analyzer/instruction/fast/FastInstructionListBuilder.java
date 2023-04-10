@@ -992,19 +992,21 @@ public final class FastInstructionListBuilder {
                 Collections.reverse(instructions);
                 // Search exception type and local variables index
                 el = searchExceptionLoadInstruction(instructions);
-                offset = lastInstruction.getOffset();
-                catches.add(0, new FastCatch(el.getOffset(), fcec.getType(), fcec.getOtherTypes(),
-                    el.getIndex(), instructions));
-                // Calcul de l'offset le plus haut pour le block 'try'
-                firstOffset = instructions.get(0).getOffset();
-                minimalJumpOffset = searchMinusJumpOffset(
-                        instructions, 0, instructions.size(),
-                        firstOffset, offset);
-                if (afterListOffset > firstOffset) {
-                    afterListOffset = firstOffset;
-                }
-                if (minimalJumpOffset != -1 && afterListOffset > minimalJumpOffset) {
-                    afterListOffset = minimalJumpOffset;
+                if (el != null) {
+                    offset = lastInstruction.getOffset();
+                    catches.add(0, new FastCatch(el.getOffset(), fcec.getType(), fcec.getOtherTypes(),
+                        el.getIndex(), instructions));
+                    // Calcul de l'offset le plus haut pour le block 'try'
+                    firstOffset = instructions.get(0).getOffset();
+                    minimalJumpOffset = searchMinusJumpOffset(
+                            instructions, 0, instructions.size(),
+                            firstOffset, offset);
+                    if (afterListOffset > firstOffset) {
+                        afterListOffset = firstOffset;
+                    }
+                    if (minimalJumpOffset != -1 && afterListOffset > minimalJumpOffset) {
+                        afterListOffset = minimalJumpOffset;
+                    }
                 }
             }
         }
@@ -1179,11 +1181,9 @@ public final class FastInstructionListBuilder {
     }
 
     private static ExceptionLoad searchExceptionLoadInstruction(List<Instruction> instructions) {
-        int length = instructions.size();
 
-        Instruction instruction;
-        for (int i = 0; i < length; i++) {
-            instruction = SearchInstructionByOpcodeVisitor.visit(instructions.get(i),
+        for (Instruction instruction : instructions) {
+            instruction = SearchInstructionByOpcodeVisitor.visit(instruction,
                     ByteCodeConstants.EXCEPTIONLOAD);
 
             if (instruction != null) {
