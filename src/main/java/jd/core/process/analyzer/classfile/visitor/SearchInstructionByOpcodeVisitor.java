@@ -441,7 +441,6 @@ public final class SearchInstructionByOpcodeVisitor
     }
 
     private static Instruction visit(List<Instruction> instructions, int opcode)
-        throws RuntimeException
     {
         for (int i=instructions.size()-1; i>=0; --i)
         {
