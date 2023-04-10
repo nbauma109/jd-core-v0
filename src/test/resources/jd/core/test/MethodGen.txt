@@ -1,0 +1,1174 @@
+/*      */ package org.apache.bcel.generic;
+/*      */ 
+/*      */ import java.util.ArrayList;
+/*      */ import java.util.Arrays;
+/*      */ import java.util.Collections;
+/*      */ import java.util.Comparator;
+/*      */ import java.util.Hashtable;
+/*      */ import java.util.List;
+/*      */ import java.util.Objects;
+/*      */ import java.util.Stack;
+/*      */ import org.apache.bcel.classfile.AnnotationEntry;
+/*      */ import org.apache.bcel.classfile.Annotations;
+/*      */ import org.apache.bcel.classfile.Attribute;
+/*      */ import org.apache.bcel.classfile.Code;
+/*      */ import org.apache.bcel.classfile.CodeException;
+/*      */ import org.apache.bcel.classfile.ExceptionTable;
+/*      */ import org.apache.bcel.classfile.LineNumber;
+/*      */ import org.apache.bcel.classfile.LineNumberTable;
+/*      */ import org.apache.bcel.classfile.LocalVariable;
+/*      */ import org.apache.bcel.classfile.LocalVariableTable;
+/*      */ import org.apache.bcel.classfile.LocalVariableTypeTable;
+/*      */ import org.apache.bcel.classfile.Method;
+/*      */ import org.apache.bcel.classfile.ParameterAnnotationEntry;
+/*      */ import org.apache.bcel.classfile.ParameterAnnotations;
+/*      */ import org.apache.bcel.classfile.RuntimeVisibleParameterAnnotations;
+/*      */ import org.apache.bcel.classfile.Utility;
+/*      */ import org.apache.bcel.util.BCELComparator;
+/*      */ import org.apache.commons.lang3.ArrayUtils;
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ public class MethodGen
+/*      */   extends FieldGenOrMethodGen
+/*      */ {
+/*      */   private String className;
+/*      */   private Type[] argTypes;
+/*      */   private String[] argNames;
+/*      */   private int maxLocals;
+/*      */   private int maxStack;
+/*      */   private InstructionList il;
+/*      */   private boolean stripAttributes;
+/*      */   private LocalVariableTypeTable localVariableTypeTable;
+/*      */   private List<AnnotationEntryGen>[] paramAnnotations;
+/*      */   private boolean hasParameterAnnotations;
+/*      */   private boolean haveUnpackedParameterAnnotations;
+/*      */   private List<MethodObserver> observers;
+/*      */   
+/*      */   static final class BranchStack
+/*      */   {
+/*   63 */     private final Stack<MethodGen.BranchTarget> branchTargets = new Stack<>();
+/*   64 */     private final Hashtable<InstructionHandle, MethodGen.BranchTarget> visitedTargets = new Hashtable<>();
+/*      */     
+/*      */     public MethodGen.BranchTarget pop() {
+/*   67 */       if (!this.branchTargets.empty()) {
+/*   68 */         return (MethodGen.BranchTarget)this.branchTargets.pop();
+/*      */       }
+/*   70 */       return null;
+/*      */     }
+/*      */     
+/*      */     public void push(InstructionHandle target, int stackDepth) {
+/*   74 */       if (visited(target)) {
+/*   75 */         return;
+/*      */       }
+/*   77 */       this.branchTargets.push(visit(target, stackDepth));
+/*      */     }
+/*      */     
+/*      */     private MethodGen.BranchTarget visit(InstructionHandle target, int stackDepth) {
+/*   81 */       MethodGen.BranchTarget bt = new MethodGen.BranchTarget(target, stackDepth);
+/*   82 */       this.visitedTargets.put(target, bt);
+/*   83 */       return bt;
+/*      */     }
+/*      */     
+/*      */     private boolean visited(InstructionHandle target) {
+/*   87 */       return this.visitedTargets.get(target) != null;
+/*      */     }
+/*      */   }
+/*      */   
+/*      */   static final class BranchTarget
+/*      */   {
+/*      */     final InstructionHandle target;
+/*      */     final int stackDepth;
+/*      */     
+/*      */     BranchTarget(InstructionHandle target, int stackDepth) {
+/*   97 */       this.target = target;
+/*   98 */       this.stackDepth = stackDepth;
+/*      */     }
+/*      */   }
+/*      */   
+/*  102 */   private static BCELComparator bcelComparator = new BCELComparator()
+/*      */   {
+/*      */     @Override
+/*      */     public boolean equals(Object o1, Object o2) {
+/*  106 */       FieldGenOrMethodGen THIS = (FieldGenOrMethodGen)o1;
+/*  107 */       FieldGenOrMethodGen THAT = (FieldGenOrMethodGen)o2;
+/*  108 */       return Objects.equals(THIS.getName(), THAT.getName()) && Objects.equals(THIS.getSignature(), THAT.getSignature());
+/*      */     }
+/*      */     
+/*      */     @Override
+/*      */     public int hashCode(Object o) {
+/*  113 */       FieldGenOrMethodGen THIS = (FieldGenOrMethodGen)o;
+/*  114 */       return THIS.getSignature().hashCode() ^ THIS.getName().hashCode();
+/*      */     }
+/*      */   };
+/*      */   
+/*      */   private static byte[] getByteCodes(Method method) {
+/*  119 */     Code code = method.getCode();
+/*  120 */     if (code == null) {
+/*  121 */       throw new IllegalStateException(String.format("The method '%s' has no code.", method));
+/*      */     }
+/*  123 */     return code.getCode();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public static BCELComparator getComparator()
+/*      */   {
+/*  130 */     return bcelComparator;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static int getMaxStack(ConstantPoolGen cp, InstructionList il, CodeExceptionGen[] et)
+/*      */   {
+/*  139 */     BranchStack branchTargets = new BranchStack();
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*  144 */     for (CodeExceptionGen element : et) {
+/*  145 */       InstructionHandle handlerPc = element.getHandlerPC();
+/*  146 */       if (handlerPc != null) {
+/*  147 */         branchTargets.push(handlerPc, 1);
+/*      */       }
+/*      */     }
+/*  150 */     int stackDepth = 0;
+/*  151 */     int maxStackDepth = 0;
+/*  152 */     InstructionHandle ih = il.getStart();
+/*  153 */     while (ih != null) {
+/*  154 */       Instruction instruction = ih.getInstruction();
+/*  155 */       short opcode = instruction.getOpcode();
+/*  156 */       int delta = instruction.produceStack(cp) - instruction.consumeStack(cp);
+/*  157 */       stackDepth += delta;
+/*  158 */       if (stackDepth > maxStackDepth) {
+/*  159 */         maxStackDepth = stackDepth;
+/*      */       }
+/*      */       
+/*  162 */       if ((instruction instanceof BranchInstruction)) {
+/*  163 */         BranchInstruction branch = (BranchInstruction)instruction;
+/*  164 */         if ((instruction instanceof Select))
+/*      */         {
+/*  166 */           Select select = (Select)branch;
+/*  167 */           InstructionHandle[] targets = select.getTargets();
+/*  168 */           for (InstructionHandle target : targets) {
+/*  169 */             branchTargets.push(target, stackDepth);
+/*      */           }
+/*      */           
+/*  172 */           ih = null;
+/*  173 */         } else if (!(branch instanceof IfInstruction))
+/*      */         {
+/*      */ 
+/*  176 */           if (opcode == 168 || opcode == 201) {
+/*  177 */             branchTargets.push(ih.getNext(), stackDepth - 1);
+/*      */           }
+/*  179 */           ih = null;
+/*      */         }
+/*      */         
+/*      */ 
+/*      */ 
+/*  184 */         branchTargets.push(branch.getTarget(), stackDepth);
+/*      */       }
+/*  186 */       else if (opcode == 191 || opcode == 169 || opcode >= 172 && opcode <= 177) {
+/*  187 */         ih = null;
+/*      */       }
+/*      */       
+/*  190 */       if (ih != null) {
+/*  191 */         ih = ih.getNext();
+/*      */       }
+/*      */       
+/*  194 */       if (ih == null) {
+/*  195 */         BranchTarget bt = branchTargets.pop();
+/*  196 */         if (bt != null) {
+/*  197 */           ih = bt.target;
+/*  198 */           stackDepth = bt.stackDepth;
+/*      */         }
+/*      */       }
+/*      */     }
+/*  202 */     return maxStackDepth;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public static void setComparator(BCELComparator comparator)
+/*      */   {
+/*  209 */     bcelComparator = comparator;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*  221 */   private final List<LocalVariableGen> variableList = new ArrayList<>();
+/*      */   
+/*  223 */   private final List<LineNumberGen> lineNumberList = new ArrayList<>();
+/*      */   
+/*  225 */   private final List<CodeExceptionGen> exceptionList = new ArrayList<>();
+/*      */   
+/*  227 */   private final List<String> throwsList = new ArrayList<>();
+/*      */   
+/*  229 */   private final List<Attribute> codeAttrsList = new ArrayList<>();
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public MethodGen(int accessFlags, Type returnType, Type[] argTypes, String[] argNames, String methodName, String className, InstructionList il, ConstantPoolGen cp)
+/*      */   {
+/*  258 */     super(accessFlags);
+/*  259 */     setType(returnType);
+/*  260 */     setArgumentTypes(argTypes);
+/*  261 */     setArgumentNames(argNames);
+/*  262 */     setName(methodName);
+/*  263 */     setClassName(className);
+/*  264 */     setInstructionList(il);
+/*  265 */     setConstantPool(cp);
+/*  266 */     boolean abstract_ = isAbstract() || isNative();
+/*  267 */     InstructionHandle start = null;
+/*  268 */     InstructionHandle end = null;
+/*  269 */     if (!abstract_) {
+/*  270 */       start = il.getStart();
+/*      */       
+/*      */ 
+/*      */ 
+/*      */ 
+/*  275 */       if (!isStatic() && className != null) {
+/*  276 */         addLocalVariable("this", ObjectType.getInstance(className), start, end);
+/*      */       }
+/*      */     }
+/*  279 */     if (argTypes != null) {
+/*  280 */       int size = argTypes.length;
+/*  281 */       for (Type argType : argTypes) {
+/*  282 */         if (Type.VOID == argType) {
+/*  283 */           throw new ClassGenException("'void' is an illegal argument type for a method");
+/*      */         }
+/*      */       }
+/*  286 */       if (argNames != null) {
+/*  287 */         if (size != argNames.length) {
+/*  288 */           throw new ClassGenException("Mismatch in argument array lengths: " + size + " vs. " + argNames.length);
+/*      */         }
+/*      */       } else {
+/*  291 */         argNames = new String[size];
+/*  292 */         for (int i = 0; i < size; i++) {
+/*  293 */           argNames[i] = ("arg" + i);
+/*      */         }
+/*  295 */         setArgumentNames(argNames);
+/*      */       }
+/*  297 */       if (!abstract_) {
+/*  298 */         for (int i = 0; i < size; i++) {
+/*  299 */           addLocalVariable(argNames[i], argTypes[i], start, end);
+/*      */         }
+/*      */       }
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public MethodGen(Method method, String className, ConstantPoolGen cp)
+/*      */   {
+/*  313 */     this(method.getAccessFlags(), Type.getReturnType(method.getSignature()), Type.getArgumentTypes(method.getSignature()), null, method
+/*      */     
+/*  315 */       .getName(), className, 
+/*  316 */       (method.getAccessFlags() & 0x500) == 0 ? new InstructionList(getByteCodes(method)) : null, cp);
+/*  317 */     Attribute[] attributes = method.getAttributes();
+/*  318 */     for (Attribute attribute : attributes) {
+/*  319 */       Attribute a = attribute;
+/*  320 */       if ((a instanceof Code)) {
+/*  321 */         Code c = (Code)a;
+/*  322 */         setMaxStack(c.getMaxStack());
+/*  323 */         setMaxLocals(c.getMaxLocals());
+/*  324 */         CodeException[] ces = c.getExceptionTable();
+/*  325 */         if (ces != null) {
+/*  326 */           for (CodeException ce : ces) {
+/*  327 */             int type = ce.getCatchType();
+/*  328 */             ObjectType cType = null;
+/*  329 */             if (type > 0) {
+/*  330 */               String cen = method.getConstantPool().getConstantString(type, (byte)7);
+/*  331 */               cType = ObjectType.getInstance(cen);
+/*      */             }
+/*  333 */             int endPc = ce.getEndPC();
+/*  334 */             int length = getByteCodes(method).length;
+/*      */             InstructionHandle end;
+/*  336 */             if (length == endPc) {
+/*  337 */               end = this.il.getEnd();
+/*      */             } else {
+/*  339 */               end = this.il.findHandle(endPc);
+/*  340 */               end = end.getPrev();
+/*      */             }
+/*  342 */             addExceptionHandler(this.il.findHandle(ce.getStartPC()), end, this.il.findHandle(ce.getHandlerPC()), cType);
+/*      */           }
+/*      */         }
+/*  345 */         Attribute[] cAttributes = c.getAttributes();
+/*  346 */         for (Attribute cAttribute : cAttributes) {
+/*  347 */           a = cAttribute;
+/*  348 */           if ((a instanceof LineNumberTable)) {
+/*  349 */             ((LineNumberTable)a).forEach(l ->  {
+/*  350 */               InstructionHandle ih = this.il.findHandle(l.getStartPC());
+/*  351 */               if (ih != null) {
+/*  352 */                 addLineNumber(ih, l.getLineNumber());
+/*      */               }
+/*      */             });
+/*  355 */           } else if ((a instanceof LocalVariableTable)) {
+/*  356 */             updateLocalVariableTable((LocalVariableTable)a);
+/*  357 */           } else if ((a instanceof LocalVariableTypeTable)) {
+/*  358 */             this.localVariableTypeTable = ((LocalVariableTypeTable)a.copy(cp.getConstantPool()));
+/*      */           } else {
+/*  360 */             addCodeAttribute(a);
+/*      */           }
+/*      */         }
+/*  363 */       } else if ((a instanceof ExceptionTable)) {
+/*  364 */         Collections.addAll(this.throwsList, ((ExceptionTable)a).getExceptionNames());
+/*  365 */       } else if ((a instanceof Annotations)) {
+/*  366 */         Annotations runtimeAnnotations = (Annotations)a;
+/*  367 */         runtimeAnnotations.forEach( element -> addAnnotationEntry(new AnnotationEntryGen(element, cp, false)));
+/*      */       } else {
+/*  369 */         addAttribute(a);
+/*      */       }
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public void addAnnotationsAsAttribute(ConstantPoolGen cp)
+/*      */   {
+/*  378 */     addAll(AnnotationEntryGen.getAnnotationAttributes(cp, super.getAnnotationEntries()));
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public void addCodeAttribute(Attribute a)
+/*      */   {
+/*  389 */     this.codeAttrsList.add(a);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public void addException(String className)
+/*      */   {
+/*  398 */     this.throwsList.add(className);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public CodeExceptionGen addExceptionHandler(InstructionHandle startPc, InstructionHandle endPc, InstructionHandle handlerPc, ObjectType catchType)
+/*      */   {
+/*  413 */     if (startPc == null || endPc == null || handlerPc == null) {
+/*  414 */       throw new ClassGenException("Exception handler target is null instruction");
+/*      */     }
+/*  416 */     CodeExceptionGen c = new CodeExceptionGen(startPc, endPc, handlerPc, catchType);
+/*  417 */     this.exceptionList.add(c);
+/*  418 */     return c;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public LineNumberGen addLineNumber(InstructionHandle ih, int srcLine)
+/*      */   {
+/*  429 */     LineNumberGen l = new LineNumberGen(ih, srcLine);
+/*  430 */     this.lineNumberList.add(l);
+/*  431 */     return l;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public LocalVariableGen addLocalVariable(String name, Type type, InstructionHandle start, InstructionHandle end)
+/*      */   {
+/*  445 */     return addLocalVariable(name, type, this.maxLocals, start, end);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public LocalVariableGen addLocalVariable(String name, Type type, int slot, InstructionHandle start, InstructionHandle end)
+/*      */   {
+/*  460 */     return addLocalVariable(name, type, slot, start, end, slot);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public LocalVariableGen addLocalVariable(String name, Type type, int slot, InstructionHandle start, InstructionHandle end, int origIndex)
+/*      */   {
+/*  477 */     byte t = type.getType();
+/*  478 */     if (t != 16) {
+/*  479 */       int add = type.getSize();
+/*  480 */       if (slot + add > this.maxLocals) {
+/*  481 */         this.maxLocals = (slot + add);
+/*      */       }
+/*  483 */       LocalVariableGen l = new LocalVariableGen(slot, name, type, start, end, origIndex);
+/*      */       int i;
+/*  485 */       if ((i = this.variableList.indexOf(l)) >= 0) {
+/*  486 */         this.variableList.set(i, l);
+/*      */       } else {
+/*  488 */         this.variableList.add(l);
+/*      */       }
+/*  490 */       return l;
+/*      */     }
+/*  492 */     throw new IllegalArgumentException("Can not use " + type + " as type for local variable");
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public void addObserver(MethodObserver o)
+/*      */   {
+/*  499 */     if (this.observers == null) {
+/*  500 */       this.observers = new ArrayList<>();
+/*      */     }
+/*  502 */     this.observers.add(o);
+/*      */   }
+/*      */   
+/*      */   public void addParameterAnnotation(int parameterIndex, AnnotationEntryGen annotation) {
+/*  506 */     ensureExistingParameterAnnotationsUnpacked();
+/*  507 */     if (!this.hasParameterAnnotations)
+/*      */     {
+/*  509 */       List<AnnotationEntryGen>[] parmList = new List[this.argTypes.length];
+/*  510 */       this.paramAnnotations = parmList;
+/*  511 */       this.hasParameterAnnotations = true;
+/*      */     }
+/*  513 */     List<AnnotationEntryGen> existingAnnotations = this.paramAnnotations[parameterIndex];
+/*  514 */     if (existingAnnotations != null) {
+/*  515 */       existingAnnotations.add(annotation);
+/*      */     } else {
+/*  517 */       List<AnnotationEntryGen> l = new ArrayList<>();
+/*  518 */       l.add(annotation);
+/*  519 */       this.paramAnnotations[parameterIndex] = l;
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public void addParameterAnnotationsAsAttribute(ConstantPoolGen cp)
+/*      */   {
+/*  527 */     if (!this.hasParameterAnnotations) {
+/*  528 */       return;
+/*      */     }
+/*  530 */     Attribute[] attrs = AnnotationEntryGen.getParameterAnnotationAttributes(cp, this.paramAnnotations);
+/*  531 */     if (attrs != null) {
+/*  532 */       addAll(attrs);
+/*      */     }
+/*      */   }
+/*      */   
+/*      */   private Attribute[] addRuntimeAnnotationsAsAttribute(ConstantPoolGen cp) {
+/*  537 */     Attribute[] attrs = AnnotationEntryGen.getAnnotationAttributes(cp, super.getAnnotationEntries());
+/*  538 */     addAll(attrs);
+/*  539 */     return attrs;
+/*      */   }
+/*      */   
+/*      */   private Attribute[] addRuntimeParameterAnnotationsAsAttribute(ConstantPoolGen cp) {
+/*  543 */     if (!this.hasParameterAnnotations) {
+/*  544 */       return Attribute.EMPTY_ARRAY;
+/*      */     }
+/*  546 */     Attribute[] attrs = AnnotationEntryGen.getParameterAnnotationAttributes(cp, this.paramAnnotations);
+/*  547 */     addAll(attrs);
+/*  548 */     return attrs;
+/*      */   }
+/*      */   
+/*      */   private void adjustLocalVariableTypeTable(LocalVariableTable lvt) {
+/*  552 */     LocalVariable[] lv = lvt.getLocalVariableTable();
+/*  553 */     for (LocalVariable element : this.localVariableTypeTable.getLocalVariableTypeTable()) {
+/*  554 */       for (LocalVariable l : lv) {
+/*  555 */         if (element.getName().equals(l.getName()) && element.getIndex() == l.getOrigIndex()) {
+/*  556 */           element.setLength(l.getLength());
+/*  557 */           element.setStartPC(l.getStartPC());
+/*  558 */           element.setIndex(l.getIndex());
+/*  559 */           break;
+/*      */         }
+/*      */       }
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public MethodGen copy(String className, ConstantPoolGen cp)
+/*      */   {
+/*  569 */     Method m = ((MethodGen)clone()).getMethod();
+/*  570 */     MethodGen mg = new MethodGen(m, className, super.getConstantPool());
+/*  571 */     if (super.getConstantPool() != cp) {
+/*  572 */       mg.setConstantPool(cp);
+/*  573 */       mg.getInstructionList().replaceConstantPool(super.getConstantPool(), cp);
+/*      */     }
+/*  575 */     return mg;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private void ensureExistingParameterAnnotationsUnpacked()
+/*      */   {
+/*  585 */     if (this.haveUnpackedParameterAnnotations) {
+/*  586 */       return;
+/*      */     }
+/*      */     
+/*  589 */     Attribute[] attrs = getAttributes();
+/*  590 */     ParameterAnnotations paramAnnVisAttr = null;
+/*  591 */     ParameterAnnotations paramAnnInvisAttr = null;
+/*  592 */     for (Attribute attribute : attrs) {
+/*  593 */       if (!(attribute instanceof ParameterAnnotations))
+/*      */         continue;
+/*  595 */       if (!this.hasParameterAnnotations)
+/*      */       {
+/*  597 */         List<AnnotationEntryGen>[] parmList = new List[this.argTypes.length];
+/*  598 */         this.paramAnnotations = parmList;
+/*  599 */         Arrays.setAll(this.paramAnnotations,  i -> new ArrayList<>());
+/*      */       }
+/*  601 */       this.hasParameterAnnotations = true;
+/*  602 */       ParameterAnnotations rpa = (ParameterAnnotations)attribute;
+/*  603 */       if ((rpa instanceof RuntimeVisibleParameterAnnotations)) {
+/*  604 */         paramAnnVisAttr = rpa;
+/*      */       } else {
+/*  606 */         paramAnnInvisAttr = rpa;
+/*      */       }
+/*  608 */       ParameterAnnotationEntry[] parameterAnnotationEntries = rpa.getParameterAnnotationEntries();
+/*  609 */       for (int j = 0; j < parameterAnnotationEntries.length; j++)
+/*      */       {
+/*  611 */         ParameterAnnotationEntry immutableArray = rpa.getParameterAnnotationEntries()[j];
+/*      */         
+/*  613 */         List<AnnotationEntryGen> mutable = makeMutableVersion(immutableArray.getAnnotationEntries());
+/*      */         
+/*  615 */         this.paramAnnotations[j].addAll(mutable);
+/*      */       }
+/*      */     }
+/*      */     
+/*  619 */     if (paramAnnVisAttr != null) {
+/*  620 */       removeAttribute(paramAnnVisAttr);
+/*      */     }
+/*  622 */     if (paramAnnInvisAttr != null) {
+/*  623 */       removeAttribute(paramAnnInvisAttr);
+/*      */     }
+/*  625 */     this.haveUnpackedParameterAnnotations = true;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Override
+/*      */   public boolean equals(Object obj)
+/*      */   {
+/*  636 */     return bcelComparator.equals(this, obj);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public List<AnnotationEntryGen> getAnnotationsOnParameter(int i)
+/*      */   {
+/*  647 */     ensureExistingParameterAnnotationsUnpacked();
+/*  648 */     if (!this.hasParameterAnnotations || i > this.argTypes.length) {
+/*  649 */       return null;
+/*      */     }
+/*  651 */     return this.paramAnnotations[i];
+/*      */   }
+/*      */   
+/*      */   public String getArgumentName(int i) {
+/*  655 */     return this.argNames[i];
+/*      */   }
+/*      */   
+/*      */   public String[] getArgumentNames() {
+/*  659 */     return (String[])this.argNames.clone();
+/*      */   }
+/*      */   
+/*      */   public Type getArgumentType(int i) {
+/*  663 */     return this.argTypes[i];
+/*      */   }
+/*      */   
+/*      */   public Type[] getArgumentTypes() {
+/*  667 */     return (Type[])this.argTypes.clone();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public String getClassName()
+/*      */   {
+/*  674 */     return this.className;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public Attribute[] getCodeAttributes()
+/*      */   {
+/*  681 */     return (Attribute[])this.codeAttrsList.toArray(Attribute.EMPTY_ARRAY);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   private CodeException[] getCodeExceptions()
+/*      */   {
+/*  688 */     int size = this.exceptionList.size();
+/*  689 */     CodeException[] cExc = new CodeException[size];
+/*  690 */     Arrays.setAll(cExc,  i -> ((CodeExceptionGen)this.exceptionList.get(i)).getCodeException(super.getConstantPool()));
+/*  691 */     return cExc;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public CodeExceptionGen[] getExceptionHandlers()
+/*      */   {
+/*  698 */     return (CodeExceptionGen[])this.exceptionList.toArray(CodeExceptionGen.EMPTY_ARRAY);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public String[] getExceptions()
+/*      */   {
+/*  705 */     return (String[])this.throwsList.toArray(ArrayUtils.EMPTY_STRING_ARRAY);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   private ExceptionTable getExceptionTable(ConstantPoolGen cp)
+/*      */   {
+/*  712 */     int size = this.throwsList.size();
+/*  713 */     int[] ex = new int[size];
+/*  714 */     Arrays.setAll(ex,  i -> cp.addClass((String)this.throwsList.get(i)));
+/*  715 */     return new ExceptionTable(cp.addUtf8("Exceptions"), 2 + 2 * size, ex, cp.getConstantPool());
+/*      */   }
+/*      */   
+/*      */   public InstructionList getInstructionList() {
+/*  719 */     return this.il;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public LineNumberGen[] getLineNumbers()
+/*      */   {
+/*  726 */     return (LineNumberGen[])this.lineNumberList.toArray(LineNumberGen.EMPTY_ARRAY);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public LineNumberTable getLineNumberTable(ConstantPoolGen cp)
+/*      */   {
+/*  733 */     int size = this.lineNumberList.size();
+/*  734 */     LineNumber[] ln = new LineNumber[size];
+/*  735 */     Arrays.setAll(ln,  i -> ((LineNumberGen)this.lineNumberList.get(i)).getLineNumber());
+/*  736 */     return new LineNumberTable(cp.addUtf8("LineNumberTable"), 2 + ln.length * 4, ln, cp.getConstantPool());
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public LocalVariableGen[] getLocalVariables()
+/*      */   {
+/*  746 */     int size = this.variableList.size();
+/*  747 */     LocalVariableGen[] lg = new LocalVariableGen[size];
+/*  748 */     this.variableList.toArray(lg);
+/*  749 */     for (int i = 0; i < size; i++) {
+/*  750 */       if (lg[i].getStart() == null && this.il != null) {
+/*  751 */         lg[i].setStart(this.il.getStart());
+/*      */       }
+/*  753 */       if (lg[i].getEnd() == null && this.il != null) {
+/*  754 */         lg[i].setEnd(this.il.getEnd());
+/*      */       }
+/*      */     }
+/*  757 */     if (size > 1) {
+/*  758 */       Arrays.sort(lg, Comparator.comparingInt(LocalVariableGen::getIndex));
+/*      */     }
+/*  760 */     return lg;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public LocalVariableTable getLocalVariableTable(ConstantPoolGen cp)
+/*      */   {
+/*  767 */     LocalVariableGen[] lg = getLocalVariables();
+/*  768 */     int size = lg.length;
+/*  769 */     LocalVariable[] lv = new LocalVariable[size];
+/*  770 */     Arrays.setAll(lv,  i -> lg[i].getLocalVariable(cp));
+/*  771 */     return new LocalVariableTable(cp.addUtf8("LocalVariableTable"), 2 + lv.length * 10, lv, cp.getConstantPool());
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public LocalVariableTypeTable getLocalVariableTypeTable()
+/*      */   {
+/*  778 */     return this.localVariableTypeTable;
+/*      */   }
+/*      */   
+/*      */   public int getMaxLocals() {
+/*  782 */     return this.maxLocals;
+/*      */   }
+/*      */   
+/*      */   public int getMaxStack() {
+/*  786 */     return this.maxStack;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public Method getMethod()
+/*      */   {
+/*  796 */     String signature = getSignature();
+/*  797 */     ConstantPoolGen cp = super.getConstantPool();
+/*  798 */     int nameIndex = cp.addUtf8(super.getName());
+/*  799 */     int signatureIndex = cp.addUtf8(signature);
+/*      */     
+/*      */ 
+/*      */ 
+/*  803 */     byte[] byteCode = this.il != null ? this.il.getByteCode() : null;
+/*  804 */     LineNumberTable lnt = null;
+/*  805 */     LocalVariableTable lvt = null;
+/*      */     
+/*      */ 
+/*      */ 
+/*  809 */     if (!this.variableList.isEmpty() && !this.stripAttributes) {
+/*  810 */       updateLocalVariableTable(getLocalVariableTable(cp));
+/*  811 */       addCodeAttribute(lvt = getLocalVariableTable(cp));
+/*      */     }
+/*  813 */     if (this.localVariableTypeTable != null)
+/*      */     {
+/*      */ 
+/*  816 */       if (lvt != null) {
+/*  817 */         adjustLocalVariableTypeTable(lvt);
+/*      */       }
+/*  819 */       addCodeAttribute(this.localVariableTypeTable);
+/*      */     }
+/*  821 */     if (!this.lineNumberList.isEmpty() && !this.stripAttributes) {
+/*  822 */       addCodeAttribute(lnt = getLineNumberTable(cp));
+/*      */     }
+/*  824 */     Attribute[] codeAttrs = getCodeAttributes();
+/*      */     
+/*      */ 
+/*      */ 
+/*  828 */     int attrsLen = 0;
+/*  829 */     for (Attribute codeAttr : codeAttrs) {
+/*  830 */       attrsLen += codeAttr.getLength() + 6;
+/*      */     }
+/*  832 */     CodeException[] cExc = getCodeExceptions();
+/*  833 */     int excLen = cExc.length * 8;
+/*  834 */     Code code = null;
+/*  835 */     if (byteCode != null && !isAbstract() && !isNative())
+/*      */     {
+/*  837 */       Attribute[] attributes = getAttributes();
+/*  838 */       for (Attribute a : attributes) {
+/*  839 */         if ((a instanceof Code)) {
+/*  840 */           removeAttribute(a);
+/*      */         }
+/*      */       }
+/*      */       
+/*      */ 
+/*      */ 
+/*  846 */       code = new Code(cp.addUtf8("Code"), 8 + byteCode.length + 2 + excLen + 2 + attrsLen, this.maxStack, this.maxLocals, byteCode, cExc, codeAttrs, cp.getConstantPool());
+/*  847 */       addAttribute(code);
+/*      */     }
+/*  849 */     Attribute[] annotations = addRuntimeAnnotationsAsAttribute(cp);
+/*  850 */     Attribute[] parameterAnnotations = addRuntimeParameterAnnotationsAsAttribute(cp);
+/*  851 */     ExceptionTable et = null;
+/*  852 */     if (!this.throwsList.isEmpty()) {
+/*  853 */       addAttribute(et = getExceptionTable(cp));
+/*      */     }
+/*      */     
+/*  856 */     Method m = new Method(super.getAccessFlags(), nameIndex, signatureIndex, getAttributes(), cp.getConstantPool());
+/*      */     
+/*  858 */     if (lvt != null) {
+/*  859 */       removeCodeAttribute(lvt);
+/*      */     }
+/*  861 */     if (this.localVariableTypeTable != null) {
+/*  862 */       removeCodeAttribute(this.localVariableTypeTable);
+/*      */     }
+/*  864 */     if (lnt != null) {
+/*  865 */       removeCodeAttribute(lnt);
+/*      */     }
+/*  867 */     if (code != null) {
+/*  868 */       removeAttribute(code);
+/*      */     }
+/*  870 */     if (et != null) {
+/*  871 */       removeAttribute(et);
+/*      */     }
+/*  873 */     removeRuntimeAttributes(annotations);
+/*  874 */     removeRuntimeAttributes(parameterAnnotations);
+/*  875 */     return m;
+/*      */   }
+/*      */   
+/*      */   public Type getReturnType() {
+/*  879 */     return getType();
+/*      */   }
+/*      */   
+/*      */   @Override
+/*      */   public String getSignature() {
+/*  884 */     return Type.getMethodSignature(super.getType(), this.argTypes);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Override
+/*      */   public int hashCode()
+/*      */   {
+/*  895 */     return bcelComparator.hashCode(this);
+/*      */   }
+/*      */   
+/*      */   private List<AnnotationEntryGen> makeMutableVersion(AnnotationEntry[] mutableArray) {
+/*  899 */     List<AnnotationEntryGen> result = new ArrayList<>();
+/*  900 */     for (AnnotationEntry element : mutableArray) {
+/*  901 */       result.add(new AnnotationEntryGen(element, getConstantPool(), false));
+/*      */     }
+/*  903 */     return result;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public void removeCodeAttribute(Attribute a)
+/*      */   {
+/*  910 */     this.codeAttrsList.remove(a);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public void removeCodeAttributes()
+/*      */   {
+/*  917 */     this.localVariableTypeTable = null;
+/*  918 */     this.codeAttrsList.clear();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public void removeException(String c)
+/*      */   {
+/*  925 */     this.throwsList.remove(c);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public void removeExceptionHandler(CodeExceptionGen c)
+/*      */   {
+/*  932 */     this.exceptionList.remove(c);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public void removeExceptionHandlers()
+/*      */   {
+/*  939 */     this.exceptionList.clear();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public void removeExceptions()
+/*      */   {
+/*  946 */     this.throwsList.clear();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public void removeLineNumber(LineNumberGen l)
+/*      */   {
+/*  953 */     this.lineNumberList.remove(l);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public void removeLineNumbers()
+/*      */   {
+/*  960 */     this.lineNumberList.clear();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public void removeLocalVariable(LocalVariableGen l)
+/*      */   {
+/*  968 */     l.dispose();
+/*  969 */     this.variableList.remove(l);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public void removeLocalVariables()
+/*      */   {
+/*  976 */     this.variableList.forEach(LocalVariableGen::dispose);
+/*  977 */     this.variableList.clear();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public void removeLocalVariableTypeTable()
+/*      */   {
+/*  984 */     this.localVariableTypeTable = null;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public void removeNOPs()
+/*      */   {
+/*  992 */     if (this.il == null) {
+/*      */       return;
+/*      */     }
+/*      */     
+/*      */     InstructionHandle next;
+/*  997 */     for (InstructionHandle ih = this.il.getStart(); ih != null; ih = next) {
+/*  998 */       next = ih.getNext();
+/*  999 */       if (next == null || !(ih.getInstruction() instanceof NOP))
+/*      */         continue;
+/* 1001 */       try { this.il.delete(ih);
+/*      */       } catch (TargetLostException e) {
+/* 1003 */         for (InstructionHandle target : e.getTargets()) {
+/* 1004 */           for (InstructionTargeter targeter : target.getTargeters()) {
+/* 1005 */             targeter.updateTarget(target, next);
+/*      */           }
+/*      */         }
+/*      */       }
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public void removeObserver(MethodObserver o)
+/*      */   {
+/* 1018 */     if (this.observers != null) {
+/* 1019 */       this.observers.remove(o);
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public void removeRuntimeAttributes(Attribute[] attrs)
+/*      */   {
+/* 1030 */     for (Attribute attr : attrs) {
+/* 1031 */       removeAttribute(attr);
+/*      */     }
+/*      */   }
+/*      */   
+/*      */   public void setArgumentName(int i, String name) {
+/* 1036 */     this.argNames[i] = name;
+/*      */   }
+/*      */   
+/*      */   public void setArgumentNames(String[] argNames) {
+/* 1040 */     this.argNames = argNames;
+/*      */   }
+/*      */   
+/*      */   public void setArgumentType(int i, Type type) {
+/* 1044 */     this.argTypes[i] = type;
+/*      */   }
+/*      */   
+/*      */   public void setArgumentTypes(Type[] argTypes) {
+/* 1048 */     this.argTypes = argTypes;
+/*      */   }
+/*      */   
+/*      */   public void setClassName(String className) {
+/* 1052 */     this.className = className;
+/*      */   }
+/*      */   
+/*      */   public void setInstructionList(InstructionList il) {
+/* 1056 */     this.il = il;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public void setMaxLocals()
+/*      */   {
+/* 1063 */     if (this.il != null) {
+/* 1064 */       int max = isStatic() ? 0 : 1;
+/* 1065 */       if (this.argTypes != null) {
+/* 1066 */         for (Type argType : this.argTypes) {
+/* 1067 */           max += argType.getSize();
+/*      */         }
+/*      */       }
+/* 1070 */       for (InstructionHandle ih = this.il.getStart(); ih != null; ih = ih.getNext()) {
+/* 1071 */         Instruction ins = ih.getInstruction();
+/* 1072 */         if ((ins instanceof LocalVariableInstruction) || (ins instanceof RET) || (ins instanceof IINC)) {
+/* 1073 */           int index = ((IndexedInstruction)ins).getIndex() + ((TypedInstruction)ins).getType(super.getConstantPool()).getSize();
+/* 1074 */           if (index > max) {
+/* 1075 */             max = index;
+/*      */           }
+/*      */         }
+/*      */       }
+/* 1079 */       this.maxLocals = max;
+/*      */     } else {
+/* 1081 */       this.maxLocals = 0;
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public void setMaxLocals(int m)
+/*      */   {
+/* 1089 */     this.maxLocals = m;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public void setMaxStack()
+/*      */   {
+/* 1096 */     if (this.il != null) {
+/* 1097 */       this.maxStack = getMaxStack(super.getConstantPool(), this.il, getExceptionHandlers());
+/*      */     } else {
+/* 1099 */       this.maxStack = 0;
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public void setMaxStack(int m)
+/*      */   {
+/* 1107 */     this.maxStack = m;
+/*      */   }
+/*      */   
+/*      */   public void setReturnType(Type returnType) {
+/* 1111 */     setType(returnType);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   public void stripAttributes(boolean flag)
+/*      */   {
+/* 1118 */     this.stripAttributes = flag;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Override
+/*      */   public final String toString()
+/*      */   {
+/* 1129 */     String access = Utility.accessToString(super.getAccessFlags());
+/* 1130 */     String signature = Type.getMethodSignature(super.getType(), this.argTypes);
+/* 1131 */     signature = Utility.methodSignatureToString(signature, super.getName(), access, true, getLocalVariableTable(super.getConstantPool()));
+/* 1132 */     StringBuilder buf = new StringBuilder(signature);
+/* 1133 */     for (Attribute a : getAttributes()) {
+/* 1134 */       if (!(a instanceof Code) && !(a instanceof ExceptionTable)) {
+/* 1135 */         buf.append(" [").append(a).append("]");
+/*      */       }
+/*      */     }
+/*      */     
+/* 1139 */     if (!this.throwsList.isEmpty()) {
+/* 1140 */       for (String throwsDescriptor : this.throwsList) {
+/* 1141 */         buf.append("\n\t\tthrows ").append(throwsDescriptor);
+/*      */       }
+/*      */     }
+/* 1144 */     return buf.toString();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public void update()
+/*      */   {
+/* 1152 */     if (this.observers != null) {
+/* 1153 */       for (MethodObserver observer : this.observers) {
+/* 1154 */         observer.notify(this);
+/*      */       }
+/*      */     }
+/*      */   }
+/*      */   
+/*      */   private void updateLocalVariableTable(LocalVariableTable a) {
+/* 1160 */     removeLocalVariables();
+/* 1161 */     for (LocalVariable l : a.getLocalVariableTable()) {
+/* 1162 */       InstructionHandle start = this.il.findHandle(l.getStartPC());
+/* 1163 */       InstructionHandle end = this.il.findHandle(l.getStartPC() + l.getLength());
+/*      */       
+/* 1165 */       if (null == start) {
+/* 1166 */         start = this.il.getStart();
+/*      */       }
+/*      */       
+/*      */ 
+/*      */ 
+/* 1171 */       addLocalVariable(l.getName(), Type.getType(l.getSignature()), l.getIndex(), start, end, l.getOrigIndex());
+/*      */     }
+/*      */   }
+/*      */ }
