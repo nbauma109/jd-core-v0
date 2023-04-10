@@ -1107,7 +1107,8 @@ public final class FastInstructionListBuilder {
             executeReconstructors(referenceMap, classFile, finallyInstructions, localVariables);
         }
         ConstantPool cp = classFile.getConstantPool();
-        boolean removedTryResourcesPattern = fastTry.removeTryResourcesPattern(localVariables, cp);
+        boolean removedTryResourcesPattern = fastTry.removeTryResourcesPattern(localVariables, cp, finallyInstructions);
+        removedTryResourcesPattern |= fastTry.removeTryResourcesPattern(localVariables, cp, tryInstructions);
         boolean processTryResources = fastTry.processTryResources(localVariables, cp);
 
         if (index >= 1 && removedTryResourcesPattern && !processTryResources && !fastTry.hasCatch() && !fastTry.hasFinally()) {
@@ -1156,10 +1157,18 @@ public final class FastInstructionListBuilder {
             Instruction instruction = list.get(index);
             if (instruction instanceof AStore) {
                 AStore astore = (AStore) instruction;
+                boolean removeNull = false;
+                if (astore.getValueref() instanceof AConstNull && index > 0 && list.get(index-1) instanceof AStore) {
+                    astore = (AStore) list.get(index-1);
+                    removeNull = true;
+                }
                 LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(astore.getIndex(), astore.getOffset());
                 if (lv != null && lv.getTryResources() == fastTry) {
                     fastTry.addResource(astore, lv);
                     list.remove(index);
+                    if (removeNull) {
+                        list.remove(index-1);
+                    }
                 }
             }
         }
