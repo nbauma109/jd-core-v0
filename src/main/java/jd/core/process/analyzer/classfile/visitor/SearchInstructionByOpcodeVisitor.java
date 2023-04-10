@@ -25,6 +25,7 @@ import jd.core.model.instruction.bytecode.instruction.ANewArray;
 import jd.core.model.instruction.bytecode.instruction.AThrow;
 import jd.core.model.instruction.bytecode.instruction.ArrayLength;
 import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
+import jd.core.model.instruction.bytecode.instruction.AssertInstruction;
 import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.CheckCast;
 import jd.core.model.instruction.bytecode.instruction.ComplexConditionalBranchInstruction;
@@ -95,6 +96,18 @@ public final class SearchInstructionByOpcodeVisitor
         case Const.AASTORE,
              ByteCodeConstants.ARRAYSTORE:
             return visit(((ArrayStoreInstruction)instruction).getArrayref(), opcode);
+        case ByteCodeConstants.ASSERT:
+            {
+                AssertInstruction ai = (AssertInstruction)instruction;
+                instruction = visit(ai.getTest(), opcode);
+                if (instruction != null) {
+                    return instruction;
+                }
+                if (ai.getMsg() == null) {
+                    return null;
+                }
+                return visit(ai.getMsg(), opcode);
+            }
         case Const.ATHROW:
             return visit(((AThrow)instruction).getValue(), opcode);
         case ByteCodeConstants.UNARYOP:

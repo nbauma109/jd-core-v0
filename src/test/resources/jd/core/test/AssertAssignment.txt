@@ -1,0 +1,14 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class AssertAssignment
+/*    */ {
+/*    */   void test1(boolean flag) {
+/*    */     String line;
+/*  7 */     assert (flag) : (line = "");
+/*    */   }
+/*    */   
+/*    */   void test2(boolean flag) {
+/*    */     String line;
+/* 12 */     assert ((line = new StringBuilder(String.valueOf(flag)).toString()) != null) : "";
+/*    */   }
+/*    */ }

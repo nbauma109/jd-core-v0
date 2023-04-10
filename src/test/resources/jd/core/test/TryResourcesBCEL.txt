@@ -1,0 +1,101 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.io.ByteArrayInputStream;
+/*    */ import java.io.ByteArrayOutputStream;
+/*    */ import java.io.DataInputStream;
+/*    */ import java.io.DataOutputStream;
+/*    */ import java.io.IOException;
+/*    */ import java.io.InputStream;
+/*    */ import java.util.ArrayList;
+/*    */ import java.util.List;
+/*    */ import org.apache.bcel.classfile.Attribute;
+/*    */ import org.apache.bcel.classfile.RuntimeInvisibleAnnotations;
+/*    */ import org.apache.bcel.classfile.RuntimeVisibleAnnotations;
+/*    */ import org.apache.bcel.generic.AnnotationEntryGen;
+/*    */ import org.apache.bcel.generic.ConstantPoolGen;
+/*    */ import org.apache.bcel.util.ClassPath;
+/*    */ 
+/*    */ public class TryResourcesBCEL
+/*    */ {
+/*    */   public byte[] getBytes(ClassPath cp, String name, String suffix) throws IOException
+/*    */   {
+/* 22 */     DataInputStream dis = null;
+/* 23 */     try (InputStream inputStream = cp.getInputStream(name, suffix)) {
+/* 24 */       if (inputStream == null) {
+/* 25 */         throw new IOException("Couldn't find: " + name + suffix);
+/*    */       }
+/* 27 */       dis = new DataInputStream(inputStream);
+/* 28 */       byte[] bytes = new byte[inputStream.available()];
+/* 29 */       dis.readFully(bytes);
+/* 30 */       return bytes;
+/*    */     } finally {
+/* 32 */       if (dis != null) {
+/* 33 */         dis.close();
+/*    */       }
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   static Attribute[] getAnnotationAttributes(ConstantPoolGen cp, AnnotationEntryGen[] annotationEntryGens) {
+/* 39 */     if (annotationEntryGens.length == 0) {
+/* 40 */       return Attribute.EMPTY_ARRAY;
+/*    */     }
+/*    */     try
+/*    */     {
+/* 44 */       int countVisible = 0;
+/* 45 */       int countInvisible = 0;
+/*    */       
+/* 47 */       for (AnnotationEntryGen a : annotationEntryGens) {
+/* 48 */         if (a.isRuntimeVisible()) {
+/* 49 */           countVisible++;
+/*    */         } else {
+/* 51 */           countInvisible++;
+/*    */         }
+/*    */       }
+/*    */       
+/* 55 */       ByteArrayOutputStream rvaBytes = new ByteArrayOutputStream();
+/* 56 */       ByteArrayOutputStream riaBytes = new ByteArrayOutputStream();
+/* 57 */       try (DataOutputStream rvaDos = new DataOutputStream(rvaBytes);DataOutputStream riaDos = new DataOutputStream(riaBytes);)
+/*    */       {
+/* 59 */         rvaDos.writeShort(countVisible);
+/* 60 */         riaDos.writeShort(countInvisible);
+/*    */         
+/* 62 */         for (AnnotationEntryGen a : annotationEntryGens) {
+/* 63 */           if (a.isRuntimeVisible()) {
+/* 64 */             a.dump(rvaDos);
+/*    */           } else {
+/* 66 */             a.dump(riaDos);
+/*    */           }
+/*    */         }
+/*    */       }
+/*    */       
+/* 71 */       byte[] rvaData = rvaBytes.toByteArray();
+/* 72 */       byte[] riaData = riaBytes.toByteArray();
+/*    */       
+/* 74 */       int rvaIndex = -1;
+/* 75 */       int riaIndex = -1;
+/*    */       
+/* 77 */       if (rvaData.length > 2) {
+/* 78 */         rvaIndex = cp.addUtf8("RuntimeVisibleAnnotations");
+/*    */       }
+/* 80 */       if (riaData.length > 2) {
+/* 81 */         riaIndex = cp.addUtf8("RuntimeInvisibleAnnotations");
+/*    */       }
+/*    */       
+/* 84 */       List<Attribute> newAttributes = new ArrayList<>();
+/* 85 */       if (rvaData.length > 2) {
+/* 86 */         newAttributes
+/* 87 */           .add(new RuntimeVisibleAnnotations(rvaIndex, rvaData.length, new DataInputStream(new ByteArrayInputStream(rvaData)), cp.getConstantPool()));
+/*    */       }
+/* 89 */       if (riaData.length > 2) {
+/* 90 */         newAttributes.add(new RuntimeInvisibleAnnotations(riaIndex, riaData.length, new DataInputStream(new ByteArrayInputStream(riaData)), cp
+/* 91 */           .getConstantPool()));
+/*    */       }
+/*    */       
+/* 94 */       return (Attribute[])newAttributes.toArray(Attribute.EMPTY_ARRAY);
+/*    */     } catch (IOException e) {
+/* 96 */       System.err.println("IOException whilst processing annotations");
+/* 97 */       e.printStackTrace();
+/*    */     }
+/* 99 */     return null;
+/*    */   }
+/*    */ }
