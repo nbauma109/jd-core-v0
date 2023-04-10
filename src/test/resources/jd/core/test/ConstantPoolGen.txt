@@ -1,0 +1,771 @@
+/*     */ package org.apache.bcel.generic;
+/*     */ 
+/*     */ import java.util.Arrays;
+/*     */ import java.util.HashMap;
+/*     */ import java.util.Map;
+/*     */ import org.apache.bcel.classfile.Constant;
+/*     */ import org.apache.bcel.classfile.ConstantCP;
+/*     */ import org.apache.bcel.classfile.ConstantClass;
+/*     */ import org.apache.bcel.classfile.ConstantDouble;
+/*     */ import org.apache.bcel.classfile.ConstantDynamic;
+/*     */ import org.apache.bcel.classfile.ConstantFieldref;
+/*     */ import org.apache.bcel.classfile.ConstantFloat;
+/*     */ import org.apache.bcel.classfile.ConstantInteger;
+/*     */ import org.apache.bcel.classfile.ConstantInterfaceMethodref;
+/*     */ import org.apache.bcel.classfile.ConstantInvokeDynamic;
+/*     */ import org.apache.bcel.classfile.ConstantLong;
+/*     */ import org.apache.bcel.classfile.ConstantMethodref;
+/*     */ import org.apache.bcel.classfile.ConstantNameAndType;
+/*     */ import org.apache.bcel.classfile.ConstantPool;
+/*     */ import org.apache.bcel.classfile.ConstantString;
+/*     */ import org.apache.bcel.classfile.ConstantUtf8;
+/*     */ import org.apache.bcel.classfile.Utility;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class ConstantPoolGen
+/*     */ {
+/*     */   private static final int DEFAULT_BUFFER_SIZE = 256;
+/*     */   private static final String METHODREF_DELIM = ":";
+/*     */   private static final String IMETHODREF_DELIM = "#";
+/*     */   private static final String FIELDREF_DELIM = "&";
+/*     */   private static final String NAT_DELIM = "%";
+/*     */   @Deprecated
+/*     */   protected int size;
+/*     */   @Deprecated
+/*     */   protected Constant[] constants;
+/*     */   @Deprecated
+/*  78 */   protected int index = 1;
+/*     */   
+/*     */ 
+/*  81 */   private final Map<String, Integer> stringTable = new HashMap<>();
+/*     */   
+/*  83 */   private final Map<String, Integer> classTable = new HashMap<>();
+/*     */   
+/*  85 */   private final Map<String, Integer> utf8Table = new HashMap<>();
+/*     */   
+/*  87 */   private final Map<String, Integer> natTable = new HashMap<>();
+/*     */   
+/*  89 */   private final Map<String, Integer> cpTable = new HashMap<>();
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public ConstantPoolGen()
+/*     */   {
+/*  95 */     this.size = 256;
+/*  96 */     this.constants = new Constant[this.size];
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public ConstantPoolGen(Constant[] cs)
+/*     */   {
+/* 105 */     StringBuilder sb = new StringBuilder(256);
+/*     */     
+/* 107 */     this.size = Math.min(Math.max(256, cs.length + 64), 65536);
+/* 108 */     this.constants = new Constant[this.size];
+/*     */     
+/* 110 */     System.arraycopy(cs, 0, this.constants, 0, cs.length);
+/* 111 */     if (cs.length > 0) {
+/* 112 */       this.index = cs.length;
+/*     */     }
+/*     */     
+/* 115 */     for (int i = 1; i < this.index; i++) {
+/* 116 */       Constant c = this.constants[i];
+/* 117 */       if ((c instanceof ConstantString)) {
+/* 118 */         ConstantString s = (ConstantString)c;
+/* 119 */         ConstantUtf8 u8 = (ConstantUtf8)this.constants[s.getStringIndex()];
+/* 120 */         String key = u8.getBytes();
+/* 121 */         if (!this.stringTable.containsKey(key)) {
+/* 122 */           this.stringTable.put(key, Integer.valueOf(i));
+/*     */         }
+/* 124 */       } else if ((c instanceof ConstantClass)) {
+/* 125 */         ConstantClass s = (ConstantClass)c;
+/* 126 */         ConstantUtf8 u8 = (ConstantUtf8)this.constants[s.getNameIndex()];
+/* 127 */         String key = u8.getBytes();
+/* 128 */         if (!this.classTable.containsKey(key)) {
+/* 129 */           this.classTable.put(key, Integer.valueOf(i));
+/*     */         }
+/* 131 */       } else if ((c instanceof ConstantNameAndType)) {
+/* 132 */         ConstantNameAndType n = (ConstantNameAndType)c;
+/* 133 */         ConstantUtf8 u8NameIdx = (ConstantUtf8)this.constants[n.getNameIndex()];
+/* 134 */         ConstantUtf8 u8SigIdx = (ConstantUtf8)this.constants[n.getSignatureIndex()];
+/*     */         
+/* 136 */         sb.append(u8NameIdx.getBytes());
+/* 137 */         sb.append("%");
+/* 138 */         sb.append(u8SigIdx.getBytes());
+/* 139 */         String key = sb.toString();
+/* 140 */         sb.delete(0, sb.length());
+/*     */         
+/* 142 */         if (!this.natTable.containsKey(key)) {
+/* 143 */           this.natTable.put(key, Integer.valueOf(i));
+/*     */         }
+/* 145 */       } else if ((c instanceof ConstantUtf8)) {
+/* 146 */         ConstantUtf8 u = (ConstantUtf8)c;
+/* 147 */         String key = u.getBytes();
+/* 148 */         if (!this.utf8Table.containsKey(key)) {
+/* 149 */           this.utf8Table.put(key, Integer.valueOf(i));
+/*     */         }
+/* 151 */       } else if ((c instanceof ConstantCP)) {
+/* 152 */         ConstantCP m = (ConstantCP)c;
+/*     */         
+/*     */         String className;
+/*     */         
+/* 156 */         if ((c instanceof ConstantInvokeDynamic)) {
+/* 157 */           className = Integer.toString(((ConstantInvokeDynamic)m).getBootstrapMethodAttrIndex());
+/* 158 */         } else if ((c instanceof ConstantDynamic)) {
+/* 159 */           className = Integer.toString(((ConstantDynamic)m).getBootstrapMethodAttrIndex());
+/*     */         } else {
+/* 161 */           ConstantClass clazz = (ConstantClass)this.constants[m.getClassIndex()];
+/* 162 */           ConstantUtf8 u8 = (ConstantUtf8)this.constants[clazz.getNameIndex()];
+/* 163 */           className = Utility.pathToPackage(u8.getBytes());
+/*     */         }
+/*     */         
+/* 166 */         ConstantNameAndType n = (ConstantNameAndType)this.constants[m.getNameAndTypeIndex()];
+/* 167 */         ConstantUtf8 u8 = (ConstantUtf8)this.constants[n.getNameIndex()];
+/* 168 */         String methodName = u8.getBytes();
+/* 169 */         u8 = (ConstantUtf8)this.constants[n.getSignatureIndex()];
+/* 170 */         String signature = u8.getBytes();
+/*     */         
+/*     */ 
+/* 173 */         String delim = ":";
+/* 174 */         if ((c instanceof ConstantInterfaceMethodref)) {
+/* 175 */           delim = "#";
+/* 176 */         } else if ((c instanceof ConstantFieldref)) {
+/* 177 */           delim = "&";
+/*     */         }
+/*     */         
+/* 180 */         sb.append(className);
+/* 181 */         sb.append(delim);
+/* 182 */         sb.append(methodName);
+/* 183 */         sb.append(delim);
+/* 184 */         sb.append(signature);
+/* 185 */         String key = sb.toString();
+/* 186 */         sb.delete(0, sb.length());
+/*     */         
+/* 188 */         if (!this.cpTable.containsKey(key)) {
+/* 189 */           this.cpTable.put(key, Integer.valueOf(i));
+/*     */         }
+/*     */       }
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public ConstantPoolGen(ConstantPool cp)
+/*     */   {
+/* 223 */     this(cp.getConstantPool());
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int addArrayClass(ArrayType type)
+/*     */   {
+/* 234 */     return addClass_(type.getSignature());
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int addClass(ObjectType type)
+/*     */   {
+/* 244 */     return addClass(type.getClassName());
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int addClass(String str)
+/*     */   {
+/* 254 */     return addClass_(Utility.packageToPath(str));
+/*     */   }
+/*     */   
+/*     */   private int addClass_(String clazz) {
+/*     */     int cpRet;
+/* 259 */     if ((cpRet = lookupClass(clazz)) != -1) {
+/* 260 */       return cpRet;
+/*     */     }
+/* 262 */     adjustSize();
+/* 263 */     ConstantClass c = new ConstantClass(addUtf8(clazz));
+/* 264 */     int ret = this.index;
+/* 265 */     this.constants[(this.index++)] = c;
+/* 266 */     return computeIfAbsent(this.classTable, clazz, ret);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int addConstant(Constant constant, ConstantPoolGen cpGen)
+/*     */   {
+/* 277 */     Constant[] constants = cpGen.getConstantPool().getConstantPool();
+/* 278 */     switch (constant.getTag()) {
+/*     */     case 8: {
+/* 280 */       ConstantString s = (ConstantString)constant;
+/* 281 */       ConstantUtf8 u8 = (ConstantUtf8)constants[s.getStringIndex()];
+/* 282 */       return addString(u8.getBytes());
+/*     */     
+/*     */     } case 7: {
+/* 285 */       ConstantClass s = (ConstantClass)constant;
+/* 286 */       ConstantUtf8 u8 = (ConstantUtf8)constants[s.getNameIndex()];
+/* 287 */       return addClass(u8.getBytes());
+/*     */     
+/*     */     } case 12: {
+/* 290 */       ConstantNameAndType n = (ConstantNameAndType)constant;
+/* 291 */       ConstantUtf8 u8 = (ConstantUtf8)constants[n.getNameIndex()];
+/* 292 */       ConstantUtf8 u8_2 = (ConstantUtf8)constants[n.getSignatureIndex()];
+/* 293 */       return addNameAndType(u8.getBytes(), u8_2.getBytes());
+/*     */     
+/*     */     } case 1: 
+/* 296 */       return addUtf8(((ConstantUtf8)constant).getBytes());
+/*     */     case 6: 
+/* 298 */       return addDouble(((ConstantDouble)constant).getBytes());
+/*     */     case 4: 
+/* 300 */       return addFloat(((ConstantFloat)constant).getBytes());
+/*     */     case 5: 
+/* 302 */       return addLong(((ConstantLong)constant).getBytes());
+/*     */     case 3: 
+/* 304 */       return addInteger(((ConstantInteger)constant).getBytes());
+/*     */     case 9: 
+/*     */     case 10: 
+/*     */     case 11: {
+/* 308 */       ConstantCP m = (ConstantCP)constant;
+/* 309 */       ConstantClass clazz = (ConstantClass)constants[m.getClassIndex()];
+/* 310 */       ConstantNameAndType n = (ConstantNameAndType)constants[m.getNameAndTypeIndex()];
+/* 311 */       ConstantUtf8 u8 = (ConstantUtf8)constants[clazz.getNameIndex()];
+/* 312 */       String className = Utility.pathToPackage(u8.getBytes());
+/* 313 */       u8 = (ConstantUtf8)constants[n.getNameIndex()];
+/* 314 */       String name = u8.getBytes();
+/* 315 */       u8 = (ConstantUtf8)constants[n.getSignatureIndex()];
+/* 316 */       String signature = u8.getBytes();
+/* 317 */       switch (constant.getTag()) {
+/*     */       case 11: 
+/* 319 */         return addInterfaceMethodref(className, name, signature);
+/*     */       case 10: 
+/* 321 */         return addMethodref(className, name, signature);
+/*     */       case 9: 
+/* 323 */         return addFieldref(className, name, signature);
+/*     */       }
+/* 325 */       throw new IllegalArgumentException("Unknown constant type " + constant);
+/*     */     }}
+/*     */     
+/*     */     
+/* 329 */     throw new IllegalArgumentException("Unknown constant type " + constant);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int addDouble(double n)
+/*     */   {
+/*     */     int ret;
+/*     */     
+/*     */ 
+/*     */ 
+/* 341 */     if ((ret = lookupDouble(n)) != -1) {
+/* 342 */       return ret;
+/*     */     }
+/* 344 */     adjustSize();
+/* 345 */     ret = this.index;
+/* 346 */     this.constants[this.index] = new ConstantDouble(n);
+/* 347 */     this.index += 2;
+/* 348 */     return ret;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int addFieldref(String className, String fieldName, String signature)
+/*     */   {
+/*     */     int cpRet;
+/*     */     
+/*     */ 
+/*     */ 
+/* 361 */     if ((cpRet = lookupFieldref(className, fieldName, signature)) != -1) {
+/* 362 */       return cpRet;
+/*     */     }
+/* 364 */     adjustSize();
+/* 365 */     int classIndex = addClass(className);
+/* 366 */     int nameAndTypeIndex = addNameAndType(fieldName, signature);
+/* 367 */     int ret = this.index;
+/* 368 */     this.constants[(this.index++)] = new ConstantFieldref(classIndex, nameAndTypeIndex);
+/* 369 */     return computeIfAbsent(this.cpTable, className + "&" + fieldName + "&" + signature, ret);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int addFloat(float n)
+/*     */   {
+/*     */     int ret;
+/*     */     
+/*     */ 
+/* 380 */     if ((ret = lookupFloat(n)) != -1) {
+/* 381 */       return ret;
+/*     */     }
+/* 383 */     adjustSize();
+/* 384 */     ret = this.index;
+/* 385 */     this.constants[(this.index++)] = new ConstantFloat(n);
+/* 386 */     return ret;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int addInteger(int n)
+/*     */   {
+/*     */     int ret;
+/*     */     
+/*     */ 
+/* 397 */     if ((ret = lookupInteger(n)) != -1) {
+/* 398 */       return ret;
+/*     */     }
+/* 400 */     adjustSize();
+/* 401 */     ret = this.index;
+/* 402 */     this.constants[(this.index++)] = new ConstantInteger(n);
+/* 403 */     return ret;
+/*     */   }
+/*     */   
+/*     */   public int addInterfaceMethodref(MethodGen method) {
+/* 407 */     return addInterfaceMethodref(method.getClassName(), method.getName(), method.getSignature());
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int addInterfaceMethodref(String className, String methodName, String signature)
+/*     */   {
+/*     */     int cpRet;
+/*     */     
+/*     */ 
+/*     */ 
+/* 420 */     if ((cpRet = lookupInterfaceMethodref(className, methodName, signature)) != -1) {
+/* 421 */       return cpRet;
+/*     */     }
+/* 423 */     adjustSize();
+/* 424 */     int classIndex = addClass(className);
+/* 425 */     int nameAndTypeIndex = addNameAndType(methodName, signature);
+/* 426 */     int ret = this.index;
+/* 427 */     this.constants[(this.index++)] = new ConstantInterfaceMethodref(classIndex, nameAndTypeIndex);
+/* 428 */     return computeIfAbsent(this.cpTable, className + "#" + methodName + "#" + signature, ret);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int addLong(long n)
+/*     */   {
+/*     */     int ret;
+/*     */     
+/*     */ 
+/* 439 */     if ((ret = lookupLong(n)) != -1) {
+/* 440 */       return ret;
+/*     */     }
+/* 442 */     adjustSize();
+/* 443 */     ret = this.index;
+/* 444 */     this.constants[this.index] = new ConstantLong(n);
+/* 445 */     this.index += 2;
+/* 446 */     return ret;
+/*     */   }
+/*     */   
+/* 449 */   public int addMethodref(MethodGen method) { return addMethodref(method.getClassName(), method.getName(), method.getSignature()); }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int addMethodref(String className, String methodName, String signature)
+/*     */   {
+/*     */     int cpRet;
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/* 462 */     if ((cpRet = lookupMethodref(className, methodName, signature)) != -1) {
+/* 463 */       return cpRet;
+/*     */     }
+/* 465 */     adjustSize();
+/* 466 */     int nameAndTypeIndex = addNameAndType(methodName, signature);
+/* 467 */     int classIndex = addClass(className);
+/* 468 */     int ret = this.index;
+/* 469 */     this.constants[(this.index++)] = new ConstantMethodref(classIndex, nameAndTypeIndex);
+/* 470 */     return computeIfAbsent(this.cpTable, className + ":" + methodName + ":" + signature, ret);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int addNameAndType(String name, String signature)
+/*     */   {
+/*     */     int ret;
+/*     */     
+/*     */ 
+/*     */ 
+/* 482 */     if ((ret = lookupNameAndType(name, signature)) != -1) {
+/* 483 */       return ret;
+/*     */     }
+/* 485 */     adjustSize();
+/* 486 */     int nameIndex = addUtf8(name);
+/* 487 */     int signatureIndex = addUtf8(signature);
+/* 488 */     ret = this.index;
+/* 489 */     this.constants[(this.index++)] = new ConstantNameAndType(nameIndex, signatureIndex);
+/* 490 */     return computeIfAbsent(this.natTable, name + "%" + signature, ret);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int addString(String str)
+/*     */   {
+/*     */     int ret;
+/*     */     
+/*     */ 
+/* 501 */     if ((ret = lookupString(str)) != -1) {
+/* 502 */       return ret;
+/*     */     }
+/* 504 */     int utf8 = addUtf8(str);
+/* 505 */     adjustSize();
+/* 506 */     ConstantString s = new ConstantString(utf8);
+/* 507 */     ret = this.index;
+/* 508 */     this.constants[(this.index++)] = s;
+/* 509 */     return computeIfAbsent(this.stringTable, str, ret);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int addUtf8(String n)
+/*     */   {
+/*     */     int ret;
+/*     */     
+/*     */ 
+/* 520 */     if ((ret = lookupUtf8(n)) != -1) {
+/* 521 */       return ret;
+/*     */     }
+/* 523 */     adjustSize();
+/* 524 */     ret = this.index;
+/* 525 */     this.constants[(this.index++)] = new ConstantUtf8(n);
+/* 526 */     return computeIfAbsent(this.utf8Table, n, ret);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   protected void adjustSize()
+/*     */   {
+/* 534 */     if (this.index + 3 >= 65536) {
+/* 535 */       throw new IllegalStateException("The number of constants " + (this.index + 3) + " is over the size of the constant pool: " + 65535);
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/* 540 */     if (this.index + 3 >= this.size) {
+/* 541 */       Constant[] cs = this.constants;
+/* 542 */       this.size *= 2;
+/*     */       
+/* 544 */       this.size = Math.min(this.size, 65536);
+/* 545 */       this.constants = new Constant[this.size];
+/* 546 */       System.arraycopy(cs, 0, this.constants, 0, this.index);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private int computeIfAbsent(Map<String, Integer> map, String key, int value) {
+/* 551 */     return ((Integer)map.computeIfAbsent(key, k -> Integer.valueOf(value))).intValue();
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public Constant getConstant(int i)
+/*     */   {
+/* 559 */     return this.constants[i];
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public ConstantPool getConstantPool()
+/*     */   {
+/* 566 */     return new ConstantPool(this.constants);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public ConstantPool getFinalConstantPool()
+/*     */   {
+/* 573 */     return new ConstantPool((Constant[])Arrays.copyOf(this.constants, this.index));
+/*     */   }
+/*     */   
+/*     */   private int getIndex(Map<String, Integer> map, String key) {
+/* 577 */     return toIndex((Integer)map.get(key));
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public int getSize()
+/*     */   {
+/* 584 */     return this.index;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int lookupClass(String str)
+/*     */   {
+/* 594 */     return getIndex(this.classTable, Utility.packageToPath(str));
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int lookupDouble(double n)
+/*     */   {
+/* 604 */     long bits = Double.doubleToLongBits(n);
+/* 605 */     for (int i = 1; i < this.index; i++) {
+/* 606 */       if ((this.constants[i] instanceof ConstantDouble)) {
+/* 607 */         ConstantDouble c = (ConstantDouble)this.constants[i];
+/* 608 */         if (Double.doubleToLongBits(c.getBytes()) == bits) {
+/* 609 */           return i;
+/*     */         }
+/*     */       }
+/*     */     }
+/* 613 */     return -1;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int lookupFieldref(String className, String fieldName, String signature)
+/*     */   {
+/* 625 */     return getIndex(this.cpTable, className + "&" + fieldName + "&" + signature);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int lookupFloat(float n)
+/*     */   {
+/* 635 */     int bits = Float.floatToIntBits(n);
+/* 636 */     for (int i = 1; i < this.index; i++) {
+/* 637 */       if ((this.constants[i] instanceof ConstantFloat)) {
+/* 638 */         ConstantFloat c = (ConstantFloat)this.constants[i];
+/* 639 */         if (Float.floatToIntBits(c.getBytes()) == bits) {
+/* 640 */           return i;
+/*     */         }
+/*     */       }
+/*     */     }
+/* 644 */     return -1;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int lookupInteger(int n)
+/*     */   {
+/* 654 */     for (int i = 1; i < this.index; i++) {
+/* 655 */       if ((this.constants[i] instanceof ConstantInteger)) {
+/* 656 */         ConstantInteger c = (ConstantInteger)this.constants[i];
+/* 657 */         if (c.getBytes() == n) {
+/* 658 */           return i;
+/*     */         }
+/*     */       }
+/*     */     }
+/* 662 */     return -1;
+/*     */   }
+/*     */   
+/*     */   public int lookupInterfaceMethodref(MethodGen method) {
+/* 666 */     return lookupInterfaceMethodref(method.getClassName(), method.getName(), method.getSignature());
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int lookupInterfaceMethodref(String className, String methodName, String signature)
+/*     */   {
+/* 678 */     return getIndex(this.cpTable, className + "#" + methodName + "#" + signature);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int lookupLong(long n)
+/*     */   {
+/* 688 */     for (int i = 1; i < this.index; i++) {
+/* 689 */       if ((this.constants[i] instanceof ConstantLong)) {
+/* 690 */         ConstantLong c = (ConstantLong)this.constants[i];
+/* 691 */         if (c.getBytes() == n) {
+/* 692 */           return i;
+/*     */         }
+/*     */       }
+/*     */     }
+/* 696 */     return -1;
+/*     */   }
+/*     */   
+/*     */   public int lookupMethodref(MethodGen method) {
+/* 700 */     return lookupMethodref(method.getClassName(), method.getName(), method.getSignature());
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int lookupMethodref(String className, String methodName, String signature)
+/*     */   {
+/* 712 */     return getIndex(this.cpTable, className + ":" + methodName + ":" + signature);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int lookupNameAndType(String name, String signature)
+/*     */   {
+/* 723 */     return getIndex(this.natTable, name + "%" + signature);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int lookupString(String str)
+/*     */   {
+/* 733 */     return getIndex(this.stringTable, str);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int lookupUtf8(String n)
+/*     */   {
+/* 743 */     return getIndex(this.utf8Table, n);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void setConstant(int i, Constant c)
+/*     */   {
+/* 753 */     this.constants[i] = c;
+/*     */   }
+/*     */   
+/*     */   private int toIndex(Integer index) {
+/* 757 */     return index != null ? index.intValue() : -1;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public String toString()
+/*     */   {
+/* 765 */     StringBuilder buf = new StringBuilder();
+/* 766 */     for (int i = 1; i < this.index; i++) {
+/* 767 */       buf.append(i).append(")").append(this.constants[i]).append("\n");
+/*     */     }
+/* 769 */     return buf.toString();
+/*     */   }
+/*     */ }
