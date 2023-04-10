@@ -31,6 +31,8 @@ import org.jd.core.v1.util.StringConstants;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
 import jd.core.util.IndexToIndexMap;
 import jd.core.util.StringToIndexMap;
 
@@ -152,9 +154,7 @@ public class ConstantPool
 
     public int addConstantUtf8(String s)
     {
-        if (s == null) {
-            throw new IllegalArgumentException("Constant string is null");
-        }
+        Objects.requireNonNull(s, "Constant string is null");
 
         if (s.startsWith("L[")) {
             throw new IllegalArgumentException("Constant string starts with L[");

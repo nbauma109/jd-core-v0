@@ -20,6 +20,7 @@ import org.apache.bcel.Const;
 import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.List;
+import java.util.Objects;
 
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.ANewArray;
@@ -82,9 +83,7 @@ public final class SearchInstructionByOpcodeVisitor
     public static Instruction visit(Instruction instruction, int... opcodes)
         throws RuntimeException
     {
-        if (instruction == null) {
-            throw new IllegalStateException("Null instruction");
-        }
+        Objects.requireNonNull(instruction, "Null instruction");
 
         if (ArrayUtils.contains(opcodes, instruction.getOpcode())) {
             return instruction;

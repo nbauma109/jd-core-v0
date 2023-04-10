@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.List;
+import java.util.Objects;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
@@ -47,10 +48,8 @@ public class InvokestaticFactory implements InstructionFactory
         ConstantPool constants = classFile.getConstantPool();
         ConstantCP cmr =
             constants.getConstantMethodref(index);
-        if (cmr == null) {
-            throw new IllegalArgumentException(
-                    "Invalid ConstantMethodref index");
-        }
+
+        Objects.requireNonNull(cmr, "Invalid ConstantMethodref index");
 
         ConstantNameAndType cnat = constants.getConstantNameAndType(
                 cmr.getNameAndTypeIndex());

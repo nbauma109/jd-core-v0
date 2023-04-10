@@ -24,6 +24,7 @@ import org.apache.bcel.classfile.ConstantNameAndType;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
@@ -668,9 +669,7 @@ public class JavaSourceLayouter
                     preferences, layoutBlockList, classFile, method, iv.getObjectref());
         }
 
-        if (switchMapKey == null) {
-            throw new IllegalStateException();
-        }
+        Objects.requireNonNull(switchMapKey, "Null switchMapKey");
 
         layoutBlockList.add(new FragmentLayoutBlock(
                 LayoutBlockConstants.FRAGMENT_RIGHT_ROUND_BRACKET));
