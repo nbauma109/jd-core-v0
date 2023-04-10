@@ -1587,10 +1587,20 @@ public final class FastInstructionListBuilder {
             for (int i = 0; i < length; i++)
             {
                 instruction = list.get(i);
-
-                if (instruction.getOpcode() == Const.ASTORE
-                 || instruction.getOpcode() == Const.ISTORE
-                 || instruction.getOpcode() == ByteCodeConstants.STORE) {
+                AssignmentInstruction asi = (AssignmentInstruction) SearchInstructionByOpcodeVisitor.visit(
+                        instruction, ByteCodeConstants.ASSIGNMENT);
+                if (asi != null && asi.getValue1() instanceof LoadInstruction) {
+                    LoadInstruction li = (LoadInstruction) asi.getValue1();
+                    lv = localVariables.getLocalVariableWithIndexAndOffset(li.getIndex(), li.getOffset());
+                    if (lv != null && lv.hasDeclarationFlag() == NOT_DECLARED && beforeListOffset < lv.getStartPc()
+                            && lv.getStartPc() + lv.getLength() - 1 <= lastOffset) {
+                        FastDeclaration fastDeclaration = new FastDeclaration(lv.getStartPc(),
+                                Instruction.UNKNOWN_LINE_NUMBER, lv, null);
+                        list.add(i, fastDeclaration);
+                        lv.setDeclarationFlag(DECLARED);
+                    }
+                }
+                if (instruction instanceof StoreInstruction) {
                     si = (StoreInstruction) instruction;
                     lv = localVariables.getLocalVariableWithIndexAndOffset(si.getIndex(), si.getOffset());
                     if (lv != null && lv.hasDeclarationFlag() == NOT_DECLARED) {
@@ -1600,50 +1610,7 @@ public final class FastInstructionListBuilder {
                                     && (lv.getStartPc() + lv.getLength() - 1 <= lastOffset
                                     || method.getNameIndex() == classFile.getConstantPool().getClassConstructorIndex())) {
                                 list.set(i, new FastDeclaration(si.getOffset(), si.getLineNumber(), lv, si));
-                                Instruction valueref = si.getValueref();
-                                String expressionSignature = valueref.getReturnedSignature(classFile, localVariables);
-                                String lvSignature = lv.getSignature(classFile.getConstantPool());
-                                TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
-                                Type lvType = typeMaker.makeFromSignature(lvSignature);
-                                if (valueref instanceof CheckCast) {
-                                    CheckCast cc = (CheckCast) valueref;
-                                    String castSignature = cc.getReturnedSignature(classFile, localVariables);
-                                    Type castType = typeMaker.makeFromSignature(castSignature);
-                                    if (castType.isObjectType()
-                                            && lvType.isGenericType()
-                                            && lvType.getDimension() == castType.getDimension()) {
-                                        cc.setIndex(lv.getSignatureIndex());
-                                    }
-                                } else if (expressionSignature != null) {
-                                    Type expressionType = typeMaker.makeFromSignature(expressionSignature);
-                                    if (lvType.isGenericType() && !expressionType.isGenericType()) {
-                                        si.setValueref(new CheckCast(Const.CHECKCAST, si.getOffset(),
-                                            si.getLineNumber(), lv.getSignatureIndex(), valueref));
-                                    }
-                                    if (lvType.isObjectType() && expressionType.isObjectType()) {
-                                        ObjectType otLeft = (ObjectType) lvType;
-                                        ObjectType otRight = (ObjectType) expressionType;
-                                        BaseTypeArgument typeArgsLeft = otLeft.getTypeArguments();
-                                        BaseTypeArgument typeArgsRight = otRight.getTypeArguments();
-                                        if (typeArgsLeft instanceof ObjectType && typeArgsRight instanceof WildcardTypeArgument
-                                         || typeArgsLeft instanceof GenericType && typeArgsRight instanceof WildcardExtendsTypeArgument) {
-                                            si.setValueref(new CheckCast(Const.CHECKCAST, si.getOffset(),
-                                                si.getLineNumber(), lv.getSignatureIndex(), valueref));
-                                        }
-                                        if (typeArgsLeft != null && typeArgsLeft.isTypeArgumentList()
-                                        && typeArgsRight != null && typeArgsRight.isTypeArgumentList()) {
-                                            for (int j = 0; j < typeArgsRight.getTypeArgumentList().size(); j++) {
-                                                TypeArgument typeArgumentLeft = typeArgsLeft.getTypeArgumentList().get(j);
-                                                TypeArgument typeArgumentRight = typeArgsRight.getTypeArgumentList().get(j);
-                                                if (typeArgumentLeft instanceof GenericType && typeArgumentRight instanceof WildcardExtendsTypeArgument) {
-                                                    si.setValueref(new CheckCast(Const.CHECKCAST, si.getOffset(),
-                                                        si.getLineNumber(), lv.getSignatureIndex(), valueref));
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
+                                addOrUpdateCast(localVariables, classFile, si, lv);
                                 lv.setDeclarationFlag(DECLARED);
                                 updateNewAndInitArrayInstruction(si);
                             }
@@ -1665,7 +1632,8 @@ public final class FastInstructionListBuilder {
                         si = (StoreInstruction) ff.getInit();
                         lv = localVariables.getLocalVariableWithIndexAndOffset(si.getIndex(), si.getOffset());
                         if (lv != null && lv.hasDeclarationFlag() == NOT_DECLARED
-                                && beforeListOffset < lv.getStartPc() && lv.getStartPc() + lv.getLength() - 1 <= lastOffset
+                                && beforeListOffset < lv.getStartPc()
+                                && lv.getStartPc() + lv.getLength() - 1 <= lastOffset
                                 && !CheckLocalVariableUsedVisitor.visit(lv, list.subList(i+1, list.size()))) {
                             ff.setInit(new FastDeclaration(si.getOffset(), si.getLineNumber(), lv, si));
                             lv.setDeclarationFlag(DECLARED);
@@ -1720,7 +1688,26 @@ public final class FastInstructionListBuilder {
                     if (addDeclarations) {
                         if (!variableFound(list, lv)
                               && CheckLocalVariableUsedVisitor.visit(lv, list)) {
-                            list.add(indexForNewDeclaration, fastDeclaration);
+                            if (indexForNewDeclaration < list.size()) {
+                                Instruction next = list.get(indexForNewDeclaration);
+                                if (next instanceof StoreInstruction) {
+                                    StoreInstruction storeInstruction = (StoreInstruction) next;
+                                    int siIndex = storeInstruction.getIndex();
+                                    int siOffset = storeInstruction.getOffset();
+                                    int siLineNumber = storeInstruction.getLineNumber();
+                                    if (lv == localVariables.getLocalVariableWithIndexAndOffset(siIndex, siOffset)) {
+                                        addOrUpdateCast(localVariables, classFile, storeInstruction, lv);
+                                        list.set(indexForNewDeclaration, new FastDeclaration(
+                                                siOffset, siLineNumber, lv, storeInstruction));
+                                    } else {
+                                        list.add(indexForNewDeclaration, fastDeclaration);
+                                    }
+                                } else {
+                                    list.add(indexForNewDeclaration, fastDeclaration);
+                                }
+                            } else {
+                                list.add(indexForNewDeclaration, fastDeclaration);
+                            }
                         }
                     } else {
                         outerDeclarations.add(fastDeclaration);
@@ -1730,6 +1717,53 @@ public final class FastInstructionListBuilder {
             }
         }
         return outerDeclarations;
+    }
+
+    private static void addOrUpdateCast(LocalVariables localVariables, ClassFile classFile, StoreInstruction si, LocalVariable lv) {
+        Instruction valueref = si.getValueref();
+        String expressionSignature = valueref.getReturnedSignature(classFile, localVariables);
+        String lvSignature = lv.getSignature(classFile.getConstantPool());
+        TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
+        Type lvType = typeMaker.makeFromSignature(lvSignature);
+        if (valueref instanceof CheckCast) {
+            CheckCast cc = (CheckCast) valueref;
+            String castSignature = cc.getReturnedSignature(classFile, localVariables);
+            Type castType = typeMaker.makeFromSignature(castSignature);
+            if (castType.isObjectType()
+                    && lvType.isGenericType()
+                    && lvType.getDimension() == castType.getDimension()) {
+                cc.setIndex(lv.getSignatureIndex());
+            }
+        } else if (expressionSignature != null) {
+            Type expressionType = typeMaker.makeFromSignature(expressionSignature);
+            if (lvType.isGenericType() && !expressionType.isGenericType()) {
+                si.setValueref(new CheckCast(Const.CHECKCAST, si.getOffset(),
+                    si.getLineNumber(), lv.getSignatureIndex(), valueref));
+            }
+            if (lvType.isObjectType() && expressionType.isObjectType()) {
+                ObjectType otLeft = (ObjectType) lvType;
+                ObjectType otRight = (ObjectType) expressionType;
+                BaseTypeArgument typeArgsLeft = otLeft.getTypeArguments();
+                BaseTypeArgument typeArgsRight = otRight.getTypeArguments();
+                if (typeArgsLeft instanceof ObjectType && typeArgsRight instanceof WildcardTypeArgument
+                 || typeArgsLeft instanceof GenericType && typeArgsRight instanceof WildcardExtendsTypeArgument) {
+                    si.setValueref(new CheckCast(Const.CHECKCAST, si.getOffset(),
+                        si.getLineNumber(), lv.getSignatureIndex(), valueref));
+                }
+                if (typeArgsLeft != null && typeArgsLeft.isTypeArgumentList()
+                && typeArgsRight != null && typeArgsRight.isTypeArgumentList()) {
+                    for (int j = 0; j < typeArgsRight.getTypeArgumentList().size(); j++) {
+                        TypeArgument typeArgumentLeft = typeArgsLeft.getTypeArgumentList().get(j);
+                        TypeArgument typeArgumentRight = typeArgsRight.getTypeArgumentList().get(j);
+                        if (typeArgumentLeft instanceof GenericType && typeArgumentRight instanceof WildcardExtendsTypeArgument) {
+                            si.setValueref(new CheckCast(Const.CHECKCAST, si.getOffset(),
+                                si.getLineNumber(), lv.getSignatureIndex(), valueref));
+                            break;
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private static boolean variableFound(List<Instruction> list, LocalVariable lv) {
