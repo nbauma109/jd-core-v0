@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (C) 2007-2019 Emmanuel Dupuy GPLv3
+ * Copyright (C) 2007-2023 Emmanuel Dupuy GPLv3 and other contributors
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
