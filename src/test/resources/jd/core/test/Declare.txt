@@ -1,0 +1,37 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class Declare
+/*    */ {
+/*    */   int istore(boolean flag, int inc) {
+/*    */     int i;
+/*  7 */     if (flag) {
+/*  8 */       i = 0;
+/*    */     } else {
+/* 10 */       i = 1;
+/*    */     }
+/* 12 */     i += inc;
+/* 13 */     return i;
+/*    */   }
+/*    */   
+/*    */   float store(boolean flag, float inc) {
+/*    */     float f;
+/* 18 */     if (flag) {
+/* 19 */       f = 0.0F;
+/*    */     } else {
+/* 21 */       f = 1.0F;
+/*    */     }
+/* 23 */     f += inc;
+/* 24 */     return f;
+/*    */   }
+/*    */   
+/*    */   Integer astore(boolean flag, int inc) {
+/*    */     Integer i;
+/* 29 */     if (flag) {
+/* 30 */       i = Integer.valueOf(0);
+/*    */     } else {
+/* 32 */       i = Integer.valueOf(1);
+/*    */     }
+/* 34 */     i = Integer.valueOf(i.intValue() + inc);
+/* 35 */     return i;
+/*    */   }
+/*    */ }
