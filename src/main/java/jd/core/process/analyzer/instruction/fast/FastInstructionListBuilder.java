@@ -41,7 +41,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -110,7 +109,6 @@ import jd.core.model.reference.ReferenceMap;
 import jd.core.process.analyzer.classfile.reconstructor.AssignmentOperatorReconstructor;
 import jd.core.process.analyzer.classfile.visitor.RemoveCheckCastVisitor;
 import jd.core.process.analyzer.classfile.visitor.SearchInstructionByOpcodeVisitor;
-import jd.core.process.analyzer.classfile.visitor.SearchInstructionByTypeVisitor;
 import jd.core.process.analyzer.instruction.bytecode.ComparisonInstructionAnalyzer;
 import jd.core.process.analyzer.instruction.bytecode.reconstructor.AssertInstructionReconstructor;
 import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
@@ -1642,18 +1640,13 @@ public final class FastInstructionListBuilder {
                             lv.setDeclarationFlag(DECLARED);
                         }
                     } else {
-                        Predicate<StoreInstruction> predicate = s -> {
-                            LocalVariable localVariable = localVariables.getLocalVariableWithIndexAndOffset(
-                                    s.getIndex(), s.getOffset());
-                            return localVariable != null && localVariable.hasDeclarationFlag() == NOT_DECLARED 
-                                    && beforeListOffset < localVariable.getStartPc()
-                                    && localVariable.getStartPc() + localVariable.getLength() - 1 <= lastOffset;
-                        };
-                        SearchInstructionByTypeVisitor<StoreInstruction> visitor = new SearchInstructionByTypeVisitor<>(StoreInstruction.class, predicate);
-                        StoreInstruction si = visitor.visit(instruction);
+                        StoreInstruction si = (StoreInstruction) SearchInstructionByOpcodeVisitor.visit(
+                                instruction, ByteCodeConstants.STORE, Const.ISTORE, Const.ASTORE);
                         if (si != null) {
                             lv = localVariables.getLocalVariableWithIndexAndOffset(si.getIndex(), si.getOffset());
-                            if (!declarationFound(list, lv) && CheckLocalVariableUsedVisitor.visit(lv, list)) {
+                            if (lv != null && lv.hasDeclarationFlag() == NOT_DECLARED && beforeListOffset < lv.getStartPc()
+                                    && lv.getStartPc() + lv.getLength() - 1 <= lastOffset
+                                    && !declarationFound(list, lv) && CheckLocalVariableUsedVisitor.visit(lv, list)) {
                                 FastDeclaration fastDeclaration = new FastDeclaration(lv.getStartPc(),
                                     Instruction.UNKNOWN_LINE_NUMBER, lv, null);
                                 list.add(i, fastDeclaration);

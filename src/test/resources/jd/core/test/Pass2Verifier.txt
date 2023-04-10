@@ -176,7 +176,7 @@
 /*      */         
 /*      */ 
 /*  178 */         CodeException[] excTable = obj.getExceptionTable();
-/*  179 */         JavaClass o; JavaClass t; String cname; ConstantClass cc; int excIndex; for (CodeException element : excTable) {
+/*  179 */         int excIndex; ConstantClass cc; String cname; JavaClass t; JavaClass o; for (CodeException element : excTable) {
 /*  180 */           excIndex = element.getCatchType();
 /*  181 */           if (excIndex != 0) {
 /*  182 */             checkIndex(obj, excIndex, this.CONST_Class);
@@ -806,8 +806,8 @@
 /*  806 */       Type act = t;
 /*  807 */       if ((act instanceof ArrayType))
 /*  808 */         act = ((ArrayType)act).getBasicType();
-/*      */       VerificationResult vr;
-/*  810 */       Verifier v; if ((act instanceof ObjectType)) {
+/*      */       Verifier v;
+/*  810 */       VerificationResult vr; if ((act instanceof ObjectType)) {
 /*  811 */         v = VerifierFactory.getVerifier(((ObjectType)act).getClassName());
 /*  812 */         vr = v.doPass1();
 /*  813 */         if (vr != VerificationResult.VR_OK)
