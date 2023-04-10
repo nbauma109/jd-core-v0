@@ -1109,7 +1109,7 @@ public final class FastInstructionListBuilder {
         ConstantPool cp = classFile.getConstantPool();
         boolean removedTryResourcesPattern = fastTry.removeTryResourcesPattern(localVariables, cp, finallyInstructions);
         removedTryResourcesPattern |= fastTry.removeTryResourcesPattern(localVariables, cp, tryInstructions);
-        boolean processTryResources = fastTry.processTryResources(localVariables, cp);
+        boolean processTryResources = fastTry.processTryResources();
 
         if (index >= 1 && removedTryResourcesPattern && !processTryResources && !fastTry.hasCatch() && !fastTry.hasFinally()) {
             Instruction beforeTry1 = list.get(index - 1);

@@ -28,9 +28,7 @@ import java.util.List;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
-import jd.core.model.instruction.bytecode.instruction.AConstNull;
 import jd.core.model.instruction.bytecode.instruction.ALoad;
-import jd.core.model.instruction.bytecode.instruction.AStore;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
@@ -237,35 +235,9 @@ public class FastTry extends FastList {
         return resources;
     }
 
-    public boolean processTryResources(LocalVariables localVariables, ConstantPool cp) {
+    public boolean processTryResources() {
         boolean processed = false;
         List<Instruction> instructions = getInstructions();
-        if (instructions.size() > 2) {
-            for (int i = 0; i < instructions.size() - 2; i++) {
-                Instruction instr1 = instructions.get(i);
-                Instruction instr2 = instructions.get(i + 1);
-                Instruction instr3 = instructions.get(i + 2);
-                if (instr1 instanceof AStore && instr2 instanceof AStore && instr3 instanceof FastTry) {
-                    AStore aStore1 = (AStore) instr1;
-                    AStore aStore2 = (AStore) instr2;
-                    FastTry nestedTry = (FastTry)instr3;
-                    LocalVariable lv1 = localVariables.getLocalVariableWithIndexAndOffset(aStore1.getIndex(), aStore1.getOffset());
-                    LocalVariable lv2 = localVariables.getLocalVariableWithIndexAndOffset(aStore2.getIndex(), aStore2.getOffset());
-                    if (lv1 != null && lv2 != null) {
-                        FastTry tryResources = lv1.getTryResources();
-                        if (aStore2.getValueref() instanceof AConstNull && lv2.isExceptionOrThrowable(cp) && tryResources != null) {
-                            lv2.setToBeRemoved(true);
-                            instructions.remove(i);
-                            instructions.remove(i);
-                            nestedTry.processTryResources(localVariables, cp);
-                            tryResources.addResource(aStore1, lv1);
-                            processed = true;
-                            i--;
-                        }
-                    }
-                }
-            }
-        }
         if (instructions.size() == 1) {
             Iterator<Instruction> iterator = instructions.iterator();
             Instruction instruction = iterator.next();
