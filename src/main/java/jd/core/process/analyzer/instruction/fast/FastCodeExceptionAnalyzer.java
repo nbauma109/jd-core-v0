@@ -459,7 +459,7 @@ public final class FastCodeExceptionAnalyzer
                     fastCodeException.getHandlerPC()));
         }
 
-        // Approximation a affinée par la méthode 'ComputeAfterOffset'
+        // Approximation à affiner par la méthode 'computeAfterOffset'
         fce.setAfterOffset(searchAfterOffset(list, fastCodeException.getHandlerPC()));
 
         return fce;
