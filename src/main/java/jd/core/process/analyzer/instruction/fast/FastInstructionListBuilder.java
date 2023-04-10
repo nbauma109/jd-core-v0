@@ -1701,25 +1701,7 @@ public final class FastInstructionListBuilder {
                             Instruction.UNKNOWN_LINE_NUMBER, lv, null);
                     if (addDeclarations) {
                         if (!declarationFound(list, lv) && CheckLocalVariableUsedVisitor.visit(lv, list)) {
-                            boolean createNewDeclaration = true;
-                            if (indexForNewDeclaration < list.size()) {
-                                Instruction next = list.get(indexForNewDeclaration);
-                                if (next instanceof StoreInstruction) {
-                                    StoreInstruction storeInstruction = (StoreInstruction) next;
-                                    int siIndex = storeInstruction.getIndex();
-                                    int siOffset = storeInstruction.getOffset();
-                                    int siLineNumber = storeInstruction.getLineNumber();
-                                    if (lv == localVariables.getLocalVariableWithIndexAndOffset(siIndex, siOffset)) {
-                                        addOrUpdateCast(localVariables, classFile, storeInstruction, lv);
-                                        list.set(indexForNewDeclaration, new FastDeclaration(
-                                                siOffset, siLineNumber, lv, storeInstruction));
-                                        createNewDeclaration = false;
-                                    }
-                                }
-                            }
-                            if (createNewDeclaration) {
-                                list.add(indexForNewDeclaration, fastDeclaration);
-                            }
+                            list.add(indexForNewDeclaration, fastDeclaration);
                         }
                     } else {
                         outerDeclarations.add(fastDeclaration);
