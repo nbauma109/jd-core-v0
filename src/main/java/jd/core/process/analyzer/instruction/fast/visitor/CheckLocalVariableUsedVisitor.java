@@ -374,6 +374,7 @@ public final class CheckLocalVariableUsedVisitor
              ByteCodeConstants.DCONST,
              Const.GOTO,
              Const.IINC,
+             Const.INVOKEDYNAMIC,
              Const.JSR,
              Const.LDC,
              Const.LDC2_W,

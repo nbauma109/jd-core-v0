@@ -1669,20 +1669,20 @@ public final class FastCodeExceptionAnalyzer
         }
 
         // Check next instructions
-        index = list.size();
-        do
-        {
-            index--;
-            instruction = list.get(index);
-
-            if (ByteCodeUtil.isIfOrGotoInstruction(instruction.getOpcode(), false)) {
-                int jumpOffset = ((BranchInstruction)instruction).getJumpOffset();
-                if (firstOffset < jumpOffset && jumpOffset < afterOffset) {
-                    afterOffset = jumpOffset;
-                }
-            }
-        }
-        while (instruction.getOffset() > afterOffset);
+//        index = list.size();
+//        do
+//        {
+//            index--;
+//            instruction = list.get(index);
+//
+//            if (ByteCodeUtil.isIfOrGotoInstruction(instruction.getOpcode(), false)) {
+//                int jumpOffset = ((BranchInstruction)instruction).getJumpOffset();
+//                if (firstOffset < jumpOffset && jumpOffset < afterOffset) {
+//                    afterOffset = jumpOffset;
+//                }
+//            }
+//        }
+//        while (instruction.getOffset() > afterOffset);
 
         return afterOffset;
     }
