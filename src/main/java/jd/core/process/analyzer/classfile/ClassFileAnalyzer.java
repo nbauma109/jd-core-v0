@@ -374,13 +374,10 @@ public final class ClassFileAnalyzer
             while (j-- > 0)
             {
                 field = list.get(j);
-                int fieldDescriptorIndex;
                 Signature fieldSignature = field.getAttributeSignature();
-                if (fieldSignature != null) {
-                    fieldDescriptorIndex = fieldSignature.getSignatureIndex();
-                } else {
-                    fieldDescriptorIndex = field.getDescriptorIndex();
-                }
+                int fieldDescriptorIndex = Optional.ofNullable(fieldSignature)
+                                                   .map(Signature::getSignatureIndex)
+                                                   .orElseGet(field::getDescriptorIndex);
                 // Generate new attribute names
                 newName = FieldNameGenerator.generateName(
                         constants.getConstantUtf8(fieldDescriptorIndex),
@@ -860,7 +857,7 @@ public final class ClassFileAnalyzer
         // Elimine les doubles casts et ajoute des casts devant les
         // constantes numeriques si necessaire.
         CheckCastAndConvertInstructionVisitor.visit(
-                classFile.getConstantPool(), list);
+                classFile, method.getLocalVariables(), list);
         // Reconstruction du pattern a.new A(...)
         DotNewReconstructor.reconstruct(classFile, list);
         // Reconstruction du pattern a.super(...)

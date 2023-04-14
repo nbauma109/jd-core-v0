@@ -21,4 +21,7 @@ import jd.core.model.instruction.bytecode.instruction.Instruction;
 public interface ValuerefAttribute
 {
     Instruction getValueref();
+    void setValueref(Instruction valueref);
+    int getOffset();
+    int getLineNumber();
 }
