@@ -8,7 +8,7 @@ import java.nio.charset.StandardCharsets;
 import static org.junit.Assert.assertEquals;
 
 /*
- * Test for AddCheckCastVisitor.
+ * Test for casts.
  */
 public class LazyMapTest extends AbstractTestCase {
     @Test
