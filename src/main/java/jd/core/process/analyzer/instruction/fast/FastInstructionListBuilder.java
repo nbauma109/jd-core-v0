@@ -105,6 +105,7 @@ import jd.core.model.reference.ReferenceMap;
 import jd.core.process.analyzer.classfile.reconstructor.AssignmentOperatorReconstructor;
 import jd.core.process.analyzer.classfile.visitor.RemoveCheckCastVisitor;
 import jd.core.process.analyzer.classfile.visitor.SearchInstructionByOpcodeVisitor;
+import jd.core.process.analyzer.classfile.visitor.SearchInstructionByTypeVisitor;
 import jd.core.process.analyzer.instruction.bytecode.ComparisonInstructionAnalyzer;
 import jd.core.process.analyzer.instruction.bytecode.reconstructor.AssertInstructionReconstructor;
 import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
@@ -140,8 +141,10 @@ import jd.core.util.SignatureUtil;
  *   AnalyzeXXXXSwitch -------------------------------------------------+
  */
 public final class FastInstructionListBuilder {
+
     private FastInstructionListBuilder() {
     }
+
     /** Declaration constants. */
     private static final boolean DECLARED = true;
     private static final boolean NOT_DECLARED = false;
@@ -1574,17 +1577,15 @@ public final class FastInstructionListBuilder {
 
         if (length > 0) {
             // 1) Ajout de declaration sur les instructions 'store' et 'for'
-            LocalVariable lv;
 
             int lastOffset = list.get(length - 1).getOffset();
 
-            Instruction instruction;
             for (int i = 0; i < length; i++)
             {
-                instruction = list.get(i);
+                Instruction instruction = list.get(i);
                 if (instruction instanceof StoreInstruction) {
                     StoreInstruction si = (StoreInstruction) instruction;
-                    lv = localVariables.getLocalVariableWithIndexAndOffset(si.getIndex(), si.getOffset());
+                    LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(si.getIndex(), si.getOffset());
                     if (lv != null && lv.hasDeclarationFlag() == NOT_DECLARED) {
                         ReturnInstruction returnInstruction = findReturnInstructionForStore(list, length, i, si);
                         if (returnInstruction == null || returnInstruction.getLineNumber() != si.getLineNumber()) {
@@ -1611,7 +1612,7 @@ public final class FastInstructionListBuilder {
                     if (ff.getInit() != null && (ff.getInit().getOpcode() == Const.ASTORE || ff.getInit().getOpcode() == Const.ISTORE
                             || ff.getInit().getOpcode() == ByteCodeConstants.STORE)) {
                         StoreInstruction si = (StoreInstruction) ff.getInit();
-                        lv = localVariables.getLocalVariableWithIndexAndOffset(si.getIndex(), si.getOffset());
+                        LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(si.getIndex(), si.getOffset());
                         if (lv != null && lv.hasDeclarationFlag() == NOT_DECLARED
                                 && beforeListOffset < lv.getStartPc()
                                 && lv.getStartPc() + lv.getLength() - 1 <= lastOffset
@@ -1626,7 +1627,7 @@ public final class FastInstructionListBuilder {
                             instruction, ByteCodeConstants.ASSIGNMENT);
                     if (asi != null && asi.getValue1() instanceof LoadInstruction) {
                         LoadInstruction li = (LoadInstruction) asi.getValue1();
-                        lv = localVariables.getLocalVariableWithIndexAndOffset(li.getIndex(), li.getOffset());
+                        LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(li.getIndex(), li.getOffset());
                         if (lv != null && lv.hasDeclarationFlag() == NOT_DECLARED && beforeListOffset < lv.getStartPc()
                                 && lv.getStartPc() + lv.getLength() - 1 <= lastOffset) {
                             FastDeclaration fastDeclaration = new FastDeclaration(lv.getStartPc(),
@@ -1635,13 +1636,16 @@ public final class FastInstructionListBuilder {
                             lv.setDeclarationFlag(DECLARED);
                         }
                     } else {
-                        StoreInstruction si = (StoreInstruction) SearchInstructionByOpcodeVisitor.visit(
-                                instruction, ByteCodeConstants.STORE, Const.ISTORE, Const.ASTORE);
+                        SearchInstructionByTypeVisitor<StoreInstruction> visitor = new SearchInstructionByTypeVisitor<>(
+                            StoreInstruction.class, si -> {
+                                LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(si.getIndex(), si.getOffset());
+                                return lv != null && lv.hasDeclarationFlag() == NOT_DECLARED && beforeListOffset < lv.getStartPc()
+                                        && lv.getStartPc() + lv.getLength() - 1 <= lastOffset;
+                        });
+                        StoreInstruction si = visitor.visit(instruction);
                         if (si != null) {
-                            lv = localVariables.getLocalVariableWithIndexAndOffset(si.getIndex(), si.getOffset());
-                            if (lv != null && lv.hasDeclarationFlag() == NOT_DECLARED && beforeListOffset < lv.getStartPc()
-                                    && lv.getStartPc() + lv.getLength() - 1 <= lastOffset
-                                    && !declarationFound(list, lv) && CheckLocalVariableUsedVisitor.visit(lv, list)) {
+                            LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(si.getIndex(), si.getOffset());
+                            if (!declarationFound(list, lv)) {
                                 FastDeclaration fastDeclaration = new FastDeclaration(lv.getStartPc(),
                                     Instruction.UNKNOWN_LINE_NUMBER, lv, null);
                                 list.add(i, fastDeclaration);
@@ -1678,7 +1682,7 @@ public final class FastInstructionListBuilder {
             // }
             final int lvLength = Optional.ofNullable(localVariables).map(LocalVariables::size).orElse(0);
             for (int i = 0; i < lvLength; i++) {
-                lv = localVariables.getLocalVariableAt(i);
+                LocalVariable lv = localVariables.getLocalVariableAt(i);
                 if (lv.hasDeclarationFlag() == NOT_DECLARED && !lv.isToBeRemoved() && beforeListOffset < lv.getStartPc()
                         && lv.getStartPc() + lv.getLength() - 1 <= lastOffset && !INTERNAL_OBJECT_SIGNATURE.equals(lv.getName(classFile.getConstantPool()))) {
                     int indexForNewDeclaration = InstructionUtil.getIndexForOffset(list, lv.getStartPc());
@@ -1696,7 +1700,18 @@ public final class FastInstructionListBuilder {
                             Instruction.UNKNOWN_LINE_NUMBER, lv, null);
                     if (addDeclarations) {
                         if (!declarationFound(list, lv) && CheckLocalVariableUsedVisitor.visit(lv, list)) {
-                            list.add(indexForNewDeclaration, fastDeclaration);
+                            Instruction instruction = list.get(indexForNewDeclaration);
+                            if (instruction instanceof StoreInstruction) {
+                                StoreInstruction si = (StoreInstruction) instruction;
+                                if (lv == localVariables.getLocalVariableWithIndexAndOffset(si.getIndex(), si.getOffset())) {
+                                    fastDeclaration = new FastDeclaration(si.getOffset(), si.getLineNumber(), lv, si);
+                                }
+                            }
+                            if (fastDeclaration.getInstruction() == null) {
+                                list.add(indexForNewDeclaration, fastDeclaration);
+                            } else {
+                                list.set(indexForNewDeclaration, fastDeclaration);
+                            }
                         }
                     } else {
                         outerDeclarations.add(fastDeclaration);
