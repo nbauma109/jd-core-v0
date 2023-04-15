@@ -23,6 +23,9 @@ import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ElementValue;
 import org.apache.bcel.classfile.Signature;
 import org.jd.core.v1.api.loader.Loader;
+import org.jd.core.v1.model.javasyntax.type.Type;
+import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
+import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker.MethodTypes;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.ArrayList;
@@ -1796,18 +1799,37 @@ public final class ClassFileWriter
         {
             String firstInternalClassName =
                 constants.getConstantClassName(exceptionIndexes[0]);
-            this.printer.print(
-                SignatureWriter.internalClassNameToShortClassName(
-                    this.referenceMap, classFile, firstInternalClassName));
-
-            String nextInternalClassName;
-            for (int j=1; j<exceptionIndexesLength; j++)
-            {
-                this.printer.print(", ");
-                nextInternalClassName = constants.getConstantClassName(exceptionIndexes[j]);
+            Signature genericSignature = tlb.getMethod().getAttributeSignature();
+            if (genericSignature != null && genericSignature.getSignature().indexOf('^') != -1) {
+                TypeMaker typeMaker = new TypeMaker(loader);
+                MethodTypes methodTypes = typeMaker.makeMethodTypes(genericSignature.getSignature());
+                for (Iterator<Type> it = methodTypes.getExceptionTypes().iterator(); it.hasNext();) {
+                    Type exceptionType = it.next();
+                    if (exceptionType.isGenericType()) {
+                        this.printer.print(exceptionType.getName());
+                    } else {
+                        this.printer.print(
+                            SignatureWriter.internalClassNameToShortClassName(
+                                this.referenceMap, classFile, exceptionType.getInternalName()));
+                    }
+                    if (it.hasNext()) {
+                        this.printer.print(", ");
+                    }
+                }
+            } else {
                 this.printer.print(
                     SignatureWriter.internalClassNameToShortClassName(
-                        this.referenceMap, classFile, nextInternalClassName));
+                        this.referenceMap, classFile, firstInternalClassName));
+    
+                String nextInternalClassName;
+                for (int j=1; j<exceptionIndexesLength; j++)
+                {
+                    this.printer.print(", ");
+                    nextInternalClassName = constants.getConstantClassName(exceptionIndexes[j]);
+                    this.printer.print(
+                        SignatureWriter.internalClassNameToShortClassName(
+                            this.referenceMap, classFile, nextInternalClassName));
+                }
             }
         }
 
