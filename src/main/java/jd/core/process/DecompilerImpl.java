@@ -37,7 +37,7 @@ import jd.core.process.writer.ClassFileWriter;
 public class DecompilerImpl implements Decompiler
 {
     @Override
-    public void decompile(
+    public synchronized void decompile(
             Preferences preferences, Loader loader,
             Printer printer, String internalClassPath)
         throws IOException
