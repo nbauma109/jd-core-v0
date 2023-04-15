@@ -18,8 +18,9 @@ package jd.core.model.instruction.bytecode.instruction;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariables;
+import jd.core.model.instruction.bytecode.instruction.attribute.ValuerefAttribute;
 
-public class AThrow extends Instruction
+public class AThrow extends Instruction implements ValuerefAttribute
 {
     private Instruction value;
 
@@ -43,5 +44,15 @@ public class AThrow extends Instruction
 
     public void setValue(Instruction value) {
         this.value = value;
+    }
+
+    @Override
+    public Instruction getValueref() {
+        return getValue();
+    }
+
+    @Override
+    public void setValueref(Instruction valueref) {
+        setValue(valueref);
     }
 }

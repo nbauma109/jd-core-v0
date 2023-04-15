@@ -857,7 +857,7 @@ public final class ClassFileAnalyzer
         // Elimine les doubles casts et ajoute des casts devant les
         // constantes numeriques si necessaire.
         CheckCastAndConvertInstructionVisitor.visit(
-                classFile, method.getLocalVariables(), list);
+                classFile, method, list);
         // Reconstruction du pattern a.new A(...)
         DotNewReconstructor.reconstruct(classFile, list);
         // Reconstruction du pattern a.super(...)

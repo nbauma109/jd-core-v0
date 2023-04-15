@@ -20,6 +20,7 @@ import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.Signature;
+import org.jd.core.v1.model.javasyntax.type.BaseType;
 import org.jd.core.v1.model.javasyntax.type.BaseTypeArgument;
 import org.jd.core.v1.model.javasyntax.type.GenericType;
 import org.jd.core.v1.model.javasyntax.type.ObjectType;
@@ -28,6 +29,7 @@ import org.jd.core.v1.model.javasyntax.type.TypeArgument;
 import org.jd.core.v1.model.javasyntax.type.WildcardExtendsTypeArgument;
 import org.jd.core.v1.model.javasyntax.type.WildcardTypeArgument;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
+import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker.MethodTypes;
 
 import java.util.List;
 import java.util.Optional;
@@ -36,6 +38,7 @@ import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.Field;
 import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
+import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.ANewArray;
 import jd.core.model.instruction.bytecode.instruction.AThrow;
@@ -84,40 +87,59 @@ public final class CheckCastAndConvertInstructionVisitor
         super();
     }
 
-    private static void visit(ClassFile classFile, LocalVariables localVariables,
+    private static void visit(ClassFile classFile, Method method,
             Instruction instruction)
     {
+        LocalVariables localVariables = method.getLocalVariables(); 
         switch (instruction.getOpcode())
         {
         case Const.ARRAYLENGTH:
-            visit(classFile, localVariables, ((ArrayLength)instruction).getArrayref());
+            visit(classFile, method, ((ArrayLength)instruction).getArrayref());
             break;
         case Const.AASTORE,
              ByteCodeConstants.ARRAYSTORE:
-            visit(classFile, localVariables, ((ArrayStoreInstruction)instruction).getArrayref());
+            visit(classFile, method, ((ArrayStoreInstruction)instruction).getArrayref());
             break;
         case ByteCodeConstants.ASSERT:
             {
                 AssertInstruction ai = (AssertInstruction)instruction;
-                visit(classFile, localVariables, ai.getTest());
+                visit(classFile, method, ai.getTest());
                 if (ai.getMsg() != null) {
-                    visit(classFile, localVariables, ai.getMsg());
+                    visit(classFile, method, ai.getMsg());
                 }
             }
             break;
         case Const.ATHROW:
-            visit(classFile, localVariables, ((AThrow)instruction).getValue());
+                Instruction valueref = ((AThrow)instruction).getValueref();
+                Signature signature = method.getAttributeSignature();
+                if (signature != null && signature.getSignature().indexOf('^') != -1) {
+                    TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
+                    MethodTypes methodTypes = typeMaker.makeMethodTypes(signature.getSignature());
+                    BaseType exceptionTypes = methodTypes.getExceptionTypes();
+                    if (exceptionTypes != null && exceptionTypes.size() == 1) {
+                        Type exceptionType = exceptionTypes.getFirst();
+                        String expressionSignature = valueref.getReturnedSignature(classFile, localVariables);
+                        Type expressionType = typeMaker.makeFromSignature(expressionSignature);
+                        if (exceptionType.isGenericType() && !exceptionType.equals(expressionType)) {
+                            String exceptionSignature = exceptionType.getDescriptor();
+                            int descriptorIndex = classFile.getConstantPool().addConstantUtf8('T' + exceptionSignature + ';');
+                            ValuerefAttribute valuerefAttribute = (ValuerefAttribute) instruction;
+                            addOrUpdateCast(localVariables, classFile, valuerefAttribute, descriptorIndex);
+                        }
+                    }
+                }
+                visit(classFile, method, valueref);
             break;
         case ByteCodeConstants.UNARYOP:
-            visit(classFile, localVariables, ((UnaryOperatorInstruction)instruction).getValue());
+            visit(classFile, method, ((UnaryOperatorInstruction)instruction).getValue());
             break;
         case ByteCodeConstants.BINARYOP,
              ByteCodeConstants.ASSIGNMENT:
             {
                 BinaryOperatorInstruction boi =
                     (BinaryOperatorInstruction)instruction;
-                visit(classFile, localVariables, boi.getValue1());
-                visit(classFile, localVariables, boi.getValue2());
+                visit(classFile, method, boi.getValue1());
+                visit(classFile, method, boi.getValue2());
             }
             break;
         case Const.CHECKCAST:
@@ -127,7 +149,7 @@ public final class CheckCastAndConvertInstructionVisitor
                 {
                     cc.setObjectref(((CheckCast)cc.getObjectref()).getObjectref());
                 }
-                visit(classFile, localVariables, cc.getObjectref());
+                visit(classFile, method, cc.getObjectref());
             }
             break;
         case ByteCodeConstants.STORE,
@@ -138,25 +160,25 @@ public final class CheckCastAndConvertInstructionVisitor
                 if (lv != null) {
                     addOrUpdateCast(localVariables, classFile, si, lv.getSignatureIndex());
                 }
-                visit(classFile, localVariables, si.getValueref());
+                visit(classFile, method, si.getValueref());
             break;
         case ByteCodeConstants.DUPSTORE:
-            visit(classFile, localVariables, ((DupStore)instruction).getObjectref());
+            visit(classFile, method, ((DupStore)instruction).getObjectref());
             break;
         case ByteCodeConstants.CONVERT,
              ByteCodeConstants.IMPLICITCONVERT:
-            visit(classFile, localVariables, ((ConvertInstruction)instruction).getValue());
+            visit(classFile, method, ((ConvertInstruction)instruction).getValue());
             break;
         case ByteCodeConstants.IFCMP:
             {
                 IfCmp ifCmp = (IfCmp)instruction;
-                visit(classFile, localVariables, ifCmp.getValue1());
-                visit(classFile, localVariables, ifCmp.getValue2());
+                visit(classFile, method, ifCmp.getValue1());
+                visit(classFile, method, ifCmp.getValue2());
             }
             break;
         case ByteCodeConstants.IF,
              ByteCodeConstants.IFXNULL:
-            visit(classFile, localVariables, ((IfInstruction)instruction).getValue());
+            visit(classFile, method, ((IfInstruction)instruction).getValue());
             break;
         case ByteCodeConstants.COMPLEXIF:
             {
@@ -164,18 +186,18 @@ public final class CheckCastAndConvertInstructionVisitor
                     ((ComplexConditionalBranchInstruction)instruction).getInstructions();
                 for (int i=branchList.size()-1; i>=0; --i)
                 {
-                    visit(classFile, localVariables, branchList.get(i));
+                    visit(classFile, method, branchList.get(i));
                 }
             }
             break;
         case Const.INSTANCEOF:
-            visit(classFile, localVariables, ((InstanceOf)instruction).getObjectref());
+            visit(classFile, method, ((InstanceOf)instruction).getObjectref());
             break;
         case Const.INVOKEINTERFACE,
              Const.INVOKESPECIAL,
              Const.INVOKEVIRTUAL:
             {
-                visit(classFile, localVariables, ((InvokeNoStaticInstruction)instruction).getObjectref());
+                visit(classFile, method, ((InvokeNoStaticInstruction)instruction).getObjectref());
             }
             // intended fall through
         case Const.INVOKESTATIC,
@@ -229,43 +251,43 @@ public final class CheckCastAndConvertInstructionVisitor
                             }
                             else
                             {
-                                visit(classFile, localVariables, arg);
+                                visit(classFile, method, arg);
                             }
                         }
                         else
                         {
-                            visit(classFile, localVariables, arg);
+                            visit(classFile, method, arg);
                         }
                     }
                 }
             }
             break;
         case Const.LOOKUPSWITCH:
-            visit(classFile, localVariables, ((LookupSwitch)instruction).getKey());
+            visit(classFile, method, ((LookupSwitch)instruction).getKey());
             break;
         case Const.MONITORENTER:
-            visit(classFile, localVariables, ((MonitorEnter)instruction).getObjectref());
+            visit(classFile, method, ((MonitorEnter)instruction).getObjectref());
             break;
         case Const.MONITOREXIT:
-            visit(classFile, localVariables, ((MonitorExit)instruction).getObjectref());
+            visit(classFile, method, ((MonitorExit)instruction).getObjectref());
             break;
         case Const.MULTIANEWARRAY:
             {
                 Instruction[] dimensions = ((MultiANewArray)instruction).getDimensions();
                 for (int i=dimensions.length-1; i>=0; --i)
                 {
-                    visit(classFile, localVariables, dimensions[i]);
+                    visit(classFile, method, dimensions[i]);
                 }
             }
             break;
         case Const.NEWARRAY:
-            visit(classFile, localVariables, ((NewArray)instruction).getDimension());
+            visit(classFile, method, ((NewArray)instruction).getDimension());
             break;
         case Const.ANEWARRAY:
-            visit(classFile, localVariables, ((ANewArray)instruction).getDimension());
+            visit(classFile, method, ((ANewArray)instruction).getDimension());
             break;
         case Const.POP:
-            visit(classFile, localVariables, ((Pop)instruction).getObjectref());
+            visit(classFile, method, ((Pop)instruction).getObjectref());
             break;
         case Const.PUTFIELD:
             {
@@ -280,36 +302,36 @@ public final class CheckCastAndConvertInstructionVisitor
                                                        .orElseGet(field::getDescriptorIndex);
                     addOrUpdateCast(localVariables, classFile, putField, fieldDescriptorIndex);
                 }
-                visit(classFile, localVariables, putField.getObjectref());
-                visit(classFile, localVariables, putField.getValueref());
+                visit(classFile, method, putField.getObjectref());
+                visit(classFile, method, putField.getValueref());
             }
             break;
         case Const.PUTSTATIC:
-            visit(classFile, localVariables, ((PutStatic)instruction).getValueref());
+            visit(classFile, method, ((PutStatic)instruction).getValueref());
             break;
         case ByteCodeConstants.XRETURN:
-            visit(classFile, localVariables, ((ReturnInstruction)instruction).getValueref());
+            visit(classFile, method, ((ReturnInstruction)instruction).getValueref());
             break;
         case Const.TABLESWITCH:
-            visit(classFile, localVariables, ((TableSwitch)instruction).getKey());
+            visit(classFile, method, ((TableSwitch)instruction).getKey());
             break;
         case ByteCodeConstants.TERNARYOPSTORE:
-            visit(classFile, localVariables, ((TernaryOpStore)instruction).getObjectref());
+            visit(classFile, method, ((TernaryOpStore)instruction).getObjectref());
             break;
         case ByteCodeConstants.PREINC,
              ByteCodeConstants.POSTINC:
-            visit(classFile, localVariables, ((IncInstruction)instruction).getValue());
+            visit(classFile, method, ((IncInstruction)instruction).getValue());
             break;
         case Const.GETFIELD:
-            visit(classFile, localVariables, ((GetField)instruction).getObjectref());
+            visit(classFile, method, ((GetField)instruction).getObjectref());
             break;
         case ByteCodeConstants.INITARRAY,
              ByteCodeConstants.NEWANDINITARRAY:
             {
                 InitArrayInstruction iai = (InitArrayInstruction)instruction;
-                visit(classFile, localVariables, iai.getNewArray());
+                visit(classFile, method, iai.getNewArray());
                 if (iai.getValues() != null) {
-                    visit(classFile, localVariables, iai.getValues());
+                    visit(classFile, method, iai.getValues());
                 }
             }
             break;
@@ -348,12 +370,12 @@ public final class CheckCastAndConvertInstructionVisitor
         }
     }
 
-    public static void visit(ClassFile classFile, LocalVariables localVariables,
+    public static void visit(ClassFile classFile, Method method,
         List<Instruction> instructions)
     {
         for (int i=instructions.size()-1; i>=0; --i)
         {
-            visit(classFile, localVariables, instructions.get(i));
+            visit(classFile, method, instructions.get(i));
         }
     }
 
@@ -364,25 +386,25 @@ public final class CheckCastAndConvertInstructionVisitor
         String expressionSignature = valueref.getReturnedSignature(classFile, localVariables);
         String signature = classFile.getConstantPool().getConstantUtf8(descriptorIndex);
         TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
-        Type lvType = typeMaker.makeFromSignature(signature);
+        Type receiverType = typeMaker.makeFromSignature(signature);
         if (valueref instanceof CheckCast) {
             CheckCast cc = (CheckCast) valueref;
             String castSignature = cc.getReturnedSignature(classFile, localVariables);
             Type castType = typeMaker.makeFromSignature(castSignature);
             if (castType.isObjectType()
-                    && lvType.isGenericType()
-                    && lvType.getDimension() == castType.getDimension()) {
+                    && receiverType.isGenericType()
+                    && receiverType.getDimension() == castType.getDimension()) {
                 cc.setIndex(descriptorIndex);
             }
         } else if (expressionSignature != null) {
             Type expressionType = typeMaker.makeFromSignature(expressionSignature);
-            if (lvType.isGenericType() && !expressionType.isGenericType()) {
+            if (receiverType.isGenericType() && !expressionType.isGenericType()) {
                 valuerefAttribute.setValueref(new CheckCast(
                         Const.CHECKCAST, valuerefAttribute.getOffset(),
                         valuerefAttribute.getLineNumber(), descriptorIndex, valueref));
             }
-            if (lvType.isObjectType() && expressionType != null && expressionType.isObjectType()) {
-                ObjectType otLeft = (ObjectType) lvType;
+            if (receiverType.isObjectType() && expressionType != null && expressionType.isObjectType()) {
+                ObjectType otLeft = (ObjectType) receiverType;
                 ObjectType otRight = (ObjectType) expressionType;
                 BaseTypeArgument typeArgsLeft = otLeft.getTypeArguments();
                 BaseTypeArgument typeArgsRight = otRight.getTypeArguments();

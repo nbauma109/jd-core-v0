@@ -314,7 +314,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
                     this.printer.print(' ');
                 }
 
-                lineNumber = visit(athrow, athrow.getValue());
+                lineNumber = visit(athrow.getValueref());
             }
             break;
         case ByteCodeConstants.UNARYOP:
