@@ -42,9 +42,6 @@ import jd.core.model.instruction.bytecode.instruction.InstanceOf;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeInstruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
-import jd.core.model.instruction.bytecode.instruction.LookupSwitch;
-import jd.core.model.instruction.bytecode.instruction.MonitorEnter;
-import jd.core.model.instruction.bytecode.instruction.MonitorExit;
 import jd.core.model.instruction.bytecode.instruction.MultiANewArray;
 import jd.core.model.instruction.bytecode.instruction.NewArray;
 import jd.core.model.instruction.bytecode.instruction.Pop;
@@ -52,7 +49,6 @@ import jd.core.model.instruction.bytecode.instruction.PutField;
 import jd.core.model.instruction.bytecode.instruction.PutStatic;
 import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
-import jd.core.model.instruction.bytecode.instruction.TableSwitch;
 import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
@@ -61,7 +57,6 @@ import jd.core.model.instruction.fast.instruction.FastDeclaration;
 import jd.core.model.instruction.fast.instruction.FastFor;
 import jd.core.model.instruction.fast.instruction.FastForEach;
 import jd.core.model.instruction.fast.instruction.FastInstruction;
-import jd.core.model.instruction.fast.instruction.FastLabel;
 import jd.core.model.instruction.fast.instruction.FastList;
 import jd.core.model.instruction.fast.instruction.FastSwitch;
 import jd.core.model.instruction.fast.instruction.FastSwitch.Pair;
@@ -189,12 +184,6 @@ public final class SearchInstructionByTypeVisitor<T extends Instruction>
                 }
             }
             break;
-        case Const.LOOKUPSWITCH:
-            return visit(((LookupSwitch)instruction).getKey());
-        case Const.MONITORENTER:
-            return visit(((MonitorEnter)instruction).getObjectref());
-        case Const.MONITOREXIT:
-            return visit(((MonitorExit)instruction).getObjectref());
         case Const.MULTIANEWARRAY:
             {
                 Instruction[] dimensions = ((MultiANewArray)instruction).getDimensions();
@@ -226,8 +215,6 @@ public final class SearchInstructionByTypeVisitor<T extends Instruction>
             return visit(((PutStatic)instruction).getValueref());
         case ByteCodeConstants.XRETURN:
             return visit(((ReturnInstruction)instruction).getValueref());
-        case Const.TABLESWITCH:
-            return visit(((TableSwitch)instruction).getKey());
         case ByteCodeConstants.TERNARYOPSTORE:
             return visit(((TernaryOpStore)instruction).getObjectref());
         case ByteCodeConstants.PREINC,
@@ -396,14 +383,6 @@ public final class SearchInstructionByTypeVisitor<T extends Instruction>
                             return tmp;
                         }
                     }
-                }
-            }
-            break;
-        case FastConstants.LABEL:
-            {
-                FastLabel fla = (FastLabel)instruction;
-                if (fla.getInstruction() != null) {
-                    return visit(fla.getInstruction());
                 }
             }
             break;
