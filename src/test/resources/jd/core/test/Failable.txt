@@ -409,9 +409,9 @@
 /*     */   {
 /* 410 */     Objects.requireNonNull(throwable, "throwable");
 /* 411 */     if ((throwable instanceof RuntimeException))
-/* 412 */       throw ((RuntimeException)throwable);
+/* 412 */       throw (RuntimeException)throwable;
 /* 413 */     if ((throwable instanceof Error))
-/* 414 */       throw ((Error)throwable);
+/* 414 */       throw (Error)throwable;
 /* 415 */     if ((throwable instanceof IOException)) {
 /* 416 */       throw new UncheckedIOException((IOException)throwable);
 /*     */     }

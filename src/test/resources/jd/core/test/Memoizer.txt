@@ -151,7 +151,7 @@
 /* 151 */     if ((throwable instanceof RuntimeException))
 /* 152 */       return (RuntimeException)throwable;
 /* 153 */     if ((throwable instanceof Error)) {
-/* 154 */       throw ((Error)throwable);
+/* 154 */       throw (Error)throwable;
 /*     */     }
 /* 156 */     throw new IllegalStateException("Unchecked exception", throwable);
 /*     */   }

@@ -32,7 +32,7 @@
 /*    */     try {
 /* 33 */       System.out.println("try");
 /*    */     } catch (Exception e) {
-/* 35 */       throw ((RuntimeException)e);
+/* 35 */       throw (RuntimeException)e;
 /*    */     }
 /*    */   }
 /*    */   
