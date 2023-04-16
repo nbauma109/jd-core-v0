@@ -66,15 +66,15 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */   @Override
+/*     */ 
 /*     */   public abstract boolean checkState();
 /*     */   
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */   @Override
 /*     */   public abstract boolean incrementAndCheckState(T paramT);
 /*     */   
+/*     */ 
 /*     */ 
 /*     */ 
 /*     */   @Override

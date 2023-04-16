@@ -239,7 +239,7 @@ public class Method extends Base
         ConstantPool cp = classFile.getConstantPool();
         if (getNameIndex() != cp.getInstanceConstructorIndex()
          && getNameIndex() != cp.getClassConstructorIndex()
-         && (getAccessFlags() & (Const.ACC_PRIVATE | Const.ACC_STATIC)) == 0) {
+         && (getAccessFlags() & (Const.ACC_PRIVATE|Const.ACC_ABSTRACT|Const.ACC_STATIC)) == 0) {
             String name = getName(cp);
             String descriptor = getDescriptor(cp);
             Method overridenMethod = classFile.findMethodInSuperClassAndInterfaces(name, descriptor);
