@@ -37,7 +37,8 @@ public final class SignatureWriter
 {
     private SignatureWriter() {
     }
-        public static void writeTypeDeclaration(
+
+    public static void writeTypeDeclaration(
             Loader loader, Printer printer, ReferenceMap referenceMap,
             ClassFile classFile, String signature)
     {
@@ -542,6 +543,7 @@ public final class SignatureWriter
             // La classe n'est pas la classe courante ou l'une de ses classes
             // internes
             int index = internalName.lastIndexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR);
+            int lastIndexOfDollar = internalName.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR);
 
             if (index != -1)
             {
@@ -565,7 +567,6 @@ public final class SignatureWriter
                 } else if (referenceMap.contains(internalName))
                 {
                     // Si le nom interne fait parti de la liste des "import"
-                    int lastIndexOfDollar = internalName.lastIndexOf('$');
                     if (lastIndexOfDollar != -1) {
                         internalName = internalName.substring(lastIndexOfDollar + 1);
                     } else {
@@ -593,6 +594,10 @@ public final class SignatureWriter
                     } else {
                         internalName = internalClassName;
                     }
+                } else if (lastIndexOfDollar != -1) {
+                    internalName = internalName.substring(index+1)
+                                               .replace(StringConstants.INTERNAL_INNER_SEPARATOR, 
+                                                        StringConstants.PACKAGE_SEPARATOR);
                 } else {
                     // Sinon, on conserve le nom du package
                     internalName = internalName.replace(StringConstants.INTERNAL_PACKAGE_SEPARATOR,

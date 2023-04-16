@@ -6,7 +6,7 @@ import org.junit.Test;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 
 import jd.core.model.reference.ReferenceMap;
 
@@ -21,6 +21,6 @@ public class NameClashTest extends AbstractTestCase {
     @Test
     public void testContainsSimpleNameReturnsFalse() throws Exception {
         ReferenceMap map = new ReferenceMap();
-        assertFalse(map.hasSimpleNameClashWith(""));
+        assertNull(map.getSimpleNameClashWith(""));
     }
 }

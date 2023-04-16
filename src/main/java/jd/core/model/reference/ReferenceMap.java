@@ -81,13 +81,22 @@ public class ReferenceMap
         return this.references.containsKey(internalName);
     }
 
-    public boolean hasSimpleNameClashWith(String internalName)
+    public String getSimpleNameClashWith(String internalName)
     {
+        int lastIndexOfDollar = internalName.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR);
+        if (lastIndexOfDollar != -1) {
+            String importedInternalName = simpleNameToInternalName.get(internalName.substring(lastIndexOfDollar + 1));
+            if (importedInternalName != null && !internalName.equals(importedInternalName)) {
+                return importedInternalName;
+            }
+        }
         int lastIndexOfSlash = internalName.lastIndexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR);
         if (lastIndexOfSlash != -1) {
             String importedInternalName = simpleNameToInternalName.get(internalName.substring(lastIndexOfSlash + 1));
-            return importedInternalName != null && !internalName.equals(importedInternalName);
+            if (importedInternalName != null && !internalName.equals(importedInternalName)) {
+                return importedInternalName;
+            }
         }
-        return false;
+        return null;
     }
 }

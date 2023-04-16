@@ -181,9 +181,14 @@ public final class SignatureAnalyzer
                 if (classFlag) {
                     String internalName = CharArrayUtil.substring(caSignature, beginIndex, index);
                     String internalPackageName = internalName.substring(0, internalName.lastIndexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR));
-                    if (!referenceMap.hasSimpleNameClashWith(internalName) && !StringConstants.INTERNAL_JAVA_LANG_PACKAGE_NAME.equals(internalPackageName))
+                    if (!StringConstants.INTERNAL_JAVA_LANG_PACKAGE_NAME.equals(internalPackageName))
                     {
-                        referenceMap.add(internalName);
+                        String importedInternalName = referenceMap.getSimpleNameClashWith(internalName);
+                        if (importedInternalName == null) {
+                            referenceMap.add(internalName);
+                        } else {
+                            referenceMap.remove(importedInternalName);
+                        }
                     }
                 }
 
