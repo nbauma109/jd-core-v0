@@ -1,0 +1,566 @@
+/*     */ package org.apache.commons.collections4.multiset;
+/*     */ 
+/*     */ import java.io.IOException;
+/*     */ import java.io.ObjectInputStream;
+/*     */ import java.io.ObjectOutputStream;
+/*     */ import java.lang.reflect.Array;
+/*     */ import java.util.ConcurrentModificationException;
+/*     */ import java.util.Iterator;
+/*     */ import java.util.Map;
+/*     */ import org.apache.commons.collections4.MultiSet;
+/*     */ import org.apache.commons.collections4.iterators.AbstractIteratorDecorator;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public abstract class AbstractMapMultiSet<E>
+/*     */   extends AbstractMultiSet<E>
+/*     */ {
+/*     */   private transient Map<E, MutableInteger> map;
+/*     */   private transient int size;
+/*     */   private transient int modCount;
+/*     */   
+/*     */   protected AbstractMapMultiSet() {}
+/*     */   
+/*     */   protected AbstractMapMultiSet(Map<E, MutableInteger> map)
+/*     */   {
+/*  66 */     this.map = map;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   protected Map<E, MutableInteger> getMap()
+/*     */   {
+/*  76 */     return this.map;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   protected void setMap(Map<E, MutableInteger> map)
+/*     */   {
+/*  87 */     this.map = map;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public int size()
+/*     */   {
+/*  98 */     return this.size;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public boolean isEmpty()
+/*     */   {
+/* 108 */     return this.map.isEmpty();
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public int getCount(Object object)
+/*     */   {
+/* 120 */     MutableInteger count = (MutableInteger)this.map.get(object);
+/* 121 */     if (count != null) {
+/* 122 */       return count.value;
+/*     */     }
+/* 124 */     return 0;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public boolean contains(Object object)
+/*     */   {
+/* 137 */     return this.map.containsKey(object);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public Iterator<E> iterator()
+/*     */   {
+/* 149 */     return new MapBasedMultiSetIterator<>(this);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */   private static class MapBasedMultiSetIterator<E>
+/*     */     implements Iterator<E>
+/*     */   {
+/*     */     private final AbstractMapMultiSet<E> parent;
+/*     */     
+/*     */     private final Iterator<Map.Entry<E, AbstractMapMultiSet.MutableInteger>> entryIterator;
+/*     */     
+/*     */     private Map.Entry<E, AbstractMapMultiSet.MutableInteger> current;
+/*     */     
+/*     */     private int itemCount;
+/*     */     
+/*     */     private final int mods;
+/*     */     private boolean canRemove;
+/*     */     
+/*     */     public MapBasedMultiSetIterator(AbstractMapMultiSet<E> parent)
+/*     */     {
+/* 169 */       this.parent = parent;
+/* 170 */       this.entryIterator = parent.map.entrySet().iterator();
+/* 171 */       this.current = null;
+/* 172 */       this.mods = parent.modCount;
+/* 173 */       this.canRemove = false;
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public boolean hasNext()
+/*     */     {
+/* 179 */       return this.itemCount > 0 || this.entryIterator.hasNext();
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public E next()
+/*     */     {
+/* 185 */       if (this.parent.modCount != this.mods) {
+/* 186 */         throw new ConcurrentModificationException();
+/*     */       }
+/* 188 */       if (this.itemCount == 0) {
+/* 189 */         this.current = ((Map.Entry)this.entryIterator.next());
+/* 190 */         this.itemCount = ((AbstractMapMultiSet.MutableInteger)this.current.getValue()).value;
+/*     */       }
+/* 192 */       this.canRemove = true;
+/* 193 */       this.itemCount--;
+/* 194 */       return this.current.getKey();
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public void remove()
+/*     */     {
+/* 200 */       if (this.parent.modCount != this.mods) {
+/* 201 */         throw new ConcurrentModificationException();
+/*     */       }
+/* 203 */       if (!this.canRemove) {
+/* 204 */         throw new IllegalStateException();
+/*     */       }
+/* 206 */       AbstractMapMultiSet.MutableInteger mut = (AbstractMapMultiSet.MutableInteger)this.current.getValue();
+/* 207 */       if (mut.value > 1) {
+/* 208 */         mut.value--;
+/*     */       } else {
+/* 210 */         this.entryIterator.remove();
+/*     */       }
+/* 212 */       this.parent.size--;
+/* 213 */       this.canRemove = false;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public int add(E object, int occurrences)
+/*     */   {
+/* 220 */     if (occurrences < 0) {
+/* 221 */       throw new IllegalArgumentException("Occurrences must not be negative.");
+/*     */     }
+/*     */     
+/* 224 */     MutableInteger mut = (MutableInteger)this.map.get(object);
+/* 225 */     int oldCount = mut != null ? mut.value : 0;
+/*     */     
+/* 227 */     if (occurrences > 0) {
+/* 228 */       this.modCount++;
+/* 229 */       this.size += occurrences;
+/* 230 */       if (mut == null) {
+/* 231 */         this.map.put(object, new MutableInteger(occurrences));
+/*     */       } else {
+/* 233 */         mut.value += occurrences;
+/*     */       }
+/*     */     }
+/* 236 */     return oldCount;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public void clear()
+/*     */   {
+/* 245 */     this.modCount++;
+/* 246 */     this.map.clear();
+/* 247 */     this.size = 0;
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public int remove(Object object, int occurrences) {
+/* 252 */     if (occurrences < 0) {
+/* 253 */       throw new IllegalArgumentException("Occurrences must not be negative.");
+/*     */     }
+/*     */     
+/* 256 */     MutableInteger mut = (MutableInteger)this.map.get(object);
+/* 257 */     if (mut == null) {
+/* 258 */       return 0;
+/*     */     }
+/* 260 */     int oldCount = mut.value;
+/* 261 */     if (occurrences > 0) {
+/* 262 */       this.modCount++;
+/* 263 */       if (occurrences < mut.value) {
+/* 264 */         mut.value -= occurrences;
+/* 265 */         this.size -= occurrences;
+/*     */       } else {
+/* 267 */         this.map.remove(object);
+/* 268 */         this.size -= mut.value;
+/* 269 */         mut.value = 0;
+/*     */       }
+/*     */     }
+/* 272 */     return oldCount;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   protected static class MutableInteger
+/*     */   {
+/*     */     protected int value;
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     MutableInteger(int value)
+/*     */     {
+/* 288 */       this.value = value;
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public boolean equals(Object obj) {
+/* 293 */       if (!(obj instanceof MutableInteger)) {
+/* 294 */         return false;
+/*     */       }
+/* 296 */       return ((MutableInteger)obj).value == this.value;
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public int hashCode() {
+/* 301 */       return this.value;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   protected Iterator<E> createUniqueSetIterator()
+/*     */   {
+/* 308 */     return new UniqueSetIterator<>(getMap().keySet().iterator(), this);
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   protected int uniqueElements() {
+/* 313 */     return this.map.size();
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   protected Iterator<MultiSet.Entry<E>> createEntrySetIterator() {
+/* 318 */     return new EntrySetIterator<>(this.map.entrySet().iterator(), this);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   protected static class UniqueSetIterator<E>
+/*     */     extends AbstractIteratorDecorator<E>
+/*     */   {
+/*     */     protected final AbstractMapMultiSet<E> parent;
+/*     */     
+/*     */ 
+/*     */ 
+/* 331 */     protected E lastElement = null;
+/*     */     
+/*     */ 
+/* 334 */     protected boolean canRemove = false;
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     protected UniqueSetIterator(Iterator<E> iterator, AbstractMapMultiSet<E> parent)
+/*     */     {
+/* 342 */       super(iterator);
+/* 343 */       this.parent = parent;
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public E next() {
+/* 348 */       this.lastElement = super.next();
+/* 349 */       this.canRemove = true;
+/* 350 */       return this.lastElement;
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public void remove() {
+/* 355 */       if (!this.canRemove) {
+/* 356 */         throw new IllegalStateException("Iterator remove() can only be called once after next()");
+/*     */       }
+/* 358 */       int count = this.parent.getCount(this.lastElement);
+/* 359 */       super.remove();
+/* 360 */       this.parent.remove(this.lastElement, count);
+/* 361 */       this.lastElement = null;
+/* 362 */       this.canRemove = false;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   protected static class EntrySetIterator<E>
+/*     */     implements Iterator<MultiSet.Entry<E>>
+/*     */   {
+/*     */     protected final AbstractMapMultiSet<E> parent;
+/*     */     
+/*     */ 
+/*     */     protected final Iterator<Map.Entry<E, AbstractMapMultiSet.MutableInteger>> decorated;
+/*     */     
+/*     */ 
+/* 377 */     protected MultiSet.Entry<E> last = null;
+/*     */     
+/*     */ 
+/* 380 */     protected boolean canRemove = false;
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     protected EntrySetIterator(Iterator<Map.Entry<E, AbstractMapMultiSet.MutableInteger>> iterator, AbstractMapMultiSet<E> parent)
+/*     */     {
+/* 389 */       this.decorated = iterator;
+/* 390 */       this.parent = parent;
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public boolean hasNext() {
+/* 395 */       return this.decorated.hasNext();
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public MultiSet.Entry<E> next() {
+/* 400 */       this.last = new AbstractMapMultiSet.MultiSetEntry<>((Map.Entry)this.decorated.next());
+/* 401 */       this.canRemove = true;
+/* 402 */       return this.last;
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public void remove() {
+/* 407 */       if (!this.canRemove) {
+/* 408 */         throw new IllegalStateException("Iterator remove() can only be called once after next()");
+/*     */       }
+/* 410 */       this.decorated.remove();
+/* 411 */       this.last = null;
+/* 412 */       this.canRemove = false;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   protected static class MultiSetEntry<E>
+/*     */     extends AbstractMultiSet.AbstractEntry<E>
+/*     */   {
+/*     */     protected final Map.Entry<E, AbstractMapMultiSet.MutableInteger> parentEntry;
+/*     */     
+/*     */ 
+/*     */ 
+/*     */     protected MultiSetEntry(Map.Entry<E, AbstractMapMultiSet.MutableInteger> parentEntry)
+/*     */     {
+/* 428 */       this.parentEntry = parentEntry;
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public E getElement() {
+/* 433 */       return this.parentEntry.getKey();
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public int getCount() {
+/* 438 */       return ((AbstractMapMultiSet.MutableInteger)this.parentEntry.getValue()).value;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   protected void doWriteObject(ObjectOutputStream out)
+/*     */     throws IOException
+/*     */   {
+/* 450 */     out.writeInt(this.map.size());
+/* 451 */     for (Map.Entry<E, MutableInteger> entry : this.map.entrySet()) {
+/* 452 */       out.writeObject(entry.getKey());
+/* 453 */       out.writeInt(((MutableInteger)entry.getValue()).value);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   protected void doReadObject(ObjectInputStream in)
+/*     */     throws IOException, ClassNotFoundException
+/*     */   {
+/* 467 */     int entrySize = in.readInt();
+/* 468 */     for (int i = 0; i < entrySize; i++)
+/*     */     {
+/* 470 */       E obj = (E)in.readObject();
+/* 471 */       int count = in.readInt();
+/* 472 */       this.map.put(obj, new MutableInteger(count));
+/* 473 */       this.size += count;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public Object[] toArray()
+/*     */   {
+/* 485 */     Object[] result = new Object[size()];
+/* 486 */     int i = 0;
+/* 487 */     for (Map.Entry<E, MutableInteger> entry : this.map.entrySet()) {
+/* 488 */       E current = entry.getKey();
+/* 489 */       MutableInteger count = (MutableInteger)entry.getValue();
+/* 490 */       for (int index = count.value; index > 0; index--) {
+/* 491 */         result[(i++)] = current;
+/*     */       }
+/*     */     }
+/* 494 */     return result;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public <T> T[] toArray(T[] array)
+/*     */   {
+/* 511 */     int size = size();
+/* 512 */     if (array.length < size)
+/*     */     {
+/* 514 */       T[] unchecked = (T[])Array.newInstance(array.getClass().getComponentType(), size);
+/* 515 */       array = unchecked;
+/*     */     }
+/*     */     
+/* 518 */     int i = 0;
+/* 519 */     for (Map.Entry<E, MutableInteger> entry : this.map.entrySet()) {
+/* 520 */       E current = entry.getKey();
+/* 521 */       MutableInteger count = (MutableInteger)entry.getValue();
+/* 522 */       for (int index = count.value; index > 0; index--)
+/*     */       {
+/*     */ 
+/* 525 */         T unchecked = (T)current;
+/* 526 */         array[(i++)] = unchecked;
+/*     */       }
+/*     */     }
+/* 529 */     while (i < array.length) {
+/* 530 */       array[(i++)] = null;
+/*     */     }
+/* 532 */     return array;
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public boolean equals(Object object)
+/*     */   {
+/* 538 */     if (object == this) {
+/* 539 */       return true;
+/*     */     }
+/* 541 */     if (!(object instanceof MultiSet)) {
+/* 542 */       return false;
+/*     */     }
+/* 544 */     MultiSet<?> other = (MultiSet)object;
+/* 545 */     if (other.size() != size()) {
+/* 546 */       return false;
+/*     */     }
+/* 548 */     for (E element : this.map.keySet()) {
+/* 549 */       if (other.getCount(element) != getCount(element)) {
+/* 550 */         return false;
+/*     */       }
+/*     */     }
+/* 553 */     return true;
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public int hashCode() {
+/* 558 */     int total = 0;
+/* 559 */     for (Map.Entry<E, MutableInteger> entry : this.map.entrySet()) {
+/* 560 */       E element = entry.getKey();
+/* 561 */       MutableInteger count = (MutableInteger)entry.getValue();
+/* 562 */       total += ((element == null ? 0 : element.hashCode()) ^ count.value);
+/*     */     }
+/* 564 */     return total;
+/*     */   }
+/*     */ }
