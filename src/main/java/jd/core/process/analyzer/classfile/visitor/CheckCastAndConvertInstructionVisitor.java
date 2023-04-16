@@ -27,6 +27,7 @@ import org.jd.core.v1.model.javasyntax.type.ObjectType;
 import org.jd.core.v1.model.javasyntax.type.Type;
 import org.jd.core.v1.model.javasyntax.type.TypeArgument;
 import org.jd.core.v1.model.javasyntax.type.WildcardExtendsTypeArgument;
+import org.jd.core.v1.model.javasyntax.type.WildcardSuperTypeArgument;
 import org.jd.core.v1.model.javasyntax.type.WildcardTypeArgument;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker.MethodTypes;
@@ -400,18 +401,22 @@ public final class CheckCastAndConvertInstructionVisitor
         } else if (expressionSignature != null) {
             Type expressionType = typeMaker.makeFromSignature(expressionSignature);
             if (receiverType.isGenericType()
-                    && (!expressionType.isGenericType() || (valueref instanceof ALoad && !expressionType.equals(receiverType)))) {
+                && (!expressionType.isGenericType() ||
+                        (valueref instanceof ALoad && !expressionType.equals(receiverType)))) {
                 valuerefAttribute.setValueref(new CheckCast(
                         Const.CHECKCAST, valuerefAttribute.getOffset(),
                         valuerefAttribute.getLineNumber(), descriptorIndex, valueref));
             }
-            if (receiverType.isObjectType() && expressionType != null && expressionType.isObjectType()) {
+            if (receiverType.isObjectType() && expressionType != null && expressionType.isObjectType()
+                && typeMaker.isRawTypeAssignable((ObjectType) receiverType, (ObjectType) expressionType)) {
                 ObjectType otLeft = (ObjectType) receiverType;
                 ObjectType otRight = (ObjectType) expressionType;
                 BaseTypeArgument typeArgsLeft = otLeft.getTypeArguments();
                 BaseTypeArgument typeArgsRight = otRight.getTypeArguments();
                 if (typeArgsLeft instanceof ObjectType && typeArgsRight instanceof WildcardTypeArgument
-                 || typeArgsLeft instanceof GenericType && typeArgsRight instanceof WildcardExtendsTypeArgument) {
+                 || typeArgsLeft instanceof GenericType
+                     && (typeArgsRight instanceof WildcardExtendsTypeArgument
+                      || typeArgsRight instanceof WildcardSuperTypeArgument)) {
                     valuerefAttribute.setValueref(new CheckCast(
                             Const.CHECKCAST, valuerefAttribute.getOffset(),
                             valuerefAttribute.getLineNumber(), descriptorIndex, valueref));
