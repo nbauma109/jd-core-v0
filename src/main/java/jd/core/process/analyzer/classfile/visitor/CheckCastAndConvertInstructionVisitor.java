@@ -40,6 +40,7 @@ import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
+import jd.core.model.instruction.bytecode.instruction.ALoad;
 import jd.core.model.instruction.bytecode.instruction.ANewArray;
 import jd.core.model.instruction.bytecode.instruction.AThrow;
 import jd.core.model.instruction.bytecode.instruction.ArrayLength;
@@ -398,7 +399,8 @@ public final class CheckCastAndConvertInstructionVisitor
             }
         } else if (expressionSignature != null) {
             Type expressionType = typeMaker.makeFromSignature(expressionSignature);
-            if (receiverType.isGenericType() && !expressionType.isGenericType()) {
+            if (receiverType.isGenericType()
+                    && (!expressionType.isGenericType() || (valueref instanceof ALoad && !expressionType.equals(receiverType)))) {
                 valuerefAttribute.setValueref(new CheckCast(
                         Const.CHECKCAST, valuerefAttribute.getOffset(),
                         valuerefAttribute.getLineNumber(), descriptorIndex, valueref));

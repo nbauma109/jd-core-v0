@@ -489,7 +489,7 @@
 /* 489 */       for (int index = getCount(current); index > 0; index--)
 /*     */       {
 /*     */ 
-/* 492 */         T unchecked = current;
+/* 492 */         T unchecked = (T)current;
 /* 493 */         array[(i++)] = unchecked;
 /*     */       }
 /*     */     }
