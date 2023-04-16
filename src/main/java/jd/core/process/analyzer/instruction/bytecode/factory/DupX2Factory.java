@@ -46,7 +46,7 @@ public class DupX2Factory implements InstructionFactory
         list.add(dupStore1);
 
         String signature2 = i2.getReturnedSignature(
-                classFile, null);
+                classFile, method.getLocalVariables());
 
         if ("J".equals(signature2) || "D".equals(signature2))
         {
