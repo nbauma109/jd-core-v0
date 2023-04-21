@@ -13,7 +13,6 @@ public class StringUtilsTest extends AbstractTestCase {
     /*
      * Bug fix to recognise boolean array
      * LocalVariableAnalyzer.setConstantTypesArrayLoad(ConstantPool, LocalVariables, ArrayLoadInstruction)
-     * TODO FIXME compilation errors left in decompiled StringUtils.
      */
     @Test
     public void test() throws IOException {
