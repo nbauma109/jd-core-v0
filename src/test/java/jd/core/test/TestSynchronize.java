@@ -59,4 +59,18 @@ public class TestSynchronize {
             throw e;
         }
     }
+
+    float trySynchronizeFloat() throws Exception {
+        try {
+            System.out.println(CONST1);
+            synchronized (this) {
+                synchronized (getMonitor()) {
+                    System.out.println(CONST2);
+                    return 1f;
+                }
+            }
+        } catch (Exception e) {
+            throw e;
+        }
+    }
 }
