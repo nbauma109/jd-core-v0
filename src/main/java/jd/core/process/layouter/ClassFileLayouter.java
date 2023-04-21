@@ -3530,7 +3530,7 @@ public final class ClassFileLayouter {
         Signature as = method.getAttributeSignature();
         int signatureIndex = Optional.ofNullable(as)
                                      .map(Signature::getSignatureIndex)
-                                     .orElseGet(method::getDescriptorIndex);;
+                                     .orElseGet(method::getDescriptorIndex);
         String signature = constants.getConstantUtf8(signatureIndex);
             
         List<LayoutBlock> subLayoutBlockList = new ArrayList<>();

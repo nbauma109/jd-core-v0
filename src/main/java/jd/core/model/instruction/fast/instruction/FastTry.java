@@ -112,8 +112,7 @@ public class FastTry extends FastList {
             return;
         }
         int firstLineNumber = instructions.get(0).getLineNumber();
-        for (Iterator<Instruction> iterator = instructions.iterator(); iterator.hasNext();) {
-            Instruction instruction = iterator.next();
+        for (Instruction instruction : instructions) {
             if (instruction instanceof FastTry) {
                 FastTry fastTry = (FastTry) instruction;
                 fastTry.removeOutOfBounds();

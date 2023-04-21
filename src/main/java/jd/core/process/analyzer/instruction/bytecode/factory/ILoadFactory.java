@@ -50,12 +50,7 @@ public class ILoadFactory implements InstructionFactory
         Instruction instruction =
             new ILoad(Const.ILOAD, offset, lineNumber, index);
 
-        if (stack.isEmpty() || jumps[offset])
-        {
-            // Normal case
-            stack.push(instruction);
-        }
-        else
+        if (!stack.isEmpty() && !jumps[offset])
         {
             Instruction last = stack.peek();
 
@@ -74,19 +69,15 @@ public class ILoadFactory implements InstructionFactory
                 }
                 else
                 {
-                    // Unkwown pattern. Move IInc instruction from stack to list.
+                    // Unknown pattern. Move IInc instruction from stack to list.
                     stack.pop();
                     list.add(last);
                     listForAnalyze.add(last);
                 }
-                stack.push(instruction);
-            }
-            else
-            {
-                // Normal case
-                stack.push(instruction);
             }
         }
+
+        stack.push(instruction);
 
         listForAnalyze.add(instruction);
 

@@ -69,10 +69,7 @@ public class ConstantPool
 
         Constant[] constants = constantPool.getConstantPool();
 
-        for (int i=0; i<constants.length; i++)
-        {
-            Constant constant = constants[i];
-
+        for (Constant constant : constants) {
             int index = this.listOfConstants.size();
             this.listOfConstants.add(constant);
 

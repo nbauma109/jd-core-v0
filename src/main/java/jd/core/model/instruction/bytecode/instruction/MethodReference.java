@@ -44,6 +44,7 @@ public class MethodReference extends Instruction implements SourceWriteable {
         return descriptor;
     }
 
+    @Override
     public String getInternalTypeName() {
         return internalTypeName;
     }

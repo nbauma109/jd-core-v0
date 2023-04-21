@@ -36,6 +36,7 @@ public class StoreInstruction
         return valueref;
     }
 
+    @Override
     public void setValueref(Instruction valueref) {
         this.valueref = valueref;
     }

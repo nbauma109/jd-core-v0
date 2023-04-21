@@ -35,6 +35,7 @@ public class PutField extends GetField implements ValuerefAttribute
         return valueref;
     }
 
+    @Override
     public void setValueref(Instruction valueref) {
         this.valueref = valueref;
     }
