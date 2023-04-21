@@ -52,7 +52,7 @@
 /* 52 */       synchronized (this) {
 /* 53 */         synchronized (getMonitor()) {
 /* 54 */           System.out.println("2");
-/* 55 */           int i = 1;return i;
+/* 55 */           return 1;
 /*    */         }
 /*    */       }
 /*    */     } catch (Exception e) {

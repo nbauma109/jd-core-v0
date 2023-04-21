@@ -1406,9 +1406,9 @@ public final class FastInstructionListBuilder {
         // Remove 'goto' instruction jumping to next instruction
         removeNopGoto(list);
 
-        // // Compacte les instructions 'store' suivies d'instruction 'return'
-        // // A executer avant l'ajout des déclarations.
-        // StoreReturnAnalyzer.Cleanup(list, localVariables);
+        // Compacte les instructions 'store' suivies d'instruction 'return'
+        // A executer avant l'ajout des déclarations.
+        StoreReturnAnalyzer.cleanup(list, localVariables);
 
         // Add local variable declarations
         Set<FastDeclaration> outerDeclarations = addDeclarations(list, localVariables, beforeListOffset, addDeclarations, classFile, method);
