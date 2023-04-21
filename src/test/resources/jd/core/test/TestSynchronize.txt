@@ -52,11 +52,25 @@
 /* 52 */       synchronized (this) {
 /* 53 */         synchronized (getMonitor()) {
 /* 54 */           System.out.println("2");
-/* 55 */           int i = 1;return i;
+/* 55 */           return 1;
 /*    */         }
 /*    */       }
 /*    */     } catch (Exception e) {
 /* 59 */       throw e;
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   float trySynchronizeFloat() throws Exception {
+/*    */     try {
+/* 65 */       System.out.println("1");
+/* 66 */       synchronized (this) {
+/* 67 */         synchronized (getMonitor()) {
+/* 68 */           System.out.println("2");
+/* 69 */           return 1.0F;
+/*    */         }
+/*    */       }
+/*    */     } catch (Exception e) {
+/* 73 */       throw e;
 /*    */     }
 /*    */   }
 /*    */ }

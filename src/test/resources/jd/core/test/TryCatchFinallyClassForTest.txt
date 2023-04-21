@@ -26,7 +26,7 @@
 /*    */     {
 /* 27 */       synchronized (o) {
 /* 28 */         inTry();
-/* 29 */         int i = 2;return i;
+/* 29 */         return 2;
 /*    */       }
 /*    */     } catch (Exception e) {
 /* 32 */       throw e;

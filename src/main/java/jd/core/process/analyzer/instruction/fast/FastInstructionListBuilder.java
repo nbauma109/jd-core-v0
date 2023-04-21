@@ -1406,9 +1406,9 @@ public final class FastInstructionListBuilder {
         // Remove 'goto' instruction jumping to next instruction
         removeNopGoto(list);
 
-        // // Compacte les instructions 'store' suivies d'instruction 'return'
-        // // A executer avant l'ajout des déclarations.
-        // StoreReturnAnalyzer.Cleanup(list, localVariables);
+        // Compacte les instructions 'store' suivies d'instruction 'return'
+        // A executer avant l'ajout des déclarations.
+        StoreReturnAnalyzer.cleanup(list, localVariables);
 
         // Add local variable declarations
         Set<FastDeclaration> outerDeclarations = addDeclarations(list, localVariables, beforeListOffset, addDeclarations, classFile, method);
@@ -1567,26 +1567,13 @@ public final class FastInstructionListBuilder {
                 if (instruction instanceof StoreInstruction) {
                     StoreInstruction si = (StoreInstruction) instruction;
                     LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(si.getIndex(), si.getOffset());
-                    if (lv != null && lv.hasDeclarationFlag() == NOT_DECLARED) {
-                        ReturnInstruction returnInstruction = findReturnInstructionForStore(list, length, i, si);
-                        if (returnInstruction == null || returnInstruction.getLineNumber() != si.getLineNumber()) {
-                            if (beforeListOffset < lv.getStartPc()
-                                    && (lv.getStartPc() + lv.getLength() - 1 <= lastOffset
-                                    || method.getNameIndex() == classFile.getConstantPool().getClassConstructorIndex())) {
-                                list.set(i, new FastDeclaration(si.getOffset(), si.getLineNumber(), lv, si));
-                                lv.setDeclarationFlag(DECLARED);
-                                updateNewAndInitArrayInstruction(si);
-                            }
-                        } else {
-                            // compact store / return
-                            returnInstruction.setValueref(si.getValueref());
-                            // remove store instruction
-                            list.remove(i);
-                            i--;
-                            length--;
-                            // flag variable to be removed later
-                            lv.setToBeRemoved(true);
-                        }
+                    if (lv != null && lv.hasDeclarationFlag() == NOT_DECLARED
+                        && (beforeListOffset < lv.getStartPc()
+                                && (lv.getStartPc() + lv.getLength() - 1 <= lastOffset
+                                || method.getNameIndex() == classFile.getConstantPool().getClassConstructorIndex()))) {
+                            list.set(i, new FastDeclaration(si.getOffset(), si.getLineNumber(), lv, si));
+                            lv.setDeclarationFlag(DECLARED);
+                            updateNewAndInitArrayInstruction(si);
                     }
                 } else if (instruction.getOpcode() == FastConstants.FOR) {
                     FastFor ff = (FastFor) instruction;
@@ -1710,20 +1697,6 @@ public final class FastInstructionListBuilder {
                 .anyMatch(i -> ((FastDeclaration)i).getLv().getNameIndex() == lv.getNameIndex());
     }
 
-    private static ReturnInstruction findReturnInstructionForStore(List<Instruction> list, int length, int i, StoreInstruction si) {
-        if (i + 1 < length) {
-            Instruction next = list.get(i + 1);
-            // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
-            if (next instanceof ReturnInstruction
-                    && si.getValueref() instanceof IndexInstruction
-                    && ((ReturnInstruction) next).getValueref() instanceof IndexInstruction
-                    && ((IndexInstruction) ((ReturnInstruction) next).getValueref()).getIndex() == si.getIndex()) {
-                return (ReturnInstruction) next;
-            }
-        }
-        return null;
-    }
-
     private static void updateNewAndInitArrayInstruction(Instruction instruction) {
         if (instruction.getOpcode() == Const.ASTORE) {
             Instruction valueref = ((StoreInstruction) instruction).getValueref();
@@ -1732,7 +1705,6 @@ public final class FastInstructionListBuilder {
             }
         }
     }
-
 
     private static void createContinue(List<Instruction> list, int beforeLoopEntryOffset, int loopEntryOffset,
             int returnOffset) {
