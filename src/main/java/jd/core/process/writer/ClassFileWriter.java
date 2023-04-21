@@ -1617,7 +1617,7 @@ public final class ClassFileWriter
         Signature as = field.getAttributeSignature();
         int signatureIndex = Optional.ofNullable(as)
                                      .map(Signature::getSignatureIndex)
-                                     .orElseGet(field::getDescriptorIndex);;
+                                     .orElseGet(field::getDescriptorIndex);
 
         String signature = constants.getConstantUtf8(signatureIndex);
 

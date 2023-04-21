@@ -83,6 +83,7 @@ public class OuterGetFieldVisitor extends OuterGetStaticVisitor
         return accessor;
     }
 
+    @Override
     protected byte getTargetTag()
     {
         return AccessorConstants.ACCESSOR_GETFIELD;

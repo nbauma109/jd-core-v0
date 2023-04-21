@@ -42,10 +42,7 @@ public final class ClassFileUtil
         Method[] methods = classFile.getMethods();
         boolean flag = false;
 
-        for (int i=0; i<methods.length; i++)
-        {
-            Method method = methods[i];
-
+        for (Method method : methods) {
             if ((method.getAccessFlags() &
                  (Const.ACC_SYNTHETIC|Const.ACC_BRIDGE)) != 0) {
                 continue;

@@ -41,27 +41,32 @@ public class StoreReturnAnalyzer
 
 		while (index-- > 1)
 		{
-			if (list.get(index).getOpcode() != ByteCodeConstants.XRETURN)
-				continue;
+			if (list.get(index).getOpcode() != ByteCodeConstants.XRETURN) {
+                continue;
+            }
 			
 			ReturnInstruction ri = (ReturnInstruction)list.get(index);
 			
-			if (ri.getLineNumber() == Instruction.UNKNOWN_LINE_NUMBER)
-				continue;
+			if (ri.getLineNumber() == Instruction.UNKNOWN_LINE_NUMBER) {
+                continue;
+            }
 			
 			switch (ri.getValueref().getOpcode())
 			{
 			case Const.ALOAD:
-				if (list.get(index-1).getOpcode() == Const.ASTORE)
-					index = compact(list, localVariables, ri, index);
+				if (list.get(index-1).getOpcode() == Const.ASTORE) {
+                    index = compact(list, localVariables, ri, index);
+                }
 				break;
 			case ByteCodeConstants.LOAD:
-				if (list.get(index-1).getOpcode() == ByteCodeConstants.STORE)
-					index = compact(list, localVariables, ri, index);
+				if (list.get(index-1).getOpcode() == ByteCodeConstants.STORE) {
+                    index = compact(list, localVariables, ri, index);
+                }
 				break;
 			case Const.ILOAD:
-				if (list.get(index-1).getOpcode() == Const.ISTORE)
-					index = compact(list, localVariables, ri, index);
+				if (list.get(index-1).getOpcode() == Const.ISTORE) {
+                    index = compact(list, localVariables, ri, index);
+                }
 				break;
 			}
 		}
@@ -83,10 +88,11 @@ public class StoreReturnAnalyzer
 						store.getIndex(), store.getOffset());
 			
 			if ((lv != null) && (lv.getStartPc() == store.getOffset()) && 
-				(lv.getStartPc() + lv.getLength() <= ri.getOffset()))
-				localVariables.
+				(lv.getStartPc() + lv.getLength() <= ri.getOffset())) {
+                localVariables.
 					removeLocalVariableWithIndexAndOffset(
 							store.getIndex(), store.getOffset());
+            }
 			// Replace returned instruction
 			ri.setValueref(store.getValueref());
 			// Remove 'store' instruction

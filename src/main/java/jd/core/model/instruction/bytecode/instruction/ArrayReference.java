@@ -36,6 +36,7 @@ public class ArrayReference extends Instruction implements SourceWriteable {
         this.descriptor = descriptor;
     }
 
+    @Override
     public String getInternalTypeName() {
         return objectType.getInternalName();
     }

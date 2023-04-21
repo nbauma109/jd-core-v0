@@ -60,11 +60,7 @@ public final class TernaryOpInReturnReconstructor
 
             IConst iConst1 = (IConst)ri1.getValueref();
 
-            if (!"Z".equals(iConst1.getSignature())) {
-                continue;
-            }
-
-            if (index <= 0) {
+            if (!"Z".equals(iConst1.getSignature()) || (index <= 0)) {
                 continue;
             }
 
@@ -91,11 +87,7 @@ public final class TernaryOpInReturnReconstructor
 
             IConst iConst2 = (IConst)ri2.getValueref();
 
-            if (!"Z".equals(iConst2.getSignature())) {
-                continue;
-            }
-
-            if (index2 <= 0) {
+            if (!"Z".equals(iConst2.getSignature()) || (index2 <= 0)) {
                 continue;
             }
 
