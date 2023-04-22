@@ -1215,12 +1215,15 @@ public final class FastInstructionListBuilder {
         // Reconstruction des instructions 'assert'. Cette operation doit être
         // executee après 'ComparisonInstructionAnalyzer'.
         AssertInstructionReconstructor.reconstruct(classFile, list);
+        // Reconstruction des initialisations de tableaux
+        // Cette operation doit être executee après
+        // 'AssignmentInstructionReconstructor'.
+        InitArrayInstructionReconstructor.reconstruct(list);
         // Create ternary operator before analysis of local variables.
         // A executer après 'ComparisonInstructionAnalyzer'
         TernaryOpReconstructor.reconstruct(list);
         // Reconstruction des initialisations de tableaux
-        // Cette operation doit être executee après
-        // 'AssignmentInstructionReconstructor'.
+        // 2eme passe due aux operateurs ternaires
         InitArrayInstructionReconstructor.reconstruct(list);
         // Reconstruction des operations binaires d'assignement
         AssignmentOperatorReconstructor.reconstruct(list);
