@@ -680,7 +680,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
                     this.printer.print(" = ");
                 }
 
-                lineNumber = visit(putField, putField.getValueref());
+                lineNumber = visit(putField.getValueref());
             }
             break;
         case Const.PUTSTATIC:
