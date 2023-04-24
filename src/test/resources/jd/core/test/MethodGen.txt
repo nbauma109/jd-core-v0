@@ -355,7 +355,7 @@
 /*  355 */           } else if ((a instanceof LocalVariableTable)) {
 /*  356 */             updateLocalVariableTable((LocalVariableTable)a);
 /*  357 */           } else if ((a instanceof LocalVariableTypeTable)) {
-/*  358 */             this.localVariableTypeTable = ((LocalVariableTypeTable)a.copy(cp.getConstantPool()));
+/*  358 */             this.localVariableTypeTable = (LocalVariableTypeTable)a.copy(cp.getConstantPool());
 /*      */           } else {
 /*  360 */             addCodeAttribute(a);
 /*      */           }
@@ -478,7 +478,7 @@
 /*  478 */     if (t != 16) {
 /*  479 */       int add = type.getSize();
 /*  480 */       if (slot + add > this.maxLocals) {
-/*  481 */         this.maxLocals = (slot + add);
+/*  481 */         this.maxLocals = slot + add;
 /*      */       }
 /*  483 */       LocalVariableGen l = new LocalVariableGen(slot, name, type, start, end, origIndex);
 /*      */       int i;

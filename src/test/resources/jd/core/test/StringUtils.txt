@@ -2895,9 +2895,9 @@
 /* 2895 */     for (int i = 0; i < csLen; i++) {
 /* 2896 */       char ch = cs.charAt(i);
 /* 2897 */       for (int j = 0; j < searchLen; j++) {
-/* 2898 */         if (searchChars[j] == ch && 
+/* 2898 */         if (searchChars[j] == ch && (
 /* 2899 */           i >= csLast || j >= searchLast || !Character.isHighSurrogate(ch) || 
-/* 2900 */           searchChars[(j + 1)] == cs.charAt(i + 1)) {
+/* 2900 */           searchChars[(j + 1)] == cs.charAt(i + 1))) {
 /*      */           break label127;
 /*      */         }
 /*      */       }

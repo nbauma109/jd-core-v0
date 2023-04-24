@@ -36,7 +36,7 @@
 /*     */   }
 /*     */   
 /*     */   void putfield() {
-/*  39 */     this.p.y = (Math.random() > 0.5D ? ++this.p.x : --this.p.y);
+/*  39 */     this.p.y = Math.random() > 0.5D ? ++this.p.x : --this.p.y;
 /*     */   }
 /*     */   
 /*     */   void instanceOf(Object a, Object b) throws Exception {

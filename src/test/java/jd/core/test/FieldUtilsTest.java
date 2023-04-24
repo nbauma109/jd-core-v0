@@ -16,4 +16,9 @@ public class FieldUtilsTest extends AbstractTestCase {
         String output = decompile("org/apache/commons/lang3/reflect/FieldUtils");
         assertEquals(IOUtils.toString(getClass().getResource("FieldUtils.txt"), StandardCharsets.UTF_8), output);
     }
+
+    @Override
+    protected boolean recompile() {
+        return false;
+    }
 }

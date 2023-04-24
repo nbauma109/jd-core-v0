@@ -801,7 +801,7 @@
 /* 801 */       this.excludeFieldNames = null;
 /*     */     }
 /*     */     else {
-/* 804 */       this.excludeFieldNames = ((String[])ArraySorter.sort(toNoNullStringArray(excludeFieldNamesParam)));
+/* 804 */       this.excludeFieldNames = (String[])ArraySorter.sort(toNoNullStringArray(excludeFieldNamesParam));
 /*     */     }
 /* 806 */     return this;
 /*     */   }

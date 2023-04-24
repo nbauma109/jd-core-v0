@@ -161,8 +161,8 @@
 /*  161 */     Pair<IDKey, IDKey> pair = getRegisterPair(lhs, rhs);
 /*  162 */     Pair<IDKey, IDKey> swappedPair = Pair.of(pair.getRight(), pair.getLeft());
 /*      */     
-/*  164 */     return registry != null && 
-/*  165 */       registry.contains(pair) || registry.contains(swappedPair);
+/*  164 */     return registry != null && (
+/*  165 */       registry.contains(pair) || registry.contains(swappedPair));
 /*      */   }
 /*      */   
 /*      */ 
@@ -533,8 +533,8 @@
 /*  533 */       if (testClass.isArray()) {
 /*  534 */         append(lhs, rhs);
 /*      */       }
-/*  536 */       else if (this.bypassReflectionClasses != null && 
-/*  537 */         this.bypassReflectionClasses.contains(lhsClass) || this.bypassReflectionClasses.contains(rhsClass)) {
+/*  536 */       else if (this.bypassReflectionClasses != null && (
+/*  537 */         this.bypassReflectionClasses.contains(lhsClass) || this.bypassReflectionClasses.contains(rhsClass))) {
 /*  538 */         this.isEquals = lhs.equals(rhs);
 /*      */       } else {
 /*  540 */         reflectionAppend(lhs, rhs, testClass);
@@ -700,7 +700,7 @@
 /*  700 */     if (!this.isEquals) {
 /*  701 */       return this;
 /*      */     }
-/*  703 */     this.isEquals = (lhs == rhs);
+/*  703 */     this.isEquals = lhs == rhs;
 /*  704 */     return this;
 /*      */   }
 /*      */   
@@ -715,7 +715,7 @@
 /*  715 */     if (!this.isEquals) {
 /*  716 */       return this;
 /*      */     }
-/*  718 */     this.isEquals = (lhs == rhs);
+/*  718 */     this.isEquals = lhs == rhs;
 /*  719 */     return this;
 /*      */   }
 /*      */   
@@ -730,7 +730,7 @@
 /*  730 */     if (!this.isEquals) {
 /*  731 */       return this;
 /*      */     }
-/*  733 */     this.isEquals = (lhs == rhs);
+/*  733 */     this.isEquals = lhs == rhs;
 /*  734 */     return this;
 /*      */   }
 /*      */   
@@ -745,7 +745,7 @@
 /*  745 */     if (!this.isEquals) {
 /*  746 */       return this;
 /*      */     }
-/*  748 */     this.isEquals = (lhs == rhs);
+/*  748 */     this.isEquals = lhs == rhs;
 /*  749 */     return this;
 /*      */   }
 /*      */   
@@ -760,7 +760,7 @@
 /*  760 */     if (!this.isEquals) {
 /*  761 */       return this;
 /*      */     }
-/*  763 */     this.isEquals = (lhs == rhs);
+/*  763 */     this.isEquals = lhs == rhs;
 /*  764 */     return this;
 /*      */   }
 /*      */   
@@ -815,7 +815,7 @@
 /*  815 */     if (!this.isEquals) {
 /*  816 */       return this;
 /*      */     }
-/*  818 */     this.isEquals = (lhs == rhs);
+/*  818 */     this.isEquals = lhs == rhs;
 /*  819 */     return this;
 /*      */   }
 /*      */   

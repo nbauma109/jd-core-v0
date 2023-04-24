@@ -186,7 +186,7 @@
 /* 186 */         throw new ConcurrentModificationException();
 /*     */       }
 /* 188 */       if (this.itemCount == 0) {
-/* 189 */         this.current = ((Map.Entry)this.entryIterator.next());
+/* 189 */         this.current = (Map.Entry)this.entryIterator.next();
 /* 190 */         this.itemCount = ((AbstractMapMultiSet.MutableInteger)this.current.getValue()).value;
 /*     */       }
 /* 192 */       this.canRemove = true;

@@ -23,7 +23,7 @@ public class ForEachTest extends AbstractTestCase {
 
     @Test
     public void test() throws IOException {
-        String output = decompile("jd/core/test/ForEach");
+        String output = decompile("jd/core/test/ForEach", "9");
         assertEquals(IOUtils.toString(getClass().getResource("ForEach.txt"), StandardCharsets.UTF_8), output);
     }
 

@@ -103,7 +103,7 @@
 /* 103 */       synchronized (this) {
 /* 104 */         result = this.object;
 /* 105 */         if (result == NO_INIT) {
-/* 106 */           this.object = (result = initialize());
+/* 106 */           this.object = result = initialize();
 /*     */         }
 /*     */       }
 /*     */     }

@@ -670,7 +670,7 @@
 /*  670 */       return this;
 /*      */     }
 /*  672 */     if (lhs.length != rhs.length) {
-/*  673 */       this.comparison = (lhs.length < rhs.length ? -1 : 1);
+/*  673 */       this.comparison = lhs.length < rhs.length ? -1 : 1;
 /*  674 */       return this;
 /*      */     }
 /*  676 */     for (int i = 0; i < lhs.length && this.comparison == 0; i++) {
@@ -710,7 +710,7 @@
 /*  710 */       return this;
 /*      */     }
 /*  712 */     if (lhs.length != rhs.length) {
-/*  713 */       this.comparison = (lhs.length < rhs.length ? -1 : 1);
+/*  713 */       this.comparison = lhs.length < rhs.length ? -1 : 1;
 /*  714 */       return this;
 /*      */     }
 /*  716 */     for (int i = 0; i < lhs.length && this.comparison == 0; i++) {
@@ -750,7 +750,7 @@
 /*  750 */       return this;
 /*      */     }
 /*  752 */     if (lhs.length != rhs.length) {
-/*  753 */       this.comparison = (lhs.length < rhs.length ? -1 : 1);
+/*  753 */       this.comparison = lhs.length < rhs.length ? -1 : 1;
 /*  754 */       return this;
 /*      */     }
 /*  756 */     for (int i = 0; i < lhs.length && this.comparison == 0; i++) {
@@ -790,7 +790,7 @@
 /*  790 */       return this;
 /*      */     }
 /*  792 */     if (lhs.length != rhs.length) {
-/*  793 */       this.comparison = (lhs.length < rhs.length ? -1 : 1);
+/*  793 */       this.comparison = lhs.length < rhs.length ? -1 : 1;
 /*  794 */       return this;
 /*      */     }
 /*  796 */     for (int i = 0; i < lhs.length && this.comparison == 0; i++) {
@@ -830,7 +830,7 @@
 /*  830 */       return this;
 /*      */     }
 /*  832 */     if (lhs.length != rhs.length) {
-/*  833 */       this.comparison = (lhs.length < rhs.length ? -1 : 1);
+/*  833 */       this.comparison = lhs.length < rhs.length ? -1 : 1;
 /*  834 */       return this;
 /*      */     }
 /*  836 */     for (int i = 0; i < lhs.length && this.comparison == 0; i++) {
@@ -870,7 +870,7 @@
 /*  870 */       return this;
 /*      */     }
 /*  872 */     if (lhs.length != rhs.length) {
-/*  873 */       this.comparison = (lhs.length < rhs.length ? -1 : 1);
+/*  873 */       this.comparison = lhs.length < rhs.length ? -1 : 1;
 /*  874 */       return this;
 /*      */     }
 /*  876 */     for (int i = 0; i < lhs.length && this.comparison == 0; i++) {
@@ -910,7 +910,7 @@
 /*  910 */       return this;
 /*      */     }
 /*  912 */     if (lhs.length != rhs.length) {
-/*  913 */       this.comparison = (lhs.length < rhs.length ? -1 : 1);
+/*  913 */       this.comparison = lhs.length < rhs.length ? -1 : 1;
 /*  914 */       return this;
 /*      */     }
 /*  916 */     for (int i = 0; i < lhs.length && this.comparison == 0; i++) {
@@ -950,7 +950,7 @@
 /*  950 */       return this;
 /*      */     }
 /*  952 */     if (lhs.length != rhs.length) {
-/*  953 */       this.comparison = (lhs.length < rhs.length ? -1 : 1);
+/*  953 */       this.comparison = lhs.length < rhs.length ? -1 : 1;
 /*  954 */       return this;
 /*      */     }
 /*  956 */     for (int i = 0; i < lhs.length && this.comparison == 0; i++) {
@@ -990,7 +990,7 @@
 /*  990 */       return this;
 /*      */     }
 /*  992 */     if (lhs.length != rhs.length) {
-/*  993 */       this.comparison = (lhs.length < rhs.length ? -1 : 1);
+/*  993 */       this.comparison = lhs.length < rhs.length ? -1 : 1;
 /*  994 */       return this;
 /*      */     }
 /*  996 */     for (int i = 0; i < lhs.length && this.comparison == 0; i++) {

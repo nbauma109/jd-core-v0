@@ -697,11 +697,11 @@
 /*      */     } case 2: {
 /*  698 */       char ch0 = str.charAt(0);
 /*  699 */       char ch1 = str.charAt(1);
-/*  700 */       if (ch0 == 'o' || ch0 == 'O' && ch1 == 'n' || ch1 == 'N')
+/*  700 */       if ((ch0 == 'o' || ch0 == 'O') && (ch1 == 'n' || ch1 == 'N'))
 /*      */       {
 /*  702 */         return Boolean.TRUE;
 /*      */       }
-/*  704 */       if (ch0 == 'n' || ch0 == 'N' && ch1 == 'o' || ch1 == 'O')
+/*  704 */       if ((ch0 == 'n' || ch0 == 'N') && (ch1 == 'o' || ch1 == 'O'))
 /*      */       {
 /*  706 */         return Boolean.FALSE;
 /*      */       }
@@ -711,12 +711,12 @@
 /*  711 */       char ch0 = str.charAt(0);
 /*  712 */       char ch1 = str.charAt(1);
 /*  713 */       char ch2 = str.charAt(2);
-/*  714 */       if (ch0 == 'y' || ch0 == 'Y' && ch1 == 'e' || ch1 == 'E' && ch2 == 's' || ch2 == 'S')
+/*  714 */       if ((ch0 == 'y' || ch0 == 'Y') && (ch1 == 'e' || ch1 == 'E') && (ch2 == 's' || ch2 == 'S'))
 /*      */       {
 /*      */ 
 /*  717 */         return Boolean.TRUE;
 /*      */       }
-/*  719 */       if (ch0 == 'o' || ch0 == 'O' && ch1 == 'f' || ch1 == 'F' && ch2 == 'f' || ch2 == 'F')
+/*  719 */       if ((ch0 == 'o' || ch0 == 'O') && (ch1 == 'f' || ch1 == 'F') && (ch2 == 'f' || ch2 == 'F'))
 /*      */       {
 /*      */ 
 /*  722 */         return Boolean.FALSE;
@@ -728,7 +728,7 @@
 /*  728 */       char ch1 = str.charAt(1);
 /*  729 */       char ch2 = str.charAt(2);
 /*  730 */       char ch3 = str.charAt(3);
-/*  731 */       if (ch0 == 't' || ch0 == 'T' && ch1 == 'r' || ch1 == 'R' && ch2 == 'u' || ch2 == 'U' && ch3 == 'e' || ch3 == 'E')
+/*  731 */       if ((ch0 == 't' || ch0 == 'T') && (ch1 == 'r' || ch1 == 'R') && (ch2 == 'u' || ch2 == 'U') && (ch3 == 'e' || ch3 == 'E'))
 /*      */       {
 /*      */ 
 /*      */ 
@@ -742,7 +742,7 @@
 /*  742 */       char ch2 = str.charAt(2);
 /*  743 */       char ch3 = str.charAt(3);
 /*  744 */       char ch4 = str.charAt(4);
-/*  745 */       if (ch0 == 'f' || ch0 == 'F' && ch1 == 'a' || ch1 == 'A' && ch2 == 'l' || ch2 == 'L' && ch3 == 's' || ch3 == 'S' && ch4 == 'e' || ch4 == 'E')
+/*  745 */       if ((ch0 == 'f' || ch0 == 'F') && (ch1 == 'a' || ch1 == 'A') && (ch2 == 'l' || ch2 == 'L') && (ch3 == 's' || ch3 == 'S') && (ch4 == 'e' || ch4 == 'E'))
 /*      */       {
 /*      */ 
 /*      */ 

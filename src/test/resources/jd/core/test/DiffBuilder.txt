@@ -113,7 +113,7 @@
 /* 113 */     this.style = style;
 /*     */     
 /*     */ 
-/* 116 */     this.objectsTriviallyEqual = (testTriviallyEqual && lhs == rhs || lhs.equals(rhs));
+/* 116 */     this.objectsTriviallyEqual = testTriviallyEqual && (lhs == rhs || lhs.equals(rhs));
 /*     */   }
 /*     */   
 /*     */ 

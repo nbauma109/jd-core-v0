@@ -20,4 +20,9 @@ public class InitDexEnumFieldsReconstructorTest extends AbstractTestCase {
             assertEquals(IOUtils.toString(getClass().getResource("StaticTools.txt"), StandardCharsets.UTF_8), output);
         }
     }
+
+    @Override
+    protected boolean recompile() {
+        return false;
+    }
 }

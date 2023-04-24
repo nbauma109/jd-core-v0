@@ -6,7 +6,7 @@
 /*     */   static String name;
 /*     */   
 /*     */   private void init() {
-/*   9 */     this.id = (name = "");
+/*   9 */     this.id = name = "";
 /*     */   }
 /*     */   
 /*     */   private static void staticInit() {

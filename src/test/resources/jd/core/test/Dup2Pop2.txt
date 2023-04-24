@@ -11,7 +11,7 @@
 /*    */   }
 /*    */   
 /*    */   void dup2x1Form2() {
-/* 14 */     this.l2 = (this.l1 = 1L);
+/* 14 */     this.l2 = this.l1 = 1L;
 /*    */   }
 /*    */   
 /*    */   long dup2Form1(long a) {

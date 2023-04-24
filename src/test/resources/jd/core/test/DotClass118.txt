@@ -92,7 +92,7 @@
 /*     */   }
 /*     */   
 /*     */   void checkCast() {
-/*  95 */     this.clazz = ((Class)readValue(Object.class));
+/*  95 */     this.clazz = (Class)readValue(Object.class);
 /*     */   }
 /*     */   
 /*     */   void pop() {

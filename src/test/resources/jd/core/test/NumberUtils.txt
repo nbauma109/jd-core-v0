@@ -738,9 +738,9 @@
 /*  738 */       switch (lastChar) {
 /*      */       case 'L': 
 /*      */       case 'l': 
-/*  741 */         if (dec == null && exp == null && 
+/*  741 */         if (dec == null && exp == null && (
 /*      */         
-/*  743 */           !numeric.isEmpty() && numeric.charAt(0) == '-' && isDigits(numeric.substring(1)) || isDigits(numeric)) {
+/*  743 */           !numeric.isEmpty() && numeric.charAt(0) == '-' && isDigits(numeric.substring(1)) || isDigits(numeric))) {
 /*      */           try {
 /*  745 */             return createLong(numeric);
 /*      */           }
@@ -754,7 +754,7 @@
 /*      */       case 'f': {
 /*      */         try {
 /*  756 */           Float f = createFloat(str);
-/*  757 */           if (!f.isInfinite() && f.floatValue() != 0.0F || allZeros)
+/*  757 */           if (!f.isInfinite() && (f.floatValue() != 0.0F || allZeros))
 /*      */           {
 /*      */ 
 /*  760 */             return f;
@@ -768,7 +768,7 @@
 /*      */         try
 /*      */         {
 /*  770 */           Double d = createDouble(str);
-/*  771 */           if (!d.isInfinite() && d.doubleValue() != 0.0D || allZeros) {
+/*  771 */           if (!d.isInfinite() && (d.doubleValue() != 0.0D || allZeros)) {
 /*  772 */             return d;
 /*      */           }
 /*      */         }
@@ -813,11 +813,11 @@
 /*  813 */       Float f = createFloat(str);
 /*  814 */       Double d = createDouble(str);
 /*  815 */       if (!f.isInfinite() && 
-/*  816 */         f.floatValue() != 0.0F || allZeros && 
+/*  816 */         (f.floatValue() != 0.0F || allZeros) && 
 /*  817 */         f.toString().equals(d.toString())) {
 /*  818 */         return f;
 /*      */       }
-/*  820 */       if (!d.isInfinite() && d.doubleValue() != 0.0D || allZeros) {
+/*  820 */       if (!d.isInfinite() && (d.doubleValue() != 0.0D || allZeros)) {
 /*  821 */         BigDecimal b = createBigDecimal(str);
 /*  822 */         if (b.compareTo(BigDecimal.valueOf(d.doubleValue())) == 0) {
 /*  823 */           return d;
@@ -1622,7 +1622,7 @@
 /*      */         }
 /* 1624 */         for (; 
 /* 1624 */             i < chars.length; i++) {
-/* 1625 */           if (chars[i] < '0' || chars[i] > '9' && chars[i] < 'a' || chars[i] > 'f' && chars[i] < 'A' || chars[i] > 'F')
+/* 1625 */           if ((chars[i] < '0' || chars[i] > '9') && (chars[i] < 'a' || chars[i] > 'f') && (chars[i] < 'A' || chars[i] > 'F'))
 /*      */           {
 /*      */ 
 /* 1628 */             return false;
@@ -1695,7 +1695,7 @@
 /*      */         
 /* 1696 */         return foundDigit;
 /*      */       }
-/* 1698 */       if (!allowSigns && chars[i] == 'd' || chars[i] == 'D' || chars[i] == 'f' || chars[i] == 'F')
+/* 1698 */       if (!allowSigns && (chars[i] == 'd' || chars[i] == 'D' || chars[i] == 'f' || chars[i] == 'F'))
 /*      */       {
 /*      */ 
 /*      */ 

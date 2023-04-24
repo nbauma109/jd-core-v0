@@ -119,9 +119,9 @@
 /*     */ 
 /*     */   private SwitchClosure(boolean clone, Predicate<? super E>[] predicates, Closure<? super E>[] closures, Closure<? super E> defaultClosure)
 /*     */   {
-/* 122 */     this.iPredicates = (clone ? FunctorUtils.copy(predicates) : predicates);
-/* 123 */     this.iClosures = (clone ? FunctorUtils.copy(closures) : closures);
-/* 124 */     this.iDefault = (defaultClosure == null ? NOPClosure.nopClosure() : defaultClosure);
+/* 122 */     this.iPredicates = clone ? FunctorUtils.copy(predicates) : predicates;
+/* 123 */     this.iClosures = clone ? FunctorUtils.copy(closures) : closures;
+/* 124 */     this.iDefault = defaultClosure == null ? NOPClosure.nopClosure() : defaultClosure;
 /*     */   }
 /*     */   
 /*     */ 

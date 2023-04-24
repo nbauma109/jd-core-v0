@@ -178,7 +178,7 @@
 /*     */ 
 /* 179 */       this.executor = getExternalExecutor();
 /* 180 */       ExecutorService tempExec; if (this.executor == null) {
-/* 181 */         this.executor = (tempExec = createExecutor());
+/* 181 */         this.executor = tempExec = createExecutor();
 /*     */       } else {
 /* 183 */         tempExec = null;
 /*     */       }

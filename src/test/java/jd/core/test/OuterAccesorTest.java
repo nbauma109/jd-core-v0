@@ -19,4 +19,9 @@ public class OuterAccesorTest extends AbstractTestCase {
         String output = decompile("org/apache/commons/collections4/bidimap/TreeBidiMap");
         assertEquals(IOUtils.toString(getClass().getResource("TreeBidiMap.txt"), StandardCharsets.UTF_8), output);
     }
+
+    @Override
+    protected boolean recompile() {
+        return false;
+    }
 }

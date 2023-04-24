@@ -16,4 +16,9 @@ public class TimeZoneDisplayKeyTest extends AbstractTestCase {
         String output = decompile("org/apache/commons/lang3/time/FastDatePrinter$TimeZoneDisplayKey");
         assertEquals(IOUtils.toString(getClass().getResource("TimeZoneDisplayKey.txt"), StandardCharsets.UTF_8), output);
     }
+
+    @Override
+    protected boolean recompile() {
+        return false;
+    }
 }

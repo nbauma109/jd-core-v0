@@ -143,8 +143,8 @@
 /*  143 */       definingCalendar.setTime(new Date());
 /*  144 */       centuryStartYear = definingCalendar.get(1) - 80;
 /*      */     }
-/*  146 */     this.century = (centuryStartYear / 100 * 100);
-/*  147 */     this.startYear = (centuryStartYear - this.century);
+/*  146 */     this.century = centuryStartYear / 100 * 100;
+/*  147 */     this.startYear = centuryStartYear - this.century;
 /*      */     
 /*  149 */     init(definingCalendar);
 /*      */   }
@@ -242,7 +242,7 @@
 /*  242 */         char c = FastDateParser.this.pattern.charAt(this.currentIdx);
 /*  243 */         if (!activeQuote && FastDateParser.isFormatLetter(c))
 /*      */           break;
-/*  245 */         if (c == '\'' && ++this.currentIdx == FastDateParser.this.pattern.length() || FastDateParser.this.pattern.charAt(this.currentIdx) != '\'') {
+/*  245 */         if (c == '\'' && (++this.currentIdx == FastDateParser.this.pattern.length() || FastDateParser.this.pattern.charAt(this.currentIdx) != '\'')) {
 /*  246 */           activeQuote = !activeQuote;
 /*      */         }
 /*      */         else {
@@ -888,7 +888,7 @@
 /*      */       
 /*      */       TzInfo(TimeZone tz, boolean useDst) {
 /*  890 */         this.zone = tz;
-/*  891 */         this.dstOffset = (useDst ? tz.getDSTSavings() : 0);
+/*  891 */         this.dstOffset = useDst ? tz.getDSTSavings() : 0;
 /*      */       }
 /*      */     }
 /*      */     

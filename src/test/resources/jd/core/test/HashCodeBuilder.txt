@@ -594,7 +594,7 @@
 /*     */ 
 /*     */   public HashCodeBuilder append(boolean value)
 /*     */   {
-/* 597 */     this.iTotal = (this.iTotal * this.iConstant + (value ? 0 : 1));
+/* 597 */     this.iTotal = this.iTotal * this.iConstant + (value ? 0 : 1);
 /* 598 */     return this;
 /*     */   }
 /*     */   
@@ -630,7 +630,7 @@
 /*     */ 
 /*     */   public HashCodeBuilder append(byte value)
 /*     */   {
-/* 633 */     this.iTotal = (this.iTotal * this.iConstant + value);
+/* 633 */     this.iTotal = this.iTotal * this.iConstant + value;
 /* 634 */     return this;
 /*     */   }
 /*     */   
@@ -666,7 +666,7 @@
 /*     */ 
 /*     */   public HashCodeBuilder append(char value)
 /*     */   {
-/* 669 */     this.iTotal = (this.iTotal * this.iConstant + value);
+/* 669 */     this.iTotal = this.iTotal * this.iConstant + value;
 /* 670 */     return this;
 /*     */   }
 /*     */   
@@ -733,7 +733,7 @@
 /*     */ 
 /*     */   public HashCodeBuilder append(float value)
 /*     */   {
-/* 736 */     this.iTotal = (this.iTotal * this.iConstant + Float.floatToIntBits(value));
+/* 736 */     this.iTotal = this.iTotal * this.iConstant + Float.floatToIntBits(value);
 /* 737 */     return this;
 /*     */   }
 /*     */   
@@ -767,7 +767,7 @@
 /*     */ 
 /*     */   public HashCodeBuilder append(int value)
 /*     */   {
-/* 770 */     this.iTotal = (this.iTotal * this.iConstant + value);
+/* 770 */     this.iTotal = this.iTotal * this.iConstant + value;
 /* 771 */     return this;
 /*     */   }
 /*     */   
@@ -805,7 +805,7 @@
 /*     */ 
 /*     */   public HashCodeBuilder append(long value)
 /*     */   {
-/* 808 */     this.iTotal = (this.iTotal * this.iConstant + (int)(value ^ value >> 32));
+/* 808 */     this.iTotal = this.iTotal * this.iConstant + (int)(value ^ value >> 32);
 /* 809 */     return this;
 /*     */   }
 /*     */   
@@ -847,7 +847,7 @@
 /*     */ 
 /* 848 */       appendArray(object);
 /*     */     } else {
-/* 850 */       this.iTotal = (this.iTotal * this.iConstant + object.hashCode());
+/* 850 */       this.iTotal = this.iTotal * this.iConstant + object.hashCode();
 /*     */     }
 /* 852 */     return this;
 /*     */   }
@@ -915,7 +915,7 @@
 /*     */ 
 /*     */   public HashCodeBuilder append(short value)
 /*     */   {
-/* 918 */     this.iTotal = (this.iTotal * this.iConstant + value);
+/* 918 */     this.iTotal = this.iTotal * this.iConstant + value;
 /* 919 */     return this;
 /*     */   }
 /*     */   
@@ -950,7 +950,7 @@
 /*     */ 
 /*     */   public HashCodeBuilder appendSuper(int superHashCode)
 /*     */   {
-/* 953 */     this.iTotal = (this.iTotal * this.iConstant + superHashCode);
+/* 953 */     this.iTotal = this.iTotal * this.iConstant + superHashCode;
 /* 954 */     return this;
 /*     */   }
 /*     */   

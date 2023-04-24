@@ -293,8 +293,8 @@
 /*     */     {
 /* 294 */       JavaClass c = (JavaClass)clone();
 /* 295 */       c.constantPool = this.constantPool.copy();
-/* 296 */       c.interfaces = ((int[])this.interfaces.clone());
-/* 297 */       c.interfaceNames = ((String[])this.interfaceNames.clone());
+/* 296 */       c.interfaces = (int[])this.interfaces.clone();
+/* 297 */       c.interfaceNames = (String[])this.interfaceNames.clone();
 /* 298 */       c.fields = new Field[this.fields.length];
 /* 299 */       Arrays.setAll(c.fields,  i -> this.fields[i].copy(c.constantPool));
 /* 300 */       c.methods = new Method[this.methods.length];

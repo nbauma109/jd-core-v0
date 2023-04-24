@@ -32,14 +32,14 @@
 /*    */   {
 /* 33 */     CArray<ST_triangle_t> trip = Z.z().tris.plus_(Z.z().tril++);
 /* 34 */     ((ST_triangle_t)trip.get__(0)).mark = 0;
-/* 35 */     ((ST_triangle_t)trip.get__(0)).e[0].pnl0p = ((ST_pointnlink_t)pnlap);
-/* 36 */     ((ST_triangle_t)trip.get__(0)).e[0].pnl1p = ((ST_pointnlink_t)pnlbp);
+/* 35 */     ((ST_triangle_t)trip.get__(0)).e[0].pnl0p = (ST_pointnlink_t)pnlap;
+/* 36 */     ((ST_triangle_t)trip.get__(0)).e[0].pnl1p = (ST_pointnlink_t)pnlbp;
 /* 37 */     ((ST_triangle_t)trip.get__(0)).e[0].rtp = null;
-/* 38 */     ((ST_triangle_t)trip.get__(0)).e[1].pnl0p = ((ST_pointnlink_t)pnlbp);
-/* 39 */     ((ST_triangle_t)trip.get__(0)).e[1].pnl1p = ((ST_pointnlink_t)pnlcp);
+/* 38 */     ((ST_triangle_t)trip.get__(0)).e[1].pnl0p = (ST_pointnlink_t)pnlbp;
+/* 39 */     ((ST_triangle_t)trip.get__(0)).e[1].pnl1p = (ST_pointnlink_t)pnlcp;
 /* 40 */     ((ST_triangle_t)trip.get__(0)).e[1].rtp = null;
-/* 41 */     ((ST_triangle_t)trip.get__(0)).e[2].pnl0p = ((ST_pointnlink_t)pnlcp);
-/* 42 */     ((ST_triangle_t)trip.get__(0)).e[2].pnl1p = ((ST_pointnlink_t)pnlap);
+/* 41 */     ((ST_triangle_t)trip.get__(0)).e[2].pnl0p = (ST_pointnlink_t)pnlcp;
+/* 42 */     ((ST_triangle_t)trip.get__(0)).e[2].pnl1p = (ST_pointnlink_t)pnlap;
 /* 43 */     ((ST_triangle_t)trip.get__(0)).e[2].rtp = null;
 /* 44 */     for (int ei = 0; ei < 3; ei++) {
 /* 45 */       ((ST_triangle_t)trip.get__(0)).e[ei].lrp = trip;

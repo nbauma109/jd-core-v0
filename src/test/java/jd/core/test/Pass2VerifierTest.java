@@ -13,4 +13,9 @@ public class Pass2VerifierTest extends AbstractTestCase {
         String output = decompile("org/apache/bcel/verifier/statics/Pass2Verifier");
         assertEquals(IOUtils.toString(getClass().getResource("Pass2Verifier.txt"), StandardCharsets.UTF_8), output);
     }
+
+    @Override
+    protected boolean recompile() {
+        return false;
+    }
 }

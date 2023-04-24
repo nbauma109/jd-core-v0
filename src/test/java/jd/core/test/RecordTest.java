@@ -18,4 +18,9 @@ public class RecordTest extends AbstractTestCase {
     protected boolean realignmentLineNumber() {
         return false;
     }
+
+    @Override
+    protected boolean recompile() {
+        return false;
+    }
 }

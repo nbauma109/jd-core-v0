@@ -21,7 +21,7 @@ public class LRUCacheTest extends AbstractTestCase {
 
     @Test
     public void test() throws Exception {
-        String output = decompile("jd/core/test/LRUCache");
+        String output = decompile("jd/core/test/LRUCache", "9");
         assertEquals(IOUtils.toString(getClass().getResource("LRUCache.txt"), StandardCharsets.UTF_8), output);
     }
 }

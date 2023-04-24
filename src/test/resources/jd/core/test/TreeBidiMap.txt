@@ -2101,7 +2101,7 @@
 /*      */     public int hashCode()
 /*      */     {
 /* 2103 */       if (!this.calculatedHashCode) {
-/* 2104 */         this.hashcodeValue = (getKey().hashCode() ^ getValue().hashCode());
+/* 2104 */         this.hashcodeValue = getKey().hashCode() ^ getValue().hashCode();
 /* 2105 */         this.calculatedHashCode = true;
 /*      */       }
 /* 2107 */       return this.hashcodeValue;

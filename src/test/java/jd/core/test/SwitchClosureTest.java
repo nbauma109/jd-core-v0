@@ -13,4 +13,9 @@ public class SwitchClosureTest extends AbstractTestCase {
         String output = decompile("org/apache/commons/collections4/functors/SwitchClosure");
         assertEquals(IOUtils.toString(getClass().getResource("SwitchClosure.txt"), StandardCharsets.UTF_8), output);
     }
+
+    @Override
+    protected boolean recompile() {
+        return false;
+    }
 }

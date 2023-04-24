@@ -79,10 +79,10 @@
 /*    */   }
 /*    */   
 /*    */   void multiAssignInc() {
-/* 82 */     this.a = (this.b += this.c);
+/* 82 */     this.a = this.b += this.c;
 /*    */   }
 /*    */   
 /*    */   void compute(Rectangle[] r) {
-/* 86 */     r[7].y = (r[8].y = r[6].y = r[4].y + r[4].height);
+/* 86 */     r[7].y = r[8].y = r[6].y = r[4].y + r[4].height;
 /*    */   }
 /*    */ }

@@ -813,23 +813,33 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
 
     protected int visit(Instruction parent, Instruction child)
     {
-        return visit(parent.getPriority(), child);
+        return visit(parent.getPriority(), child, false);
     }
 
     protected int visit(int parentPriority, Instruction child)
+    {
+        return visit(parentPriority, child, false);
+    }
+
+    protected int visit(Instruction parent, Instruction child, boolean alwaysWithParenthesis)
+    {
+        return visit(parent.getPriority(), child, alwaysWithParenthesis);
+    }
+
+    protected int visit(int parentPriority, Instruction child, boolean alwaysWithParenthesis)
     {
         if (parentPriority >= child.getPriority()) {
             return visit(child);
         }
         int nextOffset = this.previousOffset + 1;
         if (this.firstOffset <= this.previousOffset &&
-            nextOffset <= this.lastOffset) {
+            nextOffset <= this.lastOffset || alwaysWithParenthesis) {
             this.printer.print(child.getLineNumber(), '(');
         }
         int lineNumber = visit(child);
         nextOffset = this.previousOffset + 1;
         if (this.firstOffset <= this.previousOffset &&
-            nextOffset <= this.lastOffset) {
+            nextOffset <= this.lastOffset || alwaysWithParenthesis) {
             this.printer.print(lineNumber, ')');
         }
         return lineNumber;
@@ -1192,7 +1202,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
                 this.printer.print(lineNumber, "");
             }
 
-            lineNumber = visit(instruction);
+            lineNumber = visit(ccbi, instruction, true);
 
             nextOffset = this.previousOffset + 1;
 
@@ -1214,7 +1224,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
                     this.printer.print(instruction.getLineNumber(), "");
                 }
 
-                lineNumber = visit(instruction);
+                lineNumber = visit(ccbi, instruction, true);
 
                 if (this.firstOffset <= this.previousOffset &&
                     ccbi.getOffset() <= this.lastOffset) {

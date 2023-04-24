@@ -12,7 +12,7 @@ public class ThreadLocalWithInitialTest extends AbstractTestCase {
 
     @Test
     public void testAnonymous() throws IOException {
-        String output = decompile("jd/core/test/ThreadLocalWithInitialAnonymous");
+        String output = decompile("jd/core/test/ThreadLocalWithInitialAnonymous", "9");
         assertEquals(IOUtils.toString(getClass().getResource("ThreadLocalWithInitialAnonymous.txt"), StandardCharsets.UTF_8), output);
     }
 

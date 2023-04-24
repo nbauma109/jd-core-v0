@@ -469,8 +469,8 @@
 /*  469 */         if (this.CONST_Double.isInstance(c) && fieldType.equals(Type.DOUBLE)) {
 /*  470 */           return;
 /*      */         }
-/*  472 */         if (this.CONST_Integer.isInstance(c) && fieldType.equals(Type.INT) || fieldType.equals(Type.SHORT) || fieldType.equals(Type.CHAR) || 
-/*  473 */           fieldType.equals(Type.BYTE) || fieldType.equals(Type.BOOLEAN)) {
+/*  472 */         if (this.CONST_Integer.isInstance(c) && (fieldType.equals(Type.INT) || fieldType.equals(Type.SHORT) || fieldType.equals(Type.CHAR) || 
+/*  473 */           fieldType.equals(Type.BYTE) || fieldType.equals(Type.BOOLEAN))) {
 /*  474 */           return;
 /*      */         }
 /*  476 */         if (this.CONST_String.isInstance(c) && fieldType.equals(Type.STRING)) {
@@ -878,7 +878,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*  881 */         if (name.equals("<init>") && obj.isStatic() || obj.isFinal() || obj.isSynchronized() || obj.isNative() || obj.isAbstract()) {
+/*  881 */         if (name.equals("<init>") && (obj.isStatic() || obj.isFinal() || obj.isSynchronized() || obj.isNative() || obj.isAbstract())) {
 /*  882 */           throw new ClassConstraintException("Instance initialization method '" + Pass2Verifier.tostring(obj) + "' must not have any of the ACC_STATIC, ACC_FINAL, ACC_SYNCHRONIZED, ACC_NATIVE, ACC_ABSTRACT modifiers set.");
 /*      */         }
 /*      */       }
@@ -930,7 +930,7 @@
 /*  930 */           Pass2Verifier.this.addMessage("Attribute '" + Pass2Verifier.tostring(att) + "' as an attribute of Method '" + Pass2Verifier.tostring(obj) + "' is neither Code nor Exceptions and is therefore only of use for debuggers and such.");
 /*      */         }
 /*      */         
-/*  933 */         if ((att instanceof Code) && obj.isNative() || obj.isAbstract())
+/*  933 */         if ((att instanceof Code) && (obj.isNative() || obj.isAbstract()))
 /*      */         {
 /*  935 */           throw new ClassConstraintException("Native or abstract methods like '" + Pass2Verifier.tostring(obj) + "' must not have a Code attribute like '" + Pass2Verifier.tostring(att) + "'.");
 /*      */         }

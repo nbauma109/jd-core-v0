@@ -25,7 +25,7 @@
 /* 25 */       synchronized (this) {
 /* 26 */         localResource = this.resource;
 /* 27 */         if (localResource == null) {
-/* 28 */           this.resource = (localResource = new Object());
+/* 28 */           this.resource = localResource = new Object();
 /*    */         }
 /*    */       }
 /*    */     }

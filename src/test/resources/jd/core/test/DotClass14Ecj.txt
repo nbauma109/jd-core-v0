@@ -95,7 +95,7 @@
 /*     */   native Serializable readValue(Class paramClass);
 /*     */   
 /*     */   void checkCast() {
-/*  98 */     this.clazz = ((Class)readValue(Object.class));
+/*  98 */     this.clazz = (Class)readValue(Object.class);
 /*     */   }
 /*     */   
 /*     */   void pop() {

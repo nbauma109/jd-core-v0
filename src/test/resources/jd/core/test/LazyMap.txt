@@ -159,7 +159,7 @@
 /*     */     throws IOException, ClassNotFoundException
 /*     */   {
 /* 161 */     in.defaultReadObject();
-/* 162 */     this.map = ((Map)in.readObject());
+/* 162 */     this.map = (Map)in.readObject();
 /*     */   }
 /*     */   
 /*     */ 

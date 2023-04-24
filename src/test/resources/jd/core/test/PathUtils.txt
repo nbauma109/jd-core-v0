@@ -104,7 +104,7 @@
 /*  104 */         boolean parentDirNotExists1 = Files.notExists(dir1, linkOptions);
 /*  105 */         boolean parentDirNotExists2 = Files.notExists(dir2, linkOptions);
 /*  106 */         if (parentDirNotExists1 || parentDirNotExists2) {
-/*  107 */           this.equals = (parentDirNotExists1 && parentDirNotExists2);
+/*  107 */           this.equals = parentDirNotExists1 && parentDirNotExists2;
 /*      */         } else {
 /*  109 */           AccumulatorPathVisitor visitor1 = PathUtils.accumulate(dir1, maxDepth, fileVisitOptions);
 /*  110 */           AccumulatorPathVisitor visitor2 = PathUtils.accumulate(dir2, maxDepth, fileVisitOptions);

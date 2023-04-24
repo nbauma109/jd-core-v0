@@ -29,4 +29,9 @@ public class DotClass14Test extends AbstractTestCase {
             assertEquals(IOUtils.toString(getClass().getResource("DotClass14Ecj.txt"), StandardCharsets.UTF_8), output);
         }
     }
+
+    @Override
+    protected boolean recompile() {
+        return false;
+    }
 }

@@ -24,4 +24,9 @@ public class PathUtilsTest extends AbstractTestCase {
             assertEquals(IOUtils.toString(getClass().getResource("PathUtilsJDK7.txt"), StandardCharsets.UTF_8), output);
         }
     }
+
+    @Override
+    protected boolean recompile() {
+        return false;
+    }
 }

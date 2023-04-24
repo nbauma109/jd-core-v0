@@ -43,7 +43,7 @@
 /*    */   
 /*    */   public PathVisitorFileFilter(PathVisitor pathVisitor)
 /*    */   {
-/* 46 */     this.pathVisitor = (pathVisitor == null ? NoopPathVisitor.INSTANCE : pathVisitor);
+/* 46 */     this.pathVisitor = pathVisitor == null ? NoopPathVisitor.INSTANCE : pathVisitor;
 /*    */   }
 /*    */   
 /*    */   @Override

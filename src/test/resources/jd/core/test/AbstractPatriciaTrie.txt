@@ -1791,7 +1791,7 @@
 /* 1791 */       K fromKey = getFromKey();
 /* 1792 */       K toKey = getToKey();
 /*      */       
-/* 1794 */       return fromKey == null || inFromRange(key, false) && toKey == null || inToRange(key, false);
+/* 1794 */       return (fromKey == null || inFromRange(key, false)) && (toKey == null || inToRange(key, false));
 /*      */     }
 /*      */     
 /*      */ 
@@ -1801,7 +1801,7 @@
 /* 1801 */       K fromKey = getFromKey();
 /* 1802 */       K toKey = getToKey();
 /*      */       
-/* 1804 */       return fromKey == null || inFromRange(key, false) && toKey == null || inToRange(key, true);
+/* 1804 */       return (fromKey == null || inFromRange(key, false)) && (toKey == null || inToRange(key, true));
 /*      */     }
 /*      */     
 /*      */ 
@@ -2067,7 +2067,7 @@
 /*      */       private EntryIterator(AbstractPatriciaTrie.TrieEntry<K, V> first, AbstractPatriciaTrie.TrieEntry<K, V> last)
 /*      */       {
 /* 2069 */         super(first);
-/* 2070 */         this.excludedKey = (last != null ? last.getKey() : null);
+/* 2070 */         this.excludedKey = last != null ? last.getKey() : null;
 /*      */       }
 /*      */       
 /*      */       @Override
@@ -2131,10 +2131,10 @@
 /* 2131 */           this.size = 1;
 /*      */         }
 /*      */         
-/* 2134 */         this.fromKey = (entry == null ? null : entry.getKey());
+/* 2134 */         this.fromKey = entry == null ? null : entry.getKey();
 /* 2135 */         if (this.fromKey != null) {
 /* 2136 */           AbstractPatriciaTrie.TrieEntry<K, V> prior = AbstractPatriciaTrie.this.previousEntry((AbstractPatriciaTrie.TrieEntry)entry);
-/* 2137 */           this.fromKey = (prior == null ? null : prior.getKey());
+/* 2137 */           this.fromKey = prior == null ? null : prior.getKey();
 /*      */         }
 /*      */         
 /* 2140 */         this.toKey = this.fromKey;
@@ -2144,11 +2144,11 @@
 /* 2144 */           entry = (Entry)it.next();
 /*      */         }
 /*      */         
-/* 2147 */         this.toKey = (entry == null ? null : entry.getKey());
+/* 2147 */         this.toKey = entry == null ? null : entry.getKey();
 /*      */         
 /* 2149 */         if (this.toKey != null) {
 /* 2150 */           entry = AbstractPatriciaTrie.this.nextEntry((AbstractPatriciaTrie.TrieEntry)entry);
-/* 2151 */           this.toKey = (entry == null ? null : entry.getKey());
+/* 2151 */           this.toKey = entry == null ? null : entry.getKey();
 /*      */         }
 /*      */         
 /* 2154 */         this.expectedModCount = AbstractPatriciaTrie.this.modCount;

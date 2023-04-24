@@ -29,7 +29,7 @@
 /* 29 */       OuterReference.this.a[(OuterReference.this.x++)] = (OuterReference.this.a.length + OuterReference.this.y);
 /* 30 */       OuterReference.this.a[(++OuterReference.this.y)] = (-OuterReference.this.x);
 /* 31 */       OuterReference.this.a[(OuterReference.this.x + OuterReference.this.y)] = ((OuterReference.this.d instanceof Double) ? (int)Math.round(((Double)OuterReference.this.d).doubleValue()) : OuterReference.this.x);
-/* 32 */       OuterReference.this.p.y = (OuterReference.this.flag ? ++OuterReference.this.p.x : --OuterReference.this.p.y);
+/* 32 */       OuterReference.this.p.y = OuterReference.this.flag ? ++OuterReference.this.p.x : --OuterReference.this.p.y;
 /*    */       
 /* 34 */       switch (OuterReference.this.x) {
 /*    */       case 1: 

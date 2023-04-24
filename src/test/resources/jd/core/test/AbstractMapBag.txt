@@ -212,7 +212,7 @@
 /* 212 */         throw new ConcurrentModificationException();
 /*     */       }
 /* 214 */       if (this.itemCount == 0) {
-/* 215 */         this.current = ((Entry)this.entryIterator.next());
+/* 215 */         this.current = (Entry)this.entryIterator.next();
 /* 216 */         this.itemCount = ((AbstractMapBag.MutableInteger)this.current.getValue()).value;
 /*     */       }
 /* 218 */       this.canRemove = true;

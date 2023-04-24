@@ -121,8 +121,8 @@
 /*     */     {
 /* 122 */       this.object = Objects.requireNonNull(object, "object");
 /* 123 */       this.lock = Objects.requireNonNull(lock, "lock");
-/* 124 */       this.readLockSupplier = ((Supplier)Objects.requireNonNull(readLockSupplier, "readLockSupplier"));
-/* 125 */       this.writeLockSupplier = ((Supplier)Objects.requireNonNull(writeLockSupplier, "writeLockSupplier"));
+/* 124 */       this.readLockSupplier = (Supplier)Objects.requireNonNull(readLockSupplier, "readLockSupplier");
+/* 125 */       this.writeLockSupplier = (Supplier)Objects.requireNonNull(writeLockSupplier, "writeLockSupplier");
 /*     */     }
 /*     */     
 /*     */ 

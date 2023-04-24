@@ -7,6 +7,6 @@
 /*    */   Point p;
 /*    */   
 /*    */   void putfieldPreInc(boolean flag) {
-/* 10 */     this.p.y = (flag ? ++this.p.x : --this.p.y);
+/* 10 */     this.p.y = flag ? ++this.p.x : --this.p.y;
 /*    */   }
 /*    */ }
