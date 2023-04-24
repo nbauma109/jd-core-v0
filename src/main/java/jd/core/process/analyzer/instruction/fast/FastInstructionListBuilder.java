@@ -1341,7 +1341,7 @@ public final class FastInstructionListBuilder {
         }
     }
 
-    /**
+    /*
      * début de liste fin de liste | | Liste ...
      * --|----|---|==0===1===2===3===4===5===6==7=...=n---|--| ... | | | | | | |
      * beforeListOffset | | Offsets | loopEntryOffset endLoopOffset |
@@ -1373,7 +1373,6 @@ public final class FastInstructionListBuilder {
      * instruction | beforeLoopEntryOffset goto à saut négatif |
      * loopEntryOffset, endLoopOffset, afterListOffset instruction après boucle
      * | afterLoopOffset
-     * @return 
      */
     private static Set<FastDeclaration> analyzeList(ClassFile classFile, Method method, List<Instruction> list,
             LocalVariables localVariables, IntSet offsetLabelSet, int beforeLoopEntryOffset, int loopEntryOffset,
@@ -1397,7 +1396,7 @@ public final class FastInstructionListBuilder {
         TernaryOpInReturnReconstructor.reconstruct(list);
 
         // Create labeled 'break'
-        // Cet appel permettait de reduire le nombre d'imbrication des 'if' en
+        // Cet appel permet de reduire le nombre d'imbrication des 'if' en
         // Augmentant le nombre de 'break' et 'continue'.
          createContinue(
          list, beforeLoopEntryOffset, loopEntryOffset, returnOffset);
@@ -1439,7 +1438,7 @@ public final class FastInstructionListBuilder {
 
         // Add cast instruction on return
         addCastInstructionOnReturn(classFile, method, list);
-        
+
         return outerDeclarations;
     }
 
@@ -1544,7 +1543,7 @@ public final class FastInstructionListBuilder {
         }
     }
 
-    /**
+    /*
      * Strategie : 1) Les instructions 'store' et 'for' sont passées en revue.
      * Si elles referencent une variables locales non encore déclarée et dont la
      * portée est incluse à la liste, une declaration est insérée. 2) Le tableau
@@ -1556,7 +1555,7 @@ public final class FastInstructionListBuilder {
             int beforeListOffset, boolean addDeclarations, ClassFile classFile, Method method) {
 
         Set<FastDeclaration> outerDeclarations = new HashSet<>();
-        
+
         int length = list.size();
 
         if (length > 0) {
@@ -2457,7 +2456,7 @@ public final class FastInstructionListBuilder {
         return false;
     }
 
-    /**
+    /*
      * début de liste fin de liste | | Liste ...
      * --|----|---|==0===1===2===3===4===5===6==7=...=n---|--| ... | | | | | | |
      * beforeListOffset | | Offsets | loopEntryOffset endLoopOffset |
@@ -2481,7 +2480,7 @@ public final class FastInstructionListBuilder {
         }
     }
 
-    /**
+    /*
      * début de liste fin de liste | | Liste ...
      * --|----|---|==0===1===2===3===4===5===6==7=...=n---|--| ... | | | | | | |
      * beforeListOffset | | Offsets | loopEntryOffset endLoopOffset |
@@ -2516,7 +2515,7 @@ public final class FastInstructionListBuilder {
         }
     }
 
-    /**
+    /*
      * début de liste fin de liste | testIndex | | | | Liste ...
      * --|----|---|==0===1===2===3===4===5===6==7=...=n---|--| ... | | | | | | |
      * beforeListOffset | | Offsets | loopEntryOffset endLoopOffset |
@@ -3963,7 +3962,7 @@ public final class FastInstructionListBuilder {
         return index;
     }
 
-    /**
+    /*
      * début de liste fin de liste | testIndex | | | | Liste ...
      * --|----|---|==0===1===2===3===4===5===6==7=...=n---|--| ... | | | | | | |
      * beforeListOffset | | Offsets | loopEntryOffset endLoopOffset |
@@ -4156,7 +4155,7 @@ public final class FastInstructionListBuilder {
         return length;
     }
 
-    /**
+    /*
      * début de liste fin de liste | switchIndex | | | | Liste ...
      * --|----|---|==0===1===2===3===4===5===6==7=...=n---|--| ... | | | | | | |
      * beforeListOffset | | Offsets | loopEntryOffset endLoopOffset |
@@ -4277,7 +4276,7 @@ public final class FastInstructionListBuilder {
         return FastConstants.SWITCH;
     }
 
-    /**
+    /*
      * début de liste fin de liste | switchIndex | | | | Liste ...
      * --|----|---|==0===1===2===3===4===5===6==7=...=n---|--| ... | | | | | | |
      * beforeListOffset | | Offsets | loopEntryOffset endLoopOffset |
@@ -4544,7 +4543,7 @@ public final class FastInstructionListBuilder {
         return true;
     }
 
-    /**
+    /*
      * début de liste fin de liste | switchIndex | | | | Liste ...
      * --|----|---|==0===1===2===3===4===5===6==7=...=n---|--| ... | | | | | | |
      * | beforeListOff. | | | Offsets | loopEntryOffset switchOffset
