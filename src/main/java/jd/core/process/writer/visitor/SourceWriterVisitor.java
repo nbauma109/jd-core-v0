@@ -1266,9 +1266,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
             {
                 //new RuntimeException("local variable not found")
                 //    .printStackTrace();
-                this.printer.startOfError();
-                this.printer.print(lineNumber, "???");
-                this.printer.endOfError();
+                writeError(lineNumber);
             }
             else
             {
@@ -1298,6 +1296,12 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
         }
 
         return lineNumber;
+    }
+
+    private void writeError(int lineNumber) {
+        this.printer.startOfError();
+        this.printer.print(lineNumber, "???");
+        this.printer.endOfError();
     }
 
     private int writePreInc(IncInstruction ii)
@@ -2215,10 +2219,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
 
             if (lv == null || lv.getNameIndex() <= 0)
             {
-                // Error
-                this.printer.startOfError();
-                this.printer.print(lineNumber, "???");
-                this.printer.endOfError();
+                writeError(lineNumber);
             }
             else
             {
@@ -2356,9 +2357,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
 
             if (lv == null || lv.getNameIndex() <= 0)
             {
-                this.printer.startOfError();
-                this.printer.print(lineNumber, "???");
-                this.printer.endOfError();
+                writeError(lineNumber);
             }
             else
             {
@@ -2394,9 +2393,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
 
                 if (lv == null || lv.getNameIndex() == 0)
                 {
-                    this.printer.startOfError();
-                    this.printer.print(lineNumber, "???");
-                    this.printer.endOfError();
+                    writeError(lineNumber);
                 }
                 else
                 {
@@ -2507,9 +2504,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
                 if (this.firstOffset <= this.previousOffset &&
                     nextOffset <= this.lastOffset)
                 {
-                    this.printer.startOfError();
-                    this.printer.print(lineNumber, "???");
-                    this.printer.endOfError();
+                    writeError(lineNumber);
                 }
             }
             else
