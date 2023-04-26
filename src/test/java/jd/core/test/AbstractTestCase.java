@@ -13,7 +13,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import jd.core.preferences.Preferences;
 import jd.core.printer.PlainTextPrinter;
@@ -55,14 +55,21 @@ public abstract class AbstractTestCase {
             options.put(JavaCore.COMPILER_SOURCE, jdkVersion);
             parser.setCompilerOptions(options);
 
-            int errorCount = 0;
+            StringBuilder sb = new StringBuilder();
             CompilationUnit unit = (CompilationUnit) parser.createAST(null);
             for (IProblem problem : unit.getProblems()) {
                 if (problem.isError()) {
-                    errorCount++;
+                    sb.append('L');
+                    sb.append(problem.getSourceLineNumber());
+                    sb.append(": ");
+                    sb.append(problem.getMessage());
+                    sb.append(System.lineSeparator());
                 }
             }
-            assertEquals(0, errorCount);
+            if (!sb.isEmpty()) {
+                System.out.println(decompiledOutput);
+                fail(sb.toString());
+            }
         }
         return decompiledOutput;
     }
