@@ -24,7 +24,7 @@ import jd.core.model.classfile.LocalVariables;
 import jd.core.model.instruction.bytecode.instruction.BranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.fast.FastConstants;
-import jd.core.process.analyzer.classfile.visitor.SearchInstructionByOpcodeVisitor;
+import jd.core.process.analyzer.classfile.visitor.SearchInstructionByTypeVisitor;
 
 /** While, do-while & if. */
 public class FastSwitch extends BranchInstruction
@@ -119,8 +119,10 @@ public class FastSwitch extends BranchInstruction
         }
 
         public boolean hasDeclaration() {
+            SearchInstructionByTypeVisitor<FastDeclaration> visitor = new SearchInstructionByTypeVisitor<>(
+                    FastDeclaration.class, i -> i.getOpcode() == FastConstants.DECLARE);
             for (Instruction i : instructions) {
-                Instruction fd = SearchInstructionByOpcodeVisitor.visit(i, FastConstants.DECLARE);
+                Instruction fd = visitor.visit(i);
                 if (fd != null) {
                     return true;
                 }

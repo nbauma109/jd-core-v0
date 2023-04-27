@@ -103,7 +103,6 @@ import jd.core.model.reference.ReferenceMap;
 import jd.core.process.analyzer.classfile.reconstructor.AssignmentOperatorReconstructor;
 import jd.core.process.analyzer.classfile.visitor.CheckCastAndConvertInstructionVisitor;
 import jd.core.process.analyzer.classfile.visitor.RemoveCheckCastVisitor;
-import jd.core.process.analyzer.classfile.visitor.SearchInstructionByOpcodeVisitor;
 import jd.core.process.analyzer.classfile.visitor.SearchInstructionByTypeVisitor;
 import jd.core.process.analyzer.instruction.bytecode.ComparisonInstructionAnalyzer;
 import jd.core.process.analyzer.instruction.bytecode.reconstructor.AssertInstructionReconstructor;
@@ -1179,11 +1178,10 @@ public final class FastInstructionListBuilder {
     }
 
     private static ExceptionLoad searchExceptionLoadInstruction(List<Instruction> instructions) {
-
+        SearchInstructionByTypeVisitor<ExceptionLoad> visitor = new SearchInstructionByTypeVisitor<>(
+                ExceptionLoad.class, i -> i.getOpcode() == ByteCodeConstants.EXCEPTIONLOAD);
         for (Instruction instruction : instructions) {
-            instruction = SearchInstructionByOpcodeVisitor.visit(instruction,
-                    ByteCodeConstants.EXCEPTIONLOAD);
-
+            instruction = visitor.visit(instruction);
             if (instruction != null) {
                 return (ExceptionLoad) instruction;
             }

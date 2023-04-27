@@ -33,9 +33,10 @@ import jd.core.model.instruction.bytecode.instruction.ALoad;
 import jd.core.model.instruction.bytecode.instruction.ILoad;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.Invokespecial;
+import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
 import jd.core.model.instruction.bytecode.instruction.PutField;
 import jd.core.process.analyzer.classfile.visitor.CompareInstructionVisitor;
-import jd.core.process.analyzer.classfile.visitor.SearchInstructionByOpcodeVisitor;
+import jd.core.process.analyzer.classfile.visitor.SearchInstructionByTypeVisitor;
 
 public final class InitInstanceFieldsReconstructor
 {
@@ -107,19 +108,11 @@ public final class InitInstanceFieldsReconstructor
                         break;
                     }
 
-                    Instruction valueInstruction =
-                        SearchInstructionByOpcodeVisitor.visit(
-                                putField.getValueref(), Const.ALOAD);
-                    if (valueInstruction != null &&
-                        ((ALoad)valueInstruction).getIndex() != 0) {
-                        break;
-                    }
-                    if (SearchInstructionByOpcodeVisitor.visit(
-                            putField.getValueref(), ByteCodeConstants.LOAD) != null) {
-                        break;
-                    }
-                    if (SearchInstructionByOpcodeVisitor.visit(
-                            putField.getValueref(), Const.ILOAD) != null) {
+                    SearchInstructionByTypeVisitor<LoadInstruction> visitor = new SearchInstructionByTypeVisitor<>(
+                            LoadInstruction.class, i -> i.getOpcode() == ByteCodeConstants.LOAD 
+                                                     || i.getOpcode() == Const.ILOAD 
+                                                     ||(i.getOpcode() == Const.ALOAD && i.getIndex() != 0));
+                    if (visitor.visit(putField.getValueref()) != null) {
                         break;
                     }
 
