@@ -1570,8 +1570,7 @@ public final class FastInstructionListBuilder {
                     if (lv != null && lv.hasDeclarationFlag() == NOT_DECLARED
                             && (beforeListOffset < lv.getStartPc()
                             && (lv.getStartPc() + lv.getLength() - 1 <= lastOffset
-                            || method.getNameIndex() == classFile.getConstantPool().getClassConstructorIndex()))
-                            && CheckLocalVariableUsedVisitor.visit(lv, list.subList(i+1, list.size()))) {
+                            || method.getNameIndex() == classFile.getConstantPool().getClassConstructorIndex()))) {
                         list.set(i, new FastDeclaration(si.getOffset(), si.getLineNumber(), lv, si));
                         lv.setDeclarationFlag(DECLARED);
                         updateNewAndInitArrayInstruction(si);
