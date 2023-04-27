@@ -1602,13 +1602,10 @@ public final class FastInstructionListBuilder {
                     while ((asi = asiVisitor.visit(instruction)) != null) {
                         LoadInstruction li = (LoadInstruction) asi.getValue1();
                         LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(li.getIndex(), li.getOffset());
-                        if (lv != null && lv.hasDeclarationFlag() == NOT_DECLARED && beforeListOffset < lv.getStartPc()
-                                && lv.getStartPc() + lv.getLength() - 1 <= lastOffset) {
-                            FastDeclaration fastDeclaration = new FastDeclaration(lv.getStartPc(),
-                                    Instruction.UNKNOWN_LINE_NUMBER, lv, null);
-                            list.add(i++, fastDeclaration);
-                            lv.setDeclarationFlag(DECLARED);
-                        }
+                        FastDeclaration fastDeclaration = new FastDeclaration(lv.getStartPc(),
+                                Instruction.UNKNOWN_LINE_NUMBER, lv, null);
+                        list.add(i++, fastDeclaration);
+                        lv.setDeclarationFlag(DECLARED);
                     }
                     SearchInstructionByTypeVisitor<StoreInstruction> siVisitor = new SearchInstructionByTypeVisitor<>(
                         StoreInstruction.class, si -> {
