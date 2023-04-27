@@ -1590,7 +1590,7 @@ public final class FastInstructionListBuilder {
                 } else {
                     SearchInstructionByTypeVisitor<AssignmentInstruction> asiVisitor = new SearchInstructionByTypeVisitor<>(
                         AssignmentInstruction.class, asi -> {
-                            if (asi != null && asi.getValue1() instanceof LoadInstruction) {
+                            if (asi.getValue1() instanceof LoadInstruction) {
                                 LoadInstruction li = (LoadInstruction) asi.getValue1();
                                 LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(li.getIndex(), li.getOffset());
                                 return lv != null && lv.hasDeclarationFlag() == NOT_DECLARED && beforeListOffset < lv.getStartPc()
