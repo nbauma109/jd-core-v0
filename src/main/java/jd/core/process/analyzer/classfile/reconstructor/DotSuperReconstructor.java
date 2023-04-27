@@ -16,7 +16,6 @@
  ******************************************************************************/
 package jd.core.process.analyzer.classfile.reconstructor;
 
-import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantNameAndType;
 
@@ -43,8 +42,7 @@ public final class DotSuperReconstructor
 
     public static void reconstruct(ClassFile classFile, List<Instruction> list)
     {
-        SearchInstructionByTypeVisitor<Invokespecial> visitor = new SearchInstructionByTypeVisitor<>(
-                Invokespecial.class, i -> i.getOpcode() == Const.INVOKESPECIAL);
+        SearchInstructionByTypeVisitor<Invokespecial> visitor = new SearchInstructionByTypeVisitor<>(Invokespecial.class);
         for (int i = list.size() - 1; i >= 0; i--) {
             Instruction instruction = list.get(i);
             if (instruction instanceof Pop) {

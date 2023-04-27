@@ -76,6 +76,10 @@ public final class SearchInstructionByTypeVisitor<T extends Instruction>
         this.predicate = predicate;
     }
 
+    public SearchInstructionByTypeVisitor(Class<T> type) {
+        this(type, null);
+    }
+
     public T visit(Instruction instruction)
         throws RuntimeException
     {
@@ -83,7 +87,7 @@ public final class SearchInstructionByTypeVisitor<T extends Instruction>
 
         if (type.isInstance(instruction)) {
             T convertedInstruction = type.cast(instruction);
-            if (predicate.test(convertedInstruction)) {
+            if (predicate == null || predicate.test(convertedInstruction)) {
                 return convertedInstruction;
             }
         }

@@ -109,9 +109,7 @@ public final class InitInstanceFieldsReconstructor
                     }
 
                     SearchInstructionByTypeVisitor<LoadInstruction> visitor = new SearchInstructionByTypeVisitor<>(
-                            LoadInstruction.class, i -> i.getOpcode() == ByteCodeConstants.LOAD 
-                                                     || i.getOpcode() == Const.ILOAD 
-                                                     ||(i.getOpcode() == Const.ALOAD && i.getIndex() != 0));
+                            LoadInstruction.class, i -> i.getOpcode() != Const.ALOAD || i.getIndex() != 0);
                     if (visitor.visit(putField.getValueref()) != null) {
                         break;
                     }

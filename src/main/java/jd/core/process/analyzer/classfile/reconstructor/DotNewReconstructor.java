@@ -23,7 +23,6 @@ import java.util.List;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
-import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.DupLoad;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNew;
@@ -42,8 +41,7 @@ public final class DotNewReconstructor
 
     public static void reconstruct(ClassFile classFile, List<Instruction> list)
     {
-        SearchInstructionByTypeVisitor<InvokeNew> visitor = new SearchInstructionByTypeVisitor<>(
-                InvokeNew.class, i -> i.getOpcode() == ByteCodeConstants.INVOKENEW);
+        SearchInstructionByTypeVisitor<InvokeNew> visitor = new SearchInstructionByTypeVisitor<>(InvokeNew.class);
         for (int i = list.size() - 1; i >= 0; i--) {
             Instruction instruction = list.get(i);
             if (instruction instanceof Pop) {

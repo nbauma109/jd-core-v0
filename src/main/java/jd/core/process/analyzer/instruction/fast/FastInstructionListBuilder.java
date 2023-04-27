@@ -1178,8 +1178,7 @@ public final class FastInstructionListBuilder {
     }
 
     private static ExceptionLoad searchExceptionLoadInstruction(List<Instruction> instructions) {
-        SearchInstructionByTypeVisitor<ExceptionLoad> visitor = new SearchInstructionByTypeVisitor<>(
-                ExceptionLoad.class, i -> i.getOpcode() == ByteCodeConstants.EXCEPTIONLOAD);
+        SearchInstructionByTypeVisitor<ExceptionLoad> visitor = new SearchInstructionByTypeVisitor<>(ExceptionLoad.class);
         for (Instruction instruction : instructions) {
             instruction = visitor.visit(instruction);
             if (instruction != null) {

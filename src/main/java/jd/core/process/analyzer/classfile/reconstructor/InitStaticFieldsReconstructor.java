@@ -59,10 +59,7 @@ public final class InitStaticFieldsReconstructor
         int length = list.size();
         int indexField = 0;
 
-        SearchInstructionByTypeVisitor<LoadInstruction> visitor = new SearchInstructionByTypeVisitor<>(
-                LoadInstruction.class, i -> i.getOpcode() == ByteCodeConstants.LOAD 
-                                         || i.getOpcode() == Const.ILOAD 
-                                         || i.getOpcode() == Const.ALOAD);
+        SearchInstructionByTypeVisitor<LoadInstruction> visitor = new SearchInstructionByTypeVisitor<>(LoadInstruction.class);
 
         while (indexInstruction < length)
         {
