@@ -819,10 +819,7 @@ public final class ClassFileAnalyzer
     public static void analyzeSingleMethod(ReferenceMap referenceMap, ClassFile classFile, OuterReferenceReconstructor outerReferenceReconstructor, final Method method) {
         List<Instruction> list = method.getInstructions();
 
-        // Reconstruct access to outer fields and methods
-        if (outerReferenceReconstructor != null) {
-            outerReferenceReconstructor.reconstruct(method, list);
-        }
+
         // Re-construct 'new' instruction
         NewInstructionReconstructor.reconstruct(classFile, method, list);
         SimpleNewInstructionReconstructor.reconstruct(classFile, method, list);
@@ -862,7 +859,13 @@ public final class ClassFileAnalyzer
         DotNewReconstructor.reconstruct(classFile, list);
         // Reconstruction du pattern a.super(...)
         DotSuperReconstructor.reconstruct(classFile, list);
+        // Reconstruct access to outer fields and methods
 
+        if (outerReferenceReconstructor != null) {
+
+            outerReferenceReconstructor.reconstruct(method, list);
+
+        }
         // Build fast instructions
         List<Instruction> fastList =
                 new ArrayList<>(list);
