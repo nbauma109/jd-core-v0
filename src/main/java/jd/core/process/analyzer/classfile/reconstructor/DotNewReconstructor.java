@@ -23,13 +23,12 @@ import java.util.List;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
-import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.DupLoad;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNew;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
 import jd.core.model.instruction.bytecode.instruction.Pop;
-import jd.core.process.analyzer.classfile.visitor.SearchInstructionByOpcodeVisitor;
+import jd.core.process.analyzer.classfile.visitor.SearchInstructionByTypeVisitor;
 
 /*
  * Reconstruction of pattern
@@ -38,11 +37,11 @@ import jd.core.process.analyzer.classfile.visitor.SearchInstructionByOpcodeVisit
 public final class DotNewReconstructor
 {
     private DotNewReconstructor() {
-        super();
     }
 
     public static void reconstruct(ClassFile classFile, List<Instruction> list)
     {
+        SearchInstructionByTypeVisitor<InvokeNew> visitor = new SearchInstructionByTypeVisitor<>(InvokeNew.class);
         for (int i = list.size() - 1; i >= 0; i--) {
             Instruction instruction = list.get(i);
             if (instruction instanceof Pop) {
@@ -56,7 +55,7 @@ public final class DotNewReconstructor
                     String methodName = cp.getConstantUtf8(cnat.getNameIndex());
                     String methodDesc = cp.getConstantUtf8(cnat.getSignatureIndex());
                     if ("getClass".equals(methodName) && "()Ljava/lang/Class;".equals(methodDesc)) {
-                        InvokeNew invokeNew = (InvokeNew) SearchInstructionByOpcodeVisitor.visit(list.get(i+1), ByteCodeConstants.INVOKENEW);
+                        InvokeNew invokeNew = visitor.visit(list.get(i+1));
                         if (invokeNew != null && !invokeNew.getArgs().isEmpty() && invokeNew.getArgs().get(0) instanceof DupLoad) {
                             DupLoad dupLoad = (DupLoad) invokeNew.getArgs().get(0);
                             if (i > 0 && list.get(i-1) == dupLoad.getDupStore()) {

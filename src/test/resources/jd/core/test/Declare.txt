@@ -34,4 +34,34 @@
 /* 34 */     i = Integer.valueOf(i.intValue() + inc);
 /* 35 */     return i;
 /*    */   }
+/*    */   
+/*    */   double assignment() {
+/*    */     double d2;
+/*    */     double d1;
+/* 41 */     while ((d1 = Math.random()) < 0.5D && (d2 = Math.random()) < 0.5D) {
+/* 42 */       d1 = 0.0D;
+/* 43 */       d2 = 0.0D;
+/*    */     }
+/* 45 */     d1 = 1.0D;
+/* 46 */     d2 = 2.0D;
+/* 47 */     return d1 + d2;
+/*    */   }
+/*    */   
+/*    */   double storeAndAssignment() {
+/*    */     double d2;
+/*    */     double d1;
+/*    */     double d4;
+/*    */     double d3;
+/*    */     do {
+/* 56 */       d3 = 0.0D;
+/* 57 */       d4 = 0.0D;
+/* 58 */     } while ((d1 = Math.random()) < 0.5D || (d2 = Math.random()) < 0.5D);
+/* 59 */     if (Math.random() < 0.5D) {
+/* 60 */       d1 = 1.0D;
+/* 61 */       d2 = 2.0D;
+/* 62 */       d3 = 3.0D;
+/* 63 */       d4 = 4.0D;
+/*    */     }
+/* 65 */     return d1 + d2 + d3 + d4;
+/*    */   }
 /*    */ }

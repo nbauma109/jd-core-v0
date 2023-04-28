@@ -59,11 +59,11 @@ public abstract class AbstractTestCase {
             CompilationUnit unit = (CompilationUnit) parser.createAST(null);
             for (IProblem problem : unit.getProblems()) {
                 if (problem.isError()) {
+                    sb.append(System.lineSeparator());
                     sb.append('L');
                     sb.append(problem.getSourceLineNumber());
                     sb.append(": ");
                     sb.append(problem.getMessage());
-                    sb.append(System.lineSeparator());
                 }
             }
             if (!sb.isEmpty()) {

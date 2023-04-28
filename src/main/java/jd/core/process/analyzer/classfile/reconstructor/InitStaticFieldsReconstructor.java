@@ -28,8 +28,9 @@ import jd.core.model.classfile.Field;
 import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
+import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
 import jd.core.model.instruction.bytecode.instruction.PutStatic;
-import jd.core.process.analyzer.classfile.visitor.SearchInstructionByOpcodeVisitor;
+import jd.core.process.analyzer.classfile.visitor.SearchInstructionByTypeVisitor;
 
 public final class InitStaticFieldsReconstructor
 {
@@ -53,10 +54,12 @@ public final class InitStaticFieldsReconstructor
 
         ConstantPool constants = classFile.getConstantPool();
 
-        // Search field initialisation from the begining
+        // Search field initialisation from the beginning
         int indexInstruction = 0;
         int length = list.size();
         int indexField = 0;
+
+        SearchInstructionByTypeVisitor<LoadInstruction> visitor = new SearchInstructionByTypeVisitor<>(LoadInstruction.class);
 
         while (indexInstruction < length)
         {
@@ -88,16 +91,7 @@ public final class InitStaticFieldsReconstructor
                 {
                     Instruction valueref = putStatic.getValueref();
 
-                    if (SearchInstructionByOpcodeVisitor.visit(
-                            valueref, Const.ALOAD) != null) {
-                        break;
-                    }
-                    if (SearchInstructionByOpcodeVisitor.visit(
-                            valueref, ByteCodeConstants.LOAD) != null) {
-                        break;
-                    }
-                    if (SearchInstructionByOpcodeVisitor.visit(
-                            valueref, Const.ILOAD) != null) {
+                    if (visitor.visit(valueref) != null) {
                         break;
                     }
 
@@ -159,16 +153,7 @@ public final class InitStaticFieldsReconstructor
                     {
                         Instruction valueref = putStatic.getValueref();
 
-                        if (SearchInstructionByOpcodeVisitor.visit(
-                                valueref, Const.ALOAD) != null) {
-                            break;
-                        }
-                        if (SearchInstructionByOpcodeVisitor.visit(
-                                valueref, ByteCodeConstants.LOAD) != null) {
-                            break;
-                        }
-                        if (SearchInstructionByOpcodeVisitor.visit(
-                                valueref, Const.ILOAD) != null) {
+                        if (visitor.visit(valueref) != null) {
                             break;
                         }
 

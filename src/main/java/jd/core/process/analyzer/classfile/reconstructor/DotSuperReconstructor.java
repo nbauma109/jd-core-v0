@@ -16,7 +16,6 @@
  ******************************************************************************/
 package jd.core.process.analyzer.classfile.reconstructor;
 
-import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantNameAndType;
 
@@ -29,7 +28,7 @@ import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.Invokespecial;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
 import jd.core.model.instruction.bytecode.instruction.Pop;
-import jd.core.process.analyzer.classfile.visitor.SearchInstructionByOpcodeVisitor;
+import jd.core.process.analyzer.classfile.visitor.SearchInstructionByTypeVisitor;
 
 /*
  * Reconstruction of pattern
@@ -43,6 +42,7 @@ public final class DotSuperReconstructor
 
     public static void reconstruct(ClassFile classFile, List<Instruction> list)
     {
+        SearchInstructionByTypeVisitor<Invokespecial> visitor = new SearchInstructionByTypeVisitor<>(Invokespecial.class);
         for (int i = list.size() - 1; i >= 0; i--) {
             Instruction instruction = list.get(i);
             if (instruction instanceof Pop) {
@@ -56,7 +56,7 @@ public final class DotSuperReconstructor
                     String methodName = cp.getConstantUtf8(cnat.getNameIndex());
                     String methodDesc = cp.getConstantUtf8(cnat.getSignatureIndex());
                     if ("getClass".equals(methodName) && "()Ljava/lang/Class;".equals(methodDesc)) {
-                        Invokespecial is = (Invokespecial) SearchInstructionByOpcodeVisitor.visit(list.get(i+1), Const.INVOKESPECIAL);
+                        Invokespecial is = visitor.visit(list.get(i+1));
                         if (is != null && !is.getArgs().isEmpty() && is.getArgs().get(0) instanceof DupLoad) {
                             DupLoad dupLoad = (DupLoad) is.getArgs().get(0);
                             if (i > 0 && list.get(i-1) == dupLoad.getDupStore()) {
