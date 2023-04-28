@@ -23,14 +23,10 @@ import java.util.List;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.ANewArray;
 import jd.core.model.instruction.bytecode.instruction.AThrow;
-import jd.core.model.instruction.bytecode.instruction.ArrayLength;
 import jd.core.model.instruction.bytecode.instruction.ArrayLoadInstruction;
 import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
-import jd.core.model.instruction.bytecode.instruction.AssertInstruction;
-import jd.core.model.instruction.bytecode.instruction.AssignmentInstruction;
 import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.CheckCast;
-import jd.core.model.instruction.bytecode.instruction.ComplexConditionalBranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.ConvertInstruction;
 import jd.core.model.instruction.bytecode.instruction.DupStore;
 import jd.core.model.instruction.bytecode.instruction.GetField;
@@ -38,14 +34,11 @@ import jd.core.model.instruction.bytecode.instruction.GetStatic;
 import jd.core.model.instruction.bytecode.instruction.IfCmp;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
 import jd.core.model.instruction.bytecode.instruction.IncInstruction;
-import jd.core.model.instruction.bytecode.instruction.InitArrayInstruction;
 import jd.core.model.instruction.bytecode.instruction.InstanceOf;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeInstruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
 import jd.core.model.instruction.bytecode.instruction.LookupSwitch;
-import jd.core.model.instruction.bytecode.instruction.MonitorEnter;
-import jd.core.model.instruction.bytecode.instruction.MonitorExit;
 import jd.core.model.instruction.bytecode.instruction.MultiANewArray;
 import jd.core.model.instruction.bytecode.instruction.NewArray;
 import jd.core.model.instruction.bytecode.instruction.Pop;
@@ -55,7 +48,6 @@ import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.TableSwitch;
 import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
-import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
 
 public class ReplaceGetStaticVisitor
@@ -75,16 +67,6 @@ public class ReplaceGetStaticVisitor
     {
         switch (instruction.getOpcode())
         {
-        case Const.ARRAYLENGTH:
-            {
-                ArrayLength al = (ArrayLength)instruction;
-                if (match(al, al.getArrayref())) {
-                    al.setArrayref(this.newInstruction);
-                } else {
-                    visit(al.getArrayref());
-                }
-            }
-            break;
         case Const.AASTORE,
              ByteCodeConstants.ARRAYSTORE:
             {
@@ -115,28 +97,6 @@ public class ReplaceGetStaticVisitor
                                     visit(asi.getValueref());
                                 }
                             }
-                        }
-                    }
-                }
-            }
-            break;
-        case ByteCodeConstants.ASSERT:
-            {
-                AssertInstruction ai = (AssertInstruction)instruction;
-                if (match(ai, ai.getTest()))
-                {
-                    ai.setTest(this.newInstruction);
-                }
-                else
-                {
-                    visit(ai.getTest());
-
-                    if (this.parentFound == null && ai.getMsg() != null)
-                    {
-                        if (match(ai, ai.getMsg())) {
-                            ai.setMsg(this.newInstruction);
-                        } else {
-                            visit(ai.getMsg());
                         }
                     }
                 }
@@ -260,16 +220,6 @@ public class ReplaceGetStaticVisitor
                 }
             }
             break;
-        case ByteCodeConstants.COMPLEXIF:
-            {
-                List<Instruction> branchList =
-                    ((ComplexConditionalBranchInstruction)instruction).getInstructions();
-                for (int i=branchList.size()-1; i>=0 && this.parentFound == null; --i)
-                {
-                    visit(branchList.get(i));
-                }
-            }
-            break;
         case Const.INSTANCEOF:
             {
                 InstanceOf instanceOf = (InstanceOf)instruction;
@@ -314,26 +264,6 @@ public class ReplaceGetStaticVisitor
                     ls.setKey(this.newInstruction);
                 } else {
                     visit(ls.getKey());
-                }
-            }
-            break;
-        case Const.MONITORENTER:
-            {
-                MonitorEnter monitorEnter = (MonitorEnter)instruction;
-                if (match(monitorEnter, monitorEnter.getObjectref())) {
-                    monitorEnter.setObjectref(this.newInstruction);
-                } else {
-                    visit(monitorEnter.getObjectref());
-                }
-            }
-            break;
-        case Const.MONITOREXIT:
-            {
-                MonitorExit monitorExit = (MonitorExit)instruction;
-                if (match(monitorExit, monitorExit.getObjectref())) {
-                    monitorExit.setObjectref(this.newInstruction);
-                } else {
-                    visit(monitorExit.getObjectref());
                 }
             }
             break;
@@ -442,62 +372,6 @@ public class ReplaceGetStaticVisitor
                 }
             }
             break;
-        case ByteCodeConstants.TERNARYOP:
-            {
-                TernaryOperator to = (TernaryOperator)instruction;
-                if (match(to, to.getTest()))
-                {
-                    to.setTest(this.newInstruction);
-                }
-                else
-                {
-                    visit(to.getTest());
-
-                    if (this.parentFound == null)
-                    {
-                        if (match(to, to.getValue1()))
-                        {
-                            to.setValue1(this.newInstruction);
-                        }
-                        else
-                        {
-                            visit(to.getValue1());
-
-                            if (this.parentFound == null)
-                            {
-                                if (match(to, to.getValue2())) {
-                                    to.setValue2(this.newInstruction);
-                                } else {
-                                    visit(to.getValue2());
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            break;
-        case ByteCodeConstants.ASSIGNMENT:
-            {
-                AssignmentInstruction ai = (AssignmentInstruction)instruction;
-                if (match(ai, ai.getValue1()))
-                {
-                    ai.setValue1(this.newInstruction);
-                }
-                else
-                {
-                    visit(ai.getValue1());
-
-                    if (this.parentFound == null)
-                    {
-                        if (match(ai, ai.getValue2())) {
-                            ai.setValue2(this.newInstruction);
-                        } else {
-                            visit(ai.getValue2());
-                        }
-                    }
-                }
-            }
-            break;
         case ByteCodeConstants.ARRAYLOAD:
             {
                 ArrayLoadInstruction ali = (ArrayLoadInstruction)instruction;
@@ -541,24 +415,6 @@ public class ReplaceGetStaticVisitor
                 }
             }
             break;
-        case ByteCodeConstants.INITARRAY,
-             ByteCodeConstants.NEWANDINITARRAY:
-            {
-                InitArrayInstruction iai = (InitArrayInstruction)instruction;
-                if (match(iai, iai.getNewArray()))
-                {
-                    iai.setNewArray(this.newInstruction);
-                }
-                else
-                {
-                    visit(iai.getNewArray());
-
-                    if (this.parentFound == null && iai.getValues() != null) {
-                        visit(iai.getValues());
-                    }
-                }
-            }
-            break;
         case Const.ACONST_NULL,
              ByteCodeConstants.LOAD,
              Const.ALOAD,
@@ -589,13 +445,6 @@ public class ReplaceGetStaticVisitor
                     "Can not replace GetStatic in " +
                     instruction.getClass().getName() +
                     ", opcode=" + instruction.getOpcode());
-        }
-    }
-
-    private void visit(List<Instruction> instructions)
-    {
-        for (int i=instructions.size()-1; i>=0; --i) {
-            visit(instructions.get(i));
         }
     }
 
