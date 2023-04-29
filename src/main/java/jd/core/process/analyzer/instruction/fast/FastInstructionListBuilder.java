@@ -1476,11 +1476,7 @@ public final class FastInstructionListBuilder {
                     for (FastDeclaration outerDeclaration : outerDeclarations) {
                         String varName = classFile.getConstantPool().getConstantUtf8(outerDeclaration.getLv().getNameIndex());
                         if (!declaredNames.contains(varName)) {
-                            int indexForNewDeclaration = InstructionUtil.getIndexForOffset(list, outerDeclaration.getLv().getStartPc());
-                            if (indexForNewDeclaration == -1) {
-                                // 'startPc' offset not found
-                                indexForNewDeclaration = 0;
-                            }
+                            int indexForNewDeclaration = InstructionUtil.getIndexForOffset(list, outerDeclaration.getLv());
                             list.add(indexForNewDeclaration, outerDeclaration);
                             declaredNames.add(varName);
                         }
@@ -1653,11 +1649,7 @@ public final class FastInstructionListBuilder {
                 LocalVariable lv = localVariables.getLocalVariableAt(i);
                 if (lv.hasDeclarationFlag() == NOT_DECLARED && !lv.isToBeRemoved() && beforeListOffset < lv.getStartPc()
                         && lv.getStartPc() + lv.getLength() - 1 <= lastOffset && !INTERNAL_OBJECT_SIGNATURE.equals(lv.getName(classFile.getConstantPool()))) {
-                    int indexForNewDeclaration = InstructionUtil.getIndexForOffset(list, lv.getStartPc());
-                    if (indexForNewDeclaration == -1) {
-                        // 'startPc' offset not found
-                        indexForNewDeclaration = 0;
-                    }
+                    int indexForNewDeclaration = InstructionUtil.getIndexForOffset(list, lv);
                     if (classFile.getMajorVersion() == Const.MAJOR_1_1 && lv.getLength() == 1 && lv.getStartPc() == lastOffset) {
                         /*
                          * workaround broken local variable table for JDK 1.1

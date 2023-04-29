@@ -18,6 +18,7 @@ package jd.core.process.analyzer.util;
 
 import java.util.List;
 
+import jd.core.model.classfile.LocalVariable;
 import jd.core.model.instruction.bytecode.instruction.BranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
@@ -61,6 +62,17 @@ public final class InstructionUtil
                 return i;
             }
         }
+    }
+
+    public static int getIndexForOffset(
+            List<Instruction> list, LocalVariable lv)
+    {
+        int indexForNewDeclaration = getIndexForOffset(list, lv.getStartPc());
+        if (indexForNewDeclaration == -1) {
+            // 'startPc' offset not found
+            indexForNewDeclaration = 0;
+        }
+        return indexForNewDeclaration;
     }
 
     public static int getIndexForOffset(
