@@ -1,0 +1,184 @@
+/*     */ package org.apache.bcel.verifier.statics;
+/*     */ 
+/*     */ import org.apache.bcel.Repository;
+/*     */ import org.apache.bcel.classfile.ClassFormatException;
+/*     */ import org.apache.bcel.classfile.JavaClass;
+/*     */ import org.apache.bcel.verifier.PassVerifier;
+/*     */ import org.apache.bcel.verifier.VerificationResult;
+/*     */ import org.apache.bcel.verifier.Verifier;
+/*     */ import org.apache.bcel.verifier.exc.LoadingException;
+/*     */ import org.apache.commons.lang3.ArrayUtils;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public final class Pass1Verifier
+/*     */   extends PassVerifier
+/*     */ {
+/*     */   private JavaClass javaClass;
+/*     */   private final Verifier verifier;
+/*     */   
+/*     */   public Pass1Verifier(Verifier verifier)
+/*     */   {
+/*  53 */     this.verifier = verifier;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public VerificationResult do_verify()
+/*     */   {
+/*     */     JavaClass jc;
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     try
+/*     */     {
+/* 126 */       jc = getJavaClass();
+/*     */       
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/* 134 */       if (jc != null && !this.verifier.getClassName().equals(jc.getClassName()) && !jc.getClassName().endsWith(this.verifier.getClassName()))
+/*     */       {
+/* 136 */         throw new LoadingException("Wrong name: the internal name of the .class file '" + jc.getClassName() + "' does not match the file's name '" + this.verifier.getClassName() + "'.");
+/*     */       }
+/*     */     } catch (LoadingException|ClassFormatException e) {
+/* 139 */       return new VerificationResult(2, e.getMessage());
+/*     */     }
+/*     */     catch (RuntimeException e)
+/*     */     {
+/* 143 */       return new VerificationResult(2, "Parsing via BCEL did not succeed.  exception occurred:\n" + e.toString());
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/* 148 */     if (jc != null) {
+/* 149 */       return VerificationResult.VR_OK;
+/*     */     }
+/*     */     
+/*     */ 
+/* 153 */     return new VerificationResult(2, "Repository.lookup() failed. FILE NOT FOUND?");
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   private JavaClass getJavaClass()
+/*     */   {
+/* 161 */     if (this.javaClass == null) {
+/*     */       try {
+/* 163 */         this.javaClass = Repository.lookupClass(this.verifier.getClassName());
+/*     */       }
+/*     */       catch (ClassNotFoundException localClassNotFoundException) {}
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/* 171 */     return this.javaClass;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public String[] getMessages()
+/*     */   {
+/* 182 */     return ArrayUtils.EMPTY_STRING_ARRAY;
+/*     */   }
+/*     */ }
