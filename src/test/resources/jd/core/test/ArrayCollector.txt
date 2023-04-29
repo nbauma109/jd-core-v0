@@ -12,42 +12,41 @@
 /*    */ import java.util.stream.Collector;
 /*    */ import java.util.stream.Collector.Characteristics;
 /*    */ 
-/*    */ public class ArrayCollector<O>
-/*    */   implements Collector<O, List<O>, O[]>
+/*    */ public class ArrayCollector<O> implements Collector<O, List<O>, O[]>
 /*    */ {
 /*    */   final Class<O> elementType;
 /*    */   
 /*    */   public ArrayCollector(Class<O> elementType)
 /*    */   {
-/* 22 */     this.elementType = elementType;
+/* 21 */     this.elementType = elementType;
 /*    */   }
 /*    */   
 /*    */   @Override
 /*    */   public BiConsumer<List<O>, O> accumulator() {
-/* 27 */     return List::add;
+/* 26 */     return List::add;
 /*    */   }
 /*    */   
 /*    */   @Override
 /*    */   public Set<Characteristics> characteristics() {
-/* 32 */     return Collections.emptySet();
+/* 31 */     return Collections.emptySet();
 /*    */   }
 /*    */   
 /*    */   @Override
 /*    */   public BinaryOperator<List<O>> combiner() {
-/* 37 */     throw new UnsupportedOperationException();
+/* 36 */     throw new UnsupportedOperationException();
 /*    */   }
 /*    */   
 /*    */   @Override
 /*    */   public Function<List<O>, O[]> finisher() {
-/* 42 */     throw new UnsupportedOperationException();
+/* 41 */     throw new UnsupportedOperationException();
 /*    */   }
 /*    */   
 /*    */   @Override
 /*    */   public Supplier<List<O>> supplier() {
-/* 47 */     return ArrayList::new;
+/* 46 */     return ArrayList::new;
 /*    */   }
 /*    */   
 /*    */   Consumer<O> accumulator(List<O> l) {
-/* 51 */     return l::add;
+/* 50 */     return l::add;
 /*    */   }
 /*    */ }
