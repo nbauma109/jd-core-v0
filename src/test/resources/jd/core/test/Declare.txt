@@ -36,8 +36,8 @@
 /*    */   }
 /*    */   
 /*    */   double assignment() {
-/*    */     double d2;
 /*    */     double d1;
+/*    */     double d2;
 /* 41 */     while ((d1 = Math.random()) < 0.5D && (d2 = Math.random()) < 0.5D) {
 /* 42 */       d1 = 0.0D;
 /* 43 */       d2 = 0.0D;
@@ -48,10 +48,10 @@
 /*    */   }
 /*    */   
 /*    */   double storeAndAssignment() {
-/*    */     double d2;
-/*    */     double d1;
-/*    */     double d4;
 /*    */     double d3;
+/*    */     double d4;
+/*    */     double d1;
+/*    */     double d2;
 /*    */     do {
 /* 56 */       d3 = 0.0D;
 /* 57 */       d4 = 0.0D;

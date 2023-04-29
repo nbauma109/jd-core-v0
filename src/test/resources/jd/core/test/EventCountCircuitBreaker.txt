@@ -312,12 +312,12 @@
 /*     */ 
 /*     */   private boolean performStateCheck(int increment)
 /*     */   {
-/*     */     CheckIntervalData nextData;
+/*     */     AbstractCircuitBreaker.State currentState;
 /*     */     
 /*     */ 
 /*     */     CheckIntervalData currentData;
 /*     */     
-/*     */     AbstractCircuitBreaker.State currentState;
+/*     */     CheckIntervalData nextData;
 /*     */     
 /*     */     do
 /*     */     {

@@ -1375,8 +1375,8 @@
 /*      */     }
 /*      */     
 /* 1377 */     if (this.nodeCount > 0) {
-/*      */       MapIterator<?, ?> it;
-/* 1379 */       try { for (it = getMapIterator(dataElement); it.hasNext();) {
+/*      */       try {
+/* 1379 */         for (MapIterator<?, ?> it = getMapIterator(dataElement); it.hasNext();) {
 /* 1380 */           Object key = it.next();
 /* 1381 */           Object value = it.getValue();
 /* 1382 */           if (!value.equals(other.get(key))) {
@@ -1401,8 +1401,8 @@
 /*      */   private int doHashCode(DataElement dataElement)
 /*      */   {
 /* 1403 */     int total = 0;
-/* 1404 */     MapIterator<?, ?> it; if (this.nodeCount > 0) {
-/* 1405 */       for (it = getMapIterator(dataElement); it.hasNext();) {
+/* 1404 */     if (this.nodeCount > 0) {
+/* 1405 */       for (MapIterator<?, ?> it = getMapIterator(dataElement); it.hasNext();) {
 /* 1406 */         Object key = it.next();
 /* 1407 */         Object value = it.getValue();
 /* 1408 */         total += (key.hashCode() ^ value.hashCode());
