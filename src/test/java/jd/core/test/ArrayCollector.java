@@ -13,7 +13,6 @@ import java.util.stream.Collector;
 
 /*
  * Simplified from commons-lang3 ArrayCollector.
- * TODO Handle decompilation failures of the real one.
  */
 public class ArrayCollector<O> implements Collector<O, List<O>, O[]> {
     final Class<O> elementType;
