@@ -35,7 +35,6 @@ import jd.core.model.instruction.bytecode.instruction.GetStatic;
 import jd.core.model.instruction.bytecode.instruction.IfCmp;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
 import jd.core.model.instruction.bytecode.instruction.IndexInstruction;
-import jd.core.model.instruction.bytecode.instruction.InitArrayInstruction;
 import jd.core.model.instruction.bytecode.instruction.InstanceOf;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeInstruction;
@@ -387,20 +386,6 @@ public class ReplaceOuterReferenceVisitor
                     gf.setObjectref(newInstruction(gf.getObjectref()));
                 } else {
                     visit(gf.getObjectref());
-                }
-            }
-            break;
-        case ByteCodeConstants.INITARRAY,
-             ByteCodeConstants.NEWANDINITARRAY:
-            {
-                InitArrayInstruction iai = (InitArrayInstruction)instruction;
-                if (match(iai.getNewArray())) {
-                    iai.setNewArray(newInstruction(iai.getNewArray()));
-                } else {
-                    visit(iai.getNewArray());
-                }
-                if (iai.getValues() != null) {
-                    visit(iai.getValues());
                 }
             }
             break;
