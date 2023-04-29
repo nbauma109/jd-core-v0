@@ -408,17 +408,4 @@ public final class CheckLocalVariableUsedVisitor
             return lv != null && maxOffset <= lv.getStartPc();
         }, instruction);
     }
-
-    public static boolean visit(LocalVariable lv, Instruction instruction)
-    {
-        return visit(new LocalVariables(lv), lv.getStartPc(), instruction);
-    }
-
-    public static boolean checkNameUsed(LocalVariables localVariables, int lvNameIndex, Instruction instruction)
-    {
-        return visit(ii -> {
-            LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(ii.getIndex(), ii.getOffset());
-            return lv != null && lv.getNameIndex() == lvNameIndex;
-        }, instruction);
-    }
 }
