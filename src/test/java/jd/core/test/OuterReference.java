@@ -67,6 +67,9 @@ public class OuterReference {
             Object[][] multiANewArray = new Object[x][y]; // MULTIANEWARRAY
             multiANewArray[0] = new Object[y]; // ANEWARRAY
             multiANewArray[0][1] = new int[x++]; // NEWARRAY
+            int i = 0;
+            System.out.println(multiANewArray[i++]); // POSTINC
+            System.out.println(multiANewArray[++i]); // PREINC
         }
     }
 }

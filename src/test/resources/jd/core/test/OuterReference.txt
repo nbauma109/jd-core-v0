@@ -67,6 +67,9 @@
 /* 67 */       Object[][] multiANewArray = new Object[OuterReference.this.x][OuterReference.this.y];
 /* 68 */       multiANewArray[0] = new Object[OuterReference.this.y];
 /* 69 */       multiANewArray[0][1] = new int[OuterReference.this.x++];
+/* 70 */       int i = 0;
+/* 71 */       System.out.println(multiANewArray[(i++)]);
+/* 72 */       System.out.println(multiANewArray[(++i)]);
 /*    */     }
 /*    */   }
 /*    */ }
