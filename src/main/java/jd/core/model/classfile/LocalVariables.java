@@ -20,6 +20,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import jd.core.model.instruction.bytecode.instruction.Instruction;
+import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
+
 public class LocalVariables
 {
     private final List<LocalVariable> listOfLocalVariables;
@@ -122,6 +125,15 @@ public class LocalVariables
         return null;
     }
 
+    public LocalVariable getLocalVariableForStoreInstruction(Instruction instruction)
+    {
+        if (instruction instanceof StoreInstruction) {
+            StoreInstruction si = (StoreInstruction) instruction;
+            return getLocalVariableWithIndexAndOffset(si.getIndex(), si.getOffset());
+        }
+        return null;
+    }
+    
     public boolean containsLocalVariableWithNameIndex(int nameIndex)
     {
         int length = this.listOfLocalVariables.size();

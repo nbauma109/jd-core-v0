@@ -5421,8 +5421,8 @@
 /*      */   }
 /*      */   
 /*      */   private static int[] matches(CharSequence first, CharSequence second) {
-/*      */     CharSequence min;
 /*      */     CharSequence max;
+/*      */     CharSequence min;
 /* 5426 */     if (first.length() > second.length()) {
 /* 5427 */       max = first;
 /* 5428 */       min = second;

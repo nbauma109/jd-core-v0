@@ -703,8 +703,8 @@
 /*  703 */     int decPos = str.indexOf('.');
 /*  704 */     int expPos = str.indexOf('e') + str.indexOf('E') + 1;
 /*      */     
-/*      */     String mant;
 /*      */     String dec;
+/*      */     String mant;
 /*  708 */     if (decPos > -1) {
 /*  709 */       if (expPos > -1) {
 /*  710 */         if (expPos < decPos || expPos > length) {
