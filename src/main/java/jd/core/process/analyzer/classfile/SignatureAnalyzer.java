@@ -16,6 +16,7 @@
  ******************************************************************************/
 package jd.core.process.analyzer.classfile;
 
+import org.apache.commons.lang3.Validate;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.SignatureFormatException;
 import org.jd.core.v1.util.StringConstants;
 
@@ -228,9 +229,7 @@ public final class SignatureAnalyzer
 
             debugCounter++;
 
-            if (debugCounter > 3000) {
-                throw new IllegalStateException("Infinite loop");
-            }
+            Validate.inclusiveBetween(0, 3000, debugCounter, "Infinite loop");
         }
 
         return index;

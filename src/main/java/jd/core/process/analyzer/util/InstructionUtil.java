@@ -16,6 +16,8 @@
  ******************************************************************************/
 package jd.core.process.analyzer.util;
 
+import org.apache.commons.lang3.Validate;
+
 import java.util.List;
 
 import jd.core.model.classfile.LocalVariable;
@@ -78,9 +80,7 @@ public final class InstructionUtil
     public static int getIndexForOffset(
             List<Instruction> list, int offset)
     {
-        if (offset < 0) {
-            throw new IllegalStateException("offset=" + offset);
-        }
+        Validate.inclusiveBetween(0, Integer.MAX_VALUE, offset, "offset=" + offset);
 
         if (list == null || list.isEmpty()) {
             return -1;
