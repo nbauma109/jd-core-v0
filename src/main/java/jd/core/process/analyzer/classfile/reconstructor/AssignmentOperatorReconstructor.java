@@ -135,8 +135,7 @@ public final class AssignmentOperatorReconstructor
         String newOperator = boi.getOperator() + "=";
 
         if (boi.getValue2() instanceof ConstInstruction
-            && Math.abs(((ConstInstruction)boi.getValue2()).getValue()) == 1
-            && ("+=".equals(newOperator) || "-=".equals(newOperator))) {
+            && isPlusOrMinusEqual(newOperator)) {
             int sign = "+=".equals(newOperator) ? 1 : -1;
             list.set(index, new IncInstruction(ByteCodeConstants.POSTINC,
                 putStatic.getOffset(), getStatic.getLineNumber(), getStatic,
@@ -183,8 +182,7 @@ public final class AssignmentOperatorReconstructor
         String newOperator = boi.getOperator() + "=";
 
         if (boi.getValue2() instanceof ConstInstruction
-            && Math.abs(((ConstInstruction)boi.getValue2()).getValue()) == 1
-            && ("+=".equals(newOperator) || "-=".equals(newOperator))) {
+            && isPlusOrMinusEqual(newOperator)) {
             int sign = "+=".equals(newOperator) ? 1 : -1;
             list.set(index, new IncInstruction(ByteCodeConstants.POSTINC,
                 putField.getOffset(), getField.getLineNumber(), getField,
@@ -216,8 +214,7 @@ public final class AssignmentOperatorReconstructor
         String newOperator = boi.getOperator() + "=";
 
         if (boi.getValue2() instanceof ConstInstruction
-            && ((ConstInstruction)boi.getValue2()).getValue() == 1
-            && "+=".equals(newOperator)) {
+            && isPlusOrMinusEqual(newOperator)) {
             list.set(index, new IncInstruction(ByteCodeConstants.POSTINC,
                     si.getOffset(), li.getLineNumber(), li,
                     ((ConstInstruction) boi.getValue2()).getValue()));
@@ -227,6 +224,10 @@ public final class AssignmentOperatorReconstructor
                 li.getLineNumber(), boi.getPriority(), newOperator,
                 li, boi.getValue2()));
         }
+    }
+
+    private static boolean isPlusOrMinusEqual(String newOperator) {
+        return "+=".equals(newOperator) || "-=".equals(newOperator);
     }
 
     /*
