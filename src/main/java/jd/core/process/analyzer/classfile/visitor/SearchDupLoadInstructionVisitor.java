@@ -28,33 +28,24 @@ import jd.core.model.instruction.bytecode.instruction.ArrayLoadInstruction;
 import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.AssertInstruction;
 import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
-import jd.core.model.instruction.bytecode.instruction.CheckCast;
 import jd.core.model.instruction.bytecode.instruction.ComplexConditionalBranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.ConvertInstruction;
 import jd.core.model.instruction.bytecode.instruction.DupLoad;
 import jd.core.model.instruction.bytecode.instruction.DupStore;
-import jd.core.model.instruction.bytecode.instruction.GetField;
 import jd.core.model.instruction.bytecode.instruction.IfCmp;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
 import jd.core.model.instruction.bytecode.instruction.IncInstruction;
 import jd.core.model.instruction.bytecode.instruction.InitArrayInstruction;
-import jd.core.model.instruction.bytecode.instruction.InstanceOf;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeInstruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
-import jd.core.model.instruction.bytecode.instruction.LookupSwitch;
-import jd.core.model.instruction.bytecode.instruction.MonitorEnter;
-import jd.core.model.instruction.bytecode.instruction.MonitorExit;
 import jd.core.model.instruction.bytecode.instruction.MultiANewArray;
 import jd.core.model.instruction.bytecode.instruction.NewArray;
-import jd.core.model.instruction.bytecode.instruction.Pop;
 import jd.core.model.instruction.bytecode.instruction.PutField;
-import jd.core.model.instruction.bytecode.instruction.PutStatic;
-import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
-import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
-import jd.core.model.instruction.bytecode.instruction.TableSwitch;
-import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
+import jd.core.model.instruction.bytecode.instruction.Switch;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
+import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
+import jd.core.model.instruction.bytecode.instruction.attribute.ValuerefAttribute;
 
 /*
  * utilisé par TernaryOpReconstructor
@@ -121,19 +112,26 @@ public final class SearchDupLoadInstructionVisitor
                 }
                 return visit(boi.getValue2(), dupStore);
             }
-        case Const.CHECKCAST:
-            return visit(((CheckCast)instruction).getObjectref(), dupStore);
+        case ByteCodeConstants.DUPSTORE,
+            ByteCodeConstants.TERNARYOPSTORE,
+             Const.CHECKCAST,
+             Const.GETFIELD,
+             Const.INSTANCEOF,
+             Const.MONITORENTER,
+             Const.MONITOREXIT,
+             Const.POP:
+            return visit(((ObjectrefAttribute)instruction).getObjectref(), dupStore);
         case ByteCodeConstants.STORE,
+             ByteCodeConstants.XRETURN,
              Const.ASTORE,
-             Const.ISTORE:
-            return visit(((StoreInstruction)instruction).getValueref(), dupStore);
+             Const.ISTORE,
+             Const.PUTSTATIC:
+            return visit(((ValuerefAttribute)instruction).getValueref(), dupStore);
         case ByteCodeConstants.DUPLOAD:
             if (((DupLoad)instruction).getDupStore() == dupStore) {
                 return (DupLoad)instruction;
             }
             break;
-        case ByteCodeConstants.DUPSTORE:
-            return visit(((DupStore)instruction).getObjectref(), dupStore);
         case ByteCodeConstants.CONVERT,
              ByteCodeConstants.IMPLICITCONVERT:
             return visit(((ConvertInstruction)instruction).getValue(), dupStore);
@@ -162,8 +160,6 @@ public final class SearchDupLoadInstructionVisitor
                 }
             }
             break;
-        case Const.INSTANCEOF:
-            return visit(((InstanceOf)instruction).getObjectref(), dupStore);
         case Const.INVOKEINTERFACE,
              Const.INVOKESPECIAL,
              Const.INVOKEVIRTUAL:
@@ -188,12 +184,8 @@ public final class SearchDupLoadInstructionVisitor
                 }
             }
             break;
-        case Const.LOOKUPSWITCH:
-            return visit(((LookupSwitch)instruction).getKey(), dupStore);
-        case Const.MONITORENTER:
-            return visit(((MonitorEnter)instruction).getObjectref(), dupStore);
-        case Const.MONITOREXIT:
-            return visit(((MonitorExit)instruction).getObjectref(), dupStore);
+        case Const.LOOKUPSWITCH, Const.TABLESWITCH:
+            return visit(((Switch)instruction).getKey(), dupStore);
         case Const.MULTIANEWARRAY:
             {
                 Instruction[] dimensions = ((MultiANewArray)instruction).getDimensions();
@@ -210,8 +202,6 @@ public final class SearchDupLoadInstructionVisitor
             return visit(((NewArray)instruction).getDimension(), dupStore);
         case Const.ANEWARRAY:
             return visit(((ANewArray)instruction).getDimension(), dupStore);
-        case Const.POP:
-            return visit(((Pop)instruction).getObjectref(), dupStore);
         case Const.PUTFIELD:
             {
                 PutField putField = (PutField)instruction;
@@ -221,19 +211,9 @@ public final class SearchDupLoadInstructionVisitor
                 }
                 return visit(putField.getValueref(), dupStore);
             }
-        case Const.PUTSTATIC:
-            return visit(((PutStatic)instruction).getValueref(), dupStore);
-        case ByteCodeConstants.XRETURN:
-            return visit(((ReturnInstruction)instruction).getValueref(), dupStore);
-        case Const.TABLESWITCH:
-            return visit(((TableSwitch)instruction).getKey(), dupStore);
-        case ByteCodeConstants.TERNARYOPSTORE:
-            return visit(((TernaryOpStore)instruction).getObjectref(), dupStore);
         case ByteCodeConstants.PREINC,
              ByteCodeConstants.POSTINC:
             return visit(((IncInstruction)instruction).getValue(), dupStore);
-        case Const.GETFIELD:
-            return visit(((GetField)instruction).getObjectref(), dupStore);
         case ByteCodeConstants.INITARRAY,
              ByteCodeConstants.NEWANDINITARRAY:
             {

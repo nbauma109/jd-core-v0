@@ -18,8 +18,9 @@ package jd.core.model.instruction.bytecode.instruction;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariables;
+import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
 
-public class InstanceOf extends IndexInstruction
+public class InstanceOf extends IndexInstruction implements ObjectrefAttribute
 {
     private Instruction objectref;
 
@@ -44,10 +45,12 @@ public class InstanceOf extends IndexInstruction
         return 6;
     }
 
+    @Override
     public Instruction getObjectref() {
         return objectref;
     }
 
+    @Override
     public void setObjectref(Instruction objectref) {
         this.objectref = objectref;
     }

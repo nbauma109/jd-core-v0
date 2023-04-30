@@ -18,8 +18,9 @@ package jd.core.model.instruction.bytecode.instruction;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariables;
+import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
 
-public class MonitorExit extends Instruction
+public class MonitorExit extends Instruction implements ObjectrefAttribute
 {
     private Instruction objectref;
 
@@ -37,10 +38,12 @@ public class MonitorExit extends Instruction
         return null;
     }
 
+    @Override
     public Instruction getObjectref() {
         return objectref;
     }
 
+    @Override
     public void setObjectref(Instruction objectref) {
         this.objectref = objectref;
     }

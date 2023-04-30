@@ -37,35 +37,24 @@ import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.AssertInstruction;
 import jd.core.model.instruction.bytecode.instruction.AssignmentInstruction;
 import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
-import jd.core.model.instruction.bytecode.instruction.CheckCast;
 import jd.core.model.instruction.bytecode.instruction.ComplexConditionalBranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.ConvertInstruction;
-import jd.core.model.instruction.bytecode.instruction.DupStore;
-import jd.core.model.instruction.bytecode.instruction.GetField;
 import jd.core.model.instruction.bytecode.instruction.GetStatic;
 import jd.core.model.instruction.bytecode.instruction.IfCmp;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
 import jd.core.model.instruction.bytecode.instruction.IncInstruction;
 import jd.core.model.instruction.bytecode.instruction.InitArrayInstruction;
-import jd.core.model.instruction.bytecode.instruction.InstanceOf;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeInstruction;
-import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
 import jd.core.model.instruction.bytecode.instruction.Invokestatic;
-import jd.core.model.instruction.bytecode.instruction.LookupSwitch;
-import jd.core.model.instruction.bytecode.instruction.MonitorEnter;
-import jd.core.model.instruction.bytecode.instruction.MonitorExit;
 import jd.core.model.instruction.bytecode.instruction.MultiANewArray;
 import jd.core.model.instruction.bytecode.instruction.NewArray;
-import jd.core.model.instruction.bytecode.instruction.Pop;
 import jd.core.model.instruction.bytecode.instruction.PutField;
-import jd.core.model.instruction.bytecode.instruction.PutStatic;
-import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
-import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
-import jd.core.model.instruction.bytecode.instruction.TableSwitch;
-import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
+import jd.core.model.instruction.bytecode.instruction.Switch;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
+import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
+import jd.core.model.instruction.bytecode.instruction.attribute.ValuerefAttribute;
 
 /*
  * Replace 'EntitlementFunctionLibrary.access$000()'
@@ -181,38 +170,30 @@ public class OuterGetStaticVisitor
                 }
             }
             break;
-        case Const.CHECKCAST:
+        case ByteCodeConstants.DUPSTORE,
+             ByteCodeConstants.TERNARYOPSTORE,
+             Const.CHECKCAST,
+             Const.GETFIELD,
+             Const.INSTANCEOF,
+             Const.MONITORENTER,
+             Const.MONITOREXIT,
+             Const.POP:
             {
-                CheckCast checkCast = (CheckCast)instruction;
-                Accessor a = match(checkCast.getObjectref());
-                if (a != null) {
-                    checkCast.setObjectref(newInstruction(checkCast.getObjectref(), a));
-                } else {
-                    visit(checkCast.getObjectref());
-                }
+                visitObjectref(instruction);
             }
             break;
         case ByteCodeConstants.STORE,
+             ByteCodeConstants.XRETURN,
              Const.ASTORE,
-             Const.ISTORE:
+             Const.ISTORE,
+             Const.PUTSTATIC:
             {
-                StoreInstruction storeInstruction = (StoreInstruction)instruction;
-                Accessor a = match(storeInstruction.getValueref());
+                ValuerefAttribute v = (ValuerefAttribute)instruction;
+                Accessor a = match(v.getValueref());
                 if (a != null) {
-                    storeInstruction.setValueref(newInstruction(storeInstruction.getValueref(), a));
+                    v.setValueref(newInstruction(v.getValueref(), a));
                 }
-                visit(storeInstruction.getValueref());
-            }
-            break;
-        case ByteCodeConstants.DUPSTORE:
-            {
-                DupStore dupStore = (DupStore)instruction;
-                Accessor a = match(dupStore.getObjectref());
-                if (a != null) {
-                    dupStore.setObjectref(newInstruction(dupStore.getObjectref(), a));
-                } else {
-                    visit(dupStore.getObjectref());
-                }
+                visit(v.getValueref());
             }
             break;
         case ByteCodeConstants.CONVERT,
@@ -263,29 +244,11 @@ public class OuterGetStaticVisitor
                 }
             }
             break;
-        case Const.INSTANCEOF:
-            {
-                InstanceOf instanceOf = (InstanceOf)instruction;
-                Accessor a = match(instanceOf.getObjectref());
-                if (a != null) {
-                    instanceOf.setObjectref(newInstruction(instanceOf.getObjectref(), a));
-                } else {
-                    visit(instanceOf.getObjectref());
-                }
-            }
-            break;
         case Const.INVOKEINTERFACE,
              Const.INVOKESPECIAL,
              Const.INVOKEVIRTUAL:
             {
-                InvokeNoStaticInstruction insi =
-                    (InvokeNoStaticInstruction)instruction;
-                Accessor a = match(insi.getObjectref());
-                if (a != null) {
-                    insi.setObjectref(newInstruction(insi.getObjectref(), a));
-                } else {
-                    visit(insi.getObjectref());
-                }
+                visitObjectref(instruction);
             }
             // intended fall through
         case Const.INVOKESTATIC,
@@ -303,36 +266,14 @@ public class OuterGetStaticVisitor
                 }
             }
             break;
-        case Const.LOOKUPSWITCH:
+        case Const.LOOKUPSWITCH, Const.TABLESWITCH:
             {
-                LookupSwitch ls = (LookupSwitch)instruction;
-                Accessor a = match(ls.getKey());
+                Switch sw = (Switch)instruction;
+                Accessor a = match(sw.getKey());
                 if (a != null) {
-                    ls.setKey(newInstruction(ls.getKey(), a));
+                    sw.setKey(newInstruction(sw.getKey(), a));
                 } else {
-                    visit(ls.getKey());
-                }
-            }
-            break;
-        case Const.MONITORENTER:
-            {
-                MonitorEnter monitorEnter = (MonitorEnter)instruction;
-                Accessor a = match(monitorEnter.getObjectref());
-                if (a != null) {
-                    monitorEnter.setObjectref(newInstruction(monitorEnter.getObjectref(), a));
-                } else {
-                    visit(monitorEnter.getObjectref());
-                }
-            }
-            break;
-        case Const.MONITOREXIT:
-            {
-                MonitorExit monitorExit = (MonitorExit)instruction;
-                Accessor a = match(monitorExit.getObjectref());
-                if (a != null) {
-                    monitorExit.setObjectref(newInstruction(monitorExit.getObjectref(), a));
-                } else {
-                    visit(monitorExit.getObjectref());
+                    visit(sw.getKey());
                 }
             }
             break;
@@ -372,17 +313,6 @@ public class OuterGetStaticVisitor
                 }
             }
             break;
-        case Const.POP:
-            {
-                Pop pop = (Pop)instruction;
-                Accessor a = match(pop.getObjectref());
-                if (a != null) {
-                    pop.setObjectref(newInstruction(pop.getObjectref(), a));
-                } else {
-                    visit(pop.getObjectref());
-                }
-            }
-            break;
         case Const.PUTFIELD:
             {
                 PutField putField = (PutField)instruction;
@@ -397,50 +327,6 @@ public class OuterGetStaticVisitor
                     putField.setValueref(newInstruction(putField.getValueref(), a));
                 } else {
                     visit(putField.getValueref());
-                }
-            }
-            break;
-        case Const.PUTSTATIC:
-            {
-                PutStatic putStatic = (PutStatic)instruction;
-                Accessor a = match(putStatic.getValueref());
-                if (a != null) {
-                    putStatic.setValueref(newInstruction(putStatic.getValueref(), a));
-                } else {
-                    visit(putStatic.getValueref());
-                }
-            }
-            break;
-        case ByteCodeConstants.XRETURN:
-            {
-                ReturnInstruction ri = (ReturnInstruction)instruction;
-                Accessor a = match(ri.getValueref());
-                if (a != null) {
-                    ri.setValueref(newInstruction(ri.getValueref(), a));
-                } else {
-                    visit(ri.getValueref());
-                }
-            }
-            break;
-        case Const.TABLESWITCH:
-            {
-                TableSwitch ts = (TableSwitch)instruction;
-                Accessor a = match(ts.getKey());
-                if (a != null) {
-                    ts.setKey(newInstruction(ts.getKey(), a));
-                } else {
-                    visit(ts.getKey());
-                }
-            }
-            break;
-        case ByteCodeConstants.TERNARYOPSTORE:
-            {
-                TernaryOpStore tos = (TernaryOpStore)instruction;
-                Accessor a = match(tos.getObjectref());
-                if (a != null) {
-                    tos.setObjectref(newInstruction(tos.getObjectref(), a));
-                } else {
-                    visit(tos.getObjectref());
                 }
             }
             break;
@@ -513,17 +399,6 @@ public class OuterGetStaticVisitor
                 }
             }
             break;
-        case Const.GETFIELD:
-            {
-                GetField gf = (GetField)instruction;
-                Accessor a = match(gf.getObjectref());
-                if (a != null) {
-                    gf.setObjectref(newInstruction(gf.getObjectref(), a));
-                } else {
-                    visit(gf.getObjectref());
-                }
-            }
-            break;
         case ByteCodeConstants.INITARRAY,
              ByteCodeConstants.NEWANDINITARRAY:
             {
@@ -570,6 +445,16 @@ public class OuterGetStaticVisitor
                     "Can not replace accessor in " +
                     instruction.getClass().getName() +
                     ", opcode=" + instruction.getOpcode());
+        }
+    }
+
+    private void visitObjectref(Instruction instruction) {
+        ObjectrefAttribute o = (ObjectrefAttribute)instruction;
+        Accessor a = match(o.getObjectref());
+        if (a != null) {
+            o.setObjectref(newInstruction(o.getObjectref(), a));
+        } else {
+            visit(o.getObjectref());
         }
     }
 

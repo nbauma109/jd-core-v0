@@ -19,8 +19,9 @@ package jd.core.model.instruction.bytecode.instruction;
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
+import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
 
-public class DupStore extends Instruction
+public class DupStore extends Instruction implements ObjectrefAttribute
 {
     private Instruction objectref;
     private final DupLoad dupLoad1;
@@ -54,10 +55,12 @@ public class DupStore extends Instruction
         return dupLoad2;
     }
 
+    @Override
     public Instruction getObjectref() {
         return objectref;
     }
 
+    @Override
     public void setObjectref(Instruction objectref) {
         this.objectref = objectref;
     }

@@ -24,8 +24,9 @@ import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.Field;
 import jd.core.model.classfile.LocalVariables;
+import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
 
-public class GetField extends IndexInstruction
+public class GetField extends IndexInstruction implements ObjectrefAttribute
 {
     private Instruction objectref;
 
@@ -63,10 +64,12 @@ public class GetField extends IndexInstruction
         return constants.getConstantUtf8(cnat.getSignatureIndex());
     }
 
+    @Override
     public Instruction getObjectref() {
         return objectref;
     }
 
+    @Override
     public void setObjectref(Instruction objectref) {
         this.objectref = objectref;
     }

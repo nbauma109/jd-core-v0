@@ -24,36 +24,25 @@ import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.ANewArray;
 import jd.core.model.instruction.bytecode.instruction.AThrow;
 import jd.core.model.instruction.bytecode.instruction.ArrayLoadInstruction;
-import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.AssertInstruction;
 import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
-import jd.core.model.instruction.bytecode.instruction.CheckCast;
 import jd.core.model.instruction.bytecode.instruction.ComplexConditionalBranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.ConvertInstruction;
-import jd.core.model.instruction.bytecode.instruction.DupStore;
 import jd.core.model.instruction.bytecode.instruction.IfCmp;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
 import jd.core.model.instruction.bytecode.instruction.IncInstruction;
 import jd.core.model.instruction.bytecode.instruction.InitArrayInstruction;
-import jd.core.model.instruction.bytecode.instruction.InstanceOf;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeInstruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNew;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
-import jd.core.model.instruction.bytecode.instruction.LookupSwitch;
-import jd.core.model.instruction.bytecode.instruction.MonitorEnter;
-import jd.core.model.instruction.bytecode.instruction.MonitorExit;
 import jd.core.model.instruction.bytecode.instruction.MultiANewArray;
 import jd.core.model.instruction.bytecode.instruction.NewArray;
-import jd.core.model.instruction.bytecode.instruction.Pop;
-import jd.core.model.instruction.bytecode.instruction.PutField;
-import jd.core.model.instruction.bytecode.instruction.PutStatic;
-import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
-import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
-import jd.core.model.instruction.bytecode.instruction.TableSwitch;
-import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
+import jd.core.model.instruction.bytecode.instruction.Switch;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
+import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
+import jd.core.model.instruction.bytecode.instruction.attribute.ValuerefAttribute;
 import jd.core.model.instruction.fast.FastConstants;
 import jd.core.model.instruction.fast.instruction.FastDeclaration;
 
@@ -72,9 +61,15 @@ public final class MaxLineNumberVisitor
         case ByteCodeConstants.ARRAYLOAD:
             maxLineNumber = visit(((ArrayLoadInstruction)instruction).getIndexref());
             break;
-        case Const.AASTORE,
-             ByteCodeConstants.ARRAYSTORE:
-            maxLineNumber = visit(((ArrayStoreInstruction)instruction).getValueref());
+        case ByteCodeConstants.ARRAYSTORE,
+             ByteCodeConstants.STORE,
+             ByteCodeConstants.XRETURN,
+             Const.AASTORE,
+             Const.ASTORE,
+             Const.ISTORE,
+             Const.PUTFIELD,
+             Const.PUTSTATIC:
+            maxLineNumber = visit(((ValuerefAttribute)instruction).getValueref());
             break;
         case ByteCodeConstants.ASSERT:
             {
@@ -93,16 +88,15 @@ public final class MaxLineNumberVisitor
                 BinaryOperatorInstruction boi = (BinaryOperatorInstruction)instruction;
                 maxLineNumber = Math.max(visit(boi.getValue1()), visit(boi.getValue2()));
             break;
-        case Const.CHECKCAST:
-            maxLineNumber = visit(((CheckCast)instruction).getObjectref());
-            break;
-        case ByteCodeConstants.STORE,
-             Const.ASTORE,
-             Const.ISTORE:
-            maxLineNumber = visit(((StoreInstruction)instruction).getValueref());
-            break;
-        case ByteCodeConstants.DUPSTORE:
-            maxLineNumber = visit(((DupStore)instruction).getObjectref());
+        case ByteCodeConstants.DUPSTORE,
+             ByteCodeConstants.TERNARYOPSTORE,
+             Const.CHECKCAST,
+             Const.INSTANCEOF,
+             Const.MONITORENTER,
+             Const.MONITOREXIT,
+             Const.POP,
+             Const.GETFIELD:
+            maxLineNumber = visit(((ObjectrefAttribute)instruction).getObjectref());
             break;
         case ByteCodeConstants.CONVERT,
              ByteCodeConstants.IMPLICITCONVERT:
@@ -130,9 +124,6 @@ public final class MaxLineNumberVisitor
                     ((ComplexConditionalBranchInstruction)instruction).getInstructions();
                 maxLineNumber = visit(branchList.get(branchList.size()-1));
             }
-            break;
-        case Const.INSTANCEOF:
-            maxLineNumber = visit(((InstanceOf)instruction).getObjectref());
             break;
         case Const.INVOKEINTERFACE,
              Const.INVOKESPECIAL,
@@ -192,14 +183,8 @@ public final class MaxLineNumberVisitor
                 }
             }
             break;
-        case Const.LOOKUPSWITCH:
-            maxLineNumber = visit(((LookupSwitch)instruction).getKey());
-            break;
-        case Const.MONITORENTER:
-            maxLineNumber = visit(((MonitorEnter)instruction).getObjectref());
-            break;
-        case Const.MONITOREXIT:
-            maxLineNumber = visit(((MonitorExit)instruction).getObjectref());
+        case Const.LOOKUPSWITCH, Const.TABLESWITCH:
+            maxLineNumber = visit(((Switch)instruction).getKey());
             break;
         case Const.MULTIANEWARRAY:
             {
@@ -215,24 +200,6 @@ public final class MaxLineNumberVisitor
             break;
         case Const.ANEWARRAY:
             maxLineNumber = visit(((ANewArray)instruction).getDimension());
-            break;
-        case Const.POP:
-            maxLineNumber = visit(((Pop)instruction).getObjectref());
-            break;
-        case Const.PUTFIELD:
-            maxLineNumber = visit(((PutField)instruction).getValueref());
-            break;
-        case Const.PUTSTATIC:
-            maxLineNumber = visit(((PutStatic)instruction).getValueref());
-            break;
-        case ByteCodeConstants.XRETURN:
-            maxLineNumber = visit(((ReturnInstruction)instruction).getValueref());
-            break;
-        case Const.TABLESWITCH:
-            maxLineNumber = visit(((TableSwitch)instruction).getKey());
-            break;
-        case ByteCodeConstants.TERNARYOPSTORE:
-            maxLineNumber = visit(((TernaryOpStore)instruction).getObjectref());
             break;
         case ByteCodeConstants.PREINC,
              ByteCodeConstants.POSTINC:

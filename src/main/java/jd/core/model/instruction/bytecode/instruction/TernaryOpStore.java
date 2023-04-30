@@ -18,12 +18,13 @@ package jd.core.model.instruction.bytecode.instruction;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariables;
+import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
 
 /*
  * Cree pour la construction de l'operateur ternaire.
  * Instancie par IfCmpFactory, IfFactory, IfXNullFactory & GotoFactory
  */
-public class TernaryOpStore extends Instruction
+public class TernaryOpStore extends Instruction implements ObjectrefAttribute
 {
     private Instruction objectref;
     private int         ternaryOp2ndValueOffset;
@@ -44,10 +45,12 @@ public class TernaryOpStore extends Instruction
         return this.getObjectref().getReturnedSignature(classFile, localVariables);
     }
 
+    @Override
     public Instruction getObjectref() {
         return objectref;
     }
 
+    @Override
     public void setObjectref(Instruction objectref) {
         this.objectref = objectref;
     }

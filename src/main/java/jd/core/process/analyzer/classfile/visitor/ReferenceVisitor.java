@@ -21,6 +21,7 @@ import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantFieldref;
+
 import java.util.List;
 
 import jd.core.model.classfile.ConstantPool;
@@ -34,7 +35,6 @@ import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.CheckCast;
 import jd.core.model.instruction.bytecode.instruction.ComplexConditionalBranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.ConvertInstruction;
-import jd.core.model.instruction.bytecode.instruction.DupStore;
 import jd.core.model.instruction.bytecode.instruction.GetField;
 import jd.core.model.instruction.bytecode.instruction.IfCmp;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
@@ -44,21 +44,15 @@ import jd.core.model.instruction.bytecode.instruction.InstanceOf;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeInstruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
-import jd.core.model.instruction.bytecode.instruction.LookupSwitch;
-import jd.core.model.instruction.bytecode.instruction.MonitorEnter;
-import jd.core.model.instruction.bytecode.instruction.MonitorExit;
 import jd.core.model.instruction.bytecode.instruction.MultiANewArray;
 import jd.core.model.instruction.bytecode.instruction.New;
 import jd.core.model.instruction.bytecode.instruction.NewArray;
-import jd.core.model.instruction.bytecode.instruction.Pop;
 import jd.core.model.instruction.bytecode.instruction.PutField;
-import jd.core.model.instruction.bytecode.instruction.PutStatic;
-import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
-import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
-import jd.core.model.instruction.bytecode.instruction.TableSwitch;
-import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
+import jd.core.model.instruction.bytecode.instruction.Switch;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
+import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
+import jd.core.model.instruction.bytecode.instruction.attribute.ValuerefAttribute;
 import jd.core.model.instruction.fast.FastConstants;
 import jd.core.model.instruction.fast.instruction.FastDeclaration;
 import jd.core.model.instruction.fast.instruction.FastFor;
@@ -146,22 +140,23 @@ public class ReferenceVisitor
             }
             break;
         case ByteCodeConstants.STORE,
-             Const.ISTORE:
+             ByteCodeConstants.XRETURN,
+             Const.ISTORE,
+             Const.ASTORE,
+             Const.PUTSTATIC:
             {
-                StoreInstruction storeInstruction = (StoreInstruction)instruction;
-                visit(storeInstruction.getValueref());
+                ValuerefAttribute v = (ValuerefAttribute)instruction;
+                visit(v.getValueref());
             }
             break;
-        case Const.ASTORE:
+        case ByteCodeConstants.DUPSTORE,
+             ByteCodeConstants.TERNARYOPSTORE,
+             Const.MONITORENTER,
+             Const.MONITOREXIT,
+             Const.POP:
             {
-                StoreInstruction storeInstruction = (StoreInstruction)instruction;
-                visit(storeInstruction.getValueref());
-            }
-            break;
-        case ByteCodeConstants.DUPSTORE:
-            {
-                DupStore dupStore = (DupStore)instruction;
-                visit(dupStore.getObjectref());
+                ObjectrefAttribute o = (ObjectrefAttribute)instruction;
+                visit(o.getObjectref());
             }
             break;
         case ByteCodeConstants.CONVERT,
@@ -226,22 +221,10 @@ public class ReferenceVisitor
                 visit(ii.getArgs());
             }
             break;
-        case Const.LOOKUPSWITCH:
+        case Const.LOOKUPSWITCH, Const.TABLESWITCH:
             {
-                LookupSwitch ls = (LookupSwitch)instruction;
-                visit(ls.getKey());
-            }
-            break;
-        case Const.MONITORENTER:
-            {
-                MonitorEnter monitorEnter = (MonitorEnter)instruction;
-                visit(monitorEnter.getObjectref());
-            }
-            break;
-        case Const.MONITOREXIT:
-            {
-                MonitorExit monitorExit = (MonitorExit)instruction;
-                visit(monitorExit.getObjectref());
+                Switch sw = (Switch)instruction;
+                visit(sw.getKey());
             }
             break;
         case Const.MULTIANEWARRAY:
@@ -274,41 +257,11 @@ public class ReferenceVisitor
                 visit(aNewArray.getDimension());
             }
             break;
-        case Const.POP:
-            {
-                Pop pop = (Pop)instruction;
-                visit(pop.getObjectref());
-            }
-            break;
         case Const.PUTFIELD:
             {
                 PutField putField = (PutField)instruction;
                 visit(putField.getObjectref());
                 visit(putField.getValueref());
-            }
-            break;
-        case Const.PUTSTATIC:
-            {
-                PutStatic putStatic = (PutStatic)instruction;
-                visit(putStatic.getValueref());
-            }
-            break;
-        case ByteCodeConstants.XRETURN:
-            {
-                ReturnInstruction ri = (ReturnInstruction)instruction;
-                visit(ri.getValueref());
-            }
-            break;
-        case Const.TABLESWITCH:
-            {
-                TableSwitch ts = (TableSwitch)instruction;
-                visit(ts.getKey());
-            }
-            break;
-        case ByteCodeConstants.TERNARYOPSTORE:
-            {
-                TernaryOpStore tos = (TernaryOpStore)instruction;
-                visit(tos.getObjectref());
             }
             break;
         case ByteCodeConstants.TERNARYOP:

@@ -14,31 +14,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  ******************************************************************************/
-package jd.core.model.instruction.bytecode.instruction;
+package jd.core.model.instruction.bytecode.instruction.attribute;
 
-import java.util.List;
+import jd.core.model.instruction.bytecode.instruction.Instruction;
 
-import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
-
-public abstract class InvokeNoStaticInstruction extends InvokeInstruction implements ObjectrefAttribute
+public interface ObjectrefAttribute
 {
-    private Instruction objectref;
-
-    protected InvokeNoStaticInstruction(
-            int opcode, int offset, int lineNumber, int index,
-            Instruction objectref, List<Instruction> args)
-    {
-        super(opcode, offset, lineNumber, index, args);
-        this.setObjectref(objectref);
-    }
-
-    @Override
-    public Instruction getObjectref() {
-        return objectref;
-    }
-
-    @Override
-    public void setObjectref(Instruction objectref) {
-        this.objectref = objectref;
-    }
+    Instruction getObjectref();
+    void setObjectref(Instruction objectref);
+    int getOffset();
+    int getLineNumber();
 }

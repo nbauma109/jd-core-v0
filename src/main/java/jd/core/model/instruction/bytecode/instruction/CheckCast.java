@@ -23,9 +23,10 @@ import org.apache.bcel.classfile.ConstantUtf8;
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariables;
+import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
 import jd.core.util.SignatureUtil;
 
-public class CheckCast extends IndexInstruction
+public class CheckCast extends IndexInstruction implements ObjectrefAttribute
 {
     private Instruction objectref;
 
@@ -69,10 +70,12 @@ public class CheckCast extends IndexInstruction
         return 2;
     }
 
+    @Override
     public Instruction getObjectref() {
         return objectref;
     }
 
+    @Override
     public void setObjectref(Instruction objectref) {
         this.objectref = objectref;
     }

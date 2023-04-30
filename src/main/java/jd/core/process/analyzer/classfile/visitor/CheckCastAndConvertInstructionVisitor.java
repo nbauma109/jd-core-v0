@@ -44,37 +44,27 @@ import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.ALoad;
 import jd.core.model.instruction.bytecode.instruction.ANewArray;
 import jd.core.model.instruction.bytecode.instruction.AThrow;
-import jd.core.model.instruction.bytecode.instruction.ArrayLength;
-import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
+import jd.core.model.instruction.bytecode.instruction.ArrayInstruction;
 import jd.core.model.instruction.bytecode.instruction.AssertInstruction;
 import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.CheckCast;
 import jd.core.model.instruction.bytecode.instruction.ComplexConditionalBranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.ConvertInstruction;
-import jd.core.model.instruction.bytecode.instruction.DupStore;
-import jd.core.model.instruction.bytecode.instruction.GetField;
 import jd.core.model.instruction.bytecode.instruction.IConst;
 import jd.core.model.instruction.bytecode.instruction.IfCmp;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
 import jd.core.model.instruction.bytecode.instruction.IncInstruction;
 import jd.core.model.instruction.bytecode.instruction.InitArrayInstruction;
-import jd.core.model.instruction.bytecode.instruction.InstanceOf;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeInstruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
-import jd.core.model.instruction.bytecode.instruction.LookupSwitch;
-import jd.core.model.instruction.bytecode.instruction.MonitorEnter;
-import jd.core.model.instruction.bytecode.instruction.MonitorExit;
 import jd.core.model.instruction.bytecode.instruction.MultiANewArray;
 import jd.core.model.instruction.bytecode.instruction.NewArray;
-import jd.core.model.instruction.bytecode.instruction.Pop;
 import jd.core.model.instruction.bytecode.instruction.PutField;
-import jd.core.model.instruction.bytecode.instruction.PutStatic;
-import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
-import jd.core.model.instruction.bytecode.instruction.TableSwitch;
-import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
+import jd.core.model.instruction.bytecode.instruction.Switch;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
+import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
 import jd.core.model.instruction.bytecode.instruction.attribute.ValuerefAttribute;
 import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
 import jd.core.util.SignatureUtil;
@@ -95,12 +85,10 @@ public final class CheckCastAndConvertInstructionVisitor
         LocalVariables localVariables = method.getLocalVariables(); 
         switch (instruction.getOpcode())
         {
-        case Const.ARRAYLENGTH:
-            visit(classFile, method, ((ArrayLength)instruction).getArrayref());
-            break;
-        case Const.AASTORE,
-             ByteCodeConstants.ARRAYSTORE:
-            visit(classFile, method, ((ArrayStoreInstruction)instruction).getArrayref());
+        case ByteCodeConstants.ARRAYSTORE,
+             Const.ARRAYLENGTH,
+             Const.AASTORE:
+            visit(classFile, method, ((ArrayInstruction)instruction).getArrayref());
             break;
         case ByteCodeConstants.ASSERT:
             {
@@ -164,8 +152,14 @@ public final class CheckCastAndConvertInstructionVisitor
                 }
                 visit(classFile, method, si.getValueref());
             break;
-        case ByteCodeConstants.DUPSTORE:
-            visit(classFile, method, ((DupStore)instruction).getObjectref());
+        case ByteCodeConstants.DUPSTORE,
+             ByteCodeConstants.TERNARYOPSTORE, 
+             Const.GETFIELD,
+             Const.INSTANCEOF,
+             Const.MONITORENTER,
+             Const.MONITOREXIT,
+             Const.POP:
+            visit(classFile, method, ((ObjectrefAttribute)instruction).getObjectref());
             break;
         case ByteCodeConstants.CONVERT,
              ByteCodeConstants.IMPLICITCONVERT:
@@ -191,9 +185,6 @@ public final class CheckCastAndConvertInstructionVisitor
                     visit(classFile, method, branchList.get(i));
                 }
             }
-            break;
-        case Const.INSTANCEOF:
-            visit(classFile, method, ((InstanceOf)instruction).getObjectref());
             break;
         case Const.INVOKEINTERFACE,
              Const.INVOKESPECIAL,
@@ -264,14 +255,8 @@ public final class CheckCastAndConvertInstructionVisitor
                 }
             }
             break;
-        case Const.LOOKUPSWITCH:
-            visit(classFile, method, ((LookupSwitch)instruction).getKey());
-            break;
-        case Const.MONITORENTER:
-            visit(classFile, method, ((MonitorEnter)instruction).getObjectref());
-            break;
-        case Const.MONITOREXIT:
-            visit(classFile, method, ((MonitorExit)instruction).getObjectref());
+        case Const.LOOKUPSWITCH, Const.TABLESWITCH:
+            visit(classFile, method, ((Switch)instruction).getKey());
             break;
         case Const.MULTIANEWARRAY:
             {
@@ -287,9 +272,6 @@ public final class CheckCastAndConvertInstructionVisitor
             break;
         case Const.ANEWARRAY:
             visit(classFile, method, ((ANewArray)instruction).getDimension());
-            break;
-        case Const.POP:
-            visit(classFile, method, ((Pop)instruction).getObjectref());
             break;
         case Const.PUTFIELD:
             {
@@ -308,24 +290,12 @@ public final class CheckCastAndConvertInstructionVisitor
                 visit(classFile, method, putField.getValueref());
             }
             break;
-        case Const.PUTSTATIC:
-            visit(classFile, method, ((PutStatic)instruction).getValueref());
-            break;
-        case ByteCodeConstants.XRETURN:
-            visit(classFile, method, ((ReturnInstruction)instruction).getValueref());
-            break;
-        case Const.TABLESWITCH:
-            visit(classFile, method, ((TableSwitch)instruction).getKey());
-            break;
-        case ByteCodeConstants.TERNARYOPSTORE:
-            visit(classFile, method, ((TernaryOpStore)instruction).getObjectref());
+        case Const.PUTSTATIC, ByteCodeConstants.XRETURN:
+            visit(classFile, method, ((ValuerefAttribute)instruction).getValueref());
             break;
         case ByteCodeConstants.PREINC,
              ByteCodeConstants.POSTINC:
             visit(classFile, method, ((IncInstruction)instruction).getValue());
-            break;
-        case Const.GETFIELD:
-            visit(classFile, method, ((GetField)instruction).getObjectref());
             break;
         case ByteCodeConstants.INITARRAY,
              ByteCodeConstants.NEWANDINITARRAY:
