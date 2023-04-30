@@ -54,7 +54,6 @@ import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
 import jd.core.model.instruction.bytecode.instruction.Invokestatic;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
 import jd.core.model.instruction.bytecode.instruction.LookupSwitch;
-import jd.core.model.instruction.bytecode.instruction.MonitorEnter;
 import jd.core.model.instruction.bytecode.instruction.MonitorExit;
 import jd.core.model.instruction.bytecode.instruction.MultiANewArray;
 import jd.core.model.instruction.bytecode.instruction.NewArray;
@@ -67,6 +66,10 @@ import jd.core.model.instruction.bytecode.instruction.TableSwitch;
 import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
+import jd.core.model.instruction.fast.FastConstants;
+import jd.core.model.instruction.fast.instruction.FastSynchronized;
+import jd.core.model.instruction.fast.instruction.FastTry;
+import jd.core.model.instruction.fast.instruction.FastTry.FastCatch;
 import jd.core.util.SignatureUtil;
 
 public class ReplaceStringBuxxxerVisitor
@@ -477,17 +480,6 @@ public class ReplaceStringBuxxxerVisitor
                 }
             }
             break;
-        case Const.MONITORENTER:
-            {
-                MonitorEnter meInstruction = (MonitorEnter)instruction;
-                Instruction i = match(meInstruction.getObjectref());
-                if (i == null) {
-                    visit(meInstruction.getObjectref());
-                } else {
-                    meInstruction.setObjectref(i);
-                }
-            }
-            break;
         case Const.MONITOREXIT:
             {
                 MonitorExit meInstruction = (MonitorExit)instruction;
@@ -520,6 +512,26 @@ public class ReplaceStringBuxxxerVisitor
                         iaInstruction.getValues().set(index, i);
                     }
                 }
+            }
+            break;
+        case FastConstants.TRY:
+            {
+                FastTry ft = (FastTry)instruction;
+                visit(ft.getInstructions());
+                if (ft.getFinallyInstructions() != null) {
+                    visit(ft.getFinallyInstructions());
+                }
+                List<FastCatch> catchs = ft.getCatches();
+                for (int i=catchs.size()-1; i>=0; --i) {
+                    visit(catchs.get(i).instructions());
+                }
+            }
+            break;
+        case FastConstants.SYNCHRONIZED:
+            {
+                FastSynchronized fsd = (FastSynchronized)instruction;
+                visit(fsd.getMonitor());
+                visit(fsd.getInstructions());
             }
             break;
         case Const.ACONST_NULL,
@@ -555,6 +567,10 @@ public class ReplaceStringBuxxxerVisitor
                     instruction.getClass().getName() + " " +
                     instruction.getOpcode());
         }
+    }
+
+    private void visit(List<Instruction> instructions) {
+        instructions.forEach(this::visit);
     }
 
     private void replaceInArgs(List<Instruction> args)
