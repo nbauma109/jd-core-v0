@@ -18,8 +18,9 @@ package jd.core.model.instruction.bytecode.instruction;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariables;
+import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
 
-public class Pop extends Instruction
+public class Pop extends Instruction implements ObjectrefAttribute
 {
     private Instruction objectref;
 
@@ -36,10 +37,12 @@ public class Pop extends Instruction
         return null;
     }
 
+    @Override
     public Instruction getObjectref() {
         return objectref;
     }
 
+    @Override
     public void setObjectref(Instruction objectref) {
         this.objectref = objectref;
     }

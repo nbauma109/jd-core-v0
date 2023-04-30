@@ -27,34 +27,23 @@ import jd.core.model.instruction.bytecode.instruction.ArrayLength;
 import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.AssertInstruction;
 import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
-import jd.core.model.instruction.bytecode.instruction.CheckCast;
 import jd.core.model.instruction.bytecode.instruction.ComplexConditionalBranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.ConvertInstruction;
-import jd.core.model.instruction.bytecode.instruction.DupStore;
-import jd.core.model.instruction.bytecode.instruction.GetField;
 import jd.core.model.instruction.bytecode.instruction.IfCmp;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
 import jd.core.model.instruction.bytecode.instruction.IncInstruction;
 import jd.core.model.instruction.bytecode.instruction.InitArrayInstruction;
-import jd.core.model.instruction.bytecode.instruction.InstanceOf;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeInstruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNew;
-import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
-import jd.core.model.instruction.bytecode.instruction.LookupSwitch;
-import jd.core.model.instruction.bytecode.instruction.MonitorEnter;
-import jd.core.model.instruction.bytecode.instruction.MonitorExit;
 import jd.core.model.instruction.bytecode.instruction.MultiANewArray;
 import jd.core.model.instruction.bytecode.instruction.NewArray;
-import jd.core.model.instruction.bytecode.instruction.Pop;
 import jd.core.model.instruction.bytecode.instruction.PutField;
-import jd.core.model.instruction.bytecode.instruction.PutStatic;
-import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
-import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
-import jd.core.model.instruction.bytecode.instruction.TableSwitch;
-import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
+import jd.core.model.instruction.bytecode.instruction.Switch;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
+import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
+import jd.core.model.instruction.bytecode.instruction.attribute.ValuerefAttribute;
 import jd.core.model.instruction.fast.FastConstants;
 import jd.core.model.instruction.fast.instruction.FastDeclaration;
 import jd.core.model.instruction.fast.instruction.FastSynchronized;
@@ -224,47 +213,33 @@ public class ReplaceInstructionVisitor
                 }
             }
             break;
-        case Const.CHECKCAST:
+        case ByteCodeConstants.DUPSTORE,
+             ByteCodeConstants.TERNARYOPSTORE,
+             Const.CHECKCAST,
+             Const.INSTANCEOF,
+             Const.MONITORENTER,
+             Const.MONITOREXIT,
+             Const.POP,
+             Const.GETFIELD:
             {
-                CheckCast checkCast = (CheckCast)instruction;
-                if (checkCast.getObjectref().getOffset() == this.offset)
-                {
-                    this.oldInstruction = checkCast.getObjectref();
-                    checkCast.setObjectref(this.newInstruction);
-                }
-                else
-                {
-                    visit(checkCast.getObjectref());
-                }
+                visitObjectref(instruction);
             }
             break;
-        case ByteCodeConstants.STORE,
+        case ByteCodeConstants.XRETURN,
+             ByteCodeConstants.STORE,
              Const.ASTORE,
-             Const.ISTORE:
+             Const.ISTORE,
+             Const.PUTSTATIC:
             {
-                StoreInstruction storeInstruction = (StoreInstruction)instruction;
-                if (storeInstruction.getValueref().getOffset() == this.offset)
+                ValuerefAttribute v = (ValuerefAttribute)instruction;
+                if (v.getValueref().getOffset() == this.offset)
                 {
-                    this.oldInstruction = storeInstruction.getValueref();
-                    storeInstruction.setValueref(this.newInstruction);
+                    this.oldInstruction = v.getValueref();
+                    v.setValueref(this.newInstruction);
                 }
                 else
                 {
-                    visit(storeInstruction.getValueref());
-                }
-            }
-            break;
-        case ByteCodeConstants.DUPSTORE:
-            {
-                DupStore dupStore = (DupStore)instruction;
-                if (dupStore.getObjectref().getOffset() == this.offset)
-                {
-                    this.oldInstruction = dupStore.getObjectref();
-                    dupStore.setObjectref(this.newInstruction);
-                }
-                else
-                {
-                    visit(dupStore.getObjectref());
+                    visit(v.getValueref());
                 }
             }
             break;
@@ -334,35 +309,11 @@ public class ReplaceInstructionVisitor
                 }
             }
             break;
-        case Const.INSTANCEOF:
-            {
-                InstanceOf instanceOf = (InstanceOf)instruction;
-                if (instanceOf.getObjectref().getOffset() == this.offset)
-                {
-                    this.oldInstruction = instanceOf.getObjectref();
-                    instanceOf.setObjectref(this.newInstruction);
-                }
-                else
-                {
-                    visit(instanceOf.getObjectref());
-                }
-            }
-            break;
         case Const.INVOKEINTERFACE,
              Const.INVOKESPECIAL,
              Const.INVOKEVIRTUAL:
             {
-                InvokeNoStaticInstruction insi =
-                    (InvokeNoStaticInstruction)instruction;
-                if (insi.getObjectref().getOffset() == this.offset)
-                {
-                    this.oldInstruction = insi.getObjectref();
-                    insi.setObjectref(this.newInstruction);
-                }
-                else
-                {
-                    visit(insi.getObjectref());
-                }
+                visitObjectref(instruction);
             }
             // intended fall through
         case Const.INVOKESTATIC:
@@ -401,9 +352,9 @@ public class ReplaceInstructionVisitor
                 }
             }
             break;
-        case Const.LOOKUPSWITCH:
+        case Const.LOOKUPSWITCH, Const.TABLESWITCH:
             {
-                LookupSwitch ls = (LookupSwitch)instruction;
+                Switch ls = (Switch)instruction;
                 if (ls.getKey().getOffset() == this.offset)
                 {
                     this.oldInstruction = ls.getKey();
@@ -412,34 +363,6 @@ public class ReplaceInstructionVisitor
                 else
                 {
                     visit(ls.getKey());
-                }
-            }
-            break;
-        case Const.MONITORENTER:
-            {
-                MonitorEnter monitorEnter = (MonitorEnter)instruction;
-                if (monitorEnter.getObjectref().getOffset() == this.offset)
-                {
-                    this.oldInstruction = monitorEnter.getObjectref();
-                    monitorEnter.setObjectref(this.newInstruction);
-                }
-                else
-                {
-                    visit(monitorEnter.getObjectref());
-                }
-            }
-            break;
-        case Const.MONITOREXIT:
-            {
-                MonitorExit monitorExit = (MonitorExit)instruction;
-                if (monitorExit.getObjectref().getOffset() == this.offset)
-                {
-                    this.oldInstruction = monitorExit.getObjectref();
-                    monitorExit.setObjectref(this.newInstruction);
-                }
-                else
-                {
-                    visit(monitorExit.getObjectref());
                 }
             }
             break;
@@ -488,20 +411,6 @@ public class ReplaceInstructionVisitor
                 }
             }
             break;
-        case Const.POP:
-            {
-                Pop pop = (Pop)instruction;
-                if (pop.getObjectref().getOffset() == this.offset)
-                {
-                    this.oldInstruction = pop.getObjectref();
-                    pop.setObjectref(this.newInstruction);
-                }
-                else
-                {
-                    visit(pop.getObjectref());
-                }
-            }
-            break;
         case Const.PUTFIELD:
             {
                 PutField putField = (PutField)instruction;
@@ -533,62 +442,6 @@ public class ReplaceInstructionVisitor
                 }
             }
             break;
-        case Const.PUTSTATIC:
-            {
-                PutStatic putStatic = (PutStatic)instruction;
-                if (putStatic.getValueref().getOffset() == this.offset)
-                {
-                    this.oldInstruction = putStatic.getValueref();
-                    putStatic.setValueref(this.newInstruction);
-                }
-                else
-                {
-                    visit(putStatic.getValueref());
-                }
-            }
-            break;
-        case ByteCodeConstants.XRETURN:
-            {
-                ReturnInstruction ri = (ReturnInstruction)instruction;
-                if (ri.getValueref().getOffset() == this.offset)
-                {
-                    this.oldInstruction = ri.getValueref();
-                    ri.setValueref(this.newInstruction);
-                }
-                else
-                {
-                    visit(ri.getValueref());
-                }
-            }
-            break;
-        case Const.TABLESWITCH:
-            {
-                TableSwitch ts = (TableSwitch)instruction;
-                if (ts.getKey().getOffset() == this.offset)
-                {
-                    this.oldInstruction = ts.getKey();
-                    ts.setKey(this.newInstruction);
-                }
-                else
-                {
-                    visit(ts.getKey());
-                }
-            }
-            break;
-        case ByteCodeConstants.TERNARYOPSTORE:
-            {
-                TernaryOpStore tos = (TernaryOpStore)instruction;
-                if (tos.getObjectref().getOffset() == this.offset)
-                {
-                    this.oldInstruction = tos.getObjectref();
-                    tos.setObjectref(this.newInstruction);
-                }
-                else
-                {
-                    visit(tos.getObjectref());
-                }
-            }
-            break;
         case ByteCodeConstants.PREINC,
              ByteCodeConstants.POSTINC:
             {
@@ -601,20 +454,6 @@ public class ReplaceInstructionVisitor
                 else
                 {
                     visit(ii.getValue());
-                }
-            }
-            break;
-        case Const.GETFIELD:
-            {
-                GetField gf = (GetField)instruction;
-                if (gf.getObjectref().getOffset() == this.offset)
-                {
-                    this.oldInstruction = gf.getObjectref();
-                    gf.setObjectref(this.newInstruction);
-                }
-                else
-                {
-                    visit(gf.getObjectref());
                 }
             }
             break;
@@ -784,6 +623,19 @@ public class ReplaceInstructionVisitor
                     "Can not replace code in " +
                     instruction.getClass().getName() +
                     ", opcode=" + instruction.getOpcode());
+        }
+    }
+
+    private void visitObjectref(Instruction instruction) {
+        ObjectrefAttribute o = (ObjectrefAttribute)instruction;
+        if (o.getObjectref().getOffset() == this.offset)
+        {
+            this.oldInstruction = o.getObjectref();
+            o.setObjectref(this.newInstruction);
+        }
+        else
+        {
+            visit(o.getObjectref());
         }
     }
 

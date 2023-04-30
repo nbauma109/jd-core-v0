@@ -26,29 +26,21 @@ import jd.core.model.instruction.bytecode.instruction.AThrow;
 import jd.core.model.instruction.bytecode.instruction.ArrayLoadInstruction;
 import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
-import jd.core.model.instruction.bytecode.instruction.CheckCast;
 import jd.core.model.instruction.bytecode.instruction.ConvertInstruction;
-import jd.core.model.instruction.bytecode.instruction.DupStore;
-import jd.core.model.instruction.bytecode.instruction.GetField;
 import jd.core.model.instruction.bytecode.instruction.GetStatic;
 import jd.core.model.instruction.bytecode.instruction.IfCmp;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
 import jd.core.model.instruction.bytecode.instruction.IncInstruction;
-import jd.core.model.instruction.bytecode.instruction.InstanceOf;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeInstruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
-import jd.core.model.instruction.bytecode.instruction.LookupSwitch;
 import jd.core.model.instruction.bytecode.instruction.MultiANewArray;
 import jd.core.model.instruction.bytecode.instruction.NewArray;
-import jd.core.model.instruction.bytecode.instruction.Pop;
 import jd.core.model.instruction.bytecode.instruction.PutField;
-import jd.core.model.instruction.bytecode.instruction.PutStatic;
-import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
-import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
-import jd.core.model.instruction.bytecode.instruction.TableSwitch;
-import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
+import jd.core.model.instruction.bytecode.instruction.Switch;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
+import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
+import jd.core.model.instruction.bytecode.instruction.attribute.ValuerefAttribute;
 
 public class ReplaceGetStaticVisitor
 {
@@ -144,35 +136,34 @@ public class ReplaceGetStaticVisitor
                 }
             }
             break;
-        case Const.CHECKCAST:
+        case ByteCodeConstants.DUPSTORE,
+             ByteCodeConstants.TERNARYOPSTORE,
+             Const.INSTANCEOF,
+             Const.CHECKCAST,
+             Const.GETFIELD,
+             Const.MONITORENTER,
+             Const.MONITOREXIT,
+             Const.POP:
             {
-                CheckCast checkCast = (CheckCast)instruction;
-                if (match(checkCast, checkCast.getObjectref())) {
-                    checkCast.setObjectref(this.newInstruction);
+                ObjectrefAttribute o = (ObjectrefAttribute)instruction;
+                if (match((Instruction) o, o.getObjectref())) {
+                    o.setObjectref(this.newInstruction);
                 } else {
-                    visit(checkCast.getObjectref());
+                    visit(o.getObjectref());
                 }
             }
             break;
         case ByteCodeConstants.STORE,
+             ByteCodeConstants.XRETURN,
              Const.ASTORE,
-             Const.ISTORE:
+             Const.ISTORE,
+             Const.PUTSTATIC:
             {
-                StoreInstruction storeInstruction = (StoreInstruction)instruction;
-                if (match(storeInstruction, storeInstruction.getValueref())) {
-                    storeInstruction.setValueref(this.newInstruction);
+                ValuerefAttribute v = (ValuerefAttribute)instruction;
+                if (match((Instruction) v, v.getValueref())) {
+                    v.setValueref(this.newInstruction);
                 } else {
-                    visit(storeInstruction.getValueref());
-                }
-            }
-            break;
-        case ByteCodeConstants.DUPSTORE:
-            {
-                DupStore dupStore = (DupStore)instruction;
-                if (match(dupStore, dupStore.getObjectref())) {
-                    dupStore.setObjectref(this.newInstruction);
-                } else {
-                    visit(dupStore.getObjectref());
+                    visit(v.getValueref());
                 }
             }
             break;
@@ -220,16 +211,6 @@ public class ReplaceGetStaticVisitor
                 }
             }
             break;
-        case Const.INSTANCEOF:
-            {
-                InstanceOf instanceOf = (InstanceOf)instruction;
-                if (match(instanceOf, instanceOf.getObjectref())) {
-                    instanceOf.setObjectref(this.newInstruction);
-                } else {
-                    visit(instanceOf.getObjectref());
-                }
-            }
-            break;
         case Const.INVOKEINTERFACE,
              Const.INVOKESPECIAL,
              Const.INVOKEVIRTUAL:
@@ -257,9 +238,9 @@ public class ReplaceGetStaticVisitor
                 }
             }
             break;
-        case Const.LOOKUPSWITCH:
+        case Const.LOOKUPSWITCH, Const.TABLESWITCH:
             {
-                LookupSwitch ls = (LookupSwitch)instruction;
+                Switch ls = (Switch)instruction;
                 if (match(ls, ls.getKey())) {
                     ls.setKey(this.newInstruction);
                 } else {
@@ -300,16 +281,6 @@ public class ReplaceGetStaticVisitor
                 }
             }
             break;
-        case Const.POP:
-            {
-                Pop pop = (Pop)instruction;
-                if (match(pop, pop.getObjectref())) {
-                    pop.setObjectref(this.newInstruction);
-                } else {
-                    visit(pop.getObjectref());
-                }
-            }
-            break;
         case Const.PUTFIELD:
             {
                 PutField putField = (PutField)instruction;
@@ -329,46 +300,6 @@ public class ReplaceGetStaticVisitor
                             visit(putField.getValueref());
                         }
                     }
-                }
-            }
-            break;
-        case Const.PUTSTATIC:
-            {
-                PutStatic putStatic = (PutStatic)instruction;
-                if (match(putStatic, putStatic.getValueref())) {
-                    putStatic.setValueref(this.newInstruction);
-                } else {
-                    visit(putStatic.getValueref());
-                }
-            }
-            break;
-        case ByteCodeConstants.XRETURN:
-            {
-                ReturnInstruction ri = (ReturnInstruction)instruction;
-                if (match(ri, ri.getValueref())) {
-                    ri.setValueref(this.newInstruction);
-                } else {
-                    visit(ri.getValueref());
-                }
-            }
-            break;
-        case Const.TABLESWITCH:
-            {
-                TableSwitch ts = (TableSwitch)instruction;
-                if (match(ts, ts.getKey())) {
-                    ts.setKey(this.newInstruction);
-                } else {
-                    visit(ts.getKey());
-                }
-            }
-            break;
-        case ByteCodeConstants.TERNARYOPSTORE:
-            {
-                TernaryOpStore tos = (TernaryOpStore)instruction;
-                if (match(tos, tos.getObjectref())) {
-                    tos.setObjectref(this.newInstruction);
-                } else {
-                    visit(tos.getObjectref());
                 }
             }
             break;
@@ -402,16 +333,6 @@ public class ReplaceGetStaticVisitor
                     ii.setValue(this.newInstruction);
                 } else {
                     visit(ii.getValue());
-                }
-            }
-            break;
-        case Const.GETFIELD:
-            {
-                GetField gf = (GetField)instruction;
-                if (match(gf, gf.getObjectref())) {
-                    gf.setObjectref(this.newInstruction);
-                } else {
-                    visit(gf.getObjectref());
                 }
             }
             break;

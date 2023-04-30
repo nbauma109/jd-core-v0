@@ -19,18 +19,13 @@ package jd.core.process.layouter.visitor;
 import org.apache.bcel.Const;
 
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
-import jd.core.model.instruction.bytecode.instruction.ArrayLoadInstruction;
-import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
+import jd.core.model.instruction.bytecode.instruction.ArrayInstruction;
 import jd.core.model.instruction.bytecode.instruction.AssignmentInstruction;
 import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
-import jd.core.model.instruction.bytecode.instruction.CheckCast;
 import jd.core.model.instruction.bytecode.instruction.IncInstruction;
-import jd.core.model.instruction.bytecode.instruction.InstanceOf;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
-import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
-import jd.core.model.instruction.bytecode.instruction.Pop;
-import jd.core.model.instruction.bytecode.instruction.PutField;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
+import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
 
 public final class MinLineNumberVisitor
 {
@@ -42,17 +37,14 @@ public final class MinLineNumberVisitor
     {
         switch (instruction.getOpcode())
         {
-        case ByteCodeConstants.ARRAYLOAD:
-            return visit(((ArrayLoadInstruction)instruction).getArrayref());
-        case Const.AASTORE,
-             ByteCodeConstants.ARRAYSTORE:
-            return visit(((ArrayStoreInstruction)instruction).getArrayref());
+        case ByteCodeConstants.ARRAYLOAD,
+             ByteCodeConstants.ARRAYSTORE,
+             Const.AASTORE:
+            return visit(((ArrayInstruction)instruction).getArrayref());
         case ByteCodeConstants.ASSIGNMENT:
             return visit(((AssignmentInstruction)instruction).getValue1());
         case ByteCodeConstants.BINARYOP:
             return visit(((BinaryOperatorInstruction)instruction).getValue1());
-        case Const.CHECKCAST:
-            return visit(((CheckCast)instruction).getObjectref());
         case ByteCodeConstants.PREINC:
             {
                 IncInstruction ii = (IncInstruction)instruction;
@@ -75,16 +67,14 @@ public final class MinLineNumberVisitor
                 }
                 return instruction.getLineNumber();
             }
-        case Const.INSTANCEOF:
-            return visit(((InstanceOf)instruction).getObjectref());
-        case Const.INVOKEINTERFACE,
+        case Const.CHECKCAST,
+             Const.INSTANCEOF,
+             Const.INVOKEINTERFACE,
              Const.INVOKEVIRTUAL,
-             Const.INVOKESPECIAL:
-            return visit(((InvokeNoStaticInstruction)instruction).getObjectref());
-        case Const.POP:
-            return visit(((Pop)instruction).getObjectref());
-        case Const.PUTFIELD:
-            return visit(((PutField)instruction).getObjectref());
+             Const.INVOKESPECIAL,
+             Const.POP,
+             Const.PUTFIELD:
+            return visit(((ObjectrefAttribute)instruction).getObjectref());
         case ByteCodeConstants.TERNARYOP:
             return visit(((TernaryOperator)instruction).getTest());
         }
