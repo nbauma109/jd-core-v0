@@ -54,6 +54,7 @@ import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
 import jd.core.model.instruction.bytecode.instruction.Invokestatic;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
 import jd.core.model.instruction.bytecode.instruction.LookupSwitch;
+import jd.core.model.instruction.bytecode.instruction.MonitorExit;
 import jd.core.model.instruction.bytecode.instruction.MultiANewArray;
 import jd.core.model.instruction.bytecode.instruction.NewArray;
 import jd.core.model.instruction.bytecode.instruction.Pop;
@@ -476,6 +477,17 @@ public class ReplaceStringBuxxxerVisitor
                     visit(to.getValue2());
                 } else {
                     to.setValue2(i);
+                }
+            }
+            break;
+        case Const.MONITOREXIT:
+            {
+                MonitorExit meInstruction = (MonitorExit)instruction;
+                Instruction i = match(meInstruction.getObjectref());
+                if (i == null) {
+                    visit(meInstruction.getObjectref());
+                } else {
+                    meInstruction.setObjectref(i);
                 }
             }
             break;
