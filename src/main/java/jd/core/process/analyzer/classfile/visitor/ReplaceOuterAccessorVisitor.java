@@ -37,7 +37,6 @@ import jd.core.model.instruction.bytecode.instruction.ConvertInstruction;
 import jd.core.model.instruction.bytecode.instruction.GetStatic;
 import jd.core.model.instruction.bytecode.instruction.IfCmp;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
-import jd.core.model.instruction.bytecode.instruction.IncInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeInstruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
@@ -324,18 +323,6 @@ public class ReplaceOuterAccessorVisitor
                 }
             }
             break;
-        case ByteCodeConstants.PREINC,
-             ByteCodeConstants.POSTINC:
-            {
-                IncInstruction ii = (IncInstruction)instruction;
-                ClassFile matchedClassFile = match(ii.getValue());
-                if (matchedClassFile != null) {
-                    ii.setValue(newInstruction(matchedClassFile, ii.getValue()));
-                } else {
-                    visit(ii.getValue());
-                }
-            }
-            break;
         case Const.ACONST_NULL,
              ByteCodeConstants.LOAD,
              Const.ALOAD,
@@ -346,6 +333,8 @@ public class ReplaceOuterAccessorVisitor
              ByteCodeConstants.FCONST,
              ByteCodeConstants.DCONST,
              ByteCodeConstants.DUPLOAD,
+             ByteCodeConstants.POSTINC,
+             ByteCodeConstants.PREINC,
              Const.GETSTATIC,
              ByteCodeConstants.OUTERTHIS,
              Const.GOTO,
