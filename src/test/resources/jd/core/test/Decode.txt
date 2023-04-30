@@ -1,0 +1,971 @@
+/*     */ package net.sourceforge.plantuml.brotli;
+/*     */ 
+/*     */ import java.io.IOException;
+/*     */ import java.io.InputStream;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ final class Decode
+/*     */ {
+/*     */   private static final int UNINITIALIZED = 0;
+/*     */   private static final int BLOCK_START = 1;
+/*     */   private static final int COMPRESSED_BLOCK_START = 2;
+/*     */   private static final int MAIN_LOOP = 3;
+/*     */   private static final int READ_METADATA = 4;
+/*     */   private static final int COPY_UNCOMPRESSED = 5;
+/*     */   private static final int INSERT_LOOP = 6;
+/*     */   private static final int COPY_LOOP = 7;
+/*     */   private static final int COPY_WRAP_BUFFER = 8;
+/*     */   private static final int TRANSFORM = 9;
+/*     */   private static final int FINISHED = 10;
+/*     */   private static final int CLOSED = 11;
+/*     */   private static final int WRITE = 12;
+/*     */   private static final int DEFAULT_CODE_LENGTH = 8;
+/*     */   private static final int CODE_LENGTH_REPEAT_CODE = 16;
+/*     */   private static final int NUM_LITERAL_CODES = 256;
+/*     */   private static final int NUM_INSERT_AND_COPY_CODES = 704;
+/*     */   private static final int NUM_BLOCK_LENGTH_CODES = 26;
+/*     */   private static final int LITERAL_CONTEXT_BITS = 6;
+/*     */   private static final int DISTANCE_CONTEXT_BITS = 2;
+/*     */   private static final int HUFFMAN_TABLE_BITS = 8;
+/*     */   private static final int HUFFMAN_TABLE_MASK = 255;
+/*     */   static final int HUFFMAN_TABLE_SIZE = 1080;
+/*     */   private static final int CODE_LENGTH_CODES = 18;
+/*     */   private static final int NUM_DISTANCE_SHORT_CODES = 16;
+/*     */   static final int MIN_WORD_LENGTH = 4;
+/*     */   static final int MAX_WORD_LENGTH = 24;
+/*     */   static final int MAX_TRANSFORMED_WORD_LENGTH = 37;
+/*  54 */   private static final int[] CODE_LENGTH_CODE_ORDER = { 1, 2, 3, 4, 0, 5, 17, 6, 16, 7, 8, 9, 10, 11, 12, 13, 14, 15 };
+/*     */   
+/*     */ 
+/*     */ 
+/*  58 */   private static final int[] DISTANCE_SHORT_CODE_INDEX_OFFSET = { 3, 2, 1, 0, 3, 3, 3, 3, 3, 3, 2, 2, 2, 2, 2, 2 };
+/*     */   
+/*  60 */   private static final int[] DISTANCE_SHORT_CODE_VALUE_OFFSET = { 0, 0, 0, 0, -1, 1, -2, 2, -3, 3, -1, 1, -2, 2, -3, 3 };
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*  66 */   private static final int[] FIXED_TABLE = { 131072, 131076, 131075, 196610, 131072, 131076, 131075, 262145, 131072, 131076, 131075, 196610, 131072, 131076, 131075, 262149 };
+/*     */   
+/*     */ 
+/*  69 */   static final int[] DICTIONARY_OFFSETS_BY_LENGTH = { 0, 0, 0, 0, 0, 4096, 9216, 21504, 35840, 44032, 53248, 63488, 74752, 87040, 93696, 100864, 104704, 106752, 108928, 113536, 115968, 118528, 119872, 121280, 122016 };
+/*     */   
+/*     */ 
+/*  72 */   static final int[] DICTIONARY_SIZE_BITS_BY_LENGTH = { 0, 0, 0, 0, 10, 10, 11, 11, 10, 10, 10, 10, 10, 9, 9, 8, 7, 7, 8, 7, 7, 6, 6, 5, 5 };
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*  84 */   static final int[] BLOCK_LENGTH_OFFSET = { 1, 5, 9, 13, 17, 25, 33, 41, 49, 65, 81, 97, 113, 145, 177, 209, 241, 305, 369, 497, 753, 1265, 2289, 4337, 8433, 16625 };
+/*     */   
+/*     */ 
+/*  87 */   static final int[] BLOCK_LENGTH_N_BITS = { 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 7, 8, 9, 10, 11, 12, 13, 24 };
+/*     */   
+/*     */ 
+/*  90 */   static final int[] INSERT_LENGTH_OFFSET = { 0, 1, 2, 3, 4, 5, 6, 8, 10, 14, 18, 26, 34, 50, 66, 98, 130, 194, 322, 578, 1090, 2114, 6210, 22594 };
+/*     */   
+/*     */ 
+/*  93 */   static final int[] INSERT_LENGTH_N_BITS = { 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 7, 8, 9, 10, 12, 14, 24 };
+/*     */   
+/*     */ 
+/*  96 */   static final int[] COPY_LENGTH_OFFSET = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 18, 22, 30, 38, 54, 70, 102, 134, 198, 326, 582, 1094, 2118 };
+/*     */   
+/*     */ 
+/*  99 */   static final int[] COPY_LENGTH_N_BITS = { 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 7, 8, 9, 10, 24 };
+/*     */   
+/*     */ 
+/* 102 */   static final int[] INSERT_RANGE_LUT = { 0, 0, 8, 8, 0, 16, 8, 16, 16 };
+/*     */   
+/* 104 */   static final int[] COPY_RANGE_LUT = { 0, 8, 0, 8, 16, 0, 16, 8, 16 };
+/*     */   
+/*     */   private static int decodeWindowBits(State s) {
+/* 107 */     BitReader.fillBitWindow(s);
+/* 108 */     if (BitReader.readFewBits(s, 1) == 0) {
+/* 109 */       return 16;
+/*     */     }
+/* 111 */     int n = BitReader.readFewBits(s, 3);
+/* 112 */     if (n != 0) {
+/* 113 */       return 17 + n;
+/*     */     }
+/* 115 */     n = BitReader.readFewBits(s, 3);
+/* 116 */     if (n != 0) {
+/* 117 */       return 8 + n;
+/*     */     }
+/* 119 */     return 17;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   static void initState(State s, InputStream input)
+/*     */   {
+/* 129 */     if (s.runningState != 0) {
+/* 130 */       throw new IllegalStateException("State MUST be uninitialized");
+/*     */     }
+/* 132 */     s.blockTrees = new int[6480];
+/* 133 */     s.input = input;
+/* 134 */     BitReader.initBitReader(s);
+/* 135 */     int windowBits = decodeWindowBits(s);
+/* 136 */     if (windowBits == 9) {
+/* 137 */       throw new BrotliRuntimeException("Invalid 'windowBits' code");
+/*     */     }
+/* 139 */     s.maxRingBufferSize = 1 << windowBits;
+/* 140 */     s.maxBackwardDistance = s.maxRingBufferSize - 16;
+/* 141 */     s.runningState = 1;
+/*     */   }
+/*     */   
+/*     */   static void close(State s) throws IOException {
+/* 145 */     if (s.runningState == 0) {
+/* 146 */       throw new IllegalStateException("State MUST be initialized");
+/*     */     }
+/* 148 */     if (s.runningState == 11) {
+/* 149 */       return;
+/*     */     }
+/* 151 */     s.runningState = 11;
+/* 152 */     if (s.input != null) {
+/* 153 */       Utils.closeInput(s.input);
+/* 154 */       s.input = null;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   private static int decodeVarLenUnsignedByte(State s)
+/*     */   {
+/* 162 */     BitReader.fillBitWindow(s);
+/* 163 */     if (BitReader.readFewBits(s, 1) != 0) {
+/* 164 */       int n = BitReader.readFewBits(s, 3);
+/* 165 */       if (n == 0) {
+/* 166 */         return 1;
+/*     */       }
+/* 168 */       return BitReader.readFewBits(s, n) + (1 << n);
+/*     */     }
+/*     */     
+/* 171 */     return 0;
+/*     */   }
+/*     */   
+/*     */   private static void decodeMetaBlockLength(State s) {
+/* 175 */     BitReader.fillBitWindow(s);
+/* 176 */     s.inputEnd = BitReader.readFewBits(s, 1);
+/* 177 */     s.metaBlockLength = 0;
+/* 178 */     s.isUncompressed = 0;
+/* 179 */     s.isMetadata = 0;
+/* 180 */     if (s.inputEnd != 0 && BitReader.readFewBits(s, 1) != 0) {
+/* 181 */       return;
+/*     */     }
+/* 183 */     int sizeNibbles = BitReader.readFewBits(s, 2) + 4;
+/* 184 */     if (sizeNibbles == 7) {
+/* 185 */       s.isMetadata = 1;
+/* 186 */       if (BitReader.readFewBits(s, 1) != 0) {
+/* 187 */         throw new BrotliRuntimeException("Corrupted reserved bit");
+/*     */       }
+/* 189 */       int sizeBytes = BitReader.readFewBits(s, 2);
+/* 190 */       if (sizeBytes == 0) {
+/* 191 */         return;
+/*     */       }
+/* 193 */       for (int i = 0; i < sizeBytes; i++) {
+/* 194 */         BitReader.fillBitWindow(s);
+/* 195 */         int bits = BitReader.readFewBits(s, 8);
+/* 196 */         if (bits == 0 && i + 1 == sizeBytes && sizeBytes > 1) {
+/* 197 */           throw new BrotliRuntimeException("Exuberant nibble");
+/*     */         }
+/* 199 */         s.metaBlockLength |= bits << i * 8;
+/*     */       }
+/*     */     } else {
+/* 202 */       for (int i = 0; i < sizeNibbles; i++) {
+/* 203 */         BitReader.fillBitWindow(s);
+/* 204 */         int bits = BitReader.readFewBits(s, 4);
+/* 205 */         if (bits == 0 && i + 1 == sizeNibbles && sizeNibbles > 4) {
+/* 206 */           throw new BrotliRuntimeException("Exuberant nibble");
+/*     */         }
+/* 208 */         s.metaBlockLength |= bits << i * 4;
+/*     */       }
+/*     */     }
+/* 211 */     s.metaBlockLength++;
+/* 212 */     if (s.inputEnd == 0) {
+/* 213 */       s.isUncompressed = BitReader.readFewBits(s, 1);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   private static int readSymbol(int[] table, int offset, State s)
+/*     */   {
+/* 221 */     int val = BitReader.peekBits(s);
+/* 222 */     offset += (val & 0xFF);
+/* 223 */     int bits = table[offset] >> 16;
+/* 224 */     int sym = table[offset] & 0xFFFF;
+/* 225 */     if (bits <= 8) {
+/* 226 */       s.bitOffset += bits;
+/* 227 */       return sym;
+/*     */     }
+/* 229 */     offset += sym;
+/* 230 */     int mask = (1 << bits) - 1;
+/* 231 */     offset += ((val & mask) >>> 8);
+/* 232 */     s.bitOffset += (table[offset] >> 16) + 8;
+/* 233 */     return table[offset] & 0xFFFF;
+/*     */   }
+/*     */   
+/*     */   private static int readBlockLength(int[] table, int offset, State s) {
+/* 237 */     BitReader.fillBitWindow(s);
+/* 238 */     int code = readSymbol(table, offset, s);
+/* 239 */     int n = BLOCK_LENGTH_N_BITS[code];
+/* 240 */     BitReader.fillBitWindow(s);
+/* 241 */     return BLOCK_LENGTH_OFFSET[code] + BitReader.readBits(s, n);
+/*     */   }
+/*     */   
+/*     */   private static int translateShortCodes(int code, int[] ringBuffer, int index) {
+/* 245 */     if (code < 16) {
+/* 246 */       index += DISTANCE_SHORT_CODE_INDEX_OFFSET[code];
+/* 247 */       index &= 0x3;
+/* 248 */       return ringBuffer[index] + DISTANCE_SHORT_CODE_VALUE_OFFSET[code];
+/*     */     }
+/* 250 */     return code - 16 + 1;
+/*     */   }
+/*     */   
+/*     */   private static void moveToFront(int[] v, int index) {
+/* 254 */     int value = v[index];
+/* 255 */     for (; index > 0; index--) {
+/* 256 */       v[index] = v[(index - 1)];
+/*     */     }
+/* 258 */     v[0] = value;
+/*     */   }
+/*     */   
+/*     */   private static void inverseMoveToFrontTransform(byte[] v, int vLen) {
+/* 262 */     int[] mtf = new int[256];
+/* 263 */     for (int i = 0; i < 256; i++) {
+/* 264 */       mtf[i] = i;
+/*     */     }
+/* 266 */     for (int i = 0; i < vLen; i++) {
+/* 267 */       int index = v[i] & 0xFF;
+/* 268 */       v[i] = ((byte)mtf[index]);
+/* 269 */       if (index != 0) {
+/* 270 */         moveToFront(mtf, index);
+/*     */       }
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private static void readHuffmanCodeLengths(int[] codeLengthCodeLengths, int numSymbols, int[] codeLengths, State s)
+/*     */   {
+/* 277 */     int symbol = 0;
+/* 278 */     int prevCodeLen = 8;
+/* 279 */     int repeat = 0;
+/* 280 */     int repeatCodeLen = 0;
+/* 281 */     int space = 32768;
+/* 282 */     int[] table = new int[32];
+/*     */     
+/* 284 */     Huffman.buildHuffmanTable(table, 0, 5, codeLengthCodeLengths, 18);
+/*     */     
+/* 286 */     while (symbol < numSymbols && space > 0) {
+/* 287 */       BitReader.readMoreInput(s);
+/* 288 */       BitReader.fillBitWindow(s);
+/* 289 */       int p = BitReader.peekBits(s) & 0x1F;
+/* 290 */       s.bitOffset += (table[p] >> 16);
+/* 291 */       int codeLen = table[p] & 0xFFFF;
+/* 292 */       if (codeLen < 16) {
+/* 293 */         repeat = 0;
+/* 294 */         codeLengths[(symbol++)] = codeLen;
+/* 295 */         if (codeLen != 0) {
+/* 296 */           prevCodeLen = codeLen;
+/* 297 */           space -= (32768 >> codeLen);
+/*     */         }
+/*     */       } else {
+/* 300 */         int extraBits = codeLen - 14;
+/* 301 */         int newLen = 0;
+/* 302 */         if (codeLen == 16) {
+/* 303 */           newLen = prevCodeLen;
+/*     */         }
+/* 305 */         if (repeatCodeLen != newLen) {
+/* 306 */           repeat = 0;
+/* 307 */           repeatCodeLen = newLen;
+/*     */         }
+/* 309 */         int oldRepeat = repeat;
+/* 310 */         if (repeat > 0) {
+/* 311 */           repeat -= 2;
+/* 312 */           repeat <<= extraBits;
+/*     */         }
+/* 314 */         BitReader.fillBitWindow(s);
+/* 315 */         repeat += BitReader.readFewBits(s, extraBits) + 3;
+/* 316 */         int repeatDelta = repeat - oldRepeat;
+/* 317 */         if (symbol + repeatDelta > numSymbols) {
+/* 318 */           throw new BrotliRuntimeException("symbol + repeatDelta > numSymbols");
+/*     */         }
+/* 320 */         for (int i = 0; i < repeatDelta; i++) {
+/* 321 */           codeLengths[(symbol++)] = repeatCodeLen;
+/*     */         }
+/* 323 */         if (repeatCodeLen != 0) {
+/* 324 */           space -= (repeatDelta << 15 - repeatCodeLen);
+/*     */         }
+/*     */       }
+/*     */     }
+/* 328 */     if (space != 0) {
+/* 329 */       throw new BrotliRuntimeException("Unused space");
+/*     */     }
+/*     */     
+/* 332 */     Utils.fillIntsWithZeroes(codeLengths, symbol, numSymbols);
+/*     */   }
+/*     */   
+/*     */   static int checkDupes(int[] symbols, int length) {
+/* 336 */     for (int i = 0; i < length - 1; i++) {
+/* 337 */       for (int j = i + 1; j < length; j++) {
+/* 338 */         if (symbols[i] == symbols[j]) {
+/* 339 */           return 0;
+/*     */         }
+/*     */       }
+/*     */     }
+/* 343 */     return 1;
+/*     */   }
+/*     */   
+/*     */   static void readHuffmanCode(int alphabetSize, int[] table, int offset, State s)
+/*     */   {
+/* 348 */     int ok = 1;
+/*     */     
+/* 350 */     BitReader.readMoreInput(s);
+/*     */     
+/* 352 */     int[] codeLengths = new int[alphabetSize];
+/* 353 */     BitReader.fillBitWindow(s);
+/* 354 */     int simpleCodeOrSkip = BitReader.readFewBits(s, 2);
+/* 355 */     if (simpleCodeOrSkip == 1) {
+/* 356 */       int maxBitsCounter = alphabetSize - 1;
+/* 357 */       int maxBits = 0;
+/* 358 */       int[] symbols = new int[4];
+/* 359 */       int numSymbols = BitReader.readFewBits(s, 2) + 1;
+/* 360 */       while (maxBitsCounter != 0) {
+/* 361 */         maxBitsCounter >>= 1;
+/* 362 */         maxBits++;
+/*     */       }
+/*     */       
+/*     */ 
+/* 366 */       for (int i = 0; i < numSymbols; i++) {
+/* 367 */         BitReader.fillBitWindow(s);
+/* 368 */         symbols[i] = (BitReader.readFewBits(s, maxBits) % alphabetSize);
+/* 369 */         codeLengths[symbols[i]] = 2;
+/*     */       }
+/* 371 */       codeLengths[symbols[0]] = 1;
+/* 372 */       switch (numSymbols) {
+/*     */       case 2: 
+/* 374 */         codeLengths[symbols[1]] = 1;
+/* 375 */         break;
+/*     */       case 4: 
+/* 377 */         if (BitReader.readFewBits(s, 1) == 1) {
+/* 378 */           codeLengths[symbols[2]] = 3;
+/* 379 */           codeLengths[symbols[3]] = 3;
+/*     */         } else {
+/* 381 */           codeLengths[symbols[0]] = 2;
+/*     */         }
+/* 383 */         break;
+/*     */       }
+/*     */       
+/*     */       
+/* 387 */       ok = checkDupes(symbols, numSymbols);
+/*     */     } else {
+/* 389 */       int[] codeLengthCodeLengths = new int[18];
+/* 390 */       int space = 32;
+/* 391 */       int numCodes = 0;
+/* 392 */       for (int i = simpleCodeOrSkip; i < 18 && space > 0; i++) {
+/* 393 */         int codeLenIdx = CODE_LENGTH_CODE_ORDER[i];
+/* 394 */         BitReader.fillBitWindow(s);
+/* 395 */         int p = BitReader.peekBits(s) & 0xF;
+/*     */         
+/* 397 */         s.bitOffset += (FIXED_TABLE[p] >> 16);
+/* 398 */         int v = FIXED_TABLE[p] & 0xFFFF;
+/* 399 */         codeLengthCodeLengths[codeLenIdx] = v;
+/* 400 */         if (v != 0) {
+/* 401 */           space -= (32 >> v);
+/* 402 */           numCodes++;
+/*     */         }
+/*     */       }
+/* 405 */       if (space != 0 && numCodes != 1) {
+/* 406 */         ok = 0;
+/*     */       }
+/* 408 */       readHuffmanCodeLengths(codeLengthCodeLengths, alphabetSize, codeLengths, s);
+/*     */     }
+/* 410 */     if (ok == 0) {
+/* 411 */       throw new BrotliRuntimeException("Can't readHuffmanCode");
+/*     */     }
+/* 413 */     Huffman.buildHuffmanTable(table, offset, 8, codeLengths, alphabetSize);
+/*     */   }
+/*     */   
+/*     */   private static int decodeContextMap(int contextMapSize, byte[] contextMap, State s) {
+/* 417 */     BitReader.readMoreInput(s);
+/* 418 */     int numTrees = decodeVarLenUnsignedByte(s) + 1;
+/*     */     
+/* 420 */     if (numTrees == 1) {
+/* 421 */       Utils.fillBytesWithZeroes(contextMap, 0, contextMapSize);
+/* 422 */       return numTrees;
+/*     */     }
+/*     */     
+/* 425 */     BitReader.fillBitWindow(s);
+/* 426 */     int useRleForZeros = BitReader.readFewBits(s, 1);
+/* 427 */     int maxRunLengthPrefix = 0;
+/* 428 */     if (useRleForZeros != 0) {
+/* 429 */       maxRunLengthPrefix = BitReader.readFewBits(s, 4) + 1;
+/*     */     }
+/* 431 */     int[] table = new int[1080];
+/* 432 */     readHuffmanCode(numTrees + maxRunLengthPrefix, table, 0, s);
+/* 433 */     for (int i = 0; i < contextMapSize;) {
+/* 434 */       BitReader.readMoreInput(s);
+/* 435 */       BitReader.fillBitWindow(s);
+/* 436 */       int code = readSymbol(table, 0, s);
+/* 437 */       if (code == 0) {
+/* 438 */         contextMap[i] = 0;
+/* 439 */         i++;
+/* 440 */       } else if (code <= maxRunLengthPrefix) {
+/* 441 */         BitReader.fillBitWindow(s);
+/* 442 */         int reps = (1 << code) + BitReader.readFewBits(s, code);
+/* 443 */         while (reps != 0) {
+/* 444 */           if (i >= contextMapSize) {
+/* 445 */             throw new BrotliRuntimeException("Corrupted context map");
+/*     */           }
+/* 447 */           contextMap[i] = 0;
+/* 448 */           i++;
+/* 449 */           reps--;
+/*     */         }
+/*     */       } else {
+/* 452 */         contextMap[i] = ((byte)(code - maxRunLengthPrefix));
+/* 453 */         i++;
+/*     */       }
+/*     */     }
+/* 456 */     BitReader.fillBitWindow(s);
+/* 457 */     if (BitReader.readFewBits(s, 1) == 1) {
+/* 458 */       inverseMoveToFrontTransform(contextMap, contextMapSize);
+/*     */     }
+/* 460 */     return numTrees;
+/*     */   }
+/*     */   
+/*     */   private static int decodeBlockTypeAndLength(State s, int treeType, int numBlockTypes) {
+/* 464 */     int[] ringBuffers = s.rings;
+/* 465 */     int offset = 4 + treeType * 2;
+/* 466 */     BitReader.fillBitWindow(s);
+/* 467 */     int blockType = readSymbol(s.blockTrees, treeType * 1080, s);
+/* 468 */     int result = readBlockLength(s.blockTrees, (treeType + 3) * 1080, s);
+/*     */     
+/* 470 */     if (blockType == 1) {
+/* 471 */       blockType = ringBuffers[(offset + 1)] + 1;
+/* 472 */     } else if (blockType == 0) {
+/* 473 */       blockType = ringBuffers[offset];
+/*     */     } else {
+/* 475 */       blockType -= 2;
+/*     */     }
+/* 477 */     if (blockType >= numBlockTypes) {
+/* 478 */       blockType -= numBlockTypes;
+/*     */     }
+/* 480 */     ringBuffers[offset] = ringBuffers[(offset + 1)];
+/* 481 */     ringBuffers[(offset + 1)] = blockType;
+/* 482 */     return result;
+/*     */   }
+/*     */   
+/*     */   private static void decodeLiteralBlockSwitch(State s) {
+/* 486 */     s.literalBlockLength = decodeBlockTypeAndLength(s, 0, s.numLiteralBlockTypes);
+/* 487 */     int literalBlockType = s.rings[5];
+/* 488 */     s.contextMapSlice = literalBlockType << 6;
+/* 489 */     s.literalTreeIndex = s.contextMap[s.contextMapSlice] & 0xFF;
+/* 490 */     s.literalTree = s.hGroup0[s.literalTreeIndex];
+/* 491 */     int contextMode = s.contextModes[literalBlockType];
+/* 492 */     s.contextLookupOffset1 = contextMode << 9;
+/* 493 */     s.contextLookupOffset2 = s.contextLookupOffset1 + 256;
+/*     */   }
+/*     */   
+/*     */   private static void decodeCommandBlockSwitch(State s) {
+/* 497 */     s.commandBlockLength = decodeBlockTypeAndLength(s, 1, s.numCommandBlockTypes);
+/* 498 */     s.treeCommandOffset = s.hGroup1[s.rings[7]];
+/*     */   }
+/*     */   
+/*     */   private static void decodeDistanceBlockSwitch(State s) {
+/* 502 */     s.distanceBlockLength = decodeBlockTypeAndLength(s, 2, s.numDistanceBlockTypes);
+/* 503 */     s.distContextMapSlice = s.rings[9] << 2;
+/*     */   }
+/*     */   
+/*     */   private static void maybeReallocateRingBuffer(State s) {
+/* 507 */     int newSize = s.maxRingBufferSize;
+/* 508 */     if (newSize > s.expectedTotalSize)
+/*     */     {
+/* 510 */       int minimalNewSize = s.expectedTotalSize;
+/* 511 */       while (newSize >> 1 > minimalNewSize) {
+/* 512 */         newSize >>= 1;
+/*     */       }
+/* 514 */       if (s.inputEnd == 0 && newSize < 16384 && s.maxRingBufferSize >= 16384) {
+/* 515 */         newSize = 16384;
+/*     */       }
+/*     */     }
+/* 518 */     if (newSize <= s.ringBufferSize) {
+/* 519 */       return;
+/*     */     }
+/* 521 */     int ringBufferSizeWithSlack = newSize + 37;
+/* 522 */     byte[] newBuffer = new byte[ringBufferSizeWithSlack];
+/* 523 */     if (s.ringBuffer.length != 0) {
+/* 524 */       System.arraycopy(s.ringBuffer, 0, newBuffer, 0, s.ringBufferSize);
+/*     */     }
+/* 526 */     s.ringBuffer = newBuffer;
+/* 527 */     s.ringBufferSize = newSize;
+/*     */   }
+/*     */   
+/*     */   private static void readNextMetablockHeader(State s) {
+/* 531 */     if (s.inputEnd != 0) {
+/* 532 */       s.nextRunningState = 10;
+/* 533 */       s.bytesToWrite = s.pos;
+/* 534 */       s.bytesWritten = 0;
+/* 535 */       s.runningState = 12;
+/* 536 */       return;
+/*     */     }
+/*     */     
+/* 539 */     s.hGroup0 = new int[0];
+/* 540 */     s.hGroup1 = new int[0];
+/* 541 */     s.hGroup2 = new int[0];
+/*     */     
+/* 543 */     BitReader.readMoreInput(s);
+/* 544 */     decodeMetaBlockLength(s);
+/* 545 */     if (s.metaBlockLength == 0 && s.isMetadata == 0) {
+/* 546 */       return;
+/*     */     }
+/* 548 */     if (s.isUncompressed != 0 || s.isMetadata != 0) {
+/* 549 */       BitReader.jumpToByteBoundary(s);
+/* 550 */       s.runningState = s.isMetadata != 0 ? 4 : 5;
+/*     */     } else {
+/* 552 */       s.runningState = 2;
+/*     */     }
+/*     */     
+/* 555 */     if (s.isMetadata != 0) {
+/* 556 */       return;
+/*     */     }
+/* 558 */     s.expectedTotalSize += s.metaBlockLength;
+/* 559 */     if (s.expectedTotalSize > 1073741824) {
+/* 560 */       s.expectedTotalSize = 1073741824;
+/*     */     }
+/* 562 */     if (s.ringBufferSize < s.maxRingBufferSize) {
+/* 563 */       maybeReallocateRingBuffer(s);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private static int readMetablockPartition(State s, int treeType, int numBlockTypes) {
+/* 568 */     if (numBlockTypes <= 1) {
+/* 569 */       return 268435456;
+/*     */     }
+/* 571 */     readHuffmanCode(numBlockTypes + 2, s.blockTrees, treeType * 1080, s);
+/* 572 */     readHuffmanCode(26, s.blockTrees, (treeType + 3) * 1080, s);
+/* 573 */     return readBlockLength(s.blockTrees, (treeType + 3) * 1080, s);
+/*     */   }
+/*     */   
+/*     */   private static void readMetablockHuffmanCodesAndContextMaps(State s) {
+/* 577 */     s.numLiteralBlockTypes = decodeVarLenUnsignedByte(s) + 1;
+/* 578 */     s.literalBlockLength = readMetablockPartition(s, 0, s.numLiteralBlockTypes);
+/* 579 */     s.numCommandBlockTypes = decodeVarLenUnsignedByte(s) + 1;
+/* 580 */     s.commandBlockLength = readMetablockPartition(s, 1, s.numCommandBlockTypes);
+/* 581 */     s.numDistanceBlockTypes = decodeVarLenUnsignedByte(s) + 1;
+/* 582 */     s.distanceBlockLength = readMetablockPartition(s, 2, s.numDistanceBlockTypes);
+/*     */     
+/* 584 */     BitReader.readMoreInput(s);
+/* 585 */     BitReader.fillBitWindow(s);
+/* 586 */     s.distancePostfixBits = BitReader.readFewBits(s, 2);
+/* 587 */     s.numDirectDistanceCodes = 16 + (BitReader.readFewBits(s, 4) << s.distancePostfixBits);
+/* 588 */     s.distancePostfixMask = (1 << s.distancePostfixBits) - 1;
+/* 589 */     int numDistanceCodes = s.numDirectDistanceCodes + (48 << s.distancePostfixBits);
+/*     */     
+/* 591 */     s.contextModes = new byte[s.numLiteralBlockTypes];
+/* 592 */     for (int i = 0; i < s.numLiteralBlockTypes;)
+/*     */     {
+/* 594 */       int limit = Math.min(i + 96, s.numLiteralBlockTypes);
+/* 595 */       for (; i < limit; i++) {
+/* 596 */         BitReader.fillBitWindow(s);
+/* 597 */         s.contextModes[i] = ((byte)BitReader.readFewBits(s, 2));
+/*     */       }
+/* 599 */       BitReader.readMoreInput(s);
+/*     */     }
+/*     */     
+/*     */ 
+/* 603 */     s.contextMap = new byte[s.numLiteralBlockTypes << 6];
+/* 604 */     int numLiteralTrees = decodeContextMap(s.numLiteralBlockTypes << 6, s.contextMap, s);
+/* 605 */     s.trivialLiteralContext = 1;
+/* 606 */     for (int j = 0; j < s.numLiteralBlockTypes << 6; j++) {
+/* 607 */       if (s.contextMap[j] != j >> 6) {
+/* 608 */         s.trivialLiteralContext = 0;
+/* 609 */         break;
+/*     */       }
+/*     */     }
+/*     */     
+/*     */ 
+/* 614 */     s.distContextMap = new byte[s.numDistanceBlockTypes << 2];
+/* 615 */     int numDistTrees = decodeContextMap(s.numDistanceBlockTypes << 2, s.distContextMap, s);
+/*     */     
+/* 617 */     s.hGroup0 = decodeHuffmanTreeGroup(256, numLiteralTrees, s);
+/* 618 */     s.hGroup1 = decodeHuffmanTreeGroup(704, s.numCommandBlockTypes, s);
+/* 619 */     s.hGroup2 = decodeHuffmanTreeGroup(numDistanceCodes, numDistTrees, s);
+/*     */     
+/* 621 */     s.contextMapSlice = 0;
+/* 622 */     s.distContextMapSlice = 0;
+/* 623 */     s.contextLookupOffset1 = s.contextModes[0] << 9;
+/* 624 */     s.contextLookupOffset2 = s.contextLookupOffset1 + 256;
+/* 625 */     s.literalTreeIndex = 0;
+/* 626 */     s.literalTree = s.hGroup0[0];
+/* 627 */     s.treeCommandOffset = s.hGroup1[0];
+/*     */     
+/* 629 */     s.rings[4] = 1;
+/* 630 */     s.rings[5] = 0;
+/* 631 */     s.rings[6] = 1;
+/* 632 */     s.rings[7] = 0;
+/* 633 */     s.rings[8] = 1;
+/* 634 */     s.rings[9] = 0;
+/*     */   }
+/*     */   
+/*     */   private static void copyUncompressedData(State s) {
+/* 638 */     byte[] ringBuffer = s.ringBuffer;
+/*     */     
+/*     */ 
+/* 641 */     if (s.metaBlockLength <= 0) {
+/* 642 */       BitReader.reload(s);
+/* 643 */       s.runningState = 1;
+/* 644 */       return;
+/*     */     }
+/*     */     
+/* 647 */     int chunkLength = Math.min(s.ringBufferSize - s.pos, s.metaBlockLength);
+/* 648 */     BitReader.copyBytes(s, ringBuffer, s.pos, chunkLength);
+/* 649 */     s.metaBlockLength -= chunkLength;
+/* 650 */     s.pos += chunkLength;
+/* 651 */     if (s.pos == s.ringBufferSize) {
+/* 652 */       s.nextRunningState = 5;
+/* 653 */       s.bytesToWrite = s.ringBufferSize;
+/* 654 */       s.bytesWritten = 0;
+/* 655 */       s.runningState = 12;
+/* 656 */       return;
+/*     */     }
+/*     */     
+/* 659 */     BitReader.reload(s);
+/* 660 */     s.runningState = 1;
+/*     */   }
+/*     */   
+/*     */   private static int writeRingBuffer(State s) {
+/* 664 */     int toWrite = Math.min(s.outputLength - s.outputUsed, s.bytesToWrite - s.bytesWritten);
+/* 665 */     if (toWrite != 0) {
+/* 666 */       System.arraycopy(s.ringBuffer, s.bytesWritten, s.output, s.outputOffset + s.outputUsed, toWrite);
+/* 667 */       s.outputUsed += toWrite;
+/* 668 */       s.bytesWritten += toWrite;
+/*     */     }
+/*     */     
+/* 671 */     if (s.outputUsed < s.outputLength) {
+/* 672 */       return 1;
+/*     */     }
+/* 674 */     return 0;
+/*     */   }
+/*     */   
+/*     */   private static int[] decodeHuffmanTreeGroup(int alphabetSize, int n, State s)
+/*     */   {
+/* 679 */     int[] group = new int[n + n * 1080];
+/* 680 */     int next = n;
+/* 681 */     for (int i = 0; i < n; i++) {
+/* 682 */       group[i] = next;
+/* 683 */       readHuffmanCode(alphabetSize, group, next, s);
+/* 684 */       next += 1080;
+/*     */     }
+/* 686 */     return group;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   static void decompress(State s)
+/*     */   {
+/* 693 */     if (s.runningState == 0) {
+/* 694 */       throw new IllegalStateException("Can't decompress until initialized");
+/*     */     }
+/* 696 */     if (s.runningState == 11) {
+/* 697 */       throw new IllegalStateException("Can't decompress after close");
+/*     */     }
+/* 699 */     int ringBufferMask = s.ringBufferSize - 1;
+/* 700 */     byte[] ringBuffer = s.ringBuffer;
+/*     */     
+/* 702 */     while (s.runningState != 10)
+/*     */     {
+/* 704 */       switch (s.runningState) {
+/*     */       case 1: 
+/* 706 */         if (s.metaBlockLength < 0) {
+/* 707 */           throw new BrotliRuntimeException("Invalid metablock length");
+/*     */         }
+/* 709 */         readNextMetablockHeader(s);
+/*     */         
+/* 711 */         ringBufferMask = s.ringBufferSize - 1;
+/* 712 */         ringBuffer = s.ringBuffer;
+/* 713 */         break;
+/*     */       
+/*     */       case 2: 
+/* 716 */         readMetablockHuffmanCodesAndContextMaps(s);
+/* 717 */         s.runningState = 3;
+/*     */       
+/*     */ 
+/*     */       case 3: {
+/* 721 */         if (s.metaBlockLength <= 0) {
+/* 722 */           s.runningState = 1;
+/*     */         }
+/*     */         else {
+/* 725 */           BitReader.readMoreInput(s);
+/* 726 */           if (s.commandBlockLength == 0) {
+/* 727 */             decodeCommandBlockSwitch(s);
+/*     */           }
+/* 729 */           s.commandBlockLength--;
+/* 730 */           BitReader.fillBitWindow(s);
+/* 731 */           int cmdCode = readSymbol(s.hGroup1, s.treeCommandOffset, s);
+/* 732 */           int rangeIdx = cmdCode >>> 6;
+/* 733 */           s.distanceCode = 0;
+/* 734 */           if (rangeIdx >= 2) {
+/* 735 */             rangeIdx -= 2;
+/* 736 */             s.distanceCode = -1;
+/*     */           }
+/* 738 */           int insertCode = INSERT_RANGE_LUT[rangeIdx] + (cmdCode >>> 3 & 0x7);
+/* 739 */           BitReader.fillBitWindow(s);
+/* 740 */           int insertBits = INSERT_LENGTH_N_BITS[insertCode];
+/* 741 */           int insertExtra = BitReader.readBits(s, insertBits);
+/* 742 */           s.insertLength = INSERT_LENGTH_OFFSET[insertCode] + insertExtra;
+/* 743 */           int copyCode = COPY_RANGE_LUT[rangeIdx] + (cmdCode & 0x7);
+/* 744 */           BitReader.fillBitWindow(s);
+/* 745 */           int copyBits = COPY_LENGTH_N_BITS[copyCode];
+/* 746 */           int copyExtra = BitReader.readBits(s, copyBits);
+/* 747 */           s.copyLength = COPY_LENGTH_OFFSET[copyCode] + copyExtra;
+/*     */           
+/* 749 */           s.j = 0;
+/* 750 */           s.runningState = 6;
+/*     */         }
+/*     */         break;
+/*     */       } case 6: {
+/* 754 */         if (s.trivialLiteralContext != 0) {
+/* 755 */           do { if (s.j >= s.insertLength) break;
+/* 756 */             BitReader.readMoreInput(s);
+/* 757 */             if (s.literalBlockLength == 0) {
+/* 758 */               decodeLiteralBlockSwitch(s);
+/*     */             }
+/* 760 */             s.literalBlockLength--;
+/* 761 */             BitReader.fillBitWindow(s);
+/* 762 */             ringBuffer[s.pos] = ((byte)readSymbol(s.hGroup0, s.literalTree, s));
+/* 763 */             s.j++;
+/* 764 */           } while (s.pos++ != ringBufferMask);
+/* 765 */           s.nextRunningState = 6;
+/* 766 */           s.bytesToWrite = s.ringBufferSize;
+/* 767 */           s.bytesWritten = 0;
+/* 768 */           s.runningState = 12;
+/*     */ 
+/*     */         }
+/*     */         else
+/*     */         {
+/* 773 */           int prevByte1 = ringBuffer[(s.pos - 1 & ringBufferMask)] & 0xFF;
+/* 774 */           int prevByte2 = ringBuffer[(s.pos - 2 & ringBufferMask)] & 0xFF;
+/* 775 */           while (s.j < s.insertLength) {
+/* 776 */             BitReader.readMoreInput(s);
+/* 777 */             if (s.literalBlockLength == 0) {
+/* 778 */               decodeLiteralBlockSwitch(s);
+/*     */             }
+/* 780 */             int literalTreeIndex = s.contextMap[(s.contextMapSlice + (Context.LOOKUP[(s.contextLookupOffset1 + prevByte1)] | Context.LOOKUP[(s.contextLookupOffset2 + prevByte2)]))] & 0xFF;
+/*     */             
+/*     */ 
+/*     */ 
+/* 784 */             s.literalBlockLength--;
+/* 785 */             prevByte2 = prevByte1;
+/* 786 */             BitReader.fillBitWindow(s);
+/* 787 */             prevByte1 = readSymbol(s.hGroup0, s.hGroup0[literalTreeIndex], s);
+/* 788 */             ringBuffer[s.pos] = ((byte)prevByte1);
+/* 789 */             s.j++;
+/* 790 */             if (s.pos++ == ringBufferMask) {
+/* 791 */               s.nextRunningState = 6;
+/* 792 */               s.bytesToWrite = s.ringBufferSize;
+/* 793 */               s.bytesWritten = 0;
+/* 794 */               s.runningState = 12;
+/* 795 */               break;
+/*     */             }
+/*     */           }
+/*     */         }
+/* 799 */         if (s.runningState != 6) {
+/*     */           continue;
+/*     */         }
+/* 802 */         s.metaBlockLength -= s.insertLength;
+/* 803 */         if (s.metaBlockLength <= 0) {
+/* 804 */           s.runningState = 3;
+/*     */         }
+/*     */         else {
+/* 807 */           if (s.distanceCode < 0) {
+/* 808 */             BitReader.readMoreInput(s);
+/* 809 */             if (s.distanceBlockLength == 0) {
+/* 810 */               decodeDistanceBlockSwitch(s);
+/*     */             }
+/* 812 */             s.distanceBlockLength--;
+/* 813 */             BitReader.fillBitWindow(s);
+/* 814 */             s.distanceCode = readSymbol(s.hGroup2, s.hGroup2[
+/* 815 */               (s.distContextMap[(s.distContextMapSlice + (s.copyLength - 2))] & 0xFF)], s);
+/* 816 */             if (s.distanceCode >= s.numDirectDistanceCodes) {
+/* 817 */               s.distanceCode -= s.numDirectDistanceCodes;
+/* 818 */               int postfix = s.distanceCode & s.distancePostfixMask;
+/* 819 */               s.distanceCode >>>= s.distancePostfixBits;
+/* 820 */               int n = (s.distanceCode >>> 1) + 1;
+/* 821 */               int offset = (2 + (s.distanceCode & 0x1) << n) - 4;
+/* 822 */               BitReader.fillBitWindow(s);
+/* 823 */               int distanceExtra = BitReader.readBits(s, n);
+/* 824 */               s.distanceCode = s.numDirectDistanceCodes + postfix + (offset + distanceExtra << s.distancePostfixBits);
+/*     */             }
+/*     */           }
+/*     */           
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/* 832 */           s.distance = translateShortCodes(s.distanceCode, s.rings, s.distRbIdx);
+/* 833 */           if (s.distance < 0) {
+/* 834 */             throw new BrotliRuntimeException("Negative distance");
+/*     */           }
+/*     */           
+/* 837 */           if (s.maxDistance != s.maxBackwardDistance && s.pos < s.maxBackwardDistance) {
+/* 838 */             s.maxDistance = s.pos;
+/*     */           } else {
+/* 840 */             s.maxDistance = s.maxBackwardDistance;
+/*     */           }
+/*     */           
+/* 843 */           s.copyDst = s.pos;
+/* 844 */           if (s.distance > s.maxDistance) {
+/* 845 */             s.runningState = 9;
+/*     */           }
+/*     */           else
+/*     */           {
+/* 849 */             if (s.distanceCode > 0) {
+/* 850 */               s.rings[(s.distRbIdx & 0x3)] = s.distance;
+/* 851 */               s.distRbIdx++;
+/*     */             }
+/*     */             
+/* 854 */             if (s.copyLength > s.metaBlockLength) {
+/* 855 */               throw new BrotliRuntimeException("Invalid backward reference");
+/*     */             }
+/* 857 */             s.j = 0;
+/* 858 */             s.runningState = 7;
+/*     */           }
+/*     */         }
+/*     */         break; } case 7: { int src = s.pos - s.distance & ringBufferMask;
+/* 862 */         int dst = s.pos;
+/* 863 */         int copyLength = s.copyLength - s.j;
+/* 864 */         int srcEnd = src + copyLength;
+/* 865 */         int dstEnd = dst + copyLength;
+/* 866 */         if (srcEnd < ringBufferMask && dstEnd < ringBufferMask) {
+/* 867 */           if (copyLength < 12 || srcEnd > dst && dstEnd > src) {
+/* 868 */             for (int k = 0; k < copyLength; k++) {
+/* 869 */               ringBuffer[(dst++)] = ringBuffer[(src++)];
+/*     */             }
+/*     */           } else {
+/* 872 */             Utils.copyBytesWithin(ringBuffer, dst, src, srcEnd);
+/*     */           }
+/* 874 */           s.j += copyLength;
+/* 875 */           s.metaBlockLength -= copyLength;
+/* 876 */           s.pos += copyLength;
+/*     */         } else {
+/* 878 */           while (s.j < s.copyLength) {
+/* 879 */             ringBuffer[s.pos] = ringBuffer[(s.pos - s.distance & ringBufferMask)];
+/* 880 */             s.metaBlockLength--;
+/* 881 */             s.j++;
+/* 882 */             if (s.pos++ == ringBufferMask) {
+/* 883 */               s.nextRunningState = 7;
+/* 884 */               s.bytesToWrite = s.ringBufferSize;
+/* 885 */               s.bytesWritten = 0;
+/* 886 */               s.runningState = 12;
+/*     */             }
+/*     */           }
+/*     */         }
+/*     */         
+/* 891 */         if (s.runningState == 7) {
+/* 892 */           s.runningState = 3;
+/*     */         }
+/*     */         
+/*     */         break;
+/*     */       } case 9: {
+/* 897 */         if (s.copyLength >= 4 && s.copyLength <= 24) {
+/* 898 */           int offset = DICTIONARY_OFFSETS_BY_LENGTH[s.copyLength];
+/* 899 */           int wordId = s.distance - s.maxDistance - 1;
+/* 900 */           int shift = DICTIONARY_SIZE_BITS_BY_LENGTH[s.copyLength];
+/* 901 */           int mask = (1 << shift) - 1;
+/* 902 */           int wordIdx = wordId & mask;
+/* 903 */           int transformIdx = wordId >>> shift;
+/* 904 */           offset += wordIdx * s.copyLength;
+/* 905 */           if (transformIdx < 121) {
+/* 906 */             int len = Transform.transformDictionaryWord(ringBuffer, s.copyDst, Dictionary.getData(), offset, s.copyLength, transformIdx);
+/*     */             
+/* 908 */             s.copyDst += len;
+/* 909 */             s.pos += len;
+/* 910 */             s.metaBlockLength -= len;
+/* 911 */             if (s.copyDst >= s.ringBufferSize) {
+/* 912 */               s.nextRunningState = 8;
+/* 913 */               s.bytesToWrite = s.ringBufferSize;
+/* 914 */               s.bytesWritten = 0;
+/* 915 */               s.runningState = 12;
+/* 916 */               continue;
+/*     */             }
+/*     */           } else {
+/* 919 */             throw new BrotliRuntimeException("Invalid backward reference");
+/*     */           }
+/*     */         } else {
+/* 922 */           throw new BrotliRuntimeException("Invalid backward reference");
+/*     */         }
+/* 924 */         s.runningState = 3;
+/* 925 */         break;
+/*     */       
+/*     */       } case 8: 
+/* 928 */         Utils.copyBytesWithin(ringBuffer, 0, s.ringBufferSize, s.copyDst);
+/* 929 */         s.runningState = 3;
+/* 930 */         break;
+/*     */       
+/*     */       case 4: 
+/* 933 */         while (s.metaBlockLength > 0) {
+/* 934 */           BitReader.readMoreInput(s);
+/*     */           
+/* 936 */           BitReader.fillBitWindow(s);
+/* 937 */           BitReader.readFewBits(s, 8);
+/* 938 */           s.metaBlockLength--;
+/*     */         }
+/* 940 */         s.runningState = 1;
+/* 941 */         break;
+/*     */       
+/*     */       case 5: 
+/* 944 */         copyUncompressedData(s);
+/* 945 */         break;
+/*     */       
+/*     */       case 12: 
+/* 948 */         if (writeRingBuffer(s) == 0)
+/*     */         {
+/* 950 */           return;
+/*     */         }
+/* 952 */         if (s.pos >= s.maxBackwardDistance) {
+/* 953 */           s.maxDistance = s.maxBackwardDistance;
+/*     */         }
+/* 955 */         s.pos &= ringBufferMask;
+/* 956 */         s.runningState = s.nextRunningState;
+/* 957 */         break;
+/*     */       case 10: case 11: 
+/*     */       default: 
+/* 960 */         throw new BrotliRuntimeException("Unexpected state " + s.runningState);
+/*     */       }
+/*     */     }
+/* 963 */     if (s.runningState == 10) {
+/* 964 */       if (s.metaBlockLength < 0) {
+/* 965 */         throw new BrotliRuntimeException("Invalid metablock length");
+/*     */       }
+/* 967 */       BitReader.jumpToByteBoundary(s);
+/* 968 */       BitReader.checkHealth(s, 1);
+/*     */     }
+/*     */   }
+/*     */ }
