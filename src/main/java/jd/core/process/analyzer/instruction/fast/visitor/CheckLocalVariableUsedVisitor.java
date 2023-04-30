@@ -87,7 +87,7 @@ public final class CheckLocalVariableUsedVisitor
         case  ByteCodeConstants.ASSERT:
             {
                 AssertInstruction ai = (AssertInstruction)instruction;
-                return visit(predicate, ai.getTest()) || visit(predicate, ai.getMsg());
+                return visit(predicate, ai.getTest()) || (ai.getMsg() != null && visit(predicate, ai.getMsg()));
             }
         case Const.ATHROW:
             return visit(predicate, ((AThrow)instruction).getValue());
