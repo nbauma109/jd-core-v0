@@ -22,6 +22,7 @@ import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
+import org.apache.commons.lang3.Validate;
 import org.jd.core.v1.api.loader.Loader;
 import org.jd.core.v1.model.javasyntax.AbstractJavaSyntaxVisitor;
 import org.jd.core.v1.model.javasyntax.type.BaseType;
@@ -1311,20 +1312,11 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
         if (this.firstOffset <= this.previousOffset &&
             ii.getOffset() <= this.lastOffset)
         {
-            switch (ii.getCount())
-            {
-            case -1:
-                this.printer.print(lineNumber, "--");
-                lineNumber = visit(ii.getValue());
-                break;
-            case 1:
-                this.printer.print(lineNumber, "++");
-                lineNumber = visit(ii.getValue());
-                break;
-            default:
-                new RuntimeException("PreInc with value=" + ii.getCount())
-                    .printStackTrace();
-            }
+            int count = ii.getCount();
+            Validate.inclusiveBetween(-1, 1, count, "PreInc with value=" + count);
+            
+            this.printer.print(lineNumber, count == -1 ? "--" : "++");
+            lineNumber = visit(ii.getValue());
         }
 
         return lineNumber;
