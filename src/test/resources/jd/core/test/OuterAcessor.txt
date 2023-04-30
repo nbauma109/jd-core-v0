@@ -2,16 +2,17 @@
 /*    */ 
 /*    */ public class OuterAcessor
 /*    */ {
-/*    */   void init() {}
+/*    */   void init(int i) {}
 /*    */   
 /*    */   class Inner
 /*    */   {
-/*    */     void init()
+/*    */     void init(int i)
 /*    */     {
 /* 11 */       new Thread() {
 /*    */         @Override
 /*    */         public void run() {
-/* 14 */           OuterAcessor.this.init();
+/* 14 */           int i = 0;
+/* 15 */           OuterAcessor.this.init(i++);
 /*    */         }
 /*    */       }.start();
 /*    */     }

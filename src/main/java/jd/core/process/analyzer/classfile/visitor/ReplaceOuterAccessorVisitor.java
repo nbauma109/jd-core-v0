@@ -333,6 +333,8 @@ public class ReplaceOuterAccessorVisitor
              ByteCodeConstants.FCONST,
              ByteCodeConstants.DCONST,
              ByteCodeConstants.DUPLOAD,
+             ByteCodeConstants.POSTINC,
+             ByteCodeConstants.PREINC,
              Const.GETSTATIC,
              ByteCodeConstants.OUTERTHIS,
              Const.GOTO,

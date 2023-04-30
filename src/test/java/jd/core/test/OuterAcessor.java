@@ -1,17 +1,18 @@
 package jd.core.test;
 
 public class OuterAcessor {
-
-    void init() {
+    @SuppressWarnings("unused")
+    void init(int i) {
     }
 
     class Inner {
-
-        void init() {
+        @SuppressWarnings("unused")
+        void init(int i) {
             new Thread() {
                 @Override
                 public void run() {
-                    OuterAcessor.this.init();
+                    int i = 0;
+                    OuterAcessor.this.init(i++);
                 }
             }.start();
         }
