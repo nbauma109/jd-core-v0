@@ -38,6 +38,16 @@ public class Assignment {
         return x;
     }
 
+    int mul2(int x) {
+        i *= 2;
+        a *= 2;
+        x *= 2;
+        i *= -2;
+        a *= -2;
+        x *= -2;
+        return x;
+    }
+
     int increment(int x) {
         i++;
         a++;
