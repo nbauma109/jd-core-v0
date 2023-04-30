@@ -135,7 +135,6 @@ public final class AssignmentOperatorReconstructor
         String newOperator = boi.getOperator() + "=";
 
         if (boi.getValue2() instanceof ConstInstruction
-            && Math.abs(((ConstInstruction)boi.getValue2()).getValue()) == 1
             && ("+=".equals(newOperator) || "-=".equals(newOperator))) {
             int sign = "+=".equals(newOperator) ? 1 : -1;
             list.set(index, new IncInstruction(ByteCodeConstants.POSTINC,
@@ -183,7 +182,6 @@ public final class AssignmentOperatorReconstructor
         String newOperator = boi.getOperator() + "=";
 
         if (boi.getValue2() instanceof ConstInstruction
-            && Math.abs(((ConstInstruction)boi.getValue2()).getValue()) == 1
             && ("+=".equals(newOperator) || "-=".equals(newOperator))) {
             int sign = "+=".equals(newOperator) ? 1 : -1;
             list.set(index, new IncInstruction(ByteCodeConstants.POSTINC,
@@ -216,8 +214,7 @@ public final class AssignmentOperatorReconstructor
         String newOperator = boi.getOperator() + "=";
 
         if (boi.getValue2() instanceof ConstInstruction
-            && ((ConstInstruction)boi.getValue2()).getValue() == 1
-            && "+=".equals(newOperator)) {
+            && ("+=".equals(newOperator) || "-=".equals(newOperator))) {
             list.set(index, new IncInstruction(ByteCodeConstants.POSTINC,
                     si.getOffset(), li.getLineNumber(), li,
                     ((ConstInstruction) boi.getValue2()).getValue()));

@@ -1322,19 +1322,8 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
                 lineNumber = visit(ii.getValue());
                 break;
             default:
-                lineNumber = visit(ii.getValue());
-
-                if (ii.getCount() >= 0)
-                {
-                    this.printer.print(lineNumber, " += ");
-                    this.printer.printNumeric(lineNumber, String.valueOf(ii.getCount()));
-                }
-                else
-                {
-                    this.printer.print(lineNumber, " -= ");
-                    this.printer.printNumeric(lineNumber, String.valueOf(-ii.getCount()));
-                }
-                break;
+                new RuntimeException("PreInc with value=" + ii.getCount())
+                    .printStackTrace();
             }
         }
 
@@ -1359,8 +1348,19 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
                 this.printer.print(lineNumber, "++");
                 break;
             default:
-                new RuntimeException("PostInc with value=" + ii.getCount())
-                    .printStackTrace();
+                lineNumber = visit(ii.getValue());
+
+                if (ii.getCount() >= 0)
+                {
+                    this.printer.print(lineNumber, " += ");
+                    this.printer.printNumeric(lineNumber, String.valueOf(ii.getCount()));
+                }
+                else
+                {
+                    this.printer.print(lineNumber, " -= ");
+                    this.printer.printNumeric(lineNumber, String.valueOf(-ii.getCount()));
+                }
+                break;
             }
         }
 

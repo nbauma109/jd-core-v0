@@ -18,7 +18,7 @@
 /* 18 */       System.out.println(j);
 /* 19 */       System.out.println(k);
 /*    */     }
-/* 21 */     for (float i = 0.0F, j = 0.0F, k = 0.0F; i < n && j < i && k < j; i++, j += 2.0F, k++) {
+/* 21 */     for (float i = 0.0F, j = 0.0F, k = 0.0F; i < n && j < i && k < j; i++, j += 2, k++) {
 /* 22 */       System.out.println(i);
 /* 23 */       System.out.println(j);
 /* 24 */       System.out.println(k);
