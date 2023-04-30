@@ -1,0 +1,457 @@
+/*     */ package net.sourceforge.plantuml.activitydiagram3.ftile;
+/*     */ 
+/*     */ import java.util.ArrayList;
+/*     */ import java.util.Collections;
+/*     */ import java.util.List;
+/*     */ import java.util.Objects;
+/*     */ import net.sourceforge.plantuml.activitydiagram3.Instruction;
+/*     */ import net.sourceforge.plantuml.activitydiagram3.InstructionList;
+/*     */ import net.sourceforge.plantuml.activitydiagram3.LinkRendering;
+/*     */ import net.sourceforge.plantuml.activitydiagram3.ftile.vcompact.FtileFactoryDelegatorAddNote;
+/*     */ import net.sourceforge.plantuml.activitydiagram3.ftile.vcompact.FtileFactoryDelegatorAddUrl;
+/*     */ import net.sourceforge.plantuml.activitydiagram3.ftile.vcompact.FtileFactoryDelegatorAssembly;
+/*     */ import net.sourceforge.plantuml.activitydiagram3.ftile.vcompact.FtileFactoryDelegatorCreateGroup;
+/*     */ import net.sourceforge.plantuml.activitydiagram3.ftile.vcompact.FtileFactoryDelegatorCreateParallel;
+/*     */ import net.sourceforge.plantuml.activitydiagram3.ftile.vcompact.FtileFactoryDelegatorIf;
+/*     */ import net.sourceforge.plantuml.activitydiagram3.ftile.vcompact.FtileFactoryDelegatorRepeat;
+/*     */ import net.sourceforge.plantuml.activitydiagram3.ftile.vcompact.FtileFactoryDelegatorSwitch;
+/*     */ import net.sourceforge.plantuml.activitydiagram3.ftile.vcompact.FtileFactoryDelegatorWhile;
+/*     */ import net.sourceforge.plantuml.activitydiagram3.ftile.vcompact.UGraphicInterceptorOneSwimlane;
+/*     */ import net.sourceforge.plantuml.activitydiagram3.ftile.vcompact.VCompactFactory;
+/*     */ import net.sourceforge.plantuml.activitydiagram3.gtile.GConnection;
+/*     */ import net.sourceforge.plantuml.activitydiagram3.gtile.Gtile;
+/*     */ import net.sourceforge.plantuml.klimt.LineBreakStrategy;
+/*     */ import net.sourceforge.plantuml.klimt.UChange;
+/*     */ import net.sourceforge.plantuml.klimt.UShape;
+/*     */ import net.sourceforge.plantuml.klimt.UTranslate;
+/*     */ import net.sourceforge.plantuml.klimt.color.ColorType;
+/*     */ import net.sourceforge.plantuml.klimt.color.HColor;
+/*     */ import net.sourceforge.plantuml.klimt.compress.CompressionMode;
+/*     */ import net.sourceforge.plantuml.klimt.compress.SlotFinder;
+/*     */ import net.sourceforge.plantuml.klimt.creole.Display;
+/*     */ import net.sourceforge.plantuml.klimt.drawing.LimitFinder;
+/*     */ import net.sourceforge.plantuml.klimt.drawing.UGraphic;
+/*     */ import net.sourceforge.plantuml.klimt.drawing.UGraphicDelegator;
+/*     */ import net.sourceforge.plantuml.klimt.font.FontConfiguration;
+/*     */ import net.sourceforge.plantuml.klimt.font.StringBounder;
+/*     */ import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
+/*     */ import net.sourceforge.plantuml.klimt.geom.MinMax;
+/*     */ import net.sourceforge.plantuml.klimt.geom.XDimension2D;
+/*     */ import net.sourceforge.plantuml.klimt.shape.AbstractTextBlock;
+/*     */ import net.sourceforge.plantuml.klimt.shape.TextBlock;
+/*     */ import net.sourceforge.plantuml.klimt.shape.TextBlockUtils;
+/*     */ import net.sourceforge.plantuml.klimt.shape.URectangle;
+/*     */ import net.sourceforge.plantuml.skin.Pragma;
+/*     */ import net.sourceforge.plantuml.style.ISkinParam;
+/*     */ import net.sourceforge.plantuml.style.PName;
+/*     */ import net.sourceforge.plantuml.style.SName;
+/*     */ import net.sourceforge.plantuml.style.Style;
+/*     */ import net.sourceforge.plantuml.style.StyleSignatureBasic;
+/*     */ import net.sourceforge.plantuml.style.Styleable;
+/*     */ import net.sourceforge.plantuml.svek.UGraphicForSnake;
+/*     */ import net.sourceforge.plantuml.utils.MathUtils;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class Swimlanes
+/*     */   extends AbstractTextBlock
+/*     */   implements TextBlock, Styleable
+/*     */ {
+/*     */   private final ISkinParam skinParam;
+/*     */   private final Pragma pragma;
+/*     */   private Style style;
+/*     */   private MinMax cachedMinMax;
+/*  95 */   private final List<Swimlane> swimlanesRaw = new ArrayList<>();
+/*  96 */   private final List<Swimlane> swimlanesSpecial = new ArrayList<>();
+/*  97 */   private final List<LaneDivider> dividers = new ArrayList<>();
+/*  98 */   private Swimlane currentSwimlane = null;
+/*     */   
+/* 100 */   private final Instruction root = InstructionList.empty();
+/* 101 */   private Instruction currentInstruction = this.root;
+/*     */   
+/* 103 */   private LinkRendering nextLinkRenderer = LinkRendering.none();
+/*     */   
+/*     */   private List<Swimlane> swimlanes()
+/*     */   {
+/* 107 */     return Collections.unmodifiableList(this.swimlanesRaw);
+/*     */   }
+/*     */   
+/*     */   private List<Swimlane> swimlanesSpecial() {
+/* 111 */     if (this.swimlanesSpecial.size() == 0) {
+/* 112 */       this.swimlanesSpecial.addAll(this.swimlanesRaw);
+/* 113 */       Swimlane last = new Swimlane("", Integer.MAX_VALUE);
+/* 114 */       last.setMinMax(MinMax.getEmpty(true));
+/* 115 */       this.swimlanesSpecial.add(last);
+/*     */     }
+/* 117 */     return Collections.unmodifiableList(this.swimlanesSpecial);
+/*     */   }
+/*     */   
+/*     */   public StyleSignatureBasic getStyleSignature() {
+/* 121 */     return StyleSignatureBasic.of(new SName[] { SName.root, SName.element, SName.activityDiagram, SName.swimlane });
+/*     */   }
+/*     */   
+/*     */   public Swimlanes(ISkinParam skinParam, Pragma pragma) {
+/* 125 */     this.skinParam = skinParam;
+/* 126 */     this.pragma = pragma;
+/*     */   }
+/*     */   
+/*     */   protected Style getStyle() {
+/* 130 */     if (this.style == null) {
+/* 131 */       this.style = getStyleSignature().getMergedStyle(this.skinParam.getCurrentStyleBuilder());
+/*     */     }
+/* 133 */     return this.style;
+/*     */   }
+/*     */   
+/*     */   private FtileFactory getFtileFactory(StringBounder stringBounder) {
+/* 137 */     FtileFactory factory = new VCompactFactory(this.skinParam, stringBounder);
+/* 138 */     factory = new FtileFactoryDelegatorAddUrl(factory);
+/* 139 */     factory = new FtileFactoryDelegatorAssembly(factory);
+/* 140 */     factory = new FtileFactoryDelegatorIf(factory, this.pragma);
+/* 141 */     factory = new FtileFactoryDelegatorSwitch(factory);
+/* 142 */     factory = new FtileFactoryDelegatorWhile(factory);
+/* 143 */     factory = new FtileFactoryDelegatorRepeat(factory);
+/* 144 */     factory = new FtileFactoryDelegatorCreateParallel(factory);
+/*     */     
+/*     */ 
+/* 147 */     factory = new FtileFactoryDelegatorAddNote(factory);
+/* 148 */     factory = new FtileFactoryDelegatorCreateGroup(factory);
+/* 149 */     return factory;
+/*     */   }
+/*     */   
+/*     */   public void swimlane(String name, HColor color, Display label) {
+/* 153 */     this.currentSwimlane = getOrCreate(name);
+/* 154 */     if (color != null) {
+/* 155 */       this.currentSwimlane.setSpecificColorTOBEREMOVED(ColorType.BACK, color);
+/*     */     }
+/* 157 */     if (!Display.isNull(label)) {
+/* 158 */       this.currentSwimlane.setDisplay(label);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private Swimlane getOrCreate(String name) {
+/* 163 */     for (Swimlane s : swimlanes()) {
+/* 164 */       if (s.getName().equals(name))
+/* 165 */         return s;
+/*     */     }
+/* 167 */     Swimlane result = new Swimlane(name, this.swimlanesRaw.size());
+/* 168 */     this.swimlanesRaw.add(result);
+/* 169 */     return result;
+/*     */   }
+/*     */   
+/*     */   class Cross extends UGraphicDelegator
+/*     */   {
+/*     */     private Cross(UGraphic ug) {
+/* 175 */       super(ug);
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public void draw(UShape shape) {
+/* 180 */       if ((shape instanceof Ftile)) {
+/* 181 */         Ftile tile = (Ftile)shape;
+/* 182 */         tile.drawU(this);
+/* 183 */       } else if ((shape instanceof Connection)) {
+/* 184 */         Connection connection = (Connection)shape;
+/* 185 */         Ftile tile1 = connection.getFtile1();
+/* 186 */         Ftile tile2 = connection.getFtile2();
+/*     */         
+/* 188 */         if (tile1 == null || tile2 == null) {
+/* 189 */           return;
+/*     */         }
+/* 191 */         if (tile1.getSwimlaneOut() != tile2.getSwimlaneIn()) {
+/* 192 */           ConnectionCross connectionCross = new ConnectionCross(connection);
+/* 193 */           connectionCross.drawU(getUg());
+/*     */         }
+/*     */       }
+/* 196 */       else if ((shape instanceof Gtile)) {
+/* 197 */         Gtile tile = (Gtile)shape;
+/* 198 */         tile.drawU(this);
+/* 199 */       } else if ((shape instanceof GConnection)) {
+/* 200 */         GConnection connection = (GConnection)shape;
+/* 201 */         System.err.println("CROSS IN SWIMLANES");
+/* 202 */         connection.drawTranslatable(getUg());
+/*     */       }
+/*     */     }
+/*     */     
+/*     */ 
+/*     */     @Override
+/*     */     public UGraphic apply(UChange change)
+/*     */     {
+/* 210 */       return new Cross(getUg().apply(change));
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   public final void computeSize(StringBounder stringBounder)
+/*     */   {
+/* 216 */     SlotFinder ug = SlotFinder.create(CompressionMode.ON_Y, stringBounder);
+/* 217 */     if (swimlanes().size() > 1) {
+/* 218 */       TextBlock full = this.root.createFtile(getFtileFactory(stringBounder));
+/* 219 */       computeSizeInternal(ug, full);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public final void drawU(UGraphic ug)
+/*     */   {
+/* 232 */     TextBlock full = this.root.createFtile(getFtileFactory(ug.getStringBounder()));
+/*     */     
+/* 234 */     ug = new UGraphicForSnake(ug);
+/* 235 */     if (swimlanes().size() > 1) {
+/* 236 */       drawWhenSwimlanes(ug, full);
+/*     */     }
+/*     */     else {
+/* 239 */       full = new TextBlockInterceptorUDrawable(full);
+/* 240 */       full.drawU(ug);
+/* 241 */       ug.flushUg();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private void drawGtile(UGraphic ug)
+/*     */   {
+/* 247 */     TextBlock full = this.root.createGtile(this.skinParam, ug.getStringBounder());
+/*     */     
+/* 249 */     ug = new UGraphicForSnake(ug);
+/* 250 */     if (swimlanes().size() > 1) {
+/* 251 */       drawWhenSwimlanes(ug, full);
+/*     */     } else {
+/* 253 */       full = new TextBlockInterceptorUDrawable(full);
+/* 254 */       full.drawU(ug);
+/* 255 */       ug.flushUg();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */   private TextBlock getTitle(Swimlane swimlane)
+/*     */   {
+/* 262 */     HorizontalAlignment horizontalAlignment = HorizontalAlignment.LEFT;
+/* 263 */     FontConfiguration fontConfiguration = getStyle().getFontConfiguration(this.skinParam.getIHtmlColorSet());
+/*     */     
+/* 265 */     LineBreakStrategy wrap = getWrap();
+/* 266 */     if (wrap.isAuto()) {
+/* 267 */       wrap = new LineBreakStrategy("" + (int)swimlane.getActualWidth());
+/*     */     }
+/* 269 */     return swimlane.getDisplay().create9(fontConfiguration, horizontalAlignment, this.skinParam, wrap);
+/*     */   }
+/*     */   
+/*     */   private LineBreakStrategy getWrap() {
+/* 273 */     LineBreakStrategy wrap = this.skinParam.swimlaneWrapTitleWidth();
+/* 274 */     if (wrap == LineBreakStrategy.NONE) {
+/* 275 */       wrap = this.style.wrapWidth();
+/*     */     }
+/* 277 */     return wrap;
+/*     */   }
+/*     */   
+/*     */   private UTranslate getTitleHeightTranslate(StringBounder stringBounder) {
+/* 281 */     double titlesHeight = getTitlesHeight(stringBounder);
+/* 282 */     return UTranslate.dy(titlesHeight > 0.0D ? titlesHeight + 5.0D : 0.0D);
+/*     */   }
+/*     */   
+/*     */   private double getTitlesHeight(StringBounder stringBounder) {
+/* 286 */     double titlesHeight = 0.0D;
+/* 287 */     for (Swimlane swimlane : swimlanes()) {
+/* 288 */       TextBlock swTitle = getTitle(swimlane);
+/* 289 */       titlesHeight = Math.max(titlesHeight, swTitle.calculateDimension(stringBounder).getHeight());
+/*     */     }
+/* 291 */     return titlesHeight;
+/*     */   }
+/*     */   
+/*     */   private void drawWhenSwimlanes(UGraphic ug, TextBlock full) {
+/* 295 */     StringBounder stringBounder = ug.getStringBounder();
+/* 296 */     UTranslate titleHeightTranslate = getTitleHeightTranslate(stringBounder);
+/*     */     
+/* 298 */     drawTitlesBackground(ug);
+/*     */     
+/* 300 */     XDimension2D dimensionFull = full.calculateDimension(stringBounder);
+/* 301 */     int i = 0;
+/* 302 */     assert (this.dividers.size() == swimlanes().size() + 1);
+/* 303 */     for (Swimlane swimlane : swimlanesSpecial()) {
+/* 304 */       LaneDivider divider1 = (LaneDivider)this.dividers.get(i);
+/*     */       
+/* 306 */       double xpos = swimlane.getTranslate().getDx() + swimlane.getMinMax().getMinX();
+/* 307 */       HColor back = swimlane.getColors().getColor(ColorType.BACK);
+/* 308 */       if (back != null && !back.isTransparent()) {
+/* 309 */         LaneDivider divider2 = (LaneDivider)this.dividers.get(i + 1);
+/*     */         
+/* 311 */         UGraphic background = ug.apply(back.bg()).apply(back).apply(UTranslate.dx(xpos - divider1.getX2()));
+/* 312 */         double width = swimlane.getActualWidth() + divider1.getX2() + divider2.getX1();
+/* 313 */         double height = dimensionFull.getHeight() + titleHeightTranslate.getDy();
+/* 314 */         background.draw(URectangle.build(width, height).ignoreForCompressionOnX().ignoreForCompressionOnY());
+/*     */       }
+/*     */       
+/* 317 */       full.drawU(new UGraphicInterceptorOneSwimlane(ug, swimlane, swimlanes()).apply(swimlane.getTranslate())
+/* 318 */         .apply(getTitleHeightTranslate(stringBounder)));
+/*     */       
+/* 320 */       double dividerWith = divider1.calculateDimension(stringBounder).getWidth();
+/* 321 */       divider1.drawU(ug.apply(UTranslate.dx(xpos - dividerWith)));
+/* 322 */       i++;
+/*     */     }
+/*     */     
+/* 325 */     Cross cross = new Cross(ug.apply(getTitleHeightTranslate(stringBounder)));
+/* 326 */     full.drawU(cross);
+/* 327 */     cross.flushUg();
+/*     */     
+/* 329 */     drawTitles(ug);
+/*     */   }
+/*     */   
+/*     */   private void drawTitlesBackground(UGraphic ug)
+/*     */   {
+/* 334 */     HColor color = getStyle().value(PName.BackGroundColor).asColor(this.skinParam.getIHtmlColorSet());
+/*     */     
+/* 336 */     if (color != null) {
+/* 337 */       double titleHeight = getTitlesHeight(ug.getStringBounder());
+/* 338 */       double fullWidth = ((Swimlane)swimlanesSpecial().get(swimlanesSpecial().size() - 1)).getTranslate().getDx() - 10.0D - 1.0D;
+/*     */       
+/* 340 */       URectangle back = URectangle.build(fullWidth, titleHeight).ignoreForCompressionOnX().ignoreForCompressionOnY();
+/* 341 */       ug.apply(UTranslate.dx(5.0D)).apply(color.bg()).apply(color).draw(back);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private void drawTitles(UGraphic ug) {
+/* 346 */     for (Swimlane swimlane : swimlanes()) {
+/* 347 */       TextBlock swTitle = getTitle(swimlane);
+/* 348 */       double x2 = swimlane.getTranslate().getDx() + swimlane.getMinMax().getMinX();
+/* 349 */       CenteredText centeredText = new CenteredText(swTitle, getWidthWithoutTitle(swimlane));
+/* 350 */       ug.apply(UTranslate.dx(x2)).draw(centeredText);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private void computeDrawingWidths(UGraphic ug, TextBlock full) {
+/* 355 */     StringBounder stringBounder = ug.getStringBounder();
+/* 356 */     for (Swimlane swimlane : swimlanes()) {
+/* 357 */       LimitFinder limitFinder = LimitFinder.create(stringBounder, false);
+/*     */       
+/* 359 */       UGraphicInterceptorOneSwimlane interceptor = new UGraphicInterceptorOneSwimlane(new UGraphicForSnake(limitFinder), swimlane, swimlanes());
+/* 360 */       full.drawU(interceptor);
+/* 361 */       interceptor.flushUg();
+/* 362 */       MinMax minMax = limitFinder.getMinMax();
+/* 363 */       swimlane.setMinMax(minMax);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private void computeSizeInternal(UGraphic ug, TextBlock full) {
+/* 368 */     computeDrawingWidths(ug, full);
+/*     */     
+/* 370 */     double min = this.skinParam.swimlaneWidth();
+/*     */     
+/* 372 */     if (min == -1.0D) {
+/* 373 */       for (Swimlane swimlane : swimlanes())
+/* 374 */         min = Math.max(min, getWidthWithoutTitle(swimlane));
+/*     */     }
+/* 376 */     StringBounder stringBounder = ug.getStringBounder();
+/*     */     
+/* 378 */     for (int i = 0; i < swimlanesSpecial().size(); i++) {
+/* 379 */       Swimlane swimlane = (Swimlane)swimlanesSpecial().get(i);
+/* 380 */       double swimlaneActualWidth = MathUtils.max(min, getWidthWithoutTitle(swimlane));
+/* 381 */       swimlane.setWidth(swimlaneActualWidth);
+/*     */     }
+/*     */     
+/* 384 */     UTranslate titleHeightTranslate = getTitleHeightTranslate(stringBounder);
+/* 385 */     XDimension2D dimensionFull = full.calculateDimension(stringBounder);
+/*     */     
+/* 387 */     this.dividers.clear();
+/* 388 */     double xpos = 0.0D;
+/* 389 */     for (int i = 0; i < swimlanesSpecial().size(); i++) {
+/* 390 */       Swimlane swimlane = (Swimlane)swimlanesSpecial().get(i);
+/* 391 */       double x1 = getHalfMissingSpace(stringBounder, i, min);
+/* 392 */       double x2 = getHalfMissingSpace(stringBounder, i + 1, min);
+/*     */       
+/* 394 */       LaneDivider laneDivider = new LaneDivider(this.skinParam, x1, x2, dimensionFull.getHeight() + titleHeightTranslate.getDy());
+/* 395 */       this.dividers.add(laneDivider);
+/*     */       
+/*     */ 
+/* 398 */       double xx = xpos + laneDivider.getWidth() - swimlane.getMinMax().getMinX() + (swimlane.getActualWidth() - getWidthWithoutTitle(swimlane)) / 2.0D;
+/* 399 */       swimlane.setTranslate(UTranslate.dx(xx));
+/*     */       
+/* 401 */       xpos += swimlane.getActualWidth() + laneDivider.getWidth();
+/*     */     }
+/* 403 */     assert (this.dividers.size() == swimlanes().size() + 1);
+/*     */   }
+/*     */   
+/*     */   public double getHalfMissingSpace(StringBounder stringBounder, int i, double min) {
+/* 407 */     if (i == 0 || i > swimlanesSpecial().size()) {
+/* 408 */       return 5.0D;
+/*     */     }
+/* 410 */     Swimlane swimlane = (Swimlane)swimlanesSpecial().get(i - 1);
+/* 411 */     double swimlaneActualWidth = Math.max(min, getWidthWithoutTitle(swimlane));
+/* 412 */     double titleWidth = getTitle(swimlane).calculateDimension(stringBounder).getWidth();
+/* 413 */     if (titleWidth <= swimlaneActualWidth) {
+/* 414 */       return 5.0D;
+/*     */     }
+/* 416 */     assert (titleWidth > swimlaneActualWidth);
+/* 417 */     return Math.max(5.0D, 5.0D + (titleWidth - swimlaneActualWidth) / 2.0D);
+/*     */   }
+/*     */   
+/*     */   private double getWidthWithoutTitle(Swimlane swimlane) {
+/* 421 */     return swimlane.getMinMax().getWidth();
+/*     */   }
+/*     */   
+/*     */   @Override
+/* 425 */   public XDimension2D calculateDimension(StringBounder stringBounder) { return getMinMax(stringBounder).getDimension(); }
+/*     */   
+/*     */   public Instruction getCurrent()
+/*     */   {
+/* 429 */     return this.currentInstruction;
+/*     */   }
+/*     */   
+/*     */   public void setCurrent(Instruction current) {
+/* 433 */     this.currentInstruction = current;
+/*     */   }
+/*     */   
+/*     */   public LinkRendering nextLinkRenderer() {
+/* 437 */     return this.nextLinkRenderer;
+/*     */   }
+/*     */   
+/*     */   public void setNextLinkRenderer(LinkRendering link) {
+/* 441 */     this.nextLinkRenderer = (LinkRendering)Objects.requireNonNull(link);
+/*     */   }
+/*     */   
+/*     */   public Swimlane getCurrentSwimlane() {
+/* 445 */     return this.currentSwimlane;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */   @Override
+/*     */   public MinMax getMinMax(StringBounder stringBounder)
+/*     */   {
+/* 452 */     if (this.cachedMinMax == null) {
+/* 453 */       this.cachedMinMax = TextBlockUtils.getMinMax(this, stringBounder, false);
+/*     */     }
+/* 455 */     return this.cachedMinMax;
+/*     */   }
+/*     */ }
