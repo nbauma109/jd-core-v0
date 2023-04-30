@@ -27,6 +27,7 @@ import org.apache.bcel.classfile.ConstantMethodType;
 import org.apache.bcel.classfile.ConstantMethodref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.ConstantUtf8;
+import org.apache.commons.lang3.Validate;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.ArrayList;
@@ -153,9 +154,7 @@ public class ConstantPool
     {
         Objects.requireNonNull(s, "Constant string is null");
 
-        if (s.startsWith("L[")) {
-            throw new IllegalArgumentException("Constant string starts with L[");
-        }
+        Validate.matchesPattern(s, "^((?!L\\[).)*$", "Constant string starts with L[");
 
         int index = this.constantUtf8ToIndex.get(s);
 

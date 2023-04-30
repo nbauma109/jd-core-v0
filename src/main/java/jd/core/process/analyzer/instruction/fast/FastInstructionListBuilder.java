@@ -21,6 +21,7 @@ import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.Signature;
+import org.apache.commons.lang3.Validate;
 import org.jd.core.v1.model.javasyntax.type.Type;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
 import org.jd.core.v1.util.StringConstants;
@@ -925,9 +926,7 @@ public final class FastInstructionListBuilder {
                 index--;
             }
 
-            if (finallyInstructions.isEmpty()) {
-                throw new IllegalStateException("Unexpected structure for finally block");
-            }
+            Validate.notEmpty(finallyInstructions, "Unexpected structure for finally block");
 
             Collections.reverse(finallyInstructions);
             //////////////////////////////////afterListOffset = finallyInstructions.get(0).offset;
@@ -977,9 +976,8 @@ public final class FastInstructionListBuilder {
 
                 instructionsLength = instructions.size();
 
-                if (instructionsLength <= 0) {
-                    throw new IllegalStateException("Empty catch block");
-                }
+                Validate.exclusiveBetween(0, Integer.MAX_VALUE, instructionsLength, "Empty catch block");
+
                 lastInstruction = instructions.get(0);
                 tryJumpOffsetTmp = searchMinusJumpOffset(instructions, 0, instructionsLength,
                         fce.getTryFromOffset(), fce.getAfterOffset());
