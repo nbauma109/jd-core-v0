@@ -1512,19 +1512,10 @@ public final class FastInstructionListBuilder {
                     outerDeclaration.setInstruction(null);
                     outerDeclaration.setLineNumber(Instruction.UNKNOWN_LINE_NUMBER);
                 }
-                insertNewDeclaration(localVariables, list, -1, outerDeclaration, true, outerDeclarations);
+                insertNewDeclaration(list, -1, outerDeclaration, true, outerDeclarations);
             } else {
-                int indexForNewDeclaration;
-                if (outerDeclaration.getInstruction() == null) {
-                    indexForNewDeclaration = -1;
-                } else {
-                    indexForNewDeclaration = sublist.indexOf(outerDeclaration.getInstruction());
-                    if (indexForNewDeclaration == -1) {
-                        outerDeclaration.setInstruction(null);
-                        outerDeclaration.setLineNumber(Instruction.UNKNOWN_LINE_NUMBER);
-                    }
-                }
-                insertNewDeclaration(localVariables, sublist, indexForNewDeclaration, outerDeclaration, true, outerDeclarations);
+                int indexForNewDeclaration = Optional.ofNullable(outerDeclaration.getInstruction()).map(sublist::indexOf).orElse(-1);
+                insertNewDeclaration(sublist, indexForNewDeclaration, outerDeclaration, true, outerDeclarations);
             }
         }
     }
@@ -1581,7 +1572,7 @@ public final class FastInstructionListBuilder {
                             && (lv.getStartPc() + lv.getLength() - 1 <= lastOffset
                             || method.getNameIndex() == classFile.getConstantPool().getClassConstructorIndex()))) {
                         FastDeclaration fastDeclaration = new FastDeclaration(si.getOffset(), si.getLineNumber(), lv, si);
-                        insertNewDeclaration(localVariables, list, i, fastDeclaration, addDeclarations, outerDeclarations);
+                        insertNewDeclaration(list, i, fastDeclaration, addDeclarations, outerDeclarations);
                         updateNewAndInitArrayInstruction(si);
                     }
                 } else if (instruction.getOpcode() == FastConstants.FOR) {
@@ -1614,7 +1605,7 @@ public final class FastInstructionListBuilder {
                         LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(li.getIndex(), li.getOffset());
                         FastDeclaration fastDeclaration = new FastDeclaration(lv.getStartPc(),
                                 Instruction.UNKNOWN_LINE_NUMBER, lv, null);
-                        insertNewDeclaration(localVariables, list, i, fastDeclaration, true, outerDeclarations);
+                        insertNewDeclaration(list, i, fastDeclaration, true, outerDeclarations);
                     }
                     SearchInstructionByTypeVisitor<StoreInstruction> siVisitor = new SearchInstructionByTypeVisitor<>(
                         StoreInstruction.class, si -> {
@@ -1627,7 +1618,7 @@ public final class FastInstructionListBuilder {
                         LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(si.getIndex(), si.getOffset());
                         FastDeclaration fastDeclaration = new FastDeclaration(lv.getStartPc(),
                                 Instruction.UNKNOWN_LINE_NUMBER, lv, null);
-                        insertNewDeclaration(localVariables, list, i, fastDeclaration, true, outerDeclarations);
+                        insertNewDeclaration(list, i, fastDeclaration, true, outerDeclarations);
                     }
                 }
             }
@@ -1669,14 +1660,14 @@ public final class FastInstructionListBuilder {
                     }
                     FastDeclaration fastDeclaration = new FastDeclaration(lv.getStartPc(),
                             Instruction.UNKNOWN_LINE_NUMBER, lv, null);
-                    insertNewDeclaration(localVariables, list, -1, fastDeclaration, addDeclarations, outerDeclarations);
+                    insertNewDeclaration(list, -1, fastDeclaration, addDeclarations, outerDeclarations);
                 }
             }
         }
         return outerDeclarations;
     }
 
-    private static void insertNewDeclaration(LocalVariables localVariables,
+    private static void insertNewDeclaration(
             List<Instruction> list, int i, FastDeclaration fastDeclaration,
             boolean addDeclaration, Set<FastDeclaration> outerDeclarations) {
         LocalVariable lv = fastDeclaration.getLv();
@@ -1686,14 +1677,7 @@ public final class FastInstructionListBuilder {
             }
             if (fastDeclaration.getInstruction() == null) {
                 if (!declarationFound(list, lv) && CheckLocalVariableUsedVisitor.visit(lv, list)) {
-                    Instruction instruction = list.get(i);
-                    if (lv == localVariables.getLocalVariableForStoreInstruction(instruction)) {
-                        fastDeclaration.setLineNumber(instruction.getLineNumber());
-                        fastDeclaration.setInstruction(instruction);
-                        list.set(i, fastDeclaration);
-                    } else {
-                        list.add(i, fastDeclaration);
-                    }
+                    list.add(i, fastDeclaration);
                 }
             } else {
                 list.set(i, fastDeclaration);
