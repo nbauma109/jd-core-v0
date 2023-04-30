@@ -836,8 +836,6 @@ public final class ClassFileAnalyzer
         // Reconstruction du mot clé '.class' pour le JDK 1.4
         DotClass14Reconstructor.reconstruct(
                 referenceMap, classFile, list);
-        // Replace StringBuffer and StringBuilder in java source line
-        replaceStringBufferAndStringBuilder(classFile, method.getLocalVariables(), list);
         // Remove unused pop instruction
         removeUnusedPopInstruction(list);
         // Transformation des tests sur des types 'long' et 'double'
@@ -1224,7 +1222,7 @@ public final class ClassFileAnalyzer
         }
     }
 
-    private static void replaceStringBufferAndStringBuilder(
+    public static void replaceStringBufferAndStringBuilder(
             ClassFile classFile, LocalVariables localVariables, List<Instruction> list)
     {
         ReplaceStringBuxxxerVisitor visitor = new ReplaceStringBuxxxerVisitor(

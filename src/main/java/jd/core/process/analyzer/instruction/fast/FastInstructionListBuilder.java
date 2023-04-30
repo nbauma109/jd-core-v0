@@ -101,6 +101,7 @@ import jd.core.model.instruction.fast.instruction.FastTestList;
 import jd.core.model.instruction.fast.instruction.FastTry;
 import jd.core.model.instruction.fast.instruction.FastTry.FastCatch;
 import jd.core.model.reference.ReferenceMap;
+import jd.core.process.analyzer.classfile.ClassFileAnalyzer;
 import jd.core.process.analyzer.classfile.reconstructor.AssignmentOperatorReconstructor;
 import jd.core.process.analyzer.classfile.visitor.CheckCastAndConvertInstructionVisitor;
 import jd.core.process.analyzer.classfile.visitor.RemoveCheckCastVisitor;
@@ -1225,6 +1226,8 @@ public final class FastInstructionListBuilder {
         // Retrait des instructions DupLoads & DupStore associés à 
         // une constante ou un attribut.
         RemoveDupConstantsAttributes.reconstruct(list);
+        // Replace StringBuffer and StringBuilder in java source line
+        ClassFileAnalyzer.replaceStringBufferAndStringBuilder(classFile, localVariables, list);
     }
 
     /** Remove 'goto' jumping on next instruction. */

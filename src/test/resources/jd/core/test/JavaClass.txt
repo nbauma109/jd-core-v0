@@ -820,7 +820,7 @@
 /*     */   public String toString()
 /*     */   {
 /* 822 */     String access = Utility.accessToString(super.getAccessFlags(), true);
-/* 823 */     access = access + " ";
+/* 823 */     access = access.isEmpty() ? "" : access + " ";
 /* 824 */     StringBuilder buf = new StringBuilder(128);
 /* 825 */     buf.append(access).append(Utility.classOrInterface(super.getAccessFlags())).append(" ").append(this.className).append(" extends ")
 /* 826 */       .append(Utility.compactClassName(this.superclassName, false)).append('\n');

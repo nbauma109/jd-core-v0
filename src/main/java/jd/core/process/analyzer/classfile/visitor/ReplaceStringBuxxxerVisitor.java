@@ -67,6 +67,10 @@ import jd.core.model.instruction.bytecode.instruction.TableSwitch;
 import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
+import jd.core.model.instruction.fast.FastConstants;
+import jd.core.model.instruction.fast.instruction.FastSynchronized;
+import jd.core.model.instruction.fast.instruction.FastTry;
+import jd.core.model.instruction.fast.instruction.FastTry.FastCatch;
 import jd.core.util.SignatureUtil;
 
 public class ReplaceStringBuxxxerVisitor
@@ -522,6 +526,26 @@ public class ReplaceStringBuxxxerVisitor
                 }
             }
             break;
+        case FastConstants.TRY:
+            {
+                FastTry ft = (FastTry)instruction;
+                visit(ft.getInstructions());
+                if (ft.getFinallyInstructions() != null) {
+                    visit(ft.getFinallyInstructions());
+                }
+                List<FastCatch> catchs = ft.getCatches();
+                for (int i=catchs.size()-1; i>=0; --i) {
+                    visit(catchs.get(i).instructions());
+                }
+            }
+            break;
+        case FastConstants.SYNCHRONIZED:
+            {
+                FastSynchronized fsd = (FastSynchronized)instruction;
+                visit(fsd.getMonitor());
+                visit(fsd.getInstructions());
+            }
+            break;
         case Const.ACONST_NULL,
              ByteCodeConstants.DUPLOAD,
              Const.LDC,
@@ -555,6 +579,10 @@ public class ReplaceStringBuxxxerVisitor
                     instruction.getClass().getName() + " " +
                     instruction.getOpcode());
         }
+    }
+
+    private void visit(List<Instruction> instructions) {
+        instructions.forEach(this::visit);
     }
 
     private void replaceInArgs(List<Instruction> args)
