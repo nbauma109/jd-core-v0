@@ -20,6 +20,7 @@ import org.apache.bcel.Const;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
@@ -113,11 +114,8 @@ public final class SearchInstructionByTypeVisitor<T extends Instruction>
             {
                 BinaryOperatorInstruction boi =
                     (BinaryOperatorInstruction)instruction;
-                T tmp = visit(boi.getValue1());
-                if (tmp != null) {
-                    return tmp;
-                }
-                return visit(boi.getValue2());
+                return Optional.ofNullable(visit(boi.getValue1())).orElseGet(
+                                     () -> visit(boi.getValue2()));
             }
         case ByteCodeConstants.DUPSTORE,
              ByteCodeConstants.TERNARYOPSTORE,
@@ -140,11 +138,8 @@ public final class SearchInstructionByTypeVisitor<T extends Instruction>
         case ByteCodeConstants.IFCMP:
             {
                 IfCmp ifCmp = (IfCmp)instruction;
-                T tmp = visit(ifCmp.getValue1());
-                if (tmp != null) {
-                    return tmp;
-                }
-                return visit(ifCmp.getValue2());
+                return Optional.ofNullable(visit(ifCmp.getValue1())).orElseGet(
+                                     () -> visit(ifCmp.getValue2()));
             }
         case ByteCodeConstants.IF,
              ByteCodeConstants.IFXNULL:
@@ -205,11 +200,8 @@ public final class SearchInstructionByTypeVisitor<T extends Instruction>
         case Const.PUTFIELD:
             {
                 PutField putField = (PutField)instruction;
-                T tmp = visit(putField.getObjectref());
-                if (tmp != null) {
-                    return tmp;
-                }
-                return visit(putField.getValueref());
+                return Optional.ofNullable(visit(putField.getObjectref())).orElseGet(
+                                     () -> visit(putField.getValueref()));
             }
         case ByteCodeConstants.PREINC,
              ByteCodeConstants.POSTINC:
@@ -230,11 +222,8 @@ public final class SearchInstructionByTypeVisitor<T extends Instruction>
         case ByteCodeConstants.TERNARYOP:
             {
                 TernaryOperator to = (TernaryOperator)instruction;
-                T tmp = visit(to.getValue1());
-                if (tmp != null) {
-                    return tmp;
-                }
-                return visit(to.getValue2());
+                return Optional.ofNullable(visit(to.getValue1())).orElseGet(
+                                     () -> visit(to.getValue2()));
             }
         case FastConstants.TRY:
             {
@@ -259,11 +248,8 @@ public final class SearchInstructionByTypeVisitor<T extends Instruction>
         case FastConstants.SYNCHRONIZED:
             {
                 FastSynchronized fsy = (FastSynchronized)instruction;
-                T tmp = visit(fsy.getMonitor());
-                if (tmp != null) {
-                    return tmp;
-                }
-                return visit(fsy.getInstructions());
+                return Optional.ofNullable(visit(fsy.getMonitor())).orElseGet(
+                                     () -> visit(fsy.getInstructions()));
             }
         case FastConstants.FOR:
             {
