@@ -24,19 +24,21 @@ public class ReturnInstruction extends Instruction implements ValuerefAttribute
 {
     private Instruction valueref;
     private boolean keywordPrinted;
+    private final String signature;
 
     public ReturnInstruction(
-        int opcode, int offset, int lineNumber, Instruction valueref)
+        int opcode, int offset, int lineNumber, Instruction valueref, String signature)
     {
         super(opcode, offset, lineNumber);
         this.setValueref(valueref);
+        this.signature = signature;
     }
 
     @Override
     public String getReturnedSignature(
             ClassFile classFile, LocalVariables localVariables)
     {
-        return null;
+        return signature;
     }
 
     @Override
@@ -47,6 +49,10 @@ public class ReturnInstruction extends Instruction implements ValuerefAttribute
     @Override
     public void setValueref(Instruction valueref) {
         this.valueref = valueref;
+        if (valueref instanceof IConst) {
+            IConst iConst = (IConst) valueref;
+            iConst.setSignature(signature);
+        }
     }
 
     public boolean isKeywordPrinted() {

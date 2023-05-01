@@ -1424,7 +1424,7 @@ public final class FastInstructionListBuilder {
         removeNoJumpGotoInstruction(list, afterListOffset);
 
         // Create labeled 'break'
-        createBreakAndContinue(method, list, offsetLabelSet, beforeLoopEntryOffset, loopEntryOffset,
+        createBreakAndContinue(classFile, method, list, offsetLabelSet, beforeLoopEntryOffset, loopEntryOffset,
                 afterBodyLoopOffset, afterListOffset, breakOffset, returnOffset);
 
         // Retrait des instructions DupStore associées à une seule
@@ -1513,10 +1513,10 @@ public final class FastInstructionListBuilder {
                     outerDeclaration.setInstruction(null);
                     outerDeclaration.setLineNumber(Instruction.UNKNOWN_LINE_NUMBER);
                 }
-                insertNewDeclaration(list, -1, outerDeclaration, true, outerDeclarations);
+                insertNewDeclaration(localVariables, list, -1, outerDeclaration, true, outerDeclarations);
             } else {
                 int indexForNewDeclaration = Optional.ofNullable(outerDeclaration.getInstruction()).map(sublist::indexOf).orElse(-1);
-                insertNewDeclaration(sublist, indexForNewDeclaration, outerDeclaration, true, outerDeclarations);
+                insertNewDeclaration(localVariables, sublist, indexForNewDeclaration, outerDeclaration, true, outerDeclarations);
             }
         }
     }
@@ -1573,10 +1573,11 @@ public final class FastInstructionListBuilder {
                             && (lv.getStartPc() + lv.getLength() - 1 <= lastOffset
                             || method.getNameIndex() == classFile.getConstantPool().getClassConstructorIndex()))) {
                         FastDeclaration fastDeclaration = new FastDeclaration(si.getOffset(), si.getLineNumber(), lv, si);
-                        insertNewDeclaration(list, i, fastDeclaration, addDeclarations, outerDeclarations);
+                        insertNewDeclaration(localVariables, list, i, fastDeclaration, addDeclarations, outerDeclarations);
                         updateNewAndInitArrayInstruction(si);
                     }
-                } else if (instruction.getOpcode() == FastConstants.FOR) {
+                }
+                if (instruction instanceof FastFor) {
                     FastFor ff = (FastFor) instruction;
                     if (ff.getInit() instanceof StoreInstruction) {
                         StoreInstruction si = (StoreInstruction) ff.getInit();
@@ -1586,46 +1587,48 @@ public final class FastInstructionListBuilder {
                             if (CheckLocalVariableUsedVisitor.visit(lv, list.subList(i+1, list.size()))) {
                                 FastDeclaration fastDeclaration = new FastDeclaration(lv.getStartPc(),
                                         Instruction.UNKNOWN_LINE_NUMBER, lv, null);
-                                insertNewDeclaration(list, i, fastDeclaration, true, outerDeclarations);
+                                insertNewDeclaration(localVariables, list, i, fastDeclaration, true, outerDeclarations);
                             } else {
                                 ff.setInit(new FastDeclaration(si.getOffset(), si.getLineNumber(), lv, si));
-                                lv.setDeclarationFlag(DECLARED);
+                                for (IndexInstruction ii = si; ii != null; ii = (IndexInstruction) ii.getNext()) {
+                                    lv = localVariables.getLocalVariableWithIndexAndOffset(ii.getIndex(), ii.getOffset());
+                                    lv.setDeclarationFlag(DECLARED);
+                                }
                                 updateNewAndInitArrayInstruction(si);
                             }
                         }
                     }
-                } else {
-                    SearchInstructionByTypeVisitor<AssignmentInstruction> asiVisitor = new SearchInstructionByTypeVisitor<>(
-                        AssignmentInstruction.class, asi -> {
-                            if (asi.getValue1() instanceof LoadInstruction) {
-                                LoadInstruction li = (LoadInstruction) asi.getValue1();
-                                LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(li.getIndex(), li.getOffset());
-                                return isUndeclared(lv) && beforeListOffset < lv.getStartPc()
-                                        && lv.getStartPc() + lv.getLength() - 1 <= lastOffset && !declarationFound(list, lv);
-                            }
-                            return false;
-                    });
-                    AssignmentInstruction asi;
-                    while ((asi = asiVisitor.visit(instruction)) != null) {
-                        LoadInstruction li = (LoadInstruction) asi.getValue1();
-                        LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(li.getIndex(), li.getOffset());
-                        FastDeclaration fastDeclaration = new FastDeclaration(lv.getStartPc(),
-                                Instruction.UNKNOWN_LINE_NUMBER, lv, null);
-                        insertNewDeclaration(list, i, fastDeclaration, true, outerDeclarations);
-                    }
-                    SearchInstructionByTypeVisitor<StoreInstruction> siVisitor = new SearchInstructionByTypeVisitor<>(
-                        StoreInstruction.class, si -> {
-                            LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(si.getIndex(), si.getOffset());
+                }
+                SearchInstructionByTypeVisitor<AssignmentInstruction> asiVisitor = new SearchInstructionByTypeVisitor<>(
+                    AssignmentInstruction.class, asi -> {
+                        if (asi.getValue1() instanceof LoadInstruction) {
+                            LoadInstruction li = (LoadInstruction) asi.getValue1();
+                            LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(li.getIndex(), li.getOffset());
                             return isUndeclared(lv) && beforeListOffset < lv.getStartPc()
                                     && lv.getStartPc() + lv.getLength() - 1 <= lastOffset && !declarationFound(list, lv);
-                    });
-                    StoreInstruction si;
-                    while ((si = siVisitor.visit(instruction)) != null) {
+                        }
+                        return false;
+                });
+                AssignmentInstruction asi;
+                while ((asi = asiVisitor.visit(instruction)) != null) {
+                    LoadInstruction li = (LoadInstruction) asi.getValue1();
+                    LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(li.getIndex(), li.getOffset());
+                    FastDeclaration fastDeclaration = new FastDeclaration(lv.getStartPc(),
+                            Instruction.UNKNOWN_LINE_NUMBER, lv, null);
+                    insertNewDeclaration(localVariables, list, i, fastDeclaration, true, outerDeclarations);
+                }
+                SearchInstructionByTypeVisitor<StoreInstruction> siVisitor = new SearchInstructionByTypeVisitor<>(
+                    StoreInstruction.class, si -> {
                         LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(si.getIndex(), si.getOffset());
-                        FastDeclaration fastDeclaration = new FastDeclaration(lv.getStartPc(),
-                                Instruction.UNKNOWN_LINE_NUMBER, lv, null);
-                        insertNewDeclaration(list, i, fastDeclaration, true, outerDeclarations);
-                    }
+                        return isUndeclared(lv) && beforeListOffset < lv.getStartPc()
+                                && lv.getStartPc() + lv.getLength() - 1 <= lastOffset && !declarationFound(list, lv);
+                });
+                StoreInstruction si;
+                while ((si = siVisitor.visit(instruction)) != null) {
+                    LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(si.getIndex(), si.getOffset());
+                    FastDeclaration fastDeclaration = new FastDeclaration(lv.getStartPc(),
+                            Instruction.UNKNOWN_LINE_NUMBER, lv, null);
+                    insertNewDeclaration(localVariables, list, i, fastDeclaration, true, outerDeclarations);
                 }
             }
 
@@ -1666,14 +1669,14 @@ public final class FastInstructionListBuilder {
                     }
                     FastDeclaration fastDeclaration = new FastDeclaration(lv.getStartPc(),
                             Instruction.UNKNOWN_LINE_NUMBER, lv, null);
-                    insertNewDeclaration(list, -1, fastDeclaration, addDeclarations, outerDeclarations);
+                    insertNewDeclaration(localVariables, list, -1, fastDeclaration, addDeclarations, outerDeclarations);
                 }
             }
         }
         return outerDeclarations;
     }
 
-    private static void insertNewDeclaration(
+    private static void insertNewDeclaration(LocalVariables localVariables,
             List<Instruction> list, int i, FastDeclaration fastDeclaration,
             boolean addDeclaration, Set<FastDeclaration> outerDeclarations) {
         LocalVariable lv = fastDeclaration.getLv();
@@ -1683,7 +1686,14 @@ public final class FastInstructionListBuilder {
             }
             if (fastDeclaration.getInstruction() == null) {
                 if (!declarationFound(list, lv) && CheckLocalVariableUsedVisitor.visit(lv, list)) {
-                    list.add(i, fastDeclaration);
+                    Instruction instruction = list.get(i);
+                    if (lv == localVariables.getLocalVariableForStoreInstruction(instruction)) {
+                        fastDeclaration.setLineNumber(instruction.getLineNumber());
+                        fastDeclaration.setInstruction(instruction);
+                        list.set(i, fastDeclaration);
+                    } else {
+                        list.add(i, fastDeclaration);
+                    }
                 }
             } else {
                 list.set(i, fastDeclaration);
@@ -1760,7 +1770,7 @@ public final class FastInstructionListBuilder {
         }
     }
 
-    private static void createBreakAndContinue(Method method, List<Instruction> list, IntSet offsetLabelSet,
+    private static void createBreakAndContinue(ClassFile classFile, Method method, List<Instruction> list, IntSet offsetLabelSet,
             int beforeLoopEntryOffset, int loopEntryOffset, int afterBodyLoopOffset, int afterListOffset,
             int breakOffset, int returnOffset) {
         int length = list.size();
@@ -1805,9 +1815,14 @@ public final class FastInstructionListBuilder {
                             Instruction.UNKNOWN_LINE_NUMBER);
                         if (load != null)
                         {
+                            int signatureIndex = Optional.ofNullable(method.getAttributeSignature())
+                                    .map(Signature::getSignatureIndex)
+                                    .orElseGet(method::getDescriptorIndex);
+                            String signature = classFile.getConstantPool().getConstantUtf8(signatureIndex);
+                            String returnSignature = SignatureUtil.getMethodReturnedSignature(signature);
                             ReturnInstruction ri = duplicateReturnInstruction(
                                 code[jumpOffset+1] & 255, bi.getOffset(),
-                                Instruction.UNKNOWN_LINE_NUMBER, load);
+                                Instruction.UNKNOWN_LINE_NUMBER, load, returnSignature);
                             if (ri != null)
                             {
                                 List<Instruction> instructions = new ArrayList<>(1);
@@ -1880,8 +1895,13 @@ public final class FastInstructionListBuilder {
                             code[jumpOffset] & 255, g.getOffset(), lineNumber);
                         if (load != null)
                         {
+                            int signatureIndex = Optional.ofNullable(method.getAttributeSignature())
+                                    .map(Signature::getSignatureIndex)
+                                    .orElseGet(method::getDescriptorIndex);
+                            String signature = classFile.getConstantPool().getConstantUtf8(signatureIndex);
+                            String returnSignature = SignatureUtil.getMethodReturnedSignature(signature);
                             ReturnInstruction ri = duplicateReturnInstruction(
-                                code[jumpOffset+1] & 255, g.getOffset(), lineNumber, load);
+                                code[jumpOffset+1] & 255, g.getOffset(), lineNumber, load, returnSignature);
                             if (ri != null)
                             {
                                 // Si l'instruction precedente est un
@@ -1955,14 +1975,14 @@ public final class FastInstructionListBuilder {
     }
 
     private static ReturnInstruction duplicateReturnInstruction(
-        int opcode, int offset, int lineNumber, Instruction instruction)
+        int opcode, int offset, int lineNumber, Instruction instruction, String signature)
     {
         if (opcode == Const.IRETURN
          || opcode == Const.LRETURN
          || opcode == Const.FRETURN
          || opcode == Const.DRETURN
          || opcode == Const.ARETURN) {
-            return new ReturnInstruction(ByteCodeConstants.XRETURN, offset, lineNumber, instruction);
+            return new ReturnInstruction(ByteCodeConstants.XRETURN, offset, lineNumber, instruction, signature);
         }
         return null;
     }
@@ -3041,10 +3061,6 @@ public final class FastInstructionListBuilder {
                         if (lastInstruction instanceof StoreInstruction && lastInstruction.getLineNumber() == beforeWhileLoop.getLineNumber()) {
                             StoreInstruction next = (StoreInstruction) beforeWhileLoop;
                             lastInstruction.setNext(next);
-                            LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(next.getIndex(), next.getOffset());
-                            if (lv != null) {
-                                lv.setDeclarationFlag(DECLARED);
-                            }
                             beforeWhileLoop = lastInstruction;
                             list.remove(i);
                             beforeWhileLoopIndex--;
@@ -4043,7 +4059,7 @@ public final class FastInstructionListBuilder {
                 {
                     // Instruction 'if' suivi d'un bloc contenant un seul 'goto'
                     // ==> Generation d'une instrcution 'break' ou 'continue'
-                    createBreakAndContinue(method, subList, offsetLabelSet, beforeLoopEntryOffset, loopEntryOffset,
+                    createBreakAndContinue(classFile, method, subList, offsetLabelSet, beforeLoopEntryOffset, loopEntryOffset,
                             afterBodyLoopOffset, afterListOffset, breakOffset, returnOffset);
 
                     ComparisonInstructionAnalyzer.inverseComparison(test);
