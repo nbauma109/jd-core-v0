@@ -3116,10 +3116,6 @@ public final class FastInstructionListBuilder {
         }
         insi = (InvokeNoStaticInstruction) ifi.getValue();
         Instruction objectref = insi.getObjectref();
-        if (objectref instanceof CheckCast) {
-            CheckCast checkCast = (CheckCast) objectref;
-            objectref = checkCast.getObjectref();
-        }
         if (objectref.getOpcode() != Const.ALOAD
                 || ((ALoad) objectref).getIndex() != astoreIterator.getIndex()) {
             return false;
