@@ -17,11 +17,9 @@
 package jd.core.process.analyzer.instruction.bytecode.factory;
 
 import org.apache.bcel.Const;
-import org.apache.bcel.classfile.Signature;
 
 import java.util.Deque;
 import java.util.List;
-import java.util.Optional;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.Method;
@@ -41,9 +39,7 @@ public class ReturnInstructionFactory implements InstructionFactory
     {
         final int opcode = code[offset] & 255;
 
-        int signatureIndex = Optional.ofNullable(method.getAttributeSignature())
-                                      .map(Signature::getSignatureIndex)
-                                      .orElseGet(method::getDescriptorIndex);
+        int signatureIndex = method.getSignatureIndex();
         String signature = classFile.getConstantPool().getConstantUtf8(signatureIndex);
         String returnSignature = SignatureUtil.getMethodReturnedSignature(signature);
         ReturnInstruction ri = new ReturnInstruction(

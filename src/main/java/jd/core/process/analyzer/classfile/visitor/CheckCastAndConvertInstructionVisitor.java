@@ -33,7 +33,6 @@ import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker.MethodTypes;
 
 import java.util.List;
-import java.util.Optional;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.Field;
@@ -280,11 +279,7 @@ public final class CheckCastAndConvertInstructionVisitor
                 ConstantNameAndType cnat = classFile.getConstantPool().getConstantNameAndType(cfr.getNameAndTypeIndex());
                 Field field = classFile.getField(cnat.getNameIndex(), cnat.getSignatureIndex());
                 if (field != null) {
-                    Signature as = field.getAttributeSignature();
-                    int fieldDescriptorIndex = Optional.ofNullable(as)
-                                                       .map(Signature::getSignatureIndex)
-                                                       .orElseGet(field::getDescriptorIndex);
-                    addOrUpdateCast(localVariables, classFile, putField, fieldDescriptorIndex);
+                    addOrUpdateCast(localVariables, classFile, putField, field.getSignatureIndex());
                 }
                 visit(classFile, method, putField.getObjectref());
                 visit(classFile, method, putField.getValueref());

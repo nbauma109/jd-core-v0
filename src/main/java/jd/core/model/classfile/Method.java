@@ -40,7 +40,7 @@ import java.util.stream.Stream;
 
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 
-public class Method extends Base
+public class Method extends Base implements SignatureInfo
 {
     private FieldOrMethod fieldOrMethod;
     private boolean containsError;
@@ -253,4 +253,5 @@ public class Method extends Base
     public boolean isLambda(ConstantPool constants) {
         return getName(constants).startsWith("lambda$");
     }
+
 }

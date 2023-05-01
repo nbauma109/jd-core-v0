@@ -155,9 +155,7 @@ public final class LocalVariableAnalyzer
         else
         {
             // Traitement des entrées correspondant aux parametres
-            Signature as = method.getAttributeSignature();
-            String methodSignature = constants.getConstantUtf8(
-                Optional.ofNullable(as).map(Signature::getSignatureIndex).orElseGet(method::getDescriptorIndex));
+            String methodSignature = constants.getConstantUtf8(method.getSignatureIndex());
 
             int indexOfFirstLocalVariable =
                     ((method.getAccessFlags() & Const.ACC_STATIC) == 0 ? 1 : 0) +
@@ -236,9 +234,7 @@ public final class LocalVariableAnalyzer
         // Le descripteur et la signature sont differentes pour les
         // constructeurs des Enums !
         Signature as = method.getAttributeSignature();
-        int methodSignatureIndex = Optional.ofNullable(as)
-                                           .map(Signature::getSignatureIndex)
-                                           .orElseGet(method::getDescriptorIndex);
+        int methodSignatureIndex = method.getSignatureIndex();
         String methodSignature = constants.getConstantUtf8(methodSignatureIndex);
         List<String> parameterTypes =
                 SignatureUtil.getParameterSignatures(methodSignature);
@@ -1646,10 +1642,7 @@ public final class LocalVariableAnalyzer
     private static String getReturnedSignature(
             ClassFile classFile, Method method)
     {
-        Signature as = method.getAttributeSignature();
-        int signatureIndex = Optional.ofNullable(as)
-                                     .map(Signature::getSignatureIndex)
-                                     .orElseGet(method::getDescriptorIndex);
+        int signatureIndex = method.getSignatureIndex();
         String signature =
                 classFile.getConstantPool().getConstantUtf8(signatureIndex);
 

@@ -1614,10 +1614,7 @@ public final class ClassFileWriter
 
         ConstantPool constants = classFile.getConstantPool();
 
-        Signature as = field.getAttributeSignature();
-        int signatureIndex = Optional.ofNullable(as)
-                                     .map(Signature::getSignatureIndex)
-                                     .orElseGet(field::getDescriptorIndex);
+        int signatureIndex = field.getSignatureIndex();
 
         String signature = constants.getConstantUtf8(signatureIndex);
 

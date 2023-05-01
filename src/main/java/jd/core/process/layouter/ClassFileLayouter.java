@@ -28,7 +28,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 import jd.core.model.classfile.ClassFile;
@@ -631,9 +630,7 @@ public final class ClassFileLayouter {
             // Le descripteur et la signature sont differentes pour les
             // constructeurs des Enums ! Cette information est passée à 
             // "SignatureWriter.writeMethodSignature(...)".
-            signatureIndex = Optional.ofNullable(as)
-                                     .map(Signature::getSignatureIndex)
-                                     .orElseGet(method::getDescriptorIndex);
+            signatureIndex = method.getSignatureIndex();
             signature = constants.getConstantUtf8(signatureIndex);
 
             if ((classFile.getAccessFlags() & Const.ACC_ENUM) != 0 &&
@@ -3528,9 +3525,7 @@ public final class ClassFileLayouter {
         JavaSourceLayouter javaSourceLayouter = new JavaSourceLayouter();
         ConstantPool constants = classFile.getConstantPool();
         Signature as = method.getAttributeSignature();
-        int signatureIndex = Optional.ofNullable(as)
-                                     .map(Signature::getSignatureIndex)
-                                     .orElseGet(method::getDescriptorIndex);
+        int signatureIndex = method.getSignatureIndex();
         String signature = constants.getConstantUtf8(signatureIndex);
             
         List<LayoutBlock> subLayoutBlockList = new ArrayList<>();

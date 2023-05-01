@@ -20,7 +20,6 @@ import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
-import org.apache.bcel.classfile.Signature;
 import org.apache.commons.lang3.Validate;
 import org.jd.core.v1.model.javasyntax.type.Type;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
@@ -1298,10 +1297,7 @@ public final class FastInstructionListBuilder {
         ConstantPool constants = classFile.getConstantPool();
         LocalVariables localVariables = method.getLocalVariables();
 
-        Signature as = method.getAttributeSignature();
-        int signatureIndex = Optional.ofNullable(as)
-                                     .map(Signature::getSignatureIndex)
-                                     .orElseGet(method::getDescriptorIndex);
+        int signatureIndex = method.getSignatureIndex();
         String signature = constants.getConstantUtf8(signatureIndex);
         String methodReturnedSignature =
                 SignatureUtil.getMethodReturnedSignature(signature);
@@ -1815,9 +1811,7 @@ public final class FastInstructionListBuilder {
                             Instruction.UNKNOWN_LINE_NUMBER);
                         if (load != null)
                         {
-                            int signatureIndex = Optional.ofNullable(method.getAttributeSignature())
-                                    .map(Signature::getSignatureIndex)
-                                    .orElseGet(method::getDescriptorIndex);
+                            int signatureIndex = method.getSignatureIndex();
                             String signature = classFile.getConstantPool().getConstantUtf8(signatureIndex);
                             String returnSignature = SignatureUtil.getMethodReturnedSignature(signature);
                             ReturnInstruction ri = duplicateReturnInstruction(
@@ -1895,9 +1889,7 @@ public final class FastInstructionListBuilder {
                             code[jumpOffset] & 255, g.getOffset(), lineNumber);
                         if (load != null)
                         {
-                            int signatureIndex = Optional.ofNullable(method.getAttributeSignature())
-                                    .map(Signature::getSignatureIndex)
-                                    .orElseGet(method::getDescriptorIndex);
+                            int signatureIndex = method.getSignatureIndex();
                             String signature = classFile.getConstantPool().getConstantUtf8(signatureIndex);
                             String returnSignature = SignatureUtil.getMethodReturnedSignature(signature);
                             ReturnInstruction ri = duplicateReturnInstruction(

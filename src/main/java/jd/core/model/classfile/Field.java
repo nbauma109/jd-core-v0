@@ -25,7 +25,7 @@ import org.apache.bcel.classfile.FieldOrMethod;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.util.UtilConstants;
 
-public class Field extends Base
+public class Field extends Base implements SignatureInfo
 {
     private FieldOrMethod fieldOrMethod;
     private ValueAndMethod valueAndMethod;

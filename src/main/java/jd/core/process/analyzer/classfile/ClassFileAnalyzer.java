@@ -21,7 +21,6 @@ import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
-import org.apache.bcel.classfile.Signature;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.ExceptionUtil;
 import org.jd.core.v1.util.StringConstants;
 
@@ -30,7 +29,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
@@ -376,10 +374,7 @@ public final class ClassFileAnalyzer
             while (j-- > 0)
             {
                 field = list.get(j);
-                Signature fieldSignature = field.getAttributeSignature();
-                int fieldDescriptorIndex = Optional.ofNullable(fieldSignature)
-                                                   .map(Signature::getSignatureIndex)
-                                                   .orElseGet(field::getDescriptorIndex);
+                int fieldDescriptorIndex = field.getSignatureIndex();
                 // Generate new attribute names
                 newName = FieldNameGenerator.generateName(
                         constants.getConstantUtf8(fieldDescriptorIndex),
@@ -914,9 +909,7 @@ public final class ClassFileAnalyzer
         }
 
         // Is parameters counter greater than 0 ?
-        Signature as = method.getAttributeSignature();
-        String methodSignature = constants.getConstantUtf8(
-            Optional.ofNullable(as).map(Signature::getSignatureIndex).orElseGet(method::getDescriptorIndex));
+        String methodSignature = constants.getConstantUtf8(method.getSignatureIndex());
 
         if (methodSignature.charAt(1) == ')') {
             return 0;
