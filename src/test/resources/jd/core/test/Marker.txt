@@ -1,0 +1,187 @@
+/*     */ package ext.plantuml.com.ctreber.acearth.plugins.markers;
+/*     */ 
+/*     */ import ext.plantuml.com.ctreber.acearth.gui.PixelCanvas;
+/*     */ import ext.plantuml.com.ctreber.acearth.projection.Projection;
+/*     */ import ext.plantuml.com.ctreber.acearth.projection.ProjectionOrtho;
+/*     */ import ext.plantuml.com.ctreber.acearth.util.Coordinate;
+/*     */ import ext.plantuml.com.ctreber.acearth.util.Point2D;
+/*     */ import ext.plantuml.com.ctreber.acearth.util.Point3D;
+/*     */ import ext.plantuml.com.ctreber.acearth.util.StringParser;
+/*     */ import java.awt.Color;
+/*     */ import java.awt.Font;
+/*     */ import java.awt.Graphics2D;
+/*     */ import java.util.List;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class Marker
+/*     */ {
+/*     */   private static final int MARKER_SIZE = 4;
+/*     */   private static final int MarkerAlignDefault = 0;
+/*     */   private static final int MarkerAlignLeft = 1;
+/*     */   private static final int MarkerAlignRight = 2;
+/*     */   private static final int MarkerAlignAbove = 3;
+/*     */   private static final int MarkerAlignBelow = 4;
+/*     */   private Coordinate fCoordinate;
+/*     */   private String fLabel;
+/*     */   private int fAlign;
+/*     */   
+/*     */   private Marker(Coordinate pCoordinate, String pLabel, int pAlign)
+/*     */   {
+/*  37 */     this.fCoordinate = pCoordinate;
+/*  38 */     this.fLabel = pLabel;
+/*  39 */     this.fAlign = pAlign;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   private static Marker createFromLine(String pLine)
+/*     */   {
+/*  83 */     List lWords = StringParser.parse(pLine);
+/*     */     
+/*  85 */     double lLat = Double.parseDouble((String)lWords.get(0));
+/*  86 */     double lLong = Double.parseDouble((String)lWords.get(1));
+/*  87 */     String lLabel = (String)lWords.get(2);
+/*     */     
+/*  89 */     int lAlign = 0;
+/*  90 */     if (lWords.size() >= 4) {
+/*  91 */       String lAlignString = (String)lWords.get(3);
+/*  92 */       if (lAlignString.equalsIgnoreCase("left")) {
+/*  93 */         lAlign = 1;
+/*     */       }
+/*  95 */       if (lAlignString.equalsIgnoreCase("right")) {
+/*  96 */         lAlign = 2;
+/*     */       }
+/*  98 */       if (lAlignString.equalsIgnoreCase("above")) {
+/*  99 */         lAlign = 3;
+/*     */       }
+/* 101 */       if (lAlignString.equalsIgnoreCase("below")) {
+/* 102 */         lAlign = 4;
+/*     */       }
+/*     */     }
+/*     */     
+/* 106 */     Coordinate lPos = new Coordinate(lLat, lLong);
+/* 107 */     if (!lPos.check())
+/*     */     {
+/*     */ 
+/* 110 */       return null;
+/*     */     }
+/*     */     
+/* 113 */     return new Marker(lPos, lLabel, lAlign);
+/*     */   }
+/*     */   
+/*     */   @Override
+/* 117 */   public String toString() { return this.fLabel + " (" + this.fCoordinate + "), align: " + this.fAlign; }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void render(PixelCanvas pCanvas, Projection pProjection)
+/*     */   {
+/* 142 */     Point3D lPos = pProjection.rotate(this.fCoordinate.getPoint3D());
+/*     */     
+/* 144 */     if ((pProjection instanceof ProjectionOrtho) && lPos.getZ() <= 0.0D)
+/*     */     {
+/*     */ 
+/*     */ 
+/*     */ 
+/* 149 */       return;
+/*     */     }
+/*     */     
+/* 152 */     Point2D lPoint = pProjection.finalize(pProjection.project2D(lPos));
+/* 153 */     int lX = (int)lPoint.getX();
+/* 154 */     int lY = (int)lPoint.getY();
+/*     */     
+/*     */ 
+/* 157 */     Graphics2D g2d = pCanvas.getGraphics2D();
+/* 158 */     g2d.setColor(Color.red);
+/*     */     
+/* 160 */     g2d.drawOval(lX, lY, 4, 4);
+/*     */     
+/* 162 */     if (this.fLabel != null) {
+/* 163 */       switch (this.fAlign)
+/*     */       {
+/*     */       case 1: 
+/*     */         break;
+/*     */       
+/*     */ 
+/*     */       case 0: 
+/*     */       case 2: 
+/* 171 */         g2d.setFont(new Font("", 0, 9));
+/* 172 */         g2d.drawString(this.fLabel, lX + 4 + 1, lY + 2);
+/* 173 */         break;
+/*     */       case 3: 
+/*     */         break;
+/*     */       }
+/*     */       
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public static Marker loadMarkerFile(String line)
+/*     */   {
+/* 185 */     return createFromLine(line);
+/*     */   }
+/*     */ }
