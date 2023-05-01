@@ -17,15 +17,18 @@
 package jd.core.process.analyzer.instruction.bytecode.factory;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.classfile.Signature;
 
 import java.util.Deque;
 import java.util.List;
+import java.util.Optional;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
+import jd.core.util.SignatureUtil;
 
 public class ReturnInstructionFactory implements InstructionFactory
 {
@@ -38,8 +41,13 @@ public class ReturnInstructionFactory implements InstructionFactory
     {
         final int opcode = code[offset] & 255;
 
+        int signatureIndex = Optional.ofNullable(method.getAttributeSignature())
+                                      .map(Signature::getSignatureIndex)
+                                      .orElseGet(method::getDescriptorIndex);
+        String signature = classFile.getConstantPool().getConstantUtf8(signatureIndex);
+        String returnSignature = SignatureUtil.getMethodReturnedSignature(signature);
         ReturnInstruction ri = new ReturnInstruction(
-            ByteCodeConstants.XRETURN, offset, lineNumber, stack.pop());
+            ByteCodeConstants.XRETURN, offset, lineNumber, stack.pop(), returnSignature);
 
         list.add(ri);
         listForAnalyze.add(ri);

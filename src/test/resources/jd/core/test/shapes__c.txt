@@ -1,0 +1,2453 @@
+/*      */ package gen.lib.common;
+/*      */ 
+/*      */ import gen.annotation.Difficult;
+/*      */ import gen.annotation.Doc;
+/*      */ import gen.annotation.Original;
+/*      */ import gen.annotation.Reviewed;
+/*      */ import gen.annotation.Unused;
+/*      */ import gen.lib.cgraph.attr__c;
+/*      */ import gen.lib.cgraph.obj__c;
+/*      */ import h.EN_shape_kind;
+/*      */ import h.ST_Agnode_s;
+/*      */ import h.ST_Agraph_s;
+/*      */ import h.ST_boxf;
+/*      */ import h.ST_field_t;
+/*      */ import h.ST_inside_t;
+/*      */ import h.ST_layout_t;
+/*      */ import h.ST_point;
+/*      */ import h.ST_pointf;
+/*      */ import h.ST_polygon_t;
+/*      */ import h.ST_port;
+/*      */ import h.ST_shape_desc;
+/*      */ import h.ST_shape_functions;
+/*      */ import h.ST_textlabel_t;
+/*      */ import smetana.core.CArray;
+/*      */ import smetana.core.CArrayOfStar;
+/*      */ import smetana.core.CFunction;
+/*      */ import smetana.core.CFunctionAbstract;
+/*      */ import smetana.core.CString;
+/*      */ import smetana.core.Globals;
+/*      */ import smetana.core.JUtils;
+/*      */ import smetana.core.Macro;
+/*      */ import smetana.core.Memory;
+/*      */ import smetana.core.ZType;
+/*      */ import smetana.core.__struct__;
+/*      */ import smetana.core.debug.SmetanaDebug;
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ public class shapes__c
+/*      */ {
+/*      */   private static final int HASTEXT = 1;
+/*      */   private static final int HASPORT = 2;
+/*      */   private static final int HASTABLE = 4;
+/*      */   private static final int INTEXT = 8;
+/*      */   private static final int INPORT = 16;
+/*      */   
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="same_side", key="eb4jyrh981apg1fy13fczexdl", definition="static int same_side(pointf p0, pointf p1, pointf L0, pointf L1)")
+/*  134 */   public static boolean same_side(ST_pointf p0, ST_pointf p1, ST_pointf L0, ST_pointf L1) { return same_side_w_(p0.copy(), p1.copy(), L0.copy(), L1.copy()); }
+/*      */   
+/*      */   private static boolean same_side_w_(ST_pointf p0, ST_pointf p1, ST_pointf L0, ST_pointf L1) {
+/*  137 */     SmetanaDebug.ENTERING("eb4jyrh981apg1fy13fczexdl", "same_side");
+/*      */     
+/*      */ 
+/*      */     try
+/*      */     {
+/*  142 */       double a = -(L1.y - L0.y);
+/*  143 */       double b = L1.x - L0.x;
+/*  144 */       double c = a * L0.x + b * L0.y;
+/*  145 */       boolean s0 = a * p0.x + b * p0.y - c >= 0.0D;
+/*  146 */       boolean s1 = a * p1.x + b * p1.y - c >= 0.0D;
+/*  147 */       return s0 == s1;
+/*      */     } finally {
+/*  149 */       SmetanaDebug.LEAVING("eb4jyrh981apg1fy13fczexdl", "same_side");
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */   @Reviewed(when="12/11/2020")
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="shapeOf", key="5gahokttzv65lspm84ao1le37", definition="shape_kind shapeOf(node_t * n)")
+/*      */   public static EN_shape_kind shapeOf(ST_Agnode_s n)
+/*      */   {
+/*  158 */     SmetanaDebug.ENTERING("5gahokttzv65lspm84ao1le37", "shapeOf");
+/*      */     try {
+/*  160 */       ST_shape_desc sh = Macro.ND_shape(n);
+/*      */       
+/*      */ 
+/*  163 */       if (sh == null)
+/*  164 */         return EN_shape_kind.SH_UNSET;
+/*  165 */       CFunction ifn = Macro.ND_shape(n).fns.initfn;
+/*  166 */       if (ifn.getName().equals("poly_init"))
+/*  167 */         return EN_shape_kind.SH_POLY;
+/*  168 */       if (ifn.getName().equals("record_init"))
+/*  169 */         return EN_shape_kind.SH_RECORD;
+/*  170 */       Macro.UNSUPPORTED("cpzx2lwu889clk2f1d0k4c9jd");
+/*  171 */       Macro.UNSUPPORTED("f4x4vap21dff1trk1lrzzb8u5");
+/*  172 */       Macro.UNSUPPORTED("alkskrmw3fjn82qi1t2kyi6uh");
+/*  173 */       Macro.UNSUPPORTED("5hp3oli47xj0s4fk7yj1dairi");
+/*  174 */       Macro.UNSUPPORTED("div10atae09n36x269sl208r1");
+/*  175 */       Macro.UNSUPPORTED("7if5cqgy6h2m78kwe6gagv7p");
+/*  176 */       Macro.UNSUPPORTED("c24nfmv9i7o5eoqaymbibp7m7");
+/*      */       
+/*  178 */       throw new UnsupportedOperationException();
+/*      */     } finally {
+/*  180 */       SmetanaDebug.LEAVING("5gahokttzv65lspm84ao1le37", "shapeOf");
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="isPolygon", key="e8riwo21j5t1g1tewsbo39z48", definition="boolean isPolygon(node_t * n)")
+/*      */   public static Object isPolygon(Object... arg)
+/*      */   {
+/*  192 */     Macro.UNSUPPORTED("6tth154tjxb21b1rr8m3w5lbj");
+/*  193 */     Macro.UNSUPPORTED("erg9i1970wdri39osu8hx2a6e");
+/*  194 */     Macro.UNSUPPORTED("9uh2xgxrn4veetmkfkbe9iq7y");
+/*  195 */     Macro.UNSUPPORTED("c24nfmv9i7o5eoqaymbibp7m7");
+/*      */     
+/*  197 */     throw new UnsupportedOperationException();
+/*      */   }
+/*      */   
+/*      */ 
+/*  201 */   public static CFunction poly_init = new CFunctionAbstract("poly_init") {
+/*      */     @Override
+/*      */     public Object exe(Globals zz, Object... args) {
+/*  204 */       shapes__c.poly_init(zz, (ST_Agnode_s)args[0]);
+/*  205 */       return null;
+/*      */     } };
+/*      */   
+/*      */   @Reviewed(when="13/11/2020")
+/*      */   @Difficult
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="poly_init", key="a11xv6duihbr3d6gkgo2ye2j5", definition="static void poly_init(node_t * n)")
+/*  211 */   public static void poly_init(Globals zz, ST_Agnode_s n) { SmetanaDebug.ENTERING("a11xv6duihbr3d6gkgo2ye2j5", "poly_init");
+/*      */     try {
+/*  213 */       ST_pointf dimen = new ST_pointf();ST_pointf min_bb = new ST_pointf();ST_pointf bb = new ST_pointf();
+/*  214 */       ST_point imagesize = new ST_point();
+/*  215 */       ST_pointf P = new ST_pointf();ST_pointf Q = new ST_pointf();ST_pointf R = new ST_pointf();
+/*  216 */       CArray<ST_pointf> vertices = null;
+/*      */       
+/*      */ 
+/*      */ 
+/*      */ 
+/*  221 */       double xmax = 0.0D;double ymax = 0.0D;
+/*  222 */       double width = 0.0D;double height = 0.0D;
+/*      */       
+/*      */ 
+/*  225 */       ST_polygon_t poly = new ST_polygon_t();
+/*      */       
+/*      */ 
+/*  228 */       boolean regular = Macro.ND_shape(n).polygon.regular;
+/*  229 */       int peripheries = Macro.ND_shape(n).polygon.peripheries;
+/*  230 */       int sides = Macro.ND_shape(n).polygon.sides;
+/*  231 */       double orientation = Macro.ND_shape(n).polygon.orientation;
+/*  232 */       double skew = Macro.ND_shape(n).polygon.skew;
+/*  233 */       double distortion = Macro.ND_shape(n).polygon.distortion;
+/*  234 */       regular |= utils__c.mapbool(attr__c.agget(zz, n, new CString("regular")));
+/*      */       
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*  243 */       if (regular) {
+/*  244 */         Macro.UNSUPPORTED("637wuscax8bj094m73fwq3n00");
+/*  245 */         Macro.UNSUPPORTED("6wtpde1bxbwd70jz3vuemuvqe");
+/*  246 */         Macro.UNSUPPORTED("c4cn28kuy1f86y4d8rbxy1a4g");
+/*  247 */         Macro.UNSUPPORTED("8k75h069sv2k9b6tgz77dscwd");
+/*  248 */         Macro.UNSUPPORTED("mafr2nmpj8xgeranqldzxhtb");
+/*  249 */         Macro.UNSUPPORTED("l2a1m5p66005ftc6gdbosugj");
+/*  250 */         Macro.UNSUPPORTED("61qxt5l8ums7d9os9ungn3rao");
+/*  251 */         Macro.UNSUPPORTED("flupwh3kosf3fkhkxllllt1");
+/*      */       } else {
+/*  253 */         width = Macro.POINTS(Macro.ND_width(n));
+/*  254 */         height = Macro.POINTS(Macro.ND_height(n));
+/*      */       }
+/*      */       
+/*      */ 
+/*  258 */       peripheries = utils__c.late_int(n, zz.N_peripheries, peripheries, 0);
+/*  259 */       orientation += utils__c.late_double(n, zz.N_orientation, 0.0D, -360.0D);
+/*  260 */       if (sides == 0) {
+/*  261 */         Macro.UNSUPPORTED("dd178b113cb8130tl6q70lcp3");
+/*  262 */         Macro.UNSUPPORTED("cp83hdn3dp0a7rp9bauc3bgki");
+/*  263 */         Macro.UNSUPPORTED("abmuc3vqirf3i48480fj0k14g");
+/*      */       }
+/*      */       
+/*      */ 
+/*      */ 
+/*  268 */       dimen.___(Macro.ND_label(n).dimen);
+/*      */       
+/*      */ 
+/*      */ 
+/*  272 */       if (Macro.ROUND(Math.abs(dimen.x)) != 0 || Macro.ROUND(Math.abs(dimen.y)) != 0) {
+/*      */         CString p;
+/*  274 */         if ((p = attr__c.agget(zz, n, new CString("margin"))) != null) {
+/*  275 */           Macro.UNSUPPORTED("4dlqwm3pklzgz2e777dm56n03");
+/*  276 */           Macro.UNSUPPORTED("r186dwelv54pq63p2yo4czig");
+/*  277 */           Macro.UNSUPPORTED("bjp5a2wbzhormf75ov5fumqto");
+/*  278 */           Macro.UNSUPPORTED("3tsws28ifjzq7ju8xs3ye4x18");
+/*  279 */           Macro.UNSUPPORTED("7gfecwqgqof787z8u1mgh7qoj");
+/*  280 */           Macro.UNSUPPORTED("1xpqznf0i4ljd2b5j81ipsvtg");
+/*  281 */           Macro.UNSUPPORTED("1lcx62wzgnn34tk5li0sgoqwm");
+/*  282 */           Macro.UNSUPPORTED("dau1s6m0w92gp7bvqz3f63wnp");
+/*  283 */           Macro.UNSUPPORTED("79iqlz01of88ftxysvivw2hgw");
+/*  284 */           Macro.UNSUPPORTED("6opppos2hcjet4cn76130ykba");
+/*  285 */           Macro.UNSUPPORTED("7e1uy5mzei37p66t8jp01r3mk");
+/*  286 */           Macro.UNSUPPORTED("8bwwxn4jop0urcsfnygjofg9s");
+/*  287 */           Macro.UNSUPPORTED("afk9bpom7x393euamnvwwkx6b");
+/*  288 */           Macro.UNSUPPORTED("87bdwkkwbzyswxnepdd9bj8mb");
+/*      */         } else {
+/*  290 */           Macro.PAD(dimen);
+/*      */         } }
+/*  292 */       double spacex = dimen.x - Macro.ND_label(n).dimen.x;
+/*      */       
+/*      */       double temp;
+/*      */       
+/*  296 */       if ((temp = Macro.GD_drawing(obj__c.agraphof(n)).quantum) > 0.0D) {
+/*  297 */         Macro.UNSUPPORTED("3nqb0s5rkwj3igt71vooj8asd");
+/*  298 */         Macro.UNSUPPORTED("5fxtqwy8liyvnx1yvsou5hb4o");
+/*  299 */         Macro.UNSUPPORTED("et885f1jcqpske6ip856arouv");
+/*      */       }
+/*      */       
+/*      */ 
+/*  303 */       imagesize.x = imagesize.y = 0;
+/*  304 */       if (Macro.ND_shape(n).usershape)
+/*      */       {
+/*      */ 
+/*      */ 
+/*      */ 
+/*  309 */         Macro.UNSUPPORTED("7jbvoylyb27di8f54ufxj4mbk");
+/*  310 */         Macro.UNSUPPORTED("cnfv2ayyl46ohdl5p4pc75swz");
+/*  311 */         Macro.UNSUPPORTED("6llro6gigojo2r8oo6c4k320o");
+/*  312 */         Macro.UNSUPPORTED("3ngt3ika8ppq3m9vbgf2q5lu1");
+/*  313 */         Macro.UNSUPPORTED("5l8jenkv77ax02t47zzxyv1k0");
+/*  314 */         Macro.UNSUPPORTED("7hgyav5bbs1v4kts1oocozork");
+/*  315 */         Macro.UNSUPPORTED("34s5a4xy12nydt3idmis4np67");
+/*  316 */         Macro.UNSUPPORTED("apwtbaz0akr5pg5p6uwcroaan");
+/*  317 */         Macro.UNSUPPORTED("175pyfe8j8mbhdwvrbx3gmew9");
+/*  318 */         Macro.UNSUPPORTED("4xiqgw4br039sl4r32gg5jv6k");
+/*  319 */         Macro.UNSUPPORTED("3nl4wsbxuqlad4tcg8vmg99rx");
+/*  320 */         Macro.UNSUPPORTED("da00oaavfp6fwqwgshhrodz2r");
+/*  321 */         Macro.UNSUPPORTED("6t98dcecgbvbvtpycwiq2ynnj");
+/*  322 */         Macro.UNSUPPORTED("flupwh3kosf3fkhkxllllt1"); } else { CString sfile;
+/*  323 */         if ((sfile = attr__c.agget(zz, n, new CString("image"))) != null && sfile.charAt(0) != 0) {
+/*  324 */           Macro.UNSUPPORTED("76t38i30025xohbzg8w9z4pn9");
+/*  325 */           Macro.UNSUPPORTED("b8spvmvtuxcciaejq8j1xhu5s");
+/*  326 */           Macro.UNSUPPORTED("cw5grwj6gbj94jcztvnp2ooyj");
+/*  327 */           Macro.UNSUPPORTED("68jdsrao22ymfpb8e1rdezyez");
+/*  328 */           Macro.UNSUPPORTED("5lmxoq1rboqrxrchjf5ubg6w5");
+/*  329 */           Macro.UNSUPPORTED("7wmzbnczyvj4oocepujtghrka");
+/*  330 */           Macro.UNSUPPORTED("7yhr8hn3r6wohafwxrt85b2j2");
+/*  331 */           Macro.UNSUPPORTED("71mfu0uflnm85dbt8g2oxs9rd");
+/*  332 */           Macro.UNSUPPORTED("286u48muwmjkomlzqufoqm5cw");
+/*  333 */           Macro.UNSUPPORTED("1x57knvrmlciu7odfroo3paso");
+/*  334 */           Macro.UNSUPPORTED("flupwh3kosf3fkhkxllllt1");
+/*      */         }
+/*      */       }
+/*      */       
+/*      */ 
+/*  339 */       bb.x = Math.max(dimen.x, imagesize.x);
+/*  340 */       bb.y = Math.max(dimen.y, imagesize.y);
+/*      */       
+/*      */ 
+/*      */ 
+/*      */ 
+/*  345 */       if (sides <= 2 && (distortion != 0.0D || skew != 0.0D)) {
+/*  346 */         sides = 120;
+/*      */       }
+/*      */       
+/*      */ 
+/*      */ 
+/*  351 */       CString p = attr__c.agget(zz, n, new CString("labelloc"));
+/*  352 */       if (p != null && (p.charAt(0) == 't' || p.charAt(0) == 'b')) {
+/*  353 */         Macro.ND_label(n).valign = p.charAt(0);
+/*      */       } else {
+/*  355 */         Macro.ND_label(n).valign = 99;
+/*      */       }
+/*      */       
+/*      */ 
+/*  359 */       boolean isBox = sides == 4 && Macro.ROUND(orientation) % 90 == 0 && distortion == 0.0D && skew == 0.0D;
+/*      */       
+/*  361 */       if (!isBox)
+/*      */       {
+/*  363 */         if (Macro.ND_shape(n).polygon.vertices != null) {
+/*  364 */           Macro.UNSUPPORTED("4adqsyjwqwzs50ggjp57ok6u7");
+/*  365 */           Macro.UNSUPPORTED("1fjwgzo5xkijo98ycmzhal8yv");
+/*      */ 
+/*      */         }
+/*      */         else
+/*      */         {
+/*      */ 
+/*  371 */           temp = bb.y * Macro.SQRT2;
+/*  372 */           if (height > temp && Macro.ND_label(n).valign == 99)
+/*      */           {
+/*      */ 
+/*      */ 
+/*  376 */             bb.x *= Math.sqrt(1.0D / (1.0D - Macro.SQR(bb.y / height)));
+/*      */           } else {
+/*  378 */             bb.x *= Macro.SQRT2;
+/*  379 */             bb.y = temp;
+/*      */           }
+/*  381 */           if (sides > 2) {
+/*  382 */             temp = Math.cos(3.141592653589793D / sides);
+/*  383 */             bb.x /= temp;
+/*  384 */             bb.y /= temp;
+/*      */           }
+/*      */         }
+/*      */       }
+/*      */       
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*  393 */       min_bb.___(bb);
+/*      */       
+/*      */ 
+/*      */ 
+/*  397 */       CString fxd = utils__c.late_string(n, zz.N_fixed, new CString("false"));
+/*  398 */       if (fxd.charAt(0) == 's' && JUtils.strcmp(fxd, new CString("shape")) == 0) {
+/*  399 */         bb.x = width;
+/*  400 */         bb.y = height;
+/*  401 */         poly.option |= 0x800;
+/*  402 */       } else if (utils__c.mapbool(fxd))
+/*      */       {
+/*  404 */         if (width < Macro.ND_label(n).dimen.x || height < Macro.ND_label(n).dimen.y) {
+/*  405 */           System.err.println("node '%s', graph '%s' size too small for label\n");
+/*      */         }
+/*      */         
+/*  408 */         bb.x = width;
+/*  409 */         bb.y = height;
+/*      */       } else {
+/*  411 */         bb.x = width = Math.max(width, bb.x);
+/*  412 */         bb.y = height = Math.max(height, bb.y);
+/*      */       }
+/*      */       
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*  419 */       if (regular) {
+/*  420 */         width = height = bb.x = bb.y = Math.max(bb.x, bb.y);
+/*      */       }
+/*      */       
+/*      */ 
+/*      */ 
+/*  425 */       if (!utils__c.mapbool(utils__c.late_string(n, zz.N_nojustify, new CString("false")))) {
+/*  426 */         if (isBox) {
+/*  427 */           Macro.ND_label(n).space.x = Math.max(dimen.x, bb.x) - spacex;
+/*      */         }
+/*  429 */         else if (dimen.y < bb.y) {
+/*  430 */           temp = bb.x * Math.sqrt(1.0D - Macro.SQR(dimen.y) / Macro.SQR(bb.y));
+/*  431 */           Macro.ND_label(n).space.x = Math.max(dimen.x, temp) - spacex;
+/*      */         }
+/*      */         else {
+/*  434 */           Macro.ND_label(n).space.x = dimen.x - spacex;
+/*      */         }
+/*  436 */       } else { Macro.ND_label(n).space.x = dimen.x - spacex;
+/*      */       }
+/*      */       
+/*      */ 
+/*  440 */       if ((poly.option & 0x800) == 0) {
+/*  441 */         temp = bb.y - min_bb.y;
+/*  442 */         if (dimen.y < imagesize.y)
+/*  443 */           temp += imagesize.y - dimen.y;
+/*  444 */         Macro.ND_label(n).space.y = dimen.y + temp;
+/*      */       }
+/*      */       
+/*      */ 
+/*  448 */       int outp = peripheries;
+/*  449 */       if (peripheries < 1)
+/*  450 */         outp = 1;
+/*  451 */       if (sides < 3) {
+/*  452 */         sides = 2;
+/*  453 */         vertices = CArray.ALLOC__(outp * sides, ZType.ST_pointf);
+/*  454 */         bb.x /= 2.0D;
+/*  455 */         bb.y /= 2.0D;
+/*  456 */         ((ST_pointf)vertices.get__(0)).x = -P.x;
+/*  457 */         ((ST_pointf)vertices.get__(0)).y = -P.y;
+/*  458 */         ((ST_pointf)vertices.get__(1)).___(P);
+/*      */         
+/*      */ 
+/*  461 */         if (peripheries > 1) {
+/*  462 */           Macro.UNSUPPORTED("4ofenmfgj7cgyf624qmugcx77");
+/*  463 */           Macro.UNSUPPORTED("458w3r6n3nidn2j2b154phpzt");
+/*  464 */           Macro.UNSUPPORTED("24bcrwtjsfswpmtwxnadf0cn1");
+/*  465 */           Macro.UNSUPPORTED("byrwdiqkace7e10l3pibk54wg");
+/*  466 */           Macro.UNSUPPORTED("bicdgzzy9pdopb03hn9l48yns");
+/*  467 */           Macro.UNSUPPORTED("en9fjm2thtauyxn9t7v4j2xgl");
+/*  468 */           Macro.UNSUPPORTED("2pejlnamuvmi1m7339vzctpnb");
+/*  469 */           Macro.UNSUPPORTED("dy64x78vvm5nufbuxsn0bi8ng");
+/*  470 */           Macro.UNSUPPORTED("en9fjm2thtauyxn9t7v4j2xgl");
+/*  471 */           Macro.UNSUPPORTED("6t98dcecgbvbvtpycwiq2ynnj");
+/*  472 */           Macro.UNSUPPORTED("6g6b8zsanvqyc953c4jh1j7iy");
+/*  473 */           Macro.UNSUPPORTED("b5z0hw4dacenv33xsaex70g8d");
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */         }
+/*      */         
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */       }
+/*      */       else
+/*      */       {
+/*      */ 
+/*      */ 
+/*      */ 
+/*  488 */         vertices = CArray.ALLOC__(outp * sides, ZType.ST_pointf);
+/*  489 */         if (Macro.ND_shape(n).polygon.vertices != null) {
+/*  490 */           Macro.UNSUPPORTED("3ghle84ieryaenfnlbzrfv7bw");
+/*  491 */           Macro.UNSUPPORTED("227lpcg9dt83m2bm8yshb4djf");
+/*  492 */           Macro.UNSUPPORTED("cc3jvnwvbhjhro4adeet363yd");
+/*  493 */           Macro.UNSUPPORTED("39rdmp8vl9muqtv7xs1xwtrwk");
+/*      */         } else {
+/*  495 */           double sectorangle = 6.283185307179586D / sides;
+/*  496 */           double sidelength = Math.sin(sectorangle / 2.0D);
+/*  497 */           double skewdist = Macro.hypot(Math.abs(distortion) + Math.abs(skew), 1.0D);
+/*  498 */           double gdistortion = distortion * Macro.SQRT2 / Math.cos(sectorangle / 2.0D);
+/*  499 */           double gskew = skew / 2.0D;
+/*  500 */           double angle = (sectorangle - 3.141592653589793D) / 2.0D;
+/*  501 */           double sinx = Math.sin(angle);double cosx = Math.cos(angle);
+/*  502 */           R.x = 0.5D * cosx;
+/*  503 */           R.y = 0.5D * sinx;
+/*  504 */           xmax = ymax = 0.0D;
+/*  505 */           angle += (3.141592653589793D - sectorangle) / 2.0D;
+/*      */           
+/*      */ 
+/*      */ 
+/*  509 */           for (int i = 0; i < sides; i++)
+/*      */           {
+/*      */ 
+/*  512 */             angle += sectorangle;
+/*  513 */             sinx = Math.sin(angle);cosx = Math.cos(angle);
+/*  514 */             R.x += sidelength * cosx;
+/*  515 */             R.y += sidelength * sinx;
+/*      */             
+/*      */ 
+/*      */ 
+/*  519 */             P.x = R.x * (skewdist + R.y * gdistortion) + R.y * gskew;
+/*  520 */             P.y = R.y;
+/*      */             
+/*      */ 
+/*      */ 
+/*  524 */             double alpha = Macro.RADIANS(orientation) + Math.atan2(P.y, P.x);
+/*  525 */             sinx = Math.sin(alpha);cosx = Math.cos(alpha);
+/*  526 */             P.x = P.y = Macro.hypot(P.x, P.y);
+/*  527 */             P.x *= cosx;
+/*  528 */             P.y *= sinx;
+/*      */             
+/*      */ 
+/*      */ 
+/*  532 */             P.x *= bb.x;
+/*  533 */             P.y *= bb.y;
+/*      */             
+/*      */ 
+/*      */ 
+/*  537 */             xmax = Math.max(Math.abs(P.x), xmax);
+/*  538 */             ymax = Math.max(Math.abs(P.y), ymax);
+/*      */             
+/*      */ 
+/*      */ 
+/*  542 */             ((ST_pointf)vertices.get__(i)).___(P);
+/*  543 */             if (isBox) {
+/*  544 */               ((ST_pointf)vertices.get__(1)).x = -P.x;
+/*  545 */               ((ST_pointf)vertices.get__(1)).y = P.y;
+/*  546 */               ((ST_pointf)vertices.get__(2)).x = -P.x;
+/*  547 */               ((ST_pointf)vertices.get__(2)).y = -P.y;
+/*  548 */               ((ST_pointf)vertices.get__(3)).x = P.x;
+/*  549 */               ((ST_pointf)vertices.get__(3)).y = -P.y;
+/*  550 */               break;
+/*      */             }
+/*      */           }
+/*      */         }
+/*      */         
+/*      */ 
+/*      */ 
+/*      */ 
+/*  558 */         xmax *= 2.0D;
+/*  559 */         ymax *= 2.0D;
+/*  560 */         bb.x = Math.max(width, xmax);
+/*  561 */         bb.y = Math.max(height, ymax);
+/*  562 */         double scalex = bb.x / xmax;
+/*  563 */         double scaley = bb.y / ymax;
+/*      */         
+/*      */ 
+/*  566 */         for (int i = 0; i < sides; i++) {
+/*  567 */           P.___((__struct__)vertices.get__(i));
+/*  568 */           P.x *= scalex;
+/*  569 */           P.y *= scaley;
+/*  570 */           ((ST_pointf)vertices.get__(i)).___(P);
+/*      */         }
+/*  572 */         if (peripheries > 1) {
+/*  573 */           Macro.UNSUPPORTED("3x6t3unoi91ezbh3iz168cm2t");
+/*  574 */           Macro.UNSUPPORTED("8cm8js7jdmpakzujw3wo4h6jk");
+/*  575 */           Macro.UNSUPPORTED("5zpv8twf25wr8n71ql3lh8ku2");
+/*  576 */           Macro.UNSUPPORTED("9mlrumbikcvketd18jx1ox7k7");
+/*  577 */           Macro.UNSUPPORTED("gkm8nb6f6ispdzj0ausiv1fe");
+/*  578 */           Macro.UNSUPPORTED("8tp61rvblb9bmqfwgyknlk906");
+/*  579 */           Macro.UNSUPPORTED("1ls3xc8rwvn3763c32mx1wzsd");
+/*  580 */           Macro.UNSUPPORTED("1zrelve2mvbnzah086dkomf6k");
+/*  581 */           Macro.UNSUPPORTED("bgx8ee996r89memnp0ea0b80m");
+/*  582 */           Macro.UNSUPPORTED("5p9jzpcd51evtwqyugnwk50vf");
+/*  583 */           Macro.UNSUPPORTED("dwskcoivmu9pc5kth75x0ersl");
+/*  584 */           Macro.UNSUPPORTED("cmm5tvlcafe2aso9bkk3kl7of");
+/*  585 */           Macro.UNSUPPORTED("bebwurfm1a1h1bywf9kf5ueug");
+/*  586 */           Macro.UNSUPPORTED("1mtgr15b978d0tdunbpj2pkdp");
+/*  587 */           Macro.UNSUPPORTED("28mxt6c4230xruf63s6u415y9");
+/*  588 */           Macro.UNSUPPORTED("1fxw0fz2b6iq6p6qy58mx9mwu");
+/*  589 */           Macro.UNSUPPORTED("8j7vx250v0icumolzos2p5qa8");
+/*  590 */           Macro.UNSUPPORTED("35ed1mrpnziq164g6cg4stt5w");
+/*  591 */           Macro.UNSUPPORTED("eu3ptwi3s2200v4253yk1x69t");
+/*  592 */           Macro.UNSUPPORTED("7lc5jxgzj6z4lq7sd9y2b6vex");
+/*  593 */           Macro.UNSUPPORTED("86nzalouete6viryy967d5g9u");
+/*  594 */           Macro.UNSUPPORTED("dautpj9jyj2qwa8jpujdh3436");
+/*  595 */           Macro.UNSUPPORTED("7p6tl6s20kdual1ysfoxl8wku");
+/*  596 */           Macro.UNSUPPORTED("1yw9xq85ss81cogn9jrg24ojc");
+/*  597 */           Macro.UNSUPPORTED("6eq5kf0bj692bokt0bixy1ixh");
+/*  598 */           Macro.UNSUPPORTED("6t98dcecgbvbvtpycwiq2ynnj");
+/*  599 */           Macro.UNSUPPORTED("9mlrumbikcvketd18jx1ox7k7");
+/*  600 */           Macro.UNSUPPORTED("aa5s79go4kwos2as72rcsdrxf");
+/*  601 */           Macro.UNSUPPORTED("7ee9ageu4efyramsg9jn6klpb");
+/*  602 */           Macro.UNSUPPORTED("lklvdmn7xiqbxhpgdeufcvjj");
+/*  603 */           Macro.UNSUPPORTED("6t98dcecgbvbvtpycwiq2ynnj");
+/*      */         }
+/*      */       }
+/*  606 */       poly.regular = regular;
+/*  607 */       poly.peripheries = peripheries;
+/*  608 */       poly.sides = sides;
+/*  609 */       poly.orientation = orientation;
+/*  610 */       poly.skew = skew;
+/*  611 */       poly.distortion = distortion;
+/*  612 */       poly.vertices = vertices;
+/*      */       
+/*      */ 
+/*  615 */       if ((poly.option & 0x800) != 0)
+/*      */       {
+/*  617 */         Macro.UNSUPPORTED("7kk8oru3b3copylmq3gssx6qx");
+/*  618 */         Macro.UNSUPPORTED("8oouzms2x039fhfcfxm7yc4su");
+/*      */       } else {
+/*  620 */         Macro.ND_width(n, Macro.PS2INCH(bb.x));
+/*  621 */         Macro.ND_height(n, Macro.PS2INCH(bb.y));
+/*      */       }
+/*  623 */       Macro.ND_shape_info(n, poly);
+/*      */     } finally {
+/*  625 */       SmetanaDebug.LEAVING("a11xv6duihbr3d6gkgo2ye2j5", "poly_init");
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*  631 */   public static CFunction poly_free = new CFunctionAbstract("poly_free") {
+/*      */     @Override
+/*      */     public Object exe(Globals zz, Object... args) {
+/*  634 */       return shapes__c.poly_free(args);
+/*      */     }
+/*      */   };
+/*      */   
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="poly_free", key="63sj12avbdw6e27zf3sedls1r", definition="static void poly_free(node_t * n)")
+/*      */   public static Object poly_free(Object... arg_) {
+/*  641 */     Macro.UNSUPPORTED("cfl0ro4734avs9rtdlar7nbg8");
+/*  642 */     Macro.UNSUPPORTED("erg9i1970wdri39osu8hx2a6e");
+/*  643 */     Macro.UNSUPPORTED("5ha1ng0rlvg0kiui0qhgme4nb");
+/*  644 */     Macro.UNSUPPORTED("3cvmixd2u1g2d9l03kuxyyxxw");
+/*  645 */     Macro.UNSUPPORTED("3cjbelr7499ch9kn6lbjaz7l7");
+/*  646 */     Macro.UNSUPPORTED("cy5x5dma0v4hiepir7lrfuo17");
+/*  647 */     Macro.UNSUPPORTED("dvgyxsnyeqqnyzq696k3vskib");
+/*  648 */     Macro.UNSUPPORTED("c24nfmv9i7o5eoqaymbibp7m7");
+/*      */     
+/*  650 */     throw new UnsupportedOperationException();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*  657 */   public static CFunction poly_inside = new CFunctionAbstract("poly_inside") {
+/*      */     @Override
+/*      */     public Object exe(Globals zz, Object... args) {
+/*  660 */       return Boolean.valueOf(shapes__c.poly_inside(zz, (ST_inside_t)args[0], (ST_pointf)args[1]));
+/*      */     }
+/*      */   };
+/*      */   
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="poly_inside", key="570t4xovyyfqipaikkf63crmk", definition="tatic boolean poly_inside(inside_t * inside_context, pointf p)")
+/*  666 */   public static boolean poly_inside(Globals zz, ST_inside_t inside_context, ST_pointf p) { return poly_inside_w_(zz, inside_context, p.copy()); }
+/*      */   
+/*      */   private static boolean poly_inside_w_(Globals zz, ST_inside_t inside_context, ST_pointf p) {
+/*  669 */     SmetanaDebug.ENTERING("570t4xovyyfqipaikkf63crmk", "poly_inside");
+/*      */     
+/*      */     try
+/*      */     {
+/*  673 */       ST_pointf P = new ST_pointf();ST_pointf Q = new ST_pointf();ST_pointf R = new ST_pointf();
+/*  674 */       ST_boxf bp = inside_context.s_bp;
+/*  675 */       ST_Agnode_s n = inside_context.s_n;
+/*  676 */       P.___(geom__c.ccwrotatepf(p, 90 * Macro.GD_rankdir(obj__c.agraphof(n))));
+/*      */       
+/*  678 */       if (bp != null) {
+/*  679 */         ST_boxf bbox = new ST_boxf();
+/*  680 */         bbox.___(bp);
+/*  681 */         return Macro.INSIDE(P, bbox); }
+/*      */       double n_width;
+/*  683 */       if (n != zz.lastn) {
+/*  684 */         n_width = 0.0D;double n_height = 0.0D;
+/*  685 */         zz.poly = (ST_polygon_t)Macro.ND_shape_info(n);
+/*  686 */         zz.vertex = zz.poly.vertices;
+/*  687 */         zz.sides = zz.poly.sides;
+/*  688 */         if ((zz.poly.option & 0x800) != 0) {
+/*  689 */           Macro.UNSUPPORTED("18yw1scg4sol8bhyf1vedj9kn");
+/*  690 */           Macro.UNSUPPORTED("7rz7vxyxao0efec2nvd6g19m1");
+/*  691 */           Macro.UNSUPPORTED("4h0k2wroz3xqx1ljokdbaqaad");
+/*  692 */           Macro.UNSUPPORTED("dgykcjw02yoka8uz5b7jdc2ct");
+/*  693 */           Macro.UNSUPPORTED("75jifr4aucrxp2hvnsrcfunej");
+/*  694 */           Macro.UNSUPPORTED("e53876tm7q1oasuu013njtgx");
+/*  695 */           Macro.UNSUPPORTED("7wnmmcv8dfzi1bdwml4vcxf0w");
+/*  696 */           Macro.UNSUPPORTED("175pyfe8j8mbhdwvrbx3gmew9");
+/*  697 */           Macro.UNSUPPORTED("10ux82vu0kynxilmf6ak7x70q");
+/*  698 */           Macro.UNSUPPORTED("5xao1mdiugxzaq03na34mbl5w");
+/*  699 */           Macro.UNSUPPORTED("6t98dcecgbvbvtpycwiq2ynnj");
+/*      */         }
+/*      */         else {
+/*  702 */           if (Macro.GD_flip(obj__c.agraphof(n))) {
+/*  703 */             zz.ysize = Macro.ND_lw(n) + Macro.ND_rw(n);
+/*  704 */             zz.xsize = Macro.ND_ht(n);
+/*      */           } else {
+/*  706 */             zz.xsize = Macro.ND_lw(n) + Macro.ND_rw(n);
+/*  707 */             zz.ysize = Macro.ND_ht(n);
+/*      */           }
+/*  709 */           n_width = Macro.ROUND(Macro.ND_width(n) * 72.0D);
+/*  710 */           n_height = Macro.ROUND(Macro.ND_height(n) * 72.0D);
+/*      */         }
+/*      */         
+/*  713 */         if (zz.xsize == 0.0D)
+/*  714 */           zz.xsize = 1.0D;
+/*  715 */         if (zz.ysize == 0.0D)
+/*  716 */           zz.ysize = 1.0D;
+/*  717 */         zz.scalex = n_width / zz.xsize;
+/*  718 */         zz.scaley = n_height / zz.ysize;
+/*  719 */         zz.box_URx = n_width / 2.0D;
+/*  720 */         zz.box_URy = n_height / 2.0D;
+/*      */         
+/*  722 */         zz.outp = (zz.poly.peripheries - 1) * zz.sides;
+/*  723 */         if (zz.outp < 0)
+/*  724 */           zz.outp = 0;
+/*  725 */         zz.lastn = n;
+/*      */       }
+/*      */       
+/*  728 */       P.x *= zz.scalex;
+/*  729 */       P.y *= zz.scaley;
+/*      */       
+/*  731 */       if (Math.abs(P.x) > zz.box_URx || Math.abs(P.y) > zz.box_URy) {
+/*  732 */         return false;
+/*      */       }
+/*  734 */       if (zz.sides <= 2) {
+/*  735 */         return Macro.hypot(P.x / zz.box_URx, P.y / zz.box_URy) < 1.0D;
+/*      */       }
+/*      */       
+/*  738 */       int i = zz.last % zz.sides;
+/*  739 */       int i1 = (i + 1) % zz.sides;
+/*  740 */       Q.___((__struct__)zz.vertex.get__(i + zz.outp));
+/*  741 */       R.___((__struct__)zz.vertex.get__(i1 + zz.outp));
+/*  742 */       if (!same_side(P, zz.O, Q, R))
+/*  743 */         return false;
+/*      */       boolean s;
+/*  745 */       if ((s = same_side(P, Q, R, zz.O)) && same_side(P, R, zz.O, Q)) {
+/*  746 */         return true;
+/*      */       }
+/*  748 */       for (int j = 1; j < zz.sides; j++) {
+/*  749 */         if (s) {
+/*  750 */           i = i1;
+/*  751 */           i1 = (i + 1) % zz.sides;
+/*      */         } else {
+/*  753 */           i1 = i;
+/*  754 */           i = (i + zz.sides - 1) % zz.sides;
+/*      */         }
+/*  756 */         if (!same_side(P, zz.O, (ST_pointf)zz.vertex.get__(i + zz.outp), (ST_pointf)zz.vertex.get__(i1 + zz.outp))) {
+/*  757 */           zz.last = i;
+/*  758 */           return false;
+/*      */         }
+/*      */       }
+/*      */       
+/*  762 */       zz.last = i;
+/*  763 */       return true;
+/*      */     } finally {
+/*  765 */       SmetanaDebug.LEAVING("570t4xovyyfqipaikkf63crmk", "poly_inside");
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*  771 */   public static CFunction poly_path = new CFunctionAbstract("poly_path") {
+/*      */     @Override
+/*      */     public Object exe(Globals zz, Object... args) {
+/*  774 */       return Integer.valueOf(shapes__c.poly_path((ST_Agnode_s)args[0], (ST_port)args[1], ((Integer)args[2]).intValue(), args[3], args[4]));
+/*      */     }
+/*      */   };
+/*      */   
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="poly_path", key="5mmuhvq40xadw0g9mzlauyztq", definition="static int poly_path(node_t * n, port * p, int side, boxf rv[], int *kptr)")
+/*      */   public static int poly_path(ST_Agnode_s n, ST_port p, int side, Object rv, Object kptr) {
+/*  781 */     SmetanaDebug.ENTERING("5mmuhvq40xadw0g9mzlauyztq", "poly_path");
+/*      */     try {
+/*  783 */       side = 0;
+/*  784 */       if (Macro.ND_label(n).html && Macro.ND_has_port(n)) {
+/*  785 */         Macro.UNSUPPORTED("67g7bthntnw8syb6zd03ueg84");
+/*      */       }
+/*  787 */       return side;
+/*      */     } finally {
+/*  789 */       SmetanaDebug.LEAVING("5mmuhvq40xadw0g9mzlauyztq", "poly_path");
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="invflip_side", key="857i3hwbu9mbq4nwur2q7e7er", definition="static int invflip_side(int side, int rankdir)")
+/*      */   public static int invflip_side(int side, int rankdir)
+/*      */   {
+/*  801 */     switch (rankdir) {
+/*      */     case 0: 
+/*      */       break;
+/*      */     case 2: 
+/*  805 */       Macro.UNSUPPORTED("o4wjkq58uh9dgs94m2vxettc");
+/*  806 */       Macro.UNSUPPORTED("a0zo28ne6fq7qm9hko3jwrsie");
+/*  807 */       Macro.UNSUPPORTED("asl0z4i3qt99vpfphpr7hpk5");
+/*  808 */       Macro.UNSUPPORTED("ai3czg6gaaxspsmndknpyvuiu");
+/*  809 */       Macro.UNSUPPORTED("5uxczmgv9jelovrky9lyqmqxn");
+/*  810 */       Macro.UNSUPPORTED("aj9jgzaslnfuc2iy41yo6577i");
+/*  811 */       Macro.UNSUPPORTED("ai3czg6gaaxspsmndknpyvuiu");
+/*  812 */       Macro.UNSUPPORTED("1drv0xz8hp34qnf72b4jpprg2");
+/*  813 */       Macro.UNSUPPORTED("ai3czg6gaaxspsmndknpyvuiu");
+/*  814 */       Macro.UNSUPPORTED("flupwh3kosf3fkhkxllllt1");
+/*  815 */       Macro.UNSUPPORTED("6aw91xzjmqvmtdvt1di23af8y");
+/*      */     case 1: 
+/*  817 */       Macro.UNSUPPORTED("o4wjkq58uh9dgs94m2vxettc");
+/*  818 */       Macro.UNSUPPORTED("a0zo28ne6fq7qm9hko3jwrsie");
+/*  819 */       Macro.UNSUPPORTED("csyxlzh6yvg14dkwm5h0q8l4e");
+/*  820 */       Macro.UNSUPPORTED("ai3czg6gaaxspsmndknpyvuiu");
+/*  821 */       Macro.UNSUPPORTED("5uxczmgv9jelovrky9lyqmqxn");
+/*  822 */       Macro.UNSUPPORTED("6ob9sb98jfamphtvv99f9nny7");
+/*  823 */       Macro.UNSUPPORTED("ai3czg6gaaxspsmndknpyvuiu");
+/*  824 */       Macro.UNSUPPORTED("3vvicpwbia6xzcxsn2qnkbzq8");
+/*  825 */       Macro.UNSUPPORTED("aj9jgzaslnfuc2iy41yo6577i");
+/*  826 */       Macro.UNSUPPORTED("ai3czg6gaaxspsmndknpyvuiu");
+/*  827 */       Macro.UNSUPPORTED("ad90yo3mu0ffjurb9egult4pi");
+/*  828 */       Macro.UNSUPPORTED("asl0z4i3qt99vpfphpr7hpk5");
+/*  829 */       Macro.UNSUPPORTED("ai3czg6gaaxspsmndknpyvuiu");
+/*  830 */       Macro.UNSUPPORTED("flupwh3kosf3fkhkxllllt1");
+/*  831 */       Macro.UNSUPPORTED("6aw91xzjmqvmtdvt1di23af8y");
+/*      */     case 3: 
+/*  833 */       Macro.UNSUPPORTED("o4wjkq58uh9dgs94m2vxettc");
+/*  834 */       Macro.UNSUPPORTED("a0zo28ne6fq7qm9hko3jwrsie");
+/*  835 */       Macro.UNSUPPORTED("csyxlzh6yvg14dkwm5h0q8l4e");
+/*  836 */       Macro.UNSUPPORTED("ai3czg6gaaxspsmndknpyvuiu");
+/*  837 */       Macro.UNSUPPORTED("5uxczmgv9jelovrky9lyqmqxn");
+/*  838 */       Macro.UNSUPPORTED("6ob9sb98jfamphtvv99f9nny7");
+/*  839 */       Macro.UNSUPPORTED("ai3czg6gaaxspsmndknpyvuiu");
+/*  840 */       Macro.UNSUPPORTED("3vvicpwbia6xzcxsn2qnkbzq8");
+/*  841 */       Macro.UNSUPPORTED("asl0z4i3qt99vpfphpr7hpk5");
+/*  842 */       Macro.UNSUPPORTED("ai3czg6gaaxspsmndknpyvuiu");
+/*  843 */       Macro.UNSUPPORTED("ad90yo3mu0ffjurb9egult4pi");
+/*  844 */       Macro.UNSUPPORTED("aj9jgzaslnfuc2iy41yo6577i");
+/*  845 */       Macro.UNSUPPORTED("ai3czg6gaaxspsmndknpyvuiu");
+/*  846 */       Macro.UNSUPPORTED("flupwh3kosf3fkhkxllllt1");
+/*  847 */       Macro.UNSUPPORTED("6aw91xzjmqvmtdvt1di23af8y");
+/*      */     }
+/*  849 */     return side;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="invflip_angle", key="72pzdmirzds0yer4ks1ooxvic", definition="static double invflip_angle(double angle, int rankdir)")
+/*      */   public static double invflip_angle(double angle, int rankdir)
+/*      */   {
+/*  860 */     switch (rankdir) {
+/*      */     case 0: 
+/*      */       break;
+/*      */     case 2: 
+/*  864 */       Macro.UNSUPPORTED("e7qgsf2gzf7fv8r5lpdfqp2gp");
+/*  865 */       Macro.UNSUPPORTED("6aw91xzjmqvmtdvt1di23af8y");
+/*      */     case 1: 
+/*  867 */       Macro.UNSUPPORTED("b5wrpw5rvhjh7999v3sqqlbo3");
+/*  868 */       Macro.UNSUPPORTED("6aw91xzjmqvmtdvt1di23af8y");
+/*      */     case 3: 
+/*  870 */       Macro.UNSUPPORTED("536aocvem6ko7h9t50pllxla0");
+/*  871 */       Macro.UNSUPPORTED("kxow9q31jmisg5yv60fj9z3g");
+/*  872 */       Macro.UNSUPPORTED("3hy3z7oxc494l61va60rwh9k3");
+/*  873 */       Macro.UNSUPPORTED("76t0zkyxc3q2wnpcajih9mf65");
+/*  874 */       Macro.UNSUPPORTED("bd02ns5pweyapa70g9ozio3m4");
+/*  875 */       Macro.UNSUPPORTED("a0pp5xd6lligtfp0riunw38t3");
+/*  876 */       Macro.UNSUPPORTED("8cqf9j5edmb4u2xnd8lkahkht");
+/*  877 */       Macro.UNSUPPORTED("205i7xisgiaz1vhn9p93tsw5a");
+/*  878 */       Macro.UNSUPPORTED("76g7hlyzy67q9n7p5l89y4gxw");
+/*  879 */       Macro.UNSUPPORTED("e5xwyhh2l2jm6g9w2ofnktaf6");
+/*  880 */       Macro.UNSUPPORTED("8pqjflzypl5wbdev1h4r6ee0e");
+/*  881 */       Macro.UNSUPPORTED("3uy8u4gjki2ksohuj3gn6ewkj");
+/*  882 */       Macro.UNSUPPORTED("bqlwd51jj33yedz7tuck5hukd");
+/*  883 */       Macro.UNSUPPORTED("3s431nqj2tfm95djdmjfjig6h");
+/*  884 */       Macro.UNSUPPORTED("tl121swu8uuow1dlzumo1pyi");
+/*  885 */       Macro.UNSUPPORTED("aa92obzwij392if7nnjch6dtz");
+/*  886 */       Macro.UNSUPPORTED("8cqf9j5edmb4u2xnd8lkahkht");
+/*  887 */       Macro.UNSUPPORTED("2waz5md3krpirny5m7gagynkc");
+/*  888 */       Macro.UNSUPPORTED("76g7hlyzy67q9n7p5l89y4gxw");
+/*  889 */       Macro.UNSUPPORTED("e5xwyhh2l2jm6g9w2ofnktaf6");
+/*  890 */       Macro.UNSUPPORTED("6aw91xzjmqvmtdvt1di23af8y");
+/*      */     }
+/*  892 */     return angle;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="compassPoint", key="54t5x4hsq6ie4hn83dix0fi3g", definition="static pointf compassPoint(inside_t * ictxt, double y, double x)")
+/*      */   public static Object compassPoint(Object... arg)
+/*      */   {
+/*  903 */     Macro.UNSUPPORTED("1owp098dshhw9x2d86x61ho3n");
+/*  904 */     Macro.UNSUPPORTED("erg9i1970wdri39osu8hx2a6e");
+/*  905 */     Macro.UNSUPPORTED("5jw267n0iigspndf3p51uuoyt");
+/*  906 */     Macro.UNSUPPORTED("2ol68djy9gbphj8kdfml5q1ej");
+/*  907 */     Macro.UNSUPPORTED("f121hhzfkpb97hn84g46lhxdh");
+/*  908 */     Macro.UNSUPPORTED("347leky6wh51yiydoij5od0h2");
+/*  909 */     Macro.UNSUPPORTED("2bghyit203pd6xw2ihhenzyn8");
+/*  910 */     Macro.UNSUPPORTED("saqn1396zzjkeo01vp1tskia");
+/*  911 */     Macro.UNSUPPORTED("5jdhcgi82gtmvn690v78zmkpe");
+/*  912 */     Macro.UNSUPPORTED("2imvfuepadgxdlfwq3qmsatju");
+/*  913 */     Macro.UNSUPPORTED("8gcpvoawmbrjuiq80lglpl2bn");
+/*  914 */     Macro.UNSUPPORTED("b4ktwkbs8awubvwfgfeqzhlx0");
+/*  915 */     Macro.UNSUPPORTED("dcqc3vt7dwuvg73lixbbwd3dj");
+/*  916 */     Macro.UNSUPPORTED("ahj7ruzql6g6cm5nvomizsgcz");
+/*  917 */     Macro.UNSUPPORTED("6wkk7v0v7iyai22oyhq16dcno");
+/*  918 */     Macro.UNSUPPORTED("2imvfuepadgxdlfwq3qmsatju");
+/*  919 */     Macro.UNSUPPORTED("ip6d55dog3nmeksqauqb1fyo");
+/*  920 */     Macro.UNSUPPORTED("7jlv4v811jdfr56u2h3wdxxbm");
+/*  921 */     Macro.UNSUPPORTED("c24nfmv9i7o5eoqaymbibp7m7");
+/*      */     
+/*  923 */     throw new UnsupportedOperationException();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="compassPort", key="4oj0c3dwqqjei7u5u2ik9yyw1", definition="static int compassPort(node_t * n, boxf * bp, port * pp, char *compass, int sides, \t    inside_t * ictxt)")
+/*      */   public static boolean compassPort(ST_Agnode_s n, ST_boxf bp, ST_port pp, CString compass, int sides, ST_inside_t ictxt)
+/*      */   {
+/*  934 */     ST_boxf b = new ST_boxf();
+/*  935 */     ST_pointf p = new ST_pointf();ST_pointf ctr = new ST_pointf();
+/*  936 */     int rv = 0;
+/*  937 */     double theta = 0.0D;
+/*  938 */     boolean constrain = false;
+/*  939 */     boolean dyna = false;
+/*  940 */     int side = 0;
+/*  941 */     boolean clip = true;
+/*  942 */     boolean defined = false;
+/*      */     
+/*  944 */     if (bp != null) {
+/*  945 */       b.___(bp);
+/*  946 */       p.___(ST_pointf.pointfof((b.LL.x + b.UR.x) / 2.0D, (b.LL.y + b.UR.y) / 2.0D));
+/*  947 */       defined = true;
+/*      */     } else {
+/*  949 */       p.x = p.y = 0.0D;
+/*  950 */       if (Macro.GD_flip(obj__c.agraphof(n))) {
+/*  951 */         Macro.UNSUPPORTED("e21k9f24vr25zdbgo37m5er48");
+/*  952 */         Macro.UNSUPPORTED("1i4y4dgrig36gh0dq2jn8kde");
+/*  953 */         Macro.UNSUPPORTED("7luuqd8n7bpffoa8v27jp7tn3");
+/*  954 */         Macro.UNSUPPORTED("922vazdrkwhoxxy4yw5axu6i7");
+/*      */       } else {
+/*  956 */         b.UR.y = Macro.ND_ht(n) / 2.0D;
+/*  957 */         b.LL.y = -b.UR.y;
+/*  958 */         b.UR.x = Macro.ND_lw(n);
+/*  959 */         b.LL.x = -b.UR.x;
+/*      */       }
+/*  961 */       defined = false;
+/*      */     }
+/*  963 */     double maxv = Math.max(b.UR.x, b.UR.y);
+/*  964 */     maxv *= 4.0D;
+/*  965 */     ctr.___(p);
+/*  966 */     if (compass != null && compass.charAt(0) != 0) {
+/*  967 */       char TMP = compass.charAt(0);
+/*  968 */       compass = compass.plus_(1);
+/*  969 */       switch (TMP) {
+/*      */       case 'e': 
+/*  971 */         if (compass.charAt(0) != 0) {
+/*  972 */           Macro.UNSUPPORTED("en0rarvkx5srsxnlqpf6ja1us");
+/*      */         } else {
+/*  974 */           if (ictxt != null) {
+/*  975 */             Macro.UNSUPPORTED("8whok6jl4olniblvibxhrbbre");
+/*      */           } else
+/*  977 */             p.x = b.UR.x;
+/*  978 */           theta = 0.0D;
+/*  979 */           constrain = true;
+/*  980 */           defined = true;
+/*  981 */           clip = false;
+/*  982 */           side = sides & 0x2;
+/*      */         }
+/*  984 */         break;
+/*      */       case 's': 
+/*  986 */         p.y = b.LL.y;
+/*  987 */         constrain = true;
+/*  988 */         clip = false;
+/*  989 */         switch (compass.charAt(0)) {
+/*      */         case '\000': 
+/*  991 */           theta = -1.5707963267948966D;
+/*  992 */           defined = true;
+/*  993 */           if (ictxt != null) {
+/*  994 */             Macro.UNSUPPORTED("2iohu3tvlkzx2emq04ycxkhta");
+/*      */           } else
+/*  996 */             p.x = ctr.x;
+/*  997 */           side = sides & 0x1;
+/*  998 */           break;
+/*      */         case 'e': 
+/* 1000 */           Macro.UNSUPPORTED("avfplp4wadl774qo2yrqn2btg");
+/* 1001 */           Macro.UNSUPPORTED("bfouf47misaa32ulv25melpbm");
+/* 1002 */           Macro.UNSUPPORTED("e1jqt6v7gkr0w7anohkdvwzuz");
+/* 1003 */           Macro.UNSUPPORTED("4qnqhz6577yhq6u9919ve4tjb");
+/* 1004 */           Macro.UNSUPPORTED("7e1uy5mzei37p66t8jp01r3mk");
+/* 1005 */           Macro.UNSUPPORTED("5f4jye7znkk6hbv6lv0l9l0hs");
+/* 1006 */           Macro.UNSUPPORTED("b0weojc8y88qjfkoujifnu9ag");
+/* 1007 */           Macro.UNSUPPORTED("9ekmvj13iaml5ndszqyxa8eq");
+/*      */         case 'w': 
+/* 1009 */           Macro.UNSUPPORTED("a6j042vifpt4pgkwczny2dy24");
+/* 1010 */           Macro.UNSUPPORTED("bfouf47misaa32ulv25melpbm");
+/* 1011 */           Macro.UNSUPPORTED("e1jqt6v7gkr0w7anohkdvwzuz");
+/* 1012 */           Macro.UNSUPPORTED("c0hdr34iyaygjxcr6a65hns2g");
+/* 1013 */           Macro.UNSUPPORTED("7e1uy5mzei37p66t8jp01r3mk");
+/* 1014 */           Macro.UNSUPPORTED("e2vcgqbz5sfyjwfyadlmm3s7n");
+/* 1015 */           Macro.UNSUPPORTED("9yg4wc52hqtj6s3orou0nnbq4");
+/* 1016 */           Macro.UNSUPPORTED("9ekmvj13iaml5ndszqyxa8eq");
+/* 1017 */           Macro.UNSUPPORTED("bt2g0yhsy3c7keqyftf3c98ut");
+/* 1018 */           Macro.UNSUPPORTED("c8if0ggdrakzyxyn4fwlc8z2j");
+/* 1019 */           Macro.UNSUPPORTED("30qndpdx39k6rmlgid0k16w53");
+/* 1020 */           Macro.UNSUPPORTED("2uxoapmd0p84jvg4utlai18nj");
+/* 1021 */           Macro.UNSUPPORTED("en0rarvkx5srsxnlqpf6ja1us");
+/* 1022 */           Macro.UNSUPPORTED("9ekmvj13iaml5ndszqyxa8eq");
+/*      */         }
+/* 1024 */         break;
+/*      */       case 'w': 
+/* 1026 */         if (compass.charAt(0) != 0) {
+/* 1027 */           rv = 1;
+/*      */         } else {
+/* 1029 */           if (ictxt != null) {
+/* 1030 */             Macro.UNSUPPORTED("dkdxl90pni5x4m9rsi9l4fkml");
+/*      */           } else
+/* 1032 */             p.x = b.LL.x;
+/* 1033 */           theta = 3.141592653589793D;
+/* 1034 */           constrain = true;
+/* 1035 */           defined = true;
+/* 1036 */           clip = false;
+/* 1037 */           side = sides & 0x8;
+/*      */         }
+/* 1039 */         break;
+/*      */       case 'n': 
+/* 1041 */         p.y = b.UR.y;
+/* 1042 */         constrain = true;
+/* 1043 */         clip = false;
+/* 1044 */         switch (compass.charAt(0)) {
+/*      */         case '\000': 
+/* 1046 */           defined = true;
+/* 1047 */           theta = 1.5707963267948966D;
+/* 1048 */           if (ictxt != null) {
+/* 1049 */             Macro.UNSUPPORTED("6l60lhko2eg8jry5mf4wpknho");
+/*      */           } else
+/* 1051 */             p.x = ctr.x;
+/* 1052 */           side = sides & 0x4;
+/* 1053 */           break;
+/*      */         case 'e': 
+/* 1055 */           Macro.UNSUPPORTED("bfouf47misaa32ulv25melpbm");
+/* 1056 */           Macro.UNSUPPORTED("dpfvfzmxj8yxv0s9b2jrvy1dt");
+/* 1057 */           Macro.UNSUPPORTED("e1jqt6v7gkr0w7anohkdvwzuz");
+/* 1058 */           Macro.UNSUPPORTED("eaiok8sr9qt2m9t35bj1n33vk");
+/* 1059 */           Macro.UNSUPPORTED("7e1uy5mzei37p66t8jp01r3mk");
+/* 1060 */           Macro.UNSUPPORTED("5f4jye7znkk6hbv6lv0l9l0hs");
+/* 1061 */           Macro.UNSUPPORTED("7eo9yj1faco0zq3n56ljnckjl");
+/* 1062 */           Macro.UNSUPPORTED("9ekmvj13iaml5ndszqyxa8eq");
+/*      */         case 'w': 
+/* 1064 */           Macro.UNSUPPORTED("bfouf47misaa32ulv25melpbm");
+/* 1065 */           Macro.UNSUPPORTED("b4rydjq1y842ljagzj3esvilf");
+/* 1066 */           Macro.UNSUPPORTED("e1jqt6v7gkr0w7anohkdvwzuz");
+/* 1067 */           Macro.UNSUPPORTED("aftpsq12rdaiypy81n10uki6g");
+/* 1068 */           Macro.UNSUPPORTED("7e1uy5mzei37p66t8jp01r3mk");
+/* 1069 */           Macro.UNSUPPORTED("e2vcgqbz5sfyjwfyadlmm3s7n");
+/* 1070 */           Macro.UNSUPPORTED("46gsms8looi57wty5vza2s5el");
+/* 1071 */           Macro.UNSUPPORTED("9ekmvj13iaml5ndszqyxa8eq");
+/*      */         default: 
+/* 1073 */           Macro.UNSUPPORTED("c8if0ggdrakzyxyn4fwlc8z2j");
+/* 1074 */           Macro.UNSUPPORTED("30qndpdx39k6rmlgid0k16w53");
+/* 1075 */           Macro.UNSUPPORTED("2uxoapmd0p84jvg4utlai18nj");
+/* 1076 */           Macro.UNSUPPORTED("en0rarvkx5srsxnlqpf6ja1us");
+/* 1077 */           Macro.UNSUPPORTED("9ekmvj13iaml5ndszqyxa8eq");
+/*      */         }
+/* 1079 */         break;
+/*      */       case '_': 
+/* 1081 */         dyna = true;
+/* 1082 */         side = sides;
+/* 1083 */         break;
+/*      */       case 'c': 
+/* 1085 */         Macro.UNSUPPORTED("ai3czg6gaaxspsmndknpyvuiu");
+/*      */       default: 
+/* 1087 */         rv = 1;
+/*      */       }
+/*      */       
+/*      */     }
+/* 1091 */     p.___(geom__c.cwrotatepf(p, 90 * Macro.GD_rankdir(obj__c.agraphof(n))));
+/* 1092 */     if (dyna) {
+/* 1093 */       pp.side = side;
+/*      */     } else
+/* 1095 */       pp.side = invflip_side(side, Macro.GD_rankdir(obj__c.agraphof(n)));
+/* 1096 */     pp.bp = bp;
+/* 1097 */     Macro.PF2P(p, pp.p);
+/* 1098 */     pp.theta = invflip_angle(theta, Macro.GD_rankdir(obj__c.agraphof(n)));
+/* 1099 */     if (p.x == 0.0D && p.y == 0.0D) {
+/* 1100 */       pp.order = 128;
+/*      */     }
+/*      */     else {
+/* 1103 */       double angle = Math.atan2(p.y, p.x) + 4.71238898038469D;
+/* 1104 */       if (angle >= 6.283185307179586D)
+/* 1105 */         angle -= 6.283185307179586D;
+/* 1106 */       pp.order = (int)(256.0D * angle / 6.283185307179586D);
+/*      */     }
+/* 1108 */     pp.constrained = constrain;
+/* 1109 */     pp.defined = defined;
+/* 1110 */     pp.clip = clip;
+/* 1111 */     pp.dyna = dyna;
+/* 1112 */     return rv != 0;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="unrecognized", key="a7copj498to9ai2kxtg728mex", definition="static void unrecognized(node_t * n, char *p)")
+/*      */   public static void unrecognized(ST_Agnode_s n, CString p)
+/*      */   {
+/* 1120 */     SmetanaDebug.ENTERING("a7copj498to9ai2kxtg728mex", "unrecognized");
+/*      */     try {
+/* 1122 */       System.err.println("node %s, port %s unrecognized " + p);
+/*      */     }
+/*      */     finally {
+/* 1125 */       SmetanaDebug.LEAVING("a7copj498to9ai2kxtg728mex", "unrecognized");
+/*      */     }
+/*      */   }
+/*      */   
+/* 1129 */   public static CFunction poly_port = new CFunctionAbstract("poly_port") {
+/*      */     @Override
+/*      */     public Object exe(Globals zz, Object... args) {
+/* 1132 */       return shapes__c.poly_port(zz, (ST_Agnode_s)args[0], (CString)args[1], (CString)args[2]);
+/*      */     }
+/*      */   };
+/*      */   
+/*      */   @Reviewed(when="13/11/2020")
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="poly_port", key="5k2b9gfpwm2tj3zmzniuz9azt", definition="static port poly_port(node_t * n, char *portname, char *compass)")
+/* 1138 */   public static ST_port poly_port(Globals zz, ST_Agnode_s n, CString portname, CString compass) { return poly_port_w_(zz, n, portname, compass).copy(); }
+/*      */   
+/*      */   private static ST_port poly_port_w_(Globals zz, ST_Agnode_s n, CString portname, CString compass) {
+/* 1141 */     SmetanaDebug.ENTERING("5k2b9gfpwm2tj3zmzniuz9azt", "poly_port");
+/*      */     try {
+/* 1143 */       ST_port rv = new ST_port();
+/*      */       
+/* 1145 */       int[] sides = new int[1];
+/*      */       
+/* 1147 */       if (portname.charAt(0) == 0) {
+/* 1148 */         return zz.Center;
+/*      */       }
+/* 1150 */       if (compass == null)
+/* 1151 */         compass = new CString("_");
+/* 1152 */       sides[0] = 15;
+/* 1153 */       ST_inside_t ictxtp; ST_boxf bp; if (Macro.ND_label(n).html && (bp = htmltable__c.html_port(n, portname, sides)) != null) {
+/* 1154 */         Macro.UNSUPPORTED("dl6n43wu7irkeiaxb6wed3388");
+/* 1155 */         Macro.UNSUPPORTED("cw5grwj6gbj94jcztvnp2ooyj");
+/* 1156 */         Macro.UNSUPPORTED("en2xpqtprfng8gmc77dzq7klv");
+/* 1157 */         Macro.UNSUPPORTED("cmo03yl2q1wgn0c1r45y1ay5e");
+/* 1158 */         Macro.UNSUPPORTED("flupwh3kosf3fkhkxllllt1");
+/*      */       } else {
+/* 1160 */         ictxtp = null;
+/* 1161 */         ST_inside_t ictxt = new ST_inside_t();
+/*      */         
+/* 1163 */         if (IS_BOX(zz, n)) {
+/* 1164 */           ictxtp = null;
+/*      */         } else {
+/* 1166 */           Macro.UNSUPPORTED("17pbmb7rfq2rdapm13ww6pefz");
+/* 1167 */           Macro.UNSUPPORTED("etss3zom716xdeasxnytjb8db");
+/* 1168 */           Macro.UNSUPPORTED("89cj6b362bd80f627mp67yjh0");
+/*      */         }
+/* 1170 */         if (compassPort(n, null, rv, portname, sides[0], ictxtp)) {
+/* 1171 */           unrecognized(n, portname);
+/*      */         }
+/*      */       }
+/* 1174 */       return rv;
+/*      */     } finally {
+/* 1176 */       SmetanaDebug.LEAVING("5k2b9gfpwm2tj3zmzniuz9azt", "poly_port");
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */   private static boolean IS_BOX(Globals zz, ST_Agnode_s n)
+/*      */   {
+/* 1183 */     return Macro.ND_shape(n).polygon == zz.p_box;
+/*      */   }
+/*      */   
+/*      */ 
+/* 1187 */   public static CFunction poly_gencode = new CFunctionAbstract("poly_gencode") {
+/*      */     @Override
+/*      */     public Object exe(Globals zz, Object... args) {
+/* 1190 */       return shapes__c.poly_gencode(args);
+/*      */     }
+/*      */   };
+/*      */   
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="poly_gencode", key="1tks71z165dy9pzfshnjejpx3", definition="static void poly_gencode(GVJ_t * job, node_t * n)")
+/*      */   public static Object poly_gencode(Object... arg) {
+/* 1197 */     Macro.UNSUPPORTED("p0x21cs921921juch0sv0bun");
+/* 1198 */     Macro.UNSUPPORTED("erg9i1970wdri39osu8hx2a6e");
+/* 1199 */     Macro.UNSUPPORTED("84llcpxtvxaggx841n2t03850");
+/* 1200 */     Macro.UNSUPPORTED("7b0667dpeiekddi69gpywx92t");
+/* 1201 */     Macro.UNSUPPORTED("behzd4x7hwrpj60ld9ydd6ldw");
+/* 1202 */     Macro.UNSUPPORTED("avlmoeaaigyvssingomxrvja4");
+/* 1203 */     Macro.UNSUPPORTED("1r39xvspssd187ru2ru0hw25i");
+/* 1204 */     Macro.UNSUPPORTED("behdcj4jfqh2lxeud7bvr9dxx");
+/* 1205 */     Macro.UNSUPPORTED("922k2c5xjbw7vuw4vfhavkll9");
+/* 1206 */     Macro.UNSUPPORTED("e26zsspincyfi747lhus7h41b");
+/* 1207 */     Macro.UNSUPPORTED("343gvjl2hbvjb2nrrtcqqetep");
+/* 1208 */     Macro.UNSUPPORTED("55zxkmqgt42k3bgw1g1del41");
+/* 1209 */     Macro.UNSUPPORTED("b80uijjl4g1zjdox5s5vdh8s5");
+/* 1210 */     Macro.UNSUPPORTED("6ciz320nm1jdjxir808cycx3t");
+/* 1211 */     Macro.UNSUPPORTED("7421ua6zgvtho3nwdlh9ypytf");
+/* 1212 */     Macro.UNSUPPORTED("39txqf5jgyh1q10jekeaemag6");
+/* 1213 */     Macro.UNSUPPORTED("bhtcyodd9jiazat6sqhp9pm4x");
+/* 1214 */     Macro.UNSUPPORTED("7pfkga2nn8ltabo2ycvjgma6o");
+/* 1215 */     Macro.UNSUPPORTED("6e7g66eeo7n8h8mq556pt3xxy");
+/* 1216 */     Macro.UNSUPPORTED("8g7o4dsbwgp9ggtiktgt2m41t");
+/* 1217 */     Macro.UNSUPPORTED("c8tk2e711ojwsnar0y39a73cf");
+/* 1218 */     Macro.UNSUPPORTED("e8a863hfpkzgw2w09pemrprir");
+/* 1219 */     Macro.UNSUPPORTED("44eync2gzhkt36aljp0pdxlws");
+/* 1220 */     Macro.UNSUPPORTED("bt0ymhl3qyi2wkx6awwozl8pm");
+/* 1221 */     Macro.UNSUPPORTED("axi5xtmkixooa3vai8uysr8y1");
+/* 1222 */     Macro.UNSUPPORTED("3yzb2exxpwntmjik61bia8qin");
+/* 1223 */     Macro.UNSUPPORTED("6czsf4ed6c2x6qn10dz9vvpc2");
+/* 1224 */     Macro.UNSUPPORTED("4fxnv89xcha2g2jkqjznbfhtl");
+/* 1225 */     Macro.UNSUPPORTED("dvgyxsnyeqqnyzq696k3vskib");
+/* 1226 */     Macro.UNSUPPORTED("65psnpx1lm1txgz684nsf5fy0");
+/* 1227 */     Macro.UNSUPPORTED("1bslo0pyyucx0zmdzt12sei6d");
+/* 1228 */     Macro.UNSUPPORTED("8pq7sdzx1tcm5jiy7gk6k14ru");
+/* 1229 */     Macro.UNSUPPORTED("ebgzy2lbfiijt1acuci7zobbz");
+/* 1230 */     Macro.UNSUPPORTED("6yjfupcwvts03fbmr493ea2ja");
+/* 1231 */     Macro.UNSUPPORTED("92hvfvrwzs8dy1vdgk97mu8rm");
+/* 1232 */     Macro.UNSUPPORTED("e5t9x8qxknm67g2irjuq09m0n");
+/* 1233 */     Macro.UNSUPPORTED("bmfnw21ksvzdvbf1k6jhpy482");
+/* 1234 */     Macro.UNSUPPORTED("4m6zwbkh86axvr0iupq8yqbj");
+/* 1235 */     Macro.UNSUPPORTED("cmymz070zao66wyx1s7tv8pha");
+/* 1236 */     Macro.UNSUPPORTED("3kou17p4mmlejrgnb4ubal4y0");
+/* 1237 */     Macro.UNSUPPORTED("8jkw84z9v2sgxja8neagg70yn");
+/* 1238 */     Macro.UNSUPPORTED("wgi1jlomdsgec9gfae0fj8md");
+/* 1239 */     Macro.UNSUPPORTED("9ihvjyvhnzzz36yb9vxt7ds0x");
+/* 1240 */     Macro.UNSUPPORTED("aak3ib1vf3cr00erxujx1x1a2");
+/* 1241 */     Macro.UNSUPPORTED("1cimazkiwwo2m0abp23m3fnme");
+/* 1242 */     Macro.UNSUPPORTED("4m6zwbkh86axvr0iupq8yqbj");
+/* 1243 */     Macro.UNSUPPORTED("cmymz070zao66wyx1s7tv8pha");
+/* 1244 */     Macro.UNSUPPORTED("28yl28qxl17kdj778ikor38xk");
+/* 1245 */     Macro.UNSUPPORTED("47h1lk49r1o0z3cv330dq6dx");
+/* 1246 */     Macro.UNSUPPORTED("8jkw84z9v2sgxja8neagg70yn");
+/* 1247 */     Macro.UNSUPPORTED("wgi1jlomdsgec9gfae0fj8md");
+/* 1248 */     Macro.UNSUPPORTED("1yfjih723r7l1aal6cgysntu9");
+/* 1249 */     Macro.UNSUPPORTED("aak3ib1vf3cr00erxujx1x1a2");
+/* 1250 */     Macro.UNSUPPORTED("7ksdqin8o1wm9jzsj3vquwpn4");
+/* 1251 */     Macro.UNSUPPORTED("4m6zwbkh86axvr0iupq8yqbj");
+/* 1252 */     Macro.UNSUPPORTED("cmymz070zao66wyx1s7tv8pha");
+/* 1253 */     Macro.UNSUPPORTED("bt3kkty4bxox77ydiwjgsxvdl");
+/* 1254 */     Macro.UNSUPPORTED("8jkw84z9v2sgxja8neagg70yn");
+/* 1255 */     Macro.UNSUPPORTED("wgi1jlomdsgec9gfae0fj8md");
+/* 1256 */     Macro.UNSUPPORTED("8zwfuofs5l5a6z3f4rvlihyw2");
+/* 1257 */     Macro.UNSUPPORTED("aak3ib1vf3cr00erxujx1x1a2");
+/* 1258 */     Macro.UNSUPPORTED("ctvdbytqgb1rzge7ij5ocomx9");
+/* 1259 */     Macro.UNSUPPORTED("4m6zwbkh86axvr0iupq8yqbj");
+/* 1260 */     Macro.UNSUPPORTED("cmymz070zao66wyx1s7tv8pha");
+/* 1261 */     Macro.UNSUPPORTED("2ffts5ygp2gvce89s4zmac21o");
+/* 1262 */     Macro.UNSUPPORTED("8jkw84z9v2sgxja8neagg70yn");
+/* 1263 */     Macro.UNSUPPORTED("wgi1jlomdsgec9gfae0fj8md");
+/* 1264 */     Macro.UNSUPPORTED("c07up7zvrnu2vhzy6d7zcu94g");
+/* 1265 */     Macro.UNSUPPORTED("71lsnu3rvb8q4qjlg8ekkueb8");
+/* 1266 */     Macro.UNSUPPORTED("1ldzvmymblz8y4a6idvyxoj5t");
+/* 1267 */     Macro.UNSUPPORTED("e039lb3amkbtia1p5xid53g8f");
+/* 1268 */     Macro.UNSUPPORTED("5dnga3gh00f4sv4fk1n2iqdgu");
+/* 1269 */     Macro.UNSUPPORTED("12wjuz2zq45txyp39hhco78xu");
+/* 1270 */     Macro.UNSUPPORTED("5o23oun5dlazsaicyjj530pp");
+/* 1271 */     Macro.UNSUPPORTED("ct9w73vq2t9wsony60rgp0vuv");
+/* 1272 */     Macro.UNSUPPORTED("5v31mz0fdr0su096gqov41vyn");
+/* 1273 */     Macro.UNSUPPORTED("5hcjieyymox6ih0mqxtesfkai");
+/* 1274 */     Macro.UNSUPPORTED("cu80xxb02iidme5bgb4b9q03o");
+/* 1275 */     Macro.UNSUPPORTED("5jf506rwz9snq4d6ozpjvg3yg");
+/* 1276 */     Macro.UNSUPPORTED("7rknc7r0egcn3cw68mrvgow3v");
+/* 1277 */     Macro.UNSUPPORTED("7bikp52v1ey2yil3rybx6nris");
+/* 1278 */     Macro.UNSUPPORTED("6t98dcecgbvbvtpycwiq2ynnj");
+/* 1279 */     Macro.UNSUPPORTED("6q044im7742qhglc4553noina");
+/* 1280 */     Macro.UNSUPPORTED("es2lu1zhy5wdeml1v1kmrcix3");
+/* 1281 */     Macro.UNSUPPORTED("6w06em6l23suofe15du0wq9hb");
+/* 1282 */     Macro.UNSUPPORTED("6t98dcecgbvbvtpycwiq2ynnj");
+/* 1283 */     Macro.UNSUPPORTED("flupwh3kosf3fkhkxllllt1");
+/* 1284 */     Macro.UNSUPPORTED("cbyq6e4yotsw91ihtsbpqk9n");
+/* 1285 */     Macro.UNSUPPORTED("e039lb3amkbtia1p5xid53g8f");
+/* 1286 */     Macro.UNSUPPORTED("b39ijeotj91epdulx0zfawqg7");
+/* 1287 */     Macro.UNSUPPORTED("5op945vn3c1cyxwov5p8rj33t");
+/* 1288 */     Macro.UNSUPPORTED("flupwh3kosf3fkhkxllllt1");
+/* 1289 */     Macro.UNSUPPORTED("8k75h069sv2k9b6tgz77dscwd");
+/* 1290 */     Macro.UNSUPPORTED("6hyckgrxm2nsg8cw4hffomldu");
+/* 1291 */     Macro.UNSUPPORTED("flupwh3kosf3fkhkxllllt1");
+/* 1292 */     Macro.UNSUPPORTED("7v8vwyf8talmtwk6o9fv16cu7");
+/* 1293 */     Macro.UNSUPPORTED("dvgyxsnyeqqnyzq696k3vskib");
+/* 1294 */     Macro.UNSUPPORTED("dzz4jp9gamcvlyn9e3vzfb9m5");
+/* 1295 */     Macro.UNSUPPORTED("867znru6ot29tjqobp8dlbw6z");
+/* 1296 */     Macro.UNSUPPORTED("42p7y58vqzgaceefog269961h");
+/* 1297 */     Macro.UNSUPPORTED("15ha366z6aj0vmrwy4kws0mqd");
+/* 1298 */     Macro.UNSUPPORTED("9h0jwzscq5xyee6v8y9a84z5z");
+/* 1299 */     Macro.UNSUPPORTED("dvgyxsnyeqqnyzq696k3vskib");
+/* 1300 */     Macro.UNSUPPORTED("b5y5lqlrrc44k9t418m98208o");
+/* 1301 */     Macro.UNSUPPORTED("3ldxhnwdjmonz5bmmr7t8i5v6");
+/* 1302 */     Macro.UNSUPPORTED("bnlcutimilujroygrsjpbamec");
+/* 1303 */     Macro.UNSUPPORTED("6jkqzav2wqsdxuy5nalny0l8v");
+/* 1304 */     Macro.UNSUPPORTED("7cdu1dtqyaubntomiasv9qnoj");
+/* 1305 */     Macro.UNSUPPORTED("e40xvnbar4dmi82ewqw5laa59");
+/* 1306 */     Macro.UNSUPPORTED("flupwh3kosf3fkhkxllllt1");
+/* 1307 */     Macro.UNSUPPORTED("9dpfyah7h8cjesbm1tagc3qr2");
+/* 1308 */     Macro.UNSUPPORTED("4iafj5ab7zhphfv75axr98xpm");
+/* 1309 */     Macro.UNSUPPORTED("brwfdh2hmhcwxahcpjocmax54");
+/* 1310 */     Macro.UNSUPPORTED("4195dkkxygfup9x2hevx5t0kt");
+/* 1311 */     Macro.UNSUPPORTED("6d80sdeoci13p59wizsvnilpd");
+/* 1312 */     Macro.UNSUPPORTED("3zx9cyeiqls2js359g1ja8px8");
+/* 1313 */     Macro.UNSUPPORTED("6t98dcecgbvbvtpycwiq2ynnj");
+/* 1314 */     Macro.UNSUPPORTED("dzwn73f4njl5hkp0qrnncl2ff");
+/* 1315 */     Macro.UNSUPPORTED("chb5tdwhi8a8xmy8ftheo6824");
+/* 1316 */     Macro.UNSUPPORTED("efwhq15vj62j7hdj6evx064cg");
+/* 1317 */     Macro.UNSUPPORTED("6t98dcecgbvbvtpycwiq2ynnj");
+/* 1318 */     Macro.UNSUPPORTED("aci5r7yyn8mzrv3exe7znstcn");
+/* 1319 */     Macro.UNSUPPORTED("dgwuupvm0kjmgthk4ugim8woz");
+/* 1320 */     Macro.UNSUPPORTED("3x4ndf7fx76diabv9nfllk0b5");
+/* 1321 */     Macro.UNSUPPORTED("4195dkkxygfup9x2hevx5t0kt");
+/* 1322 */     Macro.UNSUPPORTED("6d80sdeoci13p59wizsvnilpd");
+/* 1323 */     Macro.UNSUPPORTED("6t98dcecgbvbvtpycwiq2ynnj");
+/* 1324 */     Macro.UNSUPPORTED("717qv74rlec63ys8natmmpak9");
+/* 1325 */     Macro.UNSUPPORTED("5ueys9z3ukkzz7o4fr6z8tuk0");
+/* 1326 */     Macro.UNSUPPORTED("8ozii45lu97yd30cta30grmf8");
+/* 1327 */     Macro.UNSUPPORTED("oe3tziy2rg7shg7dan61ilfq");
+/* 1328 */     Macro.UNSUPPORTED("9cgcmdbt8qdrnqnvs86u9cd53");
+/* 1329 */     Macro.UNSUPPORTED("fft8g5x7554aunjp9t27mqx6");
+/* 1330 */     Macro.UNSUPPORTED("8t4w6b2lracu2ee6rqqm6r915");
+/* 1331 */     Macro.UNSUPPORTED("858fovk41ca06eamq91gjw7tm");
+/* 1332 */     Macro.UNSUPPORTED("7yhr8hn3r6wohafwxrt85b2j2");
+/* 1333 */     Macro.UNSUPPORTED("oe3tziy2rg7shg7dan61ilfq");
+/* 1334 */     Macro.UNSUPPORTED("flupwh3kosf3fkhkxllllt1");
+/* 1335 */     Macro.UNSUPPORTED("1peuavyjb0rqm2z4fzpf2afzm");
+/* 1336 */     Macro.UNSUPPORTED("arpfq2ay8oyluwsz8s1wp6tp4");
+/* 1337 */     Macro.UNSUPPORTED("dvgyxsnyeqqnyzq696k3vskib");
+/* 1338 */     Macro.UNSUPPORTED("76vwep8b6qm5azc0fy66d98rw");
+/* 1339 */     Macro.UNSUPPORTED("8fhwzyrc8mh95ap0b1g7e9nbq");
+/* 1340 */     Macro.UNSUPPORTED("2v9mlb5rtcmwqpcth7w27clk5");
+/* 1341 */     Macro.UNSUPPORTED("ad1u0yih0rcookfy0x1lsev4d");
+/* 1342 */     Macro.UNSUPPORTED("7eg6kesbmod5ryqil85qa0nhh");
+/* 1343 */     Macro.UNSUPPORTED("avdrph3m5jvu0m9cldtioxy3f");
+/* 1344 */     Macro.UNSUPPORTED("6to1esmb8qfrhzgtr7jdqleja");
+/* 1345 */     Macro.UNSUPPORTED("cmpu4v9yae7spgt5x9vvwycqu");
+/* 1346 */     Macro.UNSUPPORTED("5i5g01dslsnkth7in6u6rbi99");
+/* 1347 */     Macro.UNSUPPORTED("e220s4b8iyyeqjgxmlg5pcdrj");
+/* 1348 */     Macro.UNSUPPORTED("dvgyxsnyeqqnyzq696k3vskib");
+/* 1349 */     Macro.UNSUPPORTED("3btjgija7cfs4jgzrv91fjwpt");
+/* 1350 */     Macro.UNSUPPORTED("9usktstdf8lawthhtrs6s58pm");
+/* 1351 */     Macro.UNSUPPORTED("bnlcutimilujroygrsjpbamec");
+/* 1352 */     Macro.UNSUPPORTED("5dznk69haxedww8ugav5ykrld");
+/* 1353 */     Macro.UNSUPPORTED("7cdu1dtqyaubntomiasv9qnoj");
+/* 1354 */     Macro.UNSUPPORTED("e40xvnbar4dmi82ewqw5laa59");
+/* 1355 */     Macro.UNSUPPORTED("flupwh3kosf3fkhkxllllt1");
+/* 1356 */     Macro.UNSUPPORTED("1xu7you106p030clm45rzsrgc");
+/* 1357 */     Macro.UNSUPPORTED("3sznkjp2q6eryoqsuxyw523pa");
+/* 1358 */     Macro.UNSUPPORTED("dur5g2omz2d8j499p5rr99e0g");
+/* 1359 */     Macro.UNSUPPORTED("ezipi4mltlppyq0tetpgbb2rn");
+/* 1360 */     Macro.UNSUPPORTED("an9w62svq9d61trsclgublxs4");
+/* 1361 */     Macro.UNSUPPORTED("4njt8ngwdhm5t0qj38vd4vx26");
+/* 1362 */     Macro.UNSUPPORTED("dimjpscq5rjb3aaiz8l8gia45");
+/* 1363 */     Macro.UNSUPPORTED("14k7t5gy5xvy3m6y4lllccbyz");
+/* 1364 */     Macro.UNSUPPORTED("6eq5kf0bj692bokt0bixy1ixh");
+/* 1365 */     Macro.UNSUPPORTED("4ey5tpwqvnf3eih51z1ar6wgg");
+/* 1366 */     Macro.UNSUPPORTED("7eygavzyy3od5lurlb1kyvq4q");
+/* 1367 */     Macro.UNSUPPORTED("53tsr41edfe2tdmq1vs4qmoh6");
+/* 1368 */     Macro.UNSUPPORTED("6eq5kf0bj692bokt0bixy1ixh");
+/* 1369 */     Macro.UNSUPPORTED("79b2w9yvj1qj97vqjuf6ff9w0");
+/* 1370 */     Macro.UNSUPPORTED("3x4ndf7fx76diabv9nfllk0b5");
+/* 1371 */     Macro.UNSUPPORTED("4195dkkxygfup9x2hevx5t0kt");
+/* 1372 */     Macro.UNSUPPORTED("6d80sdeoci13p59wizsvnilpd");
+/* 1373 */     Macro.UNSUPPORTED("ctx2lp124btfhy4z6030o2gs");
+/* 1374 */     Macro.UNSUPPORTED("89clftmmkfws4k288i4jas2yb");
+/* 1375 */     Macro.UNSUPPORTED("dk9vlsyutilnikpal5kjamo5x");
+/* 1376 */     Macro.UNSUPPORTED("175pyfe8j8mbhdwvrbx3gmew9");
+/* 1377 */     Macro.UNSUPPORTED("azv3esl3n2c27ol5b9dgx7yrz");
+/* 1378 */     Macro.UNSUPPORTED("6t98dcecgbvbvtpycwiq2ynnj");
+/* 1379 */     Macro.UNSUPPORTED("flupwh3kosf3fkhkxllllt1");
+/* 1380 */     Macro.UNSUPPORTED("8bp2tc15gonvz3x38es3dcmqm");
+/* 1381 */     Macro.UNSUPPORTED("4ob0y29flbn0mu1b6or1pikm");
+/* 1382 */     Macro.UNSUPPORTED("cyozk4ozoaaqkwqvcr0wuavfb");
+/* 1383 */     Macro.UNSUPPORTED("dvgyxsnyeqqnyzq696k3vskib");
+/* 1384 */     Macro.UNSUPPORTED("59de9ohjmjuxis5h2yvc2zjnx");
+/* 1385 */     Macro.UNSUPPORTED("8r8t0lgzzpigm1odig9a9yg1c");
+/* 1386 */     Macro.UNSUPPORTED("amrlpbo0f5svfvv7e9lzhfzj9");
+/* 1387 */     Macro.UNSUPPORTED("4drs7w0v5mk7ys9aylmo5lnq8");
+/* 1388 */     Macro.UNSUPPORTED("12436nj34of615tb94t3cw2h0");
+/* 1389 */     Macro.UNSUPPORTED("2rwb38hipr5rxkwxfdzzwkdmy");
+/* 1390 */     Macro.UNSUPPORTED("4x188hxybttaubn1tt4tf710k");
+/* 1391 */     Macro.UNSUPPORTED("e3o6yrnsv8lko5fql4f8a9gly");
+/* 1392 */     Macro.UNSUPPORTED("dvgyxsnyeqqnyzq696k3vskib");
+/* 1393 */     Macro.UNSUPPORTED("c24nfmv9i7o5eoqaymbibp7m7");
+/*      */     
+/* 1395 */     throw new UnsupportedOperationException();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="free_field", key="1dflsvfaih0mcg1gg4n23v1rg", definition="static void free_field(field_t * f)")
+/*      */   public static Object free_field(Object... arg)
+/*      */   {
+/* 1412 */     Macro.UNSUPPORTED("1w8vqjgpmm3wzxdg86sst9sna");
+/* 1413 */     Macro.UNSUPPORTED("erg9i1970wdri39osu8hx2a6e");
+/* 1414 */     Macro.UNSUPPORTED("b17di9c7wgtqm51bvsyxz6e2f");
+/* 1415 */     Macro.UNSUPPORTED("7zbyipqbl6t75m71to6vrvnmq");
+/* 1416 */     Macro.UNSUPPORTED("44t6o1rhsqwprcg98j3zgbzvz");
+/* 1417 */     Macro.UNSUPPORTED("dvgyxsnyeqqnyzq696k3vskib");
+/* 1418 */     Macro.UNSUPPORTED("8mpeuez5fwrg7hufhlnvpzpk6");
+/* 1419 */     Macro.UNSUPPORTED("9mo450myxof5j4jin03aqpb9n");
+/* 1420 */     Macro.UNSUPPORTED("6onriqqkoxktq7iqg9iiuw1zo");
+/* 1421 */     Macro.UNSUPPORTED("a4v6veu7h0jl3a2wwlxwpdsuw");
+/* 1422 */     Macro.UNSUPPORTED("c24nfmv9i7o5eoqaymbibp7m7");
+/*      */     
+/* 1424 */     throw new UnsupportedOperationException();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="", key="7zxlp1fmrq3zt4fprrtesdbg3", definition="static field_t *parse_reclbl(node_t * n, int LR, int flag, char *text)")
+/*      */   public static ST_field_t parse_reclbl(Globals zz, ST_Agnode_s n, boolean LR, boolean flag, CString text)
+/*      */   {
+/* 1440 */     SmetanaDebug.ENTERING("7zxlp1fmrq3zt4fprrtesdbg3", "parse_reclbl");
+/*      */     try
+/*      */     {
+/* 1443 */       ST_field_t rv = new ST_field_t();
+/* 1444 */       CString psp = null;CString hspsp = null;
+/* 1445 */       CString tmpport = null;
+/*      */       
+/*      */ 
+/* 1448 */       ST_textlabel_t lbl = Macro.ND_label(n);
+/*      */       
+/* 1450 */       ST_field_t fp = null;
+/* 1451 */       CString sp; int maxf; int cnt; for (maxf = 1, cnt = 0, sp = zz.reclblp; sp.charAt(0) != 0; sp = sp.plus_(1)) {
+/* 1452 */         if (sp.charAt(0) == '\\') {
+/* 1453 */           sp = sp.plus_(1);
+/* 1454 */           if (sp.charAt(0) != 0 && (
+/* 1455 */             sp.charAt(0) == '{' || sp.charAt(0) == '}' || sp.charAt(0) == '|' || sp.charAt(0) == '\\'))
+/* 1456 */             Macro.UNSUPPORTED("6hyelvzskqfqa07xtgjtvg2is");
+/*      */         }
+/* 1458 */         if (sp.charAt(0) == '{') {
+/* 1459 */           cnt++;
+/* 1460 */         } else if (sp.charAt(0) == '}') {
+/* 1461 */           cnt--;
+/* 1462 */         } else if (sp.charAt(0) == '|' && cnt == 0)
+/* 1463 */           maxf++;
+/* 1464 */         if (cnt < 0)
+/*      */           break;
+/*      */       }
+/* 1467 */       rv.fld = CArrayOfStar.ALLOC(maxf, ZType.ST_field_t);
+/* 1468 */       rv.LR = LR;
+/* 1469 */       int mode = 0;
+/* 1470 */       int fi = 0;
+/* 1471 */       CString hstsp; CString tsp; hstsp = tsp = text;
+/* 1472 */       boolean wflag = true;
+/* 1473 */       boolean ishardspace = false;
+/* 1474 */       while (wflag) {
+/* 1475 */         if (zz.reclblp.charAt(0) < ' ' && zz.reclblp.charAt(0) != 0) {
+/* 1476 */           zz.reclblp = zz.reclblp.plus_(1);
+/*      */         }
+/*      */         else {
+/* 1479 */           switch (zz.reclblp.charAt(0)) {
+/*      */           case '<': 
+/* 1481 */             if ((mode & 0x6) != 0)
+/* 1482 */               Macro.UNSUPPORTED("7zw1csy7lc9a9gq1nhizs470m");
+/* 1483 */             if (lbl.html)
+/* 1484 */               Macro.UNSUPPORTED("75bwqdnezjvhazmryfatc4819");
+/* 1485 */             mode |= 0x12;
+/* 1486 */             zz.reclblp = zz.reclblp.plus_(1);
+/* 1487 */             hspsp = psp = text;
+/* 1488 */             break;
+/*      */           case '>': 
+/* 1490 */             if (lbl.html)
+/* 1491 */               Macro.UNSUPPORTED("75bwqdnezjvhazmryfatc4819");
+/* 1492 */             if ((mode & 0x10) == 0) {
+/* 1493 */               Macro.UNSUPPORTED("7zw1csy7lc9a9gq1nhizs470m");
+/*      */             }
+/* 1495 */             if (psp.comparePointer(text.plus_(1)) > 0 && psp.plus_(-1).comparePointer(hspsp) != 0 && psp.charAt(-1) == ' ')
+/* 1496 */               Macro.UNSUPPORTED("7v2hf4x5nsnlq1l025dplo0vo");
+/* 1497 */             psp.setCharAt(0, '\000');
+/* 1498 */             tmpport = text.strdup();
+/* 1499 */             mode &= 0xFFFFFFEF;
+/* 1500 */             zz.reclblp = zz.reclblp.plus_(1);
+/* 1501 */             break;
+/*      */           case '{': 
+/* 1503 */             zz.reclblp = zz.reclblp.plus_(1);
+/* 1504 */             if (mode != 0 || zz.reclblp.charAt(0) == 0)
+/* 1505 */               Macro.UNSUPPORTED("7zw1csy7lc9a9gq1nhizs470m");
+/* 1506 */             mode = 4;
+/* 1507 */             rv.fld.set_(fi, parse_reclbl(zz, n, !LR, false, text));
+/* 1508 */             if (rv.fld.get_(fi++) == null) {
+/* 1509 */               Macro.UNSUPPORTED("7zw1csy7lc9a9gq1nhizs470m");
+/*      */             }
+/*      */             break;
+/*      */           case '\000': case '|': 
+/*      */           case '}': 
+/* 1514 */             if (zz.reclblp.charAt(0) == 0 && !flag || (mode & 0x10) != 0)
+/* 1515 */               Macro.UNSUPPORTED("7zw1csy7lc9a9gq1nhizs470m");
+/* 1516 */             if ((mode & 0x4) == 0)
+/*      */             {
+/* 1518 */               fp = new ST_field_t();
+/* 1519 */               rv.fld.set_(fi++, fp);
+/*      */             }
+/* 1521 */             if (tmpport != null) {
+/* 1522 */               fp.id = tmpport;
+/* 1523 */               tmpport = null;
+/*      */             }
+/* 1525 */             if ((mode & 0x5) == 0) {
+/* 1526 */               mode |= 0x1;tsp.setCharAt(0, ' ');tsp = tsp.plus_(1); }
+/* 1527 */             if ((mode & 0x1) != 0) {
+/* 1528 */               if (tsp.comparePointer(text.plus_(1)) > 0 && 
+/* 1529 */                 tsp.plus_(-1).comparePointer(hstsp) != 0 && tsp.charAt(-1) == ' ')
+/* 1530 */                 tsp = tsp.plus_(-1);
+/* 1531 */               tsp.setCharAt(0, '\000');
+/* 1532 */               fp.lp = 
+/* 1533 */                 labels__c.make_label(zz, n, text.strdup(), 
+/* 1534 */                 lbl.html ? 2 : 0, lbl.fontsize, lbl.fontname, lbl.fontcolor);
+/*      */               
+/*      */ 
+/* 1537 */               fp.LR = true;
+/* 1538 */               hstsp = tsp = text;
+/*      */             }
+/* 1540 */             if (zz.reclblp.charAt(0) != 0) {
+/* 1541 */               if (zz.reclblp.charAt(0) == '}') {
+/* 1542 */                 zz.reclblp = zz.reclblp.plus_(1);
+/* 1543 */                 rv.n_flds = fi;
+/* 1544 */                 return rv;
+/*      */               }
+/* 1546 */               mode = 0;
+/* 1547 */               zz.reclblp = zz.reclblp.plus_(1);
+/*      */             } else {
+/* 1549 */               wflag = false; }
+/* 1550 */             break;
+/*      */           case '\\': 
+/* 1552 */             Macro.UNSUPPORTED("3vnixbvvmty9ydvf0l1929gle");
+/* 1553 */             Macro.UNSUPPORTED("bjtxv6n9c9aqzdkik1c6cqbvy");
+/* 1554 */             Macro.UNSUPPORTED("dcc90zmv0256yuz6jtriktl8s");
+/* 1555 */             Macro.UNSUPPORTED("c8cxvsbs7ae3wdjeflwbk3z6u");
+/* 1556 */             Macro.UNSUPPORTED("djkriuw8khnsxfne1jal3yysz");
+/* 1557 */             Macro.UNSUPPORTED("d28blrbmwwqp80cyksuz7dwx9");
+/* 1558 */             Macro.UNSUPPORTED("2qwaphvt2yekkogtyqq0omhut");
+/* 1559 */             Macro.UNSUPPORTED("63p7706g22u4h7m9yealimr3g");
+/* 1560 */             Macro.UNSUPPORTED("dcc90zmv0256yuz6jtriktl8s");
+/* 1561 */             Macro.UNSUPPORTED("6eq5kf0bj692bokt0bixy1ixh");
+/* 1562 */             Macro.UNSUPPORTED("6t98dcecgbvbvtpycwiq2ynnj");
+/* 1563 */             Macro.UNSUPPORTED("dg5yg97t3vto8m73vvwj8jnb2");
+/*      */           
+/*      */           default: 
+/* 1566 */             if ((mode & 0x4) != 0 && zz.reclblp.charAt(0) != ' ')
+/* 1567 */               Macro.UNSUPPORTED("7zw1csy7lc9a9gq1nhizs470m");
+/* 1568 */             if ((mode & 0x18) == 0 && zz.reclblp.charAt(0) != ' ')
+/* 1569 */               mode |= 0x9;
+/* 1570 */             if ((mode & 0x8) != 0) {
+/* 1571 */               if (zz.reclblp.charAt(0) != ' ' || ishardspace || tsp.charAt(-1) != ' ' || lbl.html)
+/*      */               {
+/*      */ 
+/* 1574 */                 tsp.setCharAt(0, zz.reclblp.charAt(0));
+/* 1575 */                 tsp = tsp.plus_(1);
+/*      */               }
+/* 1577 */               if (ishardspace)
+/* 1578 */                 Macro.UNSUPPORTED("atuokfvkmomvi6gvwvpbxggoz");
+/* 1579 */             } else if ((mode & 0x10) != 0) {
+/* 1580 */               if (zz.reclblp.charAt(0) != ' ' || ishardspace || psp != text && 
+/* 1581 */                 psp.charAt(-1) != ' ')
+/*      */               {
+/* 1583 */                 psp.setCharAt(0, zz.reclblp.charAt(0));
+/* 1584 */                 psp = psp.plus_(1);
+/*      */               }
+/* 1586 */               if (ishardspace)
+/* 1587 */                 Macro.UNSUPPORTED("5u5h7cb6egued2g1q7w8yhb1n");
+/*      */             }
+/* 1589 */             zz.reclblp = zz.reclblp.plus_(1);
+/* 1590 */             while ((zz.reclblp.charAt(0) & 0x80) != 0)
+/* 1591 */               Macro.UNSUPPORTED("86nc3qdu6nuyt7u67d0kblb9w");
+/*      */           }
+/*      */         }
+/*      */       }
+/* 1595 */       rv.n_flds = fi;
+/* 1596 */       return rv;
+/*      */     }
+/*      */     finally {
+/* 1599 */       SmetanaDebug.LEAVING("7zxlp1fmrq3zt4fprrtesdbg3", "poly_init");
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Unused
+/*      */   @Doc("?")
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="size_reclbl", key="dwk0rh74bwfd7mky5hg9t1epj", definition="static pointf size_reclbl(node_t * n, field_t * f)")
+/* 1613 */   public static ST_pointf size_reclbl(Globals zz, ST_Agnode_s n, ST_field_t f) { return size_reclbl_(zz, n, f).copy(); }
+/*      */   
+/*      */   private static ST_pointf size_reclbl_(Globals zz, ST_Agnode_s n, ST_field_t f) {
+/* 1616 */     SmetanaDebug.ENTERING("dwk0rh74bwfd7mky5hg9t1epj", "size_reclbl_");
+/*      */     
+/*      */ 
+/*      */     try
+/*      */     {
+/* 1621 */       ST_pointf d = new ST_pointf();ST_pointf d0 = new ST_pointf();
+/* 1622 */       ST_pointf dimen = new ST_pointf();
+/* 1623 */       if (f.lp != null) {
+/* 1624 */         dimen.___(f.lp.dimen);
+/*      */         CString p;
+/* 1626 */         if ((dimen.x > 0.0D || dimen.y > 0.0D) && 
+/*      */         
+/* 1628 */           (p = attr__c.agget(zz, n, new CString("margin"))) != null) {
+/* 1629 */           Macro.UNSUPPORTED("bfyy3iw4z9ebf4m89x69tn1eb");
+/* 1630 */           Macro.UNSUPPORTED("ebo7omz8ev8wu69ub10b4o890");
+/* 1631 */           Macro.UNSUPPORTED("efcgckeemzkbxh32pc2qcdv0d");
+/* 1632 */           Macro.UNSUPPORTED("c755n9x3n7022hjjg8hanklib");
+/* 1633 */           Macro.UNSUPPORTED("2az12nq89f7txcsfmqdj8tly1");
+/* 1634 */           Macro.UNSUPPORTED("9acag2yacl63g8rg6r1alu62x");
+/* 1635 */           Macro.UNSUPPORTED("2az12nq89f7txcsfmqdj8tly1");
+/* 1636 */           Macro.UNSUPPORTED("738mi6h8ef0itznt34ngxe25o");
+/* 1637 */           Macro.UNSUPPORTED("b12tl2a8tebl71ewuz3jms9jv");
+/*      */         }
+/*      */         
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/* 1648 */         d.___(dimen);
+/*      */       } else {
+/* 1650 */         d.x = d.y = 0.0D;
+/* 1651 */         for (int i = 0; i < f.n_flds; i++) {
+/* 1652 */           d0.___(size_reclbl(zz, n, (ST_field_t)f.fld.get_(i)));
+/* 1653 */           if (f.LR) {
+/* 1654 */             d.x += d0.x;
+/* 1655 */             d.y = Math.max(d.y, d0.y);
+/*      */           } else {
+/* 1657 */             d.y += d0.y;
+/* 1658 */             d.x = Math.max(d.x, d0.x);
+/*      */           }
+/*      */         }
+/*      */       }
+/* 1662 */       f.size.___(d);
+/* 1663 */       return d;
+/*      */     } finally {
+/* 1665 */       SmetanaDebug.LEAVING("dwk0rh74bwfd7mky5hg9t1epj", "size_reclbl");
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="resize_reclbl", key="blo8etwhtlcsld8ox0vryznfw", definition="static void resize_reclbl(field_t * f, pointf sz, int nojustify_p)")
+/* 1678 */   public static void resize_reclbl(ST_field_t f, ST_pointf sz, boolean nojustify_p) { resize_reclbl_(f, sz.copy(), nojustify_p); }
+/*      */   
+/*      */   private static void resize_reclbl_(ST_field_t f, ST_pointf sz, boolean nojustify_p) {
+/* 1681 */     SmetanaDebug.ENTERING("blo8etwhtlcsld8ox0vryznfw", "resize_reclbl");
+/*      */     try
+/*      */     {
+/* 1684 */       double inc = 0.0D;
+/* 1685 */       ST_pointf d = new ST_pointf();
+/* 1686 */       ST_pointf newsz = new ST_pointf();
+/*      */       
+/*      */ 
+/* 1689 */       sz.x -= f.size.x;
+/* 1690 */       sz.y -= f.size.y;
+/* 1691 */       f.size.___(sz);
+/*      */       
+/* 1693 */       if (f.lp != null && !nojustify_p) {
+/* 1694 */         f.lp.space.x += d.x;
+/* 1695 */         f.lp.space.y += d.y;
+/*      */       }
+/*      */       
+/* 1698 */       if (f.n_flds != 0) {
+/* 1699 */         if (f.LR) {
+/* 1700 */           inc = d.x / f.n_flds;
+/*      */         } else
+/* 1702 */           inc = d.y / f.n_flds;
+/* 1703 */         for (int i = 0; i < f.n_flds; i++) {
+/* 1704 */           ST_field_t sf = (ST_field_t)f.fld.get_(i);
+/* 1705 */           int amt = (int)((i + 1) * inc) - (int)(i * inc);
+/* 1706 */           if (f.LR) {
+/* 1707 */             newsz.___(ST_pointf.pointfof(sf.size.x + amt, sz.y));
+/*      */           } else
+/* 1709 */             newsz.___(ST_pointf.pointfof(sz.x, sf.size.y + amt));
+/* 1710 */           resize_reclbl(sf, newsz, nojustify_p);
+/*      */         }
+/*      */       }
+/*      */     } finally {
+/* 1714 */       SmetanaDebug.LEAVING("blo8etwhtlcsld8ox0vryznfw", "resize_reclbl");
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="pos_reclbl", key="ds4v2i9xw0hm4y53ggbt8z2yk", definition="static void pos_reclbl(field_t * f, pointf ul, int sides)")
+/* 1727 */   public static void pos_reclbl(ST_field_t f, ST_pointf ul, int sides) { pos_reclbl_(f, ul.copy(), sides); }
+/*      */   
+/*      */   private static void pos_reclbl_(ST_field_t f, ST_pointf ul, int sides) {
+/* 1730 */     int mask = 0;
+/* 1731 */     f.sides = sides;
+/* 1732 */     f.b.LL.___(ST_pointf.pointfof(ul.x, ul.y - f.size.y));
+/* 1733 */     f.b.UR.___(ST_pointf.pointfof(ul.x + f.size.x, ul.y));
+/* 1734 */     int last = f.n_flds - 1;
+/* 1735 */     for (int i = 0; i <= last; i++) {
+/* 1736 */       if (sides != 0) {
+/* 1737 */         if (f.LR) {
+/* 1738 */           if (i == 0) {
+/* 1739 */             if (i == last) {
+/* 1740 */               mask = 15;
+/*      */             } else
+/* 1742 */               mask = 13;
+/* 1743 */           } else if (i == last) {
+/* 1744 */             mask = 7;
+/*      */           } else {
+/* 1746 */             mask = 5;
+/*      */           }
+/* 1748 */         } else if (i == 0) {
+/* 1749 */           if (i == last) {
+/* 1750 */             Macro.UNSUPPORTED("rvq6ubzk0rezd88243ailv84");
+/*      */           } else
+/* 1752 */             mask = 14;
+/* 1753 */         } else if (i == last) {
+/* 1754 */           mask = 11;
+/*      */         } else {
+/* 1756 */           mask = 10;
+/*      */         }
+/*      */       } else
+/* 1759 */         mask = 0;
+/* 1760 */       pos_reclbl((ST_field_t)f.fld.get_(i), ul, sides & mask);
+/* 1761 */       if (f.LR) {
+/* 1762 */         ul.x += ((ST_field_t)f.fld.get_(i)).size.x;
+/*      */       } else {
+/* 1764 */         ul.y -= ((ST_field_t)f.fld.get_(i)).size.y;
+/*      */       }
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/* 1770 */   public static CFunction record_init = new CFunctionAbstract("record_init") {
+/*      */     @Override
+/*      */     public Object exe(Globals zz, Object... args) {
+/* 1773 */       shapes__c.record_init(zz, (ST_Agnode_s)args[0]);
+/* 1774 */       return null;
+/*      */     }
+/*      */   };
+/*      */   
+/*      */   @Unused
+/*      */   @Doc("Init 'record' node")
+/*      */   @Reviewed(when="02/12/2020")
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="record_init", key="h2lcuthzwljbcjwdeidw1jiv", definition="static void record_init(node_t * n)")
+/* 1782 */   public static void record_init(Globals zz, ST_Agnode_s n) { SmetanaDebug.ENTERING("h2lcuthzwljbcjwdeidw1jiv", "record_init");
+/*      */     try
+/*      */     {
+/* 1785 */       ST_pointf ul = new ST_pointf();ST_pointf sz = new ST_pointf();
+/*      */       
+/*      */ 
+/*      */ 
+/*      */ 
+/* 1790 */       int sides = 15;
+/*      */       
+/* 1792 */       boolean flip = Macro.GD_realflip(obj__c.agraphof(n)) == 0;
+/* 1793 */       zz.reclblp = Macro.ND_label(n).text;
+/* 1794 */       int len = zz.reclblp.length();
+/*      */       
+/*      */ 
+/*      */ 
+/* 1798 */       len = Math.max(len, 1);
+/* 1799 */       CString textbuf = CString.gmalloc(len + 1);
+/* 1800 */       ST_field_t info; if ((info = parse_reclbl(zz, n, flip, true, textbuf)) == null) {
+/* 1801 */         Macro.UNSUPPORTED("7iezaksu9hyxhmv3r4cp4o529");
+/* 1802 */         Macro.UNSUPPORTED("8f1id7rqm71svssnxbjo0uwcu");
+/* 1803 */         Macro.UNSUPPORTED("2wv3zfqhq53941rwk4vu9p9th");
+/*      */       }
+/* 1805 */       Memory.free(textbuf);
+/* 1806 */       size_reclbl(zz, n, info);
+/* 1807 */       sz.x = Macro.POINTS(Macro.ND_width(n));
+/* 1808 */       sz.y = Macro.POINTS(Macro.ND_height(n));
+/* 1809 */       if (utils__c.mapbool(utils__c.late_string(n, zz.N_fixed, new CString("false")))) {
+/* 1810 */         Macro.UNSUPPORTED("8iu51xbtntpdf5sc00g91djym");
+/* 1811 */         Macro.UNSUPPORTED("4vs5u30jzsrn6fpjd327xjf7r");
+/* 1812 */         Macro.UNSUPPORTED("7k6yytek9nu1ihxix2880667g");
+/* 1813 */         Macro.UNSUPPORTED("bnetqzovnscxile7ao44kc0qd");
+/* 1814 */         Macro.UNSUPPORTED("flupwh3kosf3fkhkxllllt1");
+/*      */       } else {
+/* 1816 */         sz.x = Math.max(info.size.x, sz.x);
+/* 1817 */         sz.y = Math.max(info.size.y, sz.y);
+/*      */       }
+/* 1819 */       resize_reclbl(info, sz, utils__c.mapbool(utils__c.late_string(n, zz.N_nojustify, new CString("false"))));
+/* 1820 */       ul.___(ST_pointf.pointfof(-sz.x / 2.0D, sz.y / 2.0D));
+/* 1821 */       pos_reclbl(info, ul, sides);
+/* 1822 */       Macro.ND_width(n, Macro.PS2INCH(info.size.x));
+/* 1823 */       Macro.ND_height(n, Macro.PS2INCH(info.size.y + 1.0D));
+/*      */       
+/* 1825 */       Macro.ND_shape_info(n, info);
+/*      */     } finally {
+/* 1827 */       SmetanaDebug.LEAVING("h2lcuthzwljbcjwdeidw1jiv", "poly_init");
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/* 1834 */   public static CFunction record_free = new CFunctionAbstract("record_free")
+/*      */   {
+/*      */     @Override
+/* 1837 */     public Object exe(Globals zz, Object... args) { return shapes__c.record_free(args); }
+/*      */   };
+/*      */   
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="record_free", key="1lq2tksbz3nzqw9c3xqfs4ymf", definition="static void record_free(node_t * n)")
+/* 1842 */   public static Object record_free(Object... arg_) { Macro.UNSUPPORTED("8anx9p03jsmcuhguyzf7q6qe3");
+/* 1843 */     Macro.UNSUPPORTED("erg9i1970wdri39osu8hx2a6e");
+/* 1844 */     Macro.UNSUPPORTED("aiplewsp8j9h5b1bokpivfnqv");
+/* 1845 */     Macro.UNSUPPORTED("cn1q1h4lwj1gctn9nim9hdhpt");
+/* 1846 */     Macro.UNSUPPORTED("c24nfmv9i7o5eoqaymbibp7m7");
+/*      */     
+/* 1848 */     throw new UnsupportedOperationException();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="", key="a005gfg4ujp2d29bpdrtowla0", definition="static field_t *map_rec_port(field_t * f, char *str)")
+/*      */   public static ST_field_t map_rec_port(ST_field_t f, CString str)
+/*      */   {
+/* 1859 */     ST_field_t rv = null;
+/*      */     
+/* 1861 */     if (f.id != null && f.id.isSame(str)) {
+/* 1862 */       rv = f;
+/*      */     } else {
+/* 1864 */       rv = null;
+/* 1865 */       for (int sub = 0; sub < f.n_flds; sub++)
+/* 1866 */         if ((rv = map_rec_port((ST_field_t)f.fld.get_(sub), str)) != null)
+/*      */           break;
+/*      */     }
+/* 1869 */     return rv;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/* 1876 */   public static CFunction record_port = new CFunctionAbstract("record_port") {
+/*      */     @Override
+/*      */     public Object exe(Globals zz, Object... args) {
+/* 1879 */       return shapes__c.record_port(zz, (ST_Agnode_s)args[0], (CString)args[1], (CString)args[2]);
+/*      */     }
+/*      */   };
+/*      */   
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="record_port", key="chsi0jlfodruvkjj5dlrv5ur3", definition="static port record_port(node_t * n, char *portname, char *compass)")
+/*      */   public static ST_port record_port(Globals zz, ST_Agnode_s n, CString portname, CString compass) {
+/* 1886 */     ST_port rv = new ST_port();
+/*      */     
+/* 1888 */     if (portname.charAt(0) == 0)
+/* 1889 */       return zz.Center;
+/* 1890 */     int sides = 15;
+/* 1891 */     if (compass == null)
+/* 1892 */       compass = new CString("_");
+/* 1893 */     ST_field_t f = (ST_field_t)Macro.ND_shape_info(n);
+/* 1894 */     ST_field_t subf; if ((subf = map_rec_port(f, portname)) != null) {
+/* 1895 */       if (compassPort(n, subf.b, rv, compass, subf.sides, null)) {
+/* 1896 */         Macro.UNSUPPORTED("cw5grwj6gbj94jcztvnp2ooyj");
+/* 1897 */         Macro.UNSUPPORTED("en2xpqtprfng8gmc77dzq7klv");
+/* 1898 */         Macro.UNSUPPORTED("cmo03yl2q1wgn0c1r45y1ay5e");
+/*      */       }
+/* 1900 */     } else if (compassPort(n, f.b, rv, portname, sides, null)) {
+/* 1901 */       unrecognized(n, portname);
+/*      */     }
+/* 1903 */     return rv;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/* 1909 */   public static CFunction record_inside = new CFunctionAbstract("record_inside") {
+/*      */     @Override
+/*      */     public Object exe(Globals zz, Object... args) {
+/* 1912 */       return Boolean.valueOf(shapes__c.record_inside((ST_inside_t)args[0], (ST_pointf)args[1]));
+/*      */     }
+/*      */   };
+/*      */   
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="record_inside", key="1f7b6eq3csywqv96raw75jqxr", definition="static boolean record_inside(inside_t * inside_context, pointf p)")
+/* 1918 */   public static boolean record_inside(ST_inside_t inside_context, ST_pointf p) { return record_inside_(inside_context, p.copy()); }
+/*      */   
+/*      */   private static boolean record_inside_(ST_inside_t inside_context, ST_pointf p) {
+/* 1921 */     SmetanaDebug.ENTERING("1f7b6eq3csywqv96raw75jqxr", "record_inside_");
+/*      */     try
+/*      */     {
+/* 1924 */       ST_boxf bp = inside_context.s_bp;
+/* 1925 */       ST_Agnode_s n = inside_context.s_n;
+/* 1926 */       ST_boxf bbox = new ST_boxf();
+/*      */       
+/* 1928 */       p.___(geom__c.ccwrotatepf(p, 90 * Macro.GD_rankdir(obj__c.agraphof(n))));
+/* 1929 */       if (bp == null) {
+/* 1930 */         ST_field_t fld0 = (ST_field_t)Macro.ND_shape_info(n);
+/* 1931 */         bbox.___(fld0.b);
+/*      */       } else {
+/* 1933 */         bbox.___(bp); }
+/* 1934 */       return Macro.INSIDE(p, bbox);
+/*      */     } finally {
+/* 1936 */       SmetanaDebug.LEAVING("1f7b6eq3csywqv96raw75jqxr", "record_inside_");
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/* 1943 */   public static CFunction record_path = new CFunctionAbstract("record_path")
+/*      */   {
+/*      */     @Override
+/* 1946 */     public Object exe(Globals zz, Object... args) { return Integer.valueOf(shapes__c.record_path((ST_Agnode_s)args[0], (ST_port)args[1], ((Integer)args[2]).intValue(), (ST_boxf)args[3], (int[])args[4])); }
+/*      */   };
+/*      */   
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="record_path", key="3p54k8x2kyueort8kj41qvkty", definition="static int record_path(node_t * n, port * prt, int side, boxf rv[], \t\t       int *kptr)")
+/* 1951 */   public static int record_path(ST_Agnode_s n, ST_port prt, int side, ST_boxf rv, int[] kptr) { int ls = 0;int rs = 0;
+/* 1952 */     ST_pointf p = new ST_pointf();
+/*      */     
+/* 1954 */     if (!prt.defined)
+/* 1955 */       return 0;
+/* 1956 */     p.___(prt.p);
+/* 1957 */     ST_field_t info = (ST_field_t)Macro.ND_shape_info(n);
+/* 1958 */     for (int i = 0; i < info.n_flds; i++) {
+/* 1959 */       if (!Macro.GD_flip(obj__c.agraphof(n))) {
+/* 1960 */         ls = (int)((ST_field_t)info.fld.get_(i)).b.LL.x;
+/* 1961 */         rs = (int)((ST_field_t)info.fld.get_(i)).b.UR.x;
+/*      */       } else {
+/* 1963 */         Macro.UNSUPPORTED("dm9w81fxfdqc5bhtaimpbisvl");
+/* 1964 */         Macro.UNSUPPORTED("3sqtp996aa7m19wv9gwkrvav1");
+/*      */       }
+/* 1966 */       if (!Macro.BETWEEN(ls, p.x, rs))
+/*      */         continue;
+/* 1968 */       if (Macro.GD_flip(obj__c.agraphof(n))) {
+/* 1969 */         Macro.UNSUPPORTED("8p9z8b0nypgkzi1b3k7sx0fyz");
+/*      */       } else {
+/* 1971 */         rv.LL.x = Macro.ND_coord(n).x + ls;
+/* 1972 */         rv.LL.y = Macro.ND_coord(n).y - Macro.ND_ht(n) / 2.0D;
+/* 1973 */         rv.UR.x = Macro.ND_coord(n).x + rs;
+/*      */       }
+/* 1975 */       rv.UR.y = Macro.ND_coord(n).y + Macro.ND_ht(n) / 2.0D;
+/* 1976 */       kptr[0] = 1;
+/* 1977 */       break;
+/*      */     }
+/*      */     
+/* 1980 */     return side;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/* 1986 */   public static CFunction record_gencode = new CFunctionAbstract("record_gencode")
+/*      */   {
+/*      */     @Override
+/* 1989 */     public Object exe(Globals zz, Object... args) { return shapes__c.record_gencode(args); }
+/*      */   };
+/*      */   
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="record_gencode", key="3bum3y2gmowozskwp7e492wm7", definition="static void record_gencode(GVJ_t * job, node_t * n)")
+/* 1994 */   public static Object record_gencode(Object... arg) { Macro.UNSUPPORTED("cpq4ylwlb0lwi7ibim51gndor");
+/* 1995 */     Macro.UNSUPPORTED("erg9i1970wdri39osu8hx2a6e");
+/* 1996 */     Macro.UNSUPPORTED("84llcpxtvxaggx841n2t03850");
+/* 1997 */     Macro.UNSUPPORTED("bzz7vodjegzgwxp8jzgkq3uti");
+/* 1998 */     Macro.UNSUPPORTED("en6q26cyrg17g6yd6el73b3ns");
+/* 1999 */     Macro.UNSUPPORTED("b89hspuulkkzgmrj59tfy2fus");
+/* 2000 */     Macro.UNSUPPORTED("30fmp9xlabtd67je318axlfiy");
+/* 2001 */     Macro.UNSUPPORTED("6ciz320nm1jdjxir808cycx3t");
+/* 2002 */     Macro.UNSUPPORTED("3ml0gugucwlbwt5mbcdlymm8b");
+/* 2003 */     Macro.UNSUPPORTED("bhtcyodd9jiazat6sqhp9pm4x");
+/* 2004 */     Macro.UNSUPPORTED("9xovezi85vdgw8han4h0wr87s");
+/* 2005 */     Macro.UNSUPPORTED("arohpr2hcj50a0nm6wiegz75n");
+/* 2006 */     Macro.UNSUPPORTED("9dwww64wl2oaucxyyhoa2u5op");
+/* 2007 */     Macro.UNSUPPORTED("eqak8167f3whj617r6180val");
+/* 2008 */     Macro.UNSUPPORTED("3u5f15d4i1cs3igvot9majw8n");
+/* 2009 */     Macro.UNSUPPORTED("18gannqx4rafy1juoif3uog1p");
+/* 2010 */     Macro.UNSUPPORTED("7pfkga2nn8ltabo2ycvjgma6o");
+/* 2011 */     Macro.UNSUPPORTED("6e7g66eeo7n8h8mq556pt3xxy");
+/* 2012 */     Macro.UNSUPPORTED("8g7o4dsbwgp9ggtiktgt2m41t");
+/* 2013 */     Macro.UNSUPPORTED("c8tk2e711ojwsnar0y39a73cf");
+/* 2014 */     Macro.UNSUPPORTED("6yjfupcwvts03fbmr493ea2ja");
+/* 2015 */     Macro.UNSUPPORTED("5qxdje5wxqq1c9786htlyohkx");
+/* 2016 */     Macro.UNSUPPORTED("92hvfvrwzs8dy1vdgk97mu8rm");
+/* 2017 */     Macro.UNSUPPORTED("a0xb2wsthoxt62j0aks4aht13");
+/* 2018 */     Macro.UNSUPPORTED("64vz86w7mg90duu37ik1bcm8m");
+/* 2019 */     Macro.UNSUPPORTED("4xv0cmpfa4sol0pqmfumr0rnm");
+/* 2020 */     Macro.UNSUPPORTED("dily1m3rwbo5mniq7aneh3qhu");
+/* 2021 */     Macro.UNSUPPORTED("5m1l4f0yk2x1r9n00p7xoarhk");
+/* 2022 */     Macro.UNSUPPORTED("850qgpdnne96gxnh244hf2rh2");
+/* 2023 */     Macro.UNSUPPORTED("m1ck996y4kjzra9yxa5gif68");
+/* 2024 */     Macro.UNSUPPORTED("f3qa0cv737ikcre1vpqlkukio");
+/* 2025 */     Macro.UNSUPPORTED("72n9vguy2n416qggkz5tpz279");
+/* 2026 */     Macro.UNSUPPORTED("5dn7m0lqq174sxj9ezr6p8anp");
+/* 2027 */     Macro.UNSUPPORTED("s4xfcz4il9k9jw0w0dh9lzpj");
+/* 2028 */     Macro.UNSUPPORTED("5c97f6vfxny0zz35l2bu4maox");
+/* 2029 */     Macro.UNSUPPORTED("1ijl60mqfpjns1tss115yw4zp");
+/* 2030 */     Macro.UNSUPPORTED("flupwh3kosf3fkhkxllllt1");
+/* 2031 */     Macro.UNSUPPORTED("8k75h069sv2k9b6tgz77dscwd");
+/* 2032 */     Macro.UNSUPPORTED("7ek7aftv8z293izx886r01oqm");
+/* 2033 */     Macro.UNSUPPORTED("pufcu1p86jfo891eaibok4yb");
+/* 2034 */     Macro.UNSUPPORTED("flupwh3kosf3fkhkxllllt1");
+/* 2035 */     Macro.UNSUPPORTED("dvgyxsnyeqqnyzq696k3vskib");
+/* 2036 */     Macro.UNSUPPORTED("53gluhbrz2oi6qw7sff0fb0hj");
+/* 2037 */     Macro.UNSUPPORTED("a80jadmfy336hxiquc1baf16m");
+/* 2038 */     Macro.UNSUPPORTED("6iazzglp38g7uxmnloiwk5ilq");
+/* 2039 */     Macro.UNSUPPORTED("gn97uo130dzjs4b5bnhnvlsq");
+/* 2040 */     Macro.UNSUPPORTED("5rrbml0v0bc8c6x2ddgjh75p1");
+/* 2041 */     Macro.UNSUPPORTED("8ctty3poiybj8vyrg3fy6s4ju");
+/* 2042 */     Macro.UNSUPPORTED("bqdx8e632ko1pofmr5b91xpmh");
+/* 2043 */     Macro.UNSUPPORTED("7gb7yo735gfv67doxjnyl8av7");
+/* 2044 */     Macro.UNSUPPORTED("7w69hwqpw5l9f1rsaolr1ytmx");
+/* 2045 */     Macro.UNSUPPORTED("cg5ir4ssc1l9d4x56swq1rw0k");
+/* 2046 */     Macro.UNSUPPORTED("7gm0bhmoegfvu3uf7hnwfae67");
+/* 2047 */     Macro.UNSUPPORTED("c07up7zvrnu2vhzy6d7zcu94g");
+/* 2048 */     Macro.UNSUPPORTED("5sf771cxqfrvdu2vzl3t1687e");
+/* 2049 */     Macro.UNSUPPORTED("dvgyxsnyeqqnyzq696k3vskib");
+/* 2050 */     Macro.UNSUPPORTED("9rksrkk1y26l0lgodpusjgg6r");
+/* 2051 */     Macro.UNSUPPORTED("ovdkxg0m1si7d9k8lawdnq");
+/* 2052 */     Macro.UNSUPPORTED("amrlpbo0f5svfvv7e9lzhfzj9");
+/* 2053 */     Macro.UNSUPPORTED("4drs7w0v5mk7ys9aylmo5lnq8");
+/* 2054 */     Macro.UNSUPPORTED("12436nj34of615tb94t3cw2h0");
+/* 2055 */     Macro.UNSUPPORTED("2rwb38hipr5rxkwxfdzzwkdmy");
+/* 2056 */     Macro.UNSUPPORTED("4x188hxybttaubn1tt4tf710k");
+/* 2057 */     Macro.UNSUPPORTED("e3o6yrnsv8lko5fql4f8a9gly");
+/* 2058 */     Macro.UNSUPPORTED("dvgyxsnyeqqnyzq696k3vskib");
+/* 2059 */     Macro.UNSUPPORTED("c24nfmv9i7o5eoqaymbibp7m7");
+/*      */     
+/* 2061 */     throw new UnsupportedOperationException();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="", key="35sn43hohjmtc7uvkjrx6u7jt", definition="shape_desc *find_user_shape(const char *name)")
+/*      */   public static Object find_user_shape(Object... arg)
+/*      */   {
+/* 2080 */     Macro.UNSUPPORTED("dn82ttgu4gvl5nnzl8cu29o63");
+/* 2081 */     Macro.UNSUPPORTED("erg9i1970wdri39osu8hx2a6e");
+/* 2082 */     Macro.UNSUPPORTED("b17di9c7wgtqm51bvsyxz6e2f");
+/* 2083 */     Macro.UNSUPPORTED("757gomzjey403egq882hclnn0");
+/* 2084 */     Macro.UNSUPPORTED("30x6ygp0c6pjoq410g7sbl3lv");
+/* 2085 */     Macro.UNSUPPORTED("3ka0imewegdrxvt7cdk37mqgj");
+/* 2086 */     Macro.UNSUPPORTED("5eh2ibmiqg7qx9z5fvoxfnfyo");
+/* 2087 */     Macro.UNSUPPORTED("flupwh3kosf3fkhkxllllt1");
+/* 2088 */     Macro.UNSUPPORTED("dvgyxsnyeqqnyzq696k3vskib");
+/* 2089 */     Macro.UNSUPPORTED("o68dp934ebg4cplebgc5hv4v");
+/* 2090 */     Macro.UNSUPPORTED("c24nfmv9i7o5eoqaymbibp7m7");
+/*      */     
+/* 2092 */     throw new UnsupportedOperationException();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */   @Reviewed(when="12/11/2020")
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="", key="bmt148wdf0a7gslm7hmp043jy", definition="shape_desc *bind_shape(char *name, node_t * np)")
+/*      */   public static ST_shape_desc bind_shape(Globals zz, CString name, ST_Agnode_s np)
+/*      */   {
+/* 2101 */     SmetanaDebug.ENTERING("bmt148wdf0a7gslm7hmp043jy", "bind_shape");
+/*      */     try {
+/* 2103 */       ST_shape_desc rv = null;
+/*      */       
+/*      */ 
+/* 2106 */       CString str = utils__c.safefile(attr__c.agget(zz, np, new CString("shapefile")));
+/*      */       
+/* 2108 */       if (str != null && Macro.UNSUPPORTED("!(*(name)==*(\"epsf\")&&!strcmp(name,\"epsf\"))") != null)
+/* 2109 */         name = new CString("custom");
+/* 2110 */       if (name.charAt(0) != 'c' || JUtils.strcmp(name, new CString("custom")) != 0) {
+/* 2111 */         for (ST_shape_desc ptr : zz.Shapes) {
+/* 2112 */           if (JUtils.strcmp(ptr.name, name) == 0) {
+/* 2113 */             rv = ptr;
+/* 2114 */             break;
+/*      */           }
+/*      */         }
+/*      */       }
+/* 2118 */       if (rv == null)
+/* 2119 */         Macro.UNSUPPORTED("7funuix8h6nhe6fqrjsec3kvk");
+/* 2120 */       return rv;
+/*      */     } finally {
+/* 2122 */       SmetanaDebug.LEAVING("bmt148wdf0a7gslm7hmp043jy", "bind_shape");
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="epsf_inside", key="9n2zfdpzi6zgvnhcb3kz7nw1u", definition="static boolean epsf_inside(inside_t * inside_context, pointf p)")
+/*      */   public static Object epsf_inside(Object... arg)
+/*      */   {
+/* 2134 */     Macro.UNSUPPORTED("cq9kgtgzrb9sazy7y2fpt859x");
+/* 2135 */     Macro.UNSUPPORTED("erg9i1970wdri39osu8hx2a6e");
+/* 2136 */     Macro.UNSUPPORTED("7lh87lvufqsd73q9difg0omei");
+/* 2137 */     Macro.UNSUPPORTED("9ikeydfq03qx7m09iencqsk36");
+/* 2138 */     Macro.UNSUPPORTED("d8oppi8gt9b4eaonkdgb7a54l");
+/* 2139 */     Macro.UNSUPPORTED("823iiqtx9pt0gijqrohrd3zx7");
+/* 2140 */     Macro.UNSUPPORTED("6uktb6bwhvglg7v3nygillmqx");
+/* 2141 */     Macro.UNSUPPORTED("3gki5ta81e51de9h4b5nvmoij");
+/* 2142 */     Macro.UNSUPPORTED("3bzok6rkdjzamkk155dcqc8n2");
+/* 2143 */     Macro.UNSUPPORTED("c24nfmv9i7o5eoqaymbibp7m7");
+/*      */     
+/* 2145 */     throw new UnsupportedOperationException();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="epsf_gencode", key="6xv85fky6n2v03mt0dbvpz05e", definition="static void epsf_gencode(GVJ_t * job, node_t * n)")
+/*      */   public static Object epsf_gencode(Object... arg)
+/*      */   {
+/* 2156 */     Macro.UNSUPPORTED("4mtkoc5bwv0wkraw1xv9ptjlo");
+/* 2157 */     Macro.UNSUPPORTED("erg9i1970wdri39osu8hx2a6e");
+/* 2158 */     Macro.UNSUPPORTED("84llcpxtvxaggx841n2t03850");
+/* 2159 */     Macro.UNSUPPORTED("31b47kcwg6z2ds4cugdfq5hft");
+/* 2160 */     Macro.UNSUPPORTED("6ciz320nm1jdjxir808cycx3t");
+/* 2161 */     Macro.UNSUPPORTED("7wygkmvhwjn2l2fmpw5bj1o6g");
+/* 2162 */     Macro.UNSUPPORTED("c98tv4jn3ode5so0mefrwcut7");
+/* 2163 */     Macro.UNSUPPORTED("a7fgam0j0jm7bar0mblsv3no4");
+/* 2164 */     Macro.UNSUPPORTED("7pfkga2nn8ltabo2ycvjgma6o");
+/* 2165 */     Macro.UNSUPPORTED("6e7g66eeo7n8h8mq556pt3xxy");
+/* 2166 */     Macro.UNSUPPORTED("8g7o4dsbwgp9ggtiktgt2m41t");
+/* 2167 */     Macro.UNSUPPORTED("c8tk2e711ojwsnar0y39a73cf");
+/* 2168 */     Macro.UNSUPPORTED("4i1fd7rw5klkjsnyehf6v44a3");
+/* 2169 */     Macro.UNSUPPORTED("8yueq6sa0qe98f00ykgedfrzl");
+/* 2170 */     Macro.UNSUPPORTED("aqf73hied952lsirjjyf0hfr4");
+/* 2171 */     Macro.UNSUPPORTED("afxenk7cqa80e074cox3d04n5");
+/* 2172 */     Macro.UNSUPPORTED("57mec07ttst0x3aspieywssni");
+/* 2173 */     Macro.UNSUPPORTED("1bslo0pyyucx0zmdzt12sei6d");
+/* 2174 */     Macro.UNSUPPORTED("8r8t0lgzzpigm1odig9a9yg1c");
+/* 2175 */     Macro.UNSUPPORTED("amrlpbo0f5svfvv7e9lzhfzj9");
+/* 2176 */     Macro.UNSUPPORTED("4drs7w0v5mk7ys9aylmo5lnq8");
+/* 2177 */     Macro.UNSUPPORTED("12436nj34of615tb94t3cw2h0");
+/* 2178 */     Macro.UNSUPPORTED("2rwb38hipr5rxkwxfdzzwkdmy");
+/* 2179 */     Macro.UNSUPPORTED("4x188hxybttaubn1tt4tf710k");
+/* 2180 */     Macro.UNSUPPORTED("e3o6yrnsv8lko5fql4f8a9gly");
+/* 2181 */     Macro.UNSUPPORTED("dvgyxsnyeqqnyzq696k3vskib");
+/* 2182 */     Macro.UNSUPPORTED("c24nfmv9i7o5eoqaymbibp7m7");
+/*      */     
+/* 2184 */     throw new UnsupportedOperationException();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="star_size", key="d0jsei60yky7c36q8bja8q58d", definition="static pointf star_size (pointf sz0)")
+/*      */   public static Object star_size(Object... arg)
+/*      */   {
+/* 2195 */     Macro.UNSUPPORTED("6bl2ntfn97yev6qvlwplor61o");
+/* 2196 */     Macro.UNSUPPORTED("erg9i1970wdri39osu8hx2a6e");
+/* 2197 */     Macro.UNSUPPORTED("3zlnn621zia9mss7z1ay24myc");
+/* 2198 */     Macro.UNSUPPORTED("5u7lf36burm76yokjuxgcd4tn");
+/* 2199 */     Macro.UNSUPPORTED("9ya7hg30u0pmebfvhy4ba5kfp");
+/* 2200 */     Macro.UNSUPPORTED("y09869s34d94qtdcsuuz4mjy");
+/* 2201 */     Macro.UNSUPPORTED("1qn336ppz1ubj5d9vmolmwhfa");
+/* 2202 */     Macro.UNSUPPORTED("99spig8n4dowh045zi2u054cf");
+/* 2203 */     Macro.UNSUPPORTED("3h9e5okkzg8gzypvpzok96ikc");
+/* 2204 */     Macro.UNSUPPORTED("19ba70prhdthsxh7ukqn07tw9");
+/* 2205 */     Macro.UNSUPPORTED("ban3s2canux7qwxava1n2e4v2");
+/* 2206 */     Macro.UNSUPPORTED("c24nfmv9i7o5eoqaymbibp7m7");
+/*      */     
+/* 2208 */     throw new UnsupportedOperationException();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="star_vertices", key="a7r80ro5nb15ttgfpqwayycmf", definition="static void star_vertices (pointf* vertices, pointf* bb)")
+/*      */   public static Object star_vertices(Object... arg)
+/*      */   {
+/* 2219 */     Macro.UNSUPPORTED("8p40gvc5ocryzfeoybiuc0tzd");
+/* 2220 */     Macro.UNSUPPORTED("erg9i1970wdri39osu8hx2a6e");
+/* 2221 */     Macro.UNSUPPORTED("b17di9c7wgtqm51bvsyxz6e2f");
+/* 2222 */     Macro.UNSUPPORTED("6ebg0h9irk3pcisrj710o7d79");
+/* 2223 */     Macro.UNSUPPORTED("daheewjo1ertfvnwnfdg2fcxr");
+/* 2224 */     Macro.UNSUPPORTED("6ir3jujwrh6dpiqug6p2v3ttj");
+/* 2225 */     Macro.UNSUPPORTED("3dcxsdbybxzvk7jsod9d2ubvm");
+/* 2226 */     Macro.UNSUPPORTED("o422759cptua4yuo9guk3367");
+/* 2227 */     Macro.UNSUPPORTED("4czf228z5owjh6ew3vh3ugvdv");
+/* 2228 */     Macro.UNSUPPORTED("97gq966jokpf07dc3wv6hgk45");
+/* 2229 */     Macro.UNSUPPORTED("dvgyxsnyeqqnyzq696k3vskib");
+/* 2230 */     Macro.UNSUPPORTED("7dnql7ghevwkt7vxe0s4wndha");
+/* 2231 */     Macro.UNSUPPORTED("aeoxa8vdht2x8kc1xojdwlz3j");
+/* 2232 */     Macro.UNSUPPORTED("dvgyxsnyeqqnyzq696k3vskib");
+/* 2233 */     Macro.UNSUPPORTED("a8zuo1xnr4jnza3araqzl5q43");
+/* 2234 */     Macro.UNSUPPORTED("5j3gmpqii05zcp2ncicxs2si");
+/* 2235 */     Macro.UNSUPPORTED("214oro38cddbf9fk06d0m6duf");
+/* 2236 */     Macro.UNSUPPORTED("4rot7vm0whb5r2oo8ne4pn1j4");
+/* 2237 */     Macro.UNSUPPORTED("aa1u9d9ckbucmn1eyvyyijwkf");
+/* 2238 */     Macro.UNSUPPORTED("5zsqst1ddsdoai9yogpi1mnfl");
+/* 2239 */     Macro.UNSUPPORTED("dy5yk8kfoxfn3h4wby7vyciqz");
+/* 2240 */     Macro.UNSUPPORTED("a3uapptgvfngiztwa4vm4pbuu");
+/* 2241 */     Macro.UNSUPPORTED("7z0zntmu5ddcj6evxm9imjmv8");
+/* 2242 */     Macro.UNSUPPORTED("da5vtvcsngi7wqtllzq8l190t");
+/* 2243 */     Macro.UNSUPPORTED("9zr96c70zwnim4wjqf6zn7p68");
+/* 2244 */     Macro.UNSUPPORTED("7z0zntmu5ddcj6evxm9imjmv8");
+/* 2245 */     Macro.UNSUPPORTED("dvgyxsnyeqqnyzq696k3vskib");
+/* 2246 */     Macro.UNSUPPORTED("58zowxx0q5742vxn8iad1i1xe");
+/* 2247 */     Macro.UNSUPPORTED("c24nfmv9i7o5eoqaymbibp7m7");
+/*      */     
+/* 2249 */     throw new UnsupportedOperationException();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="star_inside", key="5sbhhjvptmhgl2v2zc12aemgv", definition="static boolean star_inside(inside_t * inside_context, pointf p)")
+/*      */   public static Object star_inside(Object... arg)
+/*      */   {
+/* 2260 */     Macro.UNSUPPORTED("2s46vczrfqrysl35qtk55j8dq");
+/* 2261 */     Macro.UNSUPPORTED("erg9i1970wdri39osu8hx2a6e");
+/* 2262 */     Macro.UNSUPPORTED("4ogz1m3q9xn7z7hiecjp98bmt");
+/* 2263 */     Macro.UNSUPPORTED("ehzu6nig1i3kg2wnd7f7k9j5n");
+/* 2264 */     Macro.UNSUPPORTED("cy02ifkuodmjjlsu0kxnyjpoh");
+/* 2265 */     Macro.UNSUPPORTED("53wr032f7cpvhrjze3ml553bu");
+/* 2266 */     Macro.UNSUPPORTED("c173x9hgi0epjtbq9crz665t6");
+/* 2267 */     Macro.UNSUPPORTED("4rtja2mn137n7wcxryrmo12ko");
+/* 2268 */     Macro.UNSUPPORTED("d8oppi8gt9b4eaonkdgb7a54l");
+/* 2269 */     Macro.UNSUPPORTED("eu67sekaddiid7bjwclyd9lpq");
+/* 2270 */     Macro.UNSUPPORTED("dk1ablxthh1rqusv958glmv1k");
+/* 2271 */     Macro.UNSUPPORTED("823iiqtx9pt0gijqrohrd3zx7");
+/* 2272 */     Macro.UNSUPPORTED("9nc5qvx5xechvyre5wvhjqpjk");
+/* 2273 */     Macro.UNSUPPORTED("8ix20ei8mhm5e1r57koylhxmw");
+/* 2274 */     Macro.UNSUPPORTED("48wucupbjgeu51wy1djengl4f");
+/* 2275 */     Macro.UNSUPPORTED("b87pzpk1bdd2rzscbmza3pxyu");
+/* 2276 */     Macro.UNSUPPORTED("dvgyxsnyeqqnyzq696k3vskib");
+/* 2277 */     Macro.UNSUPPORTED("8rl2cn4oxr94675yld5eohkie");
+/* 2278 */     Macro.UNSUPPORTED("a7zf42vgzubszo05gyqjhr4bb");
+/* 2279 */     Macro.UNSUPPORTED("2y1ov1roe3ma4wlkdj2w8r3sg");
+/* 2280 */     Macro.UNSUPPORTED("98ormfm5j66dmbja3sdsx38az");
+/* 2281 */     Macro.UNSUPPORTED("d41xba93s17axh19qsbhg0x8a");
+/* 2282 */     Macro.UNSUPPORTED("bmmroksk9aecg8ik0z1sxpzie");
+/* 2283 */     Macro.UNSUPPORTED("47l17pa0edzmfnlr8ysqs0qh4");
+/* 2284 */     Macro.UNSUPPORTED("jyf75douzxhfzxfyrq3kes6e");
+/* 2285 */     Macro.UNSUPPORTED("dz5401vppes7iz7b0c6pzkge6");
+/* 2286 */     Macro.UNSUPPORTED("dvgyxsnyeqqnyzq696k3vskib");
+/* 2287 */     Macro.UNSUPPORTED("4zcxdh0y0cit31t1myzksbyc");
+/* 2288 */     Macro.UNSUPPORTED("bs8ipj0v83bijiw6u6kpz14s1");
+/* 2289 */     Macro.UNSUPPORTED("cmwbnui44mpmy3kjz18pxp1cd");
+/* 2290 */     Macro.UNSUPPORTED("4oudcajkxkcstsh2bvjaheadi");
+/* 2291 */     Macro.UNSUPPORTED("b4anc6i6r4xczgkhjcjudktb");
+/* 2292 */     Macro.UNSUPPORTED("b291xvw4hm8vcmlaoxcl8dj94");
+/* 2293 */     Macro.UNSUPPORTED("flupwh3kosf3fkhkxllllt1");
+/* 2294 */     Macro.UNSUPPORTED("3mpbcjrh8r4u6u2twxvyqx9v9");
+/* 2295 */     Macro.UNSUPPORTED("6f1138i13x0xz1bf1thxgjgka");
+/* 2296 */     Macro.UNSUPPORTED("flupwh3kosf3fkhkxllllt1");
+/* 2297 */     Macro.UNSUPPORTED("dvgyxsnyeqqnyzq696k3vskib");
+/* 2298 */     Macro.UNSUPPORTED("8fwlqtemsmckleh6946lyd8mw");
+/* 2299 */     Macro.UNSUPPORTED("c24nfmv9i7o5eoqaymbibp7m7");
+/*      */     
+/* 2301 */     throw new UnsupportedOperationException();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/* 2306 */   private static CString[] side_port = { new CString("s"), new CString("e"), new CString("n"), new CString("w") };
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="cvtPt", key="8hx6dn19tost35djnvvnzh92y", definition="static point cvtPt(pointf p, int rankdir)")
+/* 2316 */   public static ST_point cvtPt(ST_pointf p, int rankdir) { return (ST_point)cvtPt_(p.copy(), rankdir).copy(); }
+/*      */   
+/*      */   private static ST_point cvtPt_(ST_pointf p, int rankdir) {
+/* 2319 */     ST_pointf q = new ST_pointf();
+/* 2320 */     ST_point Q = new ST_point();
+/* 2321 */     switch (rankdir) {
+/*      */     case 0: 
+/* 2323 */       q.___(p);
+/* 2324 */       break;
+/*      */     case 2: 
+/* 2326 */       Macro.UNSUPPORTED("drh1t5heo8w8z199n0vydnon7");
+/* 2327 */       Macro.UNSUPPORTED("1sp6xbp6wduyl3r6q3ki03lj");
+/* 2328 */       Macro.UNSUPPORTED("6aw91xzjmqvmtdvt1di23af8y");
+/*      */     case 1: 
+/* 2330 */       Macro.UNSUPPORTED("aqxuqmimmi2id7ukk2b64x1in");
+/* 2331 */       Macro.UNSUPPORTED("djyedvti0u3rb22lyp3mp7i8n");
+/* 2332 */       Macro.UNSUPPORTED("6aw91xzjmqvmtdvt1di23af8y");
+/*      */     case 3: 
+/* 2334 */       Macro.UNSUPPORTED("aqxuqmimmi2id7ukk2b64x1in");
+/* 2335 */       Macro.UNSUPPORTED("7d33c84ojx2qc6awisfs88pf5");
+/* 2336 */       Macro.UNSUPPORTED("6aw91xzjmqvmtdvt1di23af8y");
+/*      */     }
+/* 2338 */     Macro.PF2P(q, Q);
+/* 2339 */     return Q;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="", key="cmt4wr13jgcd9ihg14t972aam", definition="static char *closestSide(node_t * n, node_t * other, port * oldport)")
+/*      */   public static CString closestSide(ST_Agnode_s n, ST_Agnode_s other, ST_port oldport)
+/*      */   {
+/* 2350 */     ST_boxf b = new ST_boxf();
+/* 2351 */     int rkd = Macro.GD_rankdir(obj__c.agraphof(n).root);
+/* 2352 */     ST_point p = new ST_point();
+/* 2353 */     ST_point pt = cvtPt(Macro.ND_coord(n), rkd);
+/* 2354 */     ST_point opt = cvtPt(Macro.ND_coord(other), rkd);
+/* 2355 */     int sides = oldport.side;
+/* 2356 */     CString rv = null;
+/* 2357 */     int mind = 0;
+/* 2358 */     if (sides == 0 || sides == 15)
+/* 2359 */       return rv;
+/* 2360 */     if (oldport.bp != null) {
+/* 2361 */       b.___(oldport.bp);
+/*      */     } else {
+/* 2363 */       Macro.UNSUPPORTED("ek9a7u2yx8w4r9x5k7somxuup");
+/* 2364 */       Macro.UNSUPPORTED("5m0qxjiybs5ei0xyt8rztghk5");
+/* 2365 */       Macro.UNSUPPORTED("1i4y4dgrig36gh0dq2jn8kde");
+/* 2366 */       Macro.UNSUPPORTED("7luuqd8n7bpffoa8v27jp7tn3");
+/* 2367 */       Macro.UNSUPPORTED("922vazdrkwhoxxy4yw5axu6i7");
+/* 2368 */       Macro.UNSUPPORTED("7yhr8hn3r6wohafwxrt85b2j2");
+/* 2369 */       Macro.UNSUPPORTED("2kqd0a7y22hequs0ypjfw2ltw");
+/* 2370 */       Macro.UNSUPPORTED("922vazdrkwhoxxy4yw5axu6i7");
+/* 2371 */       Macro.UNSUPPORTED("59beisnsabbp6eavnuxrqch2d");
+/* 2372 */       Macro.UNSUPPORTED("1i4y4dgrig36gh0dq2jn8kde");
+/* 2373 */       Macro.UNSUPPORTED("flupwh3kosf3fkhkxllllt1");
+/*      */     }
+/* 2375 */     for (int i = 0; i < 4; i++) {
+/* 2376 */       if ((sides & 1 << i) == 0)
+/*      */         continue;
+/* 2378 */       switch (i) {
+/*      */       case 0: 
+/* 2380 */         p.y = (int)b.LL.y;
+/* 2381 */         p.x = (int)(b.LL.x + b.UR.x) / 2;
+/* 2382 */         break;
+/*      */       case 1: 
+/* 2384 */         p.x = (int)b.UR.x;
+/* 2385 */         p.y = (int)(b.LL.y + b.UR.y) / 2;
+/* 2386 */         break;
+/*      */       case 2: 
+/* 2388 */         p.y = (int)b.UR.y;
+/* 2389 */         p.x = (int)(b.LL.x + b.UR.x) / 2;
+/* 2390 */         break;
+/*      */       case 3: 
+/* 2392 */         p.x = (int)b.LL.x;
+/* 2393 */         p.y = (int)(b.LL.y + b.UR.y) / 2;
+/*      */       }
+/*      */       
+/* 2396 */       p.x += pt.x;
+/* 2397 */       p.y += pt.y;
+/* 2398 */       int d = (int)Macro.DIST2(p, opt);
+/* 2399 */       if (rv == null || d < mind) {
+/* 2400 */         mind = d;
+/* 2401 */         rv = side_port[i];
+/*      */       }
+/*      */     }
+/* 2404 */     return rv;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Unused
+/*      */   @Doc("Choose closestSide of a node")
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="resolvePort", key="ckbg1dyu9jzx7g0c9dbriez7r", definition="port resolvePort(node_t * n, node_t * other, port * oldport)")
+/* 2417 */   public static ST_port resolvePort(ST_Agnode_s n, ST_Agnode_s other, ST_port oldport) { return resolvePort_w_(n, other, oldport).copy(); }
+/*      */   
+/*      */   private static ST_port resolvePort_w_(ST_Agnode_s n, ST_Agnode_s other, ST_port oldport) {
+/* 2420 */     SmetanaDebug.ENTERING("ckbg1dyu9jzx7g0c9dbriez7r", "resolvePort");
+/*      */     try {
+/* 2422 */       ST_port rv = new ST_port();
+/* 2423 */       CString compass = closestSide(n, other, oldport);
+/*      */       
+/* 2425 */       rv.name = oldport.name;
+/* 2426 */       compassPort(n, oldport.bp, rv, compass, oldport.side, null);
+/* 2427 */       return rv;
+/*      */     } finally {
+/* 2429 */       SmetanaDebug.LEAVING("ckbg1dyu9jzx7g0c9dbriez7r", "resolvePort");
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Unused
+/*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="resolvePorts", key="9ttd9vkih0mogy1ps3khfjum6", definition="void resolvePorts(edge_t * e)")
+/*      */   public static Object resolvePorts(Object... arg)
+/*      */   {
+/* 2441 */     Macro.UNSUPPORTED("ceen1bdr2y10gl9g3stj9dq13");
+/* 2442 */     Macro.UNSUPPORTED("erg9i1970wdri39osu8hx2a6e");
+/* 2443 */     Macro.UNSUPPORTED("1avf6c49h37pc64khn45b3zla");
+/* 2444 */     Macro.UNSUPPORTED("bjgkohc8n22pf9yf5anfmfjdl");
+/* 2445 */     Macro.UNSUPPORTED("c5phu7zavynmooq4ykt058d6t");
+/* 2446 */     Macro.UNSUPPORTED("56ff4qr7o1xsl73k68f4kjmd1");
+/* 2447 */     Macro.UNSUPPORTED("d4aylrk5xwagx7so633xn35ug");
+/* 2448 */     Macro.UNSUPPORTED("ctvcevp7oejtitu1hunh3yj02");
+/* 2449 */     Macro.UNSUPPORTED("c24nfmv9i7o5eoqaymbibp7m7");
+/*      */     
+/* 2451 */     throw new UnsupportedOperationException();
+/*      */   }
+/*      */ }

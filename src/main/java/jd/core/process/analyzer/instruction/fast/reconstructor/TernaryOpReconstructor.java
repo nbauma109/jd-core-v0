@@ -108,7 +108,13 @@ public final class TernaryOpReconstructor
                     fto.setValue2(visitor.getOldInstruction());
                 }
 
-                if ((isBooleanConstant(fto.getValue1())))
+                if (isBooleanConstant(fto.getValue2()) && fto.getValue1() instanceof IConst)
+                {
+                    IConst iConst1 = (IConst) fto.getValue1();
+                    iConst1.setSignature("Z");
+                }
+
+                if (isBooleanConstant(fto.getValue1()))
                 {
                     if (((IConst)fto.getValue1()).getValue() == 0) {
                         ComparisonInstructionAnalyzer.inverseComparison(fto.getTest());
