@@ -1,0 +1,839 @@
+/*     */ package net.sourceforge.plantuml.jasic;
+/*     */ 
+/*     */ import java.io.BufferedReader;
+/*     */ import java.io.IOException;
+/*     */ import java.io.InputStreamReader;
+/*     */ import java.util.ArrayList;
+/*     */ import java.util.HashMap;
+/*     */ import java.util.List;
+/*     */ import java.util.Map;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class Jasic
+/*     */ {
+/*     */   private final Map<String, Value> variables;
+/*     */   private final Map<String, Integer> labels;
+/*     */   private final BufferedReader lineIn;
+/*     */   private int currentStatement;
+/*     */   
+/*     */   private static List<Token> tokenize(String source)
+/*     */   {
+/* 116 */     List<Token> tokens = new ArrayList<>();
+/*     */     
+/* 118 */     String token = "";
+/* 119 */     TokenizeState state = TokenizeState.DEFAULT;
+/*     */     
+/*     */ 
+/* 122 */     String charTokens = "\n=+-*/<>()";
+/* 123 */     TokenType[] tokenTypes = { TokenType.LINE, TokenType.EQUALS, TokenType.OPERATOR, TokenType.OPERATOR, TokenType.OPERATOR, TokenType.OPERATOR, TokenType.OPERATOR, TokenType.OPERATOR, TokenType.LEFT_PAREN, TokenType.RIGHT_PAREN };
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/* 129 */     for (int i = 0; i < source.length(); i++) {
+/* 130 */       char c = source.charAt(i);
+/* 131 */       switch (state) {
+/*     */       case DEFAULT: 
+/* 133 */         if (charTokens.indexOf(c) != -1) {
+/* 134 */           tokens.add(new Token(Character.toString(c), tokenTypes[charTokens.indexOf(c)]));
+/* 135 */         } else if (Character.isLetter(c)) {
+/* 136 */           token = token + c;
+/* 137 */           state = TokenizeState.WORD;
+/* 138 */         } else if (Character.isDigit(c)) {
+/* 139 */           token = token + c;
+/* 140 */           state = TokenizeState.NUMBER;
+/* 141 */         } else if (c == '"') {
+/* 142 */           state = TokenizeState.STRING;
+/* 143 */         } else if (c == '\'') {
+/* 144 */           state = TokenizeState.COMMENT;
+/*     */         }
+/*     */         
+/*     */         break;
+/*     */       case WORD: 
+/* 149 */         if (Character.isLetterOrDigit(c)) {
+/* 150 */           token = token + c;
+/* 151 */         } else if (c == ':') {
+/* 152 */           tokens.add(new Token(token, TokenType.LABEL));
+/* 153 */           token = "";
+/* 154 */           state = TokenizeState.DEFAULT;
+/*     */         } else {
+/* 156 */           tokens.add(new Token(token, TokenType.WORD));
+/* 157 */           token = "";
+/* 158 */           state = TokenizeState.DEFAULT;
+/* 159 */           i--;
+/*     */         }
+/* 161 */         break;
+/*     */       
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */       case NUMBER: 
+/* 167 */         if (Character.isDigit(c)) {
+/* 168 */           token = token + c;
+/*     */         } else {
+/* 170 */           tokens.add(new Token(token, TokenType.NUMBER));
+/* 171 */           token = "";
+/* 172 */           state = TokenizeState.DEFAULT;
+/* 173 */           i--;
+/*     */         }
+/* 175 */         break;
+/*     */       
+/*     */       case STRING: 
+/* 178 */         if (c == '"') {
+/* 179 */           tokens.add(new Token(token, TokenType.STRING));
+/* 180 */           token = "";
+/* 181 */           state = TokenizeState.DEFAULT;
+/*     */         } else {
+/* 183 */           token = token + c;
+/*     */         }
+/* 185 */         break;
+/*     */       
+/*     */       case COMMENT: 
+/* 188 */         if (c == '\n') {
+/* 189 */           state = TokenizeState.DEFAULT;
+/*     */         }
+/*     */         
+/*     */ 
+/*     */         break;
+/*     */       }
+/*     */       
+/*     */     }
+/*     */     
+/* 198 */     return tokens;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   private static enum TokenType
+/*     */   {
+/* 213 */     WORD, NUMBER, STRING, LABEL, LINE, EQUALS, OPERATOR, LEFT_PAREN, RIGHT_PAREN, EOF;
+/*     */   }
+/*     */   
+/*     */   private static class Token
+/*     */   {
+/*     */     public final String text;
+/*     */     public final Jasic.TokenType type;
+/*     */     
+/*     */     public Token(String text, Jasic.TokenType type) {
+/* 222 */       this.text = text;
+/* 223 */       this.type = type;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   private static enum TokenizeState
+/*     */   {
+/* 242 */     DEFAULT, WORD, NUMBER, STRING, COMMENT;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   private class Parser
+/*     */   {
+/*     */     private final List<Jasic.Token> tokens;
+/*     */     
+/*     */ 
+/*     */     private int position;
+/*     */     
+/*     */ 
+/*     */ 
+/*     */     public Parser(List<Jasic.Token> tokens)
+/*     */     {
+/* 259 */       this.tokens = tokens;
+/* 260 */       this.position = 0;
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public List<Jasic.Statement> parse(Map<String, Integer> labels)
+/*     */     {
+/* 273 */       List<Jasic.Statement> statements = new ArrayList<>();
+/*     */       
+/*     */       for (;;)
+/*     */       {
+/* 277 */         if (match(Jasic.TokenType.LINE)) {
+/*     */           continue;
+/*     */         }
+/* 280 */         if (match(Jasic.TokenType.LABEL))
+/*     */         {
+/* 282 */           labels.put(last(1).text, Integer.valueOf(statements.size()));
+/* 283 */         } else if (match(Jasic.TokenType.WORD, Jasic.TokenType.EQUALS)) {
+/* 284 */           String name = last(2).text;
+/* 285 */           Jasic.Expression value = expression();
+/* 286 */           statements.add(new Jasic.AssignStatement(name, value));
+/* 287 */         } else if (match("print")) {
+/* 288 */           statements.add(new Jasic.PrintStatement(expression()));
+/* 289 */         } else if (match("input")) {
+/* 290 */           statements.add(new Jasic.InputStatement(consume(Jasic.TokenType.WORD).text));
+/* 291 */         } else if (match("goto")) {
+/* 292 */           statements.add(new Jasic.GotoStatement(consume(Jasic.TokenType.WORD).text));
+/* 293 */         } else { if (!match("if")) break;
+/* 294 */           Jasic.Expression condition = expression();
+/* 295 */           consume("then");
+/* 296 */           String label = consume(Jasic.TokenType.WORD).text;
+/* 297 */           statements.add(new Jasic.IfThenStatement(condition, label));
+/*     */         }
+/*     */       }
+/*     */       
+/*     */ 
+/* 302 */       return statements;
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     private Jasic.Expression expression()
+/*     */     {
+/* 317 */       return operator();
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     private Jasic.Expression operator()
+/*     */     {
+/* 338 */       Jasic.Expression expression = atomic();
+/*     */       
+/*     */ 
+/* 341 */       while (match(Jasic.TokenType.OPERATOR) || match(Jasic.TokenType.EQUALS)) {
+/* 342 */         char operator = last(1).text.charAt(0);
+/* 343 */         Jasic.Expression right = atomic();
+/* 344 */         expression = new Jasic.OperatorExpression(expression, operator, right);
+/*     */       }
+/*     */       
+/* 347 */       return expression;
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     private Jasic.Expression atomic()
+/*     */     {
+/* 358 */       if (match(Jasic.TokenType.WORD))
+/*     */       {
+/* 360 */         return new Jasic.VariableExpression(last(1).text); }
+/* 361 */       if (match(Jasic.TokenType.NUMBER))
+/* 362 */         return new Jasic.NumberValue(Double.parseDouble(last(1).text));
+/* 363 */       if (match(Jasic.TokenType.STRING))
+/* 364 */         return new Jasic.StringValue(last(1).text);
+/* 365 */       if (match(Jasic.TokenType.LEFT_PAREN))
+/*     */       {
+/*     */ 
+/*     */ 
+/*     */ 
+/* 370 */         Jasic.Expression expression = expression();
+/* 371 */         consume(Jasic.TokenType.RIGHT_PAREN);
+/* 372 */         return expression;
+/*     */       }
+/* 374 */       throw new Error("Couldn't parse :(");
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     private boolean match(Jasic.TokenType type1, Jasic.TokenType type2)
+/*     */     {
+/* 390 */       if (get(0).type != type1)
+/* 391 */         return false;
+/* 392 */       if (get(1).type != type2)
+/* 393 */         return false;
+/* 394 */       this.position += 2;
+/* 395 */       return true;
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     private boolean match(Jasic.TokenType type)
+/*     */     {
+/* 405 */       if (get(0).type != type)
+/* 406 */         return false;
+/* 407 */       this.position++;
+/* 408 */       return true;
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     private boolean match(String name)
+/*     */     {
+/* 418 */       if (get(0).type != Jasic.TokenType.WORD)
+/* 419 */         return false;
+/* 420 */       if (!get(0).text.equals(name))
+/* 421 */         return false;
+/* 422 */       this.position++;
+/* 423 */       return true;
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     private Jasic.Token consume(Jasic.TokenType type)
+/*     */     {
+/* 435 */       if (get(0).type != type)
+/* 436 */         throw new Error("Expected " + type + ".");
+/* 437 */       return (Jasic.Token)this.tokens.get(this.position++);
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     private Jasic.Token consume(String name)
+/*     */     {
+/* 448 */       if (!match(name))
+/* 449 */         throw new Error("Expected " + name + ".");
+/* 450 */       return last(1);
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     private Jasic.Token last(int offset)
+/*     */     {
+/* 461 */       return (Jasic.Token)this.tokens.get(this.position - offset);
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     private Jasic.Token get(int offset)
+/*     */     {
+/* 472 */       if (this.position + offset >= this.tokens.size()) {
+/* 473 */         return new Jasic.Token("", Jasic.TokenType.EOF);
+/*     */       }
+/* 475 */       return (Jasic.Token)this.tokens.get(this.position + offset);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public class PrintStatement
+/*     */     implements Jasic.Statement
+/*     */   {
+/*     */     private final Jasic.Expression expression;
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public PrintStatement(Jasic.Expression expression)
+/*     */     {
+/* 528 */       this.expression = expression;
+/*     */     }
+/*     */     
+/*     */     @Override
+/* 532 */     public void execute() { System.out.println(this.expression.evaluate().toString()); }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public class InputStatement
+/*     */     implements Jasic.Statement
+/*     */   {
+/*     */     private final String name;
+/*     */     
+/*     */ 
+/* 543 */     public InputStatement(String name) { this.name = name; }
+/*     */     
+/*     */     @Override
+/*     */     public void execute() {
+/*     */       try {
+/* 548 */         String input = Jasic.this.lineIn.readLine();
+/*     */         
+/*     */         try
+/*     */         {
+/* 552 */           double value = Double.parseDouble(input);
+/* 553 */           Jasic.this.variables.put(this.name, new Jasic.NumberValue(value));
+/*     */         } catch (NumberFormatException e) {
+/* 555 */           Jasic.this.variables.put(this.name, new Jasic.StringValue(input));
+/*     */         }
+/*     */       }
+/*     */       catch (IOException localIOException) {}
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */   public class AssignStatement
+/*     */     implements Jasic.Statement
+/*     */   {
+/*     */     private final String name;
+/*     */     private final Jasic.Expression value;
+/*     */     
+/*     */     public AssignStatement(String name, Jasic.Expression value)
+/*     */     {
+/* 571 */       this.name = name;
+/* 572 */       this.value = value;
+/*     */     }
+/*     */     
+/*     */     @Override
+/* 576 */     public void execute() { Jasic.this.variables.put(this.name, this.value.evaluate()); }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public class GotoStatement
+/*     */     implements Jasic.Statement
+/*     */   {
+/*     */     private final String label;
+/*     */     
+/*     */ 
+/*     */ 
+/* 588 */     public GotoStatement(String label) { this.label = label; }
+/*     */     
+/*     */     @Override
+/*     */     public void execute() {
+/* 592 */       if (Jasic.this.labels.containsKey(this.label)) {
+/* 593 */         Jasic.this.currentStatement = ((Integer)Jasic.this.labels.get(this.label)).intValue();
+/*     */       }
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   public class IfThenStatement
+/*     */     implements Jasic.Statement
+/*     */   {
+/*     */     private final Jasic.Expression condition;
+/*     */     private final String label;
+/*     */     
+/*     */     public IfThenStatement(Jasic.Expression condition, String label)
+/*     */     {
+/* 606 */       this.condition = condition;
+/* 607 */       this.label = label;
+/*     */     }
+/*     */     
+/*     */     @Override
+/* 611 */     public void execute() { if (Jasic.this.labels.containsKey(this.label)) {
+/* 612 */         double value = this.condition.evaluate().toNumber();
+/* 613 */         if (value != 0.0D) {
+/* 614 */           Jasic.this.currentStatement = ((Integer)Jasic.this.labels.get(this.label)).intValue();
+/*     */         }
+/*     */       }
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public class VariableExpression
+/*     */     implements Jasic.Expression
+/*     */   {
+/*     */     private final String name;
+/*     */     
+/*     */ 
+/* 628 */     public VariableExpression(String name) { this.name = name; }
+/*     */     
+/*     */     @Override
+/*     */     public Jasic.Value evaluate() {
+/* 632 */       if (Jasic.this.variables.containsKey(this.name)) {
+/* 633 */         return (Jasic.Value)Jasic.this.variables.get(this.name);
+/*     */       }
+/* 635 */       return new Jasic.NumberValue(0.0D);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   public class OperatorExpression implements Jasic.Expression
+/*     */   {
+/*     */     private final Jasic.Expression left;
+/*     */     private final char operator;
+/*     */     private final Jasic.Expression right;
+/*     */     
+/*     */     public OperatorExpression(Jasic.Expression left, char operator, Jasic.Expression right)
+/*     */     {
+/* 647 */       this.left = left;
+/* 648 */       this.operator = operator;
+/* 649 */       this.right = right;
+/*     */     }
+/*     */     
+/*     */     @Override
+/* 653 */     public Jasic.Value evaluate() { Jasic.Value leftVal = this.left.evaluate();
+/* 654 */       Jasic.Value rightVal = this.right.evaluate();
+/*     */       
+/* 656 */       switch (this.operator)
+/*     */       {
+/*     */       case '=': 
+/* 659 */         if ((leftVal instanceof Jasic.NumberValue)) {
+/* 660 */           return new Jasic.NumberValue(leftVal.toNumber() == rightVal.toNumber() ? 1.0D : 0.0D);
+/*     */         }
+/* 662 */         return new Jasic.NumberValue(leftVal.toString().equals(rightVal.toString()) ? 1.0D : 0.0D);
+/*     */       
+/*     */ 
+/*     */ 
+/*     */       case '+': 
+/* 667 */         if ((leftVal instanceof Jasic.NumberValue)) {
+/* 668 */           return new Jasic.NumberValue(leftVal.toNumber() + rightVal.toNumber());
+/*     */         }
+/* 670 */         return new Jasic.StringValue(leftVal.toString() + rightVal.toString());
+/*     */       
+/*     */       case '-': 
+/* 673 */         return new Jasic.NumberValue(leftVal.toNumber() - rightVal.toNumber());
+/*     */       case '*': 
+/* 675 */         return new Jasic.NumberValue(leftVal.toNumber() * rightVal.toNumber());
+/*     */       case '/': 
+/* 677 */         return new Jasic.NumberValue(leftVal.toNumber() / rightVal.toNumber());
+/*     */       
+/*     */       case '<': 
+/* 680 */         if ((leftVal instanceof Jasic.NumberValue)) {
+/* 681 */           return new Jasic.NumberValue(leftVal.toNumber() < rightVal.toNumber() ? 1.0D : 0.0D);
+/*     */         }
+/* 683 */         return new Jasic.NumberValue(leftVal.toString().compareTo(rightVal.toString()) < 0 ? 1.0D : 0.0D);
+/*     */       
+/*     */ 
+/*     */       case '>': 
+/* 687 */         if ((leftVal instanceof Jasic.NumberValue)) {
+/* 688 */           return new Jasic.NumberValue(leftVal.toNumber() > rightVal.toNumber() ? 1.0D : 0.0D);
+/*     */         }
+/* 690 */         return new Jasic.NumberValue(leftVal.toString().compareTo(rightVal.toString()) > 0 ? 1.0D : 0.0D);
+/*     */       }
+/*     */       
+/* 693 */       throw new Error("Unknown operator.");
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public class NumberValue
+/*     */     implements Jasic.Value
+/*     */   {
+/*     */     private final double value;
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public NumberValue(double value)
+/*     */     {
+/* 734 */       this.value = value;
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public String toString() {
+/* 739 */       return Double.toString(this.value);
+/*     */     }
+/*     */     
+/*     */     @Override
+/* 743 */     public double toNumber() { return this.value; }
+/*     */     
+/*     */     @Override
+/*     */     public Jasic.Value evaluate() {
+/* 747 */       return this;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   public class StringValue
+/*     */     implements Jasic.Value
+/*     */   {
+/*     */     private final String value;
+/*     */     
+/*     */     public StringValue(String value)
+/*     */     {
+/* 758 */       this.value = value;
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public String toString() {
+/* 763 */       return this.value;
+/*     */     }
+/*     */     
+/*     */     @Override
+/* 767 */     public double toNumber() { return Double.parseDouble(this.value); }
+/*     */     
+/*     */     @Override
+/*     */     public Jasic.Value evaluate() {
+/* 771 */       return this;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public Jasic()
+/*     */   {
+/* 785 */     this.variables = new HashMap<>();
+/* 786 */     this.labels = new HashMap<>();
+/*     */     
+/* 788 */     InputStreamReader converter = new InputStreamReader(System.in);
+/* 789 */     this.lineIn = new BufferedReader(converter);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void interpret(String source)
+/*     */   {
+/* 807 */     List<Token> tokens = tokenize(source);
+/*     */     
+/*     */ 
+/* 810 */     Parser parser = new Parser(tokens);
+/* 811 */     List<Statement> statements = parser.parse(this.labels);
+/*     */     
+/*     */ 
+/* 814 */     this.currentStatement = 0;
+/* 815 */     while (this.currentStatement < statements.size()) {
+/* 816 */       int thisStatement = this.currentStatement;
+/* 817 */       this.currentStatement++;
+/* 818 */       ((Statement)statements.get(thisStatement)).execute();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   public static interface Statement
+/*     */   {
+/*     */     void execute();
+/*     */   }
+/*     */   
+/*     */   public static interface Value
+/*     */     extends Jasic.Expression
+/*     */   {
+/*     */     String toString();
+/*     */     
+/*     */     double toNumber();
+/*     */   }
+/*     */   
+/*     */   public static interface Expression
+/*     */   {
+/*     */     Jasic.Value evaluate();
+/*     */   }
+/*     */ }
