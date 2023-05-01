@@ -1,0 +1,124 @@
+/*     */ package jd.core.test;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class WideInstruction
+/*     */ {
+/*     */   static int largeVarIndexInt()
+/*     */   {
+/*  24 */     int i = 42;
+/*     */     int k57;
+/*  26 */     return k57;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   static float largeVarIndexFloat()
+/*     */   {
+/*  44 */     float f1 = 42.0F;
+/*     */     float k57;
+/*  46 */     return k57;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   static double largeVarIndexDouble()
+/*     */   {
+/*  64 */     double d1 = 42.0D;
+/*     */     double k57;
+/*  66 */     return k57;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   static long largeVarIndex()
+/*     */   {
+/*  84 */     long l1 = 42L;
+/*     */     long k57;
+/*  86 */     return k57;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   static Long largeVarIndexLong()
+/*     */   {
+/* 104 */     Long localLong1 = new Long(42L);
+/*     */     Long k57;
+/* 106 */     return k57;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   static void methodWithLargeJump(int i)
+/*     */   {
+/* 114 */     if (i == 0) {
+/* 115 */       try {} finally { switch (i)
+/*     */         {
+/*     */         }
+/*     */       }
+/* 119 */       ret;ret;ret;ret;ret;ret;ret;ret;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   static void x() {}
+/*     */ }

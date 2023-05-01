@@ -1,0 +1,145 @@
+/*     */ package jd.core.test;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class WideInstruction
+/*     */ {
+/*     */   static int largeVarIndexInt()
+/*     */   {
+/*  24 */     int i = 42;
+/*     */     
+/*  26 */     return i;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   static float largeVarIndexFloat()
+/*     */   {
+/*  44 */     float f = 42.0F;
+/*     */     
+/*  46 */     return f;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   static double largeVarIndexDouble()
+/*     */   {
+/*  64 */     double d = 42.0D;
+/*     */     
+/*  66 */     return d;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   static long largeVarIndex()
+/*     */   {
+/*  84 */     long l = 42L;
+/*     */     
+/*  86 */     return l;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   static Long largeVarIndexLong()
+/*     */   {
+/* 104 */     Long localLong = new Long(42L);
+/*     */     
+/* 106 */     return localLong;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   static void methodWithLargeJump(int i)
+/*     */   {
+/* 114 */     while (i == 0) {
+/* 115 */       try {} finally { switch (i) {case 1:  try {} finally { switch (i) {
+/* 116 */             case 1:  try {} finally { switch (i) {case 1:  try {} finally { switch (i) {
+/* 117 */                     case 1:  try {} finally { switch (i) {case 1:  try {} finally { switch (i) {
+/* 118 */                             case 1:  try {} finally { switch (i) {case 1:  try {} finally { switch (i) {
+/* 119 */                                     case 1:  try {} finally { switch (i) {case 1:  try {} finally { switch (i)
+/*     */                                             {
+/*     */                                             }
+/*     */                                           }
+/*     */                                         }
+/*     */                                       }
+/*     */                                     }
+/*     */                                   }
+/*     */                                 }
+/*     */                               }
+/*     */                             }
+/*     */                           }
+/*     */                         }
+/*     */                       }
+/*     */                     }
+/*     */                   }
+/*     */                 }
+/*     */               }
+/*     */             }
+/*     */           }
+/*     */         }
+/*     */       }
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   static void x() {}
+/*     */ }
