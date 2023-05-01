@@ -21,8 +21,8 @@
 /*     */ {
 /*     */   static int largeVarIndexInt()
 /*     */   {
-/*  24 */     int i = 42;
-/*     */     int k57;
+/*  24 */     int k57 = 42;
+/*     */     
 /*  26 */     return k57;
 /*     */   }
 /*     */   
@@ -41,8 +41,8 @@
 /*     */ 
 /*     */   static float largeVarIndexFloat()
 /*     */   {
-/*  44 */     float f1 = 42.0F;
-/*     */     float k57;
+/*  44 */     float k57 = 42.0F;
+/*     */     
 /*  46 */     return k57;
 /*     */   }
 /*     */   
@@ -61,8 +61,8 @@
 /*     */ 
 /*     */   static double largeVarIndexDouble()
 /*     */   {
-/*  64 */     double d1 = 42.0D;
-/*     */     double k57;
+/*  64 */     double k57 = 42.0D;
+/*     */     
 /*  66 */     return k57;
 /*     */   }
 /*     */   
@@ -81,8 +81,8 @@
 /*     */ 
 /*     */   static long largeVarIndex()
 /*     */   {
-/*  84 */     long l1 = 42L;
-/*     */     long k57;
+/*  84 */     long k57 = 42L;
+/*     */     
 /*  86 */     return k57;
 /*     */   }
 /*     */   
@@ -101,8 +101,8 @@
 /*     */ 
 /*     */   static Long largeVarIndexLong()
 /*     */   {
-/* 104 */     Long localLong1 = new Long(42L);
-/*     */     Long k57;
+/* 104 */     Long k57 = new Long(42L);
+/*     */     
 /* 106 */     return k57;
 /*     */   }
 /*     */   

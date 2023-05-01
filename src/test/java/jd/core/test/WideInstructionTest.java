@@ -12,7 +12,7 @@ import static org.junit.Assert.assertEquals;
 public class WideInstructionTest extends AbstractTestCase {
 
     @Test
-    public void testECJ() throws Exception {
+    public void test() throws Exception {
         String output = decompile("jd/core/test/WideInstruction");
         assertEquals(IOUtils.toString(getClass().getResource("WideInstruction.txt"), StandardCharsets.UTF_8), output);
     }
@@ -21,6 +21,15 @@ public class WideInstructionTest extends AbstractTestCase {
     public void testECJInnerClasses() throws Exception {
         String output = decompile("jd/core/test/WideInstructionInnerClasses");
         assertEquals(IOUtils.toString(getClass().getResource("WideInstructionInnerClasses.txt"), StandardCharsets.UTF_8), output);
+    }
+
+    @Test
+    public void testECJ17() throws Exception {
+        try (InputStream in = getClass().getResourceAsStream("/wide-instructions-ecj17.jar")) {
+            ZipLoader loader = new ZipLoader(in);
+            String output = decompile("jd/core/test/WideInstruction", loader);
+            assertEquals(IOUtils.toString(getClass().getResource("WideInstructionECJ17.txt"), StandardCharsets.UTF_8), output);
+        }
     }
     
     @Test
