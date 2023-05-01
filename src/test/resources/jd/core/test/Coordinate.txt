@@ -1,0 +1,152 @@
+/*     */ package ext.plantuml.com.ctreber.acearth.util;
+/*     */ 
+/*     */ import java.io.IOException;
+/*     */ import java.io.Writer;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class Coordinate
+/*     */ {
+/*     */   private static final double MEAN_OBLIQUITY = 0.4091155090166427D;
+/*     */   private double fLat;
+/*     */   private double fLong;
+/*     */   
+/*     */   public Coordinate() {}
+/*     */   
+/*     */   public Coordinate(double pLat, double pLong)
+/*     */   {
+/*  44 */     this.fLat = pLat;
+/*  45 */     this.fLong = pLong;
+/*     */   }
+/*     */   
+/*     */   public void renderAsXML(Writer writer) throws IOException {
+/*  49 */     writer.write("<Coordinate>\n");
+/*  50 */     writer.write("  <latitude>" + this.fLat + "</latitude>\n");
+/*  51 */     writer.write("  <longitude>" + this.fLong + "</longitude>\n");
+/*  52 */     writer.write("</Coordinate>\n");
+/*     */   }
+/*     */   
+/*     */   public Point3D getPoint3D() {
+/*  56 */     double lLatRad = Toolkit.degsToRads(this.fLat);
+/*  57 */     double lLongRad = Toolkit.degsToRads(this.fLong);
+/*     */     
+/*  59 */     double lX = Math.cos(lLatRad) * Math.sin(lLongRad);
+/*  60 */     double lY = Math.sin(lLatRad);
+/*  61 */     double lZ = Math.cos(lLatRad) * Math.cos(lLongRad);
+/*     */     
+/*  63 */     return new Point3D(lX, lY, lZ);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public Point3D getPoint3DRads()
+/*     */   {
+/*  73 */     double lX = Math.cos(this.fLat) * Math.sin(this.fLong);
+/*  74 */     double lY = Math.sin(this.fLat);
+/*  75 */     double lZ = Math.cos(this.fLat) * Math.cos(this.fLong);
+/*     */     
+/*  77 */     return new Point3D(lX, lY, lZ);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public Coordinate eclipticToEquatorial()
+/*     */   {
+/*  86 */     double sin_e = Math.sin(0.4091155090166427D);
+/*  87 */     double cos_e = Math.cos(0.4091155090166427D);
+/*     */     
+/*  89 */     double lRA = Math.atan2(Math.sin(this.fLong) * cos_e - Math.tan(this.fLat) * sin_e, Math.cos(this.fLong));
+/*  90 */     double lDE = Math.asin(Math.sin(this.fLat) * cos_e + Math.cos(this.fLat) * sin_e * Math.sin(this.fLong));
+/*     */     
+/*  92 */     return new Coordinate(lDE, lRA);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void add(Coordinate lOther)
+/*     */   {
+/* 100 */     this.fLat += lOther.fLat;
+/* 101 */     this.fLong += lOther.fLong;
+/* 102 */     wrap();
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void wrap()
+/*     */   {
+/* 111 */     if (this.fLat > 90.0D) {
+/* 112 */       this.fLat = 180.0D - this.fLat;
+/* 113 */       this.fLong += 180.0D;
+/* 114 */     } else if (this.fLat < -90.0D) {
+/* 115 */       this.fLat = -180.0D - this.fLat;
+/* 116 */       this.fLong += 180.0D;
+/*     */     }
+/*     */     
+/* 119 */     if (this.fLong > 180.0D) {
+/*     */       do {
+/* 121 */         this.fLong -= 360.0D;
+/* 122 */       } while (this.fLong > 180.0D);
+/* 123 */     } else { if (this.fLong >= -180.0D)
+/*     */         return;
+/* 125 */       do { this.fLong += 360.0D;
+/* 126 */       } while (this.fLong < -180.0D);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   public double getLat() {
+/* 131 */     return this.fLat;
+/*     */   }
+/*     */   
+/*     */   public double getDE() {
+/* 135 */     return this.fLat;
+/*     */   }
+/*     */   
+/*     */   public double getLong() {
+/* 139 */     return this.fLong;
+/*     */   }
+/*     */   
+/*     */   public double getRA() {
+/* 143 */     return this.fLong;
+/*     */   }
+/*     */   
+/*     */   public boolean check() {
+/* 147 */     return -90.0D <= this.fLat && this.fLat <= 90.0D && -180.0D <= this.fLong && this.fLong <= 180.0D;
+/*     */   }
+/*     */   
+/*     */   @Override
+/* 151 */   public String toString() { return "lat: " + this.fLat + ", long: " + this.fLong; }
+/*     */ }

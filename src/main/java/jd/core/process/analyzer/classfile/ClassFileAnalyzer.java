@@ -49,6 +49,7 @@ import jd.core.model.instruction.bytecode.instruction.IndexInstruction;
 import jd.core.model.instruction.bytecode.instruction.InitArrayInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.Invokespecial;
+import jd.core.model.instruction.bytecode.instruction.Invokestatic;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
 import jd.core.model.instruction.bytecode.instruction.Pop;
 import jd.core.model.instruction.bytecode.instruction.PutField;
@@ -78,6 +79,7 @@ import jd.core.process.analyzer.instruction.bytecode.InstructionListBuilder;
 import jd.core.process.analyzer.instruction.fast.DupLocalVariableAnalyzer;
 import jd.core.process.analyzer.instruction.fast.FastInstructionListBuilder;
 import jd.core.process.analyzer.instruction.fast.ReturnLineNumberAnalyzer;
+import jd.core.process.analyzer.instruction.fast.reconstructor.InitArrayInstructionReconstructor;
 import jd.core.process.analyzer.variable.VariableNameGenerator;
 
 public final class ClassFileAnalyzer
@@ -1319,6 +1321,18 @@ public final class ClassFileAnalyzer
             }
 
             instruction = field.getValueAndMethod().value();
+
+            if (instruction instanceof Invokestatic) {
+                Invokestatic is = (Invokestatic) instruction;
+                ConstantCP cmr = constants.getConstantMethodref(is.getIndex());
+                ConstantNameAndType cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
+                String name = constants.getConstantUtf8(cnat.getNameIndex());
+                String signature = constants.getConstantUtf8(cnat.getSignatureIndex());
+                Method method = classFile.getMethod(name, signature);
+                InitArrayInstructionReconstructor.reconstruct(method.getInstructions());
+                ReturnInstruction returnInstruction = (ReturnInstruction) method.getInstructions().get(0);
+                instruction = returnInstruction.getValueref();
+            }
 
             if (instruction.getOpcode() != ByteCodeConstants.INITARRAY &&
                     instruction.getOpcode() != ByteCodeConstants.NEWANDINITARRAY ||

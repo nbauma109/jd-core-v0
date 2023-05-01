@@ -1,0 +1,122 @@
+/*     */ package net.sourceforge.plantuml.klimt.drawing.txt;
+/*     */ 
+/*     */ import java.io.IOException;
+/*     */ import java.io.OutputStream;
+/*     */ import java.io.PrintStream;
+/*     */ import java.nio.charset.StandardCharsets;
+/*     */ import net.sourceforge.plantuml.asciiart.TranslatedCharArea;
+/*     */ import net.sourceforge.plantuml.asciiart.UmlCharArea;
+/*     */ import net.sourceforge.plantuml.asciiart.UmlCharAreaImpl;
+/*     */ import net.sourceforge.plantuml.klimt.ClipContainer;
+/*     */ import net.sourceforge.plantuml.klimt.UShape;
+/*     */ import net.sourceforge.plantuml.klimt.color.ColorMapper;
+/*     */ import net.sourceforge.plantuml.klimt.color.HColors;
+/*     */ import net.sourceforge.plantuml.klimt.drawing.AbstractCommonUGraphic;
+/*     */ import net.sourceforge.plantuml.klimt.drawing.debug.StringBounderDebug;
+/*     */ import net.sourceforge.plantuml.klimt.font.FontStyle;
+/*     */ import net.sourceforge.plantuml.klimt.geom.XDimension2D;
+/*     */ import net.sourceforge.plantuml.klimt.shape.UImage;
+/*     */ import net.sourceforge.plantuml.klimt.shape.UText;
+/*     */ import net.sourceforge.plantuml.security.SecurityUtils;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class UGraphicTxt
+/*     */   extends AbstractCommonUGraphic
+/*     */   implements ClipContainer
+/*     */ {
+/*     */   private final UmlCharArea charArea;
+/*     */   
+/*     */   @Override
+/*     */   protected AbstractCommonUGraphic copyUGraphic()
+/*     */   {
+/*  66 */     UGraphicTxt result = new UGraphicTxt(this);
+/*  67 */     return result;
+/*     */   }
+/*     */   
+/*     */   private UGraphicTxt(UGraphicTxt other) {
+/*  71 */     super(other.getStringBounder());
+/*  72 */     basicCopy(other);
+/*  73 */     this.charArea = other.charArea;
+/*     */   }
+/*     */   
+/*     */   public UGraphicTxt() {
+/*  77 */     super(new StringBounderDebug());
+/*  78 */     basicCopy(HColors.BLACK, ColorMapper.IDENTITY);
+/*  79 */     this.charArea = new UmlCharAreaImpl();
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public void draw(UShape shape) {
+/*  84 */     if ((shape instanceof UText)) {
+/*  85 */       UText txt = (UText)shape;
+/*  86 */       int y = (int)(getTranslateY() + txt.getDescent(getStringBounder())) / 10;
+/*  87 */       if (txt.getFontConfiguration().containsStyle(FontStyle.WAVE)) {
+/*  88 */         this.charArea.drawHLine('^', y, getDx(), txt.getText().length());
+/*  89 */         this.charArea.drawStringLR(txt.getText(), getDx(), y + 1);
+/*     */       } else {
+/*  91 */         this.charArea.drawStringLR(txt.getText(), getDx(), y);
+/*     */       }
+/*  93 */       return; }
+/*  94 */     if ((shape instanceof UImage)) {}
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public final UmlCharArea getCharArea()
+/*     */   {
+/* 102 */     return new TranslatedCharArea(this.charArea, getDx(), getDy());
+/*     */   }
+/*     */   
+/*     */   private int getDy() {
+/* 106 */     return (int)getTranslateY();
+/*     */   }
+/*     */   
+/*     */   private int getDx() {
+/* 110 */     return (int)getTranslateX();
+/*     */   }
+/*     */   
+/*     */   public XDimension2D getDimension() {
+/* 114 */     return new XDimension2D(0.0D, 0.0D);
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public void writeToStream(OutputStream os, String metadata, int dpi) throws IOException {
+/* 119 */     PrintStream ps = SecurityUtils.createPrintStream(os, true, StandardCharsets.UTF_8);
+/* 120 */     getCharArea().print(ps);
+/*     */   }
+/*     */ }

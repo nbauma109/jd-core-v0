@@ -1,0 +1,263 @@
+/*     */ package net.sourceforge.plantuml.ebnf;
+/*     */ 
+/*     */ import java.util.ArrayList;
+/*     */ import java.util.Iterator;
+/*     */ import java.util.List;
+/*     */ import net.sourceforge.plantuml.activitydiagram3.ftile.vcompact.FloatingNote;
+/*     */ import net.sourceforge.plantuml.klimt.color.HColor;
+/*     */ import net.sourceforge.plantuml.klimt.creole.Display;
+/*     */ import net.sourceforge.plantuml.klimt.font.FontConfiguration;
+/*     */ import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
+/*     */ import net.sourceforge.plantuml.klimt.shape.TextBlock;
+/*     */ import net.sourceforge.plantuml.klimt.shape.TextBlockUtils;
+/*     */ import net.sourceforge.plantuml.style.ISkinParam;
+/*     */ import net.sourceforge.plantuml.style.PName;
+/*     */ import net.sourceforge.plantuml.style.SName;
+/*     */ import net.sourceforge.plantuml.style.Style;
+/*     */ import net.sourceforge.plantuml.utils.CharInspector;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class EbnfExpression
+/*     */   implements TextBlockable
+/*     */ {
+/*     */   private final boolean isCompact;
+/*     */   private final String commentAbove;
+/*     */   private final String commentBelow;
+/*  57 */   private final List<Token> tokens = new ArrayList<>();
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public static EbnfExpression create(CharInspector it, boolean isCompact, String commentAbove, String commentBelow)
+/*     */   {
+/*  63 */     return new EbnfExpression(it, isCompact, commentAbove, commentBelow);
+/*     */   }
+/*     */   
+/*     */   private EbnfExpression(CharInspector it, boolean isCompact, String commentAbove, String commentBelow) {
+/*  67 */     this.isCompact = isCompact;
+/*  68 */     this.commentAbove = commentAbove;
+/*  69 */     this.commentBelow = commentBelow;
+/*     */     for (;;) {
+/*  71 */       char ch = it.peek(0);
+/*  72 */       if (!Character.isWhitespace(ch)) {
+/*  73 */         if (isLetterOrDigit(ch)) {
+/*  74 */           String litteral = readLitteral(it);
+/*  75 */           this.tokens.add(new Token(Symbol.LITTERAL, litteral));
+/*  76 */           continue; }
+/*  77 */         if (ch == '*') {
+/*  78 */           this.tokens.add(new Token(Symbol.REPETITION_SYMBOL, null));
+/*  79 */         } else { if (ch == '(' && it.peek(1) == '*') {
+/*  80 */             String comment = readComment(it);
+/*  81 */             if (comment.trim().length() <= 0) continue;
+/*  82 */             this.tokens.add(new Token(Symbol.COMMENT_TOKEN, comment)); continue;
+/*     */           }
+/*  84 */           if (ch == ',') {
+/*  85 */             this.tokens.add(new Token(Symbol.CONCATENATION, null));
+/*  86 */           } else if (ch == '|') {
+/*  87 */             this.tokens.add(new Token(Symbol.ALTERNATION, null));
+/*  88 */           } else if (ch == '=') {
+/*  89 */             this.tokens.add(new Token(Symbol.DEFINITION, null));
+/*  90 */           } else if (ch == '(') {
+/*  91 */             this.tokens.add(new Token(Symbol.GROUPING_OPEN, null));
+/*  92 */           } else if (ch == ')') {
+/*  93 */             this.tokens.add(new Token(Symbol.GROUPING_CLOSE, null));
+/*  94 */           } else if (ch == '[') {
+/*  95 */             this.tokens.add(new Token(Symbol.OPTIONAL_OPEN, null));
+/*  96 */           } else if (ch == ']') {
+/*  97 */             this.tokens.add(new Token(Symbol.OPTIONAL_CLOSE, null));
+/*  98 */           } else if (ch == '{') {
+/*  99 */             this.tokens.add(new Token(Symbol.REPETITION_OPEN, null));
+/* 100 */           } else if (ch == '}' && it.peek(1) == '-') {
+/* 101 */             this.tokens.add(new Token(Symbol.REPETITION_MINUS_CLOSE, null));
+/* 102 */             it.jump();
+/* 103 */           } else if (ch == '}') {
+/* 104 */             this.tokens.add(new Token(Symbol.REPETITION_CLOSE, null));
+/* 105 */           } else { if (ch == ';' || ch == 0) {
+/*     */               return;
+/*     */             }
+/* 108 */             if (ch == '"') {
+/* 109 */               String litteral = readString(it);
+/* 110 */               this.tokens.add(new Token(Symbol.TERMINAL_STRING1, protect(litteral)));
+/* 111 */             } else if (ch == '\'') {
+/* 112 */               String litteral = readString(it);
+/* 113 */               this.tokens.add(new Token(Symbol.TERMINAL_STRING2, protect(litteral)));
+/* 114 */             } else if (ch == '?') {
+/* 115 */               String litteral = readString(it);
+/* 116 */               this.tokens.add(new Token(Symbol.SPECIAL_SEQUENCE, protect(litteral)));
+/*     */             } else {
+/* 118 */               this.tokens.clear();
+/* 119 */               return;
+/*     */             } } } }
+/* 121 */       it.jump();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/* 127 */   private static String protect(String litteral) { return litteral.length() == 0 ? " " : litteral; }
+/*     */   
+/*     */   @Override
+/*     */   public TextBlock getUDrawable(ISkinParam skinParam) {
+/* 131 */     Style style = ETile.getStyleSignature().getMergedStyle(skinParam.getCurrentStyleBuilder());
+/* 132 */     FontConfiguration fc = style.getFontConfiguration(skinParam.getIHtmlColorSet());
+/*     */     
+/* 134 */     if (this.tokens.size() == 0) {
+/* 135 */       return EbnfEngine.syntaxError(fc, skinParam);
+/*     */     }
+/*     */     try {
+/* 138 */       Iterator<Token> iterator = this.tokens.iterator();
+/* 139 */       Token name = (Token)iterator.next();
+/* 140 */       Token definition = (Token)iterator.next();
+/* 141 */       if (definition.getSymbol() != Symbol.DEFINITION) {
+/* 142 */         return EbnfEngine.syntaxError(fc, skinParam);
+/*     */       }
+/*     */       TextBlock main;
+/* 145 */       if (iterator.hasNext()) {
+/* 146 */         List<Token> full = new ShuntingYard(iterator).getOuputQueue();
+/* 147 */         if (full.size() == 0) {
+/* 148 */           return EbnfEngine.syntaxError(fc, skinParam);
+/*     */         }
+/* 150 */         main = getMainDrawing(skinParam, full.iterator());
+/*     */       } else {
+/* 152 */         HColor lineColor = style.value(PName.LineColor).asColor(skinParam.getIHtmlColorSet());
+/* 153 */         main = new ETileWithCircles(new ETileEmpty(), lineColor);
+/*     */       }
+/*     */       
+/* 156 */       TextBlock titleBox = new TitleBox(name.getData(), fc);
+/* 157 */       if (this.commentAbove != null)
+/* 158 */         titleBox = TextBlockUtils.mergeTB(getNoteAbove(skinParam), titleBox, HorizontalAlignment.CENTER);
+/* 159 */       if (this.commentBelow != null) {
+/* 160 */         titleBox = TextBlockUtils.mergeTB(titleBox, getNoteBelow(skinParam), HorizontalAlignment.CENTER);
+/*     */       }
+/* 162 */       return TextBlockUtils.mergeTB(titleBox, TextBlockUtils.withMargin(main, 0.0D, 0.0D, 10.0D, 15.0D), HorizontalAlignment.LEFT);
+/*     */     }
+/*     */     catch (Exception e) {
+/* 165 */       e.printStackTrace(); }
+/* 166 */     return EbnfEngine.syntaxError(fc, skinParam);
+/*     */   }
+/*     */   
+/*     */   private TextBlock getNoteAbove(ISkinParam skinParam)
+/*     */   {
+/* 171 */     if (this.commentAbove == null)
+/* 172 */       return null;
+/* 173 */     FloatingNote note = FloatingNote.create(Display.getWithNewlines(this.commentAbove), skinParam, SName.ebnf);
+/* 174 */     return note;
+/*     */   }
+/*     */   
+/*     */   private TextBlock getNoteBelow(ISkinParam skinParam) {
+/* 178 */     if (this.commentBelow == null)
+/* 179 */       return null;
+/* 180 */     FloatingNote note = FloatingNote.create(Display.getWithNewlines(this.commentBelow), skinParam, SName.ebnf);
+/* 181 */     return note;
+/*     */   }
+/*     */   
+/*     */   private TextBlock getMainDrawing(ISkinParam skinParam, Iterator<Token> it) {
+/* 185 */     EbnfEngine engine = new EbnfEngine(skinParam);
+/* 186 */     while (it.hasNext()) {
+/* 187 */       Token element = (Token)it.next();
+/* 188 */       if (element.getSymbol() == Symbol.TERMINAL_STRING1 || element.getSymbol() == Symbol.TERMINAL_STRING2 || 
+/* 189 */         element.getSymbol() == Symbol.LITTERAL || element.getSymbol() == Symbol.SPECIAL_SEQUENCE) {
+/* 190 */         engine.push(element);
+/* 191 */       } else if (element.getSymbol() == Symbol.COMMENT_ABOVE) {
+/* 192 */         engine.commentAbove(element.getData());
+/* 193 */       } else if (element.getSymbol() == Symbol.COMMENT_BELOW) {
+/* 194 */         engine.commentBelow(element.getData());
+/* 195 */       } else if (element.getSymbol() == Symbol.ALTERNATION) {
+/* 196 */         engine.alternation();
+/* 197 */       } else if (element.getSymbol() == Symbol.CONCATENATION) {
+/* 198 */         engine.concatenation();
+/* 199 */       } else if (element.getSymbol() == Symbol.OPTIONAL) {
+/* 200 */         engine.optional();
+/* 201 */       } else if (element.getSymbol() == Symbol.REPETITION_ZERO_OR_MORE) {
+/* 202 */         engine.repetitionZeroOrMore(this.isCompact);
+/* 203 */       } else if (element.getSymbol() == Symbol.REPETITION_ONE_OR_MORE) {
+/* 204 */         engine.repetitionOneOrMore();
+/* 205 */       } else if (element.getSymbol() == Symbol.REPETITION_SYMBOL) {
+/* 206 */         engine.repetitionSymbol();
+/*     */       } else {
+/* 208 */         throw new UnsupportedOperationException(element.toString());
+/*     */       }
+/*     */     }
+/* 211 */     return engine.getTextBlock();
+/*     */   }
+/*     */   
+/*     */   private String readString(CharInspector it) {
+/* 215 */     char separator = it.peek(0);
+/* 216 */     it.jump();
+/* 217 */     StringBuilder sb = new StringBuilder();
+/*     */     for (;;) {
+/* 219 */       char ch = it.peek(0);
+/* 220 */       if (ch == separator)
+/* 221 */         return sb.toString();
+/* 222 */       sb.append(ch);
+/* 223 */       it.jump();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private String readLitteral(CharInspector it) {
+/* 228 */     StringBuilder sb = new StringBuilder();
+/*     */     for (;;) {
+/* 230 */       char ch = it.peek(0);
+/* 231 */       if (!isLetterOrDigit(ch))
+/* 232 */         return sb.toString();
+/* 233 */       sb.append(ch);
+/* 234 */       it.jump();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private String readComment(CharInspector it) {
+/* 239 */     StringBuilder sb = new StringBuilder();
+/* 240 */     it.jump();
+/* 241 */     it.jump();
+/*     */     for (;;) {
+/* 243 */       char ch = it.peek(0);
+/* 244 */       if (ch == 0)
+/* 245 */         return sb.toString();
+/* 246 */       if (ch == '*' && it.peek(1) == ')') {
+/* 247 */         it.jump();
+/* 248 */         it.jump();
+/* 249 */         return sb.toString();
+/*     */       }
+/* 251 */       sb.append(ch);
+/* 252 */       it.jump();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private boolean isLetterOrDigit(char ch) {
+/* 257 */     return ch == '-' || ch == '_' || Character.isLetterOrDigit(ch);
+/*     */   }
+/*     */   
+/*     */   public boolean isEmpty() {
+/* 261 */     return this.tokens.size() == 0;
+/*     */   }
+/*     */ }

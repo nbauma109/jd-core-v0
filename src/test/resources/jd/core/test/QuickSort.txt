@@ -1,0 +1,96 @@
+/*    */ package ext.plantuml.com.ctreber.aclib.sort;
+/*    */ 
+/*    */ import java.util.Comparator;
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ public class QuickSort
+/*    */   extends CTSort
+/*    */ {
+/*    */   @Override
+/*    */   public void sort(Object[] items, Comparator comparator)
+/*    */   {
+/* 13 */     if (items.length <= 1)
+/*    */     {
+/*    */ 
+/* 16 */       return;
+/*    */     }
+/*    */     
+/* 19 */     qsort(items, comparator, 0, items.length - 1);
+/* 20 */     insertionSort(items, comparator, 0, items.length - 1);
+/*    */   }
+/*    */   
+/*    */   private void qsort(Object[] items, Comparator comparator, int l, int r)
+/*    */   {
+/* 25 */     int M = 4;
+/*    */     
+/*    */ 
+/*    */ 
+/*    */ 
+/* 30 */     if (r - l <= 4)
+/*    */       return;
+/* 32 */     int i = (r + l) / 2;
+/* 33 */     if (comparator.compare(items[l], items[i]) > 0)
+/*    */     {
+/* 35 */       swap(items, l, i);
+/*    */     }
+/* 37 */     if (comparator.compare(items[l], items[r]) > 0)
+/*    */     {
+/* 39 */       swap(items, l, r);
+/*    */     }
+/* 41 */     if (comparator.compare(items[i], items[r]) > 0)
+/*    */     {
+/* 43 */       swap(items, i, r);
+/*    */     }
+/*    */     
+/* 46 */     int j = r - 1;
+/* 47 */     swap(items, i, j);
+/* 48 */     i = l;
+/* 49 */     Object v = items[j];
+/*    */     for (;;)
+/*    */     {
+/* 52 */       if (comparator.compare(items[(++i)], v) >= 0)
+/*    */       {
+/*    */ 
+/* 55 */         while (comparator.compare(items[(--j)], v) > 0) {}
+/*    */         
+/*    */ 
+/* 58 */         if (j < i) {
+/*    */           break;
+/*    */         }
+/*    */         
+/* 62 */         swap(items, i, j);
+/*    */       } }
+/* 64 */     swap(items, i, r - 1);
+/* 65 */     qsort(items, comparator, l, j);
+/* 66 */     qsort(items, comparator, i + 1, r);
+/*    */   }
+/*    */   
+/*    */ 
+/*    */ 
+/*    */   private static void swap(Object[] items, int i, int j)
+/*    */   {
+/* 73 */     Object tmp = items[i];
+/* 74 */     items[i] = items[j];
+/* 75 */     items[j] = tmp;
+/*    */   }
+/*    */   
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */   private static void insertionSort(Object[] items, Comparator comparator, int lo0, int hi0)
+/*    */   {
+/* 84 */     for (int i = lo0 + 1; i <= hi0; i++)
+/*    */     {
+/* 86 */       Object v = items[i];
+/* 87 */       int j = i;
+/* 88 */       while (j > lo0 && comparator.compare(items[(j - 1)], v) > 0)
+/*    */       {
+/* 90 */         items[j] = items[(j - 1)];
+/* 91 */         j--;
+/*    */       }
+/* 93 */       items[j] = v;
+/*    */     }
+/*    */   }
+/*    */ }
