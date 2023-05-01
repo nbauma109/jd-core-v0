@@ -1582,11 +1582,16 @@ public final class FastInstructionListBuilder {
                         StoreInstruction si = (StoreInstruction) ff.getInit();
                         LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(si.getIndex(), si.getOffset());
                         if (isUndeclared(lv)
-                                && beforeListOffset < lv.getStartPc()
-                                && !CheckLocalVariableUsedVisitor.visit(lv, list.subList(i+1, list.size()))) {
-                            ff.setInit(new FastDeclaration(si.getOffset(), si.getLineNumber(), lv, si));
-                            lv.setDeclarationFlag(DECLARED);
-                            updateNewAndInitArrayInstruction(si);
+                                && beforeListOffset < lv.getStartPc()) {
+                            if (CheckLocalVariableUsedVisitor.visit(lv, list.subList(i+1, list.size()))) {
+                                FastDeclaration fastDeclaration = new FastDeclaration(lv.getStartPc(),
+                                        Instruction.UNKNOWN_LINE_NUMBER, lv, null);
+                                insertNewDeclaration(list, i, fastDeclaration, true, outerDeclarations);
+                            } else {
+                                ff.setInit(new FastDeclaration(si.getOffset(), si.getLineNumber(), lv, si));
+                                lv.setDeclarationFlag(DECLARED);
+                                updateNewAndInitArrayInstruction(si);
+                            }
                         }
                     }
                 } else {

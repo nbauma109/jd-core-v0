@@ -1,0 +1,687 @@
+/*     */ package gen.lib.dotgen;
+/*     */ 
+/*     */ import gen.annotation.HasND_Rank;
+/*     */ import gen.annotation.Original;
+/*     */ import gen.annotation.Reviewed;
+/*     */ import gen.annotation.Unused;
+/*     */ import gen.lib.cgraph.edge__c;
+/*     */ import gen.lib.cgraph.node__c;
+/*     */ import gen.lib.cgraph.obj__c;
+/*     */ import gen.lib.common.utils__c;
+/*     */ import h.ST_Agedge_s;
+/*     */ import h.ST_Agnode_s;
+/*     */ import h.ST_Agraph_s;
+/*     */ import h.ST_elist;
+/*     */ import h.ST_nlist_t;
+/*     */ import h.ST_nodequeue;
+/*     */ import h.ST_rank_t;
+/*     */ import smetana.core.CArrayOfStar;
+/*     */ import smetana.core.Globals;
+/*     */ import smetana.core.Macro;
+/*     */ import smetana.core.ZType;
+/*     */ import smetana.core.debug.SmetanaDebug;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class cluster__c
+/*     */ {
+/*     */   @Unused
+/*     */   @Original(version="2.38.0", path="lib/dotgen/cluster.c", name="map_interclust_node", key="8bd317q0mykfu6wpr3e4cxmh2", definition="static node_t* map_interclust_node(node_t * n)")
+/*     */   public static ST_Agnode_s map_interclust_node(ST_Agnode_s n)
+/*     */   {
+/* 135 */     SmetanaDebug.ENTERING("8bd317q0mykfu6wpr3e4cxmh2", "map_interclust_node");
+/*     */     try {
+/*     */       ST_Agnode_s rv;
+/* 138 */       if (Macro.ND_clust(n) == null || Macro.GD_expanded(Macro.ND_clust(n))) {
+/* 139 */         rv = n;
+/*     */       } else
+/* 141 */         rv = (ST_Agnode_s)Macro.GD_rankleader(Macro.ND_clust(n)).get_(Macro.ND_rank(n));
+/* 142 */       return rv;
+/*     */     } finally {
+/* 144 */       SmetanaDebug.LEAVING("8bd317q0mykfu6wpr3e4cxmh2", "map_interclust_node");
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Reviewed(when="15/11/2020")
+/*     */   @Original(version="2.38.0", path="lib/dotgen/cluster.c", name="make_slots", key="5ib4nnt2ah5fdd22zs0xds29r", definition="static void  make_slots(graph_t * root, int r, int pos, int d)")
+/*     */   public static void make_slots(ST_Agraph_s root, int r, int pos, int d)
+/*     */   {
+/* 155 */     SmetanaDebug.ENTERING("5ib4nnt2ah5fdd22zs0xds29r", "make_slots");
+/*     */     
+/*     */ 
+/*     */     try
+/*     */     {
+/* 160 */       CArrayOfStar<ST_Agnode_s> vlist = ((ST_rank_t)Macro.GD_rank(root).get__(r)).v;
+/* 161 */       if (d <= 0) { int i;
+/* 162 */         for (i = pos - d + 1; i < ((ST_rank_t)Macro.GD_rank(root).get__(r)).n; i++) {
+/* 163 */           ST_Agnode_s v = (ST_Agnode_s)vlist.get_(i);
+/* 164 */           Macro.ND_order(v, i + d - 1);
+/* 165 */           vlist.set_(Macro.ND_order(v), v);
+/*     */         }
+/* 167 */         for (i = ((ST_rank_t)Macro.GD_rank(root).get__(r)).n + d - 1; i < ((ST_rank_t)Macro.GD_rank(root).get__(r)).n; i++)
+/* 168 */           vlist.set_(i, null);
+/*     */       }
+/*     */       int i;
+/* 171 */       for (i = ((ST_rank_t)Macro.GD_rank(root).get__(r)).n - 1; i > pos; i--) {
+/* 172 */         ST_Agnode_s v = (ST_Agnode_s)vlist.get_(i);
+/* 173 */         Macro.ND_order(v, i + d - 1);
+/* 174 */         vlist.set_(Macro.ND_order(v), v);
+/*     */       }
+/* 176 */       for (i = pos + 1; i < pos + d; i++) {
+/* 177 */         vlist.set_(i, null);
+/*     */       }
+/* 179 */       ((ST_rank_t)Macro.GD_rank(root).get__(r)).n = ((ST_rank_t)Macro.GD_rank(root).get__(r)).n + d - 1;
+/*     */     } finally {
+/* 181 */       SmetanaDebug.LEAVING("5ib4nnt2ah5fdd22zs0xds29r", "make_slots");
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Unused
+/*     */   @HasND_Rank
+/*     */   @Original(version="2.38.0", path="lib/dotgen/cluster.c", name="clone_vn", key="d4mwxesl56uh9dyttg9cjlq70", definition="static node_t*  clone_vn(graph_t * g, node_t * vn)")
+/*     */   public static ST_Agnode_s clone_vn(ST_Agraph_s g, ST_Agnode_s vn)
+/*     */   {
+/* 194 */     SmetanaDebug.ENTERING("d4mwxesl56uh9dyttg9cjlq70", "clone_vn");
+/*     */     
+/*     */     try
+/*     */     {
+/* 198 */       int r = Macro.ND_rank(vn);
+/* 199 */       make_slots(g, r, Macro.ND_order(vn), 2);
+/* 200 */       ST_Agnode_s rv = fastgr__c.virtual_node(g);
+/* 201 */       Macro.ND_lw(rv, Macro.ND_lw(vn));
+/* 202 */       Macro.ND_rw(rv, Macro.ND_rw(vn));
+/* 203 */       Macro.ND_rank(rv, Macro.ND_rank(vn));
+/* 204 */       Macro.UNSUPPORTED("adc0qfdhup29vh8qu1cwl5jgj");
+/* 205 */       Macro.UNSUPPORTED("v7vqc9l7ge2bfdwnw11z7rzi");
+/* 206 */       Macro.UNSUPPORTED("c24nfmv9i7o5eoqaymbibp7m7");
+/*     */       
+/* 208 */       throw new UnsupportedOperationException();
+/*     */     } finally {
+/* 210 */       SmetanaDebug.LEAVING("d4mwxesl56uh9dyttg9cjlq70", "clone_vn");
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Unused
+/*     */   @Original(version="2.38.0", path="lib/dotgen/cluster.c", name="map_path", key="6o86r59v2ujlxqcw7761y6o5b", definition="static void  map_path(node_t * from, node_t * to, edge_t * orig, edge_t * ve, int type)")
+/*     */   public static void map_path(ST_Agnode_s from, ST_Agnode_s to, ST_Agedge_s orig, ST_Agedge_s ve, int type)
+/*     */   {
+/* 222 */     SmetanaDebug.ENTERING("6o86r59v2ujlxqcw7761y6o5b", "map_path");
+/*     */     
+/*     */ 
+/*     */     try
+/*     */     {
+/* 227 */       assert (Macro.ND_rank(from) < Macro.ND_rank(to));
+/* 228 */       if (edge__c.agtail(ve) == from && edge__c.aghead(ve) == to)
+/* 229 */         return;
+/* 230 */       if (Macro.ED_count(ve) > 1) {
+/* 231 */         Macro.ED_to_virt(orig, null);
+/* 232 */         ST_Agedge_s e; if (Macro.ND_rank(to) - Macro.ND_rank(from) == 1 && 
+/* 233 */           (e = fastgr__c.find_fast_edge(from, to)) != null && position__c.ports_eq(orig, e)) {
+/* 234 */           fastgr__c.merge_oneway(orig, e);
+/* 235 */           if (Macro.ND_node_type(from) == 0 && 
+/* 236 */             Macro.ND_node_type(to) == 0)
+/* 237 */             fastgr__c.other_edge(orig);
+/* 238 */           return;
+/*     */         }
+/*     */         
+/* 241 */         ST_Agnode_s u = from;
+/* 242 */         for (int r = Macro.ND_rank(from); r < Macro.ND_rank(to); r++) { ST_Agnode_s v;
+/* 243 */           if (r < Macro.ND_rank(to) - 1) {
+/* 244 */             v = clone_vn(dotinit__c.dot_root(from), edge__c.aghead(ve));
+/*     */           } else
+/* 246 */             v = to;
+/* 247 */           e = fastgr__c.virtual_edge(u, v, orig);
+/* 248 */           Macro.ED_edge_type(e, type);
+/* 249 */           u = v;
+/* 250 */           Macro.ED_count(ve, Macro.ED_count(ve) - 1);
+/* 251 */           ve = (ST_Agedge_s)Macro.ND_out(edge__c.aghead(ve)).list.get_(0);
+/*     */         }
+/*     */       }
+/* 254 */       if (Macro.ND_rank(to) - Macro.ND_rank(from) == 1) {
+/* 255 */         if ((ve = fastgr__c.find_fast_edge(from, to)) != null && position__c.ports_eq(orig, ve))
+/*     */         {
+/* 257 */           Macro.ED_to_virt(orig, ve);
+/* 258 */           Macro.ED_edge_type(ve, type);
+/* 259 */           Macro.ED_count(ve, Macro.ED_count(ve) + 1);
+/* 260 */           if (Macro.ND_node_type(from) == 0 && 
+/* 261 */             Macro.ND_node_type(to) == 0)
+/* 262 */             fastgr__c.other_edge(orig);
+/*     */         } else {
+/* 264 */           Macro.ED_to_virt(orig, null);
+/* 265 */           ve = fastgr__c.virtual_edge(from, to, orig);
+/* 266 */           Macro.ED_edge_type(ve, type);
+/*     */         }
+/*     */       }
+/* 269 */       if (Macro.ND_rank(to) - Macro.ND_rank(from) > 1) {
+/* 270 */         ST_Agedge_s e = ve;
+/* 271 */         if (edge__c.agtail(ve) != from) {
+/* 272 */           Macro.ED_to_virt(orig, null);
+/* 273 */           e = fastgr__c.virtual_edge(from, edge__c.aghead(ve), orig);
+/* 274 */           Macro.ED_to_virt(orig, e);
+/* 275 */           fastgr__c.delete_fast_edge(ve);
+/*     */         } else {
+/* 277 */           e = ve; }
+/* 278 */         while (Macro.ND_rank(edge__c.aghead(e)) != Macro.ND_rank(to))
+/* 279 */           e = (ST_Agedge_s)Macro.ND_out(edge__c.aghead(e)).list.get_(0);
+/* 280 */         if (edge__c.aghead(e) != to) {
+/* 281 */           ve = e;
+/* 282 */           e = fastgr__c.virtual_edge(edge__c.agtail(e), to, orig);
+/* 283 */           Macro.ED_edge_type(e, type);
+/* 284 */           fastgr__c.delete_fast_edge(ve);
+/*     */         }
+/*     */       }
+/*     */     }
+/*     */     finally {
+/* 289 */       SmetanaDebug.LEAVING("6o86r59v2ujlxqcw7761y6o5b", "map_path");
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Unused
+/*     */   @Original(version="2.38.0", path="lib/dotgen/cluster.c", name="make_interclust_chain", key="69xbflgja0gvrsl5xcv7o7dia", definition="static void  make_interclust_chain(graph_t * g, node_t * from, node_t * to, edge_t * orig)")
+/*     */   public static void make_interclust_chain(ST_Agraph_s g, ST_Agnode_s from, ST_Agnode_s to, ST_Agedge_s orig)
+/*     */   {
+/* 301 */     SmetanaDebug.ENTERING("69xbflgja0gvrsl5xcv7o7dia", "make_interclust_chain");
+/*     */     
+/*     */     try
+/*     */     {
+/* 305 */       ST_Agnode_s u = map_interclust_node(from);
+/* 306 */       ST_Agnode_s v = map_interclust_node(to);
+/* 307 */       int newtype; if (u == from && v == to) {
+/* 308 */         newtype = 1;
+/*     */       } else
+/* 310 */         newtype = 5;
+/* 311 */       map_path(u, v, orig, Macro.ED_to_virt(orig), newtype);
+/*     */     } finally {
+/* 313 */       SmetanaDebug.LEAVING("69xbflgja0gvrsl5xcv7o7dia", "make_interclust_chain");
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Unused
+/*     */   @Reviewed(when="15/11/2020")
+/*     */   @Original(version="2.38.0", path="lib/dotgen/cluster.c", name="interclexp", key="6g2m2y44x66lajznvnon2gubv", definition="void interclexp(graph_t * subg)")
+/*     */   public static void interclexp(Globals zz, ST_Agraph_s subg)
+/*     */   {
+/* 328 */     SmetanaDebug.ENTERING("6g2m2y44x66lajznvnon2gubv", "interclexp");
+/*     */     
+/*     */ 
+/*     */ 
+/*     */     try
+/*     */     {
+/* 334 */       ST_Agraph_s g = dotinit__c.dot_root(subg);
+/* 335 */       for (ST_Agnode_s n = node__c.agfstnode(zz, subg); n != null; n = node__c.agnxtnode(zz, subg, n))
+/*     */       {
+/*     */ 
+/* 338 */         ST_Agedge_s prev = null;
+/* 339 */         ST_Agedge_s next; for (ST_Agedge_s e = edge__c.agfstedge(zz, g, n); e != null; e = next) {
+/* 340 */           next = edge__c.agnxtedge(zz, g, e, n);
+/* 341 */           if (obj__c.agcontains(zz, subg, e)) {
+/*     */             continue;
+/*     */           }
+/*     */           
+/* 345 */           e = Macro.AGMKOUT(e);
+/*     */           
+/* 347 */           if (class2__c.mergeable(prev, e)) {
+/* 348 */             if (Macro.ND_rank(edge__c.agtail(e)) == Macro.ND_rank(edge__c.aghead(e))) {
+/* 349 */               Macro.ED_to_virt(e, prev);
+/*     */             } else
+/* 351 */               Macro.ED_to_virt(e, null);
+/* 352 */             if (Macro.ED_to_virt(prev) == null)
+/*     */               continue;
+/* 354 */             class2__c.merge_chain(subg, e, Macro.ED_to_virt(prev), false);
+/* 355 */             fastgr__c.safe_other_edge(e);
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */           }
+/* 360 */           else if (Macro.ND_rank(edge__c.agtail(e)) == Macro.ND_rank(edge__c.aghead(e))) {
+/*     */             ST_Agedge_s fe;
+/* 362 */             if ((fe = fastgr__c.find_flat_edge(edge__c.agtail(e), edge__c.aghead(e))) == null) {
+/* 363 */               fastgr__c.flat_edge(g, e);
+/* 364 */               prev = e;
+/* 365 */             } else if (e != fe) {
+/* 366 */               fastgr__c.safe_other_edge(e);
+/* 367 */               if (Macro.ED_to_virt(e) != null) continue; fastgr__c.merge_oneway(e, fe);
+/*     */ 
+/*     */             }
+/*     */             
+/*     */ 
+/*     */           }
+/* 373 */           else if (Macro.ND_rank(edge__c.aghead(e)) > Macro.ND_rank(edge__c.agtail(e))) {
+/* 374 */             make_interclust_chain(g, edge__c.agtail(e), edge__c.aghead(e), e);
+/* 375 */             prev = e;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */           }
+/*     */           else
+/*     */           {
+/*     */ 
+/*     */ 
+/*     */ 
+/* 386 */             make_interclust_chain(g, edge__c.aghead(e), edge__c.agtail(e), e);
+/* 387 */             prev = e;
+/*     */           }
+/*     */         }
+/*     */       }
+/*     */     } finally {
+/* 392 */       SmetanaDebug.LEAVING("6g2m2y44x66lajznvnon2gubv", "interclexp");
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   @Unused
+/*     */   @Reviewed(when="15/11/2020")
+/*     */   @Original(version="2.38.0", path="lib/dotgen/cluster.c", name="merge_ranks", key="85nhs7tnmwunw0fsjj1kxao7l", definition="static void  merge_ranks(graph_t * subg)")
+/*     */   public static void merge_ranks(ST_Agraph_s subg)
+/*     */   {
+/* 403 */     SmetanaDebug.ENTERING("85nhs7tnmwunw0fsjj1kxao7l", "merge_ranks");
+/*     */     
+/*     */ 
+/*     */ 
+/*     */     try
+/*     */     {
+/* 409 */       ST_Agraph_s root = dotinit__c.dot_root(subg);
+/* 410 */       if (Macro.GD_minrank(subg) > 0)
+/* 411 */         ((ST_rank_t)Macro.GD_rank(root).get__(Macro.GD_minrank(subg) - 1)).valid = 0;
+/* 412 */       int r; for (r = Macro.GD_minrank(subg); r <= Macro.GD_maxrank(subg); r++) {
+/* 413 */         int d = ((ST_rank_t)Macro.GD_rank(subg).get__(r)).n;
+/* 414 */         int pos; int ipos = pos = Macro.ND_order((ST_Agnode_s)Macro.GD_rankleader(subg).get_(r));
+/* 415 */         make_slots(root, r, pos, d);
+/* 416 */         for (int i = 0; i < ((ST_rank_t)Macro.GD_rank(subg).get__(r)).n; i++) {
+/* 417 */           ST_Agnode_s v = (ST_Agnode_s)((ST_rank_t)Macro.GD_rank(subg).get__(r)).v.get_(i);
+/* 418 */           ((ST_rank_t)Macro.GD_rank(root).get__(r)).v.set_(pos, v);
+/* 419 */           Macro.ND_order(v, pos++);
+/*     */           
+/* 421 */           if (Macro.ND_node_type(v) == 1)
+/* 422 */             v.root = obj__c.agroot(root);
+/* 423 */           fastgr__c.delete_fast_node(subg, v);
+/* 424 */           fastgr__c.fast_node(root, v);
+/* 425 */           Macro.GD_n_nodes(root, Macro.GD_n_nodes(root) + 1);
+/*     */         }
+/* 427 */         ((ST_rank_t)Macro.GD_rank(subg).get__(r)).v = ((ST_rank_t)Macro.GD_rank(root).get__(r)).v.plus_(ipos);
+/* 428 */         ((ST_rank_t)Macro.GD_rank(root).get__(r)).valid = 0;
+/*     */       }
+/* 430 */       if (r < Macro.GD_maxrank(root))
+/* 431 */         ((ST_rank_t)Macro.GD_rank(root).get__(r)).valid = 0;
+/* 432 */       Macro.GD_expanded(subg, true);
+/*     */     } finally {
+/* 434 */       SmetanaDebug.LEAVING("85nhs7tnmwunw0fsjj1kxao7l", "merge_ranks");
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   @Reviewed(when="15/11/2020")
+/*     */   @Original(version="2.38.0", path="lib/dotgen/cluster.c", name="remove_rankleaders", key="c9p7dm16i13qktnh95os0sv58", definition="static void  remove_rankleaders(graph_t * g)")
+/*     */   public static void remove_rankleaders(ST_Agraph_s g)
+/*     */   {
+/* 444 */     SmetanaDebug.ENTERING("c9p7dm16i13qktnh95os0sv58", "remove_rankleaders");
+/*     */     
+/*     */ 
+/*     */ 
+/*     */     try
+/*     */     {
+/* 450 */       for (int r = Macro.GD_minrank(g); r <= Macro.GD_maxrank(g); r++) {
+/* 451 */         ST_Agnode_s v = (ST_Agnode_s)Macro.GD_rankleader(g).get_(r);
+/*     */         
+/*     */         ST_Agedge_s e;
+/* 454 */         while ((e = (ST_Agedge_s)Macro.ND_out(v).list.get_(0)) != null)
+/* 455 */           fastgr__c.delete_fast_edge(e);
+/* 456 */         while ((e = (ST_Agedge_s)Macro.ND_in(v).list.get_(0)) != null)
+/* 457 */           fastgr__c.delete_fast_edge(e);
+/* 458 */         fastgr__c.delete_fast_node(dotinit__c.dot_root(g), v);
+/* 459 */         Macro.GD_rankleader(g).set_(r, null);
+/*     */       }
+/*     */     } finally {
+/* 462 */       SmetanaDebug.LEAVING("c9p7dm16i13qktnh95os0sv58", "remove_rankleaders");
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Reviewed(when="15/11/2020")
+/*     */   @Original(version="2.38.0", path="lib/dotgen/cluster.c", name="expand_cluster", key="ecrplg8hsyl484f9kxc5xp0go", definition="void expand_cluster(graph_t * subg)")
+/*     */   public static void expand_cluster(Globals zz, ST_Agraph_s subg)
+/*     */   {
+/* 473 */     SmetanaDebug.ENTERING("ecrplg8hsyl484f9kxc5xp0go", "expand_cluster");
+/*     */     try
+/*     */     {
+/* 476 */       class2__c.class2(zz, subg);
+/* 477 */       Macro.GD_comp(subg).size = 1;
+/* 478 */       Macro.GD_comp(subg).list.set_(0, Macro.GD_nlist(subg));
+/* 479 */       mincross__c.allocate_ranks(zz, subg);
+/* 480 */       mincross__c.build_ranks(zz, subg, 0);
+/* 481 */       merge_ranks(subg);
+/*     */       
+/*     */ 
+/* 484 */       interclexp(zz, subg);
+/* 485 */       remove_rankleaders(subg);
+/*     */     } finally {
+/* 487 */       SmetanaDebug.LEAVING("ecrplg8hsyl484f9kxc5xp0go", "expand_cluster");
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   @Reviewed(when="13/11/2020")
+/*     */   @Original(version="2.38.0", path="lib/dotgen/cluster.c", name="mark_clusters", key="cxuirggihlap2iv2khmb1w5l5", definition="void mark_clusters(graph_t * g)")
+/*     */   public static void mark_clusters(Globals zz, ST_Agraph_s g)
+/*     */   {
+/* 497 */     SmetanaDebug.ENTERING("cxuirggihlap2iv2khmb1w5l5", "mark_clusters");
+/*     */     try
+/*     */     {
+/* 500 */       ST_Agnode_s nn = null;
+/*     */       
+/*     */ 
+/*     */       ST_Agnode_s n;
+/*     */       
+/*     */ 
+/* 506 */       for (n = node__c.agfstnode(zz, g); n != null; n = node__c.agnxtnode(zz, g, n)) {
+/* 507 */         if (Macro.ND_ranktype(n) == 7)
+/* 508 */           utils__c.UF_singleton(n);
+/* 509 */         Macro.ND_clust(n, null);
+/*     */       }
+/*     */       
+/*     */ 
+/* 513 */       for (int c = 1; c <= Macro.GD_n_cluster(g); c++) {
+/* 514 */         ST_Agraph_s clust = (ST_Agraph_s)Macro.GD_clust(g).get_(c);
+/* 515 */         for (n = node__c.agfstnode(zz, clust); n != null; n = nn) {
+/* 516 */           nn = node__c.agnxtnode(zz, clust, n);
+/* 517 */           if (Macro.ND_ranktype(n) != 0) {
+/* 518 */             Macro.UNSUPPORTED("5l8jenkv77ax02t47zzxyv1k0");
+/* 519 */             Macro.UNSUPPORTED("2ipl4umxgijawr7756ysp9hhd");
+/* 520 */             Macro.UNSUPPORTED("7r0ulsiau9cygesawzzjnpt5j");
+/* 521 */             Macro.UNSUPPORTED("4zqc8357rwnd9xe7zaoqooqv3");
+/* 522 */             Macro.UNSUPPORTED("6hyelvzskqfqa07xtgjtvg2is");
+/*     */           }
+/* 524 */           utils__c.UF_setname(n, Macro.GD_leader(clust));
+/* 525 */           Macro.ND_clust(n, clust);
+/* 526 */           Macro.ND_ranktype(n, 7);
+/*     */           
+/*     */ 
+/*     */ 
+/* 530 */           for (ST_Agedge_s orig = edge__c.agfstout(zz, clust, n); orig != null; 
+/* 531 */               orig = edge__c.agnxtout(zz, clust, orig)) { ST_Agedge_s e;
+/* 532 */             if ((e = Macro.ED_to_virt(orig)) != null) { ST_Agnode_s vn;
+/* 533 */               while (e != null && Macro.ND_node_type(vn = edge__c.aghead(e)) == 1) {
+/* 534 */                 Macro.ND_clust(vn, clust);
+/* 535 */                 e = (ST_Agedge_s)Macro.ND_out(edge__c.aghead(e)).list.get_(0);
+/*     */               }
+/*     */             }
+/*     */           }
+/*     */         }
+/*     */       }
+/*     */     }
+/*     */     finally {
+/* 543 */       SmetanaDebug.LEAVING("cxuirggihlap2iv2khmb1w5l5", "mark_clusters");
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   @Reviewed(when="15/11/2020")
+/*     */   @HasND_Rank
+/*     */   @Original(version="2.38.0", path="lib/dotgen/cluster.c", name="build_skeleton", key="bwrw5u0gi2rgah1cn9h0glpse", definition="void build_skeleton(graph_t * g, graph_t * subg)")
+/*     */   public static void build_skeleton(Globals zz, ST_Agraph_s g, ST_Agraph_s subg)
+/*     */   {
+/* 554 */     SmetanaDebug.ENTERING("bwrw5u0gi2rgah1cn9h0glpse", "build_skeleton");
+/*     */     
+/*     */ 
+/*     */ 
+/*     */     try
+/*     */     {
+/* 560 */       ST_Agnode_s prev = null;
+/* 561 */       Macro.GD_rankleader(subg, CArrayOfStar.ALLOC(Macro.GD_maxrank(subg) + 2, ZType.ST_Agnode_s));
+/* 562 */       int r; for (r = Macro.GD_minrank(subg); r <= Macro.GD_maxrank(subg); r++) {
+/* 563 */         ST_Agnode_s v = fastgr__c.virtual_node(g);
+/* 564 */         Macro.GD_rankleader(subg).set_(r, v);
+/* 565 */         Macro.ND_rank(v, r);
+/* 566 */         Macro.ND_ranktype(v, 7);
+/* 567 */         Macro.ND_clust(v, subg);
+/* 568 */         if (prev != null) {
+/* 569 */           ST_Agedge_s e = fastgr__c.virtual_edge(prev, v, null);
+/* 570 */           Macro.ED_xpenalty(e, Macro.ED_xpenalty(e) * 1000);
+/*     */         }
+/* 572 */         prev = v;
+/*     */       }
+/*     */       
+/*     */ 
+/*     */ 
+/* 577 */       for (ST_Agnode_s v = node__c.agfstnode(zz, subg); v != null; v = node__c.agnxtnode(zz, subg, v)) {
+/* 578 */         ST_Agnode_s rl = (ST_Agnode_s)Macro.GD_rankleader(subg).get_(Macro.ND_rank(v));
+/* 579 */         Macro.ND_UF_size(rl, Macro.ND_UF_size(rl) + 1);
+/* 580 */         for (ST_Agedge_s e = edge__c.agfstout(zz, subg, v); e != null; e = edge__c.agnxtout(zz, subg, e)) {
+/* 581 */           for (r = Macro.ND_rank(edge__c.agtail(e)); r < Macro.ND_rank(edge__c.aghead(e)); r++) {
+/* 582 */             Macro.ED_count((ST_Agedge_s)Macro.ND_out(rl).list.get_(0), Macro.ED_count((ST_Agedge_s)Macro.ND_out(rl).list.get_(0)) + 1);
+/*     */           }
+/*     */         }
+/*     */       }
+/* 586 */       for (r = Macro.GD_minrank(subg); r <= Macro.GD_maxrank(subg); r++) {
+/* 587 */         ST_Agnode_s rl = (ST_Agnode_s)Macro.GD_rankleader(subg).get_(r);
+/* 588 */         if (Macro.ND_UF_size(rl) > 1)
+/* 589 */           Macro.ND_UF_size(rl, Macro.ND_UF_size(rl) - 1);
+/*     */       }
+/*     */     } finally {
+/* 592 */       SmetanaDebug.LEAVING("bwrw5u0gi2rgah1cn9h0glpse", "build_skeleton");
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   @Reviewed(when="15/11/2020")
+/*     */   @Original(version="2.38.0", path="lib/dotgen/cluster.c", name="install_cluster", key="75yt3xwcwnxipi827t1r8zcmn", definition="void install_cluster(graph_t * g, node_t * n, int pass, nodequeue * q)")
+/*     */   public static void install_cluster(Globals zz, ST_Agraph_s g, ST_Agnode_s n, int pass, ST_nodequeue q)
+/*     */   {
+/* 602 */     SmetanaDebug.ENTERING("75yt3xwcwnxipi827t1r8zcmn", "install_cluster");
+/*     */     
+/*     */     try
+/*     */     {
+/* 606 */       ST_Agraph_s clust = Macro.ND_clust(n);
+/*     */       
+/* 608 */       if (Macro.GD_installed(clust) != pass + 1) { int r;
+/* 609 */         for (r = Macro.GD_minrank(clust); r <= Macro.GD_maxrank(clust); r++)
+/* 610 */           mincross__c.install_in_rank(zz, g, (ST_Agnode_s)Macro.GD_rankleader(clust).get_(r));
+/* 611 */         for (r = Macro.GD_minrank(clust); r <= Macro.GD_maxrank(clust); r++)
+/* 612 */           mincross__c.enqueue_neighbors(q, (ST_Agnode_s)Macro.GD_rankleader(clust).get_(r), pass);
+/* 613 */         Macro.GD_installed(clust, pass + 1);
+/*     */       }
+/*     */     } finally {
+/* 616 */       SmetanaDebug.LEAVING("75yt3xwcwnxipi827t1r8zcmn", "install_cluster");
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   @Reviewed(when="15/11/2020")
+/*     */   @Original(version="2.38.0", path="lib/dotgen/cluster.c", name="mark_lowclusters", key="4muksvb3ec03mt6cvaqpb5c7a", definition="void mark_lowclusters(Agraph_t * root)")
+/*     */   public static void mark_lowclusters(Globals zz, ST_Agraph_s root)
+/*     */   {
+/* 626 */     SmetanaDebug.ENTERING("4muksvb3ec03mt6cvaqpb5c7a", "mark_lowclusters");
+/*     */     
+/*     */ 
+/*     */ 
+/*     */     try
+/*     */     {
+/* 632 */       for (ST_Agnode_s n = node__c.agfstnode(zz, root); n != null; n = node__c.agnxtnode(zz, root, n)) {
+/* 633 */         Macro.ND_clust(n, null);
+/* 634 */         for (ST_Agedge_s orig = edge__c.agfstout(zz, root, n); orig != null; orig = edge__c.agnxtout(zz, root, orig)) { ST_Agedge_s e;
+/* 635 */           if ((e = Macro.ED_to_virt(orig)) != null) { ST_Agnode_s vn;
+/* 636 */             while (e != null && Macro.ND_node_type(vn = edge__c.aghead(e)) == 1) {
+/* 637 */               Macro.ND_clust(vn, null);
+/* 638 */               e = (ST_Agedge_s)Macro.ND_out(edge__c.aghead(e)).list.get_(0);
+/*     */             }
+/*     */           }
+/*     */         }
+/*     */       }
+/*     */       
+/*     */ 
+/*     */ 
+/* 646 */       mark_lowcluster_basic(zz, root);
+/*     */     } finally {
+/* 648 */       SmetanaDebug.LEAVING("4muksvb3ec03mt6cvaqpb5c7a", "mark_lowclusters");
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   @Reviewed(when="16/11/2020")
+/*     */   @Original(version="2.38.0", path="lib/dotgen/cluster.c", name="mark_lowcluster_basic", key="48j6fdymvkcgeh4wde060ctac", definition="static void mark_lowcluster_basic(Agraph_t * g)")
+/*     */   public static void mark_lowcluster_basic(Globals zz, ST_Agraph_s g)
+/*     */   {
+/* 658 */     SmetanaDebug.ENTERING("48j6fdymvkcgeh4wde060ctac", "mark_lowcluster_basic");
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     try
+/*     */     {
+/* 665 */       for (int c = 1; c <= Macro.GD_n_cluster(g); c++) {
+/* 666 */         ST_Agraph_s clust = (ST_Agraph_s)Macro.GD_clust(g).get_(c);
+/* 667 */         mark_lowcluster_basic(zz, clust);
+/*     */       }
+/*     */       
+/* 670 */       for (ST_Agnode_s n = node__c.agfstnode(zz, g); n != null; n = node__c.agnxtnode(zz, g, n)) {
+/* 671 */         if (Macro.ND_clust(n) == null)
+/* 672 */           Macro.ND_clust(n, g);
+/* 673 */         for (ST_Agedge_s orig = edge__c.agfstout(zz, g, n); orig != null; orig = edge__c.agnxtout(zz, g, orig)) { ST_Agedge_s e;
+/* 674 */           if ((e = Macro.ED_to_virt(orig)) != null) { ST_Agnode_s vn;
+/* 675 */             while (e != null && Macro.ND_node_type(vn = edge__c.aghead(e)) == 1) {
+/* 676 */               if (Macro.ND_clust(vn) == null)
+/* 677 */                 Macro.ND_clust(vn, g);
+/* 678 */               e = (ST_Agedge_s)Macro.ND_out(edge__c.aghead(e)).list.get_(0);
+/*     */             }
+/*     */           }
+/*     */         }
+/*     */       }
+/*     */     } finally {
+/* 684 */       SmetanaDebug.LEAVING("48j6fdymvkcgeh4wde060ctac", "mark_lowcluster_basic");
+/*     */     }
+/*     */   }
+/*     */ }
