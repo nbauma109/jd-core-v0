@@ -44,7 +44,7 @@ import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
 import jd.core.model.instruction.bytecode.instruction.attribute.ValuerefAttribute;
 import jd.core.process.analyzer.classfile.visitor.CompareInstructionVisitor;
 import jd.core.process.analyzer.classfile.visitor.ReplaceDupLoadVisitor;
-import jd.core.process.analyzer.classfile.visitor.SearchDupLoadInstructionVisitor;
+import jd.core.process.analyzer.classfile.visitor.SearchInstructionByTypeVisitor;
 
 /*
  * Reconstruction des affectations multiples depuis le motif :
@@ -129,14 +129,11 @@ public final class AssignmentInstructionReconstructor
                 // Recherche du 2eme DupLoad
                 Instruction dupload2 = null;
                 int dupload2Index = xstorePutfieldPutstaticIndex;
-
-                while (++dupload2Index < length)
+                SearchInstructionByTypeVisitor<DupLoad> searchDupLoadInstructionVisitor
+                    = new SearchInstructionByTypeVisitor<>(DupLoad.class, dl -> dl.getDupStore() == dupStore);
+                while (dupload2 == null && ++dupload2Index < length)
                 {
-                    dupload2 = SearchDupLoadInstructionVisitor.visit(
-                        list.get(dupload2Index), dupStore);
-                    if (dupload2 != null) {
-                        break;
-                    }
+                    dupload2 = searchDupLoadInstructionVisitor.visit(list.get(dupload2Index));
                 }
 
                 if (dupload2 == null) {
