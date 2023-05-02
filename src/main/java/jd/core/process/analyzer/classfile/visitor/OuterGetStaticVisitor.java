@@ -34,16 +34,12 @@ import jd.core.model.instruction.bytecode.instruction.AThrow;
 import jd.core.model.instruction.bytecode.instruction.ArrayLength;
 import jd.core.model.instruction.bytecode.instruction.ArrayLoadInstruction;
 import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
-import jd.core.model.instruction.bytecode.instruction.AssertInstruction;
-import jd.core.model.instruction.bytecode.instruction.AssignmentInstruction;
 import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
-import jd.core.model.instruction.bytecode.instruction.ComplexConditionalBranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.ConvertInstruction;
 import jd.core.model.instruction.bytecode.instruction.GetStatic;
 import jd.core.model.instruction.bytecode.instruction.IfCmp;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
 import jd.core.model.instruction.bytecode.instruction.IncInstruction;
-import jd.core.model.instruction.bytecode.instruction.InitArrayInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeInstruction;
 import jd.core.model.instruction.bytecode.instruction.Invokestatic;
@@ -51,7 +47,6 @@ import jd.core.model.instruction.bytecode.instruction.MultiANewArray;
 import jd.core.model.instruction.bytecode.instruction.NewArray;
 import jd.core.model.instruction.bytecode.instruction.PutField;
 import jd.core.model.instruction.bytecode.instruction.Switch;
-import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
 import jd.core.model.instruction.bytecode.instruction.attribute.ValuerefAttribute;
@@ -108,26 +103,6 @@ public class OuterGetStaticVisitor
                     asi.setValueref(newInstruction(asi.getValueref(), a));
                 } else {
                     visit(asi.getValueref());
-                }
-            }
-            break;
-        case ByteCodeConstants.ASSERT:
-            {
-                AssertInstruction ai = (AssertInstruction)instruction;
-                Accessor a = match(ai.getTest());
-                if (a != null) {
-                    ai.setTest(newInstruction(ai.getTest(), a));
-                } else {
-                    visit(ai.getTest());
-                }
-                if (ai.getMsg() != null)
-                {
-                    a = match(ai.getMsg());
-                    if (a != null) {
-                        ai.setMsg(newInstruction(ai.getMsg(), a));
-                    } else {
-                        visit(ai.getMsg());
-                    }
                 }
             }
             break;
@@ -235,15 +210,6 @@ public class OuterGetStaticVisitor
                 }
             }
             break;
-        case ByteCodeConstants.COMPLEXIF:
-            {
-                List<Instruction> branchList =
-                    ((ComplexConditionalBranchInstruction)instruction).getInstructions();
-                for (int i=branchList.size()-1; i>=0; --i) {
-                    visit(branchList.get(i));
-                }
-            }
-            break;
         case Const.INVOKEINTERFACE,
              Const.INVOKESPECIAL,
              Const.INVOKEVIRTUAL:
@@ -330,46 +296,6 @@ public class OuterGetStaticVisitor
                 }
             }
             break;
-        case ByteCodeConstants.TERNARYOP:
-            {
-                TernaryOperator to = (TernaryOperator)instruction;
-                Accessor a = match(to.getTest());
-                if (a != null) {
-                    to.setTest(newInstruction(to.getTest(), a));
-                } else {
-                    visit(to.getTest());
-                }
-                a = match(to.getValue1());
-                if (a != null) {
-                    to.setValue1(newInstruction(to.getValue1(), a));
-                } else {
-                    visit(to.getValue1());
-                }
-                a = match(to.getValue2());
-                if (a != null) {
-                    to.setValue2(newInstruction(to.getValue2(), a));
-                } else {
-                    visit(to.getValue2());
-                }
-            }
-            break;
-        case ByteCodeConstants.ASSIGNMENT:
-            {
-                AssignmentInstruction ai = (AssignmentInstruction)instruction;
-                Accessor a = match(ai.getValue1());
-                if (a != null) {
-                    ai.setValue1(newInstruction(ai.getValue1(), a));
-                } else {
-                    visit(ai.getValue1());
-                }
-                a = match(ai.getValue2());
-                if (a != null) {
-                    ai.setValue2(newInstruction(ai.getValue2(), a));
-                } else {
-                    visit(ai.getValue2());
-                }
-            }
-            break;
         case ByteCodeConstants.ARRAYLOAD:
             {
                 ArrayLoadInstruction ali = (ArrayLoadInstruction)instruction;
@@ -396,21 +322,6 @@ public class OuterGetStaticVisitor
                     ii.setValue(newInstruction(ii.getValue(), a));
                 } else {
                     visit(ii.getValue());
-                }
-            }
-            break;
-        case ByteCodeConstants.INITARRAY,
-             ByteCodeConstants.NEWANDINITARRAY:
-            {
-                InitArrayInstruction iai = (InitArrayInstruction)instruction;
-                Accessor a = match(iai.getNewArray());
-                if (a != null) {
-                    iai.setNewArray(newInstruction(iai.getNewArray(), a));
-                } else {
-                    visit(iai.getNewArray());
-                }
-                if (iai.getValues() != null) {
-                    visit(iai.getValues());
                 }
             }
             break;
