@@ -1,8 +1,0 @@
-/*   */ package jd.core.test;
-/*   */ 
-/*   */ public class InitArray
-/*   */ {
-/* 5 */   String[] s1 = Math.random() < 0.5D ? new String[] { "a", "b", "c" } : new String[] { "d" };
-/* 6 */   String[] s2 = Math.random() < 0.5D ? new String[] { "a", "b", "c" } : new String[] { "d", "e" };
-/* 7 */   String[] s3 = Math.random() < 0.5D ? new String[] { "a", "b", "c" } : new String[] { "d", "e", "f" };
-/*   */ }
