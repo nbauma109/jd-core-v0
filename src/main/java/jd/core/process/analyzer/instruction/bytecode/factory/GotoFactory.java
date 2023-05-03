@@ -38,12 +38,14 @@ import static org.apache.bcel.Const.DCMPG;
 import static org.apache.bcel.Const.DUP;
 import static org.apache.bcel.Const.GETFIELD;
 import static org.apache.bcel.Const.GETSTATIC;
+import static org.apache.bcel.Const.IASTORE;
 import static org.apache.bcel.Const.INSTANCEOF;
 import static org.apache.bcel.Const.INVOKEINTERFACE;
 import static org.apache.bcel.Const.INVOKEVIRTUAL;
 import static org.apache.bcel.Const.MULTIANEWARRAY;
 import static org.apache.bcel.Const.NEW;
 import static org.apache.bcel.Const.SALOAD;
+import static org.apache.bcel.Const.SASTORE;
 import static org.apache.bcel.Const.WIDE;
 
 import jd.core.model.classfile.ClassFile;
@@ -116,6 +118,7 @@ public class GotoFactory implements InstructionFactory
             // on retient l'offset de la derniere opération placant une
             // information sur la pile.
             if (opcode >= ACONST_NULL   && opcode <= SALOAD          // 1..53
+             || opcode >= IASTORE       && opcode <= SASTORE         // 79..86
              || opcode >= DUP           && opcode <= DCMPG           // 89..152
              || opcode == GETSTATIC                                  // 178
              || opcode == GETFIELD                                   // 180
