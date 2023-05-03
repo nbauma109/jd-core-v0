@@ -19,17 +19,20 @@ package jd.core.process.analyzer.instruction.fast.reconstructor;
 import org.apache.bcel.Const;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.BIPush;
+import jd.core.model.instruction.bytecode.instruction.DupLoad;
 import jd.core.model.instruction.bytecode.instruction.DupStore;
 import jd.core.model.instruction.bytecode.instruction.IConst;
 import jd.core.model.instruction.bytecode.instruction.InitArrayInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.NewArray;
 import jd.core.model.instruction.bytecode.instruction.SIPush;
+import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.process.analyzer.util.ReconstructorUtil;
 
 /**
@@ -87,7 +90,6 @@ public final class InitArrayInstructionReconstructor
         List<Instruction> values = new ArrayList<>();
 
         Instruction i;
-        ArrayStoreInstruction asi;
         int indexOfArrayStoreInstruction;
         DupStore nextDupStore;
         while (++index < length)
@@ -100,7 +102,7 @@ public final class InitArrayInstructionReconstructor
                 break;
             }
 
-            asi = (ArrayStoreInstruction)i;
+            ArrayStoreInstruction asi = (ArrayStoreInstruction)i;
 
             if (asi.getArrayref().getOpcode() != ByteCodeConstants.DUPLOAD ||
                     asi.getArrayref().getOffset() != lastDupStore.getOffset()) {
@@ -110,7 +112,7 @@ public final class InitArrayInstructionReconstructor
             lastAsi = asi;
 
             // Si les premieres cases d'un tableau ont pour valeur 0, elles
-            // ne sont pas initialisee ! La boucle suivante reconstruit
+            // ne sont pas initialisees ! La boucle suivante reconstruit
             // l'initialisation des valeurs 0.
             indexOfArrayStoreInstruction = getArrayIndex(asi.getIndexref());
             while (indexOfArrayStoreInstruction > arrayIndex)
@@ -156,8 +158,39 @@ public final class InitArrayInstructionReconstructor
             Instruction parent = ReconstructorUtil.replaceDupLoad(
                     list, index, lastDupStore, iai);
 
+            if (parent != null && parent.getOpcode() == ByteCodeConstants.TERNARYOP) {
+                TernaryOperator fto = (TernaryOperator) parent;
+                if (fto.getValue1() == iai && fto.getValue2().getOpcode() == Const.AASTORE) {
+                    ArrayStoreInstruction asi = (ArrayStoreInstruction) fto.getValue2();
+                    if (asi.getArrayref().getOpcode() == ByteCodeConstants.DUPLOAD) {
+                        DupLoad dl = (DupLoad) asi.getArrayref();
+                        if (dl.getDupStore() == list.get(index)) {
+                            fto.setValue2(new InitArrayInstruction(
+                                ByteCodeConstants.NEWANDINITARRAY, asi.getOffset(),
+                                dl.getDupStore().getLineNumber(), dl.getDupStore().getObjectref(),
+                                Collections.singletonList(asi.getValueref())));
+                            ReconstructorUtil.replaceDupLoad(list, index, dl.getDupStore(), fto);
+                            list.remove(fto);
+                        }
+                    }
+                }
+            }
             if (parent != null && parent.getOpcode() == Const.AASTORE) {
-                iai.setOpcode(ByteCodeConstants.INITARRAY);
+                if (list.get(index).getOpcode() == ByteCodeConstants.TERNARYOP) {
+                    TernaryOperator fto = (TernaryOperator) list.get(index);
+                    if (fto.getValue2().getOpcode() == Const.AASTORE) {
+                        ArrayStoreInstruction asi = (ArrayStoreInstruction) fto.getValue2();
+                        if (asi.getArrayref() == iai && asi.getIndexref().getOpcode() == ByteCodeConstants.ICONST) {
+                            IConst iConst = (IConst) asi.getIndexref();
+                            values.add(iConst.getValue(), asi.getValueref());
+                            fto.setValue2(iai);
+                            ReconstructorUtil.replaceDupLoad(list, index, lastDupStore, fto);
+                            list.remove(index);
+                        }
+                    }
+                } else {
+                    iai.setOpcode(ByteCodeConstants.INITARRAY);
+                }
             }
             // Retrait des instructions de la liste
             while (firstDupStoreIndex < index) {

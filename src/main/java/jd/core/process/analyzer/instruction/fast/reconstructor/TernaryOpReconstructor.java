@@ -93,9 +93,15 @@ public final class TernaryOpReconstructor
                     new ReplaceInstructionVisitor(
                             value1.getTernaryOp2ndValueOffset(), fto);
 
-                int indexVisitor = index+2;
-                while (indexVisitor<length && visitor.getOldInstruction()==null) {
-                    visitor.visit(list.get(indexVisitor++));
+                int indexVisitor;
+                for (indexVisitor = index+2; indexVisitor<length && visitor.getOldInstruction()==null; indexVisitor++) {
+                   Instruction instruction = list.get(indexVisitor);
+                   if (instruction.getOffset() == value1.getTernaryOp2ndValueOffset()) {
+                       visitor.setOldInstruction(instruction);
+                       list.set(indexVisitor, fto);
+                   } else {
+                       visitor.visit(instruction);
+                   }
                 }
 
                 if (visitor.getOldInstruction() instanceof TernaryOperator) {

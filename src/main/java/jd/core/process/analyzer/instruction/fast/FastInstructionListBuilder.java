@@ -1203,8 +1203,7 @@ public final class FastInstructionListBuilder {
         // A executer avant 'ComparisonInstructionAnalyzer'
         IfGotoToIfReconstructor.reconstruct(list);
         // Aggregation des instructions 'if'
-        // A executer après 'AssignmentInstructionReconstructor',
-        // 'IfGotoToIfReconstructor'
+        // A executer après 'IfGotoToIfReconstructor'
         // A executer avant 'TernaryOpReconstructor'
         ComparisonInstructionAnalyzer.aggregate(list);
         // Reconstruction des instructions 'assert'. Cette operation doit être

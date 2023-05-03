@@ -650,4 +650,9 @@ public class ReplaceInstructionVisitor
     {
         return oldInstruction;
     }
+
+    public void setOldInstruction(Instruction oldInstruction)
+    {
+        this.oldInstruction = oldInstruction;
+    }
 }
