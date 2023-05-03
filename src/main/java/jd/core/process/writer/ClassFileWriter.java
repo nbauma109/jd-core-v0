@@ -1799,7 +1799,7 @@ public final class ClassFileWriter
             Signature genericSignature = tlb.getMethod().getAttributeSignature();
             if (genericSignature != null && genericSignature.getSignature().indexOf('^') != -1) {
                 TypeMaker typeMaker = new TypeMaker(loader);
-                MethodTypes methodTypes = typeMaker.makeMethodTypes(genericSignature.getSignature());
+                MethodTypes methodTypes = typeMaker.makeMethodTypes(classFile.getThisClassName(), tlb.getMethod().getName(constants), genericSignature.getSignature());
                 for (Iterator<Type> it = methodTypes.getExceptionTypes().iterator(); it.hasNext();) {
                     Type exceptionType = it.next();
                     if (exceptionType.isGenericType()) {

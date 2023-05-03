@@ -1650,7 +1650,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
                 this.localVariables.getLocalVariableWithIndexAndOffset(
                         aload.getIndex(), aload.getOffset());
 
-            if (lv != null)
+            if (lv != null && lv.getNameIndex() != -1)
             {
                 String name = this.constants.getConstantUtf8(lv.getNameIndex());
                 if (StringConstants.THIS_LOCAL_VARIABLE_NAME.equals(name)) {

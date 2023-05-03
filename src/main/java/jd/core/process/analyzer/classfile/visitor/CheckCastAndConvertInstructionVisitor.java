@@ -103,7 +103,7 @@ public final class CheckCastAndConvertInstructionVisitor
                 Signature signature = method.getAttributeSignature();
                 if (signature != null && signature.getSignature().indexOf('^') != -1) {
                     TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
-                    MethodTypes methodTypes = typeMaker.makeMethodTypes(signature.getSignature());
+                    MethodTypes methodTypes = typeMaker.makeMethodTypes(classFile.getThisClassName(), method.getName(classFile.getConstantPool()), signature.getSignature());
                     BaseType exceptionTypes = methodTypes.getExceptionTypes();
                     if (exceptionTypes != null && exceptionTypes.size() == 1) {
                         Type exceptionType = exceptionTypes.getFirst();

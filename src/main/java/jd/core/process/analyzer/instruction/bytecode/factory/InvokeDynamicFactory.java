@@ -88,10 +88,10 @@ public class InvokeDynamicFactory implements InstructionFactory
 
         ConstantInvokeDynamic cid = constants.getConstantInvokeDynamic(index);
         ConstantNameAndType indyCnat = constants.getConstantNameAndType(cid.getNameAndTypeIndex());
-//        String indyMethodName = constants.getConstantUtf8(indyCnat.getNameIndex());
+        String indyMethodName = constants.getConstantUtf8(indyCnat.getNameIndex());
         String indyDescriptor = constants.getConstantUtf8(indyCnat.getSignatureIndex());
         
-        MethodTypes indyMethodTypes = typeMaker.makeMethodTypes(indyDescriptor);
+        MethodTypes indyMethodTypes = typeMaker.makeMethodTypes(classFile.getThisClassName(), indyMethodName, indyDescriptor);
         BootstrapMethods attributeBootstrapMethods = classFile.getAttributeBootstrapMethods();
         List<Instruction> indyParameters = extractParametersFromStack(stack, indyMethodTypes.getParameterTypes());
         BootstrapMethod bootstrapMethod = attributeBootstrapMethods.getBootstrapMethods()[cid.getClassIndex()];
@@ -100,7 +100,7 @@ public class InvokeDynamicFactory implements InstructionFactory
         
         ConstantMethodType cmt0 = constants.getConstantMethodType(bootstrapArguments[0]);
         String descriptor0 = constants.getConstantUtf8(cmt0.getDescriptorIndex());
-        TypeMaker.MethodTypes methodTypes0 = typeMaker.makeMethodTypes(descriptor0);
+        TypeMaker.MethodTypes methodTypes0 = typeMaker.makeMethodTypes(classFile.getThisClassName(), null, descriptor0);
         int parameterCount = Optional.ofNullable(methodTypes0.getParameterTypes()).map(BaseType::size).orElse(0);
         ConstantMethodHandle constantMethodHandle1 = constants.getConstantMethodHandle(bootstrapArguments[1]);
         
