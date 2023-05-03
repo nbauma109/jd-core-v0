@@ -79,16 +79,16 @@ public class StoreReturnAnalyzer
 		IndexInstruction load = (IndexInstruction)ri.getValueref();
 		StoreInstruction store = (StoreInstruction)list.get(index-1);
 		
-		if ((load.getIndex() == store.getIndex()) && 
-			(load.getLineNumber() == store.getLineNumber()))
+		if (load.getIndex() == store.getIndex() && 
+			load.getLineNumber() == store.getLineNumber())
 		{
 			// Remove local variable
 			LocalVariable lv = localVariables.
 				getLocalVariableWithIndexAndOffset(
 						store.getIndex(), store.getOffset());
 			
-			if ((lv != null) && (lv.getStartPc() == store.getOffset()) && 
-				(lv.getStartPc() + lv.getLength() <= ri.getOffset())) {
+			if (lv != null && lv.getStartPc() == store.getOffset() && 
+				lv.getStartPc() + lv.getLength() <= ri.getOffset()) {
                 localVariables.
 					removeLocalVariableWithIndexAndOffset(
 							store.getIndex(), store.getOffset());
