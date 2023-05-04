@@ -16,7 +16,7 @@ import java.util.Map;
 import static org.junit.Assert.fail;
 
 import jd.core.preferences.Preferences;
-import jd.core.printer.PlainTextPrinter;
+import jd.core.printer.PrinterImpl;
 import jd.core.process.DecompilerImpl;
 
 public abstract class AbstractTestCase {
@@ -27,8 +27,6 @@ public abstract class AbstractTestCase {
 
         DecompilerImpl decompiler = new DecompilerImpl();
 
-        PlainTextPrinter printer = new PlainTextPrinter();
-
         Preferences preferences = new Preferences();
         preferences.setRealignmentLineNumber(realignmentLineNumber());
         preferences.setShowDefaultConstructor(showDefaultConstructor());
@@ -36,6 +34,8 @@ public abstract class AbstractTestCase {
         preferences.setShowPrefixThis(true);
         preferences.setUnicodeEscape(true);
         preferences.setWriteMetaData(showMetaData());
+
+        PrinterImpl printer = new PrinterImpl(preferences);
 
         String decompiledOutput = printer.buildDecompiledOutput(loader, internalTypeName, preferences, decompiler);
         if (recompile()) {
