@@ -2,21 +2,21 @@
 /*    */ 
 /*    */ import java.awt.Rectangle;
 /*    */ 
-/*    */ public class Assignment { static int i;
+/*    */ 
+/*    */ public class Assignment {
+/*    */   static int i;
 /*    */   static int j;
-/*    */   int a;
-/*    */   int b;
-/*    */   int c;
+/*    */   static int k;
 /*    */   
 /* 11 */   void add(int x) { i += x; }
 /*    */   
-/*    */ 
-/*    */   void add(byte x)
-/*    */   {
-/* 16 */     i = i + x;
-/*    */   }
+/*    */   int a;
+/*    */   int b;
+/*    */   int c;
+/* 16 */   void add(byte x) { i = i + x; }
 /*    */   
-/*    */   void add(short x) {
+/*    */   void add(short x)
+/*    */   {
 /* 20 */     i = j + x;
 /*    */   }
 /*    */   
@@ -70,19 +70,28 @@
 /* 70 */     return x;
 /*    */   }
 /*    */   
-/*    */ 
-/*    */ 
-/*    */   void multiAssign()
-/*    */   {
-/* 77 */     this.b = this.c;
-/* 78 */     this.a = this.b;
+/*    */   void multiAssign() {
+/* 74 */     this.b = this.c;
+/* 75 */     this.a = this.b;
 /*    */   }
 /*    */   
-/*    */   void multiAssignInc() {
-/* 82 */     this.a = this.b += this.c;
+/*    */   void multiAssignIncPutField() {
+/* 79 */     this.a = this.b += this.c;
+/*    */   }
+/*    */   
+/*    */   void multiAssignIncPutStatic() {
+/* 83 */     i = j += k;
+/*    */   }
+/*    */   
+/*    */   void multiAssignIncIStore(int a, int b, int c) {
+/* 87 */     a = b += c;
+/*    */   }
+/*    */   
+/*    */   void multiAssignIncStore(float a, float b, float c) {
+/* 91 */     a = b += c;
 /*    */   }
 /*    */   
 /*    */   void compute(Rectangle[] r) {
-/* 86 */     r[7].y = r[8].y = r[6].y = r[4].y + r[4].height;
+/* 95 */     r[7].y = r[8].y = r[6].y = r[4].y + r[4].height;
 /*    */   }
 /*    */ }
