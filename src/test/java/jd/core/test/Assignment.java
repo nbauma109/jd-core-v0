@@ -4,7 +4,7 @@ import java.awt.*;
 
 public class Assignment {
 
-    static int i, j;
+    static int i, j, k;
     int a, b, c;
 
     void add(int x) {
@@ -70,15 +70,24 @@ public class Assignment {
         return x;
     }
 
-    // Assignation multiple sur deux lignes :
-    // b = c;
-    // a = b;
     void multiAssign() {
         b = c;
         a = b;
     }
 
-    void multiAssignInc() {
+    void multiAssignIncPutField() {
+        a = b += c;
+    }
+
+    void multiAssignIncPutStatic() {
+        i = j += k;
+    }
+    
+    void multiAssignIncIStore(int a, int b, int c) {
+        a = b += c;
+    }
+    
+    void multiAssignIncStore(float a, float b, float c) {
         a = b += c;
     }
 

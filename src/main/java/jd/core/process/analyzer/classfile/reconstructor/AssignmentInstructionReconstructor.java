@@ -314,7 +314,7 @@ public final class AssignmentInstructionReconstructor
                     }
                     break;
                 case Const.PUTSTATIC:
-                    if (value1.getOpcode() == Const.GETFIELD &&
+                    if (value1.getOpcode() == Const.GETSTATIC &&
                         ((PutStatic)xstorePutfieldPutstatic).getIndex() ==
                             ((GetStatic)value1).getIndex()) {
                         return createBinaryOperatorAssignmentInstruction(
