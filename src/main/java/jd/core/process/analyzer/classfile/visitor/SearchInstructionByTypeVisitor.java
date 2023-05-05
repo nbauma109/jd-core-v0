@@ -92,7 +92,8 @@ public final class SearchInstructionByTypeVisitor<T extends Instruction>
             return visit(((ArrayLength)instruction).getArrayref());
         case Const.AASTORE,
              ByteCodeConstants.ARRAYSTORE:
-            return visit(((ArrayStoreInstruction)instruction).getArrayref());
+            return Optional.ofNullable(visit(((ArrayStoreInstruction)instruction).getArrayref()))
+                      .orElseGet(() -> visit(((ArrayStoreInstruction)instruction).getValueref()));
         case ByteCodeConstants.ASSERT:
             {
                 AssertInstruction ai = (AssertInstruction)instruction;

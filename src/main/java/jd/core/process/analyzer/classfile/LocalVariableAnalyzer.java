@@ -56,7 +56,7 @@ import jd.core.model.instruction.bytecode.instruction.PutStatic;
 import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
-import jd.core.process.analyzer.classfile.visitor.SearchInstructionByOffsetVisitor;
+import jd.core.process.analyzer.classfile.visitor.SearchInstructionByTypeVisitor;
 import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
 import jd.core.process.analyzer.util.InstructionUtil;
 import jd.core.process.analyzer.variable.VariableNameGenerator;
@@ -714,8 +714,9 @@ public final class LocalVariableAnalyzer
 
             if (instruction.getOpcode() == ByteCodeConstants.TERNARYOPSTORE && i<length-1) {
                 TernaryOpStore ternaryOpStore = (TernaryOpStore) instruction;
-                int ternaryOp2ndValueOffset = ternaryOpStore.getTernaryOp2ndValueOffset();
-                Instruction ternaryOp2ndValue = SearchInstructionByOffsetVisitor.visit(listForAnalyze.get(i+1), ternaryOp2ndValueOffset);
+                SearchInstructionByTypeVisitor<Instruction> searchInstructionByOffsetVisitor
+                    = new SearchInstructionByTypeVisitor<>(Instruction.class, instr -> instr.getOffset() == ternaryOpStore.getTernaryOp2ndValueOffset());
+                Instruction ternaryOp2ndValue = searchInstructionByOffsetVisitor.visit(listForAnalyze.get(i+1));
                 if (ternaryOp2ndValue instanceof AConstNull) {
                     AConstNull aConstNull = (AConstNull) ternaryOp2ndValue;
                     aConstNull.setSignatureFunction(ternaryOpStore::getReturnedSignature);
@@ -1496,10 +1497,11 @@ public final class LocalVariableAnalyzer
                 int length = list.size();
 
                 Instruction result;
+                SearchInstructionByTypeVisitor<Instruction> searchInstructionByOffsetVisitor
+                    = new SearchInstructionByTypeVisitor<>(Instruction.class, i -> i.getOffset() == tos.getTernaryOp2ndValueOffset());
                 while (index < length)
                 {
-                    result = SearchInstructionByOffsetVisitor.visit(
-                            list.get(index), tos.getTernaryOp2ndValueOffset());
+                    result = searchInstructionByOffsetVisitor.visit(list.get(index));
 
                     if (result != null)
                     {
