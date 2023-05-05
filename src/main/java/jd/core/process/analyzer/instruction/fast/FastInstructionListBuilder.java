@@ -20,6 +20,7 @@ import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
 import org.jd.core.v1.model.javasyntax.type.Type;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
@@ -3248,14 +3249,9 @@ public final class FastInstructionListBuilder {
             ConstantNameAndType cnat = cp.getConstantNameAndType(cmr.getNameAndTypeIndex());
             String name = cp.getConstantUtf8(cnat.getNameIndex());
             String signature = cp.getConstantUtf8(cnat.getSignatureIndex());
-            if (!("intValue".equals(name) && "()I".equals(signature)) &&
-                !("longValue".equals(name) && "()J".equals(signature)) &&
-                !("doubleValue".equals(name) && "()D".equals(signature)) &&
-                !("floatValue".equals(name) && "()F".equals(signature)) &&
-                !("byteValue".equals(name) && "()B".equals(signature)) &&
-                !("shortValue".equals(name) && "()S".equals(signature)) &&
-                !("charValue".equals(name) && "()C".equals(signature)) &&
-                !("booleanValue".equals(name) && "()Z".equals(signature))) {
+            if (!StringUtils.equalsAny(name + signature, 
+                    "intValue()I", "longValue()J", "doubleValue()D", "floatValue()F",
+                    "byteValue()B", "shortValue()S", "charValue()C", "booleanValue()Z")) {
                 return 0;
             }
             valueref = iv.getObjectref();
