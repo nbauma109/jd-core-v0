@@ -2899,7 +2899,7 @@ public final class FastInstructionListBuilder {
             branch = breakOffset - forLoopOffset;
         }
 
-        if (subList.get(0) instanceof AStore) {
+        if (!subList.isEmpty() && subList.get(0) instanceof AStore) {
             AStore astore = (AStore) subList.get(0);
             LocalVariable lv = method.getLocalVariables().getLocalVariableWithIndexAndOffset(astore.getIndex(), astore.getOffset());
             subList.set(0, new FastDeclaration(astore.getOffset(), astore.getLineNumber(), lv, astore));
@@ -3192,7 +3192,7 @@ public final class FastInstructionListBuilder {
      * 1: Pattern SUN 1.5
      */
     private static int getForEachArraySun15PatternType(Instruction init, Instruction test, Instruction inc,
-            Instruction firstInstruction, StoreInstruction siLength) {
+            Instruction firstInstruction, StoreInstruction siLength, ConstantPool cp) {
         // Test before 'for' instruction: j = (arrayOfString1 = strings).length;
         ArrayLength al = (ArrayLength) siLength.getValueref();
         if (al.getArrayref().getOpcode() != ByteCodeConstants.ASSIGNMENT) {
@@ -3241,10 +3241,22 @@ public final class FastInstructionListBuilder {
             return 0;
         }
         StoreInstruction siVariable = (StoreInstruction) firstInstruction;
-        if (siVariable.getValueref().getOpcode() != ByteCodeConstants.ARRAYLOAD) {
+        Instruction valueref = siVariable.getValueref();
+        if (valueref instanceof Invokevirtual iv) {
+            // Auto-unboxing pattern
+            ConstantCP cmr = cp.getConstantMethodref(iv.getIndex());
+            ConstantNameAndType cnat = cp.getConstantNameAndType(cmr.getNameAndTypeIndex());
+            String name = cp.getConstantUtf8(cnat.getNameIndex());
+            String signature = cp.getConstantUtf8(cnat.getSignatureIndex());
+            if (!"intValue".equals(name) || !"()I".equals(signature)) {
+                return 0;
+            }
+            valueref = iv.getObjectref();
+        }
+        if (valueref.getOpcode() != ByteCodeConstants.ARRAYLOAD) {
             return 0;
         }
-        ArrayLoadInstruction ali = (ArrayLoadInstruction) siVariable.getValueref();
+        ArrayLoadInstruction ali = (ArrayLoadInstruction) valueref;
         if (ali.getArrayref().getOpcode() != Const.ALOAD || ali.getIndexref().getOpcode() != Const.ILOAD
                 || ((ALoad) ali.getArrayref()).getIndex() != liTmpArray.getIndex()
                 || ((ILoad) ali.getIndexref()).getIndex() != siIndex.getIndex()) {
@@ -3463,7 +3475,7 @@ public final class FastInstructionListBuilder {
         if (si.getValueref().getOpcode() == Const.ARRAYLENGTH) {
             ArrayLength al = (ArrayLength) si.getValueref();
             if (al.getArrayref().getOpcode() == ByteCodeConstants.ASSIGNMENT) {
-                return getForEachArraySun15PatternType(init, test, inc, firstInstruction, si);
+                return getForEachArraySun15PatternType(init, test, inc, firstInstruction, si, classFile.getConstantPool());
             }
             if (beforeWhileLoopIndex > 1) {
                 Instruction beforeBeforeForInstruction = list.get(beforeWhileLoopIndex - 2);
