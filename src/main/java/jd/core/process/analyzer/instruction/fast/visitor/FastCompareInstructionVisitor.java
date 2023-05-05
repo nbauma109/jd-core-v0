@@ -20,7 +20,11 @@ import java.util.List;
 
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.fast.FastConstants;
+import jd.core.model.instruction.fast.instruction.FastDeclaration;
+import jd.core.model.instruction.fast.instruction.FastInstruction;
+import jd.core.model.instruction.fast.instruction.FastLabel;
 import jd.core.model.instruction.fast.instruction.FastSynchronized;
+import jd.core.model.instruction.fast.instruction.FastTestList;
 import jd.core.model.instruction.fast.instruction.FastTry;
 import jd.core.model.instruction.fast.instruction.FastTry.FastCatch;
 import jd.core.process.analyzer.classfile.visitor.CompareInstructionVisitor;
@@ -105,6 +109,39 @@ public class FastCompareInstructionVisitor extends CompareInstructionVisitor
                 }
 
                 return visit(fs1.getInstructions(), fs2.getInstructions());
+            }
+        case FastConstants.WHILE,
+             FastConstants.DO_WHILE,
+             FastConstants.IF_SIMPLE:
+            {
+                Instruction test1 = ((FastTestList)i1).getTest();
+                Instruction test2 = ((FastTestList)i2).getTest();
+                List<Instruction> instructions1 = ((FastTestList)i1).getInstructions();
+                List<Instruction> instructions2 = ((FastTestList)i2).getInstructions();
+                return visit(test1, test2) && visit(instructions1, instructions2);
+            }
+        case FastConstants.IF_CONTINUE,
+             FastConstants.IF_BREAK,
+             FastConstants.IF_LABELED_BREAK,
+             FastConstants.GOTO_CONTINUE,
+             FastConstants.GOTO_BREAK,
+             FastConstants.GOTO_LABELED_BREAK:
+            {
+                FastInstruction fi1 = (FastInstruction)i1;
+                FastInstruction fi2 = (FastInstruction)i2;
+                return visit(fi1.getInstruction(), fi2.getInstruction());
+            }
+        case FastConstants.LABEL:
+        {
+            FastLabel fl1 = (FastLabel)i1;
+            FastLabel fl2 = (FastLabel)i2;
+            return visit(fl1.getInstruction(), fl2.getInstruction());
+        }
+        case FastConstants.DECLARE:
+            {
+                FastDeclaration fd1 = (FastDeclaration)i1;
+                FastDeclaration fd2 = (FastDeclaration)i2;
+                return visit(fd1.getInstruction(), fd2.getInstruction());
             }
         default:
             return super.visit(i1, i2);

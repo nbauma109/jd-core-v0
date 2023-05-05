@@ -1,6 +1,7 @@
 package jd.core.test;
 
 import java.awt.Point;
+import java.io.IOException;
 
 public class CompareInstruction {
 
@@ -69,8 +70,8 @@ public class CompareInstruction {
 
     void tryCatchFinally() {
         try {
-            System.out.println("try");
-        } catch (Exception ex) {
+            invoke(0);
+        } catch (IOException|ClassNotFoundException ex) {
             ex.printStackTrace();
             System.out.println("catch");
         } finally {
@@ -78,6 +79,8 @@ public class CompareInstruction {
         }
     }
     
+    native void invoke(double d) throws IOException, ClassNotFoundException;
+
     int preInc() {
         return a[++x];
     }
