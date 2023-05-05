@@ -411,7 +411,7 @@ public class CompareInstructionVisitor
              ByteCodeConstants.FCONST:
             return ((ConstInstruction)i1).getValue() == ((ConstInstruction)i2).getValue();
         case ByteCodeConstants.DUPLOAD:
-            return ((DupLoad)i1).getDupStore() == ((DupLoad)i2).getDupStore();
+            return visit(((DupLoad)i1).getDupStore(), ((DupLoad)i2).getDupStore());
         case ByteCodeConstants.XRETURN:
             return visit(((ReturnInstruction)i1).getValueref(), ((ReturnInstruction)i2).getValueref());
         case Const.RETURN,
@@ -448,6 +448,14 @@ public class CompareInstructionVisitor
     public boolean visit(
         List<Instruction> l1, List<Instruction> l2)
     {
+        if (l1 == null) {
+            return l2 == null;
+        }
+
+        if (l2 == null) {
+            return false;
+        }
+
         int i = l1.size();
 
         if (i != l2.size()) {
