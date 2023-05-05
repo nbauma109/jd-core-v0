@@ -136,13 +136,16 @@ public final class ClassFileDeserializer
             Loader loader, String internalClassPath)
     {
         ClassFile classFile = null;
-        try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(loader.load(internalClassPath))))
+        if (loader.canLoad(internalClassPath))
         {
-            classFile = deserialize(dis, loader, internalClassPath);
-        }
-        catch (IOException e)
-        {
-            assert ExceptionUtil.printStackTrace(e);
+            try (DataInputStream dis = new DataInputStream(new ByteArrayInputStream(loader.load(internalClassPath))))
+            {
+                classFile = deserialize(dis, loader, internalClassPath);
+            }
+            catch (IOException e)
+            {
+                assert ExceptionUtil.printStackTrace(e);
+            }
         }
         return classFile;
     }
