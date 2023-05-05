@@ -45,6 +45,90 @@ public class ForEachReconstruct {
             }
         }
     }
+    
+    void enhancedForEachStatement(Long... longs) {
+        for (Long aLong : longs) {
+            System.out.println(aLong);
+        }
+        List<Long> longList = new ArrayList<>();
+        if (longs != null) {
+            for (long theLong : longs) {
+                longList.add(theLong);
+            }
+        }
+    }
+    
+    void enhancedForEachStatement(Double... doubles) {
+        for (Double aDouble : doubles) {
+            System.out.println(aDouble);
+        }
+        List<Double> doubleList = new ArrayList<>();
+        if (doubles != null) {
+            for (double theDouble : doubles) {
+                doubleList.add(theDouble);
+            }
+        }
+    }
+    
+    void enhancedForEachStatement(Float... floats) {
+        for (Float aFloat : floats) {
+            System.out.println(aFloat);
+        }
+        List<Float> floatList = new ArrayList<>();
+        if (floats != null) {
+            for (float theFloat : floats) {
+                floatList.add(theFloat);
+            }
+        }
+    }
+    
+    void enhancedForEachStatement(Byte... bytes) {
+        for (Byte aByte : bytes) {
+            System.out.println(aByte);
+        }
+        List<Byte> byteList = new ArrayList<>();
+        if (bytes != null) {
+            for (byte theByte : bytes) {
+                byteList.add(theByte);
+            }
+        }
+    }
+    
+    void enhancedForEachStatement(Short... shorts) {
+        for (Short aShort : shorts) {
+            System.out.println(aShort);
+        }
+        List<Short> shortList = new ArrayList<>();
+        if (shorts != null) {
+            for (short theShort : shorts) {
+                shortList.add(theShort);
+            }
+        }
+    }
+    
+    void enhancedForEachStatement(Character... chars) {
+        for (Character aChar : chars) {
+            System.out.println(aChar);
+        }
+        List<Character> charList = new ArrayList<>();
+        if (chars != null) {
+            for (char theChar : chars) {
+                charList.add(theChar);
+            }
+        }
+    }
+    
+    void enhancedForEachStatement(Boolean... booleans) {
+        for (Boolean aBoolean : booleans) {
+            System.out.println(aBoolean);
+        }
+        List<Boolean> booleanList = new ArrayList<>();
+        if (booleans != null) {
+            for (boolean theBoolean : booleans) {
+                booleanList.add(theBoolean);
+            }
+        }
+    }
 
     /*
      * Empty foreach

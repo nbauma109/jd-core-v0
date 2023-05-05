@@ -3248,7 +3248,14 @@ public final class FastInstructionListBuilder {
             ConstantNameAndType cnat = cp.getConstantNameAndType(cmr.getNameAndTypeIndex());
             String name = cp.getConstantUtf8(cnat.getNameIndex());
             String signature = cp.getConstantUtf8(cnat.getSignatureIndex());
-            if (!"intValue".equals(name) || !"()I".equals(signature)) {
+            if (!("intValue".equals(name) && "()I".equals(signature)) &&
+                !("longValue".equals(name) && "()J".equals(signature)) &&
+                !("doubleValue".equals(name) && "()D".equals(signature)) &&
+                !("floatValue".equals(name) && "()F".equals(signature)) &&
+                !("byteValue".equals(name) && "()B".equals(signature)) &&
+                !("shortValue".equals(name) && "()S".equals(signature)) &&
+                !("charValue".equals(name) && "()C".equals(signature)) &&
+                !("booleanValue".equals(name) && "()Z".equals(signature))) {
                 return 0;
             }
             valueref = iv.getObjectref();
