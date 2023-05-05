@@ -16,8 +16,6 @@
  ******************************************************************************/
 package jd.core.process.analyzer.classfile.reconstructor;
 
-import org.apache.bcel.Const;
-
 import java.util.List;
 
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
@@ -27,9 +25,8 @@ import jd.core.model.instruction.bytecode.instruction.DupStore;
 import jd.core.model.instruction.bytecode.instruction.IncInstruction;
 import jd.core.model.instruction.bytecode.instruction.IndexInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
-import jd.core.model.instruction.bytecode.instruction.PutField;
-import jd.core.model.instruction.bytecode.instruction.PutStatic;
-import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
+import jd.core.model.instruction.bytecode.instruction.attribute.ValuerefAttribute;
+import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
 import jd.core.process.analyzer.util.ReconstructorUtil;
 
 /*
@@ -95,48 +92,13 @@ public final class PreIncReconstructor
             {
                 Instruction i = list.get(xstorePutfieldPutstaticIndex);
                 Instruction dupload = null;
-                switch (i.getOpcode())
-                {
-                case Const.ASTORE:
-                    if (boi.getValue1().getOpcode() == Const.ALOAD &&
-                        ((StoreInstruction)i).getValueref().getOpcode() == ByteCodeConstants.DUPLOAD &&
-                        ((IndexInstruction)i).getIndex() == ((IndexInstruction)boi.getValue1()).getIndex()) {
-                        // 1er DupLoad trouvé
-                        dupload = ((StoreInstruction)i).getValueref();
-                    }
-                    break;
-                case Const.ISTORE:
-                    if (boi.getValue1().getOpcode() == Const.ILOAD &&
-                        ((StoreInstruction)i).getValueref().getOpcode() == ByteCodeConstants.DUPLOAD &&
-                        ((IndexInstruction)i).getIndex() == ((IndexInstruction)boi.getValue1()).getIndex()) {
-                        // 1er DupLoad trouvé
-                        dupload = ((StoreInstruction)i).getValueref();
-                    }
-                    break;
-                case ByteCodeConstants.STORE:
-                    if (boi.getValue1().getOpcode() == ByteCodeConstants.LOAD &&
-                        ((StoreInstruction)i).getValueref().getOpcode() == ByteCodeConstants.DUPLOAD &&
-                        ((IndexInstruction)i).getIndex() == ((IndexInstruction)boi.getValue1()).getIndex()) {
-                        // 1er DupLoad trouvé
-                        dupload = ((StoreInstruction)i).getValueref();
-                    }
-                    break;
-                case Const.PUTFIELD:
-                    if (boi.getValue1().getOpcode() == Const.GETFIELD &&
-                        ((PutField)i).getValueref().getOpcode() == ByteCodeConstants.DUPLOAD &&
-                        ((IndexInstruction)i).getIndex() == ((IndexInstruction)boi.getValue1()).getIndex()) {
-                        // 1er DupLoad trouvé
-                        dupload = ((PutField)i).getValueref();
-                    }
-                    break;
-                case Const.PUTSTATIC:
-                    if (boi.getValue1().getOpcode() == Const.GETSTATIC &&
-                        ((PutStatic)i).getValueref().getOpcode() == ByteCodeConstants.DUPLOAD &&
-                        ((IndexInstruction)i).getIndex() == ((IndexInstruction)boi.getValue1()).getIndex()) {
-                        // 1er DupLoad trouvé
-                        dupload = ((PutStatic)i).getValueref();
-                    }
-                    break;
+                int loadOpCode = ByteCodeUtil.getLoadOpCode(i.getOpcode());
+
+                if (boi.getValue1().getOpcode() == loadOpCode &&
+                    ((ValuerefAttribute)i).getValueref().getOpcode() == ByteCodeConstants.DUPLOAD &&
+                    ((IndexInstruction)i).getIndex() == ((IndexInstruction)boi.getValue1()).getIndex()) {
+                    // 1er DupLoad trouvé
+                    dupload = ((ValuerefAttribute)i).getValueref();
                 }
 
                 if (dupload == null || dupload.getOffset() != dupstore.getOffset()) {
