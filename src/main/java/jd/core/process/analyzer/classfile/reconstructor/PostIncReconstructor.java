@@ -16,8 +16,6 @@
  ******************************************************************************/
 package jd.core.process.analyzer.classfile.reconstructor;
 
-import org.apache.bcel.Const;
-
 import java.util.List;
 
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
@@ -28,9 +26,8 @@ import jd.core.model.instruction.bytecode.instruction.DupStore;
 import jd.core.model.instruction.bytecode.instruction.IncInstruction;
 import jd.core.model.instruction.bytecode.instruction.IndexInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
-import jd.core.model.instruction.bytecode.instruction.PutField;
-import jd.core.model.instruction.bytecode.instruction.PutStatic;
-import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
+import jd.core.model.instruction.bytecode.instruction.attribute.ValuerefAttribute;
+import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
 import jd.core.process.analyzer.util.ReconstructorUtil;
 
 /*
@@ -67,73 +64,18 @@ public final class PostIncReconstructor
                 Instruction i = list.get(xstorePutfieldPutstaticIndex);
                 BinaryOperatorInstruction boi = null;
 
-                switch (i.getOpcode())
+                int loadOpCode = ByteCodeUtil.getLoadOpCode(i.getOpcode());
+
+                if (dupstore.getObjectref().getOpcode() == loadOpCode &&
+                    ((IndexInstruction)i).getIndex() == ((IndexInstruction)dupstore.getObjectref()).getIndex())
                 {
-                case Const.ASTORE:
-                    if (dupstore.getObjectref().getOpcode() == Const.ALOAD &&
-                        ((IndexInstruction)i).getIndex() == ((IndexInstruction)dupstore.getObjectref()).getIndex())
-                    {
-                        i = ((StoreInstruction)i).getValueref();
-                        if (i.getOpcode() == ByteCodeConstants.CONVERT || i.getOpcode() == ByteCodeConstants.IMPLICITCONVERT) {
-                            i = ((ConvertInstruction)i).getValue();
-                        }
-                        if (i.getOpcode() == ByteCodeConstants.BINARYOP) {
-                            boi = (BinaryOperatorInstruction)i;
-                        }
+                    i = ((ValuerefAttribute)i).getValueref();
+                    if (i.getOpcode() == ByteCodeConstants.CONVERT || i.getOpcode() == ByteCodeConstants.IMPLICITCONVERT) {
+                        i = ((ConvertInstruction)i).getValue();
                     }
-                    break;
-                case Const.ISTORE:
-                    if (dupstore.getObjectref().getOpcode() == Const.ILOAD &&
-                        ((IndexInstruction)i).getIndex() == ((IndexInstruction)dupstore.getObjectref()).getIndex())
-                    {
-                        i = ((StoreInstruction)i).getValueref();
-                        if (i.getOpcode() == ByteCodeConstants.CONVERT || i.getOpcode() == ByteCodeConstants.IMPLICITCONVERT) {
-                            i = ((ConvertInstruction)i).getValue();
-                        }
-                        if (i.getOpcode() == ByteCodeConstants.BINARYOP) {
-                            boi = (BinaryOperatorInstruction)i;
-                        }
+                    if (i.getOpcode() == ByteCodeConstants.BINARYOP) {
+                        boi = (BinaryOperatorInstruction)i;
                     }
-                    break;
-                case ByteCodeConstants.STORE:
-                    if (dupstore.getObjectref().getOpcode() == ByteCodeConstants.LOAD &&
-                        ((IndexInstruction)i).getIndex() == ((IndexInstruction)dupstore.getObjectref()).getIndex())
-                    {
-                        i = ((StoreInstruction)i).getValueref();
-                        if (i.getOpcode() == ByteCodeConstants.CONVERT || i.getOpcode() == ByteCodeConstants.IMPLICITCONVERT) {
-                            i = ((ConvertInstruction)i).getValue();
-                        }
-                        if (i.getOpcode() == ByteCodeConstants.BINARYOP) {
-                            boi = (BinaryOperatorInstruction)i;
-                        }
-                    }
-                    break;
-                case Const.PUTFIELD:
-                    if (dupstore.getObjectref().getOpcode() == Const.GETFIELD &&
-                        ((IndexInstruction)i).getIndex() == ((IndexInstruction)dupstore.getObjectref()).getIndex())
-                    {
-                        i = ((PutField)i).getValueref();
-                        if (i.getOpcode() == ByteCodeConstants.CONVERT || i.getOpcode() == ByteCodeConstants.IMPLICITCONVERT) {
-                            i = ((ConvertInstruction)i).getValue();
-                        }
-                        if (i.getOpcode() == ByteCodeConstants.BINARYOP) {
-                            boi = (BinaryOperatorInstruction)i;
-                        }
-                    }
-                    break;
-                case Const.PUTSTATIC:
-                    if (dupstore.getObjectref().getOpcode() == Const.GETSTATIC &&
-                        ((IndexInstruction)i).getIndex() == ((IndexInstruction)dupstore.getObjectref()).getIndex())
-                    {
-                        i = ((PutStatic)i).getValueref();
-                        if (i.getOpcode() == ByteCodeConstants.CONVERT || i.getOpcode() == ByteCodeConstants.IMPLICITCONVERT) {
-                            i = ((ConvertInstruction)i).getValue();
-                        }
-                        if (i.getOpcode() == ByteCodeConstants.BINARYOP) {
-                            boi = (BinaryOperatorInstruction)i;
-                        }
-                    }
-                    break;
                 }
 
                 if (boi == null ||
