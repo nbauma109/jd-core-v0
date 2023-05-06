@@ -43,7 +43,7 @@ public class LoadInstruction extends IndexInstruction
             ClassFile classFile, LocalVariables localVariables, String defaultSignature) {
 
         if (classFile == null || localVariables == null) {
-            return defaultSignature;
+            return null;
         }
 
         ConstantPool constants = classFile.getConstantPool();
