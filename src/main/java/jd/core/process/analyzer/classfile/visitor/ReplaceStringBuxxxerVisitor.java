@@ -271,11 +271,7 @@ public class ReplaceStringBuxxxerVisitor
         case ByteCodeConstants.COMPLEXIF:
             {
                 ComplexConditionalBranchInstruction complexIf = (ComplexConditionalBranchInstruction)instruction;
-                List<Instruction> branchList = complexIf.getInstructions();
-                for (int i=branchList.size()-1; i>=0; --i)
-                {
-                    visit(branchList.get(i));
-                }
+                visit(complexIf.getInstructions());
             }
             break;
         case Const.INVOKEVIRTUAL,
@@ -311,16 +307,16 @@ public class ReplaceStringBuxxxerVisitor
         case Const.MULTIANEWARRAY:
             {
                 MultiANewArray multiANewArray = (MultiANewArray)instruction;
-                Instruction[] dimensions = multiANewArray.getDimensions();
+                List<Instruction> dimensions = multiANewArray.getDimensions();
                 Instruction ins;
 
-                for (int i=dimensions.length-1; i>=0; i--)
+                for (int i=dimensions.size()-1; i>=0; i--)
                 {
-                    ins = match(dimensions[i]);
+                    ins = match(dimensions.get(i));
                     if (ins == null) {
-                        visit(dimensions[i]);
+                        visit(dimensions.get(i));
                     } else {
-                        dimensions[i] = ins;
+                        dimensions.set(i, ins);
                     }
                 }
             }

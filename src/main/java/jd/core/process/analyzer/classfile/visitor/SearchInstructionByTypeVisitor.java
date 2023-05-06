@@ -188,10 +188,10 @@ public final class SearchInstructionByTypeVisitor<T extends Instruction>
             break;
         case Const.MULTIANEWARRAY:
             {
-                Instruction[] dimensions = ((MultiANewArray)instruction).getDimensions();
-                for (int i=dimensions.length-1; i>=0; --i)
+                List<Instruction> dimensions = ((MultiANewArray)instruction).getDimensions();
+                for (int i=dimensions.size()-1; i>=0; --i)
                 {
-                    T tmp = visit(dimensions[i]);
+                    T tmp = visit(dimensions.get(i));
                     if (tmp != null) {
                         return tmp;
                     }

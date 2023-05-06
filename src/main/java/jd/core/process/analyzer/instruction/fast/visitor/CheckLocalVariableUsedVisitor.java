@@ -179,10 +179,10 @@ public final class CheckLocalVariableUsedVisitor
             return visit(predicate, ((Switch)instruction).getKey());
         case Const.MULTIANEWARRAY:
             {
-                Instruction[] dimensions = ((MultiANewArray)instruction).getDimensions();
-                for (int i=dimensions.length-1; i>=0; --i)
+                List<Instruction> dimensions = ((MultiANewArray)instruction).getDimensions();
+                for (Instruction dimension : dimensions)
                 {
-                    if (visit(predicate, dimensions[i])) {
+                    if (visit(predicate, dimension)) {
                         return true;
                     }
                 }

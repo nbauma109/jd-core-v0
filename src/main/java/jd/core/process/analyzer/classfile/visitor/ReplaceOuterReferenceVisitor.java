@@ -238,13 +238,13 @@ public class ReplaceOuterReferenceVisitor
             break;
         case Const.MULTIANEWARRAY:
             {
-                Instruction[] dimensions = ((MultiANewArray)instruction).getDimensions();
-                for (int i=dimensions.length-1; i>=0; --i)
+                List<Instruction> dimensions = ((MultiANewArray)instruction).getDimensions();
+                for (int i=dimensions.size()-1; i>=0; --i)
                 {
-                    if (match(dimensions[i])) {
-                        dimensions[i] = newInstruction(dimensions[i]);
+                    if (match(dimensions.get(i))) {
+                        dimensions.set(i, newInstruction(dimensions.get(i)));
                     } else {
-                        visit(dimensions[i]);
+                        visit(dimensions.get(i));
                     }
                 }
             }

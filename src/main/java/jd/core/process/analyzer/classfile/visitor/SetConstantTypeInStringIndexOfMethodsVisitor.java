@@ -136,11 +136,7 @@ public class SetConstantTypeInStringIndexOfMethodsVisitor
             break;
         case ByteCodeConstants.COMPLEXIF:
             {
-                List<Instruction> branchList =
-                    ((ComplexConditionalBranchInstruction)instruction).getInstructions();
-                for (int i=branchList.size()-1; i>=0; --i) {
-                    visit(branchList.get(i));
-                }
+                visit(((ComplexConditionalBranchInstruction)instruction).getInstructions());
             }
             break;
         case Const.INVOKEVIRTUAL:
@@ -206,10 +202,7 @@ public class SetConstantTypeInStringIndexOfMethodsVisitor
             break;
         case Const.MULTIANEWARRAY:
             {
-                Instruction[] dimensions = ((MultiANewArray)instruction).getDimensions();
-                for (int i=dimensions.length-1; i>=0; --i) {
-                    visit(dimensions[i]);
-                }
+                visit(((MultiANewArray)instruction).getDimensions());
             }
             break;
         case Const.NEWARRAY:

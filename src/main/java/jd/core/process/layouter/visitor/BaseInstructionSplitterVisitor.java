@@ -240,7 +240,7 @@ public abstract class BaseInstructionSplitterVisitor
             break;
         case Const.MULTIANEWARRAY:
             {
-                Instruction[] dimensions =
+                List<Instruction> dimensions =
                     ((MultiANewArray)instruction).getDimensions();
                 for (Instruction i : dimensions) {
                     visit(instruction, i);

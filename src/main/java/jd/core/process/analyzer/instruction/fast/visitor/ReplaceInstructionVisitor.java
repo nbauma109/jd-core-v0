@@ -368,17 +368,17 @@ public class ReplaceInstructionVisitor
             break;
         case Const.MULTIANEWARRAY:
             {
-                Instruction[] dimensions = ((MultiANewArray)instruction).getDimensions();
-                for (int i=dimensions.length-1; i>=0 && this.oldInstruction == null; --i)
+                List<Instruction> dimensions = ((MultiANewArray)instruction).getDimensions();
+                for (int i=dimensions.size()-1; i>=0 && this.oldInstruction == null; --i)
                 {
-                    if (dimensions[i].getOffset() == this.offset)
+                    if (dimensions.get(i).getOffset() == this.offset)
                     {
-                        this.oldInstruction = dimensions[i];
-                        dimensions[i] = this.newInstruction;
+                        this.oldInstruction = dimensions.get(i);
+                        dimensions.set(i, this.newInstruction);
                     }
                     else
                     {
-                        visit(dimensions[i]);
+                        visit(dimensions.get(i));
                     }
                 }
             }

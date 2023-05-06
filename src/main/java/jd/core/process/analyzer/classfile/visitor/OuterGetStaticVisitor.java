@@ -245,14 +245,14 @@ public class OuterGetStaticVisitor
             break;
         case Const.MULTIANEWARRAY:
             {
-                Instruction[] dimensions = ((MultiANewArray)instruction).getDimensions();
-                for (int i=dimensions.length-1; i>=0; --i)
+                List<Instruction> dimensions = ((MultiANewArray)instruction).getDimensions();
+                for (int i=dimensions.size()-1; i>=0; --i)
                 {
-                    Accessor a = match(dimensions[i]);
+                    Accessor a = match(dimensions.get(i));
                     if (a != null) {
-                        dimensions[i] = newInstruction(dimensions[i], a);
+                        dimensions.set(i, newInstruction(dimensions.get(i), a));
                     } else {
-                        visit(dimensions[i]);
+                        visit(dimensions.get(i));
                     }
                 }
             }

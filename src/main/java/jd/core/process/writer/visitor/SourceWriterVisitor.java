@@ -2245,9 +2245,9 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
                 SignatureUtil.cutArrayDimensionPrefix(signature));
         }
 
-        Instruction[] dimensions = multiANewArray.getDimensions();
+        List<Instruction> dimensions = multiANewArray.getDimensions();
 
-        for (int i=dimensions.length-1; i>=0; i--)
+        for (int i=dimensions.size()-1; i>=0; i--)
         {
             nextOffset = this.previousOffset + 1;
 
@@ -2256,7 +2256,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
                 this.printer.print(lineNumber, '[');
             }
 
-            lineNumber = visit(dimensions[i]);
+            lineNumber = visit(dimensions.get(i));
 
             nextOffset = this.previousOffset + 1;
 
@@ -2273,7 +2273,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
             nextOffset <= this.lastOffset)
         {
             int dimensionCount = SignatureUtil.getArrayDimensionCount(signature);
-            for (int i=dimensions.length; i<dimensionCount; i++) {
+            for (int i=dimensions.size(); i<dimensionCount; i++) {
                 this.printer.print(lineNumber, "[]");
             }
         }

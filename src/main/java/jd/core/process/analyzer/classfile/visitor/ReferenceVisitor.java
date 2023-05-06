@@ -182,11 +182,7 @@ public class ReferenceVisitor
             break;
         case ByteCodeConstants.COMPLEXIF:
             {
-                List<Instruction> branchList =
-                    ((ComplexConditionalBranchInstruction)instruction).getInstructions();
-                for (int i=branchList.size()-1; i>=0; --i) {
-                    visit(branchList.get(i));
-                }
+                visit(((ComplexConditionalBranchInstruction)instruction).getInstructions());
             }
             break;
         case Const.INSTANCEOF:
@@ -230,10 +226,7 @@ public class ReferenceVisitor
             {
                 MultiANewArray multiANewArray = (MultiANewArray)instruction;
                 visitCheckCastAndMultiANewArray(multiANewArray.getIndex());
-                Instruction[] dimensions = multiANewArray.getDimensions();
-                for (int i=dimensions.length-1; i>=0; --i) {
-                    visit(dimensions[i]);
-                }
+                visit(multiANewArray.getDimensions());
             }
             break;
         case Const.NEWARRAY:

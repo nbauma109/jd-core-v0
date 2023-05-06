@@ -188,10 +188,10 @@ public final class MaxLineNumberVisitor
             break;
         case Const.MULTIANEWARRAY:
             {
-                Instruction[] dimensions = ((MultiANewArray)instruction).getDimensions();
-                int length = dimensions.length;
+                List<Instruction> dimensions = ((MultiANewArray)instruction).getDimensions();
+                int length = dimensions.size();
                 if (length > 0) {
-                    maxLineNumber = visit(dimensions[length-1]);
+                    maxLineNumber = visit(dimensions.get(length-1));
                 }
             }
             break;

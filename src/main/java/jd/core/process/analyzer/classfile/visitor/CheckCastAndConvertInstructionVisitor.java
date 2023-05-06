@@ -177,12 +177,7 @@ public final class CheckCastAndConvertInstructionVisitor
             break;
         case ByteCodeConstants.COMPLEXIF:
             {
-                List<Instruction> branchList =
-                    ((ComplexConditionalBranchInstruction)instruction).getInstructions();
-                for (int i=branchList.size()-1; i>=0; --i)
-                {
-                    visit(classFile, method, branchList.get(i));
-                }
+                visit(classFile, method, ((ComplexConditionalBranchInstruction)instruction).getInstructions());
             }
             break;
         case Const.INVOKEINTERFACE,
@@ -259,11 +254,7 @@ public final class CheckCastAndConvertInstructionVisitor
             break;
         case Const.MULTIANEWARRAY:
             {
-                Instruction[] dimensions = ((MultiANewArray)instruction).getDimensions();
-                for (int i=dimensions.length-1; i>=0; --i)
-                {
-                    visit(classFile, method, dimensions[i]);
-                }
+                visit(classFile, method, ((MultiANewArray)instruction).getDimensions());
             }
             break;
         case Const.NEWARRAY:

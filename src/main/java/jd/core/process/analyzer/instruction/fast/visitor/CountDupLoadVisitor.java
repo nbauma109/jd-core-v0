@@ -177,11 +177,7 @@ public class CountDupLoadVisitor
             break;
         case Const.MULTIANEWARRAY:
             {
-                Instruction[] dimensions = ((MultiANewArray)instruction).getDimensions();
-                for (int i=dimensions.length-1; i>=0; --i)
-                {
-                    visit(dimensions[i]);
-                }
+                visit(((MultiANewArray)instruction).getDimensions());
             }
             break;
         case Const.NEWARRAY:
