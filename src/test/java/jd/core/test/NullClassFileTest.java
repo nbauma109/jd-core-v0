@@ -1,11 +1,15 @@
 package jd.core.test;
 
+import org.jd.core.v1.loader.ClassPathLoader;
 import org.jd.core.v1.model.javasyntax.type.ObjectType;
 import org.junit.Test;
 
+import static org.jd.core.v1.util.StringConstants.JAVA_LANG_OBJECT;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
+import jd.core.model.classfile.ClassFile;
+import jd.core.model.classfile.LocalVariables;
 import jd.core.model.instruction.bytecode.instruction.AALoad;
 import jd.core.model.instruction.bytecode.instruction.AAStore;
 import jd.core.model.instruction.bytecode.instruction.AConstNull;
@@ -66,6 +70,7 @@ import jd.core.model.instruction.fast.instruction.FastInstruction;
 import jd.core.model.instruction.fast.instruction.FastLabel;
 import jd.core.model.instruction.fast.instruction.FastList;
 import jd.core.model.instruction.fast.instruction.FastSwitch;
+import jd.core.process.deserializer.ClassFileDeserializer;
 
 public class NullClassFileTest {
 
@@ -83,12 +88,16 @@ public class NullClassFileTest {
 
     @Test
     public void testReturnedSignature() throws Exception {
+        ClassPathLoader loader = new ClassPathLoader();
+        ClassFile classFile = ClassFileDeserializer.deserialize(loader, JAVA_LANG_OBJECT);
         ALoad aLoad = new ALoad(0, 0, 0, 0);
         ILoad iLoad = new ILoad(0, 0, 0, 0);
         assertNull(new AALoad(0, 0, 0, aLoad, iLoad).getReturnedSignature(null, null));
         assertNull(new AAStore(0, 0, 0, iLoad, null, null).getReturnedSignature(null, null));
         assertNull(new AConstNull(0, 0, 0).getReturnedSignature(null, null));
         assertNull(aLoad.getReturnedSignature(null, null));
+        assertNull(aLoad.getReturnedSignature(null, new LocalVariables()));
+        assertNull(aLoad.getReturnedSignature(classFile, null));
         ANewArray aNewArray = new ANewArray(0, 0, 0, 0, null);
         assertNull(aNewArray.getReturnedSignature(null, null));
         assertEquals("I", new ArrayLength(0, 0, 0, null).getReturnedSignature(null, null));
