@@ -17,6 +17,8 @@
 package jd.core.model.instruction.bytecode.instruction;
 
 import jd.core.model.classfile.ClassFile;
+import jd.core.model.classfile.ConstantPool;
+import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
 
 public class LoadInstruction extends IndexInstruction
@@ -35,5 +37,23 @@ public class LoadInstruction extends IndexInstruction
             ClassFile classFile, LocalVariables localVariables)
     {
         return this.signature;
+    }
+
+    protected String getReturnedSignature(
+            ClassFile classFile, LocalVariables localVariables, String defaultSignature) {
+
+        if (classFile == null || localVariables == null) {
+            return null;
+        }
+
+        ConstantPool constants = classFile.getConstantPool();
+
+        LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(this.getIndex(), this.getOffset());
+
+        if (lv == null || lv.getSignatureIndex() < 0) {
+            return defaultSignature;
+        }
+
+        return lv.getSignature(constants);
     }
 }
