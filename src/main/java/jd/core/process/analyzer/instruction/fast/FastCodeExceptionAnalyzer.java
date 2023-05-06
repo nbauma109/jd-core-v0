@@ -376,17 +376,13 @@ public final class FastCodeExceptionAnalyzer
             List<FastCodeExcepcion> fastCodeExceptions,
             FastAggregatedCodeExcepcion fastAggregatedCodeException)
     {
-        int length = fastCodeExceptions.size();
-
         if (fastAggregatedCodeException.getCatchType() == 0)
         {
             // Finally
 
             // Same start and end offsets
-            for (int i=0; i<length; ++i)
+            for (FastCodeExcepcion fce : fastCodeExceptions)
             {
-                FastCodeExcepcion fce = fastCodeExceptions.get(i);
-
                 if (fce.getFinallyFromOffset() == UtilConstants.INVALID_OFFSET &&
                         fastAggregatedCodeException.getStartPC() == fce.getTryFromOffset() &&
                         fastAggregatedCodeException.getEndPC() == fce.getTryToOffset() &&
@@ -402,12 +398,9 @@ public final class FastCodeExceptionAnalyzer
                 }
             }
 
-            FastCodeExcepcion fce;
             // Old algo
-            for (int i=0; i<length; ++i)
+            for (FastCodeExcepcion fce : fastCodeExceptions)
             {
-                fce = fastCodeExceptions.get(i);
-
                 if (fce.getFinallyFromOffset() == UtilConstants.INVALID_OFFSET &&
                         fastAggregatedCodeException.getStartPC() == fce.getTryFromOffset() &&
                         fastAggregatedCodeException.getEndPC() >= fce.getTryToOffset() &&

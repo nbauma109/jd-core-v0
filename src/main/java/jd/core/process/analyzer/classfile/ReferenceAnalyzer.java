@@ -98,8 +98,8 @@ public final class ReferenceAnalyzer
         // Inner classes
         List<ClassFile> innerClassFiles = classFile.getInnerClassFiles();
         if (innerClassFiles != null) {
-            for (int i=innerClassFiles.size()-1; i>=0; --i) {
-                collectReferences(referenceMap, innerClassFiles.get(i));
+            for (ClassFile innerClassFile : innerClassFiles) {
+                collectReferences(referenceMap, innerClassFile);
             }
         }
 
@@ -308,11 +308,8 @@ public final class ReferenceAnalyzer
             ReferenceMap referenceMap, ConstantPool constants,
             CodeException[] codeExceptions)
     {
-        CodeException ce;
-        for (int i=codeExceptions.length-1; i>=0; --i)
+        for (CodeException ce : codeExceptions)
         {
-            ce = codeExceptions[i];
-
             if (ce.getCatchType() != 0)
             {
                 String internalClassName =

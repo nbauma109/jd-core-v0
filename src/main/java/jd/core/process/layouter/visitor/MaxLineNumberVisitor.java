@@ -135,8 +135,8 @@ public final class MaxLineNumberVisitor
 
                 if (length == 0)
                 {
-                    if (instruction instanceof InvokeNoStaticInstruction) {
-                        maxLineNumber = visit(((InvokeNoStaticInstruction) instruction).getObjectref());
+                    if (instruction instanceof InvokeNoStaticInstruction insi) {
+                        maxLineNumber = visit(insi.getObjectref());
                     } else {
                         maxLineNumber = instruction.getLineNumber();
                     }
@@ -145,15 +145,7 @@ public final class MaxLineNumberVisitor
                 {
                     // Correction pour un tres curieux bug : les numéros de
                     // ligne des parametres ne sont pas toujours en ordre croissant
-                    maxLineNumber = visit(list.get(0));
-
-                    for (int i=length-1; i>0; i--)
-                    {
-                        int lineNumber = visit(list.get(i));
-                        if (maxLineNumber < lineNumber) {
-                            maxLineNumber = lineNumber;
-                        }
-                    }
+                    maxLineNumber = computeMaxLineNumber(list);
                 }
             }
             break;
@@ -161,25 +153,13 @@ public final class MaxLineNumberVisitor
              FastConstants.ENUMVALUE:
             {
                 List<Instruction> list = ((InvokeNew)instruction).getArgs();
-                int length = list.size();
-
-                if (length == 0)
+                if (list.isEmpty())
                 {
                     maxLineNumber = instruction.getLineNumber();
                 }
                 else
                 {
-                    // Correction pour un tres curieux bug : les numéros de
-                    // ligne des parametres ne sont pas toujours en ordre croissant
-                    maxLineNumber = visit(list.get(0));
-
-                    for (int i=length-1; i>0; i--)
-                    {
-                        int lineNumber = visit(list.get(i));
-                        if (maxLineNumber < lineNumber) {
-                            maxLineNumber = lineNumber;
-                        }
-                    }
+                    maxLineNumber = computeMaxLineNumber(list);
                 }
             }
             break;
@@ -189,9 +169,8 @@ public final class MaxLineNumberVisitor
         case Const.MULTIANEWARRAY:
             {
                 List<Instruction> dimensions = ((MultiANewArray)instruction).getDimensions();
-                int length = dimensions.size();
-                if (length > 0) {
-                    maxLineNumber = visit(dimensions.get(length-1));
+                if (!dimensions.isEmpty()) {
+                    maxLineNumber = visit(dimensions.get(dimensions.size()-1));
                 }
             }
             break;
@@ -234,6 +213,19 @@ public final class MaxLineNumberVisitor
         if (maxLineNumber < instruction.getLineNumber())
         {
             return instruction.getLineNumber();
+        }
+        return maxLineNumber;
+    }
+
+    private static int computeMaxLineNumber(List<Instruction> instructions) {
+        int maxLineNumber = visit(instructions.get(0));
+
+        for (Instruction instruction : instructions)
+        {
+            int lineNumber = visit(instruction);
+            if (maxLineNumber < lineNumber) {
+                maxLineNumber = lineNumber;
+            }
         }
         return maxLineNumber;
     }

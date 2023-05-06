@@ -1295,14 +1295,10 @@ public final class ClassFileAnalyzer
 
         // Recherche du champ statique possedant un acces ACC_ENUM et un
         // type '[LenumXXXX;'
-        Field[] fields = classFile.getFields();
-        Field field;
         Instruction instruction;
         String fieldName;
-        for (int i=fields.length-1; i>=0; --i)
+        for (Field field : classFile.getFields())
         {
-            field = fields[i];
-
             if ((field.getAccessFlags() & (Const.ACC_SYNTHETIC|Const.ACC_ENUM)) == 0 ||
                     field.getValueAndMethod() == null) {
                 continue;

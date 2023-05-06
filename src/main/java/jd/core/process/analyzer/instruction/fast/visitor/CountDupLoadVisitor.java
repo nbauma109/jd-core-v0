@@ -141,12 +141,7 @@ public class CountDupLoadVisitor
             break;
         case ByteCodeConstants.COMPLEXIF:
             {
-                List<Instruction> branchList =
-                    ((ComplexConditionalBranchInstruction)instruction).getInstructions();
-                for (int i=branchList.size()-1; i>=0; --i)
-                {
-                    visit(branchList.get(i));
-                }
+                visit(((ComplexConditionalBranchInstruction)instruction).getInstructions());
             }
             break;
         case Const.INVOKEINTERFACE,
@@ -156,20 +151,12 @@ public class CountDupLoadVisitor
             // intended fall through
         case Const.INVOKESTATIC:
             {
-                List<Instruction> list = ((InvokeInstruction)instruction).getArgs();
-                for (int i=list.size()-1; i>=0; --i)
-                {
-                    visit(list.get(i));
-                }
+                visit(((InvokeInstruction)instruction).getArgs());
             }
             break;
         case ByteCodeConstants.INVOKENEW:
             {
-                List<Instruction> list = ((InvokeNew)instruction).getArgs();
-                for (int i=list.size()-1; i>=0; --i)
-                {
-                    visit(list.get(i));
-                }
+                visit(((InvokeNew)instruction).getArgs());
             }
             break;
         case Const.LOOKUPSWITCH, Const.TABLESWITCH:

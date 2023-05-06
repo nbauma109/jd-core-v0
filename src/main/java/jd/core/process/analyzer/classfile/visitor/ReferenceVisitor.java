@@ -341,8 +341,7 @@ public class ReferenceVisitor
                 Pair[] pairs = fs.getPairs();
                 for (int i=pairs.length-1; i>=0; --i)
                 {
-                    List<Instruction> instructions = pairs[i].getInstructions();
-                    visit(instructions);
+                    visit(pairs[i].getInstructions());
                 }
             }
             break;

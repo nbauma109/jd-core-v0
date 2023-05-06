@@ -693,9 +693,7 @@ public final class LocalVariableAnalyzer
         ConstantPool constants = classFile.getConstantPool();
 
         // Recherche des instructions d'ecriture des variables locales.
-        int length = listForAnalyze.size();
-
-        for (int i=0; i<length; i++)
+        for (int i=0; i<listForAnalyze.size(); i++)
         {
             Instruction instruction = listForAnalyze.get(i);
 
@@ -712,7 +710,7 @@ public final class LocalVariableAnalyzer
                         returnedSignature);
             }
 
-            if (instruction.getOpcode() == ByteCodeConstants.TERNARYOPSTORE && i<length-1) {
+            if (instruction.getOpcode() == ByteCodeConstants.TERNARYOPSTORE && i<listForAnalyze.size()-1) {
                 TernaryOpStore ternaryOpStore = (TernaryOpStore) instruction;
                 SearchInstructionByTypeVisitor<Instruction> searchInstructionByOffsetVisitor
                     = new SearchInstructionByTypeVisitor<>(Instruction.class, instr -> instr.getOffset() == ternaryOpStore.getTernaryOp2ndValueOffset());
@@ -726,14 +724,12 @@ public final class LocalVariableAnalyzer
         // Analyse inverse
         boolean change;
 
-        Instruction instruction;
         do
         {
             change = false;
 
-            for (int i=0; i<length; i++)
+            for (Instruction instruction : listForAnalyze)
             {
-                instruction = listForAnalyze.get(i);
                 switch (instruction.getOpcode())
                 {
                 case Const.ISTORE:
@@ -780,9 +776,7 @@ public final class LocalVariableAnalyzer
         int internalObjectSignatureIndex =
                 constants.addConstantUtf8(StringConstants.INTERNAL_OBJECT_SIGNATURE);
 
-        length = localVariables.size();
-
-        for (int i=0; i<length; i++)
+        for (int i=0; i<localVariables.size(); i++)
         {
             LocalVariable lv = localVariables.getLocalVariableAt(i);
 

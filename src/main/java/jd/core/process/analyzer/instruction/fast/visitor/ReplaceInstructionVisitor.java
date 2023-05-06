@@ -302,11 +302,7 @@ public class ReplaceInstructionVisitor
             break;
         case ByteCodeConstants.COMPLEXIF:
             {
-                List<Instruction> branchList =
-                    ((ComplexConditionalBranchInstruction)instruction).getInstructions();
-                for (int i=branchList.size()-1; i>=0; --i) {
-                    visit(branchList.get(i));
-                }
+                visit(((ComplexConditionalBranchInstruction)instruction).getInstructions());
             }
             break;
         case Const.INVOKEINTERFACE,
