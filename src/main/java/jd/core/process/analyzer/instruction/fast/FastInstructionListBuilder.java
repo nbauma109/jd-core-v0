@@ -3281,9 +3281,10 @@ public final class FastInstructionListBuilder {
      * Possible return values:
      * 0: No pattern
      * 2: Pattern SUN 1.6
+     * @param cp 
      */
     private static int getForEachArraySun16PatternType(Instruction init, Instruction test, Instruction inc,
-            Instruction firstInstruction, StoreInstruction siLength, Instruction beforeBeforeForInstruction) {
+            Instruction firstInstruction, StoreInstruction siLength, Instruction beforeBeforeForInstruction, ConstantPool cp) {
         // Test before 'for' instruction: len$ = arr$.length;
         ArrayLength al = (ArrayLength) siLength.getValueref();
         // Test before before 'for' instruction: arr$ = ...;
@@ -3332,6 +3333,19 @@ public final class FastInstructionListBuilder {
         if (valueref instanceof CheckCast) {
             CheckCast cc = (CheckCast) valueref;
             valueref = cc.getObjectref();
+        }
+        if (valueref instanceof Invokevirtual iv) {
+            // Auto-unboxing pattern
+            ConstantCP cmr = cp.getConstantMethodref(iv.getIndex());
+            ConstantNameAndType cnat = cp.getConstantNameAndType(cmr.getNameAndTypeIndex());
+            String name = cp.getConstantUtf8(cnat.getNameIndex());
+            String signature = cp.getConstantUtf8(cnat.getSignatureIndex());
+            if (!StringUtils.equalsAny(name + signature, 
+                    "intValue()I", "longValue()J", "doubleValue()D", "floatValue()F",
+                    "byteValue()B", "shortValue()S", "charValue()C", "booleanValue()Z")) {
+                return 0;
+            }
+            valueref = iv.getObjectref();
         }
         if (valueref.getOpcode() != ByteCodeConstants.ARRAYLOAD) {
             return 0;
@@ -3483,7 +3497,7 @@ public final class FastInstructionListBuilder {
             if (beforeWhileLoopIndex > 1) {
                 Instruction beforeBeforeForInstruction = list.get(beforeWhileLoopIndex - 2);
                 return getForEachArraySun16PatternType(init, test, inc, firstInstruction, si,
-                        beforeBeforeForInstruction);
+                        beforeBeforeForInstruction, classFile.getConstantPool());
             }
         }
 
