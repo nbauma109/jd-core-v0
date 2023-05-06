@@ -30,7 +30,7 @@ public abstract class AbstractTestCase {
         Preferences preferences = new Preferences();
         preferences.setRealignmentLineNumber(realignmentLineNumber());
         preferences.setShowDefaultConstructor(showDefaultConstructor());
-        preferences.setShowLineNumbers(true);
+        preferences.setShowLineNumbers(showLineNumbers());
         preferences.setShowPrefixThis(true);
         preferences.setUnicodeEscape(true);
         preferences.setWriteMetaData(showMetaData());
@@ -72,6 +72,10 @@ public abstract class AbstractTestCase {
             }
         }
         return decompiledOutput;
+    }
+
+    protected boolean showLineNumbers() {
+        return true;
     }
 
     protected boolean recompile() {

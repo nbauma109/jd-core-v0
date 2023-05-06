@@ -1,18 +1,17 @@
-/*   */ package jd.core.test;
-/*   */ 
-/*   */ public class PutStaticAccessor
-/*   */ {
-/* 5 */   private static Object theObject = null;
-/*   */   
-/*   */   static void init() {
-/* 8 */     new Thread(new Runnable()
-/*   */     {
-/*   */       public void run()
-/*   */       {
-/* < */         if (PutStaticAccessor.theObject == null) {
-/* = */           PutStaticAccessor.theObject = new Object();
-/*   */         }
-/*   */       }
-/*   */     });
-/*   */   }
-/*   */ }
+package jd.core.test;
+
+public class PutStaticAccessor
+{
+  private static Object theObject = null;
+  
+  static void init() {
+    new Thread(new Runnable()
+    {
+      public void run() {
+        if (PutStaticAccessor.theObject == null) {
+          PutStaticAccessor.theObject = new Object();
+        }
+      }
+    });
+  }
+}

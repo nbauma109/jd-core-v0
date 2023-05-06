@@ -7,7 +7,6 @@ public class PutStaticAccessor {
     static void init() {
         new Thread(new Runnable() {
 
-            @Override
             public void run() {
                 if (theObject == null) {
                     theObject = new Object();
