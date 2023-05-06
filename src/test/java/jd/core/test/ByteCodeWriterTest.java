@@ -3,9 +3,11 @@ package jd.core.test;
 import org.apache.commons.io.IOUtils;
 import org.jd.core.v1.api.loader.Loader;
 import org.jd.core.v1.loader.ClassPathLoader;
+import org.jd.core.v1.util.ZipLoader;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,8 +49,37 @@ public class ByteCodeWriterTest {
         test("jd/core/test/ByteCodeInput", "multiANewArray", "()V", "MultiANewArrayByteCode.txt");
     }
 
+    @Test
+    public void testJavac_1_2_2_novar() throws Exception {
+        test("javac-1.2.2");
+    }
+
+    @Test
+    public void testJavac_1_3_1_28_novar() throws Exception {
+        test("javac-1.3.1_28");
+    }
+   
+    private void test(String compiler) throws IOException {
+        StringBuilder expectedFileName = new StringBuilder("TryCatchFinallyBRByteCode");
+        StringBuilder jarPath = new StringBuilder("/try-catch-finally-");
+        jarPath.append(compiler);
+        expectedFileName.append('-');
+        expectedFileName.append(compiler);
+        expectedFileName.append("-novar.txt");
+        jarPath.append("-novar");
+        expectedFileName.append("");
+        jarPath.append(".jar");
+        try (InputStream in = getClass().getResourceAsStream(jarPath.toString())) {
+            ZipLoader loader = new ZipLoader(in);
+            test("jd/core/test/TryCatchFinallyBR", "tryCatchFinally", "(Ljava/io/File;)V", expectedFileName.toString(), loader);
+        }
+    }
+
     private void test(String internalClassPath, String methodName, String methodDescriptor, String expectedResultFile) throws IOException {
-        Loader loader = new ClassPathLoader();
+        test(internalClassPath, methodName, methodDescriptor, expectedResultFile, new ClassPathLoader());
+    }
+
+    private void test(String internalClassPath, String methodName, String methodDescriptor, String expectedResultFile, Loader loader) throws IOException {
         ClassFile classFile = ClassFileDeserializer.deserialize(loader, internalClassPath);
         ReferenceMap referenceMap = new ReferenceMap();
         ClassFileAnalyzer.analyze(referenceMap, classFile);

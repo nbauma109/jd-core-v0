@@ -24,6 +24,7 @@ import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantMethodref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.LineNumber;
+import org.apache.commons.lang3.ArrayUtils;
 import org.jd.core.v1.api.loader.Loader;
 
 import jd.core.model.classfile.ClassFile;
@@ -55,7 +56,7 @@ public final class ByteCodeWriter
         // Ecriture du byte code
         byte[] code = method.getCode();
 
-        if (code != null)
+        if (ArrayUtils.isNotEmpty(code))
         {
             int    length = code.length;
             int    ioperande = 0;
@@ -342,7 +343,7 @@ public final class ByteCodeWriter
     {
         // Ecriture de la table des numéros de ligne
         LineNumber[] lineNumbers = method.getLineNumbers();
-        if (lineNumbers.length > 0)
+        if ((ArrayUtils.isNotEmpty(lineNumbers)))
         {
             printer.endOfLine();
             printer.startOfLine(Instruction.UNKNOWN_LINE_NUMBER);
@@ -426,7 +427,7 @@ public final class ByteCodeWriter
     {
         // Ecriture de la table des exceptions
         CodeException[] codeExceptions = method.getCodeExceptions();
-        if (codeExceptions != null && codeExceptions.length > 0)
+        if (ArrayUtils.isNotEmpty(codeExceptions))
         {
             printer.endOfLine();
             printer.startOfLine(Instruction.UNKNOWN_LINE_NUMBER);
