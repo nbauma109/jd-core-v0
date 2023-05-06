@@ -53,12 +53,12 @@ public final class RemoveDupConstantsAttributes
 
             int opcode = dupstore.getObjectref().getOpcode();
 
-            if (/*(opcode != Const.GETFIELD) &&
-                (opcode != Const.GETSTATIC) &&*/
+            if (opcode != Const.GETFIELD &&
+                opcode != Const.GETSTATIC &&
                 opcode != Const.BIPUSH &&
-                opcode != Const.SIPUSH /*&&
-                (opcode != Const.ALOAD) &&
-                (opcode != Const.ILOAD)*/) {
+                opcode != Const.SIPUSH &&
+                opcode != Const.ALOAD &&
+                opcode != Const.ILOAD) {
                 continue;
             }
 
@@ -68,7 +68,7 @@ public final class RemoveDupConstantsAttributes
                 new ReplaceDupLoadVisitor(dupstore, i);
             final int length = list.size();
 
-            // 1er substitution
+            // 1ere substitution
             while (dupLoadIndex < length)
             {
                 visitor.visit(list.get(dupLoadIndex));
