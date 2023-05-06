@@ -169,26 +169,6 @@ public final class SignatureUtil
         };
     }
 
-    public static int getTypeFromSignature(String signature)
-    {
-        if (signature.length() != 1) {
-            return 0;
-        }
-
-        return switch (signature.charAt(0))
-        {
-        case 'Z' -> Const.T_BOOLEAN;
-        case 'C' -> Const.T_CHAR;
-        case 'F' -> Const.T_FLOAT;
-        case 'D' -> Const.T_DOUBLE;
-        case 'B' -> Const.T_BYTE;
-        case 'S' -> Const.T_SHORT;
-        case 'I' -> Const.T_INT;
-        case 'J' -> Const.T_LONG;
-        default  -> 0;
-        };
-    }
-
     public static boolean isGenericSignature(String signature)
     {
         return signature.charAt(0) == 'T';
