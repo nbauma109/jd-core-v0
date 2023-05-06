@@ -20,6 +20,7 @@ import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.Signature;
+import org.apache.commons.lang3.ArrayUtils;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.ExceptionUtil;
 import org.jd.core.v1.util.StringConstants;
 
@@ -259,7 +260,7 @@ public final class ClassFileLayouter {
                     // Interface
                      // Super interface
                     int[] interfaceIndexes = classFile.getInterfaces();
-                    if (interfaceIndexes != null && interfaceIndexes.length > 0)
+                    if (ArrayUtils.isNotEmpty(interfaceIndexes))
                     {
                         displayExtendsOrImplementsFlag = true;
                         layoutBlockList.add(
@@ -304,7 +305,7 @@ public final class ClassFileLayouter {
     {
         int[] interfaceIndexes = classFile.getInterfaces();
 
-        if (interfaceIndexes != null && interfaceIndexes.length > 0)
+        if (ArrayUtils.isNotEmpty(interfaceIndexes))
         {
             layoutBlockList.add(
                 new ImplementsInterfacesLayoutBlock(classFile));

@@ -18,6 +18,7 @@ package jd.core.process.analyzer.instruction.fast;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.CodeException;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,7 +72,7 @@ public final class FastCodeExceptionAnalyzer
     {
         CodeException[] arrayOfCodeException = method.getCodeExceptions();
 
-        if (arrayOfCodeException == null || arrayOfCodeException.length == 0) {
+        if (ArrayUtils.isEmpty(arrayOfCodeException)) {
             return null;
         }
 

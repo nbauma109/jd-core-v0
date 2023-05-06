@@ -19,6 +19,7 @@ package jd.core.process.writer;
 import org.apache.bcel.classfile.AnnotationEntry;
 import org.apache.bcel.classfile.ElementValuePair;
 import org.apache.bcel.classfile.ParameterAnnotationEntry;
+import org.apache.commons.lang3.ArrayUtils;
 import org.jd.core.v1.api.loader.Loader;
 
 import jd.core.model.classfile.ClassFile;
@@ -65,7 +66,7 @@ public final class AnnotationWriter
         printer.endOfAnnotationName();
 
         ElementValuePair[] evps = annotationEntry.getElementValuePairs();
-        if (evps != null && evps.length > 0)
+        if (ArrayUtils.isNotEmpty(evps))
         {
             printer.print('(');
 
