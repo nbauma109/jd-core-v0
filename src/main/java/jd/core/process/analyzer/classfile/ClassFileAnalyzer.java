@@ -39,7 +39,6 @@ import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.ALoad;
 import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
-import jd.core.model.instruction.bytecode.instruction.GetField;
 import jd.core.model.instruction.bytecode.instruction.GetStatic;
 import jd.core.model.instruction.bytecode.instruction.IfCmp;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
@@ -1012,54 +1011,6 @@ public final class ClassFileAnalyzer
                         list.remove(index);
                         break;
                     }
-                }
-            }
-            else if ((method.getAccessFlags() &
-                    (Const.ACC_SYNTHETIC|Const.ACC_STATIC)) == Const.ACC_STATIC &&
-                    method.getNameIndex() != constants.getClassConstructorIndex() &&
-                    listLength == 1 &&
-                    classFile.isAInnerClass())
-            {
-                // Search accessor method:
-                //   static TestInnerClass.InnerClass.InnerInnerClass basic/data/TestInnerClass$InnerClass$InnerInnerClass$InnerInnerInnerClass.access$100(InnerInnerInnerClass x0)
-                //   {
-                //      Byte code:
-                //        0: aload_0
-                //        1: getfield 1    basic/data/TestInnerClass$InnerClass$InnerInnerClass$InnerInnerInnerClass:this$1    Lbasic/data/TestInnerClass$InnerClass$InnerInnerClass;
-                //        4: areturn
-                //   }
-                Instruction instruction = list.get(0);
-                if (instruction.getOpcode() != ByteCodeConstants.XRETURN) {
-                    continue;
-                }
-
-                instruction = ((ReturnInstruction)instruction).getValueref();
-                if (instruction.getOpcode() != Const.GETFIELD) {
-                    continue;
-                }
-
-                GetField gf = (GetField)instruction;
-                if (gf.getObjectref().getOpcode() != Const.ALOAD ||
-                        ((ALoad)gf.getObjectref()).getIndex() != 0) {
-                    continue;
-                }
-
-                cfr = constants.getConstantFieldref(gf.getIndex());
-                if (cfr.getClassIndex() != classFile.getThisClassIndex()) {
-                    continue;
-                }
-
-                ConstantNameAndType cnat =
-                        constants.getConstantNameAndType(cfr.getNameAndTypeIndex());
-                Field outerField = classFile.getOuterThisField();
-                if (cnat.getSignatureIndex() != outerField.getDescriptorIndex()) {
-                    continue;
-                }
-
-                if (cnat.getNameIndex() == outerField.getNameIndex())
-                {
-                    // Ensure accessor method is a synthetic method
-                    method.setAccessFlags(method.getAccessFlags() | Const.ACC_SYNTHETIC);
                 }
             }
         }
