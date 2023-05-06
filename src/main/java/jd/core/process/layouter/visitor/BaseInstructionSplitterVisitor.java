@@ -162,9 +162,8 @@ public abstract class BaseInstructionSplitterVisitor
             {
                 List<Instruction> branchList =
                     ((ComplexConditionalBranchInstruction)instruction).getInstructions();
-                int length = branchList.size();
-                for (int i=0; i<length; i++) {
-                    visit(instruction, branchList.get(i));
+                for (Instruction i : branchList) {
+                    visit(instruction, i);
                 }
             }
             break;
@@ -178,10 +177,8 @@ public abstract class BaseInstructionSplitterVisitor
                 if (in.getPrefix() != null) {
                     visit(in.getPrefix());
                 }
-                List<Instruction> args = in.getArgs();
-                int length = args.size();
-                for (int i=0; i<length; i++) {
-                    visit(instruction, args.get(i));
+                for (Instruction i : in.getArgs()) {
+                    visit(instruction, i);
                 }
 
                 ConstantCP cmr =
@@ -232,9 +229,8 @@ public abstract class BaseInstructionSplitterVisitor
         case Const.INVOKESTATIC:
             {
                 List<Instruction> args = ((InvokeInstruction)instruction).getArgs();
-                int length = args.size();
-                for (int i=0; i<length; i++) {
-                    visit(instruction, args.get(i));
+                for (Instruction i : args) {
+                    visit(instruction, i);
                 }
             }
             break;
@@ -246,9 +242,8 @@ public abstract class BaseInstructionSplitterVisitor
             {
                 Instruction[] dimensions =
                     ((MultiANewArray)instruction).getDimensions();
-                int length = dimensions.length;
-                for (int i=0; i<length; i++) {
-                    visit(instruction, dimensions[i]);
+                for (Instruction i : dimensions) {
+                    visit(instruction, i);
                 }
             }
             break;
@@ -292,10 +287,8 @@ public abstract class BaseInstructionSplitterVisitor
             {
                 InitArrayInstruction iai = (InitArrayInstruction)instruction;
                 visit(instruction, iai.getNewArray());
-                List<Instruction> values = iai.getValues();
-                int length = values.size();
-                for (int i=0; i<length; i++) {
-                    visit(instruction, values.get(i));
+                for (Instruction value : iai.getValues()) {
+                    visit(instruction, value);
                 }
             }
             break;

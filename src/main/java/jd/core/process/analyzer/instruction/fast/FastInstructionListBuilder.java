@@ -94,7 +94,6 @@ import jd.core.model.instruction.fast.instruction.FastInstruction;
 import jd.core.model.instruction.fast.instruction.FastLabel;
 import jd.core.model.instruction.fast.instruction.FastList;
 import jd.core.model.instruction.fast.instruction.FastSwitch;
-import jd.core.model.instruction.fast.instruction.FastSwitch.Pair;
 import jd.core.model.instruction.fast.instruction.FastSynchronized;
 import jd.core.model.instruction.fast.instruction.FastTest2Lists;
 import jd.core.model.instruction.fast.instruction.FastTestList;
@@ -234,8 +233,7 @@ public final class FastInstructionListBuilder {
                         // remove re-declaration if no assignment
                         instructions.remove(i);
                         i--;
-                    } else if (declaration.getInstruction() instanceof StoreInstruction) {
-                        StoreInstruction si = (StoreInstruction) declaration.getInstruction();
+                    } else if (declaration.getInstruction() instanceof StoreInstruction si) {
                         // if variable is assigned, turn re-declaration into assignment
                         instructions.set(i, si);
                     }
@@ -1452,9 +1450,8 @@ public final class FastInstructionListBuilder {
                         returnOffset, false);
                 declareOuterVariables(list, ft.getInstructions(), localVariables, index, outerDeclarations);
                 // Catch blocks
-                int length = ft.getCatches().size();
-                for (int i = 0; i < length; i++) {
-                    List<Instruction> catchInstructions = ft.getCatches().get(i).instructions();
+                for (FastCatch fastCatch : ft.getCatches()) {
+                    List<Instruction> catchInstructions = fastCatch.instructions();
                     outerDeclarations = analyzeList(classFile, method, catchInstructions, localVariables, offsetLabelSet,
                             beforeLoopEntryOffset, loopEntryOffset, afterBodyLoopOffset, tmpBeforeListOffset,
                             afterListOffset, breakOffset, returnOffset, false);
@@ -1561,8 +1558,7 @@ public final class FastInstructionListBuilder {
                     }
                 }
                 if (instruction instanceof FastFor ff) {
-                    if (ff.getInit() instanceof StoreInstruction) {
-                        StoreInstruction si = (StoreInstruction) ff.getInit();
+                    if (ff.getInit() instanceof StoreInstruction si) {
                         LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(si.getIndex(), si.getOffset());
                         if (isUndeclared(lv)
                                 && beforeListOffset < lv.getStartPc()) {
@@ -4181,24 +4177,24 @@ public final class FastInstructionListBuilder {
             LocalVariables localVariables, IntSet offsetLabelSet, int beforeLoopEntryOffset, int loopEntryOffset,
             int afterBodyLoopOffset, int afterListOffset, int returnOffset, int switchIndex, LookupSwitch ls) {
         final int pairLength = ls.getKeys().length;
-        Pair[] pairs = new Pair[pairLength + 1];
+        FastSwitch.Pair[] pairs = new FastSwitch.Pair[pairLength + 1];
 
         // Construct list of pairs
         boolean defaultFlag = true;
         int pairIndex = 0;
         for (int i = 0; i < pairLength; i++) {
             if (defaultFlag && ls.getOffset(i) > ls.getDefaultOffset()) {
-                pairs[pairIndex] = new Pair(true, 0, ls.getOffset() + ls.getDefaultOffset());
+                pairs[pairIndex] = new FastSwitch.Pair(true, 0, ls.getOffset() + ls.getDefaultOffset());
                 pairIndex++;
                 defaultFlag = false;
             }
 
-            pairs[pairIndex] = new Pair(false, ls.getKey(i), ls.getOffset() + ls.getOffset(i));
+            pairs[pairIndex] = new FastSwitch.Pair(false, ls.getKey(i), ls.getOffset() + ls.getOffset(i));
             pairIndex++;
         }
 
         if (defaultFlag) {
-            pairs[pairIndex] = new Pair(true, 0, ls.getOffset() + ls.getDefaultOffset());
+            pairs[pairIndex] = new FastSwitch.Pair(true, 0, ls.getOffset() + ls.getDefaultOffset());
         }
 
         // SWITCH or SWITCH_ENUM ?
@@ -4302,24 +4298,24 @@ public final class FastInstructionListBuilder {
             LocalVariables localVariables, IntSet offsetLabelSet, int beforeLoopEntryOffset, int loopEntryOffset,
             int afterBodyLoopOffset, int afterListOffset, int returnOffset, int switchIndex, TableSwitch ts) {
         final int pairLength = ts.getOffsets().length;
-        Pair[] pairs = new Pair[pairLength + 1];
+        FastSwitch.Pair[] pairs = new FastSwitch.Pair[pairLength + 1];
 
         // Construct list of pairs
         boolean defaultFlag = true;
         int pairIndex = 0;
         for (int i = 0; i < pairLength; i++) {
             if (defaultFlag && ts.getOffset(i) > ts.getDefaultOffset()) {
-                pairs[pairIndex] = new Pair(true, 0, ts.getOffset() + ts.getDefaultOffset());
+                pairs[pairIndex] = new FastSwitch.Pair(true, 0, ts.getOffset() + ts.getDefaultOffset());
                 pairIndex++;
                 defaultFlag = false;
             }
 
-            pairs[pairIndex] = new Pair(false, ts.getLow() + i, ts.getOffset() + ts.getOffset(i));
+            pairs[pairIndex] = new FastSwitch.Pair(false, ts.getLow() + i, ts.getOffset() + ts.getOffset(i));
             pairIndex++;
         }
 
         if (defaultFlag) {
-            pairs[pairIndex] = new Pair(true, 0, ts.getOffset() + ts.getDefaultOffset());
+            pairs[pairIndex] = new FastSwitch.Pair(true, 0, ts.getOffset() + ts.getDefaultOffset());
         }
 
         // SWITCH or Eclipse SWITCH_ENUM ?
@@ -4350,7 +4346,7 @@ public final class FastInstructionListBuilder {
     }
 
     private static boolean analyzeSwitchString(ClassFile classFile, LocalVariables localVariables,
-            List<Instruction> list, int switchIndex, Switch s, Pair[] pairs) {
+            List<Instruction> list, int switchIndex, Switch s, FastSwitch.Pair[] pairs) {
         Instruction instruction = list.get(switchIndex - 3);
         if (instruction.getOpcode() != Const.ASTORE || instruction.getLineNumber() != s.getKey().getLineNumber()) {
             return false;
@@ -4408,7 +4404,7 @@ public final class FastInstructionListBuilder {
             return false;
         }
 
-        Pair[] previousPairs = previousSwitch.getPairs();
+        FastSwitch.Pair[] previousPairs = previousSwitch.getPairs();
         int i = previousPairs.length;
         if (i == 0) {
             return false;
@@ -4422,7 +4418,7 @@ public final class FastInstructionListBuilder {
         int length;
         FastTest2Lists ft2l;
         while (i-- > 0) {
-            Pair pair = previousPairs[i];
+            FastSwitch.Pair pair = previousPairs[i];
             if (pair.isDefault()) {
                 continue;
             }
@@ -4483,7 +4479,7 @@ public final class FastInstructionListBuilder {
         // Replace value of each pair
         i = pairs.length;
 
-        Pair pair;
+        FastSwitch.Pair pair;
         while (i-- > 0) {
             pair = pairs[i];
             if (pair.isDefault()) {
@@ -4568,7 +4564,7 @@ public final class FastInstructionListBuilder {
     private static void analyzeSwitch(ClassFile classFile, Method method, List<Instruction> list,
             LocalVariables localVariables, IntSet offsetLabelSet, int beforeLoopEntryOffset, int loopEntryOffset,
             int afterBodyLoopOffset, int afterListOffset, int returnOffset, int switchIndex, int switchOpcode,
-            int switchOffset, int switchLineNumber, Instruction test, Pair[] pairs, final int pairLength) {
+            int switchOffset, int switchLineNumber, Instruction test, FastSwitch.Pair[] pairs, final int pairLength) {
         int breakOffset = -1;
 
         // Order pairs by offset
@@ -4722,7 +4718,7 @@ public final class FastInstructionListBuilder {
                 afterListOffset = list.get(index).getOffset();
             }
 
-            Pair pair;
+            FastSwitch.Pair pair;
             List<Instruction> instructions;
             for (int i = 0; i <= pairLength; i++)
             {
@@ -4848,7 +4844,7 @@ public final class FastInstructionListBuilder {
              FastConstants.SWITCH_STRING: {
             FastSwitch fs = (FastSwitch) instruction;
             if (labelOffset >= fs.getTest().getOffset()) {
-                Pair[] pairs = fs.getPairs();
+                FastSwitch.Pair[] pairs = fs.getPairs();
                 if (pairs != null) {
                     List<Instruction> instructions;
                     for (int i = pairs.length - 1; i >= 0 && !found; --i) {

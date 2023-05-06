@@ -85,14 +85,12 @@ public final class ClassFileDeserializer
             internalClassPathPrefix + StringConstants.INTERNAL_INNER_SEPARATOR;
         ConstantPool constants = classFile.getConstantPool();
 
-        InnerClass[] cs = aics.getInnerClasses();
-        int length = cs.length;
-        List<ClassFile> innerClassFiles = new ArrayList<>(length);
+        List<ClassFile> innerClassFiles = new ArrayList<>(aics.getLength());
 
-        for (int i=0; i<length; i++)
+        for (InnerClass innerClass : aics.getInnerClasses())
         {
             String innerInternalClassPath =
-                constants.getConstantClassName(cs[i].getInnerClassIndex());
+                constants.getConstantClassName(innerClass.getInnerClassIndex());
 
             if (! innerInternalClassPath.startsWith(innerInternalClassNamePrefix)) {
                 continue;
@@ -118,7 +116,7 @@ public final class ClassFileDeserializer
             if (innerClassFile != null)
             {
                 // Alter inner class access flag
-                innerClassFile.setAccessFlags(cs[i].getInnerAccessFlags());
+                innerClassFile.setAccessFlags(innerClass.getInnerAccessFlags());
                 // Setup outer class reference
                 innerClassFile.setOuterClass(classFile);
                 // Add inner classes

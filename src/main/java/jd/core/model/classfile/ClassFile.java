@@ -333,9 +333,9 @@ public class ClassFile extends Base
             internalClassName.length() > this.thisClassName.length()+1 &&
             internalClassName.charAt(this.thisClassName.length()) == StringConstants.INTERNAL_INNER_SEPARATOR)
         {
-            for (int i=this.innerClassFiles.size()-1; i>=0; --i) {
-                if (innerClassFiles.get(i).thisClassName.equals(internalClassName)) {
-                    return innerClassFiles.get(i);
+            for (ClassFile innerClassFile : innerClassFiles) {
+                if (innerClassFile.thisClassName.equals(internalClassName)) {
+                    return innerClassFile;
                 }
             }
         }

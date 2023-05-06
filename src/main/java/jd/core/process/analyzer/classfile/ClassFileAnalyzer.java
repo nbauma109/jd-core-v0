@@ -917,13 +917,8 @@ public final class ClassFileAnalyzer
 
         // Search instruction 'PutField(#, ALoad(1))' before super <init>
         // method call.
-        int length = list.size();
-
-        Instruction instruction;
-        for (int i=0; i<length; i++)
+        for (Instruction instruction : list)
         {
-            instruction = list.get(i);
-
             if (instruction.getOpcode() == Const.PUTFIELD)
             {
                 // Is '#' equals to 'outerThisFieldIndex' ?

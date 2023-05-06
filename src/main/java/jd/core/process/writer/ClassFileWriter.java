@@ -782,11 +782,11 @@ public final class ClassFileWriter
 
             if (alb.getLineCount() == 0)
             {
-                for (int i=0; i<length; i++)
+                for (AnnotationEntry annotationEntry : annotations)
                 {
                     AnnotationWriter.writeAnnotation(
                         this.loader, this.printer, this.referenceMap,
-                        classFile, annotations.get(i));
+                        classFile, annotationEntry);
                 }
             }
             else
@@ -800,11 +800,11 @@ public final class ClassFileWriter
                 int j = annotationsByLine;
                 int k = alb.getLineCount();
 
-                for (int i=0; i<length; i++)
+                for (AnnotationEntry annotationEntry : annotations)
                 {
                     AnnotationWriter.writeAnnotation(
                         this.loader, this.printer, this.referenceMap,
-                        classFile, annotations.get(i));
+                        classFile, annotationEntry);
 
                     if (--j > 0)
                     {
@@ -2370,17 +2370,13 @@ public final class ClassFileWriter
 
         if (fc.otherExceptionTypeIndexes() != null)
         {
-            int[] otherExceptionTypeIndexes = fc.otherExceptionTypeIndexes();
-            int otherExceptionTypeIndexesLength =
-                    otherExceptionTypeIndexes.length;
-
-            for (int i=0; i<otherExceptionTypeIndexesLength; i++)
+            for (int otherExceptionTypeIndex : fc.otherExceptionTypeIndexes())
             {
-                if (otherExceptionTypeIndexes[i] != 0)
+                if (otherExceptionTypeIndex != 0)
                 {
                     this.printer.print('|');
                     writeCatchType(
-                        classFile, constants, otherExceptionTypeIndexes[i]);
+                        classFile, constants, otherExceptionTypeIndex);
                 }
             }
         }
