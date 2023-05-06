@@ -17,8 +17,6 @@
 package jd.core.model.instruction.bytecode.instruction;
 
 import jd.core.model.classfile.ClassFile;
-import jd.core.model.classfile.ConstantPool;
-import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
 
 public class ILoad extends LoadInstruction
@@ -32,22 +30,7 @@ public class ILoad extends LoadInstruction
     public String getReturnedSignature(
             ClassFile classFile, LocalVariables localVariables)
     {
-        if (classFile == null) {
-            return null;
-        }
-
-        ConstantPool constants = classFile.getConstantPool();
-
-        if (localVariables == null) {
-            return null;
-        }
-
-        LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(this.getIndex(), this.getOffset());
-
-        if (lv == null || lv.getSignatureIndex() < 0) {
-            return null;
-        }
-
-        return lv.getSignature(constants);
+        return getReturnedSignature(classFile, localVariables, null);
     }
+
 }
