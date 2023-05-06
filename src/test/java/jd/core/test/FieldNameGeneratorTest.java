@@ -22,12 +22,12 @@ public class FieldNameGeneratorTest extends AbstractTestCase {
             
             @Override
             public byte[] load(String internalName) throws IOException {
-                return out.toByteArray();
+                return "jd/core/test/NonUniqueFieldNames.class".equals(internalName) ? out.toByteArray() : super.load(internalName);
             }
             
             @Override
             public boolean canLoad(String internalName) {
-                return "jd/core/test/NonUniqueFieldNames".equals(internalName) || super.canLoad(internalName);
+                return "jd/core/test/NonUniqueFieldNames.class".equals(internalName) || super.canLoad(internalName);
             }
         };
         String output = decompile("jd/core/test/NonUniqueFieldNames", loader);
