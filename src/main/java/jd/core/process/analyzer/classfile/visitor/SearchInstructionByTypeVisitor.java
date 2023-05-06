@@ -42,6 +42,7 @@ import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
 import jd.core.model.instruction.bytecode.instruction.MultiANewArray;
 import jd.core.model.instruction.bytecode.instruction.NewArray;
 import jd.core.model.instruction.bytecode.instruction.PutField;
+import jd.core.model.instruction.bytecode.instruction.Switch;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
@@ -181,6 +182,9 @@ public final class SearchInstructionByTypeVisitor<T extends Instruction>
                     }
                 }
             }
+            break;
+        case Const.LOOKUPSWITCH, Const.TABLESWITCH:
+            visit(((Switch)instruction).getKey());
             break;
         case Const.MULTIANEWARRAY:
             {

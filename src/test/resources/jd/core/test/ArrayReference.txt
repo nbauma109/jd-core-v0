@@ -1,0 +1,244 @@
+/*     */ package org.eclipse.jdt.internal.compiler.ast;
+/*     */ 
+/*     */ import org.eclipse.jdt.internal.compiler.ASTVisitor;
+/*     */ import org.eclipse.jdt.internal.compiler.codegen.CodeStream;
+/*     */ import org.eclipse.jdt.internal.compiler.flow.FlowContext;
+/*     */ import org.eclipse.jdt.internal.compiler.flow.FlowInfo;
+/*     */ import org.eclipse.jdt.internal.compiler.impl.Constant;
+/*     */ import org.eclipse.jdt.internal.compiler.lookup.ArrayBinding;
+/*     */ import org.eclipse.jdt.internal.compiler.lookup.BlockScope;
+/*     */ import org.eclipse.jdt.internal.compiler.lookup.TypeBinding;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class ArrayReference
+/*     */   extends Reference
+/*     */ {
+/*     */   public Expression receiver;
+/*     */   public Expression position;
+/*     */   
+/*     */   public ArrayReference(Expression rec, Expression pos)
+/*     */   {
+/*  38 */     this.receiver = rec;
+/*  39 */     this.position = pos;
+/*  40 */     this.sourceStart = rec.sourceStart;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */   @Override
+/*     */   public FlowInfo analyseAssignment(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo, Assignment assignment, boolean compoundAssignment)
+/*     */   {
+/*  47 */     flowContext.recordAbruptExit();
+/*  48 */     if (assignment.expression == null) {
+/*  49 */       return analyseCode(currentScope, flowContext, flowInfo);
+/*     */     }
+/*  51 */     flowInfo = 
+/*  52 */       assignment.expression
+/*  53 */       .analyseCode(
+/*  54 */       currentScope, 
+/*  55 */       flowContext, 
+/*  56 */       analyseCode(currentScope, flowContext, flowInfo).unconditionalInits());
+/*  57 */     if (currentScope.environment().usesNullTypeAnnotations()) {
+/*  58 */       checkAgainstNullTypeAnnotation(currentScope, this.resolvedType, assignment.expression, flowContext, flowInfo);
+/*     */     }
+/*  60 */     return flowInfo;
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public FlowInfo analyseCode(BlockScope currentScope, FlowContext flowContext, FlowInfo flowInfo) {
+/*  65 */     flowInfo = this.receiver.analyseCode(currentScope, flowContext, flowInfo);
+/*  66 */     this.receiver.checkNPE(currentScope, flowContext, flowInfo, 1);
+/*  67 */     flowInfo = this.position.analyseCode(currentScope, flowContext, flowInfo);
+/*  68 */     this.position.checkNPEbyUnboxing(currentScope, flowContext, flowInfo);
+/*     */     
+/*  70 */     flowContext.recordAbruptExit();
+/*  71 */     return flowInfo;
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public boolean checkNPE(BlockScope scope, FlowContext flowContext, FlowInfo flowInfo, int ttlForFieldCheck) {
+/*  76 */     if ((this.resolvedType.tagBits & 0x80000000000000L) != 0L) {
+/*  77 */       scope.problemReporter().arrayReferencePotentialNullReference(this);
+/*  78 */       return true;
+/*     */     }
+/*  80 */     return super.checkNPE(scope, flowContext, flowInfo, ttlForFieldCheck);
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public void generateAssignment(BlockScope currentScope, CodeStream codeStream, Assignment assignment, boolean valueRequired)
+/*     */   {
+/*  86 */     int pc = codeStream.position;
+/*  87 */     this.receiver.generateCode(currentScope, codeStream, true);
+/*  88 */     if ((this.receiver instanceof CastExpression) && 
+/*  89 */       ((CastExpression)this.receiver).innermostCastedExpression().resolvedType == TypeBinding.NULL) {
+/*  90 */       codeStream.checkcast(this.receiver.resolvedType);
+/*     */     }
+/*  92 */     codeStream.recordPositionsFrom(pc, this.sourceStart);
+/*  93 */     this.position.generateCode(currentScope, codeStream, true);
+/*  94 */     assignment.expression.generateCode(currentScope, codeStream, true);
+/*  95 */     codeStream.arrayAtPut(this.resolvedType.id, valueRequired);
+/*  96 */     if (valueRequired) {
+/*  97 */       codeStream.generateImplicitConversion(assignment.implicitConversion);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public void generateCode(BlockScope currentScope, CodeStream codeStream, boolean valueRequired)
+/*     */   {
+/* 106 */     int pc = codeStream.position;
+/* 107 */     this.receiver.generateCode(currentScope, codeStream, true);
+/* 108 */     if ((this.receiver instanceof CastExpression) && 
+/* 109 */       ((CastExpression)this.receiver).innermostCastedExpression().resolvedType == TypeBinding.NULL) {
+/* 110 */       codeStream.checkcast(this.receiver.resolvedType);
+/*     */     }
+/* 112 */     this.position.generateCode(currentScope, codeStream, true);
+/* 113 */     codeStream.arrayAt(this.resolvedType.id);
+/*     */     
+/* 115 */     if (valueRequired) {
+/* 116 */       codeStream.generateImplicitConversion(this.implicitConversion);
+/*     */     } else {
+/* 118 */       boolean isUnboxing = (this.implicitConversion & 0x400) != 0;
+/*     */       
+/* 120 */       if (isUnboxing) codeStream.generateImplicitConversion(this.implicitConversion);
+/* 121 */       switch (isUnboxing ? postConversionType(currentScope).id : this.resolvedType.id) {
+/*     */       case 7: 
+/*     */       case 8: 
+/* 124 */         codeStream.pop2();
+/* 125 */         break;
+/*     */       default: 
+/* 127 */         codeStream.pop();
+/*     */       }
+/*     */     }
+/* 130 */     codeStream.recordPositionsFrom(pc, this.sourceStart);
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public void generateCompoundAssignment(BlockScope currentScope, CodeStream codeStream, Expression expression, int operator, int assignmentImplicitConversion, boolean valueRequired) {
+/* 135 */     this.receiver.generateCode(currentScope, codeStream, true);
+/* 136 */     if ((this.receiver instanceof CastExpression) && 
+/* 137 */       ((CastExpression)this.receiver).innermostCastedExpression().resolvedType == TypeBinding.NULL) {
+/* 138 */       codeStream.checkcast(this.receiver.resolvedType);
+/*     */     }
+/* 140 */     this.position.generateCode(currentScope, codeStream, true);
+/* 141 */     codeStream.dup2();
+/* 142 */     codeStream.arrayAt(this.resolvedType.id); int 
+/*     */     
+/* 144 */       tmp85_84 = ((this.implicitConversion & 0xFF) >> 4);int operationTypeID = tmp85_84; switch (tmp85_84) {
+/*     */     case 0: 
+/*     */     case 1: 
+/*     */     case 11: 
+/* 148 */       codeStream.generateStringConcatenationAppend(currentScope, null, expression);
+/* 149 */       break;
+/*     */     
+/*     */     default: 
+/* 152 */       codeStream.generateImplicitConversion(this.implicitConversion);
+/*     */       
+/* 154 */       if (expression == IntLiteral.One) {
+/* 155 */         codeStream.generateConstant(expression.constant, this.implicitConversion);
+/*     */       } else {
+/* 157 */         expression.generateCode(currentScope, codeStream, true);
+/*     */       }
+/*     */       
+/* 160 */       codeStream.sendOperator(operator, operationTypeID);
+/*     */       
+/* 162 */       codeStream.generateImplicitConversion(assignmentImplicitConversion);
+/*     */     }
+/* 164 */     codeStream.arrayAtPut(this.resolvedType.id, valueRequired);
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public void generatePostIncrement(BlockScope currentScope, CodeStream codeStream, CompoundAssignment postIncrement, boolean valueRequired) {
+/* 169 */     this.receiver.generateCode(currentScope, codeStream, true);
+/* 170 */     if ((this.receiver instanceof CastExpression) && 
+/* 171 */       ((CastExpression)this.receiver).innermostCastedExpression().resolvedType == TypeBinding.NULL) {
+/* 172 */       codeStream.checkcast(this.receiver.resolvedType);
+/*     */     }
+/* 174 */     this.position.generateCode(currentScope, codeStream, true);
+/* 175 */     codeStream.dup2();
+/* 176 */     codeStream.arrayAt(this.resolvedType.id);
+/* 177 */     if (valueRequired) {
+/* 178 */       switch (this.resolvedType.id) {
+/*     */       case 7: 
+/*     */       case 8: 
+/* 181 */         codeStream.dup2_x2();
+/* 182 */         break;
+/*     */       default: 
+/* 184 */         codeStream.dup_x2();
+/*     */       }
+/*     */       
+/*     */     }
+/* 188 */     codeStream.generateImplicitConversion(this.implicitConversion);
+/* 189 */     codeStream.generateConstant(
+/* 190 */       postIncrement.expression.constant, 
+/* 191 */       this.implicitConversion);
+/* 192 */     codeStream.sendOperator(postIncrement.operator, this.implicitConversion & 0xF);
+/* 193 */     codeStream.generateImplicitConversion(
+/* 194 */       postIncrement.preAssignImplicitConversion);
+/* 195 */     codeStream.arrayAtPut(this.resolvedType.id, false);
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public StringBuffer printExpression(int indent, StringBuffer output) {
+/* 200 */     this.receiver.printExpression(0, output).append('[');
+/* 201 */     return this.position.printExpression(0, output).append(']');
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public TypeBinding resolveType(BlockScope scope) {
+/* 206 */     this.constant = Constant.NotAConstant;
+/* 207 */     if ((this.receiver instanceof CastExpression) && 
+/* 208 */       (((CastExpression)this.receiver).innermostCastedExpression() instanceof NullLiteral)) {
+/* 209 */       this.receiver.bits |= 0x20;
+/*     */     }
+/* 211 */     TypeBinding arrayType = this.receiver.resolveType(scope);
+/* 212 */     if (arrayType != null) {
+/* 213 */       this.receiver.computeConversion(scope, arrayType, arrayType);
+/* 214 */       if (arrayType.isArrayType()) {
+/* 215 */         TypeBinding elementType = ((ArrayBinding)arrayType).elementsType();
+/* 216 */         this.resolvedType = (this.bits & 0x2000) == 0 ? elementType.capture(scope, this.sourceStart, this.sourceEnd) : elementType;
+/*     */       } else {
+/* 218 */         scope.problemReporter().referenceMustBeArrayTypeAt(arrayType, this);
+/*     */       }
+/*     */     }
+/* 221 */     TypeBinding positionType = this.position.resolveTypeExpecting(scope, TypeBinding.INT);
+/* 222 */     if (positionType != null) {
+/* 223 */       this.position.computeConversion(scope, TypeBinding.INT, positionType);
+/*     */     }
+/* 225 */     return this.resolvedType;
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public void traverse(ASTVisitor visitor, BlockScope scope) {
+/* 230 */     if (visitor.visit(this, scope)) {
+/* 231 */       this.receiver.traverse(visitor, scope);
+/* 232 */       this.position.traverse(visitor, scope);
+/*     */     }
+/* 234 */     visitor.endVisit(this, scope);
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public int nullStatus(FlowInfo flowInfo, FlowContext flowContext) {
+/* 239 */     if (this.resolvedType != null && (this.resolvedType.tagBits & 0x180000000000000L) == 0L && this.resolvedType.isFreeTypeVariable()) {
+/* 240 */       return 48;
+/*     */     }
+/* 242 */     return super.nullStatus(flowInfo, flowContext);
+/*     */   }
+/*     */ }
