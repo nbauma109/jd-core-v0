@@ -17,6 +17,7 @@
 package jd.core.process.analyzer.classfile.visitor;
 
 import org.apache.bcel.Const;
+import org.apache.commons.lang3.ObjectUtils;
 
 import java.util.Comparator;
 import java.util.List;
@@ -124,11 +125,14 @@ public class CompareInstructionVisitor
         case ByteCodeConstants.BINARYOP:
             {
                 if (((BinaryOperatorInstruction)i1).getPriority() !=
-                    ((BinaryOperatorInstruction)i2).getPriority() || ((BinaryOperatorInstruction)i1).getSignature().compareTo(
-                        ((BinaryOperatorInstruction)i2).getSignature()) != 0 || ((BinaryOperatorInstruction)i1).getOperator().compareTo(
-                        ((BinaryOperatorInstruction)i2).getOperator()) != 0 || ! visit(
-                        ((BinaryOperatorInstruction)i1).getValue1(),
-                        ((BinaryOperatorInstruction)i2).getValue1())) {
+                        ((BinaryOperatorInstruction)i2).getPriority() || 
+                        ObjectUtils.compare(((BinaryOperatorInstruction)i1).getSignature(), 
+                                            ((BinaryOperatorInstruction)i2).getSignature(), 
+                                            false) != 0 || 
+                        !((BinaryOperatorInstruction)i1).getOperator().equals(
+                            ((BinaryOperatorInstruction)i2).getOperator()) || 
+                        !visit(((BinaryOperatorInstruction)i1).getValue1(),
+                               ((BinaryOperatorInstruction)i2).getValue1())) {
                     return false;
                 }
 
