@@ -170,7 +170,7 @@ public final class AccessorAnalyzer
             return false;
         }
 
-        if (list.get(1).getOpcode() != Const.RETURN) {
+        if (list.get(1).getOpcode() != ByteCodeConstants.XRETURN) {
             return false;
         }
 
