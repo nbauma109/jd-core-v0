@@ -103,7 +103,7 @@
 /*     */   }
 /*     */   
 /*     */   Class ternaryOpStore(String subtypeName) throws ClassNotFoundException {
-/* 106 */     if (subtypeName == null) { Class tmp7_4 = class$0; if (tmp7_4 != null) break label40; tmp7_4; try { tmpTernaryOp = (class$0 = Class.forName("java.lang.Object")); } catch (ClassNotFoundException localClassNotFoundException) { throw new NoClassDefFoundError(localClassNotFoundException.getMessage()); } } label40: Class subtype = Class.forName(subtypeName);
+/* 106 */     if (subtypeName == null) { if (class$0 != null) break label40; class$0; try { tmpTernaryOp = (class$0 = Class.forName("java.lang.Object")); } catch (ClassNotFoundException localClassNotFoundException) { throw new NoClassDefFoundError(localClassNotFoundException.getMessage()); } } label40: Class subtype = Class.forName(subtypeName);
 /* 107 */     return subtype;
 /*     */   }
 /*     */   

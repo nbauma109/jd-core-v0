@@ -7,7 +7,7 @@
 /*    */   double[] darr;
 /*    */   
 /*    */   void dup2x1Form1(String[] s) {
-/* 10 */     int tmp9_8 = 0; String[] tmp9_7 = s;tmp9_7[tmp9_8] = (tmp9_7[tmp9_8] + "s");
+/* 10 */     int tmp9_8 = 0;s[tmp9_8] = (s[tmp9_8] + "s");
 /*    */   }
 /*    */   
 /*    */   void dup2x1Form2() {
