@@ -236,7 +236,7 @@ public class LocalVariable
     public boolean isExceptionOrThrowable(ConstantPool cp) {
         String signature = cp.getConstantUtf8(signatureIndex);
         String name = cp.getConstantUtf8(nameIndex);
-        return name != null && (("Ljava/lang/Throwable;".equals(signature) && name.startsWith("localThrowable")) || (signature.endsWith("Exception;") && "e".equals(name)));
+        return name != null && ("Ljava/lang/Throwable;".equals(signature) && name.startsWith("localThrowable") || signature.endsWith("Exception;") && "e".equals(name));
     }
 
     public FastTry getTryResources() {

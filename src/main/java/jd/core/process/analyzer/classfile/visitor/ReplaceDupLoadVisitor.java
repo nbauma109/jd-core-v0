@@ -289,13 +289,13 @@ public class ReplaceDupLoadVisitor
             break;
         case Const.MULTIANEWARRAY:
             {
-                Instruction[] dimensions = ((MultiANewArray)instruction).getDimensions();
-                for (int i=dimensions.length-1; i>=0 && this.parentFound == null; --i)
+                List<Instruction> dimensions = ((MultiANewArray)instruction).getDimensions();
+                for (int i=dimensions.size()-1; i>=0 && this.parentFound == null; --i)
                 {
-                    if (match(instruction, dimensions[i])) {
-                        dimensions[i] = this.newInstruction;
+                    if (match(instruction, dimensions.get(i))) {
+                        dimensions.set(i, this.newInstruction);
                     } else {
-                        visit(dimensions[i]);
+                        visit(dimensions.get(i));
                     }
                 }
             }

@@ -182,11 +182,7 @@ public class ReferenceVisitor
             break;
         case ByteCodeConstants.COMPLEXIF:
             {
-                List<Instruction> branchList =
-                    ((ComplexConditionalBranchInstruction)instruction).getInstructions();
-                for (int i=branchList.size()-1; i>=0; --i) {
-                    visit(branchList.get(i));
-                }
+                visit(((ComplexConditionalBranchInstruction)instruction).getInstructions());
             }
             break;
         case Const.INSTANCEOF:
@@ -197,8 +193,7 @@ public class ReferenceVisitor
             }
             break;
         case Const.INVOKEDYNAMIC:
-            if (instruction instanceof SourceWriteable) {
-                SourceWriteable ref = (SourceWriteable) instruction;
+            if (instruction instanceof SourceWriteable ref) {
                 addReference(ref.getInternalTypeName());
             }
             break;
@@ -231,10 +226,7 @@ public class ReferenceVisitor
             {
                 MultiANewArray multiANewArray = (MultiANewArray)instruction;
                 visitCheckCastAndMultiANewArray(multiANewArray.getIndex());
-                Instruction[] dimensions = multiANewArray.getDimensions();
-                for (int i=dimensions.length-1; i>=0; --i) {
-                    visit(dimensions[i]);
-                }
+                visit(multiANewArray.getDimensions());
             }
             break;
         case Const.NEWARRAY:
@@ -349,8 +341,7 @@ public class ReferenceVisitor
                 Pair[] pairs = fs.getPairs();
                 for (int i=pairs.length-1; i>=0; --i)
                 {
-                    List<Instruction> instructions = pairs[i].getInstructions();
-                    visit(instructions);
+                    visit(pairs[i].getInstructions());
                 }
             }
             break;
@@ -388,10 +379,8 @@ public class ReferenceVisitor
             {
                 IndexInstruction indexInstruction = (IndexInstruction)instruction;
                 Constant cst = constants.get(indexInstruction.getIndex());
-                if (cst instanceof ConstantClass)
+                if (cst instanceof ConstantClass cc)
                 {
-                    // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
-                    ConstantClass cc = (ConstantClass) cst;
                     internalName = constants.getConstantUtf8(cc.getNameIndex());
                     addReference(internalName);
                 }
@@ -443,10 +432,8 @@ public class ReferenceVisitor
     {
         Constant c = constants.get(index);
 
-        if (c instanceof ConstantClass)
+        if (c instanceof ConstantClass cc)
         {
-            // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
-            ConstantClass cc = (ConstantClass) c;
             addReference(constants.getConstantUtf8(cc.getNameIndex()));
         }
     }

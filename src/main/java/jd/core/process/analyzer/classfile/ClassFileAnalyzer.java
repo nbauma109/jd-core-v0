@@ -770,8 +770,8 @@ public final class ClassFileAnalyzer
 
         for (final Method method : methods)
         {
-            if (((method.getAccessFlags() & (Const.ACC_SYNTHETIC|Const.ACC_BRIDGE)) != 0
-                    && !method.isLambda(classFile.getConstantPool())) ||
+            if ((method.getAccessFlags() & (Const.ACC_SYNTHETIC|Const.ACC_BRIDGE)) != 0
+                    && !method.isLambda(classFile.getConstantPool()) ||
                     method.getCode() == null ||
                     method.containsError()) {
                 continue;
@@ -801,8 +801,8 @@ public final class ClassFileAnalyzer
     private static void postAnalyzeMethods(ClassFile classFile, Method[] methods) {
         for (final Method method : methods)
         {
-            if (((method.getAccessFlags() & Const.ACC_SYNTHETIC) != 0
-                    && !method.isLambda(classFile.getConstantPool())) ||
+            if ((method.getAccessFlags() & Const.ACC_SYNTHETIC) != 0
+                    && !method.isLambda(classFile.getConstantPool()) ||
                     (method.getAccessFlags() & Const.ACC_BRIDGE) != 0 ||
                     method.getCode() == null ||
                     method.getFastNodes() == null ||
@@ -917,13 +917,8 @@ public final class ClassFileAnalyzer
 
         // Search instruction 'PutField(#, ALoad(1))' before super <init>
         // method call.
-        int length = list.size();
-
-        Instruction instruction;
-        for (int i=0; i<length; i++)
+        for (Instruction instruction : list)
         {
-            instruction = list.get(i);
-
             if (instruction.getOpcode() == Const.PUTFIELD)
             {
                 // Is '#' equals to 'outerThisFieldIndex' ?
@@ -1300,14 +1295,10 @@ public final class ClassFileAnalyzer
 
         // Recherche du champ statique possedant un acces ACC_ENUM et un
         // type '[LenumXXXX;'
-        Field[] fields = classFile.getFields();
-        Field field;
         Instruction instruction;
         String fieldName;
-        for (int i=fields.length-1; i>=0; --i)
+        for (Field field : classFile.getFields())
         {
-            field = fields[i];
-
             if ((field.getAccessFlags() & (Const.ACC_SYNTHETIC|Const.ACC_ENUM)) == 0 ||
                     field.getValueAndMethod() == null) {
                 continue;
@@ -1315,8 +1306,7 @@ public final class ClassFileAnalyzer
 
             instruction = field.getValueAndMethod().value();
 
-            if (instruction instanceof Invokestatic) {
-                Invokestatic is = (Invokestatic) instruction;
+            if (instruction instanceof Invokestatic is) {
                 ConstantCP cmr = constants.getConstantMethodref(is.getIndex());
                 ConstantNameAndType cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
                 String name = constants.getConstantUtf8(cnat.getNameIndex());

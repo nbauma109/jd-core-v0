@@ -333,9 +333,9 @@ public class ClassFile extends Base
             internalClassName.length() > this.thisClassName.length()+1 &&
             internalClassName.charAt(this.thisClassName.length()) == StringConstants.INTERNAL_INNER_SEPARATOR)
         {
-            for (int i=this.innerClassFiles.size()-1; i>=0; --i) {
-                if (innerClassFiles.get(i).thisClassName.equals(internalClassName)) {
-                    return innerClassFiles.get(i);
+            for (ClassFile innerClassFile : innerClassFiles) {
+                if (innerClassFile.thisClassName.equals(internalClassName)) {
+                    return innerClassFile;
                 }
             }
         }
@@ -404,8 +404,8 @@ public class ClassFile extends Base
                         List<String> methodParameters = SignatureUtil.getParameterSignatures(methodDescriptor);
                         List<String> genericParameters = SignatureUtil.getParameterSignatures(signature);
                         if (methodParameters.equals(genericParameters) ||
-                        (genericParameters.stream().allMatch(SignatureUtil::isGenericSignature)
-                         && methodParameters.stream().noneMatch(SignatureUtil::isPrimitiveSignature))) {
+                        genericParameters.stream().allMatch(SignatureUtil::isGenericSignature)
+                         && methodParameters.stream().noneMatch(SignatureUtil::isPrimitiveSignature)) {
                             return method;
                         }
                     }
@@ -481,8 +481,7 @@ public class ClassFile extends Base
         if (signature != null) {
             TypeMaker typeMaker = new TypeMaker(loader);
             Type type = typeMaker.makeFromSignature(signature.getSignature());
-            if (type instanceof ObjectType) {
-                ObjectType ot = (ObjectType) type;
+            if (type instanceof ObjectType ot) {
                 ot.accept(new AbstractTypeArgumentVisitor() {
                     @Override
                     public void visit(InnerObjectType type) {

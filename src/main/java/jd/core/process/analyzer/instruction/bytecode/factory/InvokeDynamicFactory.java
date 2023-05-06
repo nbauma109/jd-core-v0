@@ -68,8 +68,7 @@ public class InvokeDynamicFactory implements InstructionFactory
         if (! listForAnalyze.isEmpty()) {
             Instruction lastInstruction = listForAnalyze.get(listForAnalyze.size() - 1);
 
-            if (lastInstruction instanceof Invokevirtual) { // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
-                Invokevirtual mie = (Invokevirtual) lastInstruction;
+            if (lastInstruction instanceof Invokevirtual mie) {
                 ConstantCP mieRef = constants.getConstantMethodref(mie.getIndex());
                 ConstantNameAndType mieNameAndType = constants.getConstantNameAndType(mieRef.getNameAndTypeIndex());
                 String mieName = constants.getConstantUtf8(mieNameAndType.getNameIndex());

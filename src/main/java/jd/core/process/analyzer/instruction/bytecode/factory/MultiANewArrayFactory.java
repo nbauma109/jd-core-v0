@@ -18,6 +18,7 @@ package jd.core.process.analyzer.instruction.bytecode.factory;
 
 import org.apache.bcel.Const;
 
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.List;
 
@@ -38,10 +39,10 @@ public class MultiANewArrayFactory implements InstructionFactory
         final int opcode = code[offset] & 255;
         final int index = (code[offset+1] & 255) << 8 | code[offset+2] & 255;
         final int count = code[offset+3] & 255;
-        final Instruction[] dimensions = new Instruction[count];
+        final List<Instruction> dimensions = new ArrayList<>(count);
 
         for (int i=0; i<count; i++) {
-            dimensions[i] = stack.pop();
+            dimensions.add(stack.pop());
         }
 
         final Instruction instruction =

@@ -16,17 +16,19 @@
  ******************************************************************************/
 package jd.core.model.instruction.bytecode.instruction;
 
+import java.util.List;
+
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariables;
 
 public class MultiANewArray extends IndexInstruction
 {
-    private final Instruction[] dimensions;
+    private final List<Instruction> dimensions;
 
     public MultiANewArray(
             int opcode, int offset, int lineNumber,
-            int index, Instruction[] dimensions)
+            int index, List<Instruction> dimensions)
     {
         super(opcode, offset, lineNumber, index);
         this.dimensions = dimensions;
@@ -45,7 +47,7 @@ public class MultiANewArray extends IndexInstruction
         return constants.getConstantClassName(this.getIndex());
     }
 
-    public Instruction[] getDimensions() {
+    public List<Instruction> getDimensions() {
         return dimensions;
     }
 }

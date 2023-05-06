@@ -227,12 +227,8 @@ public final class InitArrayInstructionReconstructor
     private static void setContantTypes(
             String signature, List<Instruction> values)
     {
-        final int length = values.size();
-
-        Instruction value;
-        for (int i=0; i<length; i++)
+        for (Instruction value : values)
         {
-            value = values.get(i);
             if (value.getOpcode() == Const.BIPUSH
              || value.getOpcode() == ByteCodeConstants.ICONST
              || value.getOpcode() == Const.SIPUSH) {

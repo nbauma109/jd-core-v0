@@ -795,8 +795,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
         case Const.NOP:
             break;
         case Const.INVOKEDYNAMIC:
-            if (instruction instanceof SourceWriteable) { // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
-                SourceWriteable sw = (SourceWriteable) instruction;
+            if (instruction instanceof SourceWriteable sw) {
                 sw.write(printer, this);
             }
             break;
@@ -1480,8 +1479,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
         BaseType interfaces = newInvokeType.getInterfaces();
         if (interfaces != null) {
             for (Type interf : interfaces) {
-                if (interf instanceof ObjectType) {
-                    ObjectType ot = (ObjectType) interf;
+                if (interf instanceof ObjectType ot) {
                     if (ot.getTypeArguments() != null) {
                         return ot.getTypeArguments();
                     }
@@ -1538,9 +1536,8 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
             this.classFile.getField(cnat.getNameIndex(), cnat.getSignatureIndex());
         Instruction objectref = getField.getObjectref();
         ClassFile outerClass = classFile.getOuterClass();
-        if (field == null && objectref instanceof GetStatic && outerClass != null)
+        if (field == null && objectref instanceof GetStatic gs && outerClass != null)
         {
-            GetStatic gs = (GetStatic) objectref;
             String returnedSignature = gs.getReturnedSignature(classFile, localVariables);
             String internalName = SignatureUtil.getInternalName(returnedSignature);
             String outerClassName = outerClass.getThisClassName();
@@ -1839,8 +1836,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
                 firstIndex = 0;
                 if (!insi.getArgs().isEmpty()) {
                     Instruction instruction = insi.getArgs().get(0);
-                    if (instruction instanceof GetStatic && instruction.getOpcode() == ByteCodeConstants.OUTERTHIS) {
-                        GetStatic getStatic = (GetStatic) instruction;
+                    if (instruction instanceof GetStatic getStatic && instruction.getOpcode() == ByteCodeConstants.OUTERTHIS) {
                         ConstantFieldref fieldref = constants.getConstantFieldref(getStatic.getIndex());
                         ConstantNameAndType nameAndType = constants.getConstantNameAndType(fieldref.getNameAndTypeIndex());
                         String name = constants.getConstantUtf8(nameAndType.getNameIndex());
@@ -1885,8 +1881,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
                     }
                     else
                     {
-                        if (insi instanceof Invokespecial) {
-                            Invokespecial is = (Invokespecial) insi;
+                        if (insi instanceof Invokespecial is) {
                             if (is.getPrefix() != null) {
                                 visit(is.getPrefix());
                                 this.printer.print('.');
@@ -2170,10 +2165,8 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
             // instruction LDC pointant un objet de type 'ConstantClass'.
             Constant cst = constants.get(ii.getIndex());
 
-            if (cst instanceof ConstantClass)
+            if (cst instanceof ConstantClass cc)
             {
-                // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
-                ConstantClass cc = (ConstantClass) cst;
                 // Exception a la regle
                 String signature = SignatureUtil.createTypeName(
                     constants.getConstantUtf8(cc.getNameIndex()));
@@ -2252,9 +2245,9 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
                 SignatureUtil.cutArrayDimensionPrefix(signature));
         }
 
-        Instruction[] dimensions = multiANewArray.getDimensions();
+        List<Instruction> dimensions = multiANewArray.getDimensions();
 
-        for (int i=dimensions.length-1; i>=0; i--)
+        for (int i=dimensions.size()-1; i>=0; i--)
         {
             nextOffset = this.previousOffset + 1;
 
@@ -2263,7 +2256,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
                 this.printer.print(lineNumber, '[');
             }
 
-            lineNumber = visit(dimensions[i]);
+            lineNumber = visit(dimensions.get(i));
 
             nextOffset = this.previousOffset + 1;
 
@@ -2280,7 +2273,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
             nextOffset <= this.lastOffset)
         {
             int dimensionCount = SignatureUtil.getArrayDimensionCount(signature);
-            for (int i=dimensions.length; i<dimensionCount; i++) {
+            for (int i=dimensions.size(); i<dimensionCount; i++) {
                 this.printer.print(lineNumber, "[]");
             }
         }
@@ -2293,7 +2286,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
         int nextOffset = this.previousOffset + 1;
 
         if (this.firstOffset <= this.previousOffset &&
-            (nextOffset <= this.lastOffset))
+            nextOffset <= this.lastOffset)
         {
             int lineNumber = putStatic.getLineNumber();
 
@@ -2339,7 +2332,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
         int nextOffset = this.previousOffset + 1;
 
         if (this.firstOffset <= this.previousOffset &&
-            (nextOffset <= this.lastOffset))
+            nextOffset <= this.lastOffset)
         {
             int lineNumber = storeInstruction.getLineNumber();
 
@@ -2509,7 +2502,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
             int nextOffset = this.previousOffset + 1;
 
             if (this.firstOffset <= this.previousOffset &&
-                (nextOffset <= this.lastOffset))
+                nextOffset <= this.lastOffset)
             {
                 this.printer.addNewLinesAndPrefix(lineNumber);
                 String signature =

@@ -251,21 +251,9 @@ public class CompareInstructionVisitor
                     return false;
                 }
 
-                Instruction[] dimensions1 = ((MultiANewArray)i1).getDimensions();
-                Instruction[] dimensions2 = ((MultiANewArray)i2).getDimensions();
-
-                if (dimensions1.length != dimensions2.length) {
-                    return false;
-                }
-
-                for (int i=dimensions1.length-1; i>=0; --i)
-                {
-                    if (! visit(dimensions1[i], dimensions2[i])) {
-                        return false;
-                    }
-                }
-
-                return true;
+                List<Instruction> dimensions1 = ((MultiANewArray)i1).getDimensions();
+                List<Instruction> dimensions2 = ((MultiANewArray)i2).getDimensions();
+                return visit(dimensions1, dimensions2);
             }
         case Const.NEWARRAY:
             {

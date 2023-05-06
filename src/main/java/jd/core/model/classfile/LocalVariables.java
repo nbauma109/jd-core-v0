@@ -47,10 +47,8 @@ public class LocalVariables
 
         this.listOfLocalVariables = new ArrayList<>(length);
 
-        for (int i = 0; i < length; i++)
+        for (LocalVariable localVariable : localVariableTable)
         {
-            LocalVariable localVariable = localVariableTable[i];
-
             // Search local variable in 'localVariableTypeTable'
             if (localVariableTypeTable != null)
             {
@@ -127,8 +125,7 @@ public class LocalVariables
 
     public LocalVariable getLocalVariableForStoreInstruction(Instruction instruction)
     {
-        if (instruction instanceof StoreInstruction) {
-            StoreInstruction si = (StoreInstruction) instruction;
+        if (instruction instanceof StoreInstruction si) {
             return getLocalVariableWithIndexAndOffset(si.getIndex(), si.getOffset());
         }
         return null;

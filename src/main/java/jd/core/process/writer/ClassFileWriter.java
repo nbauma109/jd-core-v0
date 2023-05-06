@@ -579,8 +579,8 @@ public final class ClassFileWriter
                 // No import for 'java/lang' classes
                 // No import for same package classes except type argument inner classes
                 if (StringConstants.INTERNAL_JAVA_LANG_PACKAGE_NAME.equals(internalReferencePackageName)
-                || (internalReferencePackageName.equals(internalPackageName)
-                        && !typeArgumentInnerClasses.contains(refInternalName)))
+                || internalReferencePackageName.equals(internalPackageName)
+                        && !typeArgumentInnerClasses.contains(refInternalName))
                 {
                     continue;
                 }
@@ -782,11 +782,11 @@ public final class ClassFileWriter
 
             if (alb.getLineCount() == 0)
             {
-                for (int i=0; i<length; i++)
+                for (AnnotationEntry annotationEntry : annotations)
                 {
                     AnnotationWriter.writeAnnotation(
                         this.loader, this.printer, this.referenceMap,
-                        classFile, annotations.get(i));
+                        classFile, annotationEntry);
                 }
             }
             else
@@ -800,11 +800,11 @@ public final class ClassFileWriter
                 int j = annotationsByLine;
                 int k = alb.getLineCount();
 
-                for (int i=0; i<length; i++)
+                for (AnnotationEntry annotationEntry : annotations)
                 {
                     AnnotationWriter.writeAnnotation(
                         this.loader, this.printer, this.referenceMap,
-                        classFile, annotations.get(i));
+                        classFile, annotationEntry);
 
                     if (--j > 0)
                     {
@@ -1687,8 +1687,7 @@ public final class ClassFileWriter
 
         if ((mlb.getClassFile().getAccessFlags() & Const.ACC_ANNOTATION) == 0)
         {
-            if (mlb instanceof LambdaMethodLayoutBlock) { // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
-                LambdaMethodLayoutBlock lmlb = (LambdaMethodLayoutBlock) mlb;
+            if (mlb instanceof LambdaMethodLayoutBlock lmlb) {
                 List<String> lambdaParameterNames = lmlb.getParameterNames();
                 switch (lambdaParameterNames.size()) {
                     case 0:
@@ -2371,17 +2370,13 @@ public final class ClassFileWriter
 
         if (fc.otherExceptionTypeIndexes() != null)
         {
-            int[] otherExceptionTypeIndexes = fc.otherExceptionTypeIndexes();
-            int otherExceptionTypeIndexesLength =
-                    otherExceptionTypeIndexes.length;
-
-            for (int i=0; i<otherExceptionTypeIndexesLength; i++)
+            for (int otherExceptionTypeIndex : fc.otherExceptionTypeIndexes())
             {
-                if (otherExceptionTypeIndexes[i] != 0)
+                if (otherExceptionTypeIndex != 0)
                 {
                     this.printer.print('|');
                     writeCatchType(
-                        classFile, constants, otherExceptionTypeIndexes[i]);
+                        classFile, constants, otherExceptionTypeIndex);
                 }
             }
         }

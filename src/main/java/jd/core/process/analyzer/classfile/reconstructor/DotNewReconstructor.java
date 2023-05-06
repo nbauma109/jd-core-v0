@@ -44,11 +44,9 @@ public final class DotNewReconstructor
         SearchInstructionByTypeVisitor<InvokeNew> visitor = new SearchInstructionByTypeVisitor<>(InvokeNew.class);
         for (int i = list.size() - 1; i >= 0; i--) {
             Instruction instruction = list.get(i);
-            if (instruction instanceof Pop) {
-                Pop pop = (Pop) instruction;
+            if (instruction instanceof Pop pop) {
                 Instruction objectref = pop.getObjectref();
-                if (objectref instanceof Invokevirtual) {
-                    Invokevirtual iv = (Invokevirtual) objectref;
+                if (objectref instanceof Invokevirtual iv) {
                     ConstantPool cp = classFile.getConstantPool();
                     ConstantCP cmr = cp.getConstantMethodref(iv.getIndex());
                     ConstantNameAndType cnat = cp.getConstantNameAndType(cmr.getNameAndTypeIndex());

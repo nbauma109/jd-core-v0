@@ -78,9 +78,8 @@ public class Method extends Base implements SignatureInfo
 
         Code ac = null;
 
-        for (int i=fieldOrMethod.getAttributes().length-1; i>=0; --i)
+        for (Attribute attribute : fieldOrMethod.getAttributes())
         {
-            Attribute attribute =  fieldOrMethod.getAttributes()[i];
             switch (attribute.getTag())
             {
             case Const.ATTR_EXCEPTIONS:
@@ -231,6 +230,7 @@ public class Method extends Base implements SignatureInfo
         return constants.getConstantUtf8(fieldOrMethod.getSignatureIndex());
     }
 
+    @Override
     public int getDescriptorIndex() {
         return fieldOrMethod.getSignatureIndex();
     }

@@ -255,14 +255,14 @@ public class ReplaceOuterAccessorVisitor
             break;
         case Const.MULTIANEWARRAY:
             {
-                Instruction[] dimensions = ((MultiANewArray)instruction).getDimensions();
-                for (int i=dimensions.length-1; i>=0; --i)
+                List<Instruction> dimensions = ((MultiANewArray)instruction).getDimensions();
+                for (int i=dimensions.size()-1; i>=0; --i)
                 {
-                    ClassFile matchedClassFile = match(dimensions[i]);
+                    ClassFile matchedClassFile = match(dimensions.get(i));
                     if (matchedClassFile != null) {
-                        dimensions[i] = newInstruction(matchedClassFile, dimensions[i]);
+                        dimensions.set(i, newInstruction(matchedClassFile, dimensions.get(i)));
                     } else {
-                        visit(dimensions[i]);
+                        visit(dimensions.get(i));
                     }
                 }
             }

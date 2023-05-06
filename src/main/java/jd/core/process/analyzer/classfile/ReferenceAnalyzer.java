@@ -98,8 +98,8 @@ public final class ReferenceAnalyzer
         // Inner classes
         List<ClassFile> innerClassFiles = classFile.getInnerClassFiles();
         if (innerClassFiles != null) {
-            for (int i=innerClassFiles.size()-1; i>=0; --i) {
-                collectReferences(referenceMap, innerClassFiles.get(i));
+            for (ClassFile innerClassFile : innerClassFiles) {
+                collectReferences(referenceMap, innerClassFile);
             }
         }
 
@@ -121,20 +121,20 @@ public final class ReferenceAnalyzer
             ReferenceMap referenceMap, ConstantPool constants,
             Attribute[] attributes)
     {
-        for (int i=attributes.length-1; i>=0; --i) {
-            if (attributes[i].getTag() == Const.ATTR_RUNTIME_INVISIBLE_ANNOTATIONS
-             || attributes[i].getTag() == Const.ATTR_RUNTIME_VISIBLE_ANNOTATIONS) {
+        for (Attribute attribute : attributes) {
+            if (attribute.getTag() == Const.ATTR_RUNTIME_INVISIBLE_ANNOTATIONS
+             || attribute.getTag() == Const.ATTR_RUNTIME_VISIBLE_ANNOTATIONS) {
                 AnnotationEntry[] annotations =
-                    ((Annotations)attributes[i])
+                    ((Annotations)attribute)
                     .getAnnotationEntries();
-                for (int j=annotations.length-1; j>=0; --j) {
-                    countAnnotationReference(referenceMap, constants, annotations[j]);
+                for (AnnotationEntry annotationEntry : annotations) {
+                    countAnnotationReference(referenceMap, constants, annotationEntry);
                 }
-            } else if (attributes[i].getTag() == Const.ATTR_RUNTIME_INVISIBLE_PARAMETER_ANNOTATIONS
-                    || attributes[i].getTag() == Const.ATTR_RUNTIME_VISIBLE_PARAMETER_ANNOTATIONS) {
+            } else if (attribute.getTag() == Const.ATTR_RUNTIME_INVISIBLE_PARAMETER_ANNOTATIONS
+                    || attribute.getTag() == Const.ATTR_RUNTIME_VISIBLE_PARAMETER_ANNOTATIONS) {
                 ParameterAnnotationEntry[] parameterAnnotations =
                     ((ParameterAnnotations)
-                            attributes[i]).getParameterAnnotationEntries();
+                            attribute).getParameterAnnotationEntries();
                 countParameterAnnotationsReference(referenceMap, constants, parameterAnnotations);
             }
         }
@@ -169,34 +169,29 @@ public final class ReferenceAnalyzer
     private static void countElementValue(
             ReferenceMap referenceMap, ConstantPool constants, ElementValue ev)
     {
-        if (ev instanceof ClassElementValue) {
-            ClassElementValue evci = (ClassElementValue)ev;
+        if (ev instanceof ClassElementValue evci) {
             String signature = evci.getClassString();
             SignatureAnalyzer.analyzeSimpleSignature(referenceMap, signature);
         }
-        if (ev instanceof AnnotationElementValue) {
-            AnnotationElementValue evanv = (AnnotationElementValue)ev;
+        if (ev instanceof AnnotationElementValue evanv) {
             countAnnotationReference(
                     referenceMap, constants, evanv.getAnnotationEntry());
         }
-        if (ev instanceof ArrayElementValue) {
-            ArrayElementValue evarv = (ArrayElementValue)ev;
+        if (ev instanceof ArrayElementValue evarv) {
             ElementValue[] values = evarv.getElementValuesArray();
 
             if (values != null)
             {
-                for (int i=values.length-1; i>=0; --i) {
-                    if (values[i] instanceof ClassElementValue)
+                for (ElementValue value : values) {
+                    if (value instanceof ClassElementValue evci)
                     {
-                        ClassElementValue evci = (ClassElementValue)values[i];
                         String signature = evci.getClassString();
                         SignatureAnalyzer.analyzeSimpleSignature(referenceMap, signature);
                     }
                 }
             }
         }
-        if (ev instanceof EnumElementValue) {
-            EnumElementValue evecv = (EnumElementValue)ev;
+        if (ev instanceof EnumElementValue evecv) {
             String signature = evecv.getEnumTypeString();
             SignatureAnalyzer.analyzeSimpleSignature(referenceMap, signature);
         }
@@ -313,11 +308,8 @@ public final class ReferenceAnalyzer
             ReferenceMap referenceMap, ConstantPool constants,
             CodeException[] codeExceptions)
     {
-        CodeException ce;
-        for (int i=codeExceptions.length-1; i>=0; --i)
+        for (CodeException ce : codeExceptions)
         {
-            ce = codeExceptions[i];
-
             if (ce.getCatchType() != 0)
             {
                 String internalClassName =
@@ -334,9 +326,7 @@ public final class ReferenceAnalyzer
 
         if (instructions != null)
         {
-            for (int i=instructions.size()-1; i>=0; --i) {
-                visitor.visit(instructions.get(i));
-            }
+            instructions.forEach(visitor::visit);
         }
     }
 

@@ -309,7 +309,7 @@ public final class InitInstanceFieldsReconstructor
                              * inside the constructor.
                              */
                             Instruction putFieldValueref = putField.getValueref();
-                            // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved    
+                               
                             if (putFieldValueref instanceof ALoad && ((ALoad) putFieldValueref).getIndex() != 0) {
                                 continue;
                             }

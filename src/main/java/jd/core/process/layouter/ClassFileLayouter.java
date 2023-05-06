@@ -20,13 +20,13 @@ import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.Signature;
+import org.apache.commons.lang3.ArrayUtils;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.ExceptionUtil;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -151,13 +151,10 @@ public final class ClassFileLayouter {
         }
         int importCount = 0;
         String internalPackageName = classFile.getInternalPackageName();
-        Iterator<Reference> iterator = collection.iterator();
         String internalReferencePackageName;
         Set<String> typeArgumentInnerClasses = classFile.getTypeArgumentInnerClasses();
         // Filtrage
-        while (iterator.hasNext())
-        {
-            Reference reference = iterator.next();
+        for (Reference reference : collection) {
             String refInternalName = reference.getInternalName();
             internalReferencePackageName = TypeNameUtil.internalTypeNameToInternalPackageName(
                 refInternalName);
@@ -165,8 +162,8 @@ public final class ClassFileLayouter {
             // No import for 'java/lang' classes
             // No import for same package classes except type argument inner classes
             if (StringConstants.INTERNAL_JAVA_LANG_PACKAGE_NAME.equals(internalReferencePackageName)
-            || (internalReferencePackageName.equals(internalPackageName)
-                    && !typeArgumentInnerClasses.contains(refInternalName)))
+            || internalReferencePackageName.equals(internalPackageName)
+                    && !typeArgumentInnerClasses.contains(refInternalName))
             {
                 continue;
             }
@@ -263,7 +260,7 @@ public final class ClassFileLayouter {
                     // Interface
                      // Super interface
                     int[] interfaceIndexes = classFile.getInterfaces();
-                    if (interfaceIndexes != null && interfaceIndexes.length > 0)
+                    if (ArrayUtils.isNotEmpty(interfaceIndexes))
                     {
                         displayExtendsOrImplementsFlag = true;
                         layoutBlockList.add(
@@ -308,7 +305,7 @@ public final class ClassFileLayouter {
     {
         int[] interfaceIndexes = classFile.getInterfaces();
 
-        if (interfaceIndexes != null && interfaceIndexes.length > 0)
+        if (ArrayUtils.isNotEmpty(interfaceIndexes))
         {
             layoutBlockList.add(
                 new ImplementsInterfacesLayoutBlock(classFile));

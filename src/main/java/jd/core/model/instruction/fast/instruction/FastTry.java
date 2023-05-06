@@ -113,8 +113,7 @@ public class FastTry extends FastList {
         }
         int firstLineNumber = instructions.get(0).getLineNumber();
         for (Instruction instruction : instructions) {
-            if (instruction instanceof FastTry) {
-                FastTry fastTry = (FastTry) instruction;
+            if (instruction instanceof FastTry fastTry) {
                 fastTry.removeOutOfBounds();
                 if (!fastTry.getInstructions().isEmpty()) {
                     fastTry.cleanUpCatches(fastTry.getInstructions().get(0).getLineNumber());
@@ -240,8 +239,7 @@ public class FastTry extends FastList {
         if (instructions.size() == 1) {
             Iterator<Instruction> iterator = instructions.iterator();
             Instruction instruction = iterator.next();
-            if (instruction instanceof FastTry) {
-                FastTry fastTry = (FastTry) instruction;
+            if (instruction instanceof FastTry fastTry) {
                 if (fastTry.isResourceOnly()) {
                     iterator.remove();
                     resources.addAll(fastTry.getResources());
@@ -261,8 +259,7 @@ public class FastTry extends FastList {
         // Remove try instructions that are out of bounds and should be found in finally instructions
         instructions.removeIf(tryInstr -> tryInstr.getLineNumber() >= maxLineNumber);
         for (Instruction instruction : instructions) {
-            if (instruction instanceof FastTry) {
-                FastTry nestedTry = (FastTry) instruction;
+            if (instruction instanceof FastTry nestedTry) {
                 nestedTry.removeOutOfBoundsInstructions(maxLineNumber);
             }
         }

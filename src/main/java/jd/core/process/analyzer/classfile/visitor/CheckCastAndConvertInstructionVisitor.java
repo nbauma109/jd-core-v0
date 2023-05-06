@@ -177,12 +177,7 @@ public final class CheckCastAndConvertInstructionVisitor
             break;
         case ByteCodeConstants.COMPLEXIF:
             {
-                List<Instruction> branchList =
-                    ((ComplexConditionalBranchInstruction)instruction).getInstructions();
-                for (int i=branchList.size()-1; i>=0; --i)
-                {
-                    visit(classFile, method, branchList.get(i));
-                }
+                visit(classFile, method, ((ComplexConditionalBranchInstruction)instruction).getInstructions());
             }
             break;
         case Const.INVOKEINTERFACE,
@@ -259,11 +254,7 @@ public final class CheckCastAndConvertInstructionVisitor
             break;
         case Const.MULTIANEWARRAY:
             {
-                Instruction[] dimensions = ((MultiANewArray)instruction).getDimensions();
-                for (int i=dimensions.length-1; i>=0; --i)
-                {
-                    visit(classFile, method, dimensions[i]);
-                }
+                visit(classFile, method, ((MultiANewArray)instruction).getDimensions());
             }
             break;
         case Const.NEWARRAY:
@@ -354,8 +345,7 @@ public final class CheckCastAndConvertInstructionVisitor
         String signature = classFile.getConstantPool().getConstantUtf8(descriptorIndex);
         TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
         Type receiverType = typeMaker.makeFromSignature(signature);
-        if (valueref instanceof CheckCast) {
-            CheckCast cc = (CheckCast) valueref;
+        if (valueref instanceof CheckCast cc) {
             String castSignature = cc.getReturnedSignature(classFile, localVariables);
             Type castType = typeMaker.makeFromSignature(castSignature);
             if (castType.isObjectType()
@@ -367,7 +357,7 @@ public final class CheckCastAndConvertInstructionVisitor
             Type expressionType = typeMaker.makeFromSignature(expressionSignature);
             if (receiverType.isGenericType()
                 && (!expressionType.isGenericType() ||
-                        (valueref instanceof ALoad && !expressionType.equals(receiverType)))) {
+                        valueref instanceof ALoad && !expressionType.equals(receiverType))) {
                 valuerefAttribute.setValueref(new CheckCast(
                         Const.CHECKCAST, valuerefAttribute.getOffset(),
                         valuerefAttribute.getLineNumber(), descriptorIndex, valueref));

@@ -49,8 +49,7 @@ public class ReturnInstruction extends Instruction implements ValuerefAttribute
     @Override
     public void setValueref(Instruction valueref) {
         this.valueref = valueref;
-        if (valueref instanceof IConst) {
-            IConst iConst = (IConst) valueref;
+        if (valueref instanceof IConst iConst) {
             iConst.setSignature(signature);
         }
     }
