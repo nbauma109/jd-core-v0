@@ -21,7 +21,6 @@ import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantNameAndType;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
@@ -34,7 +33,6 @@ import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
-import jd.core.process.layouter.visitor.MinLineNumberVisitor;
 
 /**
  * try-catch-finally
@@ -76,14 +74,6 @@ public class FastTry extends FastList {
 
         public boolean removeOutOfBounds(int firstLineNumber) {
             return instructions.removeIf(instr -> instr.getLineNumber() < firstLineNumber);
-        }
-
-        public int minLineNumber() {
-            return instructions
-                    .stream()
-                    .min(Comparator.comparing(MinLineNumberVisitor::visit))
-                    .map(Instruction::getLineNumber)
-                    .orElse(Integer.MAX_VALUE);
         }
 
         public int localVarIndex() {
@@ -283,15 +273,5 @@ public class FastTry extends FastList {
 
     public boolean hasCatch() {
         return catches != null && !catches.isEmpty();
-    }
-
-    public int minCatchLineNumber() {
-        int minCatchLineNumber = Integer.MAX_VALUE;
-        if (hasCatch()) {
-            for (FastCatch fastCatch : catches) {
-                minCatchLineNumber = Math.min(minCatchLineNumber, fastCatch.minLineNumber());
-            }
-        }
-        return minCatchLineNumber;
     }
 }
