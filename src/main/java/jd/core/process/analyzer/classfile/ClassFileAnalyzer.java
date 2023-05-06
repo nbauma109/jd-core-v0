@@ -770,8 +770,8 @@ public final class ClassFileAnalyzer
 
         for (final Method method : methods)
         {
-            if (((method.getAccessFlags() & (Const.ACC_SYNTHETIC|Const.ACC_BRIDGE)) != 0
-                    && !method.isLambda(classFile.getConstantPool())) ||
+            if ((method.getAccessFlags() & (Const.ACC_SYNTHETIC|Const.ACC_BRIDGE)) != 0
+                    && !method.isLambda(classFile.getConstantPool()) ||
                     method.getCode() == null ||
                     method.containsError()) {
                 continue;
@@ -801,8 +801,8 @@ public final class ClassFileAnalyzer
     private static void postAnalyzeMethods(ClassFile classFile, Method[] methods) {
         for (final Method method : methods)
         {
-            if (((method.getAccessFlags() & Const.ACC_SYNTHETIC) != 0
-                    && !method.isLambda(classFile.getConstantPool())) ||
+            if ((method.getAccessFlags() & Const.ACC_SYNTHETIC) != 0
+                    && !method.isLambda(classFile.getConstantPool()) ||
                     (method.getAccessFlags() & Const.ACC_BRIDGE) != 0 ||
                     method.getCode() == null ||
                     method.getFastNodes() == null ||
@@ -1315,8 +1315,7 @@ public final class ClassFileAnalyzer
 
             instruction = field.getValueAndMethod().value();
 
-            if (instruction instanceof Invokestatic) {
-                Invokestatic is = (Invokestatic) instruction;
+            if (instruction instanceof Invokestatic is) {
                 ConstantCP cmr = constants.getConstantMethodref(is.getIndex());
                 ConstantNameAndType cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
                 String name = constants.getConstantUtf8(cnat.getNameIndex());

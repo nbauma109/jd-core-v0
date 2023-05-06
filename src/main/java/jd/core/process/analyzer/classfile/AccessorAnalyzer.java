@@ -289,10 +289,9 @@ public final class AccessorAnalyzer
         }
         
         instruction = ((ReturnInstruction)instruction).getValueref();
-        if (!(instruction instanceof IncInstruction)) {
+        if (!(instruction instanceof IncInstruction inc)) {
             return false;
         }
-        IncInstruction inc = (IncInstruction) instruction;
         ConstantPool constants = classFile.getConstantPool();
 
         if (!(inc.getValue() instanceof GetField)) {
@@ -346,10 +345,9 @@ public final class AccessorAnalyzer
         }
         
         instruction = ((ReturnInstruction)instruction).getValueref();
-        if (!(instruction instanceof IncInstruction)) {
+        if (!(instruction instanceof IncInstruction inc)) {
             return false;
         }
-        IncInstruction inc = (IncInstruction) instruction;
         ConstantPool constants = classFile.getConstantPool();
 
         if (!(inc.getValue() instanceof GetStatic)) {

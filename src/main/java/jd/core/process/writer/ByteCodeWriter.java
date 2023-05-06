@@ -193,10 +193,8 @@ public final class ByteCodeWriter
                         printer.print("\t");
 
                         Constant c = constants.get(ioperande);
-                        if (c instanceof ConstantClass)
+                        if (c instanceof ConstantClass cc)
                         {
-                            // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
-                            ConstantClass cc = (ConstantClass) c;
                             printer.print(
                                     constants.getConstantUtf8(cc.getNameIndex()));
                         }
@@ -343,7 +341,7 @@ public final class ByteCodeWriter
     {
         // Ecriture de la table des numéros de ligne
         LineNumber[] lineNumbers = method.getLineNumbers();
-        if ((ArrayUtils.isNotEmpty(lineNumbers)))
+        if (ArrayUtils.isNotEmpty(lineNumbers))
         {
             printer.endOfLine();
             printer.startOfLine(Instruction.UNKNOWN_LINE_NUMBER);

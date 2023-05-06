@@ -717,8 +717,7 @@ public final class LocalVariableAnalyzer
                 SearchInstructionByTypeVisitor<Instruction> searchInstructionByOffsetVisitor
                     = new SearchInstructionByTypeVisitor<>(Instruction.class, instr -> instr.getOffset() == ternaryOpStore.getTernaryOp2ndValueOffset());
                 Instruction ternaryOp2ndValue = searchInstructionByOffsetVisitor.visit(listForAnalyze.get(i+1));
-                if (ternaryOp2ndValue instanceof AConstNull) {
-                    AConstNull aConstNull = (AConstNull) ternaryOp2ndValue;
+                if (ternaryOp2ndValue instanceof AConstNull aConstNull) {
                     aConstNull.setSignatureFunction(ternaryOpStore::getReturnedSignature);
                 }
             }

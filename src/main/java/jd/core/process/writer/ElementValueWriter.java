@@ -39,14 +39,12 @@ public final class ElementValueWriter
         Loader loader, Printer printer, ReferenceMap referenceMap,
         ClassFile classFile, ElementValue ev)
     {
-        if (ev instanceof SimpleElementValue) {
-            SimpleElementValue evpt = (SimpleElementValue)ev;
+        if (ev instanceof SimpleElementValue evpt) {
             ElementValuePrimitiveTypeWriter.write(
                 loader, printer, referenceMap, classFile, evpt);
         }
 
-        if (ev instanceof ClassElementValue) {
-            ClassElementValue evci = (ClassElementValue)ev;
+        if (ev instanceof ClassElementValue evci) {
             String signature = evci.getClassString();
             SignatureWriter.writeSignature(
                 loader, printer, referenceMap, classFile, signature);
@@ -54,15 +52,13 @@ public final class ElementValueWriter
             printer.printKeyword("class");
         }
 
-        if (ev instanceof AnnotationElementValue) {
-            AnnotationElementValue evav = (AnnotationElementValue)ev;
+        if (ev instanceof AnnotationElementValue evav) {
             AnnotationWriter.writeAnnotation(
                 loader, printer, referenceMap,
                 classFile, evav.getAnnotationEntry());
         }
 
-        if (ev instanceof ArrayElementValue) {
-            ArrayElementValue evarv = (ArrayElementValue)ev;
+        if (ev instanceof ArrayElementValue evarv) {
             ElementValue[] values = evarv.getElementValuesArray();
             printer.print('{');
 
@@ -80,8 +76,7 @@ public final class ElementValueWriter
             printer.print('}');
         }
 
-        if (ev instanceof EnumElementValue) {
-            EnumElementValue evecv = (EnumElementValue)ev;
+        if (ev instanceof EnumElementValue evecv) {
             String signature = evecv.getEnumTypeString();
             String constName = evecv.getEnumValueString();
             String internalClassName = SignatureUtil.getInternalName(signature);

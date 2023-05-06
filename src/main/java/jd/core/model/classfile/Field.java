@@ -99,6 +99,7 @@ public class Field extends Base implements SignatureInfo
         return fieldOrMethod.getNameIndex();
     }
 
+    @Override
     public int getDescriptorIndex() {
         return fieldOrMethod.getSignatureIndex();
     }

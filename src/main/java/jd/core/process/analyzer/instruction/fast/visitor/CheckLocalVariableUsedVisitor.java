@@ -87,7 +87,7 @@ public final class CheckLocalVariableUsedVisitor
         case  ByteCodeConstants.ASSERT:
             {
                 AssertInstruction ai = (AssertInstruction)instruction;
-                return visit(predicate, ai.getTest()) || (ai.getMsg() != null && visit(predicate, ai.getMsg()));
+                return visit(predicate, ai.getTest()) || ai.getMsg() != null && visit(predicate, ai.getMsg());
             }
         case Const.ATHROW:
             return visit(predicate, ((AThrow)instruction).getValue());
@@ -241,8 +241,8 @@ public final class CheckLocalVariableUsedVisitor
             {
                 Instruction test = ((FastTestList)instruction).getTest();
                 List<Instruction> instructions = ((FastTestList)instruction).getInstructions();
-                return (test != null && visit(predicate, test))
-                    || (instructions != null && visit(predicate, instructions));
+                return test != null && visit(predicate, test)
+                    || instructions != null && visit(predicate, instructions);
             }
         case FastConstants.INFINITE_LOOP:
             {

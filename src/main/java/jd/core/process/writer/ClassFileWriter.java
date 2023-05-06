@@ -579,8 +579,8 @@ public final class ClassFileWriter
                 // No import for 'java/lang' classes
                 // No import for same package classes except type argument inner classes
                 if (StringConstants.INTERNAL_JAVA_LANG_PACKAGE_NAME.equals(internalReferencePackageName)
-                || (internalReferencePackageName.equals(internalPackageName)
-                        && !typeArgumentInnerClasses.contains(refInternalName)))
+                || internalReferencePackageName.equals(internalPackageName)
+                        && !typeArgumentInnerClasses.contains(refInternalName))
                 {
                     continue;
                 }
@@ -1687,8 +1687,7 @@ public final class ClassFileWriter
 
         if ((mlb.getClassFile().getAccessFlags() & Const.ACC_ANNOTATION) == 0)
         {
-            if (mlb instanceof LambdaMethodLayoutBlock) { // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
-                LambdaMethodLayoutBlock lmlb = (LambdaMethodLayoutBlock) mlb;
+            if (mlb instanceof LambdaMethodLayoutBlock lmlb) {
                 List<String> lambdaParameterNames = lmlb.getParameterNames();
                 switch (lambdaParameterNames.size()) {
                     case 0:

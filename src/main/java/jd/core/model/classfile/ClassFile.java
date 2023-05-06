@@ -404,8 +404,8 @@ public class ClassFile extends Base
                         List<String> methodParameters = SignatureUtil.getParameterSignatures(methodDescriptor);
                         List<String> genericParameters = SignatureUtil.getParameterSignatures(signature);
                         if (methodParameters.equals(genericParameters) ||
-                        (genericParameters.stream().allMatch(SignatureUtil::isGenericSignature)
-                         && methodParameters.stream().noneMatch(SignatureUtil::isPrimitiveSignature))) {
+                        genericParameters.stream().allMatch(SignatureUtil::isGenericSignature)
+                         && methodParameters.stream().noneMatch(SignatureUtil::isPrimitiveSignature)) {
                             return method;
                         }
                     }
@@ -481,8 +481,7 @@ public class ClassFile extends Base
         if (signature != null) {
             TypeMaker typeMaker = new TypeMaker(loader);
             Type type = typeMaker.makeFromSignature(signature.getSignature());
-            if (type instanceof ObjectType) {
-                ObjectType ot = (ObjectType) type;
+            if (type instanceof ObjectType ot) {
                 ot.accept(new AbstractTypeArgumentVisitor() {
                     @Override
                     public void visit(InnerObjectType type) {

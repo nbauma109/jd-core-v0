@@ -169,34 +169,29 @@ public final class ReferenceAnalyzer
     private static void countElementValue(
             ReferenceMap referenceMap, ConstantPool constants, ElementValue ev)
     {
-        if (ev instanceof ClassElementValue) {
-            ClassElementValue evci = (ClassElementValue)ev;
+        if (ev instanceof ClassElementValue evci) {
             String signature = evci.getClassString();
             SignatureAnalyzer.analyzeSimpleSignature(referenceMap, signature);
         }
-        if (ev instanceof AnnotationElementValue) {
-            AnnotationElementValue evanv = (AnnotationElementValue)ev;
+        if (ev instanceof AnnotationElementValue evanv) {
             countAnnotationReference(
                     referenceMap, constants, evanv.getAnnotationEntry());
         }
-        if (ev instanceof ArrayElementValue) {
-            ArrayElementValue evarv = (ArrayElementValue)ev;
+        if (ev instanceof ArrayElementValue evarv) {
             ElementValue[] values = evarv.getElementValuesArray();
 
             if (values != null)
             {
                 for (int i=values.length-1; i>=0; --i) {
-                    if (values[i] instanceof ClassElementValue)
+                    if (values[i] instanceof ClassElementValue evci)
                     {
-                        ClassElementValue evci = (ClassElementValue)values[i];
                         String signature = evci.getClassString();
                         SignatureAnalyzer.analyzeSimpleSignature(referenceMap, signature);
                     }
                 }
             }
         }
-        if (ev instanceof EnumElementValue) {
-            EnumElementValue evecv = (EnumElementValue)ev;
+        if (ev instanceof EnumElementValue evecv) {
             String signature = evecv.getEnumTypeString();
             SignatureAnalyzer.analyzeSimpleSignature(referenceMap, signature);
         }

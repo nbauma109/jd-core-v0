@@ -228,14 +228,13 @@ public final class FastInstructionListBuilder {
         }
         for (int i = 0; i < instructions.size(); i++) {
             instruction = instructions.get(i);
-            if (instruction instanceof FastDeclaration) {// to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
-                FastDeclaration declaration = (FastDeclaration) instruction;
+            if (instruction instanceof FastDeclaration declaration) {// to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
                 if (insideDeclarations.contains(declaration) || outsideDeclarations.contains(declaration)) {
                     if (declaration.getInstruction() == null) {
                         // remove re-declaration if no assignment
                         instructions.remove(i);
                         i--;
-                    } else if (declaration.getInstruction() instanceof StoreInstruction) { // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
+                    } else if (declaration.getInstruction() instanceof StoreInstruction) {
                         StoreInstruction si = (StoreInstruction) declaration.getInstruction();
                         // if variable is assigned, turn re-declaration into assignment
                         instructions.set(i, si);
@@ -259,8 +258,7 @@ public final class FastInstructionListBuilder {
                     manageRedeclaredVariables(new HashSet<>(mergedDeclarations), new HashSet<>(), block);
                 }
             }
-            if (i + 1 < instructions.size() && instruction instanceof FastTest2Lists) {
-                FastTest2Lists fastTest2Lists = (FastTest2Lists) instruction;
+            if (i + 1 < instructions.size() && instruction instanceof FastTest2Lists fastTest2Lists) {
                 List<Instruction> list1 = fastTest2Lists.getInstructions();
                 List<Instruction> list2 = fastTest2Lists.getInstructions2();
                 FastDeclaration fd1;
@@ -275,8 +273,7 @@ public final class FastInstructionListBuilder {
                             fd2 = (FastDeclaration) subList.get(0);
                             if (fd1.equals(fd2)) {
                                 Instruction nextInstruction = instructions.get(i + 1);
-                                if (nextInstruction instanceof FastList) {
-                                    FastList fastList = (FastList) nextInstruction;
+                                if (nextInstruction instanceof FastList fastList) {
                                     List<Instruction> nextSubList = fastList.getInstructions();
                                     if (fastList.isFirstInstructionInstanceOf(FastDeclaration.class)) {
                                         fd3 = (FastDeclaration) nextSubList.get(0);
@@ -298,17 +295,14 @@ public final class FastInstructionListBuilder {
     }
 
     private static List<List<Instruction>> getBlocks(Instruction instruction) {
-        if (instruction instanceof FastTest2Lists) { // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
-            FastTest2Lists fastTest2Lists = (FastTest2Lists) instruction;
+        if (instruction instanceof FastTest2Lists fastTest2Lists) {
             return Arrays.asList(fastTest2Lists.getInstructions(), fastTest2Lists.getInstructions2());
         }
         // /!\ order matters since FastTest2Lists extends FastTestList
-        if (instruction instanceof FastTestList) { // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
-            FastTestList fastTestList = (FastTestList) instruction;
+        if (instruction instanceof FastTestList fastTestList) {
             return Collections.singletonList(fastTestList.getInstructions());
         }
-        if (instruction instanceof FastTry) { // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
-            FastTry fastTry = (FastTry) instruction;
+        if (instruction instanceof FastTry fastTry) {
             List<List<Instruction>> instructions = new ArrayList<>();
             instructions.add(fastTry.getInstructions());
             for (FastCatch fastCatch : fastTry.getCatches()) {
@@ -560,12 +554,12 @@ public final class FastInstructionListBuilder {
                 MonitorEnter me = (MonitorEnter) list.remove(index);
                 if (me.getObjectref().getOpcode() == ByteCodeConstants.ASSIGNMENT) {
                     AssignmentInstruction ai = (AssignmentInstruction) me.getObjectref();
-                    if (ai.getValue1() instanceof AStore) { // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
+                    if (ai.getValue1() instanceof AStore) {
                         AStore astore = (AStore) ai.getValue1();
                         // Remove local variable for monitor
                         localVariables.removeLocalVariableWithIndexAndOffset(astore.getIndex(), astore.getOffset());
                     }
-                    if (ai.getValue1() instanceof ALoad) { // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
+                    if (ai.getValue1() instanceof ALoad) {
                         ALoad aload = (ALoad) ai.getValue1();
                         // Remove local variable for monitor
                         localVariables.removeLocalVariableWithIndexAndOffset(aload.getIndex(), aload.getOffset());
@@ -1112,8 +1106,7 @@ public final class FastInstructionListBuilder {
         if (index >= 1 && removedTryResourcesPattern && !processTryResources && !fastTry.hasCatch() && !fastTry.hasFinally()) {
             Instruction beforeTry1 = list.get(index - 1);
             Instruction beforeTry2 = list.get(index);
-            if (beforeTry1 instanceof AStore && beforeTry2 instanceof AStore) {
-                AStore beforeTryAstore1 = (AStore) beforeTry1;
+            if (beforeTry1 instanceof AStore beforeTryAstore1 && beforeTry2 instanceof AStore) {
                 AStore beforeTryAstore2 = (AStore) beforeTry2;
                 LocalVariable lv1 = localVariables.getLocalVariableWithIndexAndOffset(beforeTryAstore1.getIndex(), beforeTryAstore1.getOffset());
                 LocalVariable lv2 = localVariables.getLocalVariableWithIndexAndOffset(beforeTryAstore2.getIndex(), beforeTryAstore2.getOffset());
@@ -1153,8 +1146,7 @@ public final class FastInstructionListBuilder {
         list.set(index + 1, fastTry);
         if (index >= 0) {
             Instruction instruction = list.get(index);
-            if (instruction instanceof AStore) {
-                AStore astore = (AStore) instruction;
+            if (instruction instanceof AStore astore) {
                 boolean removeNull = false;
                 if (astore.getValueref() instanceof AConstNull && index > 0 && list.get(index-1) instanceof AStore) {
                     astore = (AStore) list.get(index-1);
@@ -1323,8 +1315,7 @@ public final class FastInstructionListBuilder {
                 if ("[Ljava/lang/Object;".equals(returnedSignature) && methodReturnedType.isGenericType())
                 {
                     Instruction valueref = ri.getValueref();
-                    if (valueref instanceof CheckCast) {
-                        CheckCast cc = (CheckCast) valueref;
+                    if (valueref instanceof CheckCast cc) {
                         cc.setIndex(methodReturnedSignatureIndex);
                     }
                 }
@@ -1558,20 +1549,18 @@ public final class FastInstructionListBuilder {
             for (int i = 0; i < list.size(); i++)
             {
                 Instruction instruction = list.get(i);
-                if (instruction instanceof StoreInstruction) {
-                    StoreInstruction si = (StoreInstruction) instruction;
+                if (instruction instanceof StoreInstruction si) {
                     LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(si.getIndex(), si.getOffset());
                     if (isUndeclared(lv)
-                            && (beforeListOffset < lv.getStartPc()
+                            && beforeListOffset < lv.getStartPc()
                             && (lv.getStartPc() + lv.getLength() - 1 <= lastOffset
-                            || method.getNameIndex() == classFile.getConstantPool().getClassConstructorIndex()))) {
+                            || method.getNameIndex() == classFile.getConstantPool().getClassConstructorIndex())) {
                         FastDeclaration fastDeclaration = new FastDeclaration(si.getOffset(), si.getLineNumber(), lv, si);
                         insertNewDeclaration(localVariables, list, i, fastDeclaration, addDeclarations, outerDeclarations);
                         updateNewAndInitArrayInstruction(si);
                     }
                 }
-                if (instruction instanceof FastFor) {
-                    FastFor ff = (FastFor) instruction;
+                if (instruction instanceof FastFor ff) {
                     if (ff.getInit() instanceof StoreInstruction) {
                         StoreInstruction si = (StoreInstruction) ff.getInit();
                         LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(si.getIndex(), si.getOffset());
@@ -2910,8 +2899,7 @@ public final class FastInstructionListBuilder {
         if (isAForEachIteratorPattern(classFile, method, beforeWhileLoop, test, subList)) {
             Instruction variable = createForEachVariableInstruction(subList.remove(0), method.getLocalVariables());
             Instruction valueref = ((AStore) beforeWhileLoop).getValueref();
-            if (valueref instanceof CheckCast) {
-                CheckCast checkCast = (CheckCast) valueref;
+            if (valueref instanceof CheckCast checkCast) {
                 valueref = checkCast.getObjectref();
             }
             InvokeNoStaticInstruction insi = (InvokeNoStaticInstruction) valueref;
@@ -2973,8 +2961,7 @@ public final class FastInstructionListBuilder {
             beforeWhileLoopIndex--;
             StoreInstruction beforeBeforeBeforeWhileLoop = (StoreInstruction) list.remove(beforeWhileLoopIndex);
             Instruction valueref = beforeBeforeBeforeWhileLoop.getValueref();
-            if (valueref instanceof CheckCast) {
-                CheckCast cc = (CheckCast) valueref;
+            if (valueref instanceof CheckCast cc) {
                 String lvSignature = variable.getReturnedSignature(classFile, localVariables);
                 cc.setIndex(classFile.getConstantPool().addConstantUtf8("[" + lvSignature));
             }
@@ -3034,28 +3021,25 @@ public final class FastInstructionListBuilder {
                 if (!subList.isEmpty() && isAssignment(lastBodyWhileLoop)) {
                     for (int i = subList.size() - 1; i >= 0; i--) {
                         Instruction lastInstruction = subList.get(i);
-                        if (isAssignment(lastInstruction)
-                                && lastInstruction.getLineNumber() == lastBodyWhileLoop.getLineNumber()) {
-                            lastInstruction.setNext(lastBodyWhileLoop);
-                            lastBodyWhileLoop = lastInstruction;
-                            subList.remove(i);
-                        } else {
+                        if (!isAssignment(lastInstruction) || (lastInstruction.getLineNumber() != lastBodyWhileLoop.getLineNumber())) {
                             break;
                         }
+                        lastInstruction.setNext(lastBodyWhileLoop);
+                        lastBodyWhileLoop = lastInstruction;
+                        subList.remove(i);
                     }
                 }
                 if (beforeWhileLoopIndex > 1 && beforeWhileLoop instanceof StoreInstruction) {
                     for (int i = beforeWhileLoopIndex - 1; i >= 0; i--) {
                         Instruction lastInstruction = list.get(i);
-                        if (lastInstruction instanceof StoreInstruction && lastInstruction.getLineNumber() == beforeWhileLoop.getLineNumber()) {
-                            StoreInstruction next = (StoreInstruction) beforeWhileLoop;
-                            lastInstruction.setNext(next);
-                            beforeWhileLoop = lastInstruction;
-                            list.remove(i);
-                            beforeWhileLoopIndex--;
-                        } else {
+                        if (!(lastInstruction instanceof StoreInstruction) || (lastInstruction.getLineNumber() != beforeWhileLoop.getLineNumber())) {
                             break;
                         }
+                        StoreInstruction next = (StoreInstruction) beforeWhileLoop;
+                        lastInstruction.setNext(next);
+                        beforeWhileLoop = lastInstruction;
+                        list.remove(i);
+                        beforeWhileLoopIndex--;
                     }
                     
                 }
@@ -3094,8 +3078,7 @@ public final class FastInstructionListBuilder {
         }
         AStore astoreIterator = (AStore) init;
         Instruction valueref = astoreIterator.getValueref();
-        if (valueref instanceof CheckCast) {
-            CheckCast checkCast = (CheckCast) valueref;
+        if (valueref instanceof CheckCast checkCast) {
             valueref = checkCast.getObjectref();
         }
         if (valueref.getOpcode() != Const.INVOKEINTERFACE
@@ -3330,8 +3313,7 @@ public final class FastInstructionListBuilder {
         }
         StoreInstruction siVariable = (StoreInstruction) firstInstruction;
         Instruction valueref = siVariable.getValueref();
-        if (valueref instanceof CheckCast) {
-            CheckCast cc = (CheckCast) valueref;
+        if (valueref instanceof CheckCast cc) {
             valueref = cc.getObjectref();
         }
         if (valueref instanceof Invokevirtual iv) {

@@ -231,6 +231,7 @@ public class Method extends Base implements SignatureInfo
         return constants.getConstantUtf8(fieldOrMethod.getSignatureIndex());
     }
 
+    @Override
     public int getDescriptorIndex() {
         return fieldOrMethod.getSignatureIndex();
     }

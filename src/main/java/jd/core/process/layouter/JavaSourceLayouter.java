@@ -781,7 +781,7 @@ public class JavaSourceLayouter
             }
         }
 
-        if (ft.hasFinally() || (!ft.hasCatch() && !ft.hasResource()))
+        if (ft.hasFinally() || !ft.hasCatch() && !ft.hasResource())
         {
             layoutBlockList.add(new FragmentLayoutBlock(
                     LayoutBlockConstants.FRAGMENT_FINALLY));

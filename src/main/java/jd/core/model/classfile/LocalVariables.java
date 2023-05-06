@@ -127,8 +127,7 @@ public class LocalVariables
 
     public LocalVariable getLocalVariableForStoreInstruction(Instruction instruction)
     {
-        if (instruction instanceof StoreInstruction) {
-            StoreInstruction si = (StoreInstruction) instruction;
+        if (instruction instanceof StoreInstruction si) {
             return getLocalVariableWithIndexAndOffset(si.getIndex(), si.getOffset());
         }
         return null;

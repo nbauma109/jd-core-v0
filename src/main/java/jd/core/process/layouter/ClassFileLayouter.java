@@ -26,7 +26,6 @@ import org.jd.core.v1.util.StringConstants;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
@@ -151,13 +150,10 @@ public final class ClassFileLayouter {
         }
         int importCount = 0;
         String internalPackageName = classFile.getInternalPackageName();
-        Iterator<Reference> iterator = collection.iterator();
         String internalReferencePackageName;
         Set<String> typeArgumentInnerClasses = classFile.getTypeArgumentInnerClasses();
         // Filtrage
-        while (iterator.hasNext())
-        {
-            Reference reference = iterator.next();
+        for (Reference reference : collection) {
             String refInternalName = reference.getInternalName();
             internalReferencePackageName = TypeNameUtil.internalTypeNameToInternalPackageName(
                 refInternalName);
@@ -165,8 +161,8 @@ public final class ClassFileLayouter {
             // No import for 'java/lang' classes
             // No import for same package classes except type argument inner classes
             if (StringConstants.INTERNAL_JAVA_LANG_PACKAGE_NAME.equals(internalReferencePackageName)
-            || (internalReferencePackageName.equals(internalPackageName)
-                    && !typeArgumentInnerClasses.contains(refInternalName)))
+            || internalReferencePackageName.equals(internalPackageName)
+                    && !typeArgumentInnerClasses.contains(refInternalName))
             {
                 continue;
             }

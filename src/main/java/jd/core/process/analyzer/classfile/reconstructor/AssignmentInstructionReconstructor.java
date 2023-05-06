@@ -104,9 +104,8 @@ public final class AssignmentInstructionReconstructor
                     list.get(xstorePutfieldPutstaticIndex);
                 Instruction dupload1 = null;
 
-                if (xstorePutfieldPutstatic instanceof ValuerefAttribute)
-                {   // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
-                    ValuerefAttribute valRefAttr = (ValuerefAttribute) xstorePutfieldPutstatic;
+                if (xstorePutfieldPutstatic instanceof ValuerefAttribute valRefAttr)
+                {  
                     Instruction i = valRefAttr.getValueref();
                     if (i.getOpcode() == ByteCodeConstants.DUPLOAD &&
                         ((DupLoad)i).getDupStore() == dupStore)

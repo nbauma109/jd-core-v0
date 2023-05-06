@@ -74,16 +74,12 @@ public class ConstantPool
             int index = this.listOfConstants.size();
             this.listOfConstants.add(constant);
 
-            if (constant instanceof ConstantUtf8)
+            if (constant instanceof ConstantUtf8 cu)
             {
-                // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
-                ConstantUtf8 cu = (ConstantUtf8) constant;
                 this.constantUtf8ToIndex.put(cu.getBytes(), index);
             }
-            if (constant instanceof ConstantClass)
+            if (constant instanceof ConstantClass cc)
             {
-                // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
-                ConstantClass cc = (ConstantClass) constant;
                 this.constantClassToIndex.put(cc.getNameIndex(), index);
             }
         }
@@ -201,8 +197,7 @@ public class ConstantPool
         {
             Constant constant = this.listOfConstants.get(index);
 
-            if (constant instanceof ConstantNameAndType) { // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
-                ConstantNameAndType cnat = (ConstantNameAndType) constant;
+            if (constant instanceof ConstantNameAndType cnat) {
                 if (cnat.getNameIndex() == nameIndex &&
                     cnat.getSignatureIndex() == descriptorIndex) {
                     return index;
@@ -225,8 +220,7 @@ public class ConstantPool
         {
             Constant constant = this.listOfConstants.get(index);
 
-            if (constant instanceof ConstantFieldref) { // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
-                ConstantFieldref cfr = (ConstantFieldref) constant;
+            if (constant instanceof ConstantFieldref cfr) {
                 if (cfr.getClassIndex() == classIndex &&
                     cfr.getNameAndTypeIndex() == nameAndTypeIndex) {
                     return index;
@@ -250,8 +244,7 @@ public class ConstantPool
         {
             Constant constant = this.listOfConstants.get(index);
 
-            if (constant instanceof ConstantMethodref) { // to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
-                ConstantMethodref cmr = (ConstantMethodref) constant;
+            if (constant instanceof ConstantMethodref cmr) {
                 if (cmr.getClassIndex() == classIndex &&
                     cmr.getNameAndTypeIndex() == nameAndTypeIndex) {
                     return index;

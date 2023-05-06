@@ -354,8 +354,7 @@ public final class CheckCastAndConvertInstructionVisitor
         String signature = classFile.getConstantPool().getConstantUtf8(descriptorIndex);
         TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
         Type receiverType = typeMaker.makeFromSignature(signature);
-        if (valueref instanceof CheckCast) {
-            CheckCast cc = (CheckCast) valueref;
+        if (valueref instanceof CheckCast cc) {
             String castSignature = cc.getReturnedSignature(classFile, localVariables);
             Type castType = typeMaker.makeFromSignature(castSignature);
             if (castType.isObjectType()
@@ -367,7 +366,7 @@ public final class CheckCastAndConvertInstructionVisitor
             Type expressionType = typeMaker.makeFromSignature(expressionSignature);
             if (receiverType.isGenericType()
                 && (!expressionType.isGenericType() ||
-                        (valueref instanceof ALoad && !expressionType.equals(receiverType)))) {
+                        valueref instanceof ALoad && !expressionType.equals(receiverType))) {
                 valuerefAttribute.setValueref(new CheckCast(
                         Const.CHECKCAST, valuerefAttribute.getOffset(),
                         valuerefAttribute.getLineNumber(), descriptorIndex, valueref));
