@@ -44,7 +44,6 @@ import jd.core.model.instruction.fast.instruction.FastInstruction;
 import jd.core.model.instruction.fast.instruction.FastLabel;
 import jd.core.model.instruction.fast.instruction.FastList;
 import jd.core.model.instruction.fast.instruction.FastSwitch;
-import jd.core.model.instruction.fast.instruction.FastSwitch.Pair;
 import jd.core.model.instruction.fast.instruction.FastSynchronized;
 import jd.core.model.instruction.fast.instruction.FastTest2Lists;
 import jd.core.model.instruction.fast.instruction.FastTestList;
@@ -579,12 +578,12 @@ public class JavaSourceLayouter
         BlockLayoutBlock sbslb = new SwitchBlockStartLayoutBlock();
         layoutBlockList.add(sbslb);
 
-        Pair[] pairs = fs.getPairs();
+        FastSwitch.Pair[] pairs = fs.getPairs();
         int length = pairs.length;
         int firstIndex = 0;
 
         boolean last;
-        Pair pair;
+        FastSwitch.Pair pair;
         List<Instruction> instructions;
         for (int i=0; i<length; i++)
         {
@@ -592,7 +591,7 @@ public class JavaSourceLayouter
             pair = pairs[i];
             instructions = pair.getInstructions();
 
-            // Do'nt write default case on last position with empty
+            // Don't write default case on last position with empty
             // instructions list.
             if (pair.isDefault() && last && (instructions == null || instructions.isEmpty() || instructions.size() == 1 &&
                     instructions.get(0).getOpcode() == FastConstants.GOTO_BREAK)) {
@@ -677,12 +676,12 @@ public class JavaSourceLayouter
         BlockLayoutBlock sbslb = new SwitchBlockStartLayoutBlock();
         layoutBlockList.add(sbslb);
 
-        Pair[] pairs = fs.getPairs();
+        FastSwitch.Pair[] pairs = fs.getPairs();
         int length = pairs.length;
         int firstIndex = 0;
 
         boolean last;
-        Pair pair;
+        FastSwitch.Pair pair;
         List<Instruction> instructions;
         for (int i=0; i<length; i++)
         {
@@ -690,7 +689,7 @@ public class JavaSourceLayouter
             pair = pairs[i];
             instructions = pair.getInstructions();
 
-            // Do'nt write default case on last position with empty
+            // Don't write default case on last position with empty
             // instructions list.
             if (pair.isDefault() && last && (instructions == null || instructions.isEmpty() || instructions.size() == 1 &&
                     instructions.get(0).getOpcode() == FastConstants.GOTO_BREAK)) {
@@ -754,10 +753,8 @@ public class JavaSourceLayouter
                 length--;
 
                 // First catch blocks
-                for (int i=0; i<length; ++i)
+                for (FastCatch fc : ft.getCatches())
                 {
-                    FastCatch fc = ft.getCatches().get(i);
-
                     layoutBlockList.add(
                             new FastCatchLayoutBlock(classFile, method, fc));
 
