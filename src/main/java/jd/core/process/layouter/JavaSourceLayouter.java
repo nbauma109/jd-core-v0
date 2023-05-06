@@ -753,8 +753,10 @@ public class JavaSourceLayouter
                 length--;
 
                 // First catch blocks
-                for (FastCatch fc : ft.getCatches())
+                for (int i=0; i<length; ++i)
                 {
+                    FastCatch fc = ft.getCatches().get(i);
+
                     layoutBlockList.add(
                             new FastCatchLayoutBlock(classFile, method, fc));
 
