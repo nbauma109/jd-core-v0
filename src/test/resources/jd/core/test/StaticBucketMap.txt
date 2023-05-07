@@ -1,0 +1,736 @@
+/*     */ package org.apache.commons.collections4.map;
+/*     */ 
+/*     */ import java.util.AbstractCollection;
+/*     */ import java.util.AbstractSet;
+/*     */ import java.util.ArrayList;
+/*     */ import java.util.Collection;
+/*     */ import java.util.Iterator;
+/*     */ import java.util.Map;
+/*     */ import java.util.Map.Entry;
+/*     */ import java.util.NoSuchElementException;
+/*     */ import java.util.Set;
+/*     */ import org.apache.commons.collections4.KeyValue;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public final class StaticBucketMap<K, V>
+/*     */   extends AbstractIterableMap<K, V>
+/*     */ {
+/*     */   private static final int DEFAULT_BUCKETS = 255;
+/*     */   private final Node<K, V>[] buckets;
+/*     */   private final Lock[] locks;
+/*     */   
+/*     */   public StaticBucketMap()
+/*     */   {
+/* 110 */     this(255);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public StaticBucketMap(int numBuckets)
+/*     */   {
+/* 125 */     int size = Math.max(17, numBuckets);
+/*     */     
+/*     */ 
+/* 128 */     if (size % 2 == 0) {
+/* 129 */       size--;
+/*     */     }
+/*     */     
+/* 132 */     this.buckets = new Node[size];
+/* 133 */     this.locks = new Lock[size];
+/*     */     
+/* 135 */     for (int i = 0; i < size; i++) {
+/* 136 */       this.locks[i] = new Lock();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   private int getHash(Object key)
+/*     */   {
+/* 155 */     if (key == null) {
+/* 156 */       return 0;
+/*     */     }
+/* 158 */     int hash = key.hashCode();
+/* 159 */     hash += (hash << 15 ^ 0xFFFFFFFF);
+/* 160 */     hash ^= hash >>> 10;
+/* 161 */     hash += (hash << 3);
+/* 162 */     hash ^= hash >>> 6;
+/* 163 */     hash += (hash << 11 ^ 0xFFFFFFFF);
+/* 164 */     hash ^= hash >>> 16;
+/* 165 */     hash %= this.buckets.length;
+/* 166 */     return hash < 0 ? hash * -1 : hash;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public int size()
+/*     */   {
+/* 177 */     int cnt = 0;
+/*     */     
+/* 179 */     for (int i = 0; i < this.buckets.length; i++) {
+/* 180 */       synchronized (this.locks[i]) {
+/* 181 */         cnt += this.locks[i].size;
+/*     */       }
+/*     */     }
+/* 184 */     return cnt;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public boolean isEmpty()
+/*     */   {
+/* 194 */     return size() == 0;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public V get(Object key)
+/*     */   {
+/* 205 */     int hash = getHash(key);
+/*     */     
+/* 207 */     synchronized (this.locks[hash]) {
+/* 208 */       Node<K, V> n = this.buckets[hash];
+/*     */       
+/* 210 */       while (n != null) {
+/* 211 */         if (n.key == key || n.key != null && n.key.equals(key)) {
+/* 212 */           return (V)n.value;
+/*     */         }
+/*     */         
+/* 215 */         n = n.next;
+/*     */       }
+/*     */     }
+/* 218 */     return null;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public boolean containsKey(Object key)
+/*     */   {
+/* 229 */     int hash = getHash(key);
+/*     */     
+/* 231 */     synchronized (this.locks[hash]) {
+/* 232 */       Node<K, V> n = this.buckets[hash];
+/*     */       
+/* 234 */       while (n != null) {
+/* 235 */         if (n.key == key || n.key != null && n.key.equals(key)) {
+/* 236 */           return true;
+/*     */         }
+/*     */         
+/* 239 */         n = n.next;
+/*     */       }
+/*     */     }
+/* 242 */     return false;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public boolean containsValue(Object value)
+/*     */   {
+/* 253 */     for (int i = 0; i < this.buckets.length; i++) {
+/* 254 */       synchronized (this.locks[i]) {
+/* 255 */         Node<K, V> n = this.buckets[i];
+/*     */         
+/* 257 */         while (n != null) {
+/* 258 */           if (n.value == value || n.value != null && n.value.equals(value)) {
+/* 259 */             return true;
+/*     */           }
+/*     */           
+/* 262 */           n = n.next;
+/*     */         }
+/*     */       }
+/*     */     }
+/* 266 */     return false;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public V put(K key, V value)
+/*     */   {
+/* 279 */     int hash = getHash(key);
+/*     */     
+/* 281 */     synchronized (this.locks[hash]) {
+/* 282 */       Node<K, V> n = this.buckets[hash];
+/*     */       
+/* 284 */       if (n == null) {
+/* 285 */         n = new Node<>();
+/* 286 */         n.key = key;
+/* 287 */         n.value = value;
+/* 288 */         this.buckets[hash] = n;
+/* 289 */         this.locks[hash].size++;
+/* 290 */         return null;
+/*     */       }
+/*     */       
+/*     */ 
+/*     */ 
+/*     */ 
+/* 296 */       for (Node<K, V> next = n; next != null; next = next.next) {
+/* 297 */         n = next;
+/*     */         
+/* 299 */         if (n.key == key || n.key != null && n.key.equals(key)) {
+/* 300 */           V returnVal = (V)n.value;
+/* 301 */           n.value = value;
+/* 302 */           return returnVal;
+/*     */         }
+/*     */       }
+/*     */       
+/*     */ 
+/*     */ 
+/* 308 */       Node<K, V> newNode = new Node<>();
+/* 309 */       newNode.key = key;
+/* 310 */       newNode.value = value;
+/* 311 */       n.next = newNode;
+/* 312 */       this.locks[hash].size++;
+/*     */     }
+/* 314 */     return null;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public V remove(Object key)
+/*     */   {
+/* 325 */     int hash = getHash(key);
+/*     */     
+/* 327 */     synchronized (this.locks[hash]) {
+/* 328 */       Node<K, V> n = this.buckets[hash];
+/* 329 */       Node<K, V> prev = null;
+/*     */       
+/* 331 */       while (n != null) {
+/* 332 */         if (n.key == key || n.key != null && n.key.equals(key))
+/*     */         {
+/* 334 */           if (null == prev)
+/*     */           {
+/* 336 */             this.buckets[hash] = n.next;
+/*     */           }
+/*     */           else {
+/* 339 */             prev.next = n.next;
+/*     */           }
+/* 341 */           this.locks[hash].size--;
+/* 342 */           return (V)n.value;
+/*     */         }
+/*     */         
+/* 345 */         prev = n;
+/* 346 */         n = n.next;
+/*     */       }
+/*     */     }
+/* 349 */     return null;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public Set<K> keySet()
+/*     */   {
+/* 360 */     return new KeySet();
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public Collection<V> values()
+/*     */   {
+/* 370 */     return new Values();
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public Set<Entry<K, V>> entrySet()
+/*     */   {
+/* 380 */     return new EntrySet();
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public void putAll(Map<? extends K, ? extends V> map)
+/*     */   {
+/* 392 */     for (Entry<? extends K, ? extends V> entry : map.entrySet()) {
+/* 393 */       put(entry.getKey(), entry.getValue());
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public void clear()
+/*     */   {
+/* 402 */     for (int i = 0; i < this.buckets.length; i++) {
+/* 403 */       Lock lock = this.locks[i];
+/* 404 */       synchronized (lock) {
+/* 405 */         this.buckets[i] = null;
+/* 406 */         lock.size = 0;
+/*     */       }
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public boolean equals(Object obj)
+/*     */   {
+/* 419 */     if (obj == this) {
+/* 420 */       return true;
+/*     */     }
+/* 422 */     if (!(obj instanceof Map)) {
+/* 423 */       return false;
+/*     */     }
+/* 425 */     Map<?, ?> other = (Map)obj;
+/* 426 */     return entrySet().equals(other.entrySet());
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public int hashCode()
+/*     */   {
+/* 436 */     int hashCode = 0;
+/*     */     
+/* 438 */     for (int i = 0; i < this.buckets.length; i++) {
+/* 439 */       synchronized (this.locks[i]) {
+/* 440 */         Node<K, V> n = this.buckets[i];
+/*     */         
+/* 442 */         while (n != null) {
+/* 443 */           hashCode += n.hashCode();
+/* 444 */           n = n.next;
+/*     */         }
+/*     */       }
+/*     */     }
+/* 448 */     return hashCode;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */   private static final class Node<K, V>
+/*     */     implements Entry<K, V>, KeyValue<K, V>
+/*     */   {
+/*     */     protected K key;
+/*     */     protected V value;
+/*     */     protected Node<K, V> next;
+/*     */     
+/*     */     @Override
+/*     */     public K getKey()
+/*     */     {
+/* 462 */       return this.key;
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public V getValue() {
+/* 467 */       return this.value;
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public int hashCode() {
+/* 472 */       return (this.key == null ? 0 : this.key.hashCode()) ^ (this.value == null ? 0 : this.value
+/* 473 */         .hashCode());
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public boolean equals(Object obj) {
+/* 478 */       if (obj == this) {
+/* 479 */         return true;
+/*     */       }
+/* 481 */       if (!(obj instanceof Entry)) {
+/* 482 */         return false;
+/*     */       }
+/*     */       
+/* 485 */       Entry<?, ?> e2 = (Entry)obj;
+/* 486 */       return (this.key == null ? e2
+/* 487 */         .getKey() == null : this.key.equals(e2.getKey())) && (this.value == null ? e2
+/* 488 */         .getValue() == null : this.value.equals(e2.getValue()));
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public V setValue(V obj) {
+/* 493 */       V retVal = this.value;
+/* 494 */       this.value = obj;
+/* 495 */       return retVal;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private static final class Lock
+/*     */   {
+/*     */     public int size;
+/*     */   }
+/*     */   
+/*     */   private class BaseIterator
+/*     */   {
+/*     */     private int bucket;
+/*     */     private Entry<K, V> last;
+/* 508 */     private final ArrayList<Entry<K, V>> current = new ArrayList<>();
+/*     */     
+/*     */ 
+/*     */     public boolean hasNext()
+/*     */     {
+/* 513 */       if (this.current.size() > 0) {
+/* 514 */         return true;
+/*     */       }
+/* 516 */       while (this.bucket < StaticBucketMap.this.buckets.length) {
+/* 517 */         synchronized (StaticBucketMap.this.locks[this.bucket]) {
+/* 518 */           StaticBucketMap.Node<K, V> n = StaticBucketMap.this.buckets[this.bucket];
+/* 519 */           while (n != null) {
+/* 520 */             this.current.add(n);
+/* 521 */             n = n.next;
+/*     */           }
+/* 523 */           this.bucket++;
+/* 524 */           if (this.current.size() > 0) {
+/* 525 */             return true;
+/*     */           }
+/*     */         }
+/*     */       }
+/* 529 */       return false;
+/*     */     }
+/*     */     
+/*     */     protected Entry<K, V> nextEntry() {
+/* 533 */       if (!hasNext()) {
+/* 534 */         throw new NoSuchElementException();
+/*     */       }
+/* 536 */       this.last = (Entry)this.current.remove(this.current.size() - 1);
+/* 537 */       return this.last;
+/*     */     }
+/*     */     
+/*     */     public void remove() {
+/* 541 */       if (this.last == null) {
+/* 542 */         throw new IllegalStateException();
+/*     */       }
+/* 544 */       StaticBucketMap.this.remove(this.last.getKey());
+/* 545 */       this.last = null;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private class EntryIterator extends StaticBucketMap<K, V>.BaseIterator implements Iterator<Entry<K, V>>
+/*     */   {
+/*     */     @Override
+/*     */     public Entry<K, V> next() {
+/* 553 */       return nextEntry();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private class ValueIterator extends StaticBucketMap<K, V>.BaseIterator implements Iterator<V>
+/*     */   {
+/*     */     @Override
+/*     */     public V next()
+/*     */     {
+/* 562 */       return nextEntry().getValue();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private class KeyIterator extends StaticBucketMap<K, V>.BaseIterator implements Iterator<K>
+/*     */   {
+/*     */     @Override
+/*     */     public K next()
+/*     */     {
+/* 571 */       return nextEntry().getKey();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private class EntrySet extends AbstractSet<Entry<K, V>>
+/*     */   {
+/*     */     @Override
+/*     */     public int size()
+/*     */     {
+/* 580 */       return StaticBucketMap.this.size();
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public void clear() {
+/* 585 */       StaticBucketMap.this.clear();
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public Iterator<Entry<K, V>> iterator() {
+/* 590 */       return new StaticBucketMap.EntryIterator();
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public boolean contains(Object obj) {
+/* 595 */       Entry<?, ?> entry = (Entry)obj;
+/* 596 */       int hash = StaticBucketMap.this.getHash(entry.getKey());
+/* 597 */       synchronized (StaticBucketMap.this.locks[hash]) {
+/* 598 */         for (StaticBucketMap.Node<K, V> n = StaticBucketMap.this.buckets[hash]; n != null; n = n.next) {
+/* 599 */           if (n.equals(entry)) {
+/* 600 */             return true;
+/*     */           }
+/*     */         }
+/*     */       }
+/* 604 */       return false;
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public boolean remove(Object obj) {
+/* 609 */       if (!(obj instanceof Entry)) {
+/* 610 */         return false;
+/*     */       }
+/* 612 */       Entry<?, ?> entry = (Entry)obj;
+/* 613 */       int hash = StaticBucketMap.this.getHash(entry.getKey());
+/* 614 */       synchronized (StaticBucketMap.this.locks[hash]) {
+/* 615 */         for (StaticBucketMap.Node<K, V> n = StaticBucketMap.this.buckets[hash]; n != null; n = n.next) {
+/* 616 */           if (n.equals(entry)) {
+/* 617 */             StaticBucketMap.this.remove(n.getKey());
+/* 618 */             return true;
+/*     */           }
+/*     */         }
+/*     */       }
+/* 622 */       return false;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private class KeySet extends AbstractSet<K>
+/*     */   {
+/*     */     @Override
+/*     */     public int size()
+/*     */     {
+/* 631 */       return StaticBucketMap.this.size();
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public void clear() {
+/* 636 */       StaticBucketMap.this.clear();
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public Iterator<K> iterator() {
+/* 641 */       return new StaticBucketMap.KeyIterator();
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public boolean contains(Object obj) {
+/* 646 */       return StaticBucketMap.this.containsKey(obj);
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public boolean remove(Object obj) {
+/* 651 */       int hash = StaticBucketMap.this.getHash(obj);
+/* 652 */       synchronized (StaticBucketMap.this.locks[hash]) {
+/* 653 */         for (StaticBucketMap.Node<K, V> n = StaticBucketMap.this.buckets[hash]; n != null; n = n.next) {
+/* 654 */           Object k = n.getKey();
+/* 655 */           if (k == obj || k != null && k.equals(obj)) {
+/* 656 */             StaticBucketMap.this.remove(k);
+/* 657 */             return true;
+/*     */           }
+/*     */         }
+/*     */       }
+/* 661 */       return false;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private class Values
+/*     */     extends AbstractCollection<V>
+/*     */   {
+/*     */     @Override
+/*     */     public int size()
+/*     */     {
+/* 671 */       return StaticBucketMap.this.size();
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public void clear() {
+/* 676 */       StaticBucketMap.this.clear();
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public Iterator<V> iterator() {
+/* 681 */       return new StaticBucketMap.ValueIterator();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void atomic(Runnable r)
+/*     */   {
+/* 721 */     if (r == null) {
+/* 722 */       throw new NullPointerException();
+/*     */     }
+/* 724 */     atomic(r, 0);
+/*     */   }
+/*     */   
+/*     */   private void atomic(Runnable r, int bucket) {
+/* 728 */     if (bucket >= this.buckets.length) {
+/* 729 */       r.run();
+/* 730 */       return;
+/*     */     }
+/* 732 */     synchronized (this.locks[bucket]) {
+/* 733 */       atomic(r, bucket + 1);
+/*     */     }
+/*     */   }
+/*     */ }
