@@ -1,0 +1,233 @@
+/*     */ package net.sourceforge.plantuml.sequencediagram.graphic;
+/*     */ 
+/*     */ import java.util.AbstractCollection;
+/*     */ import java.util.ArrayList;
+/*     */ import java.util.Collection;
+/*     */ import java.util.Iterator;
+/*     */ import java.util.List;
+/*     */ import net.sourceforge.plantuml.klimt.UTranslate;
+/*     */ import net.sourceforge.plantuml.klimt.drawing.UGraphic;
+/*     */ import net.sourceforge.plantuml.klimt.font.StringBounder;
+/*     */ import net.sourceforge.plantuml.klimt.geom.XDimension2D;
+/*     */ import net.sourceforge.plantuml.skin.Area;
+/*     */ import net.sourceforge.plantuml.skin.Component;
+/*     */ import net.sourceforge.plantuml.skin.SimpleContext2D;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class ParticipantBox
+/*     */   implements Pushable
+/*     */ {
+/*     */   private final int outMargin;
+/*     */   private double startingX;
+/*     */   private final Component head;
+/*     */   private final Component line;
+/*     */   private final Component tail;
+/*     */   private final Component delayLine;
+/*  54 */   private static int CPT = 0;
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*  65 */   private int cpt = CPT++;
+/*     */   
+/*     */   public ParticipantBox(Component head, Component line, Component tail, Component delayLine, double startingX, int outMargin)
+/*     */   {
+/*  69 */     this.outMargin = outMargin;
+/*  70 */     this.startingX = startingX;
+/*  71 */     this.head = head;
+/*  72 */     this.line = line;
+/*  73 */     this.tail = tail;
+/*  74 */     this.delayLine = delayLine;
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public String toString() {
+/*  79 */     return "PB" + this.cpt;
+/*     */   }
+/*     */   
+/*     */   public double getMinX() {
+/*  83 */     return this.startingX + this.outMargin;
+/*     */   }
+/*     */   
+/*     */   public double getMaxX(StringBounder stringBounder) {
+/*  87 */     return this.startingX + this.head.getPreferredWidth(stringBounder) + 2 * this.outMargin;
+/*     */   }
+/*     */   
+/*     */   @Override
+/*  91 */   public double getCenterX(StringBounder stringBounder) { return this.startingX + this.head.getPreferredWidth(stringBounder) / 2.0D + this.outMargin; }
+/*     */   
+/*     */   public double getHeadHeight(StringBounder stringBounder)
+/*     */   {
+/*  95 */     return this.head.getPreferredHeight(stringBounder) + this.line.getPreferredHeight(stringBounder) / 2.0D;
+/*     */   }
+/*     */   
+/*     */   public double getHeadHeightOnly(StringBounder stringBounder) {
+/*  99 */     return this.head.getPreferredHeight(stringBounder);
+/*     */   }
+/*     */   
+/*     */   @Override
+/* 103 */   public double getPreferredWidth(StringBounder stringBounder) { return this.head.getPreferredWidth(stringBounder); }
+/*     */   
+/*     */   public double getTailHeight(StringBounder stringBounder)
+/*     */   {
+/* 107 */     return this.tail.getPreferredHeight(stringBounder) + this.line.getPreferredHeight(stringBounder) / 2.0D;
+/*     */   }
+/*     */   
+/*     */   @Override
+/* 111 */   public void pushToLeft(double deltaX) { this.startingX += deltaX; }
+/*     */   
+/*     */   public void drawHeadTailU(UGraphic ug, double topStartingY, boolean showHead, double positionTail)
+/*     */   {
+/* 115 */     if (topStartingY == 0.0D) {
+/* 116 */       throw new IllegalStateException("setTopStartingY cannot be zero");
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/* 121 */     StringBounder stringBounder = ug.getStringBounder();
+/*     */     
+/* 123 */     if (showHead)
+/*     */     {
+/* 125 */       double y1 = topStartingY - this.head.getPreferredHeight(stringBounder) - this.line.getPreferredHeight(stringBounder) / 2.0D;
+/* 126 */       this.head.drawU(ug.apply(new UTranslate(getMinX(), y1)), new Area(new XDimension2D(this.head
+/* 127 */         .getPreferredWidth(stringBounder), this.head.getPreferredHeight(stringBounder))), new SimpleContext2D(false));
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/* 132 */     if (positionTail <= 0.0D) {
+/*     */       return;
+/*     */     }
+/* 135 */     positionTail += this.line.getPreferredHeight(stringBounder) / 2.0D - 1.0D;
+/*     */     
+/*     */ 
+/*     */ 
+/* 139 */     ug = ug.apply(new UTranslate(getMinX(), positionTail));
+/* 140 */     this.tail.drawU(ug, new Area(new XDimension2D(this.tail
+/* 141 */       .getPreferredWidth(stringBounder), this.tail.getPreferredHeight(stringBounder))), new SimpleContext2D(false));
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void drawParticipantHead(UGraphic ug)
+/*     */   {
+/* 149 */     StringBounder stringBounder = ug.getStringBounder();
+/* 150 */     this.head.drawU(ug.apply(UTranslate.dx(this.outMargin)), new Area(new XDimension2D(this.head
+/* 151 */       .getPreferredWidth(stringBounder), this.head.getPreferredHeight(stringBounder))), new SimpleContext2D(false));
+/*     */   }
+/*     */   
+/*     */ 
+/*     */   public void drawLineU22(UGraphic ug, double startingY, double endingY, boolean showTail, double myDelta)
+/*     */   {
+/* 157 */     ug = ug.apply(UTranslate.dx(this.startingX));
+/* 158 */     if (this.delays.size() > 0) {
+/* 159 */       StringBounder stringBounder = ug.getStringBounder();
+/* 160 */       for (GraphicalDelayText delay : this.delays) {
+/* 161 */         if (delay.getStartingY() - myDelta >= startingY) {
+/* 162 */           drawLineIfLowerThan(ug, startingY, delay.getStartingY() - myDelta, this.line, endingY);
+/* 163 */           drawLineIfLowerThan(ug, delay.getStartingY() - myDelta, delay.getEndingY(stringBounder) - myDelta, this.delayLine, endingY);
+/*     */           
+/* 165 */           startingY = delay.getEndingY(stringBounder) - myDelta;
+/*     */         }
+/*     */       }
+/* 168 */       if (((GraphicalDelayText)this.delays.get(this.delays.size() - 1)).getEndingY(stringBounder) - myDelta > startingY) {
+/* 169 */         startingY = ((GraphicalDelayText)this.delays.get(this.delays.size() - 1)).getEndingY(stringBounder) - myDelta;
+/*     */       }
+/*     */     }
+/* 172 */     drawLineIfLowerThan(ug, startingY, endingY, this.line, endingY);
+/*     */   }
+/*     */   
+/*     */   private void drawLineIfLowerThan(UGraphic ug, double startingY, double endingY, Component comp, double limitY) {
+/* 176 */     startingY = Math.min(startingY, limitY);
+/* 177 */     endingY = Math.min(endingY, limitY);
+/* 178 */     if (startingY < limitY || endingY < limitY) {
+/* 179 */       drawLine(ug, startingY, endingY, comp);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private void drawLine(UGraphic ug, double startingY, double endingY, Component comp) {
+/* 184 */     StringBounder stringBounder = ug.getStringBounder();
+/* 185 */     comp.drawU(ug.apply(UTranslate.dy(startingY)), new Area(new XDimension2D(this.head
+/* 186 */       .getPreferredWidth(stringBounder) + this.outMargin * 2, endingY - startingY)), new SimpleContext2D(false));
+/*     */   }
+/*     */   
+/*     */   public double magicMargin(StringBounder stringBounder)
+/*     */   {
+/* 191 */     return this.line.getPreferredHeight(stringBounder) / 2.0D;
+/*     */   }
+/*     */   
+/*     */   public double getStartingX() {
+/* 195 */     return this.startingX;
+/*     */   }
+/*     */   
+/* 198 */   private final List<GraphicalDelayText> delays = new ArrayList<>();
+/*     */   
+/*     */   public void addDelay(GraphicalDelayText delay) {
+/* 201 */     this.delays.add(delay);
+/*     */   }
+/*     */   
+/*     */   @Override
+/* 205 */   public Collection<Segment> getDelays(final StringBounder stringBounder) { return new AbstractCollection<Segment>()
+/*     */     {
+/*     */       @Override
+/*     */       public Iterator<Segment> iterator() {
+/* 209 */         return new Iterator<Segment>()
+/*     */         {
+/* 211 */           private final Iterator<GraphicalDelayText> it = ParticipantBox.this.delays.iterator();
+/*     */           
+/*     */           @Override
+/* 214 */           public boolean hasNext() { return this.it.hasNext(); }
+/*     */           
+/*     */           @Override
+/*     */           public Segment next() {
+/* 218 */             GraphicalDelayText d = (GraphicalDelayText)this.it.next();
+/* 219 */             return new Segment(d.getStartingY(), d.getEndingY(stringBounder));
+/*     */           }
+/*     */           
+/*     */           @Override
+/* 223 */           public void remove() { throw new UnsupportedOperationException(); }
+/*     */         };
+/*     */       }
+/*     */       
+/*     */       @Override
+/*     */       public int size()
+/*     */       {
+/* 230 */         return ParticipantBox.this.delays.size();
+/*     */       }
+/*     */     }; }
+/*     */ }
