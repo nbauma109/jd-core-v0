@@ -3015,13 +3015,13 @@ public final class FastInstructionListBuilder {
                         subList.remove(i);
                     }
                 }
-                if (beforeWhileLoopIndex > 1 && beforeWhileLoop instanceof StoreInstruction next) {
+                if (beforeWhileLoopIndex > 1 && beforeWhileLoop instanceof StoreInstruction) {
                     for (int i = beforeWhileLoopIndex - 1; i >= 0; i--) {
                         Instruction lastInstruction = list.get(i);
                         if (!(lastInstruction instanceof StoreInstruction) || (lastInstruction.getLineNumber() != beforeWhileLoop.getLineNumber())) {
                             break;
                         }
-                        lastInstruction.setNext(next);
+                        lastInstruction.setNext(beforeWhileLoop);
                         beforeWhileLoop = lastInstruction;
                         list.remove(i);
                         beforeWhileLoopIndex--;
