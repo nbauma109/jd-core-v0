@@ -1,0 +1,118 @@
+/*     */ package net.sourceforge.plantuml.emoji;
+/*     */ 
+/*     */ import java.io.IOException;
+/*     */ import java.util.Arrays;
+/*     */ import java.util.Map;
+/*     */ import java.util.Map.Entry;
+/*     */ import java.util.TreeMap;
+/*     */ import net.sourceforge.plantuml.FileFormatOption;
+/*     */ import net.sourceforge.plantuml.PlainDiagram;
+/*     */ import net.sourceforge.plantuml.core.DiagramDescription;
+/*     */ import net.sourceforge.plantuml.core.UmlSource;
+/*     */ import net.sourceforge.plantuml.klimt.UTranslate;
+/*     */ import net.sourceforge.plantuml.klimt.drawing.UGraphic;
+/*     */ import net.sourceforge.plantuml.klimt.font.StringBounder;
+/*     */ import net.sourceforge.plantuml.klimt.shape.GraphicStrings;
+/*     */ import net.sourceforge.plantuml.klimt.shape.TextBlock;
+/*     */ import net.sourceforge.plantuml.klimt.shape.UDrawable;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class PSystemListEmoji
+/*     */   extends PlainDiagram
+/*     */ {
+/*     */   private final String text;
+/*     */   
+/*     */   @Override
+/*     */   protected UDrawable getRootDrawable(FileFormatOption fileFormatOption)
+/*     */     throws IOException
+/*     */   {
+/*  61 */     return new UDrawable() {
+/*     */       @Override
+/*     */       public void drawU(UGraphic ug) {
+/*  64 */         TextBlock header = GraphicStrings.createBlackOnWhite(Arrays.asList(new String[] {"<b><size:16>Emoji available on Unicode Block " + PSystemListEmoji.this.text, "(Blocks available: 26, 27, 1F3, 1F4, 1F5, 1F6, 1F9)" }));
+/*     */         
+/*  66 */         header.drawU(ug);
+/*  67 */         StringBounder stringBounder = ug.getStringBounder();
+/*  68 */         ug = ug.apply(UTranslate.dy(header.calculateDimension(stringBounder).getHeight()));
+/*     */         
+/*  70 */         UGraphic top = ug;
+/*     */         
+/*  72 */         Map<String, Emoji> some = new TreeMap<>();
+/*  73 */         for (Entry<String, Emoji> ent : Emoji.getAll().entrySet()) {
+/*  74 */           if (((String)ent.getKey()).startsWith(PSystemListEmoji.this.text))
+/*  75 */             some.put((String)ent.getKey(), (Emoji)ent.getValue());
+/*     */         }
+/*  77 */         int third = (some.size() + 2) / 3;
+/*  78 */         int i = 0;
+/*     */         
+/*  80 */         for (Entry<String, Emoji> ent : some.entrySet()) {
+/*  81 */           String code = (String)ent.getKey();
+/*  82 */           String shortcut = ((Emoji)ent.getValue()).getShortcut();
+/*     */           
+/*  84 */           StringBuilder sb = new StringBuilder();
+/*  85 */           sb.append("<size:13>");
+/*  86 */           sb.append("\"\"<U+003C>:" + code + ":<U+003E> \"\"");
+/*  87 */           sb.append("<:" + code + ":>");
+/*  88 */           sb.append(" ");
+/*  89 */           sb.append("<#0:" + code + ":>");
+/*  90 */           if (shortcut != null) {
+/*  91 */             sb.append(" ");
+/*  92 */             sb.append("\"\"<U+003C>:" + shortcut + ":<U+003E> \"\"");
+/*     */           }
+/*     */           
+/*  95 */           TextBlock tmp = GraphicStrings.createBlackOnWhite(Arrays.asList(new String[] { sb.toString() }));
+/*  96 */           tmp.drawU(ug);
+/*  97 */           ug = ug.apply(UTranslate.dy(tmp.calculateDimension(stringBounder).getHeight()));
+/*     */           
+/*  99 */           i++;
+/* 100 */           if (i == third)
+/* 101 */             ug = top.apply(UTranslate.dx(500.0D));
+/* 102 */           if (i == 2 * third) {
+/* 103 */             ug = top.apply(UTranslate.dx(1000.0D));
+/*     */           }
+/*     */         }
+/*     */       }
+/*     */     };
+/*     */   }
+/*     */   
+/*     */   public PSystemListEmoji(UmlSource source, String text)
+/*     */   {
+/* 112 */     super(source);
+/* 113 */     this.text = text;
+/*     */   }
+/*     */   
+/*     */   @Override
+/* 117 */   public DiagramDescription getDescription() { return new DiagramDescription("(List Emoji)"); }
+/*     */ }

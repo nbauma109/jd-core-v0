@@ -1,0 +1,467 @@
+/*     */ package net.sourceforge.plantuml.mjpeg;
+/*     */ 
+/*     */ import java.awt.Graphics2D;
+/*     */ import java.awt.Image;
+/*     */ import java.awt.image.BufferedImage;
+/*     */ import java.io.ByteArrayOutputStream;
+/*     */ import java.io.FileOutputStream;
+/*     */ import java.io.IOException;
+/*     */ import java.io.RandomAccessFile;
+/*     */ import java.nio.channels.FileChannel;
+/*     */ import java.util.ArrayList;
+/*     */ import java.util.Arrays;
+/*     */ import net.sourceforge.plantuml.security.SFile;
+/*     */ import net.sourceforge.plantuml.security.SImageIO;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class MJPEGGenerator
+/*     */ {
+/*  41 */   int width = 0;
+/*  42 */   int height = 0;
+/*  43 */   double framerate = 0.0D;
+/*  44 */   int numFrames = 0;
+/*  45 */   SFile aviFile = null;
+/*  46 */   FileOutputStream aviOutput = null;
+/*  47 */   FileChannel aviChannel = null;
+/*     */   
+/*  49 */   long riffOffset = 0L;
+/*  50 */   long aviMovieOffset = 0L;
+/*     */   
+/*  52 */   AVIIndexList indexlist = null;
+/*     */   
+/*     */   public MJPEGGenerator(SFile aviFile, int width, int height, double framerate, int numFrames) throws IOException
+/*     */   {
+/*  56 */     this.aviFile = aviFile;
+/*  57 */     this.width = width;
+/*  58 */     this.height = height;
+/*  59 */     this.framerate = framerate;
+/*  60 */     this.numFrames = numFrames;
+/*  61 */     this.aviOutput = aviFile.createFileOutputStream();
+/*  62 */     this.aviChannel = this.aviOutput.getChannel();
+/*     */     
+/*  64 */     RIFFHeader rh = new RIFFHeader();
+/*  65 */     this.aviOutput.write(rh.toBytes());
+/*  66 */     this.aviOutput.write(new AVIMainHeader().toBytes());
+/*  67 */     this.aviOutput.write(new AVIStreamList().toBytes());
+/*  68 */     this.aviOutput.write(new AVIStreamHeader().toBytes());
+/*  69 */     this.aviOutput.write(new AVIStreamFormat().toBytes());
+/*  70 */     this.aviOutput.write(new AVIJunk().toBytes());
+/*  71 */     this.aviMovieOffset = this.aviChannel.position();
+/*  72 */     this.aviOutput.write(new AVIMovieList().toBytes());
+/*  73 */     this.indexlist = new AVIIndexList();
+/*     */   }
+/*     */   
+/*     */   public void addImage(Image image) throws IOException {
+/*  77 */     byte[] fcc = { 48, 48, 100, 98 };
+/*  78 */     byte[] imagedata = writeImageToBytes(image);
+/*  79 */     int useLength = imagedata.length;
+/*  80 */     long position = this.aviChannel.position();
+/*  81 */     int extra = (useLength + (int)position) % 4;
+/*  82 */     if (extra > 0) {
+/*  83 */       useLength += extra;
+/*     */     }
+/*  85 */     this.indexlist.addAVIIndex((int)position, useLength);
+/*     */     
+/*  87 */     this.aviOutput.write(fcc);
+/*  88 */     this.aviOutput.write(intBytes(swapInt(useLength)));
+/*  89 */     this.aviOutput.write(imagedata);
+/*  90 */     if (extra > 0) {
+/*  91 */       for (int i = 0; i < extra; i++)
+/*  92 */         this.aviOutput.write(0);
+/*     */     }
+/*  94 */     imagedata = null;
+/*     */   }
+/*     */   
+/*     */   public void finishAVI() throws IOException {
+/*  98 */     byte[] indexlistBytes = this.indexlist.toBytes();
+/*  99 */     this.aviOutput.write(indexlistBytes);
+/* 100 */     this.aviOutput.close();
+/* 101 */     long size = this.aviFile.length();
+/* 102 */     RandomAccessFile raf = new RandomAccessFile(this.aviFile.conv(), "rw");
+/* 103 */     raf.seek(4L);
+/* 104 */     raf.write(intBytes(swapInt((int)size - 8)));
+/* 105 */     raf.seek(this.aviMovieOffset + 4L);
+/* 106 */     raf.write(intBytes(swapInt((int)(size - 8L - this.aviMovieOffset - indexlistBytes.length))));
+/* 107 */     raf.close();
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public static int swapInt(int v)
+/*     */   {
+/* 123 */     return v >>> 24 | v << 24 | v << 8 & 0xFF0000 | v >> 8 & 0xFF00;
+/*     */   }
+/*     */   
+/*     */   public static short swapShort(short v) {
+/* 127 */     return (short)(v >>> 8 | v << 8);
+/*     */   }
+/*     */   
+/*     */   public static byte[] intBytes(int i) {
+/* 131 */     byte[] b = new byte[4];
+/* 132 */     b[0] = ((byte)(i >>> 24));
+/* 133 */     b[1] = ((byte)(i >>> 16 & 0xFF));
+/* 134 */     b[2] = ((byte)(i >>> 8 & 0xFF));
+/* 135 */     b[3] = ((byte)(i & 0xFF));
+/*     */     
+/* 137 */     return b;
+/*     */   }
+/*     */   
+/*     */   public static byte[] shortBytes(short i) {
+/* 141 */     byte[] b = new byte[2];
+/* 142 */     b[0] = ((byte)(i >>> 8));
+/* 143 */     b[1] = ((byte)(i & 0xFF));
+/*     */     
+/* 145 */     return b;
+/*     */   }
+/*     */   
+/*     */   private class RIFFHeader {
+/* 149 */     public byte[] fcc = { 82, 73, 70, 70 };
+/* 150 */     public int fileSize = 0;
+/* 151 */     public byte[] fcc2 = { 65, 86, 73, 32 };
+/* 152 */     public byte[] fcc3 = { 76, 73, 83, 84 };
+/* 153 */     public int listSize = 200;
+/* 154 */     public byte[] fcc4 = { 104, 100, 114, 108 };
+/*     */     
+/*     */ 
+/*     */ 
+/*     */     public byte[] toBytes()
+/*     */       throws IOException
+/*     */     {
+/* 161 */       ByteArrayOutputStream baos = new ByteArrayOutputStream();
+/* 162 */       baos.write(this.fcc);
+/* 163 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.fileSize)));
+/* 164 */       baos.write(this.fcc2);
+/* 165 */       baos.write(this.fcc3);
+/* 166 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.listSize)));
+/* 167 */       baos.write(this.fcc4);
+/* 168 */       baos.close();
+/*     */       
+/* 170 */       return baos.toByteArray();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   private class AVIMainHeader
+/*     */   {
+/* 183 */     public byte[] fcc = { 97, 118, 105, 104 };
+/* 184 */     public int cb = 56;
+/* 185 */     public int dwMicroSecPerFrame = 0;
+/* 186 */     public int dwMaxBytesPerSec = 10000000;
+/* 187 */     public int dwPaddingGranularity = 0;
+/* 188 */     public int dwFlags = 65552;
+/* 189 */     public int dwTotalFrames = 0;
+/* 190 */     public int dwInitialFrames = 0;
+/* 191 */     public int dwStreams = 1;
+/* 192 */     public int dwSuggestedBufferSize = 0;
+/* 193 */     public int dwWidth = 0;
+/* 194 */     public int dwHeight = 0;
+/* 195 */     public int[] dwReserved = new int[4];
+/*     */     
+/*     */     public AVIMainHeader() {
+/* 198 */       this.dwMicroSecPerFrame = (int)(1.0D / MJPEGGenerator.this.framerate * 1000000.0D);
+/* 199 */       this.dwWidth = MJPEGGenerator.this.width;
+/* 200 */       this.dwHeight = MJPEGGenerator.this.height;
+/* 201 */       this.dwTotalFrames = MJPEGGenerator.this.numFrames;
+/*     */     }
+/*     */     
+/*     */     public byte[] toBytes() throws IOException {
+/* 205 */       ByteArrayOutputStream baos = new ByteArrayOutputStream();
+/* 206 */       baos.write(this.fcc);
+/* 207 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.cb)));
+/* 208 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.dwMicroSecPerFrame)));
+/* 209 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.dwMaxBytesPerSec)));
+/* 210 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.dwPaddingGranularity)));
+/* 211 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.dwFlags)));
+/* 212 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.dwTotalFrames)));
+/* 213 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.dwInitialFrames)));
+/* 214 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.dwStreams)));
+/* 215 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.dwSuggestedBufferSize)));
+/* 216 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.dwWidth)));
+/* 217 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.dwHeight)));
+/* 218 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.dwReserved[0])));
+/* 219 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.dwReserved[1])));
+/* 220 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.dwReserved[2])));
+/* 221 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.dwReserved[3])));
+/* 222 */       baos.close();
+/*     */       
+/* 224 */       return baos.toByteArray();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private class AVIStreamList {
+/* 229 */     public byte[] fcc = { 76, 73, 83, 84 };
+/* 230 */     public int size = 124;
+/* 231 */     public byte[] fcc2 = { 115, 116, 114, 108 };
+/*     */     
+/*     */ 
+/*     */ 
+/*     */     public byte[] toBytes()
+/*     */       throws IOException
+/*     */     {
+/* 238 */       ByteArrayOutputStream baos = new ByteArrayOutputStream();
+/* 239 */       baos.write(this.fcc);
+/* 240 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.size)));
+/* 241 */       baos.write(this.fcc2);
+/* 242 */       baos.close();
+/*     */       
+/* 244 */       return baos.toByteArray();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   private class AVIStreamHeader
+/*     */   {
+/* 257 */     public byte[] fcc = { 115, 116, 114, 104 };
+/* 258 */     public int cb = 64;
+/* 259 */     public byte[] fccType = { 118, 105, 100, 115 };
+/* 260 */     public byte[] fccHandler = { 77, 74, 80, 71 };
+/* 261 */     public int dwFlags = 0;
+/* 262 */     public short wPriority = 0;
+/* 263 */     public short wLanguage = 0;
+/* 264 */     public int dwInitialFrames = 0;
+/* 265 */     public int dwScale = 0;
+/* 266 */     public int dwRate = 1000000;
+/* 267 */     public int dwStart = 0;
+/* 268 */     public int dwLength = 0;
+/* 269 */     public int dwSuggestedBufferSize = 0;
+/* 270 */     public int dwQuality = -1;
+/* 271 */     public int dwSampleSize = 0;
+/* 272 */     public int left = 0;
+/* 273 */     public int top = 0;
+/* 274 */     public int right = 0;
+/* 275 */     public int bottom = 0;
+/*     */     
+/*     */     public AVIStreamHeader() {
+/* 278 */       this.dwScale = (int)(1.0D / MJPEGGenerator.this.framerate * 1000000.0D);
+/* 279 */       this.dwLength = MJPEGGenerator.this.numFrames;
+/*     */     }
+/*     */     
+/*     */     public byte[] toBytes() throws IOException {
+/* 283 */       ByteArrayOutputStream baos = new ByteArrayOutputStream();
+/* 284 */       baos.write(this.fcc);
+/* 285 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.cb)));
+/* 286 */       baos.write(this.fccType);
+/* 287 */       baos.write(this.fccHandler);
+/* 288 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.dwFlags)));
+/* 289 */       baos.write(MJPEGGenerator.shortBytes(MJPEGGenerator.swapShort(this.wPriority)));
+/* 290 */       baos.write(MJPEGGenerator.shortBytes(MJPEGGenerator.swapShort(this.wLanguage)));
+/* 291 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.dwInitialFrames)));
+/* 292 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.dwScale)));
+/* 293 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.dwRate)));
+/* 294 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.dwStart)));
+/* 295 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.dwLength)));
+/* 296 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.dwSuggestedBufferSize)));
+/* 297 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.dwQuality)));
+/* 298 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.dwSampleSize)));
+/* 299 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.left)));
+/* 300 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.top)));
+/* 301 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.right)));
+/* 302 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.bottom)));
+/* 303 */       baos.close();
+/*     */       
+/* 305 */       return baos.toByteArray();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   private class AVIStreamFormat
+/*     */   {
+/* 316 */     public byte[] fcc = { 115, 116, 114, 102 };
+/* 317 */     public int cb = 40;
+/* 318 */     public int biSize = 40;
+/* 319 */     public int biWidth = 0;
+/* 320 */     public int biHeight = 0;
+/* 321 */     public short biPlanes = 1;
+/* 322 */     public short biBitCount = 24;
+/* 323 */     public byte[] biCompression = { 77, 74, 80, 71 };
+/* 324 */     public int biSizeImage = 0;
+/* 325 */     public int biXPelsPerMeter = 0;
+/* 326 */     public int biYPelsPerMeter = 0;
+/* 327 */     public int biClrUsed = 0;
+/* 328 */     public int biClrImportant = 0;
+/*     */     
+/*     */     public AVIStreamFormat() {
+/* 331 */       this.biWidth = MJPEGGenerator.this.width;
+/* 332 */       this.biHeight = MJPEGGenerator.this.height;
+/* 333 */       this.biSizeImage = MJPEGGenerator.this.width * MJPEGGenerator.this.height;
+/*     */     }
+/*     */     
+/*     */     public byte[] toBytes() throws IOException {
+/* 337 */       ByteArrayOutputStream baos = new ByteArrayOutputStream();
+/* 338 */       baos.write(this.fcc);
+/* 339 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.cb)));
+/* 340 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.biSize)));
+/* 341 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.biWidth)));
+/* 342 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.biHeight)));
+/* 343 */       baos.write(MJPEGGenerator.shortBytes(MJPEGGenerator.swapShort(this.biPlanes)));
+/* 344 */       baos.write(MJPEGGenerator.shortBytes(MJPEGGenerator.swapShort(this.biBitCount)));
+/* 345 */       baos.write(this.biCompression);
+/* 346 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.biSizeImage)));
+/* 347 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.biXPelsPerMeter)));
+/* 348 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.biYPelsPerMeter)));
+/* 349 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.biClrUsed)));
+/* 350 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.biClrImportant)));
+/* 351 */       baos.close();
+/*     */       
+/* 353 */       return baos.toByteArray();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private class AVIMovieList {
+/* 358 */     public byte[] fcc = { 76, 73, 83, 84 };
+/* 359 */     public int listSize = 0;
+/* 360 */     public byte[] fcc2 = { 109, 111, 118, 105 };
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public byte[] toBytes()
+/*     */       throws IOException
+/*     */     {
+/* 368 */       ByteArrayOutputStream baos = new ByteArrayOutputStream();
+/* 369 */       baos.write(this.fcc);
+/* 370 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.listSize)));
+/* 371 */       baos.write(this.fcc2);
+/* 372 */       baos.close();
+/*     */       
+/* 374 */       return baos.toByteArray();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private class AVIIndexList {
+/* 379 */     public byte[] fcc = { 105, 100, 120, 49 };
+/* 380 */     public int cb = 0;
+/* 381 */     public ArrayList ind = new ArrayList<>();
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public void addAVIIndex(MJPEGGenerator.AVIIndex ai)
+/*     */     {
+/* 388 */       this.ind.add(ai);
+/*     */     }
+/*     */     
+/*     */     public void addAVIIndex(int dwOffset, int dwSize) {
+/* 392 */       this.ind.add(new MJPEGGenerator.AVIIndex(dwOffset, dwSize));
+/*     */     }
+/*     */     
+/*     */     public byte[] toBytes() throws IOException {
+/* 396 */       this.cb = 16 * this.ind.size();
+/*     */       
+/* 398 */       ByteArrayOutputStream baos = new ByteArrayOutputStream();
+/* 399 */       baos.write(this.fcc);
+/* 400 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.cb)));
+/* 401 */       for (int i = 0; i < this.ind.size(); i++) {
+/* 402 */         MJPEGGenerator.AVIIndex in = (MJPEGGenerator.AVIIndex)this.ind.get(i);
+/* 403 */         baos.write(in.toBytes());
+/*     */       }
+/*     */       
+/* 406 */       baos.close();
+/*     */       
+/* 408 */       return baos.toByteArray();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private class AVIIndex {
+/* 413 */     public byte[] fcc = { 48, 48, 100, 98 };
+/* 414 */     public int dwFlags = 16;
+/* 415 */     public int dwOffset = 0;
+/* 416 */     public int dwSize = 0;
+/*     */     
+/*     */     public AVIIndex(int dwOffset, int dwSize) {
+/* 419 */       this.dwOffset = dwOffset;
+/* 420 */       this.dwSize = dwSize;
+/*     */     }
+/*     */     
+/*     */     public byte[] toBytes() throws IOException {
+/* 424 */       ByteArrayOutputStream baos = new ByteArrayOutputStream();
+/* 425 */       baos.write(this.fcc);
+/* 426 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.dwFlags)));
+/* 427 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.dwOffset)));
+/* 428 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.dwSize)));
+/* 429 */       baos.close();
+/*     */       
+/* 431 */       return baos.toByteArray();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private class AVIJunk {
+/* 436 */     public byte[] fcc = { 74, 85, 78, 75 };
+/* 437 */     public int size = 1808;
+/* 438 */     public byte[] data = new byte[this.size];
+/*     */     
+/*     */     public AVIJunk() {
+/* 441 */       Arrays.fill(this.data, (byte)0);
+/*     */     }
+/*     */     
+/*     */     public byte[] toBytes() throws IOException {
+/* 445 */       ByteArrayOutputStream baos = new ByteArrayOutputStream();
+/* 446 */       baos.write(this.fcc);
+/* 447 */       baos.write(MJPEGGenerator.intBytes(MJPEGGenerator.swapInt(this.size)));
+/* 448 */       baos.write(this.data);
+/* 449 */       baos.close();
+/*     */       
+/* 451 */       return baos.toByteArray();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private byte[] writeImageToBytes(Image image) throws IOException {
+/* 456 */     BufferedImage bi = new BufferedImage(this.width, this.height, 1);
+/* 457 */     ByteArrayOutputStream baos = new ByteArrayOutputStream();
+/* 458 */     Graphics2D g = bi.createGraphics();
+/* 459 */     g.drawImage(image, 0, 0, this.width, this.height, null);
+/* 460 */     SImageIO.write(bi, "jpg", baos);
+/* 461 */     baos.close();
+/* 462 */     bi = null;
+/* 463 */     g = null;
+/*     */     
+/* 465 */     return baos.toByteArray();
+/*     */   }
+/*     */ }
