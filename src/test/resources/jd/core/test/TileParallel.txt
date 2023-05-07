@@ -1,0 +1,180 @@
+/*     */ package net.sourceforge.plantuml.sequencediagram.teoz;
+/*     */ 
+/*     */ import java.util.AbstractCollection;
+/*     */ import java.util.ArrayList;
+/*     */ import java.util.Iterator;
+/*     */ import java.util.List;
+/*     */ import net.sourceforge.plantuml.klimt.UTranslate;
+/*     */ import net.sourceforge.plantuml.klimt.drawing.UGraphic;
+/*     */ import net.sourceforge.plantuml.klimt.font.StringBounder;
+/*     */ import net.sourceforge.plantuml.klimt.shape.UDrawable;
+/*     */ import net.sourceforge.plantuml.real.Real;
+/*     */ import net.sourceforge.plantuml.real.RealUtils;
+/*     */ import net.sourceforge.plantuml.sequencediagram.Event;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class TileParallel
+/*     */   extends CommonTile
+/*     */ {
+/*     */   public TileParallel(StringBounder stringBounder, Real currentY)
+/*     */   {
+/*  54 */     super(stringBounder);
+/*     */   }
+/*     */   
+/*  57 */   private final List<Tile> tiles = new ArrayList<>();
+/*     */   
+/*     */   @Override
+/*     */   public YGauge getYGauge() {
+/*  61 */     List<Real> mins = new ArrayList<>();
+/*  62 */     List<Real> maxs = new ArrayList<>();
+/*  63 */     for (Tile tile : this.tiles) {
+/*  64 */       YGauge yGauge = tile.getYGauge();
+/*  65 */       mins.add(yGauge.getMin());
+/*  66 */       maxs.add(yGauge.getMax());
+/*     */     }
+/*  68 */     return new YGauge(RealUtils.min(mins), RealUtils.max(maxs));
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   protected final void callbackY_internal(TimeHook y) {
+/*  73 */     super.callbackY_internal(y);
+/*  74 */     for (Tile tile : this.tiles) {
+/*  75 */       tile.callbackY(y);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*  80 */   public void add(Tile tile) { this.tiles.add(tile); }
+/*     */   
+/*     */   @Override
+/*     */   public void drawU(UGraphic ug) {
+/*  84 */     double yPointAll = getContactPointRelative();
+/*  85 */     for (Tile tile : this.tiles) {
+/*  86 */       double yPoint = tile.getContactPointRelative();
+/*  87 */       ((UDrawable)tile).drawU(ug.apply(UTranslate.dy(yPointAll - yPoint)));
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   @Override
+/*  92 */   public double getContactPointRelative() { double result = 0.0D;
+/*  93 */     for (Tile tile : this.tiles) {
+/*  94 */       result = Math.max(result, tile.getContactPointRelative());
+/*     */     }
+/*  96 */     return result;
+/*     */   }
+/*     */   
+/*     */   @Override
+/* 100 */   public double getZZZ() { double result = 0.0D;
+/* 101 */     for (Tile tile : this.tiles) {
+/* 102 */       result = Math.max(result, tile.getZZZ());
+/*     */     }
+/* 104 */     return result;
+/*     */   }
+/*     */   
+/*     */   @Override
+/* 108 */   public double getPreferredHeight() { return getContactPointRelative() + getZZZ(); }
+/*     */   
+/*     */   @Override
+/*     */   public void addConstraints() {
+/* 112 */     for (Tile tile : this.tiles)
+/* 113 */       tile.addConstraints();
+/*     */   }
+/*     */   
+/*     */   @Override
+/*     */   public Real getMinX() {
+/* 118 */     return RealUtils.min(new AbstractCollection<Real>() {
+/*     */       @Override
+/* 120 */       public Iterator<Real> iterator() { return new Iterator<Real>() {
+/* 121 */           private final Iterator<Tile> source = TileParallel.this.tiles.iterator();
+/*     */           
+/*     */           @Override
+/* 124 */           public boolean hasNext() { return this.source.hasNext(); }
+/*     */           
+/*     */           @Override
+/*     */           public Real next() {
+/* 128 */             return ((Tile)this.source.next()).getMinX();
+/*     */           }
+/*     */           
+/*     */           @Override
+/* 132 */           public void remove() { throw new UnsupportedOperationException(); }
+/*     */         }; }
+/*     */       
+/*     */       @Override
+/*     */       public int size()
+/*     */       {
+/* 138 */         return TileParallel.this.tiles.size();
+/*     */       }
+/*     */     });
+/*     */   }
+/*     */   
+/*     */   @Override
+/* 144 */   public Real getMaxX() { return RealUtils.max(new AbstractCollection<Real>() {
+/*     */       @Override
+/* 146 */       public Iterator<Real> iterator() { return new Iterator<Real>() {
+/* 147 */           private final Iterator<Tile> source = TileParallel.this.tiles.iterator();
+/*     */           
+/*     */           @Override
+/* 150 */           public boolean hasNext() { return this.source.hasNext(); }
+/*     */           
+/*     */           @Override
+/*     */           public Real next() {
+/* 154 */             return ((Tile)this.source.next()).getMaxX();
+/*     */           }
+/*     */           
+/*     */           @Override
+/* 158 */           public void remove() { throw new UnsupportedOperationException(); }
+/*     */         }; }
+/*     */       
+/*     */       @Override
+/*     */       public int size()
+/*     */       {
+/* 164 */         return TileParallel.this.tiles.size();
+/*     */       }
+/*     */     }); }
+/*     */   
+/*     */ 
+/*     */   @Override
+/* 170 */   public Event getEvent() { return null; }
+/*     */   
+/*     */   @Override
+/*     */   public boolean matchAnchor(String anchor) {
+/* 174 */     for (Tile tile : this.tiles) {
+/* 175 */       if (tile.matchAnchor(anchor))
+/* 176 */         return true;
+/*     */     }
+/* 178 */     return false;
+/*     */   }
+/*     */ }
