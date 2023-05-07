@@ -229,13 +229,11 @@ public class FastTry extends FastList {
         if (instructions.size() == 1) {
             Iterator<Instruction> iterator = instructions.iterator();
             Instruction instruction = iterator.next();
-            if (instruction instanceof FastTry fastTry) {
-                if (fastTry.isResourceOnly()) {
-                    iterator.remove();
-                    resources.addAll(fastTry.getResources());
-                    instructions.addAll(fastTry.getInstructions());
-                    processed = true;
-                }
+            if (instruction instanceof FastTry fastTry && fastTry.isResourceOnly()) {
+                iterator.remove();
+                resources.addAll(fastTry.getResources());
+                instructions.addAll(fastTry.getInstructions());
+                processed = true;
             }
         }
         return processed;

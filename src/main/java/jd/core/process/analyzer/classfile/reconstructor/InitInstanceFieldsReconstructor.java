@@ -310,11 +310,11 @@ public final class InitInstanceFieldsReconstructor
                              */
                             Instruction putFieldValueref = putField.getValueref();
                                
-                            if (putFieldValueref instanceof ALoad && ((ALoad) putFieldValueref).getIndex() != 0) {
+                            if (putFieldValueref instanceof ALoad aload && aload.getIndex() != 0) {
                                 continue;
                             }
 
-                            if (putFieldValueref instanceof ILoad && ((ILoad) putFieldValueref).getIndex() != 0) {
+                            if (putFieldValueref instanceof ILoad iload && iload.getIndex() != 0) {
                                 continue;
                             }
 

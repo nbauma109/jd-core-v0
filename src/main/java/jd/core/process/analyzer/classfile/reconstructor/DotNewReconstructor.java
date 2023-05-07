@@ -54,20 +54,20 @@ public final class DotNewReconstructor
                     String methodDesc = cp.getConstantUtf8(cnat.getSignatureIndex());
                     if ("getClass".equals(methodName) && "()Ljava/lang/Class;".equals(methodDesc)) {
                         InvokeNew invokeNew = visitor.visit(list.get(i+1));
-                        if (invokeNew != null && !invokeNew.getArgs().isEmpty() && invokeNew.getArgs().get(0) instanceof DupLoad) {
-                            DupLoad dupLoad = (DupLoad) invokeNew.getArgs().get(0);
-                            if (i > 0 && list.get(i-1) == dupLoad.getDupStore()) {
-                                // Remove POP
-                                list.remove(i);
-                                // Remove DUPLOAD from args
-                                invokeNew.getArgs().remove(0);
-                                invokeNew.setPrefix(dupLoad.getDupStore().getObjectref());
-                            }
+                        if (invokeNew != null
+                            && !invokeNew.getArgs().isEmpty()
+                            && invokeNew.getArgs().get(0) instanceof DupLoad dupLoad
+                            && i > 0
+                            && list.get(i-1) == dupLoad.getDupStore()) {
+                            // Remove POP
+                            list.remove(i);
+                            // Remove DUPLOAD from args
+                            invokeNew.getArgs().remove(0);
+                            invokeNew.setPrefix(dupLoad.getDupStore().getObjectref());
                         }
                     }
                 }
             }
         }
     }
-
 }

@@ -1511,8 +1511,7 @@ public final class LocalVariableAnalyzer
             LocalVariables localVariables,
             ArrayLoadInstruction ali)
     {
-        if (ali.getArrayref() instanceof ALoad && "B".equals(ali.getReturnedSignature(classFile, localVariables))) {
-            ALoad aload = (ALoad) ali.getArrayref();
+        if (ali.getArrayref() instanceof ALoad aload && "B".equals(ali.getReturnedSignature(classFile, localVariables))) {
             LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(
                     aload.getIndex(), aload.getOffset());
             if (lv != null) {
@@ -1522,9 +1521,8 @@ public final class LocalVariableAnalyzer
                 ali.setReturnedSignature(SignatureUtil.cutArrayDimensionPrefix(signature));
             }
         }
-        if (ali.getArrayref() instanceof GetField && "B".equals(ali.getReturnedSignature(classFile, localVariables))) {
-            GetField getField = (GetField) ali.getArrayref();
-            String signature = getField.getReturnedSignature(classFile, localVariables);
+        if (ali.getArrayref() instanceof GetField gf && "B".equals(ali.getReturnedSignature(classFile, localVariables))) {
+            String signature = gf.getReturnedSignature(classFile, localVariables);
             ali.setReturnedSignature(SignatureUtil.cutArrayDimensionPrefix(signature));
         }
     }

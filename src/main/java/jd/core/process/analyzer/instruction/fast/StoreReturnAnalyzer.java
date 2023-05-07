@@ -34,7 +34,10 @@ import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
  */
 public class StoreReturnAnalyzer 
 {
-	public static void cleanup(
+    private StoreReturnAnalyzer() {
+    }
+
+    public static void cleanup(
 		List<Instruction> list, LocalVariables localVariables)
 	{
 		int index = list.size();

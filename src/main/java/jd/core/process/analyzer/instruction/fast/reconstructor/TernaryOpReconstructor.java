@@ -104,8 +104,7 @@ public final class TernaryOpReconstructor
                    }
                 }
 
-                if (visitor.getOldInstruction() instanceof TernaryOperator) {
-                    TernaryOperator op = (TernaryOperator) visitor.getOldInstruction();
+                if (visitor.getOldInstruction() instanceof TernaryOperator op) {
                     fto.setValue1(op);
                     Instruction value2 = op.getValue2();
                     op.setValue2(value1.getObjectref());
@@ -114,9 +113,8 @@ public final class TernaryOpReconstructor
                     fto.setValue2(visitor.getOldInstruction());
                 }
 
-                if (isBooleanConstant(fto.getValue2()) && fto.getValue1() instanceof IConst)
+                if (isBooleanConstant(fto.getValue2()) && fto.getValue1() instanceof IConst iConst1)
                 {
-                    IConst iConst1 = (IConst) fto.getValue1();
                     iConst1.setSignature("Z");
                 }
 

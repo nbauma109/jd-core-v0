@@ -1479,10 +1479,8 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
         BaseType interfaces = newInvokeType.getInterfaces();
         if (interfaces != null) {
             for (Type interf : interfaces) {
-                if (interf instanceof ObjectType ot) {
-                    if (ot.getTypeArguments() != null) {
-                        return ot.getTypeArguments();
-                    }
+                if (interf instanceof ObjectType ot && ot.getTypeArguments() != null) {
+                    return ot.getTypeArguments();
                 }
             }
         }
@@ -1881,11 +1879,9 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
                     }
                     else
                     {
-                        if (insi instanceof Invokespecial is) {
-                            if (is.getPrefix() != null) {
-                                visit(is.getPrefix());
-                                this.printer.print('.');
-                            }
+                        if (insi instanceof Invokespecial is && is.getPrefix() != null) {
+                            visit(is.getPrefix());
+                            this.printer.print('.');
                         }
                         // Appel d'un constructeur de la classe mere
                         this.printer.printKeyword(lineNumber, "super");
@@ -2030,14 +2026,12 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
             }
             for (int i=firstIndex+1; i<length && i<args.size(); i++)
             {
-                if (varArgs && i == args.size() - 1 && args.get(i) instanceof ANewArray) {
-                    ANewArray aNewArray = (ANewArray) args.get(i);
-                    if (aNewArray.getDimension() instanceof IConst) {
-                        IConst dimension = (IConst) aNewArray.getDimension();
-                        if (dimension.getValue() == 0) {
-                            break;
-                        }
-                    }
+                if (varArgs
+                        && i == args.size() - 1
+                        && args.get(i) instanceof ANewArray aNewArray
+                        && aNewArray.getDimension() instanceof IConst dimension
+                        && dimension.getValue() == 0) {
+                    break;
                 }
                 nextOffset = this.previousOffset + 1;
 
@@ -2046,8 +2040,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
                     this.printer.print(lineNumber, ", ");
                 }
 
-                if (varArgs && i == args.size() - 1 && args.get(i) instanceof InitArrayInstruction) {
-                    InitArrayInstruction iai = (InitArrayInstruction) args.get(i);
+                if (varArgs && i == args.size() - 1 && args.get(i) instanceof InitArrayInstruction iai) {
                     for (Iterator<Instruction> it = iai.getValues().iterator(); it.hasNext();) {
                         Instruction varArg = it.next();
                         lineNumber = visit(varArg);

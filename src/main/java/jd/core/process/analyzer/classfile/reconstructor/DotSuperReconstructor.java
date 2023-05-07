@@ -55,20 +55,19 @@ public final class DotSuperReconstructor
                     String methodDesc = cp.getConstantUtf8(cnat.getSignatureIndex());
                     if ("getClass".equals(methodName) && "()Ljava/lang/Class;".equals(methodDesc)) {
                         Invokespecial is = visitor.visit(list.get(i+1));
-                        if (is != null && !is.getArgs().isEmpty() && is.getArgs().get(0) instanceof DupLoad) {
-                            DupLoad dupLoad = (DupLoad) is.getArgs().get(0);
-                            if (i > 0 && list.get(i-1) == dupLoad.getDupStore()) {
-                                // Remove POP
-                                list.remove(i);
-                                // Remove DUPLOAD from args
-                                is.getArgs().remove(0);
-                                is.setPrefix(dupLoad.getDupStore().getObjectref());
-                            }
+                        if (is != null
+                            && !is.getArgs().isEmpty()
+                            && is.getArgs().get(0) instanceof DupLoad dupLoad
+                            && i > 0 && list.get(i-1) == dupLoad.getDupStore()) {
+                            // Remove POP
+                            list.remove(i);
+                            // Remove DUPLOAD from args
+                            is.getArgs().remove(0);
+                            is.setPrefix(dupLoad.getDupStore().getObjectref());
                         }
                     }
                 }
             }
         }
     }
-
 }

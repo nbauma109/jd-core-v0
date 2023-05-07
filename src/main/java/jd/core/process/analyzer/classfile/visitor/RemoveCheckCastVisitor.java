@@ -45,8 +45,7 @@ public class RemoveCheckCastVisitor
     public void visit(Instruction instruction)
     {
         if (instruction instanceof TernaryOperator fto) {
-            if (fto.getValue1() instanceof CheckCast) {
-                CheckCast cc = (CheckCast) fto.getValue1();
+            if (fto.getValue1() instanceof CheckCast cc) {
                 String expSignature = cc.getObjectref().getReturnedSignature(classFile, localVariables);
                 if (expSignature != null) {
                     Type expType = typeMaker.makeFromSignature(expSignature);
@@ -57,8 +56,7 @@ public class RemoveCheckCastVisitor
             } else {
                 visit(fto.getValue1());
             }
-            if (fto.getValue2() instanceof CheckCast) {
-                CheckCast cc = (CheckCast) fto.getValue2();
+            if (fto.getValue2() instanceof CheckCast cc) {
                 String expSignature = cc.getObjectref().getReturnedSignature(classFile, localVariables);
                 if (expSignature != null) {
                     Type expType = typeMaker.makeFromSignature(expSignature);

@@ -134,12 +134,12 @@ public final class AssignmentOperatorReconstructor
 
         String newOperator = boi.getOperator() + "=";
 
-        if (boi.getValue2() instanceof ConstInstruction
+        if (boi.getValue2() instanceof ConstInstruction ci
             && isPlusOrMinusEqual(newOperator)) {
             int sign = "+=".equals(newOperator) ? 1 : -1;
             list.set(index, new IncInstruction(ByteCodeConstants.POSTINC,
                 putStatic.getOffset(), getStatic.getLineNumber(), getStatic,
-                sign * ((ConstInstruction)boi.getValue2()).getValue()));
+                sign * ci.getValue()));
         } else {
             list.set(index, new AssignmentInstruction(
                 ByteCodeConstants.ASSIGNMENT, putStatic.getOffset(),
@@ -181,12 +181,12 @@ public final class AssignmentOperatorReconstructor
 
         String newOperator = boi.getOperator() + "=";
 
-        if (boi.getValue2() instanceof ConstInstruction
+        if (boi.getValue2() instanceof ConstInstruction ci
             && isPlusOrMinusEqual(newOperator)) {
             int sign = "+=".equals(newOperator) ? 1 : -1;
             list.set(index, new IncInstruction(ByteCodeConstants.POSTINC,
                 putField.getOffset(), getField.getLineNumber(), getField,
-                sign * ((ConstInstruction)boi.getValue2()).getValue()));
+                sign * ci.getValue()));
         } else {
             list.set(index, new AssignmentInstruction(
                 ByteCodeConstants.ASSIGNMENT, putField.getOffset(),
@@ -213,11 +213,11 @@ public final class AssignmentOperatorReconstructor
 
         String newOperator = boi.getOperator() + "=";
 
-        if (boi.getValue2() instanceof ConstInstruction
+        if (boi.getValue2() instanceof ConstInstruction ci
             && isPlusOrMinusEqual(newOperator)) {
             list.set(index, new IncInstruction(ByteCodeConstants.POSTINC,
                     si.getOffset(), li.getLineNumber(), li,
-                    ((ConstInstruction) boi.getValue2()).getValue()));
+                    ci.getValue()));
         } else {
             list.set(index, new AssignmentInstruction(
                 ByteCodeConstants.ASSIGNMENT, si.getOffset(),
