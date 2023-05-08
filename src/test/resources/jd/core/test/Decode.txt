@@ -812,7 +812,7 @@
 /* 812 */             s.distanceBlockLength--;
 /* 813 */             BitReader.fillBitWindow(s);
 /* 814 */             s.distanceCode = readSymbol(s.hGroup2, s.hGroup2[
-/* 815 */               (s.distContextMap[(s.distContextMapSlice + (s.copyLength - 2))] & 0xFF)], s);
+/* 815 */               (s.distContextMap[(s.distContextMapSlice + (s.copyLength > 4 ? 3 : s.copyLength - 2))] & 0xFF)], s);
 /* 816 */             if (s.distanceCode >= s.numDirectDistanceCodes) {
 /* 817 */               s.distanceCode -= s.numDirectDistanceCodes;
 /* 818 */               int postfix = s.distanceCode & s.distancePostfixMask;

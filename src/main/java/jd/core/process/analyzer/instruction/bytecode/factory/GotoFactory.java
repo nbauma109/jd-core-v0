@@ -134,7 +134,13 @@ public class GotoFactory implements InstructionFactory
              || opcode == OUTERTHIS                                  // 285
             )
             {
-                result = offset;
+                if (opcode == Const.DUP_X1)
+                {
+                    result = offset - 1;
+                } else
+                {
+                    result = offset;
+                }
             }
 
             int nbOfOperands = Const.getNoOfOperands(opcode);
