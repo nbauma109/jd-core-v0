@@ -26,7 +26,7 @@ public class Dup2X2ExampleCreator {
   }
 
   public void create(OutputStream out) throws IOException {
-    createMethod_0();
+    createConstructor();
     createAbstractMethodForm1Result();
     createAbstractMethodForm2Result();
     createAbstractMethodForm3Result();
@@ -38,7 +38,7 @@ public class Dup2X2ExampleCreator {
     _cg.getJavaClass().dump(out);
   }
 
-  private void createMethod_0() {
+  private void createConstructor() {
     InstructionList il = new InstructionList();
     MethodGen method = new MethodGen(Const.ACC_PUBLIC, Type.VOID, Type.NO_ARGS, new String[] {  }, "<init>", "jd.core.test.Dup2X2Example", il, _cp);
 

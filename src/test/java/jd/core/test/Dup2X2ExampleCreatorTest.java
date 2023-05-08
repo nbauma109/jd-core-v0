@@ -54,9 +54,4 @@ public class Dup2X2ExampleCreatorTest extends AbstractTestCase {
         String output = decompile("jd/core/test/Dup2X2Example", loader);
         assertEquals(IOUtils.toString(getClass().getResource("Dup2X2DoubleExample.txt"), StandardCharsets.UTF_8), output);
     }
-
-    @Override
-    protected boolean recompile() {
-        return false;
-    }
 }
