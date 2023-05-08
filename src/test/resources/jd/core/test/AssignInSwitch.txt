@@ -1,0 +1,22 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class AssignInSwitch
+/*    */ {
+/*    */   int assignInSwitch(String s, char c) {
+/*    */     String line;
+/*  7 */     switch ((line = s + ':' + c).charAt(0)) {
+/*    */     case '0': 
+/*  9 */       return line.charAt(0);
+/*    */     }
+/* 11 */     return 1;
+/*    */   }
+/*    */   
+/*    */   int assignInIf(String s, char c)
+/*    */   {
+/*    */     String line;
+/* 17 */     if ((line = s + ':' + c).charAt(0) == '0') {
+/* 18 */       return line.charAt(0);
+/*    */     }
+/* 20 */     return 1;
+/*    */   }
+/*    */ }

@@ -139,9 +139,9 @@
 /*     */     }
 /* 140 */     this.position.generateCode(currentScope, codeStream, true);
 /* 141 */     codeStream.dup2();
-/* 142 */     codeStream.arrayAt(this.resolvedType.id); int 
-/*     */     
-/* 144 */       tmp85_84 = ((this.implicitConversion & 0xFF) >> 4);int operationTypeID = tmp85_84; switch (tmp85_84) {
+/* 142 */     codeStream.arrayAt(this.resolvedType.id);
+/*     */     int operationTypeID;
+/* 144 */     switch (operationTypeID = (this.implicitConversion & 0xFF) >> 4) {
 /*     */     case 0: 
 /*     */     case 1: 
 /*     */     case 11: 

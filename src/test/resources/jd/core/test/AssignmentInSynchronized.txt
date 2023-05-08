@@ -1,14 +1,23 @@
 /*    */ package jd.core.test;
 /*    */ 
-/*    */ import java.util.List;
+/*    */ import java.io.ObjectInputStream;
 /*    */ 
 /*    */ public class AssignmentInSynchronized
 /*    */ {
-/*    */   List<?> list;
+/*    */   java.util.List<?> list;
 /*    */   
-/*    */   int getSize() {
-/* 10 */     synchronized (this.list) {
-/* 11 */       return this.list.size();
+/*    */   int getSize()
+/*    */   {
+/* 11 */     synchronized (this.list) {
+/* 12 */       return this.list.size();
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   void assignInSynchronized(ObjectInputStream ois) throws Exception {
+/* 17 */     Object o = null;
+/*    */     
+/* 19 */     synchronized (o = ois.readObject()) {
+/* 20 */       System.out.println(o);
 /*    */     }
 /*    */   }
 /*    */ }
