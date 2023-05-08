@@ -418,7 +418,7 @@ public class ReferenceVisitor
         }
     }
 
-    private void visit(List<Instruction> instructions)
+    public void visit(List<Instruction> instructions)
     {
         if (instructions != null)
         {

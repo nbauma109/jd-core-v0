@@ -32,9 +32,7 @@ import org.apache.bcel.classfile.ParameterAnnotations;
 import org.apache.bcel.classfile.Signature;
 import org.jd.core.v1.util.StringConstants;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
@@ -42,8 +40,6 @@ import jd.core.model.classfile.Field;
 import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.classfile.Method;
-import jd.core.model.instruction.bytecode.instruction.Instruction;
-import jd.core.model.reference.Reference;
 import jd.core.model.reference.ReferenceMap;
 import jd.core.process.analyzer.classfile.visitor.ReferenceVisitor;
 
@@ -56,7 +52,6 @@ public final class ReferenceAnalyzer
         ReferenceMap referenceMap, ClassFile classFile)
     {
         collectReferences(referenceMap, classFile);
-        reduceReferences(referenceMap);
     }
 
     private static void collectReferences(
@@ -322,29 +317,6 @@ public final class ReferenceAnalyzer
     private static void countReferencesInCode(
         ReferenceVisitor visitor, Method method)
     {
-        List<Instruction> instructions = method.getFastNodes();
-
-        if (instructions != null)
-        {
-            instructions.forEach(visitor::visit);
-        }
-    }
-
-    private static void reduceReferences(ReferenceMap referenceMap)
-    {
-        Map<String, Boolean> multipleInternalClassName =
-            new HashMap<>();
-
-        for (Reference reference : referenceMap.values())
-        {
-            String internalName = reference.getInternalName();
-
-            int index =
-                internalName.lastIndexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR);
-            String internalClassName =
-                index != -1 ? internalName.substring(index+1) : internalName;
-
-            multipleInternalClassName.put(internalClassName, multipleInternalClassName.containsKey(internalClassName));
-        }
+        visitor.visit(method.getFastNodes());
     }
 }
