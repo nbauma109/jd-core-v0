@@ -13,7 +13,7 @@ public class OuterIncGetFieldTest extends AbstractTestCase {
 
     @Test
     public void testJDK180() throws Exception {
-        try (InputStream in = getClass().getResourceAsStream("/outer-inc-getstatic-jdk1.8.0_331.jar")) {
+        try (InputStream in = getClass().getResourceAsStream("/outer-inc-getfield-jdk1.8.0_331.jar")) {
             ZipLoader loader = new ZipLoader(in);
             String internalClassName = "jd/core/test/OuterIncGetField";
             String output = decompile(internalClassName, loader);
