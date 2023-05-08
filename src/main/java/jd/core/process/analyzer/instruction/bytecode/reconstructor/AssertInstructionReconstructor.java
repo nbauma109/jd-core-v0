@@ -31,6 +31,7 @@ import jd.core.model.instruction.bytecode.instruction.AThrow;
 import jd.core.model.instruction.bytecode.instruction.AssertInstruction;
 import jd.core.model.instruction.bytecode.instruction.ComplexConditionalBranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.GetStatic;
+import jd.core.model.instruction.bytecode.instruction.IConst;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNew;
@@ -68,32 +69,30 @@ public final class AssertInstructionReconstructor
             if (athrow.getValue().getOpcode() != ByteCodeConstants.INVOKENEW) {
                 continue;
             }
-
+            ComplexConditionalBranchInstruction cbl = null;
             instruction = list.get(index-1);
-            if (instruction.getOpcode() != ByteCodeConstants.COMPLEXIF) {
+            if (instruction.getOpcode() == ByteCodeConstants.COMPLEXIF) {
+                // ComplexConditionalBranchInstruction trouve
+                cbl = (ComplexConditionalBranchInstruction) instruction;
+                int jumpOffset = cbl.getJumpOffset();
+                int lastOffset = list.get(index+1).getOffset();
+    
+                if (athrow.getOffset() >= jumpOffset || jumpOffset > lastOffset) {
+                    continue;
+                }
+    
+                if (cbl.getCmp() != 2 || cbl.getInstructions().isEmpty()) {
+                    continue;
+                }
+    
+                instruction = cbl.getInstructions().get(0);
+                if (instruction.getOpcode() != ByteCodeConstants.IF) {
+                    continue;
+                }
+            }
+            if (!(instruction instanceof IfInstruction if1)) {
                 continue;
             }
-
-            // ComplexConditionalBranchInstruction trouve
-            ComplexConditionalBranchInstruction cbl =
-                (ComplexConditionalBranchInstruction)instruction;
-            int jumpOffset = cbl.getJumpOffset();
-            int lastOffset = list.get(index+1).getOffset();
-
-            if (athrow.getOffset() >= jumpOffset || jumpOffset > lastOffset) {
-                continue;
-            }
-
-            if (cbl.getCmp() != 2 || cbl.getInstructions().isEmpty()) {
-                continue;
-            }
-
-            instruction = cbl.getInstructions().get(0);
-            if (instruction.getOpcode() != ByteCodeConstants.IF) {
-                continue;
-            }
-
-            IfInstruction if1 = (IfInstruction)instruction;
             if (if1.getCmp() != 7 || if1.getValue().getOpcode() != Const.GETSTATIC) {
                 continue;
             }
@@ -123,15 +122,25 @@ public final class AssertInstructionReconstructor
                 continue;
             }
 
-            // Remove first condition "!($assertionsDisabled)"
-            cbl.getInstructions().remove(0);
-
             Instruction msg = in.getArgs().isEmpty() ? null : in.getArgs().get(0);
             list.remove(index--);
 
-            list.set(index, new AssertInstruction(
-                ByteCodeConstants.ASSERT, athrow.getOffset(),
-                cbl.getLineNumber(), cbl, msg));
+            if (cbl != null) {
+                // Remove first condition "!($assertionsDisabled)"
+                cbl.getInstructions().remove(0);
+    
+                list.set(index, new AssertInstruction(
+                    ByteCodeConstants.ASSERT, athrow.getOffset(),
+                    cbl.getLineNumber(), cbl, msg));
+            } else {
+                // assert false
+                IConst falseConst = new IConst(ByteCodeConstants.ICONST,
+                if1.getOffset(), if1.getLineNumber(), 0);
+                falseConst.setSignature("Z");
+                list.set(index, new AssertInstruction(
+                    ByteCodeConstants.ASSERT, athrow.getOffset(),
+                    if1.getLineNumber(), falseConst, msg));
+            }
         }
     }
 }
