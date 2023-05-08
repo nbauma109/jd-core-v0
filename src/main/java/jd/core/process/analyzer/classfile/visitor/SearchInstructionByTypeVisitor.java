@@ -184,7 +184,10 @@ public final class SearchInstructionByTypeVisitor<T extends Instruction>
             }
             break;
         case Const.LOOKUPSWITCH, Const.TABLESWITCH:
-            visit(((Switch)instruction).getKey());
+            T result = visit(((Switch)instruction).getKey());
+            if (result != null) {
+                return result;
+            }
             break;
         case Const.MULTIANEWARRAY:
             {
