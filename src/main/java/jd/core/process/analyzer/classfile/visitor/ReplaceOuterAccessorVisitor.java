@@ -21,39 +21,20 @@ import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 
-import java.util.List;
-
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
-import jd.core.model.instruction.bytecode.instruction.ANewArray;
-import jd.core.model.instruction.bytecode.instruction.AThrow;
-import jd.core.model.instruction.bytecode.instruction.ArrayLength;
-import jd.core.model.instruction.bytecode.instruction.ArrayLoadInstruction;
-import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
-import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
-import jd.core.model.instruction.bytecode.instruction.ConvertInstruction;
 import jd.core.model.instruction.bytecode.instruction.GetStatic;
-import jd.core.model.instruction.bytecode.instruction.IfCmp;
-import jd.core.model.instruction.bytecode.instruction.IfInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
-import jd.core.model.instruction.bytecode.instruction.InvokeInstruction;
-import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
 import jd.core.model.instruction.bytecode.instruction.Invokestatic;
-import jd.core.model.instruction.bytecode.instruction.MultiANewArray;
-import jd.core.model.instruction.bytecode.instruction.NewArray;
-import jd.core.model.instruction.bytecode.instruction.PutField;
-import jd.core.model.instruction.bytecode.instruction.Switch;
-import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
-import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
-import jd.core.model.instruction.bytecode.instruction.attribute.ValuerefAttribute;
+import jd.core.process.analyzer.instruction.fast.visitor.AbstractReplaceInstructionVisitor;
 import jd.core.util.SignatureUtil;
 
 /*
  * Replace static call to "OuterClass access$0(InnerClass)" methods.
  */
-public class ReplaceOuterAccessorVisitor
+public class ReplaceOuterAccessorVisitor extends AbstractReplaceInstructionVisitor<ClassFile>
 {
     protected final ClassFile classFile;
 
@@ -62,318 +43,12 @@ public class ReplaceOuterAccessorVisitor
         this.classFile = classFile;
     }
 
-    public void visit(Instruction instruction)
-    {
-        switch (instruction.getOpcode())
-        {
-        case Const.ARRAYLENGTH:
-            {
-                ArrayLength al = (ArrayLength)instruction;
-                ClassFile matchedClassFile = match(al.getArrayref());
-                if (matchedClassFile != null) {
-                    al.setArrayref(newInstruction(matchedClassFile, al.getArrayref()));
-                } else {
-                    visit(al.getArrayref());
-                }
-            }
-            break;
-        case Const.AASTORE,
-             ByteCodeConstants.ARRAYSTORE:
-            {
-                ArrayStoreInstruction asi = (ArrayStoreInstruction)instruction;
-                ClassFile matchedClassFile = match(asi.getArrayref());
-                if (matchedClassFile != null) {
-                    asi.setArrayref(newInstruction(matchedClassFile, asi.getArrayref()));
-                } else {
-                    visit(asi.getArrayref());
-                }
-                matchedClassFile = match(asi.getIndexref());
-                if (matchedClassFile != null) {
-                    asi.setIndexref(newInstruction(matchedClassFile, asi.getIndexref()));
-                } else {
-                    visit(asi.getIndexref());
-                }
-                matchedClassFile = match(asi.getValueref());
-                if (matchedClassFile != null) {
-                    asi.setValueref(newInstruction(matchedClassFile, asi.getValueref()));
-                } else {
-                    visit(asi.getValueref());
-                }
-            }
-            break;
-        case Const.ATHROW:
-            {
-                AThrow aThrow = (AThrow)instruction;
-                ClassFile matchedClassFile = match(aThrow.getValue());
-                if (matchedClassFile != null) {
-                    aThrow.setValue(newInstruction(matchedClassFile, aThrow.getValue()));
-                } else {
-                    visit(aThrow.getValue());
-                }
-            }
-            break;
-        case ByteCodeConstants.UNARYOP:
-            {
-                UnaryOperatorInstruction uoi = (UnaryOperatorInstruction)instruction;
-                ClassFile matchedClassFile = match(uoi.getValue());
-                if (matchedClassFile != null) {
-                    uoi.setValue(newInstruction(matchedClassFile, uoi.getValue()));
-                } else {
-                    visit(uoi.getValue());
-                }
-            }
-            break;
-        case ByteCodeConstants.BINARYOP:
-            {
-                BinaryOperatorInstruction boi = (BinaryOperatorInstruction)instruction;
-                ClassFile matchedClassFile = match(boi.getValue1());
-                if (matchedClassFile != null) {
-                    boi.setValue1(newInstruction(matchedClassFile, boi.getValue1()));
-                } else {
-                    visit(boi.getValue1());
-                }
-                matchedClassFile = match(boi.getValue2());
-                if (matchedClassFile != null) {
-                    boi.setValue2(newInstruction(matchedClassFile, boi.getValue2()));
-                } else {
-                    visit(boi.getValue2());
-                }
-            }
-            break;
-        case ByteCodeConstants.DUPSTORE,
-             ByteCodeConstants.TERNARYOPSTORE,
-             Const.CHECKCAST,
-             Const.GETFIELD,
-             Const.INSTANCEOF,
-             Const.MONITORENTER,
-             Const.MONITOREXIT,
-             Const.POP:
-            {
-                ObjectrefAttribute o = (ObjectrefAttribute)instruction;
-                ClassFile matchedClassFile = match(o.getObjectref());
-                if (matchedClassFile != null) {
-                    o.setObjectref(newInstruction(matchedClassFile, o.getObjectref()));
-                } else {
-                    visit(o.getObjectref());
-                }
-            }
-            break;
-        case ByteCodeConstants.STORE,
-             ByteCodeConstants.XRETURN,
-             Const.ASTORE,
-             Const.ISTORE,
-             Const.PUTSTATIC:
-            {
-                ValuerefAttribute v = (ValuerefAttribute)instruction;
-                ClassFile matchedClassFile = match(v.getValueref());
-                if (matchedClassFile != null) {
-                    v.setValueref(newInstruction(matchedClassFile, v.getValueref()));
-                }
-                visit(v.getValueref());
-            }
-            break;
-        case ByteCodeConstants.CONVERT,
-             ByteCodeConstants.IMPLICITCONVERT:
-            {
-                ConvertInstruction ci = (ConvertInstruction)instruction;
-                ClassFile matchedClassFile = match(ci.getValue());
-                if (matchedClassFile != null) {
-                    ci.setValue(newInstruction(matchedClassFile, ci.getValue()));
-                } else {
-                    visit(ci.getValue());
-                }
-            }
-            break;
-        case ByteCodeConstants.IFCMP:
-            {
-                IfCmp ifCmp = (IfCmp)instruction;
-                ClassFile matchedClassFile = match(ifCmp.getValue1());
-                if (matchedClassFile != null) {
-                    ifCmp.setValue1(newInstruction(matchedClassFile, ifCmp.getValue1()));
-                } else {
-                    visit(ifCmp.getValue1());
-                }
-                matchedClassFile = match(ifCmp.getValue2());
-                if (matchedClassFile != null) {
-                    ifCmp.setValue2(newInstruction(matchedClassFile, ifCmp.getValue2()));
-                } else {
-                    visit(ifCmp.getValue2());
-                }
-            }
-            break;
-        case ByteCodeConstants.IF,
-             ByteCodeConstants.IFXNULL:
-            {
-                IfInstruction iff = (IfInstruction)instruction;
-                ClassFile matchedClassFile = match(iff.getValue());
-                if (matchedClassFile != null) {
-                    iff.setValue(newInstruction(matchedClassFile, iff.getValue()));
-                } else {
-                    visit(iff.getValue());
-                }
-            }
-            break;
-        case Const.INVOKEINTERFACE,
-             Const.INVOKESPECIAL,
-             Const.INVOKEVIRTUAL:
-            {
-                InvokeNoStaticInstruction insi =
-                    (InvokeNoStaticInstruction)instruction;
-                ClassFile matchedClassFile = match(insi.getObjectref());
-                if (matchedClassFile != null) {
-                    insi.setObjectref(newInstruction(matchedClassFile, insi.getObjectref()));
-                } else {
-                    visit(insi.getObjectref());
-                }
-            }
-            // intended fall through
-        case Const.INVOKESTATIC,
-             ByteCodeConstants.INVOKENEW:
-            {
-                List<Instruction> list = ((InvokeInstruction)instruction).getArgs();
-                for (int i=list.size()-1; i>=0; --i)
-                {
-                    ClassFile matchedClassFile = match(list.get(i));
-                    if (matchedClassFile != null) {
-                        list.set(i, newInstruction(matchedClassFile, list.get(i)));
-                    } else {
-                        visit(list.get(i));
-                    }
-                }
-            }
-            break;
-        case Const.LOOKUPSWITCH, Const.TABLESWITCH:
-            {
-                Switch ls = (Switch)instruction;
-                ClassFile matchedClassFile = match(ls.getKey());
-                if (matchedClassFile != null) {
-                    ls.setKey(newInstruction(matchedClassFile, ls.getKey()));
-                } else {
-                    visit(ls.getKey());
-                }
-            }
-            break;
-        case Const.MULTIANEWARRAY:
-            {
-                List<Instruction> dimensions = ((MultiANewArray)instruction).getDimensions();
-                for (int i=dimensions.size()-1; i>=0; --i)
-                {
-                    ClassFile matchedClassFile = match(dimensions.get(i));
-                    if (matchedClassFile != null) {
-                        dimensions.set(i, newInstruction(matchedClassFile, dimensions.get(i)));
-                    } else {
-                        visit(dimensions.get(i));
-                    }
-                }
-            }
-            break;
-        case Const.NEWARRAY:
-            {
-                NewArray newArray = (NewArray)instruction;
-                ClassFile matchedClassFile = match(newArray.getDimension());
-                if (matchedClassFile != null) {
-                    newArray.setDimension(newInstruction(matchedClassFile, newArray.getDimension()));
-                } else {
-                    visit(newArray.getDimension());
-                }
-            }
-            break;
-        case Const.ANEWARRAY:
-            {
-                ANewArray aNewArray = (ANewArray)instruction;
-                ClassFile matchedClassFile = match(aNewArray.getDimension());
-                if (matchedClassFile != null) {
-                    aNewArray.setDimension(newInstruction(matchedClassFile, aNewArray.getDimension()));
-                } else {
-                    visit(aNewArray.getDimension());
-                }
-            }
-            break;
-        case Const.PUTFIELD:
-            {
-                PutField putField = (PutField)instruction;
-                ClassFile matchedClassFile = match(putField.getObjectref());
-                if (matchedClassFile != null) {
-                    putField.setObjectref(newInstruction(matchedClassFile, putField.getObjectref()));
-                } else {
-                    visit(putField.getObjectref());
-                }
-                matchedClassFile = match(putField.getValueref());
-                if (matchedClassFile != null) {
-                    putField.setValueref(newInstruction(matchedClassFile, putField.getValueref()));
-                } else {
-                    visit(putField.getValueref());
-                }
-            }
-            break;
-        case ByteCodeConstants.ARRAYLOAD:
-            {
-                ArrayLoadInstruction ali = (ArrayLoadInstruction)instruction;
-                ClassFile matchedClassFile = match(ali.getArrayref());
-                if (matchedClassFile != null) {
-                    ali.setArrayref(newInstruction(matchedClassFile, ali.getArrayref()));
-                } else {
-                    visit(ali.getArrayref());
-                }
-                matchedClassFile = match(ali.getIndexref());
-                if (matchedClassFile != null) {
-                    ali.setIndexref(newInstruction(matchedClassFile, ali.getIndexref()));
-                } else {
-                    visit(ali.getIndexref());
-                }
-            }
-            break;
-        case Const.ACONST_NULL,
-             ByteCodeConstants.LOAD,
-             Const.ALOAD,
-             Const.ILOAD,
-             Const.BIPUSH,
-             ByteCodeConstants.ICONST,
-             ByteCodeConstants.LCONST,
-             ByteCodeConstants.FCONST,
-             ByteCodeConstants.DCONST,
-             ByteCodeConstants.DUPLOAD,
-             ByteCodeConstants.POSTINC,
-             ByteCodeConstants.PREINC,
-             Const.GETSTATIC,
-             ByteCodeConstants.OUTERTHIS,
-             Const.GOTO,
-             Const.IINC,
-             Const.JSR,
-             Const.LDC,
-             Const.LDC2_W,
-             Const.NEW,
-             Const.NOP,
-             Const.SIPUSH,
-             Const.RET,
-             Const.RETURN,
-             Const.INVOKEDYNAMIC,
-             ByteCodeConstants.EXCEPTIONLOAD,
-             ByteCodeConstants.RETURNADDRESSLOAD:
-            break;
-        default:
-            System.err.println(
-                    "Can not replace OuterAccessor in " +
-                    instruction.getClass().getName() +
-                    ", opcode=" + instruction.getOpcode());
-        }
+    @Override
+    protected ClassFile match(Instruction parentFound, Instruction instruction) {
+        return match(instruction);
     }
 
-    public void visit(List<Instruction> instructions)
-    {
-        for (int index=instructions.size()-1; index>=0; --index)
-        {
-            Instruction i = instructions.get(index);
-            ClassFile matchedClassFile = match(i);
-
-            if (matchedClassFile != null) {
-                instructions.set(index, newInstruction(matchedClassFile, i));
-            } else {
-                visit(i);
-            }
-        }
-    }
-
+    @Override
     protected ClassFile match(Instruction instruction)
     {
         if (instruction.getOpcode() != Const.INVOKESTATIC) {
@@ -463,7 +138,8 @@ public class ReplaceOuterAccessorVisitor
         }
     }
 
-    private Instruction newInstruction(ClassFile matchedClassFile, Instruction i)
+    @Override
+    protected Instruction newInstruction(Instruction i, ClassFile matchedClassFile)
     {
         String internalMatchedClassName =
             matchedClassFile.getInternalClassName();

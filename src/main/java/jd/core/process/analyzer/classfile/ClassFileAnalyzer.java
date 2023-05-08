@@ -1166,10 +1166,7 @@ public final class ClassFileAnalyzer
     public static void replaceStringBufferAndStringBuilder(
             ClassFile classFile, LocalVariables localVariables, List<Instruction> list)
     {
-        ReplaceStringBuxxxerVisitor visitor = new ReplaceStringBuxxxerVisitor(
-                classFile, localVariables);
-
-        list.forEach(visitor::visit);
+        new ReplaceStringBuxxxerVisitor(classFile, localVariables).visit(list);
     }
 
     private static void removeUnusedPopInstruction(List<Instruction> list)
