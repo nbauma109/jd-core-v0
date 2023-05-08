@@ -1,0 +1,126 @@
+/*     */ package net.sourceforge.plantuml.svek;
+/*     */ 
+/*     */ import java.util.ArrayList;
+/*     */ import java.util.Collections;
+/*     */ import java.util.List;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class LineOfSegments
+/*     */ {
+/*     */   private static class Segment
+/*     */     implements Comparable<Segment>
+/*     */   {
+/*     */     private final int idx;
+/*     */     private double middle;
+/*     */     private final double halfSize;
+/*     */     
+/*     */     private Segment(int idx, double x1, double x2)
+/*     */     {
+/*  50 */       this.idx = idx;
+/*  51 */       this.middle = (x1 + x2) / 2.0D;
+/*  52 */       this.halfSize = (x2 - x1) / 2.0D;
+/*     */     }
+/*     */     
+/*     */     @Override
+/*     */     public int compareTo(Segment other) {
+/*  57 */       return Double.compare(this.middle, other.middle);
+/*     */     }
+/*     */     
+/*     */     private double overlap(Segment other) {
+/*  61 */       double distance = other.middle - this.middle;
+/*  62 */       if (distance < 0.0D)
+/*  63 */         throw new IllegalArgumentException();
+/*  64 */       double diff = distance - this.halfSize - other.halfSize;
+/*  65 */       if (diff > 0.0D)
+/*  66 */         return 0.0D;
+/*  67 */       return -diff;
+/*     */     }
+/*     */     
+/*     */     private void push(double delta) {
+/*  71 */       this.middle += delta;
+/*     */     }
+/*     */   }
+/*     */   
+/*  75 */   private final List<Segment> all = new ArrayList<>();
+/*     */   
+/*     */   public void addSegment(double x1, double x2) {
+/*  78 */     this.all.add(new Segment(this.all.size(), x1, x2));
+/*     */   }
+/*     */   
+/*     */   public double getMean() {
+/*  82 */     double sum = 0.0D;
+/*  83 */     for (Segment seg : this.all) {
+/*  84 */       sum += seg.middle;
+/*     */     }
+/*  86 */     return sum / this.all.size();
+/*     */   }
+/*     */   
+/*     */   void solveOverlapsInternal() {
+/*  90 */     if (this.all.size() < 2)
+/*  91 */       return;
+/*  92 */     Collections.sort(this.all);
+/*  93 */     for (int i = 0; i < this.all.size(); i++)
+/*  94 */       if (!oneLoop())
+/*  95 */         return;
+/*     */   }
+/*     */   
+/*     */   private boolean oneLoop() {
+/*  99 */     for (int i = this.all.size() - 2; i >= 0; i--) {
+/* 100 */       Segment seg1 = (Segment)this.all.get(i);
+/* 101 */       Segment seg2 = (Segment)this.all.get(i + 1);
+/* 102 */       double overlap = seg1.overlap(seg2);
+/* 103 */       if (overlap > 0.0D) {
+/* 104 */         for (int k = i + 1; k < this.all.size(); k++)
+/* 105 */           ((Segment)this.all.get(k)).push(overlap);
+/* 106 */         return true;
+/*     */       }
+/*     */     }
+/* 109 */     return false;
+/*     */   }
+/*     */   
+/*     */   public double[] solveOverlaps()
+/*     */   {
+/* 114 */     double mean1 = getMean();
+/* 115 */     solveOverlapsInternal();
+/* 116 */     double mean2 = getMean();
+/* 117 */     double diff = mean1 - mean2;
+/* 118 */     if (diff != 0.0D)
+/* 119 */       for (Segment seg : this.all)
+/* 120 */         seg.push(diff);
+/* 121 */     double[] result = new double[this.all.size()];
+/* 122 */     for (Segment seg : this.all)
+/* 123 */       result[seg.idx] = (seg.middle - seg.halfSize);
+/* 124 */     return result;
+/*     */   }
+/*     */ }
