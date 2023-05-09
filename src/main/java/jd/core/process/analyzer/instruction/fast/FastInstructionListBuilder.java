@@ -3224,6 +3224,9 @@ public final class FastInstructionListBuilder {
             }
             valueref = iv.getObjectref();
         }
+        if (valueref instanceof CheckCast cc) {
+            valueref = cc.getObjectref();
+        }
         if (valueref.getOpcode() != ByteCodeConstants.ARRAYLOAD) {
             return 0;
         }
@@ -3456,6 +3459,9 @@ public final class FastInstructionListBuilder {
             return 0;
         }
         StoreInstruction si = (StoreInstruction) beforeForInstruction;
+        if (si.getValueref() instanceof CheckCast cc) {
+            si.setValueref(cc.getObjectref());
+        }
         if (si.getValueref().getOpcode() == Const.ARRAYLENGTH) {
             ArrayLength al = (ArrayLength) si.getValueref();
             if (al.getArrayref().getOpcode() == ByteCodeConstants.ASSIGNMENT) {
