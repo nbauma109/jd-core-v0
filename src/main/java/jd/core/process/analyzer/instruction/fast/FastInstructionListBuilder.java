@@ -3224,6 +3224,9 @@ public final class FastInstructionListBuilder {
             }
             valueref = iv.getObjectref();
         }
+        if (valueref instanceof CheckCast cc) {
+            valueref = cc.getObjectref();
+        }
         if (valueref.getOpcode() != ByteCodeConstants.ARRAYLOAD) {
             return 0;
         }
