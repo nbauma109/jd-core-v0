@@ -1,0 +1,178 @@
+/*     */ package net.sourceforge.plantuml.preproc;
+/*     */ 
+/*     */ import java.io.IOException;
+/*     */ import java.io.InputStream;
+/*     */ import java.io.InputStreamReader;
+/*     */ import java.io.Reader;
+/*     */ import java.nio.charset.Charset;
+/*     */ import net.sourceforge.plantuml.log.Logme;
+/*     */ import net.sourceforge.plantuml.preproc2.ReadFilterMergeLines;
+/*     */ import net.sourceforge.plantuml.security.SURL;
+/*     */ import net.sourceforge.plantuml.text.StringLocated;
+/*     */ import net.sourceforge.plantuml.utils.Log;
+/*     */ import net.sourceforge.plantuml.utils.StartUtils;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class StartDiagramExtractReader
+/*     */   implements ReadLine
+/*     */ {
+/*     */   private final ReadLine raw;
+/*  54 */   private boolean finished = false;
+/*     */   
+/*     */   public static StartDiagramExtractReader build(FileWithSuffix f2, StringLocated s, Charset charset) {
+/*  57 */     return new StartDiagramExtractReader(getReadLine(f2, s, charset), f2.getSuffix());
+/*     */   }
+/*     */   
+/*     */   public static StartDiagramExtractReader build(SURL url, StringLocated s, String uid, Charset charset) {
+/*  61 */     return new StartDiagramExtractReader(getReadLine(url, s, charset), uid);
+/*     */   }
+/*     */   
+/*     */   public static StartDiagramExtractReader build(InputStream is, StringLocated s, String desc) {
+/*  65 */     return new StartDiagramExtractReader(getReadLine(is, s, desc), null);
+/*     */   }
+/*     */   
+/*     */   private StartDiagramExtractReader(ReadLine raw, String suf) {
+/*  69 */     int bloc = 0;
+/*  70 */     String uid = null;
+/*  71 */     if (suf != null && suf.matches("\\d+")) {
+/*  72 */       bloc = Integer.parseInt(suf);
+/*     */     } else {
+/*  74 */       uid = suf;
+/*     */     }
+/*  76 */     if (bloc < 0) {
+/*  77 */       bloc = 0;
+/*     */     }
+/*  79 */     this.raw = raw;
+/*  80 */     StringLocated s = null;
+/*     */     try {
+/*  82 */       while ((s = raw.readLine()) != null) {
+/*  83 */         if (StartUtils.isArobaseStartDiagram(s.getString()) && checkUid(uid, s)) {
+/*  84 */           if (bloc == 0)
+/*  85 */             return;
+/*  86 */           bloc--;
+/*     */         }
+/*     */       }
+/*     */     } catch (IOException e) {
+/*  90 */       Logme.error(e);
+/*  91 */       Log.error("Error " + e);
+/*     */     }
+/*  93 */     this.finished = true;
+/*     */   }
+/*     */   
+/*     */   private boolean checkUid(String uid, StringLocated s) {
+/*  97 */     if (uid == null) {
+/*  98 */       return true;
+/*     */     }
+/* 100 */     if (s.toString().matches(".*id=" + uid + "\\W.*")) {
+/* 101 */       return true;
+/*     */     }
+/* 103 */     return false;
+/*     */   }
+/*     */   
+/*     */   private static ReadLine getReadLine(FileWithSuffix f2, StringLocated s, Charset charset) {
+/*     */     try {
+/* 108 */       Reader tmp1 = f2.getReader(charset);
+/* 109 */       if (tmp1 == null) {
+/* 110 */         return new ReadLineSimple(s, "Cannot open " + f2.getDescription());
+/*     */       }
+/* 112 */       return uncommentAndMerge(ReadLineReader.create(tmp1, f2.getDescription()));
+/*     */     } catch (IOException e) {
+/* 114 */       return new ReadLineSimple(s, e.toString());
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private static ReadLine getReadLine(InputStream is, StringLocated s, String description) {
+/* 119 */     return uncommentAndMerge(ReadLineReader.create(new InputStreamReader(is), description));
+/*     */   }
+/*     */   
+/*     */   private static ReadLine getReadLine(SURL url, StringLocated s, Charset charset) {
+/* 123 */     InputStream tmp = url.openStream();
+/* 124 */     if (tmp == null) {
+/* 125 */       return new ReadLineSimple(s, "Cannot connect");
+/*     */     }
+/* 127 */     return uncommentAndMerge(ReadLineReader.create(new InputStreamReader(tmp, charset), url.toString()));
+/*     */   }
+/*     */   
+/*     */   private static ReadLine uncommentAndMerge(ReadLine reader) {
+/* 131 */     return new UncommentReadLine(new ReadFilterMergeLines().applyFilter(reader));
+/*     */   }
+/*     */   
+/*     */   public static boolean containsStartDiagram(FileWithSuffix f2, StringLocated s, Charset charset) throws IOException {
+/* 135 */     ReadLine r = getReadLine(f2, s, charset);
+/* 136 */     return containsStartDiagram(r);
+/*     */   }
+/*     */   
+/*     */   public static boolean containsStartDiagram(SURL url, StringLocated s, Charset charset) throws IOException {
+/* 140 */     ReadLine r = getReadLine(url, s, charset);
+/* 141 */     return containsStartDiagram(r);
+/*     */   }
+/*     */   
+/*     */   public static boolean containsStartDiagram(InputStream is, StringLocated s, String description) throws IOException {
+/* 145 */     ReadLine r = getReadLine(is, s, description);
+/* 146 */     return containsStartDiagram(r);
+/*     */   }
+/*     */   
+/*     */   private static boolean containsStartDiagram(ReadLine r) throws IOException {
+/*     */     try {
+/* 151 */       StringLocated s = null;
+/* 152 */       while ((s = r.readLine()) != null) {
+/* 153 */         if (StartUtils.isArobaseStartDiagram(s.getString()))
+/* 154 */           return true;
+/*     */       }
+/*     */     } finally {
+/* 157 */       if (r != null) {
+/* 158 */         r.close();
+/*     */       }
+/*     */     }
+/* 161 */     return false;
+/*     */   }
+/*     */   
+/*     */   @Override
+/* 165 */   public StringLocated readLine() throws IOException { if (this.finished) {
+/* 166 */       return null;
+/*     */     }
+/* 168 */     StringLocated result = this.raw.readLine();
+/* 169 */     if (result != null && StartUtils.isArobaseEndDiagram(result.getString())) {
+/* 170 */       this.finished = true;
+/* 171 */       return null;
+/*     */     }
+/* 173 */     return result;
+/*     */   }
+/*     */   
+/*     */   @Override
+/* 177 */   public void close() throws IOException { this.raw.close(); }
+/*     */ }

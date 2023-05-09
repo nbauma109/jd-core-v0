@@ -2795,10 +2795,6 @@ public final class FastCodeExceptionAnalyzer
                 }
 
                 fastTry.removeOutOfBoundsInstructions(astore.getLineNumber());
-                // Remove finally instructions before 'return' instruction
-                int finallyInstructionsSize = finallyInstructions.size();
-                formatEclipse677FinallyRemoveFinallyInstructionsBeforeReturn(
-                        tryInstructions, finallyInstructionsSize);
 
                 // Format 'ifxxx' instruction jumping to finally block
                 formatEclipse677FinallyFormatIfInstruction(
@@ -2828,24 +2824,6 @@ public final class FastCodeExceptionAnalyzer
                 {
                     // Change jump offset
                     ifi.setBranch(afterTryOffset - ifi.getOffset());
-                }
-            }
-        }
-    }
-
-    private static void formatEclipse677FinallyRemoveFinallyInstructionsBeforeReturn(
-            List<Instruction> instructions, int finallyInstructionsSize)
-    {
-        int i = instructions.size();
-
-        int iOpCode;
-        while (i-- > 0)
-        {
-            iOpCode = instructions.get(i).getOpcode();
-            if (iOpCode == Const.RETURN || iOpCode == ByteCodeConstants.XRETURN) {
-                // Remove finally instructions
-                for (int j=0; j<finallyInstructionsSize && i>0; i--,j++) {
-                    instructions.remove(i-1);
                 }
             }
         }
@@ -2899,11 +2877,6 @@ public final class FastCodeExceptionAnalyzer
 
             fastTry.removeOutOfBoundsInstructions(astore.getLineNumber());
 
-            // Remove finally instructions before 'return' instruction
-            int finallyInstructionsSize = finallyInstructions.size();
-            formatEclipse677FinallyRemoveFinallyInstructionsBeforeReturn(
-                    tryInstructions, finallyInstructionsSize);
-
             // Format 'ifxxx' instruction jumping to finally block
             formatEclipse677FinallyFormatIfInstruction(
                     tryInstructions, athrowOffset,
@@ -2934,16 +2907,12 @@ public final class FastCodeExceptionAnalyzer
                     if (jumpOffset > fastTry.getOffset())
                     {
                         // Remove finally block instructions
-                        for (int j=finallyInstructionsSize; j>0; --j) {
+                        for (int j=finallyInstructions.size(); j>0; --j) {
                             index--;
                             catchInstructions.remove(index);
                         }
                     }
                 }
-
-                // Remove finally instructions before 'return' instruction
-                formatEclipse677FinallyRemoveFinallyInstructionsBeforeReturn(
-                        catchInstructions, finallyInstructionsSize);
 
                 // Format 'ifxxx' instruction jumping to finally block
                 formatEclipse677FinallyFormatIfInstruction(
