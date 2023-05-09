@@ -3206,21 +3206,21 @@ public final class FastCodeExceptionAnalyzer
                 Switch s = (Switch)instruction;
 
                 // Search max offset
-                int maxSitchOffset = s.getDefaultOffset();
+                int maxSwitchOffset = s.getDefaultOffset();
                 int i = s.getOffsets().length;
                 int offset;
                 while (i-- > 0)
                 {
                     offset = s.getOffset(i);
-                    if (maxSitchOffset < offset) {
-                        maxSitchOffset = offset;
+                    if (maxSwitchOffset < offset) {
+                        maxSwitchOffset = offset;
                     }
                 }
-                maxSitchOffset += s.getOffset();
+                maxSwitchOffset += s.getOffset();
 
                 // Saut positif dans les limites
-                if (maxSitchOffset > instruction.getOffset() && maxSitchOffset < maxOffset && beforeMaxOffset < maxSitchOffset) {
-                    beforeMaxOffset = maxSitchOffset;
+                if (maxSwitchOffset > instruction.getOffset() && maxSwitchOffset < maxOffset && beforeMaxOffset < maxSwitchOffset) {
+                    beforeMaxOffset = maxSwitchOffset;
                 }
                 // else
                 // {
