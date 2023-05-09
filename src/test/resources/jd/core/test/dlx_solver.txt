@@ -1,0 +1,559 @@
+/*     */ package net.sourceforge.plantuml.sudoku;
+/*     */ 
+/*     */ import java.util.Random;
+/*     */ 
+/*     */ class dlx_solver { static final int M = 8;
+/*     */   static final int M2 = 64;
+/*     */   static final int M4 = 4096;
+/*     */   int max;
+/*     */   int _try_;
+/*     */   int min;
+/*     */   int clues;
+/*     */   int gu;
+/*     */   int tries;
+/*     */   long nodes;
+/*     */   long tnodes;
+/*     */   long solutions;
+/*     */   long vmax;
+/*     */   long smax;
+/*     */   long time0;
+/*     */   long time1;
+/*     */   long t1;
+/*     */   long x1;
+/*     */   double xx;
+/*     */   double yy;
+/*     */   int q;
+/*     */   int a;
+/*     */   int p;
+/*     */   int i;
+/*     */   int i1;
+/*     */   int j;
+/*     */   int k;
+/*     */   int l;
+/*     */   int r;
+/*     */   int r1;
+/*     */   int c; int c1; int c2; int n; int N2; int N4; int m; int m0; int m1; int x; int y; int s; static final int M6 = 10; static final int M7 = 11; static final int RESTART = 12;
+/*  36 */   long MWC() { return this.random.nextLong(); }
+/*     */   
+/*     */   static final int M22 = 13;
+/*  39 */   static final int M3 = 14; static final int M44 = 15; static final int NEXT_TRY = 16; static final int END = 30; private final Random random; int[][] A0 = new int[73][73]; int[][] A = new int[73][73]; int[] Rows = new int[16393]; int[] Cols = new int[262153]; int[][] Row = new int[16393][73];
+/*     */   
+/*  41 */   int[][] Col = new int[262153][5]; int[] Ur = new int[262153]; int[] Uc = new int[16393]; int[] V = new int[262153];
+/*     */   
+/*  43 */   int[] C = new int[4105]; int[] I = new int[4105]; int[] T = new int[262153]; int[] P = new int[262153];
+/*  44 */   int[] Mr = { 0, 1, 63, 1023, 4095, 16383, 46655, 131071, 262143 };
+/*  45 */   int[] Mc = { 0, 1, 63, 511, 1023, 4095, 8191, 16383, 16383 };
+/*  46 */   int[] Mw = { 0, 1, 3, 15, 15, 31, 63, 63, 63 };
+/*     */   
+/*  48 */   int nocheck = 0;
+/*  49 */   final int rnd = 0;
+/*     */   
+/*  51 */   long[] Node = new long[4105];
+/*     */   
+/*     */ 
+/*  54 */   int N = 0;
+/*  55 */   char[] L = { '.', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', '#', '*', '~' };
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   String solve(String puzzle)
+/*     */   {
+/*  74 */     String result = new String();
+/*  75 */     int STATE = 10;
+/*     */     
+/*  77 */     this.vmax = 4000000L;
+/*  78 */     this.smax = 25L;
+/*  79 */     this.p = 1;
+/*  80 */     this.q = 0;
+/*     */     
+/*  82 */     if (this.q > 0) {
+/*  83 */       this.vmax = 99999999L;
+/*  84 */       this.smax = 99999999L;
+/*     */     }
+/*     */     
+/*  87 */     this.N = 3;
+/*  88 */     this.N2 = this.N * this.N;
+/*  89 */     this.N4 = this.N2 * this.N2;
+/*  90 */     this.m = 4 * this.N4;
+/*  91 */     this.n = this.N2 * this.N4;
+/*     */     
+/*  93 */     if (puzzle.length() < this.N4) {
+/*  94 */       return "Error, puzzle incomplete";
+/*     */     }
+/*     */     
+/*  97 */     while (STATE != 30)
+/*  98 */       switch (STATE) {
+/*     */       case 10: 
+/* 100 */         this.clues = 0;
+/* 101 */         this.i = 0;
+/* 102 */         for (this.x = 0; this.x < this.N2; this.x++) {
+/* 103 */           for (this.y = 0; this.y < this.N2; this.y++) {
+/* 104 */             this.c = puzzle.charAt(this.x * this.N2 + this.y);
+/* 105 */             this.j = 0;
+/*     */             
+/* 107 */             if (this.c == 45 || this.c == 46 || this.c == 48 || this.c == 42) {
+/* 108 */               this.A0[this.x][this.y] = this.j;
+/* 109 */               this.i++;
+/*     */             } else {
+/* 111 */               while (this.L[this.j] != this.c && this.j <= this.N2) {
+/* 112 */                 this.j++;
+/*     */               }
+/* 114 */               if (this.j <= this.N2) {
+/* 115 */                 this.A0[this.x][this.y] = this.j;
+/* 116 */                 if (this.j > 0)
+/* 117 */                   this.clues++;
+/* 118 */                 this.i++;
+/*     */               }
+/*     */             }
+/*     */           }
+/*     */         }
+/* 123 */         if (this.clues == this.N4) {
+/* 124 */           this.clues--;
+/* 125 */           this.A0[1][1] = 0;
+/*     */         }
+/*     */         
+/* 128 */         if (this.p < 8) {
+/* 129 */           for (this.i = 0; this.i <= this.N4; this.i++)
+/* 130 */             this.Node[this.i] = 0L;
+/*     */         }
+/* 132 */         this.tnodes = 0L;
+/*     */       
+/*     */       case 12: 
+/* 135 */         this.r = 0;
+/* 136 */         for (this.x = 1; this.x <= this.N2; this.x++)
+/* 137 */           for (this.y = 1; this.y <= this.N2; this.y++)
+/* 138 */             for (this.s = 1; this.s <= this.N2; this.s++) {
+/* 139 */               this.r++;
+/* 140 */               this.Cols[this.r] = 4;
+/* 141 */               this.Col[this.r][1] = (this.x * this.N2 - this.N2 + this.y);
+/* 142 */               this.Col[this.r][4] = ((this.N * ((this.x - 1) / this.N) + (this.y - 1) / this.N) * this.N2 + this.s + this.N4);
+/*     */               
+/* 144 */               this.Col[this.r][3] = (this.x * this.N2 - this.N2 + this.s + this.N4 * 2);
+/* 145 */               this.Col[this.r][2] = (this.y * this.N2 - this.N2 + this.s + this.N4 * 3);
+/*     */             }
+/* 147 */         for (this.c = 1; this.c <= this.m; this.c++) {
+/* 148 */           this.Rows[this.c] = 0;
+/*     */         }
+/* 150 */         for (this.r = 1; this.r <= this.n; this.r++) {
+/* 151 */           for (this.c = 1; this.c <= this.Cols[this.r]; this.c++) {
+/* 152 */             this.x = this.Col[this.r][this.c];
+/* 153 */             this.Rows[this.x] += 1;
+/* 154 */             this.Row[this.x][this.Rows[this.x]] = this.r;
+/*     */           }
+/*     */         }
+/* 157 */         for (this.x = 0; this.x < this.N2; this.x++) {
+/* 158 */           for (this.y = 0; this.y < this.N2; this.y++)
+/* 159 */             this.A[this.x][this.y] = this.A0[this.x][this.y];
+/*     */         }
+/* 161 */         for (this.i = 0; this.i <= this.n; this.i++)
+/* 162 */           this.Ur[this.i] = 0;
+/* 163 */         for (this.i = 0; this.i <= this.m; this.i++) {
+/* 164 */           this.Uc[this.i] = 0;
+/*     */         }
+/* 166 */         this.solutions = 0L;
+/*     */         
+/* 168 */         for (this.x = 1; this.x <= this.N2; this.x++)
+/* 169 */           for (this.y = 1; this.y <= this.N2; this.y++)
+/* 170 */             if (this.A[(this.x - 1)][(this.y - 1)] > 0) {
+/* 171 */               this.r = this.x * this.N4 - this.N4 + this.y * this.N2 - this.N2 + this.A[(this.x - 1)][(this.y - 1)];
+/*     */               
+/* 173 */               for (this.j = 1; this.j <= this.Cols[this.r]; this.j++) {
+/* 174 */                 this.c1 = this.Col[this.r][this.j];
+/* 175 */                 if (this.Uc[this.c1] > 0 && this.nocheck == 0) {
+/* 176 */                   STATE = 16;
+/* 177 */                   break;
+/*     */                 }
+/*     */                 
+/* 180 */                 this.Uc[this.c1] += 1;
+/*     */                 
+/* 182 */                 for (this.k = 1; this.k <= this.Rows[this.c1]; this.k++) {
+/* 183 */                   this.r1 = this.Row[this.c1][this.k];
+/* 184 */                   this.Ur[this.r1] += 1;
+/*     */                 }
+/*     */               }
+/* 187 */               if (STATE == 16)
+/*     */                 break;
+/*     */             }
+/* 190 */         if (STATE != 16)
+/*     */         {
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/* 196 */           for (this.c = 1; this.c <= this.m; this.c++) {
+/* 197 */             this.V[this.c] = 0;
+/* 198 */             for (this.r = 1; this.r <= this.Rows[this.c]; this.r++) {
+/* 199 */               if (this.Ur[this.Row[this.c][this.r]] == 0)
+/* 200 */                 this.V[this.c] += 1;
+/*     */             }
+/*     */           }
+/* 203 */           this.i = this.clues;
+/* 204 */           this.nodes = 0L;
+/* 205 */           this.m0 = 0;
+/* 206 */           this.m1 = 0;
+/* 207 */           this.gu = 0;
+/* 208 */           this.solutions = 0L;
+/*     */         }
+/*     */         break;
+/* 211 */       case 13:  this.i++;
+/* 212 */         this.I[this.i] = 0;
+/* 213 */         this.min = this.n + 1;
+/* 214 */         if (this.i > this.N4 || this.m0 > 0) {
+/* 215 */           STATE = 15;
+/*     */ 
+/*     */         }
+/* 218 */         else if (this.m1 > 0) {
+/* 219 */           this.C[this.i] = this.m1;
+/* 220 */           STATE = 14;
+/*     */         }
+/*     */         else {
+/* 223 */           for (this.c = 1; this.c <= this.m; this.c++)
+/* 224 */             if (this.Uc[this.c] == 0) {
+/* 225 */               if (this.V[this.c] <= this.min)
+/* 226 */                 this.c1 = this.c;
+/* 227 */               if (this.V[this.c] < this.min) {
+/* 228 */                 this.min = this.V[this.c];
+/* 229 */                 this.C[this.i] = this.c;
+/* 230 */                 if (this.min < 2) {
+/* 231 */                   STATE = 14;
+/* 232 */                   break;
+/*     */                 }
+/*     */               }
+/*     */             }
+/* 236 */           if (STATE != 14)
+/*     */           {
+/*     */ 
+/* 239 */             this.gu++;
+/* 240 */             if (this.min > 2)
+/* 241 */               STATE = 14; } }
+/* 242 */         break;
+/*     */       
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */       case 14: 
+/* 277 */         this.c = this.C[this.i];
+/* 278 */         this.I[this.i] += 1;
+/* 279 */         if (this.I[this.i] > this.Rows[this.c]) {
+/* 280 */           STATE = 15;
+/*     */         }
+/*     */         else
+/*     */         {
+/* 284 */           this.r = this.Row[this.c][this.I[this.i]];
+/* 285 */           if (this.Ur[this.r] > 0) {
+/* 286 */             STATE = 14;
+/*     */           }
+/*     */           else {
+/* 289 */             this.m0 = 0;
+/* 290 */             this.m1 = 0;
+/*     */             
+/* 292 */             if (this.q > 0 && this.i > 32 && this.i < 65 && 
+/* 293 */               (MWC() & 0x7FL) < this.q) {
+/* 294 */               STATE = 14;
+/*     */             }
+/*     */             else
+/*     */             {
+/* 298 */               this.k = this.N4;
+/* 299 */               this.x = (this.r - 1) / this.k + 1;
+/* 300 */               this.y = (this.r - 1) % this.k / this.j + 1;
+/* 301 */               this.s = (this.r - 1) % this.j + 1;
+/*     */               
+/* 303 */               if ((this.p & 0x1) > 0) {
+/* 304 */                 this.j = this.N2;
+/* 305 */                 this.k = this.N4;
+/* 306 */                 this.x = (this.r - 1) / this.k + 1;
+/* 307 */                 this.y = (this.r - 1) % this.k / this.j + 1;
+/* 308 */                 this.s = (this.r - 1) % this.j + 1;
+/* 309 */                 this.A[(this.x - 1)][(this.y - 1)] = this.s;
+/* 310 */                 if (this.i == this.k) {
+/* 311 */                   for (this.x = 0; this.x < this.j; this.x++)
+/* 312 */                     for (this.y = 0; this.y < this.j; this.y++)
+/* 313 */                       result = result.concat(String.valueOf(this.L[this.A[this.x][this.y]]));
+/* 314 */                   result = result.concat(" #\n");
+/*     */                 }
+/*     */               }
+/*     */               
+/* 318 */               for (this.j = 1; this.j <= this.Cols[this.r]; this.j++) {
+/* 319 */                 this.c1 = this.Col[this.r][this.j];
+/* 320 */                 this.Uc[this.c1] += 1;
+/*     */               }
+/*     */               
+/* 323 */               for (this.j = 1; this.j <= this.Cols[this.r]; this.j++) {
+/* 324 */                 this.c1 = this.Col[this.r][this.j];
+/*     */                 
+/* 326 */                 for (this.k = 1; this.k <= this.Rows[this.c1]; this.k++) {
+/* 327 */                   this.r1 = this.Row[this.c1][this.k];
+/* 328 */                   this.Ur[this.r1] += 1;
+/* 329 */                   if (this.Ur[this.r1] == 1)
+/* 330 */                     for (this.l = 1; this.l <= this.Cols[this.r1]; this.l++) {
+/* 331 */                       this.c2 = this.Col[this.r1][this.l];
+/* 332 */                       this.V[this.c2] -= 1;
+/*     */                       
+/* 334 */                       if (this.Uc[this.c2] + this.V[this.c2] < 1)
+/* 335 */                         this.m0 = this.c2;
+/* 336 */                       if (this.Uc[this.c2] == 0 && this.V[this.c2] < 2)
+/* 337 */                         this.m1 = this.c2;
+/*     */                     }
+/*     */                 }
+/*     */               }
+/* 341 */               this.Node[this.i] += 1L;
+/* 342 */               this.tnodes++;
+/* 343 */               this.nodes++;
+/*     */               
+/*     */ 
+/*     */ 
+/*     */ 
+/* 348 */               if (this.i == this.N4) {
+/* 349 */                 this.solutions++;
+/*     */               }
+/* 351 */               if (this.solutions >= this.smax) {
+/* 352 */                 System.out.println("smax xolutions found");
+/* 353 */                 if (this._try_ == 1)
+/* 354 */                   System.out.print("+");
+/* 355 */                 STATE = 16;
+/*     */ 
+/*     */               }
+/* 358 */               else if (this.tnodes > this.vmax) {
+/* 359 */                 if (this._try_ == 1)
+/* 360 */                   System.out.print("-");
+/* 361 */                 STATE = 16;
+/*     */               }
+/*     */               else {
+/* 364 */                 STATE = 13; } } } }
+/* 365 */         break;
+/*     */       
+/*     */       case 15: 
+/* 368 */         this.i--;
+/* 369 */         this.c = this.C[this.i];
+/* 370 */         this.r = this.Row[this.c][this.I[this.i]];
+/* 371 */         if (this.i == this.clues) {
+/* 372 */           STATE = 16;
+/*     */         }
+/*     */         else
+/*     */         {
+/* 376 */           for (this.j = 1; this.j <= this.Cols[this.r]; this.j++) {
+/* 377 */             this.c1 = this.Col[this.r][this.j];
+/* 378 */             this.Uc[this.c1] -= 1;
+/*     */             
+/* 380 */             for (this.k = 1; this.k <= this.Rows[this.c1]; this.k++) {
+/* 381 */               this.r1 = this.Row[this.c1][this.k];
+/* 382 */               this.Ur[this.r1] -= 1;
+/*     */               
+/* 384 */               if (this.Ur[this.r1] == 0)
+/* 385 */                 for (this.l = 1; this.l <= this.Cols[this.r1]; this.l++) {
+/* 386 */                   this.c2 = this.Col[this.r1][this.l];
+/* 387 */                   this.V[this.c2] += 1;
+/*     */                 }
+/*     */             }
+/*     */           }
+/* 391 */           if (this.p > 0) {
+/* 392 */             this.j = this.N2;
+/* 393 */             this.k = this.N4;
+/* 394 */             this.x = (this.r - 1) / this.k + 1;
+/* 395 */             this.y = (this.r - 1) % this.k / this.j + 1;
+/* 396 */             this.s = (this.r - 1) % this.j + 1;
+/* 397 */             this.A[(this.x - 1)][(this.y - 1)] = 0;
+/*     */           }
+/* 399 */           if (this.i > this.clues)
+/* 400 */             STATE = 14; }
+/* 401 */         break;
+/*     */       
+/*     */ 
+/*     */       case 16: 
+/* 405 */         this.time1 = System.currentTimeMillis();
+/* 406 */         this.x1 = this.time1 - this.time0;
+/*     */         
+/* 408 */         this.time0 = this.time1;
+/*     */         
+/* 410 */         if (this.q > 0) {
+/* 411 */           this.xx = 128.0D;
+/* 412 */           this.yy = 128 - this.q;
+/* 413 */           this.xx /= this.yy;
+/* 414 */           this.yy = this.solutions;
+/* 415 */           for (this.i = 1; this.i < 33; this.i++)
+/* 416 */             this.yy *= this.xx;
+/* 417 */           System.out.println("clues: " + this.clues + " estimated solutions:" + this.yy + " time " + this.x1 + "ms");
+/*     */           
+/* 419 */           STATE = 30;
+/*     */ 
+/*     */         }
+/* 422 */         else if ((this.p == 0 || this.p == 1) && this.tnodes <= 999999L) {
+/* 423 */           if (this.solutions >= this.smax) {
+/* 424 */             result = result.concat("More than " + this.solutions + " solutions ( bad sudoku!! ), rating " + 100L * this.tnodes / this.solutions + ", time " + this.x1 + " ms");
+/*     */           }
+/* 426 */           else if (this.solutions == 1L)
+/*     */           {
+/* 428 */             result = result.concat(this.solutions + " solution, rating " + 100L * this.tnodes + ", time " + this.x1 + " ms");
+/* 429 */           } else if (this.solutions == 0L) {
+/* 430 */             result = result.concat("0 solutions, no rating possible, time " + this.x1 + " ms");
+/*     */           } else {
+/* 432 */             result = result.concat(this.solutions + " solutions ( bad sudoku!! ), rating " + 100L * this.tnodes / this.solutions + ", time " + this.x1 + " ms");
+/*     */           }
+/*     */           
+/* 435 */           STATE = 30;
+/*     */ 
+/*     */         }
+/* 438 */         else if (this.p == 6) {
+/* 439 */           System.out.println(this.solutions);
+/* 440 */           STATE = 30;
+/*     */         }
+/*     */         else {
+/* 443 */           if (this.p == 0 || this.p == 1) {
+/* 444 */             System.out.println(this.solutions + " solution(s), rating " + 100L * this.tnodes + ", time " + this.x1 + "ms");
+/*     */           }
+/* 446 */           if (this.p > 5) {
+/* 447 */             this.x = 0;
+/* 448 */             for (this.i = 1; this.i <= this.N4; this.i++) {
+/* 449 */               this.x = (int)(this.x + this.Node[this.i]);
+/* 450 */               System.out.print(this.Node[this.i]);
+/* 451 */               if (this.i % 9 == 0)
+/* 452 */                 System.out.println();
+/*     */             }
+/* 454 */             System.out.println(this.x);
+/*     */           }
+/* 456 */           STATE = 30;
+/*     */         }
+/*     */         break;
+/*     */       }
+/* 460 */     return result;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   int shuffle()
+/*     */   {
+/* 467 */     for (this.i = 1; this.i <= this.m; this.i++) {
+/* 468 */       this.a = (int)(MWC() >> 8 & this.Mc[this.N]);
+/* 469 */       while (this.a >= this.i)
+/* 470 */         this.a = (int)(MWC() >> 8 & this.Mc[this.N]);
+/* 471 */       this.a++;
+/* 472 */       this.P[this.i] = this.P[this.a];
+/* 473 */       this.P[this.a] = this.i;
+/*     */     }
+/*     */     
+/* 476 */     for (this.c = 1; this.c <= this.m; this.c++) {
+/* 477 */       this.Rows[this.c] = 0;
+/* 478 */       this.T[this.c] = this.Uc[this.c];
+/*     */     }
+/*     */     
+/* 481 */     for (this.c = 1; this.c <= this.m; this.c++) {
+/* 482 */       this.Uc[this.P[this.c]] = this.T[this.c];
+/*     */     }
+/* 484 */     for (this.r = 1; this.r <= this.n; this.r++) {
+/* 485 */       for (this.i = 1; this.i <= this.Cols[this.r]; this.i++) {
+/* 486 */         this.c = this.P[this.Col[this.r][this.i]];
+/* 487 */         this.Col[this.r][this.i] = this.c;
+/* 488 */         this.Rows[this.c] += 1;
+/* 489 */         this.Row[this.c][this.Rows[this.c]] = this.r;
+/*     */       }
+/*     */     }
+/* 492 */     for (this.i = 1; this.i <= this.n; this.i++) {
+/* 493 */       this.a = (int)(MWC() >> 8 & this.Mr[this.N]);
+/* 494 */       while (this.a >= this.i)
+/* 495 */         this.a = (int)(MWC() >> 8 & this.Mr[this.N]);
+/* 496 */       this.a++;
+/* 497 */       this.P[this.i] = this.P[this.a];
+/* 498 */       this.P[this.a] = this.i;
+/*     */     }
+/*     */     
+/* 501 */     for (this.r = 1; this.r <= this.n; this.r++) {
+/* 502 */       this.Cols[this.r] = 0;
+/* 503 */       this.T[this.r] = this.Ur[this.r];
+/*     */     }
+/*     */     
+/* 506 */     for (this.r = 1; this.r <= this.n; this.r++) {
+/* 507 */       this.Ur[this.P[this.r]] = this.T[this.r];
+/*     */     }
+/* 509 */     for (this.c = 1; this.c <= this.m; this.c++) {
+/* 510 */       for (this.i = 1; this.i <= this.Rows[this.c]; this.i++) {
+/* 511 */         this.r = this.P[this.Row[this.c][this.i]];
+/* 512 */         this.Row[this.c][this.i] = this.r;
+/* 513 */         this.Cols[this.r] += 1;
+/* 514 */         this.Col[this.r][this.Cols[this.r]] = this.c;
+/*     */       }
+/*     */     }
+/* 517 */     for (this.r = 1; this.r <= this.n; this.r++) {
+/* 518 */       for (this.i = 1; this.i <= this.Cols[this.r]; this.i++) {
+/* 519 */         this.a = (int)(MWC() >> 8 & 0x7L);
+/* 520 */         while (this.a >= this.i)
+/* 521 */           this.a = (int)(MWC() >> 8 & 0x7L);
+/* 522 */         this.a++;
+/* 523 */         this.P[this.i] = this.P[this.a];
+/* 524 */         this.P[this.a] = this.i;
+/*     */       }
+/*     */       
+/* 527 */       for (this.i = 1; this.i <= this.Cols[this.r]; this.i++) {
+/* 528 */         this.T[this.i] = this.Col[this.r][this.P[this.i]];
+/*     */       }
+/* 530 */       for (this.i = 1; this.i <= this.Cols[this.r]; this.i++) {
+/* 531 */         this.Col[this.r][this.i] = this.T[this.i];
+/*     */       }
+/*     */     }
+/* 534 */     for (this.c = 1; this.c <= this.m; this.c++) {
+/* 535 */       for (this.i = 1; this.i <= this.Rows[this.c]; this.i++) {
+/* 536 */         this.a = (int)(MWC() >> 8 & this.Mw[this.N]);
+/* 537 */         while (this.a >= this.i)
+/* 538 */           this.a = (int)(MWC() >> 8 & this.Mw[this.N]);
+/* 539 */         this.a++;
+/* 540 */         this.P[this.i] = this.P[this.a];
+/* 541 */         this.P[this.a] = this.i;
+/*     */       }
+/*     */       
+/* 544 */       for (this.i = 1; this.i <= this.Rows[this.c]; this.i++) {
+/* 545 */         this.T[this.i] = this.Row[this.c][this.P[this.i]];
+/*     */       }
+/* 547 */       for (this.i = 1; this.i <= this.Rows[this.c]; this.i++)
+/* 548 */         this.Row[this.c][this.i] = this.T[this.i];
+/*     */     }
+/* 550 */     return 0;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public dlx_solver(Random random)
+/*     */   {
+/* 557 */     this.random = random;
+/*     */   }
+/*     */ }

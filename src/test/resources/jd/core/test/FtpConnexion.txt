@@ -1,0 +1,204 @@
+/*     */ package net.sourceforge.plantuml.ftp;
+/*     */ 
+/*     */ import java.io.ByteArrayOutputStream;
+/*     */ import java.io.IOException;
+/*     */ import java.util.ArrayList;
+/*     */ import java.util.Collection;
+/*     */ import java.util.Collections;
+/*     */ import java.util.HashMap;
+/*     */ import java.util.HashSet;
+/*     */ import java.util.List;
+/*     */ import java.util.Map;
+/*     */ import java.util.Set;
+/*     */ import net.sourceforge.plantuml.BlockUml;
+/*     */ import net.sourceforge.plantuml.FileFormat;
+/*     */ import net.sourceforge.plantuml.FileFormatOption;
+/*     */ import net.sourceforge.plantuml.SourceStringReader;
+/*     */ import net.sourceforge.plantuml.core.DiagramDescription;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class FtpConnexion
+/*     */ {
+/*     */   private final String user;
+/*     */   private FileFormat fileFormat;
+/*  59 */   private final Map<String, String> incoming = new HashMap<>();
+/*  60 */   private final Map<String, byte[]> outgoing = new HashMap<>();
+/*  61 */   private final Set<String> futureOutgoing = new HashSet<>();
+/*     */   
+/*     */ 
+/*     */   public FtpConnexion(String user, FileFormat defaultfileFormat)
+/*     */   {
+/*  66 */     this.user = user;
+/*  67 */     this.fileFormat = defaultfileFormat;
+/*     */   }
+/*     */   
+/*     */   public synchronized void addIncoming(String fileName, String data) {
+/*  71 */     if (fileName.startsWith("/")) {
+/*  72 */       throw new IllegalArgumentException();
+/*     */     }
+/*  74 */     this.incoming.put(fileName, data);
+/*     */   }
+/*     */   
+/*     */   public synchronized void futureOutgoing(String fileName) {
+/*  78 */     this.outgoing.remove(fileName);
+/*  79 */     this.futureOutgoing.add(fileName);
+/*     */   }
+/*     */   
+/*     */   public synchronized Collection<String> getFiles() {
+/*  83 */     List<String> result = new ArrayList<>(this.incoming.keySet());
+/*  84 */     result.addAll(this.outgoing.keySet());
+/*  85 */     result.addAll(this.futureOutgoing);
+/*  86 */     return Collections.unmodifiableCollection(result);
+/*     */   }
+/*     */   
+/*     */   public synchronized boolean willExist(String fileName) {
+/*  90 */     if (this.incoming.containsKey(fileName)) {
+/*  91 */       return true;
+/*     */     }
+/*  93 */     if (this.outgoing.containsKey(fileName)) {
+/*  94 */       return true;
+/*     */     }
+/*  96 */     if (this.futureOutgoing.contains(fileName)) {
+/*  97 */       return true;
+/*     */     }
+/*  99 */     return false;
+/*     */   }
+/*     */   
+/*     */   public synchronized boolean doesExist(String fileName) {
+/* 103 */     if (this.incoming.containsKey(fileName)) {
+/* 104 */       return true;
+/*     */     }
+/* 106 */     if (this.outgoing.containsKey(fileName)) {
+/* 107 */       return true;
+/*     */     }
+/* 109 */     return false;
+/*     */   }
+/*     */   
+/*     */   public synchronized byte[] getData(String fileName) throws InterruptedException {
+/* 113 */     if (fileName.startsWith("/")) {
+/* 114 */       throw new IllegalArgumentException();
+/*     */     }
+/* 116 */     String data = (String)this.incoming.get(fileName);
+/* 117 */     if (data != null) {
+/* 118 */       return data.getBytes();
+/*     */     }
+/* 120 */     byte[] data2 = (byte[])this.outgoing.get(fileName);
+/* 121 */     if (data2 == null) {
+/* 122 */       return new byte[1];
+/*     */     }
+/* 124 */     return data2;
+/*     */   }
+/*     */   
+/*     */   public synchronized int getSize(String fileName) {
+/* 128 */     if (fileName.startsWith("/")) {
+/* 129 */       throw new IllegalArgumentException();
+/*     */     }
+/* 131 */     String data = (String)this.incoming.get(fileName);
+/* 132 */     if (data != null) {
+/* 133 */       return data.length();
+/*     */     }
+/* 135 */     byte[] data2 = (byte[])this.outgoing.get(fileName);
+/* 136 */     if (data2 != null) {
+/* 137 */       return data2.length;
+/*     */     }
+/* 139 */     return 0;
+/*     */   }
+/*     */   
+/*     */   public void processImage(String fileName) throws IOException {
+/* 143 */     if (fileName.startsWith("/")) {
+/* 144 */       throw new IllegalArgumentException();
+/*     */     }
+/* 146 */     String pngFileName = getFutureFileName(fileName);
+/* 147 */     boolean done = false;
+/*     */     try {
+/* 149 */       SourceStringReader sourceStringReader = new SourceStringReader((String)this.incoming.get(fileName));
+/* 150 */       ByteArrayOutputStream baos = new ByteArrayOutputStream();
+/* 151 */       FileFormat format = getFileFormat();
+/* 152 */       FileFormatOption fileFormatOption = new FileFormatOption(format);
+/* 153 */       DiagramDescription desc = sourceStringReader.generateDiagramDescription(fileFormatOption);
+/* 154 */       List<BlockUml> blocks = sourceStringReader.getBlocks();
+/* 155 */       if (blocks.size() > 0) {
+/* 156 */         ((BlockUml)blocks.get(0)).getDiagram().exportDiagram(baos, 0, fileFormatOption);
+/*     */       }
+/* 158 */       String errorFileName = pngFileName.substring(0, pngFileName.length() - 4) + ".err";
+/* 159 */       synchronized (this) {
+/* 160 */         this.outgoing.remove(pngFileName);
+/* 161 */         this.futureOutgoing.remove(pngFileName);
+/* 162 */         this.outgoing.remove(errorFileName);
+/* 163 */         if (desc != null && desc.getDescription() != null) {
+/* 164 */           this.outgoing.put(pngFileName, baos.toByteArray());
+/* 165 */           done = true;
+/* 166 */           if (desc.getDescription().startsWith("(Error)")) {
+/* 167 */             ByteArrayOutputStream errBaos = new ByteArrayOutputStream();
+/* 168 */             sourceStringReader.outputImage(errBaos, new FileFormatOption(FileFormat.ATXT));
+/* 169 */             errBaos.close();
+/* 170 */             this.outgoing.put(errorFileName, errBaos.toByteArray());
+/*     */           }
+/*     */         }
+/*     */       }
+/*     */     } finally {
+/* 175 */       if (!done) {
+/* 176 */         this.outgoing.put(pngFileName, new byte[0]);
+/*     */       }
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   public String getFutureFileName(String fileName) {
+/* 182 */     return getFileFormat().changeName(fileName, 0);
+/*     */   }
+/*     */   
+/*     */   private FileFormat getFileFormat() {
+/* 186 */     return this.fileFormat;
+/*     */   }
+/*     */   
+/*     */   public synchronized void delete(String fileName) {
+/* 190 */     if (fileName.contains("*")) {
+/* 191 */       this.incoming.clear();
+/* 192 */       this.outgoing.clear();
+/* 193 */       this.futureOutgoing.clear();
+/*     */     } else {
+/* 195 */       this.incoming.remove(fileName);
+/* 196 */       this.outgoing.remove(fileName);
+/* 197 */       this.futureOutgoing.add(fileName);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   public void setFileFormat(FileFormat fileFormat) {
+/* 202 */     this.fileFormat = fileFormat;
+/*     */   }
+/*     */ }
