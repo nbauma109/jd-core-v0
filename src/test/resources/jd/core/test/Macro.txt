@@ -1,0 +1,1816 @@
+/*      */ package smetana.core;
+/*      */ 
+/*      */ import gen.lib.cdt.dtrestore__c;
+/*      */ import gen.lib.cgraph.attr__c;
+/*      */ import gen.lib.cgraph.edge__c;
+/*      */ import h.SHAPE_INFO;
+/*      */ import h.ST_Agclos_s;
+/*      */ import h.ST_Agdisc_s;
+/*      */ import h.ST_Agdstate_s;
+/*      */ import h.ST_Agedge_s;
+/*      */ import h.ST_Agedgeinfo_t;
+/*      */ import h.ST_Agiddisc_s;
+/*      */ import h.ST_Agiodisc_s;
+/*      */ import h.ST_Agmemdisc_s;
+/*      */ import h.ST_Agnode_s;
+/*      */ import h.ST_Agnodeinfo_t;
+/*      */ import h.ST_Agobj_s;
+/*      */ import h.ST_Agraph_s;
+/*      */ import h.ST_Agraphinfo_t;
+/*      */ import h.ST_Agrec_s;
+/*      */ import h.ST_Agsym_s;
+/*      */ import h.ST_Agtag_s;
+/*      */ import h.ST_GVC_s;
+/*      */ import h.ST_boxf;
+/*      */ import h.ST_dt_s;
+/*      */ import h.ST_dtdata_s;
+/*      */ import h.ST_dtdisc_s;
+/*      */ import h.ST_dtlink_s;
+/*      */ import h.ST_elist;
+/*      */ import h.ST_layout_t;
+/*      */ import h.ST_nlist_t;
+/*      */ import h.ST_point;
+/*      */ import h.ST_pointf;
+/*      */ import h.ST_port;
+/*      */ import h.ST_rank_t;
+/*      */ import h.ST_shape_desc;
+/*      */ import h.ST_splines;
+/*      */ import h.ST_subtree_t;
+/*      */ import h.ST_textlabel_t;
+/*      */ import java.util.regex.Matcher;
+/*      */ import java.util.regex.Pattern;
+/*      */ import smetana.core.debug.SmetanaDebug;
+/*      */ 
+/*      */ public final class Macro
+/*      */ {
+/*      */   public static final int AGRAPH = 0;
+/*      */   public static final int AGNODE = 1;
+/*      */   public static final int AGOUTEDGE = 2;
+/*      */   public static final int AGINEDGE = 3;
+/*      */   public static final int AGEDGE = 2;
+/*      */   public static final int MAXSHORT = 32767;
+/*      */   public static final int INT_MAX = Integer.MAX_VALUE;
+/*      */   public static final int INT_MIN = Integer.MIN_VALUE;
+/*      */   public static final double HUGE_VAL = Double.POSITIVE_INFINITY;
+/*      */   public static final double M_PI = 3.141592653589793D;
+/*      */   public static final int LEFT = 8;
+/*      */   public static final int RIGHT = 2;
+/*      */   public static final int BOTTOM = 1;
+/*      */   public static final int TOP = 4;
+/*      */   public static final int LT_NONE = 0;
+/*      */   public static final int LT_HTML = 2;
+/*      */   public static final int LT_RECD = 4;
+/*      */   public static final int EDGE_LABEL = 1;
+/*      */   public static final int HEAD_LABEL = 2;
+/*      */   public static final int TAIL_LABEL = 4;
+/*      */   public static final int GRAPH_LABEL = 8;
+/*      */   public static final int NODE_XLABEL = 16;
+/*      */   public static final int EDGE_XLABEL = 32;
+/*      */   public static final int ET_NONE = 0;
+/*      */   public static final int ET_LINE = 2;
+/*      */   public static final int ET_CURVED = 4;
+/*      */   public static final int ET_PLINE = 6;
+/*      */   public static final int ET_ORTHO = 8;
+/*      */   public static final int ET_SPLINE = 10;
+/*      */   public static final int ET_COMPOUND = 12;
+/*      */   public static final int NEW_RANK = 16;
+/*      */   public static final int NORMAL = 0;
+/*      */   public static final int VIRTUAL = 1;
+/*      */   public static final int SLACKNODE = 2;
+/*      */   public static final int REVERSED = 3;
+/*      */   public static final int FLATORDER = 4;
+/*      */   public static final int CLUSTER_EDGE = 5;
+/*      */   public static final int IGNORED = 6;
+/*      */   public static final int NOCMD = 0;
+/*      */   public static final int SAMERANK = 1;
+/*      */   
+/*      */   public static void UNSURE_ABOUT(String comment)
+/*      */   {
+/*   82 */     System.err.println("UNSURE_ABOUT: " + comment);
+/*      */   }
+/*      */   
+/*      */   public static __ptr__ UNSUPPORTED(String comment)
+/*      */   {
+/*   86 */     SmetanaDebug.LIST_METHODS();
+/*   87 */     throw new UnsupportedOperationException(comment);
+/*      */   }
+/*      */   
+/*      */   public static int UNSUPPORTED_INT(String comment)
+/*      */   {
+/*   91 */     throw new UnsupportedOperationException(comment);
+/*      */   }
+/*      */   public static final int MINRANK = 2;
+/*      */   public static final int SOURCERANK = 3;
+/*      */   public static final int MAXRANK = 4;
+/*      */   public static final int SINKRANK = 5;
+/*      */   public static final int LEAFSET = 6;
+/*      */   public static final int CLUSTER = 7;
+/*      */   public static final int LABEL_AT_BOTTOM = 0;
+/*      */   public static final int LABEL_AT_TOP = 1;
+/*      */   public static final int LABEL_AT_LEFT = 2;
+/*      */   public static final int LABEL_AT_RIGHT = 4;
+/*      */   public static final int RANKDIR_TB = 0;
+/*      */   public static final int RANKDIR_LR = 1;
+/*      */   public static final int RANKDIR_BT = 2;
+/*      */   
+/*      */   public static void AGTYPE(ST_Agobj_s obj, int v)
+/*      */   {
+/*  103 */     obj.tag.objtype = v;
+/*      */   }
+/*      */   
+/*      */   public static void AGID(ST_Agobj_s obj, int v)
+/*      */   {
+/*  107 */     obj.tag.id = v;
+/*      */   }
+/*      */   
+/*      */   public static void AGSEQ(ST_Agobj_s obj, int v)
+/*      */   {
+/*  111 */     obj.tag.seq = v;
+/*      */   }
+/*      */   
+/*      */   public static void AGDATA(ST_Agobj_s obj, ST_Agrec_s v)
+/*      */   {
+/*  115 */     obj.data = v;
+/*      */   }
+/*      */   
+/*      */   public static ST_Agedge_s AGIN2OUT(ST_Agedge_s e)
+/*      */   {
+/*  120 */     return e.plus_(-1);
+/*      */   }
+/*      */   
+/*      */   public static ST_Agedge_s AGOUT2IN(ST_Agedge_s e)
+/*      */   {
+/*  125 */     return e.plus_(1);
+/*      */   }
+/*      */   
+/*      */   public static ST_Agedge_s AGOPP(ST_Agedge_s e)
+/*      */   {
+/*  130 */     return e.tag.objtype == 3 ? AGIN2OUT(e) : AGOUT2IN(e);
+/*      */   }
+/*      */   
+/*      */   public static ST_Agedge_s AGMKOUT(ST_Agedge_s e)
+/*      */   {
+/*  135 */     return e.tag.objtype == 2 ? e : AGIN2OUT(e);
+/*      */   }
+/*      */   
+/*      */   public static ST_Agedge_s AGMKIN(ST_Agedge_s e)
+/*      */   {
+/*  140 */     return e.tag.objtype == 3 ? e : AGOUT2IN(e);
+/*      */   }
+/*      */   
+/*      */   public static ST_Agnode_s AGTAIL(ST_Agedge_s e)
+/*      */   {
+/*  145 */     return AGMKIN(e).node;
+/*      */   }
+/*      */   
+/*      */   public static ST_Agnode_s M_agtail(ST_Agedge_s e)
+/*      */   {
+/*  149 */     return AGMKIN(e).node;
+/*      */   }
+/*      */   
+/*      */   public static void M_agtail(ST_Agedge_s e, ST_Agnode_s v)
+/*      */   {
+/*  153 */     AGMKIN(e).node = v;
+/*      */   }
+/*      */   
+/*      */   public static ST_Agnode_s AGHEAD(ST_Agedge_s e)
+/*      */   {
+/*  158 */     return AGMKOUT(e).node;
+/*      */   }
+/*      */   
+/*      */   private static ST_Agnode_s M_aghead(ST_Agedge_s e)
+/*      */   {
+/*  162 */     return AGMKOUT(e).node;
+/*      */   }
+/*      */   
+/*      */   public static void M_aghead(ST_Agedge_s e, ST_Agnode_s v)
+/*      */   {
+/*  166 */     AGMKOUT(e).node = v;
+/*      */   }
+/*      */   
+/*      */   public static int LENGTH(ST_Agedge_s e)
+/*      */   {
+/*  170 */     return ND_rank(M_aghead(e)) - ND_rank(M_agtail(e));
+/*      */   }
+/*      */   
+/*      */   public static int SLACK(ST_Agedge_s e)
+/*      */   {
+/*  174 */     return LENGTH(e) - ED_minlen(e);
+/*      */   }
+/*      */   
+/*      */   public static boolean SEQ(int a, int b, int c)
+/*      */   {
+/*  178 */     return a <= b && b <= c;
+/*      */   }
+/*      */   
+/*      */   public static boolean TREE_EDGE(ST_Agedge_s e)
+/*      */   {
+/*  182 */     return ED_tree_index(e) >= 0;
+/*      */   }
+/*      */   
+/*      */   public static __ptr__ GD_parent(ST_Agraph_s g)
+/*      */   {
+/*  187 */     return ((ST_Agraphinfo_t)g.data).parent;
+/*      */   }
+/*      */   
+/*      */   public static void GD_parent(ST_Agraph_s g, ST_Agraph_s v)
+/*      */   {
+/*  191 */     ((ST_Agraphinfo_t)g.data).parent = v;
+/*      */   }
+/*      */   
+/*      */   public static ST_layout_t GD_drawing(ST_Agraph_s g)
+/*      */   {
+/*  197 */     return ((ST_Agraphinfo_t)g.data).drawing;
+/*      */   }
+/*      */   
+/*      */   public static void GD_drawing(ST_Agraph_s g, ST_layout_t v)
+/*      */   {
+/*  201 */     ((ST_Agraphinfo_t)g.data).drawing = v;
+/*      */   }
+/*      */   
+/*      */   public static ST_boxf GD_bb(ST_Agraph_s g)
+/*      */   {
+/*  206 */     return ((ST_Agraphinfo_t)g.data).bb;
+/*      */   }
+/*      */   
+/*      */   public static ST_GVC_s GD_gvc(ST_Agraph_s g)
+/*      */   {
+/*  211 */     return ((ST_Agraphinfo_t)g.data).gvc;
+/*      */   }
+/*      */   
+/*      */   public static void GD_gvc(ST_Agraph_s g, ST_GVC_s v)
+/*      */   {
+/*  215 */     ((ST_Agraphinfo_t)g.data).gvc = v;
+/*      */   }
+/*      */   
+/*      */   public static __ptr__ GD_cleanup(ST_Agraph_s g)
+/*      */   {
+/*  220 */     return ((ST_Agraphinfo_t)g.data).cleanup;
+/*      */   }
+/*      */   
+/*      */   public static void GD_cleanup(ST_Agraph_s g, CFunction data)
+/*      */   {
+/*  224 */     ((ST_Agraphinfo_t)g.data).cleanup = data;
+/*      */   }
+/*      */   
+/*      */   public static ST_pointf[] GD_border(ST_Agraph_s g)
+/*      */   {
+/*  231 */     return ((ST_Agraphinfo_t)g.data).border;
+/*      */   }
+/*      */   
+/*      */   public static CArrayOfStar<ST_Agraph_s> GD_clust(ST_Agraph_s g)
+/*      */   {
+/*  237 */     return ((ST_Agraphinfo_t)g.data).clust;
+/*      */   }
+/*      */   
+/*      */   public static void GD_clust(ST_Agraph_s g, CArrayOfStar<ST_Agraph_s> v)
+/*      */   {
+/*  241 */     ((ST_Agraphinfo_t)g.data).clust = v;
+/*      */   }
+/*      */   
+/*      */   public static ST_Agraph_s GD_dotroot(ST_Agraph_s g)
+/*      */   {
+/*  246 */     return ((ST_Agraphinfo_t)g.data).dotroot;
+/*      */   }
+/*      */   
+/*      */   public static void GD_dotroot(ST_Agraph_s g, ST_Agraph_s v)
+/*      */   {
+/*  250 */     ((ST_Agraphinfo_t)g.data).dotroot = v;
+/*      */   }
+/*      */   
+/*      */   public static ST_nlist_t GD_comp(ST_Agraph_s g)
+/*      */   {
+/*  255 */     return ((ST_Agraphinfo_t)g.data).comp;
+/*      */   }
+/*      */   
+/*      */   public static int GD_exact_ranksep(ST_Agraph_s g)
+/*      */   {
+/*  260 */     return ((ST_Agraphinfo_t)g.data).exact_ranksep;
+/*      */   }
+/*      */   
+/*      */   public static void GD_exact_ranksep(ST_Agraph_s g, int v)
+/*      */   {
+/*  264 */     ((ST_Agraphinfo_t)g.data).exact_ranksep = v;
+/*      */   }
+/*      */   
+/*      */   public static boolean GD_expanded(ST_Agraph_s g)
+/*      */   {
+/*  269 */     return ((ST_Agraphinfo_t)g.data).expanded;
+/*      */   }
+/*      */   
+/*      */   public static void GD_expanded(ST_Agraph_s g, boolean v)
+/*      */   {
+/*  273 */     ((ST_Agraphinfo_t)g.data).expanded = v;
+/*      */   }
+/*      */   
+/*      */   public static int GD_flags(ST_Agraph_s g)
+/*      */   {
+/*  278 */     return ((ST_Agraphinfo_t)g.data).flags;
+/*      */   }
+/*      */   
+/*      */   public static void GD_flags(ST_Agraph_s g, int v)
+/*      */   {
+/*  282 */     ((ST_Agraphinfo_t)g.data).flags = v;
+/*      */   }
+/*      */   
+/*      */   public static int GD_charset(ST_Agraph_s g)
+/*      */   {
+/*  288 */     return ((ST_Agraphinfo_t)g.data).charset;
+/*      */   }
+/*      */   
+/*      */   public static void GD_charset(ST_Agraph_s g, int v)
+/*      */   {
+/*  292 */     ((ST_Agraphinfo_t)g.data).charset = v;
+/*      */   }
+/*      */   
+/*      */   public static int GD_has_labels(ST_Agraph_s g)
+/*      */   {
+/*  297 */     return ((ST_Agraphinfo_t)g.data).has_labels;
+/*      */   }
+/*      */   
+/*      */   public static void GD_has_labels(ST_Agraph_s g, int v)
+/*      */   {
+/*  301 */     ((ST_Agraphinfo_t)g.data).has_labels = v;
+/*      */   }
+/*      */   
+/*      */   public static int GD_has_flat_edges(ST_Agraph_s g)
+/*      */   {
+/*  307 */     return ((ST_Agraphinfo_t)g.data).has_flat_edges;
+/*      */   }
+/*      */   
+/*      */   public static void GD_has_flat_edges(ST_Agraph_s g, boolean v)
+/*      */   {
+/*  311 */     ((ST_Agraphinfo_t)g.data).has_flat_edges = v ? 1 : 0;
+/*      */   }
+/*      */   
+/*      */   public static double GD_ht1(ST_Agraph_s g)
+/*      */   {
+/*  318 */     return ((ST_Agraphinfo_t)g.data).ht1;
+/*      */   }
+/*      */   
+/*      */   public static void GD_ht1(ST_Agraph_s g, double v)
+/*      */   {
+/*  322 */     ((ST_Agraphinfo_t)g.data).ht1 = v;
+/*      */   }
+/*      */   
+/*      */   public static double GD_ht2(ST_Agraph_s g)
+/*      */   {
+/*  327 */     return ((ST_Agraphinfo_t)g.data).ht2;
+/*      */   }
+/*      */   
+/*      */   public static void GD_ht2(ST_Agraph_s g, double v)
+/*      */   {
+/*  331 */     ((ST_Agraphinfo_t)g.data).ht2 = v;
+/*      */   }
+/*      */   
+/*      */   public static int GD_installed(ST_Agraph_s g)
+/*      */   {
+/*  337 */     return ((ST_Agraphinfo_t)g.data).installed;
+/*      */   }
+/*      */   
+/*      */   public static void GD_installed(ST_Agraph_s g, int v)
+/*      */   {
+/*  341 */     ((ST_Agraphinfo_t)g.data).installed = v;
+/*      */   }
+/*      */   
+/*      */   public static ST_textlabel_t GD_label(ST_Agraph_s g)
+/*      */   {
+/*  346 */     return ((ST_Agraphinfo_t)g.data).label;
+/*      */   }
+/*      */   
+/*      */   public static void GD_label(ST_Agraph_s g, ST_textlabel_t v)
+/*      */   {
+/*  350 */     ((ST_Agraphinfo_t)g.data).label = v;
+/*      */   }
+/*      */   
+/*      */   public static ST_Agnode_s GD_leader(ST_Agraph_s g)
+/*      */   {
+/*  355 */     return ((ST_Agraphinfo_t)g.data).leader;
+/*      */   }
+/*      */   
+/*      */   public static void GD_leader(ST_Agraph_s g, ST_Agnode_s v)
+/*      */   {
+/*  359 */     ((ST_Agraphinfo_t)g.data).leader = v;
+/*      */   }
+/*      */   
+/*      */   public static int GD_rankdir2(ST_Agraph_s g)
+/*      */   {
+/*  364 */     return ((ST_Agraphinfo_t)g.data).rankdir;
+/*      */   }
+/*      */   
+/*      */   public static void GD_rankdir2(ST_Agraph_s g, int v)
+/*      */   {
+/*  368 */     ((ST_Agraphinfo_t)g.data).rankdir = v;
+/*      */   }
+/*      */   
+/*      */   public static int GD_rankdir(ST_Agraph_s g)
+/*      */   {
+/*  373 */     return ((ST_Agraphinfo_t)g.data).rankdir & 0x3;
+/*      */   }
+/*      */   
+/*      */   public static boolean GD_flip(ST_Agraph_s g)
+/*      */   {
+/*  378 */     return (GD_rankdir(g) & 0x1) != 0;
+/*      */   }
+/*      */   
+/*      */   public static int GD_realrankdir(ST_Agraph_s g)
+/*      */   {
+/*  383 */     return ((ST_Agraphinfo_t)g.data).rankdir >> 2;
+/*      */   }
+/*      */   
+/*      */   public static int GD_realflip(ST_Agraph_s g)
+/*      */   {
+/*  388 */     return GD_realrankdir(g) & 0x1;
+/*      */   }
+/*      */   
+/*      */   public static ST_Agnode_s GD_ln(ST_Agraph_s g)
+/*      */   {
+/*  393 */     return ((ST_Agraphinfo_t)g.data).ln;
+/*      */   }
+/*      */   
+/*      */   public static void GD_ln(ST_Agraph_s g, ST_Agnode_s v)
+/*      */   {
+/*  397 */     ((ST_Agraphinfo_t)g.data).ln = v;
+/*      */   }
+/*      */   
+/*      */   public static int GD_maxrank(ST_Agraph_s g)
+/*      */   {
+/*  402 */     return ((ST_Agraphinfo_t)g.data).maxrank;
+/*      */   }
+/*      */   
+/*      */   public static void GD_maxrank(ST_Agraph_s g, int v)
+/*      */   {
+/*  406 */     ((ST_Agraphinfo_t)g.data).maxrank = v;
+/*      */   }
+/*      */   
+/*      */   public static __ptr__ GD_maxset(ST_Agraph_s g)
+/*      */   {
+/*  411 */     return ((ST_Agraphinfo_t)g.data).maxset;
+/*      */   }
+/*      */   
+/*      */   public static int GD_minrank(ST_Agraph_s g)
+/*      */   {
+/*  416 */     return ((ST_Agraphinfo_t)g.data).minrank;
+/*      */   }
+/*      */   
+/*      */   public static void GD_minrank(ST_Agraph_s g, int v)
+/*      */   {
+/*  420 */     ((ST_Agraphinfo_t)g.data).minrank = v;
+/*      */   }
+/*      */   
+/*      */   public static __ptr__ GD_minset(ST_Agraph_s g)
+/*      */   {
+/*  425 */     return ((ST_Agraphinfo_t)g.data).minset;
+/*      */   }
+/*      */   
+/*      */   public static int GD_n_cluster(ST_Agraph_s g)
+/*      */   {
+/*  433 */     return ((ST_Agraphinfo_t)g.data).n_cluster;
+/*      */   }
+/*      */   
+/*      */   public static void GD_n_cluster(ST_Agraph_s g, int v)
+/*      */   {
+/*  437 */     ((ST_Agraphinfo_t)g.data).n_cluster = v;
+/*      */   }
+/*      */   
+/*      */   public static int GD_n_nodes(ST_Agraph_s g)
+/*      */   {
+/*  442 */     return ((ST_Agraphinfo_t)g.data).n_nodes;
+/*      */   }
+/*      */   
+/*      */   public static void GD_n_nodes(ST_Agraph_s g, int v)
+/*      */   {
+/*  446 */     ((ST_Agraphinfo_t)g.data).n_nodes = v;
+/*      */   }
+/*      */   
+/*      */   public static ST_Agnode_s GD_nlist(ST_Agraph_s g)
+/*      */   {
+/*  454 */     return ((ST_Agraphinfo_t)g.data).nlist;
+/*      */   }
+/*      */   
+/*      */   public static void GD_nlist(ST_Agraph_s g, ST_Agnode_s v)
+/*      */   {
+/*  458 */     ((ST_Agraphinfo_t)g.data).nlist = v;
+/*      */   }
+/*      */   
+/*      */   public static int GD_nodesep(ST_Agraph_s g)
+/*      */   {
+/*  463 */     return ((ST_Agraphinfo_t)g.data).nodesep;
+/*      */   }
+/*      */   
+/*      */   public static void GD_nodesep(ST_Agraph_s g, int v)
+/*      */   {
+/*  467 */     ((ST_Agraphinfo_t)g.data).nodesep = v;
+/*      */   }
+/*      */   
+/*      */   public static CArray<ST_rank_t> GD_rank(ST_Agraph_s g)
+/*      */   {
+/*  476 */     return ((ST_Agraphinfo_t)g.data).rank;
+/*      */   }
+/*      */   
+/*      */   public static void GD_rank(ST_Agraph_s g, CArray<ST_rank_t> v)
+/*      */   {
+/*  483 */     ((ST_Agraphinfo_t)g.data).rank = v;
+/*      */   }
+/*      */   
+/*      */   public static CArrayOfStar<ST_Agnode_s> GD_rankleader(ST_Agraph_s g)
+/*      */   {
+/*  488 */     return ((ST_Agraphinfo_t)g.data).rankleader;
+/*      */   }
+/*      */   
+/*      */   public static void GD_rankleader(ST_Agraph_s g, CArrayOfStar<ST_Agnode_s> v)
+/*      */   {
+/*  492 */     ((ST_Agraphinfo_t)g.data).rankleader = v;
+/*      */   }
+/*      */   
+/*      */   public static int GD_ranksep(ST_Agraph_s g)
+/*      */   {
+/*  497 */     return ((ST_Agraphinfo_t)g.data).ranksep;
+/*      */   }
+/*      */   
+/*      */   public static void GD_ranksep(ST_Agraph_s g, int v)
+/*      */   {
+/*  501 */     ((ST_Agraphinfo_t)g.data).ranksep = v;
+/*      */   }
+/*      */   
+/*      */   public static ST_Agnode_s GD_rn(ST_Agraph_s g)
+/*      */   {
+/*  506 */     return ((ST_Agraphinfo_t)g.data).rn;
+/*      */   }
+/*      */   
+/*      */   public static void GD_rn(ST_Agraph_s g, ST_Agnode_s v)
+/*      */   {
+/*  510 */     ((ST_Agraphinfo_t)g.data).rn = v;
+/*      */   }
+/*      */   
+/*      */   public static int GD_set_type(ST_Agraph_s g)
+/*      */   {
+/*  515 */     return ((ST_Agraphinfo_t)g.data).set_type;
+/*      */   }
+/*      */   
+/*      */   public static void GD_set_type(ST_Agraph_s g, int v)
+/*      */   {
+/*  519 */     ((ST_Agraphinfo_t)g.data).set_type = v;
+/*      */   }
+/*      */   
+/*      */   public static int GD_label_pos(ST_Agraph_s g)
+/*      */   {
+/*  524 */     return ((ST_Agraphinfo_t)g.data).label_pos;
+/*      */   }
+/*      */   
+/*      */   public static void GD_label_pos(ST_Agraph_s g, int v)
+/*      */   {
+/*  528 */     ((ST_Agraphinfo_t)g.data).label_pos = v;
+/*      */   }
+/*      */   
+/*      */   public static int GD_showboxes(ST_Agraph_s g)
+/*      */   {
+/*  533 */     return ((ST_Agraphinfo_t)g.data).showboxes;
+/*      */   }
+/*      */   
+/*      */   public static void GD_showboxes(ST_Agraph_s g, int v)
+/*      */   {
+/*  537 */     ((ST_Agraphinfo_t)g.data).showboxes = v;
+/*      */   }
+/*      */   
+/*      */   public static int GD_fontnames(ST_Agraph_s g)
+/*      */   {
+/*  542 */     return ((ST_Agraphinfo_t)g.data).fontnames;
+/*      */   }
+/*      */   
+/*      */   public static void GD_fontnames(ST_Agraph_s g, int v)
+/*      */   {
+/*  546 */     ((ST_Agraphinfo_t)g.data).fontnames = v;
+/*      */   }
+/*      */   
+/*      */   public static int ND_id(ST_Agnode_s n)
+/*      */   {
+/*  555 */     return ((ST_Agnodeinfo_t)n.data).id;
+/*      */   }
+/*      */   
+/*      */   public static __ptr__ ND_alg(ST_Agnode_s n)
+/*      */   {
+/*  560 */     return ((ST_Agnodeinfo_t)n.data).alg;
+/*      */   }
+/*      */   
+/*      */   public static void ND_alg(ST_Agnode_s n, ST_Agedge_s value)
+/*      */   {
+/*  564 */     ((ST_Agnodeinfo_t)n.data).alg = value;
+/*      */   }
+/*      */   
+/*      */   public static ST_Agnode_s ND_UF_parent(ST_Agobj_s n)
+/*      */   {
+/*  569 */     return ((ST_Agnodeinfo_t)n.data).UF_parent;
+/*      */   }
+/*      */   
+/*      */   public static void ND_UF_parent(ST_Agobj_s n, ST_Agnode_s v)
+/*      */   {
+/*  573 */     ((ST_Agnodeinfo_t)n.data).UF_parent = v;
+/*      */   }
+/*      */   
+/*      */   public static int ND_UF_size(ST_Agnode_s n)
+/*      */   {
+/*  579 */     return ((ST_Agnodeinfo_t)n.data).UF_size;
+/*      */   }
+/*      */   
+/*      */   public static void ND_UF_size(ST_Agnode_s n, int v)
+/*      */   {
+/*  583 */     ((ST_Agnodeinfo_t)n.data).UF_size = v;
+/*      */   }
+/*      */   
+/*      */   public static ST_Agraph_s ND_clust(ST_Agnode_s n)
+/*      */   {
+/*  589 */     return ((ST_Agnodeinfo_t)n.data).clust;
+/*      */   }
+/*      */   
+/*      */   public static void ND_clust(ST_Agnode_s n, ST_Agraph_s v)
+/*      */   {
+/*  593 */     ((ST_Agnodeinfo_t)n.data).clust = v;
+/*      */   }
+/*      */   
+/*      */   public static ST_pointf ND_coord(ST_Agnode_s n)
+/*      */   {
+/*  598 */     return ((ST_Agnodeinfo_t)n.data).coord;
+/*      */   }
+/*      */   
+/*      */   public static ST_elist ND_flat_in(ST_Agnode_s n)
+/*      */   {
+/*  605 */     return ((ST_Agnodeinfo_t)n.data).flat_in;
+/*      */   }
+/*      */   
+/*      */   public static ST_elist ND_flat_out(ST_Agnode_s n)
+/*      */   {
+/*  610 */     return ((ST_Agnodeinfo_t)n.data).flat_out;
+/*      */   }
+/*      */   
+/*      */   public static boolean ND_has_port(ST_Agnode_s n)
+/*      */   {
+/*  616 */     return ((ST_Agnodeinfo_t)n.data).has_port;
+/*      */   }
+/*      */   
+/*      */   public static void ND_has_port(ST_Agnode_s n, boolean v)
+/*      */   {
+/*  620 */     ((ST_Agnodeinfo_t)n.data).has_port = v;
+/*      */   }
+/*      */   
+/*      */   public static double ND_height(ST_Agnode_s n)
+/*      */   {
+/*  627 */     return ((ST_Agnodeinfo_t)n.data).height;
+/*      */   }
+/*      */   
+/*      */   public static void ND_height(ST_Agnode_s n, double v)
+/*      */   {
+/*  631 */     ((ST_Agnodeinfo_t)n.data).height = v;
+/*      */   }
+/*      */   
+/*      */   public static double ND_ht(ST_Agnode_s n)
+/*      */   {
+/*  637 */     return ((ST_Agnodeinfo_t)n.data).ht;
+/*      */   }
+/*      */   
+/*      */   public static void ND_ht(ST_Agnode_s n, double v)
+/*      */   {
+/*  641 */     ((ST_Agnodeinfo_t)n.data).ht = v;
+/*      */   }
+/*      */   
+/*      */   public static ST_elist ND_in(ST_Agnode_s n)
+/*      */   {
+/*  646 */     return ((ST_Agnodeinfo_t)n.data).in;
+/*      */   }
+/*      */   
+/*      */   public static void ND_in(ST_Agnode_s n, __struct__<ST_elist> v)
+/*      */   {
+/*  650 */     ((ST_Agnodeinfo_t)n.data).in.___(v);
+/*      */   }
+/*      */   
+/*      */   public static __ptr__ ND_inleaf(ST_Agnode_s n)
+/*      */   {
+/*  655 */     return ((ST_Agnodeinfo_t)n.data).inleaf;
+/*      */   }
+/*      */   
+/*      */   public static ST_textlabel_t ND_label(ST_Agnode_s n)
+/*      */   {
+/*  660 */     return ((ST_Agnodeinfo_t)n.data).label;
+/*      */   }
+/*      */   
+/*      */   public static void ND_label(ST_Agnode_s n, ST_textlabel_t v)
+/*      */   {
+/*  664 */     ((ST_Agnodeinfo_t)n.data).label = v;
+/*      */   }
+/*      */   
+/*      */   public static ST_textlabel_t ND_xlabel(ST_Agnode_s n)
+/*      */   {
+/*  669 */     return ((ST_Agnodeinfo_t)n.data).xlabel;
+/*      */   }
+/*      */   
+/*      */   public static int ND_lim(ST_Agnode_s n)
+/*      */   {
+/*  674 */     return ((ST_Agnodeinfo_t)n.data).lim;
+/*      */   }
+/*      */   
+/*      */   public static void ND_lim(ST_Agnode_s n, int v)
+/*      */   {
+/*  678 */     ((ST_Agnodeinfo_t)n.data).lim = v;
+/*      */   }
+/*      */   
+/*      */   public static int ND_low(ST_Agnode_s n)
+/*      */   {
+/*  683 */     return ((ST_Agnodeinfo_t)n.data).low;
+/*      */   }
+/*      */   
+/*      */   public static void ND_low(ST_Agnode_s n, int v)
+/*      */   {
+/*  687 */     ((ST_Agnodeinfo_t)n.data).low = v;
+/*      */   }
+/*      */   
+/*      */   public static double ND_lw(ST_Agnode_s n)
+/*      */   {
+/*  692 */     return ((ST_Agnodeinfo_t)n.data).lw;
+/*      */   }
+/*      */   
+/*      */   public static void ND_lw(ST_Agnode_s n, double v)
+/*      */   {
+/*  696 */     ((ST_Agnodeinfo_t)n.data).lw = v;
+/*      */   }
+/*      */   
+/*      */   public static int ND_mark(ST_Agnode_s n)
+/*      */   {
+/*  701 */     return ((ST_Agnodeinfo_t)n.data).mark;
+/*      */   }
+/*      */   
+/*      */   public static void ND_mark(ST_Agnode_s n, int v)
+/*      */   {
+/*  705 */     ((ST_Agnodeinfo_t)n.data).mark = v;
+/*      */   }
+/*      */   
+/*      */   public static void ND_mark(ST_Agnode_s n, boolean v)
+/*      */   {
+/*  709 */     ((ST_Agnodeinfo_t)n.data).mark = v ? 1 : 0;
+/*      */   }
+/*      */   
+/*      */   public static double ND_mval(ST_Agnode_s n)
+/*      */   {
+/*  714 */     return ((ST_Agnodeinfo_t)n.data).mval;
+/*      */   }
+/*      */   
+/*      */   public static void ND_mval(ST_Agnode_s n, double v)
+/*      */   {
+/*  718 */     ((ST_Agnodeinfo_t)n.data).mval = v;
+/*      */   }
+/*      */   
+/*      */   public static ST_Agnode_s ND_next(ST_Agnode_s n)
+/*      */   {
+/*  724 */     return ((ST_Agnodeinfo_t)n.data).next;
+/*      */   }
+/*      */   
+/*      */   public static void ND_next(ST_Agnode_s n, ST_Agnode_s v)
+/*      */   {
+/*  728 */     ((ST_Agnodeinfo_t)n.data).next = v;
+/*      */   }
+/*      */   
+/*      */   public static int ND_node_type(ST_Agnode_s n)
+/*      */   {
+/*  733 */     return ((ST_Agnodeinfo_t)n.data).node_type;
+/*      */   }
+/*      */   
+/*      */   public static void ND_node_type(ST_Agnode_s n, int v)
+/*      */   {
+/*  737 */     ((ST_Agnodeinfo_t)n.data).node_type = v;
+/*      */   }
+/*      */   
+/*      */   public static boolean ND_onstack(ST_Agnode_s n)
+/*      */   {
+/*  742 */     return ((ST_Agnodeinfo_t)n.data).onstack != 0;
+/*      */   }
+/*      */   
+/*      */   public static void ND_onstack(ST_Agnode_s n, int v)
+/*      */   {
+/*  746 */     ((ST_Agnodeinfo_t)n.data).onstack = v;
+/*      */   }
+/*      */   
+/*      */   public static void ND_onstack(ST_Agnode_s n, boolean v)
+/*      */   {
+/*  750 */     ((ST_Agnodeinfo_t)n.data).onstack = v ? 1 : 0;
+/*      */   }
+/*      */   
+/*      */   public static int ND_order(ST_Agnode_s n)
+/*      */   {
+/*  755 */     return ((ST_Agnodeinfo_t)n.data).order;
+/*      */   }
+/*      */   
+/*      */   public static void ND_order(ST_Agnode_s n, int v)
+/*      */   {
+/*  759 */     ((ST_Agnodeinfo_t)n.data).order = v;
+/*      */   }
+/*      */   
+/*      */   public static ST_elist ND_other(ST_Agnode_s n)
+/*      */   {
+/*  764 */     return ((ST_Agnodeinfo_t)n.data).other;
+/*      */   }
+/*      */   
+/*      */   public static ST_elist ND_out(ST_Agnode_s n)
+/*      */   {
+/*  769 */     return ((ST_Agnodeinfo_t)n.data).out;
+/*      */   }
+/*      */   
+/*      */   public static void ND_out(ST_Agnode_s n, __struct__<ST_elist> v)
+/*      */   {
+/*  773 */     ((ST_Agnodeinfo_t)n.data).out.___(v);
+/*      */   }
+/*      */   
+/*      */   public static __ptr__ ND_outleaf(ST_Agnode_s n)
+/*      */   {
+/*  778 */     return ((ST_Agnodeinfo_t)n.data).outleaf;
+/*      */   }
+/*      */   
+/*      */   public static ST_Agedge_s ND_par(ST_Agnode_s n)
+/*      */   {
+/*  783 */     return ((ST_Agnodeinfo_t)n.data).par;
+/*      */   }
+/*      */   
+/*      */   public static void ND_par(ST_Agnode_s n, ST_Agedge_s v)
+/*      */   {
+/*  787 */     ((ST_Agnodeinfo_t)n.data).par = v;
+/*      */   }
+/*      */   
+/*      */   public static ST_Agnode_s ND_prev(ST_Agnode_s n)
+/*      */   {
+/*  794 */     return ((ST_Agnodeinfo_t)n.data).prev;
+/*      */   }
+/*      */   
+/*      */   public static void ND_prev(ST_Agnode_s n, ST_Agnode_s v)
+/*      */   {
+/*  798 */     ((ST_Agnodeinfo_t)n.data).prev = v;
+/*      */   }
+/*      */   
+/*      */   public static int ND_priority(ST_Agnode_s n)
+/*      */   {
+/*  803 */     return ((ST_Agnodeinfo_t)n.data).priority;
+/*      */   }
+/*      */   
+/*      */   public static void ND_priority(ST_Agnode_s n, int v)
+/*      */   {
+/*  807 */     ((ST_Agnodeinfo_t)n.data).priority = v;
+/*      */   }
+/*      */   
+/*      */   public static int ND_rank(ST_Agnode_s n)
+/*      */   {
+/*  812 */     return ((ST_Agnodeinfo_t)n.data).rank;
+/*      */   }
+/*      */   
+/*      */   public static void ND_rank(ST_Agnode_s n, int v)
+/*      */   {
+/*  816 */     ((ST_Agnodeinfo_t)n.data).rank = v;
+/*      */   }
+/*      */   
+/*      */   public static int ND_ranktype(ST_Agnode_s n)
+/*      */   {
+/*  821 */     return ((ST_Agnodeinfo_t)n.data).ranktype;
+/*      */   }
+/*      */   
+/*      */   public static void ND_ranktype(ST_Agnode_s n, int v)
+/*      */   {
+/*  825 */     ((ST_Agnodeinfo_t)n.data).ranktype = v;
+/*      */   }
+/*      */   
+/*      */   public static double ND_rw(ST_Agnode_s n)
+/*      */   {
+/*  830 */     return ((ST_Agnodeinfo_t)n.data).rw;
+/*      */   }
+/*      */   
+/*      */   public static void ND_rw(ST_Agnode_s n, double v)
+/*      */   {
+/*  834 */     ((ST_Agnodeinfo_t)n.data).rw = v;
+/*      */   }
+/*      */   
+/*      */   public static ST_elist ND_save_in(ST_Agnode_s n)
+/*      */   {
+/*  839 */     return ((ST_Agnodeinfo_t)n.data).save_in;
+/*      */   }
+/*      */   
+/*      */   public static void ND_save_in(ST_Agnode_s n, __struct__<ST_elist> v)
+/*      */   {
+/*  843 */     ((ST_Agnodeinfo_t)n.data).save_in.___(v);
+/*      */   }
+/*      */   
+/*      */   public static ST_elist ND_save_out(ST_Agnode_s n)
+/*      */   {
+/*  848 */     return ((ST_Agnodeinfo_t)n.data).save_out;
+/*      */   }
+/*      */   
+/*      */   public static void ND_save_out(ST_Agnode_s n, __struct__<ST_elist> v)
+/*      */   {
+/*  852 */     ((ST_Agnodeinfo_t)n.data).save_out.___(v);
+/*      */   }
+/*      */   
+/*      */   public static ST_shape_desc ND_shape(ST_Agnode_s n)
+/*      */   {
+/*  857 */     return ((ST_Agnodeinfo_t)n.data).shape;
+/*      */   }
+/*      */   
+/*      */   public static void ND_shape(ST_Agnode_s n, ST_shape_desc v)
+/*      */   {
+/*  861 */     ((ST_Agnodeinfo_t)n.data).shape = v;
+/*      */   }
+/*      */   
+/*      */   public static SHAPE_INFO ND_shape_info(ST_Agnode_s n)
+/*      */   {
+/*  866 */     return ((ST_Agnodeinfo_t)n.data).shape_info;
+/*      */   }
+/*      */   
+/*      */   public static void ND_shape_info(ST_Agnode_s n, SHAPE_INFO v)
+/*      */   {
+/*  870 */     ((ST_Agnodeinfo_t)n.data).shape_info = v;
+/*      */   }
+/*      */   
+/*      */   public static int ND_showboxes(ST_Agnode_s n)
+/*      */   {
+/*  875 */     return ((ST_Agnodeinfo_t)n.data).showboxes;
+/*      */   }
+/*      */   
+/*      */   public static void ND_showboxes(ST_Agnode_s n, int v)
+/*      */   {
+/*  879 */     ((ST_Agnodeinfo_t)n.data).showboxes = v;
+/*      */   }
+/*      */   
+/*      */   public static ST_elist ND_tree_in(ST_Agnode_s n)
+/*      */   {
+/*  886 */     return ((ST_Agnodeinfo_t)n.data).tree_in;
+/*      */   }
+/*      */   
+/*      */   public static ST_elist ND_tree_out(ST_Agnode_s n)
+/*      */   {
+/*  891 */     return ((ST_Agnodeinfo_t)n.data).tree_out;
+/*      */   }
+/*      */   
+/*      */   public static int ND_weight_class(ST_Agnode_s n)
+/*      */   {
+/*  896 */     return ((ST_Agnodeinfo_t)n.data).weight_class;
+/*      */   }
+/*      */   
+/*      */   public static void ND_weight_class(ST_Agnode_s n, int v)
+/*      */   {
+/*  900 */     ((ST_Agnodeinfo_t)n.data).weight_class = v;
+/*      */   }
+/*      */   
+/*      */   public static double ND_width(ST_Agnode_s n)
+/*      */   {
+/*  905 */     return ((ST_Agnodeinfo_t)n.data).width;
+/*      */   }
+/*      */   
+/*      */   public static void ND_width(ST_Agnode_s n, double v)
+/*      */   {
+/*  909 */     ((ST_Agnodeinfo_t)n.data).width = v;
+/*      */   }
+/*      */   
+/*      */   public static boolean ED_conc_opp_flag(ST_Agedge_s e)
+/*      */   {
+/*  918 */     return ((ST_Agedgeinfo_t)e.data).conc_opp_flag;
+/*      */   }
+/*      */   
+/*      */   public static void ED_conc_opp_flag(ST_Agedge_s e, boolean v)
+/*      */   {
+/*  922 */     ((ST_Agedgeinfo_t)e.data).conc_opp_flag = v;
+/*      */   }
+/*      */   
+/*      */   public static int ED_count(ST_Agedge_s e)
+/*      */   {
+/*  927 */     return ((ST_Agedgeinfo_t)e.data).count;
+/*      */   }
+/*      */   
+/*      */   public static void ED_count(ST_Agedge_s e, int v)
+/*      */   {
+/*  931 */     ((ST_Agedgeinfo_t)e.data).count = v;
+/*      */   }
+/*      */   
+/*      */   public static int ED_cutvalue(ST_Agedge_s e)
+/*      */   {
+/*  936 */     return ((ST_Agedgeinfo_t)e.data).cutvalue;
+/*      */   }
+/*      */   
+/*      */   public static void ED_cutvalue(ST_Agedge_s e, int v)
+/*      */   {
+/*  940 */     ((ST_Agedgeinfo_t)e.data).cutvalue = v;
+/*      */   }
+/*      */   
+/*      */   public static int ED_adjacent(ST_Agedge_s e)
+/*      */   {
+/*  946 */     return ((ST_Agedgeinfo_t)e.data).adjacent;
+/*      */   }
+/*      */   
+/*      */   public static void ED_adjacent(ST_Agedge_s e, int v)
+/*      */   {
+/*  950 */     ((ST_Agedgeinfo_t)e.data).adjacent = v;
+/*      */   }
+/*      */   
+/*      */   public static ST_textlabel_t ED_head_label(ST_Agedge_s e)
+/*      */   {
+/*  957 */     return ((ST_Agedgeinfo_t)e.data).head_label;
+/*      */   }
+/*      */   
+/*      */   public static void ED_head_label(ST_Agedge_s e, ST_textlabel_t v)
+/*      */   {
+/*  961 */     ((ST_Agedgeinfo_t)e.data).head_label = v;
+/*      */   }
+/*      */   
+/*      */   public static ST_port ED_head_port(ST_Agedge_s e)
+/*      */   {
+/*  966 */     return ((ST_Agedgeinfo_t)e.data).head_port;
+/*      */   }
+/*      */   
+/*      */   public static void ED_head_port(ST_Agedge_s e, ST_port v)
+/*      */   {
+/*  970 */     ((ST_Agedgeinfo_t)e.data).head_port.___(v);
+/*      */   }
+/*      */   
+/*      */   public static ST_textlabel_t ED_label(ST_Agedge_s e)
+/*      */   {
+/*  975 */     return ((ST_Agedgeinfo_t)e.data).label;
+/*      */   }
+/*      */   
+/*      */   public static void ED_label(ST_Agedge_s e, ST_textlabel_t v)
+/*      */   {
+/*  979 */     ((ST_Agedgeinfo_t)e.data).label = v;
+/*      */   }
+/*      */   
+/*      */   public static ST_textlabel_t ED_xlabel(ST_Agedge_s e)
+/*      */   {
+/*  984 */     return ((ST_Agedgeinfo_t)e.data).xlabel;
+/*      */   }
+/*      */   
+/*      */   public static boolean ED_label_ontop(ST_Agedge_s e)
+/*      */   {
+/*  989 */     return ((ST_Agedgeinfo_t)e.data).label_ontop;
+/*      */   }
+/*      */   
+/*      */   public static void ED_label_ontop(ST_Agedge_s e, boolean v)
+/*      */   {
+/*  993 */     ((ST_Agedgeinfo_t)e.data).label_ontop = v;
+/*      */   }
+/*      */   
+/*      */   public static int ED_minlen(ST_Agedge_s e)
+/*      */   {
+/*  998 */     return ((ST_Agedgeinfo_t)e.data).minlen;
+/*      */   }
+/*      */   
+/*      */   public static void ED_minlen(ST_Agedge_s e, int v)
+/*      */   {
+/* 1002 */     ((ST_Agedgeinfo_t)e.data).minlen = v;
+/*      */   }
+/*      */   
+/*      */   public static int ED_showboxes(ST_Agedge_s e)
+/*      */   {
+/* 1008 */     return ((ST_Agedgeinfo_t)e.data).showboxes;
+/*      */   }
+/*      */   
+/*      */   public static void ED_showboxes(ST_Agedge_s e, int v)
+/*      */   {
+/* 1012 */     ((ST_Agedgeinfo_t)e.data).showboxes = v;
+/*      */   }
+/*      */   
+/*      */   public static ST_splines ED_spl(ST_Agedge_s e)
+/*      */   {
+/* 1017 */     return ((ST_Agedgeinfo_t)e.data).spl;
+/*      */   }
+/*      */   
+/*      */   public static void ED_spl(ST_Agedge_s e, ST_splines v)
+/*      */   {
+/* 1021 */     ((ST_Agedgeinfo_t)e.data).spl = v;
+/*      */   }
+/*      */   
+/*      */   public static ST_textlabel_t ED_tail_label(ST_Agedge_s e)
+/*      */   {
+/* 1026 */     return ((ST_Agedgeinfo_t)e.data).tail_label;
+/*      */   }
+/*      */   
+/*      */   public static void ED_tail_label(ST_Agedge_s e, ST_textlabel_t v)
+/*      */   {
+/* 1030 */     ((ST_Agedgeinfo_t)e.data).tail_label = v;
+/*      */   }
+/*      */   
+/*      */   public static ST_port ED_tail_port(ST_Agedge_s e)
+/*      */   {
+/* 1035 */     return ((ST_Agedgeinfo_t)e.data).tail_port;
+/*      */   }
+/*      */   
+/*      */   public static void ED_tail_port(ST_Agedge_s e, ST_port v)
+/*      */   {
+/* 1039 */     ((ST_Agedgeinfo_t)e.data).tail_port.___(v);
+/*      */   }
+/*      */   
+/*      */   public static ST_Agedge_s ED_to_orig(ST_Agedge_s e)
+/*      */   {
+/* 1044 */     return ((ST_Agedgeinfo_t)e.data).to_orig;
+/*      */   }
+/*      */   
+/*      */   public static void ED_to_orig(ST_Agedge_s e, ST_Agedge_s v)
+/*      */   {
+/* 1048 */     ((ST_Agedgeinfo_t)e.data).to_orig = v;
+/*      */   }
+/*      */   
+/*      */   public static ST_Agedge_s ED_to_virt(ST_Agedge_s e)
+/*      */   {
+/* 1053 */     return ((ST_Agedgeinfo_t)e.data).to_virt;
+/*      */   }
+/*      */   
+/*      */   public static void ED_to_virt(ST_Agedge_s e, ST_Agedge_s v)
+/*      */   {
+/* 1057 */     ((ST_Agedgeinfo_t)e.data).to_virt = v;
+/*      */   }
+/*      */   
+/*      */   public static int ED_tree_index(ST_Agedge_s e)
+/*      */   {
+/* 1062 */     return ((ST_Agedgeinfo_t)e.data).tree_index;
+/*      */   }
+/*      */   
+/*      */   public static void ED_tree_index(ST_Agedge_s e, int v)
+/*      */   {
+/* 1066 */     ((ST_Agedgeinfo_t)e.data).tree_index = v;
+/*      */   }
+/*      */   
+/*      */   public static int ED_xpenalty(ST_Agedge_s e)
+/*      */   {
+/* 1071 */     return ((ST_Agedgeinfo_t)e.data).xpenalty;
+/*      */   }
+/*      */   
+/*      */   public static void ED_xpenalty(ST_Agedge_s e, int v)
+/*      */   {
+/* 1075 */     ((ST_Agedgeinfo_t)e.data).xpenalty = v;
+/*      */   }
+/*      */   
+/*      */   public static double ED_dist(ST_Agedge_s e)
+/*      */   {
+/* 1080 */     return ((ST_Agedgeinfo_t)e.data).dist;
+/*      */   }
+/*      */   
+/*      */   public static void ED_dist(ST_Agedge_s e, double v)
+/*      */   {
+/* 1084 */     ((ST_Agedgeinfo_t)e.data).dist = v;
+/*      */   }
+/*      */   
+/*      */   public static int ED_weight(ST_Agedge_s e)
+/*      */   {
+/* 1089 */     return ((ST_Agedgeinfo_t)e.data).weight;
+/*      */   }
+/*      */   
+/*      */   public static void ED_weight(ST_Agedge_s e, int v)
+/*      */   {
+/* 1093 */     ((ST_Agedgeinfo_t)e.data).weight = v;
+/*      */   }
+/*      */   
+/*      */   public static int ED_edge_type(ST_Agedge_s e)
+/*      */   {
+/* 1097 */     return ((ST_Agedgeinfo_t)e.data).edge_type;
+/*      */   }
+/*      */   
+/*      */   public static void ED_edge_type(ST_Agedge_s e, int v)
+/*      */   {
+/* 1101 */     ((ST_Agedgeinfo_t)e.data).edge_type = v;
+/*      */   }
+/*      */   
+/*      */   public static int[] ALLOC_INT(int size, int[] old)
+/*      */   {
+/* 1105 */     if (old == null) {
+/* 1106 */       return new int[size];
+/*      */     }
+/* 1108 */     if (old.length > size) {
+/* 1109 */       return old;
+/*      */     }
+/* 1111 */     int[] result = new int[size];
+/*      */     
+/* 1113 */     for (int i = 0; i < old.length; i++)
+/* 1114 */       result[i] = old[i];
+/* 1115 */     return result;
+/*      */   }
+/*      */   
+/*      */   public static final int RANKDIR_RL = 3;
+/*      */   public static final int REGULAREDGE = 1;
+/*      */   public static final int FLATEDGE = 2;
+/*      */   public static final int SELFWPEDGE = 4;
+/*      */   public static final int SELFNPEDGE = 8;
+/*      */   public static final int SELFEDGE = 8;
+/*      */   public static final int EDGETYPEMASK = 15;
+/*      */   public static final int LAYOUT_USES_RANKDIR = 1;
+/*      */   public static final int DT_FOUND = 32768;
+/*      */   public static final int DT_SET = 1;
+/*      */   public static final int DT_BAG = 2;
+/*      */   public static final int DT_OSET = 4;
+/*      */   public static final int DT_OBAG = 8;
+/*      */   
+/*      */   public static void elist_append(ST_Agedge_s item, ST_elist L)
+/*      */   {
+/* 1129 */     L.list = CArrayOfStar.REALLOC(L.size + 2, L.list, ZType.ST_Agedge_s);
+/* 1130 */     L.list.set_(L.size++, item);
+/* 1131 */     L.list.set_(L.size, null);
+/*      */   }
+/*      */   public static final int DT_LIST = 16;
+/*      */   public static final int DT_STACK = 32;
+/*      */   public static final int DT_QUEUE = 64;
+/*      */   public static final int DT_DEQUE = 128;
+/*      */   public static final int DT_METHODS = 255;
+/*      */   public static final int DT_SAMECMP = 1;
+/*      */   public static final int DT_SAMEHASH = 2;
+/*      */   
+/*      */   public static void alloc_elist(int n, ST_elist L)
+/*      */   {
+/* 1137 */     L.size = 0;
+/* 1138 */     L.list = CArrayOfStar.ALLOC(n + 1, ZType.ST_Agedge_s);
+/*      */   }
+/*      */   public static final int DT_INSERT = 1;
+/*      */   public static final int DT_DELETE = 2;
+/*      */   public static final int DT_SEARCH = 4;
+/*      */   public static final int DT_NEXT = 8;
+/*      */   public static final int DT_PREV = 16;
+/*      */   public static final int DT_RENEW = 32;
+/*      */   public static final int DT_CLEAR = 64;
+/*      */   public static final int DT_FIRST = 128;
+/*      */   
+/*      */   public static void free_list(ST_elist L)
+/*      */   {
+/* 1143 */     if (L.list != null) {
+/* 1144 */       Memory.free(L.list);
+/*      */     }
+/*      */   }
+/*      */   
+/*      */   public static final int DT_LAST = 256;
+/*      */   public static final int DT_MATCH = 512;
+/*      */   public static final int DT_VSEARCH = 1024;
+/*      */   public static final int DT_ATTACH = 2048;
+/*      */   public static final int DT_DETACH = 4096;
+/*      */   public static final int DT_APPEND = 8192;
+/*      */   public static final int DT_OPEN = 1;
+/*      */   public static final int DT_CLOSE = 2;
+/*      */   public static final int DT_DISC = 3;
+/*      */   public static final int DT_METH = 4;
+/*      */   public static final int DT_ENDOPEN = 5;
+/*      */   
+/*      */   public static boolean BETWEEN(double a, double b, double c)
+/*      */   {
+/* 1149 */     return a <= b && b <= c;
+/*      */   }
+/*      */   
+/*      */   public static final int DT_ENDCLOSE = 6;
+/*      */   public static final int DT_HASHSIZE = 7;
+/*      */   public static final int DT_FLATTEN = 4096;
+/*      */   public static final int DT_WALK = 8192;
+/*      */   
+/*      */   public static boolean BETWEEN(int a, int b, int c)
+/*      */   {
+/* 1153 */     return a <= b && b <= c; }
+/*      */   
+/*      */   public static final int DT_MALLOC = 0;
+/*      */   public static final int DT_MEMORYF = 1;
+/*      */   public static final int GVRENDER_PLUGIN = 300; public static final int NO_SUPPORT = 999; public static final int LOCAL = 100; public static final int GLOBAL = 101; public static final int NOCLUST = 102; public static final double DEFAULT_NODESEP = 0.25D; public static final double MIN_NODESEP = 0.02D;
+/* 1158 */   public static int ROUND(double f) { return f >= 0.0D ? (int)(f + 0.5D) : (int)(f - 0.5D); }
+/*      */   
+/*      */ 
+/*      */   public static final double DEFAULT_RANKSEP = 0.5D;
+/*      */   
+/*      */   public static final double MIN_RANKSEP = 0.02D;
+/*      */   public static final int POINTS_PER_INCH = 72;
+/*      */   public static final int GVBEGIN = 0;
+/*      */   public static final int GVSPLINES = 1;
+/*      */   public static final double Spring_coeff = 1.0D;
+/*      */   public static final double MYHUGE = 1.0E37D;
+/*      */   public static final int MAXDIM = 10;
+/*      */   public static final String NODENAME_ESC = "\\N";
+/*      */   public static final String DEFAULT_NODESHAPE = "ellipse";
+/*      */   public static final double DEFAULT_NODEHEIGHT = 0.5D;
+/*      */   public static final double MIN_NODEHEIGHT = 0.02D;
+/*      */   
+/*      */   public static void MAKEFWDEDGE(ST_Agedge_s new_, ST_Agedge_s old)
+/*      */   {
+/* 1177 */     SmetanaDebug.LOG("MAKEFWDEDGE");
+/*      */     
+/*      */ 
+/* 1180 */     ST_Agedge_s newp = new_;
+/* 1181 */     ST_Agedgeinfo_t info = (ST_Agedgeinfo_t)newp.base.data;
+/* 1182 */     info.___((ST_Agedgeinfo_t)old.base.data);
+/* 1183 */     newp.___(old);
+/* 1184 */     newp.base.data = info;
+/* 1185 */     M_agtail(newp, AGHEAD(old));
+/* 1186 */     M_aghead(newp, AGTAIL(old));
+/* 1187 */     ED_tail_port(newp, ED_head_port(old));
+/* 1188 */     ED_head_port(newp, ED_tail_port(old));
+/* 1189 */     ED_edge_type(newp, 1);
+/* 1190 */     ED_to_orig(newp, old); }
+/*      */   
+/*      */   public static final double DEFAULT_NODEWIDTH = 0.75D;
+/*      */   public static final double MIN_NODEWIDTH = 0.01D;
+/*      */   public static final int BOTTOM_IX = 0;
+/*      */   public static final int RIGHT_IX = 1;
+/*      */   public static final int TOP_IX = 2;
+/*      */   public static final int LEFT_IX = 3;
+/*      */   public static final int GAP = 4;
+/*      */   public static final int CB_INITIALIZE = 100;
+/*      */   public static final int CB_UPDATE = 101;
+/*      */   public static final int CB_DELETION = 102;
+/*      */   public static final int CL_BACK = 10;
+/*      */   public static final int CL_OFFSET = 8;
+/*      */   public static final int CL_CROSS = 1000;
+/*      */   public static final double DEFAULT_FONTSIZE = 14.0D;
+/*      */   public static final double DEFAULT_LABEL_FONTSIZE = 11.0D;
+/*      */   public static final double MIN_FONTSIZE = 1.0D;
+/*      */   public static final int FILLED = 1;
+/*      */   public static final int RADIAL = 2;
+/*      */   public static final int ROUNDED = 4;
+/*      */   public static final int DIAGONALS = 8;
+/*      */   public static final int AUXLABELS = 16;
+/*      */   public static final int INVISIBLE = 32;
+/*      */   public static final int STRIPED = 64;
+/*      */   public static final int DOTTED = 128;
+/*      */   public static final int DASHED = 256;
+/*      */   public static final int WEDGED = 512;
+/*      */   public static final int UNDERLINE = 1024;
+/*      */   public static final int FIXEDSHAPE = 2048;
+/*      */   public static final int SHAPE_MASK = 2130706432;
+/*      */   public static final int SEARCHSIZE = 30;
+/*      */   public static final int NODECARD = 64;
+/*      */   
+/* 1224 */   public static double hypot(double x, double y) { x = Math.abs(x);
+/* 1225 */     y = Math.abs(y);
+/* 1226 */     double t = Math.min(x, y);
+/* 1227 */     x = Math.max(x, y);
+/* 1228 */     t /= x;
+/* 1229 */     return x * Math.sqrt(1.0D + t * t); }
+/*      */   
+/*      */   public static final int SMALLBUF = 128;
+/*      */   public static final int ARR_NONE = 0;
+/*      */   public static final int ARR_TYPE_NONE = 0; public static final int ARR_TYPE_NORM = 1; public static final int ARR_TYPE_CROW = 2;
+/* 1234 */   public static double SQR(double a) { return a * a; }
+/*      */   
+/*      */   public static final int ARR_TYPE_TEE = 3;
+/*      */   public static final int ARR_TYPE_BOX = 4;
+/*      */   public static final int ARR_TYPE_DIAMOND = 5;
+/* 1239 */   public static final int ARR_TYPE_DOT = 6; public static final int ARR_TYPE_CURVE = 7; public static final int ARR_TYPE_GAP = 8; public static final double ARROW_LENGTH = 10.0D; public static final int NUMB_OF_ARROW_HEADS = 4; public static final int BITS_PER_ARROW = 8; public static final int BITS_PER_ARROW_TYPE = 4; public static double MILLIPOINT = 0.001D;
+/* 1240 */   public static double MICROPOINT = 1.0E-6D;
+/*      */   
+/*      */   public static boolean APPROXEQPT(ST_pointf p, ST_pointf q, double tol)
+/*      */   {
+/* 1244 */     return DIST2(p, q) < SQR(tol);
+/*      */   }
+/*      */   
+/*      */   public static double LEN2(double a, double b)
+/*      */   {
+/* 1249 */     return SQR(a) + SQR(b);
+/*      */   }
+/*      */   
+/*      */   public static double LEN(double a, double b)
+/*      */   {
+/* 1254 */     return Math.sqrt(LEN2(a, b));
+/*      */   }
+/*      */   
+/*      */ 
+/*      */   public static double DIST2(ST_pointf p, ST_pointf q)
+/*      */   {
+/* 1260 */     return LEN2(p.x - q.x, p.y - q.y);
+/*      */   }
+/*      */   
+/*      */   public static double DIST2(ST_point p, ST_point q) {
+/* 1264 */     return LEN2(p.x - q.x, p.y - q.y);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static boolean INSIDE(ST_pointf p, ST_boxf b)
+/*      */   {
+/* 1272 */     return BETWEEN(b.LL.x, p.x, b.UR.x) && BETWEEN(b.LL.y, p.y, b.UR.y);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/* 1277 */   public static final double SQRT2 = Math.sqrt(2.0D);
+/*      */   
+/*      */   public static double RADIANS(double deg)
+/*      */   {
+/* 1281 */     return deg / 180.0D * 3.141592653589793D;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static double DISTSQ(ST_pointf a, ST_pointf b)
+/*      */   {
+/* 1289 */     return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
+/*      */   }
+/*      */   
+/*      */   public static void hackInitDimensionFromLabel(ST_pointf size, String label) {
+/* 1293 */     Pattern p = Pattern.compile("_dim_([.\\d]+)_([\\d.]+)_");
+/* 1294 */     Matcher m = p.matcher(label);
+/* 1295 */     if (m.matches()) {
+/* 1296 */       double ww = Double.parseDouble(m.group(1));
+/* 1297 */       double hh = Double.parseDouble(m.group(2));
+/* 1298 */       size.x = ww;
+/* 1299 */       size.y = hh;
+/* 1300 */       JUtils.LOG2("Hacking dimension to width=" + ww + " height=" + hh);
+/*      */     } else {
+/* 1302 */       JUtils.LOG2("Strange label " + label);
+/*      */     }
+/*      */   }
+/*      */   
+/*      */   public static CString createHackInitDimensionFromLabel(int width, int height) {
+/* 1307 */     return new CString("_dim_" + width + "_" + height + "_");
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static void PF2P(ST_pointf pf, ST_pointf p)
+/*      */   {
+/* 1316 */     p.x = ROUND(pf.x);
+/* 1317 */     p.y = ROUND(pf.y);
+/*      */   }
+/*      */   
+/*      */   public static void PF2P(ST_pointf pf, ST_point p) {
+/* 1321 */     p.x = ROUND(pf.x);
+/* 1322 */     p.y = ROUND(pf.y);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static void dtinsert(Globals zz, ST_dt_s d, Object o)
+/*      */   {
+/* 1409 */     d.searchf.exe(zz, d, o, Integer.valueOf(1));
+/*      */   }
+/*      */   
+/*      */   public static Object dtsearch(Globals zz, ST_dt_s d, Object o) {
+/* 1413 */     return d.searchf.exe(zz, d, o, Integer.valueOf(4));
+/*      */   }
+/*      */   
+/*      */   public static Object dtfirst(Globals zz, ST_dt_s d) {
+/* 1417 */     return d.searchf.exe(zz, d, null, Integer.valueOf(128));
+/*      */   }
+/*      */   
+/*      */   public static Object dtnext(Globals zz, ST_dt_s d, Object o) {
+/* 1421 */     return d.searchf.exe(zz, d, o, Integer.valueOf(8));
+/*      */   }
+/*      */   
+/*      */   public static Object dtdelete(Globals zz, ST_dt_s d, Object o) {
+/* 1425 */     return d.searchf.exe(zz, d, o, Integer.valueOf(2));
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static void rrotate(ST_dtlink_s x, ST_dtlink_s y)
+/*      */   {
+/* 1505 */     x._left = y.right;
+/* 1506 */     y.right = x;
+/*      */   }
+/*      */   
+/*      */   public static void lrotate(ST_dtlink_s x, ST_dtlink_s y) {
+/* 1510 */     x.right = y._left;
+/* 1511 */     y._left = x;
+/*      */   }
+/*      */   
+/*      */   public static ST_dtlink_s rlink____warning(ST_dtlink_s r, ST_dtlink_s x) {
+/* 1515 */     r._left = x;
+/*      */     
+/* 1517 */     return x;
+/*      */   }
+/*      */   
+/*      */   public static ST_dtlink_s llink____warning(ST_dtlink_s l, ST_dtlink_s x) {
+/* 1521 */     l.right = x;
+/*      */     
+/* 1523 */     return x;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static ST_Agsym_s agfindgraphattr(Globals zz, ST_Agraph_s g, String a)
+/*      */   {
+/* 1541 */     return attr__c.agattr(zz, g, 0, new CString(a), null);
+/*      */   }
+/*      */   
+/*      */   public static ST_Agsym_s agfindnodeattr(Globals zz, ST_Agraph_s g, String a) {
+/* 1545 */     return attr__c.agattr(zz, g, 1, new CString(a), null);
+/*      */   }
+/*      */   
+/*      */   public static ST_Agsym_s agfindedgeattr(Globals zz, ST_Agraph_s g, String a) {
+/* 1549 */     return attr__c.agattr(zz, g, 2, new CString(a), null);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static int POINTS(double a_inches)
+/*      */   {
+/* 1560 */     return ROUND(a_inches * 72.0D);
+/*      */   }
+/*      */   
+/*      */   public static double INCH2PS(double a_inches) {
+/* 1564 */     return a_inches * 72.0D;
+/*      */   }
+/*      */   
+/*      */   public static double PS2INCH(double a_points) {
+/* 1568 */     return a_points / 72.0D;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static void PAD(ST_pointf d)
+/*      */   {
+/* 1597 */     XPAD(d);
+/* 1598 */     YPAD(d);
+/*      */   }
+/*      */   
+/*      */   public static void YPAD(ST_pointf d) {
+/* 1602 */     d.y += 8.0D;
+/*      */   }
+/*      */   
+/*      */   public static void XPAD(ST_pointf d) {
+/* 1606 */     d.x += 16.0D;
+/*      */   }
+/*      */   
+/*      */   public static void UNFLATTEN(ST_dt_s dt) {
+/* 1610 */     if ((dt.data.type & 0x1000) != 0) {
+/* 1611 */       dtrestore__c.dtrestore(dt, null);
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static __ptr__ AGCLOS_id(ST_Agraph_s g)
+/*      */   {
+/* 1623 */     return g.clos.state.id;
+/*      */   }
+/*      */   
+/*      */   public static ST_Agiddisc_s AGDISC_id(ST_Agraph_s g) {
+/* 1627 */     return g.clos.disc.id;
+/*      */   }
+/*      */   
+/*      */   public static __ptr__ AGCLOS_mem(ST_Agraph_s g) {
+/* 1631 */     return g.clos.state.mem;
+/*      */   }
+/*      */   
+/*      */   public static ST_Agmemdisc_s AGDISC_mem(ST_Agraph_s g) {
+/* 1635 */     return g.clos.disc.mem;
+/*      */   }
+/*      */   
+/*      */   public static ST_Agiodisc_s AGDISC_io(ST_Agraph_s g) {
+/* 1639 */     return g.clos.disc.io;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/* 1662 */   public static final CString HEAD_ID = new CString("headport");
+/* 1663 */   public static final CString TAIL_ID = new CString("tailport");
+/*      */   
+/*      */   public static __ptr__ _DTKEY(__ptr__ o, FieldOffset ky, int sz)
+/*      */   {
+/* 1668 */     return (__ptr__)o.getTheField(ky);
+/*      */   }
+/*      */   
+/*      */   public static int _DTCMP(Globals zz, ST_dt_s dt, __ptr__ k1, __ptr__ k2, ST_dtdisc_s dc, CFunction cmpf, int sz)
+/*      */   {
+/* 1673 */     return 
+/* 1674 */       sz <= 0 ? cmpf != null ? ((Integer)cmpf.exe(zz, dt, k1, k2, dc)).intValue() : JUtils.strcmp((CString)k1, (CString)k2) : UNSUPPORTED_INT("memcmp(ok,nk,sz)");
+/*      */   }
+/*      */   
+/*      */   public static ST_Agedge_s agfindedge(Globals zz, ST_Agraph_s g, ST_Agnode_s t, ST_Agnode_s h)
+/*      */   {
+/* 1680 */     return edge__c.agedge(zz, g, t, h, null, false);
+/*      */   }
+/*      */   
+/*      */   public static int flatindex(ST_Agnode_s v)
+/*      */   {
+/* 1684 */     return ND_low(v);
+/*      */   }
+/*      */   
+/*      */   public static void flatindex(ST_Agnode_s v, int data)
+/*      */   {
+/* 1688 */     ND_low(v, data);
+/*      */   }
+/*      */   
+/*      */   public static ST_subtree_t ND_subtree(ST_Agnode_s n)
+/*      */   {
+/* 1699 */     throw new UnsupportedOperationException();
+/*      */   }
+/*      */   
+/*      */   public static void ND_subtree_set(ST_Agnode_s n, ST_subtree_t value)
+/*      */   {
+/* 1704 */     throw new UnsupportedOperationException();
+/*      */   }
+/*      */   
+/*      */   public static boolean streq(CString a, CString b)
+/*      */   {
+/* 1709 */     return a.charAt(0) == b.charAt(0) && JUtils.strcmp(a, b) == 0;
+/*      */   }
+/*      */   
+/*      */   public static boolean streq(CString a, String b)
+/*      */   {
+/* 1713 */     return streq(a, new CString(b));
+/*      */   }
+/*      */ }
