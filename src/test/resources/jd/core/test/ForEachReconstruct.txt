@@ -8,16 +8,19 @@
 /*     */ import java.util.Map;
 /*     */ 
 /*     */ 
-/*     */ public class ForEachReconstruct
+/*     */ public class ForEachReconstruct<T>
 /*     */ {
+/*     */   private boolean flag;
+/*     */   private List<T> _objects;
+/*     */   
 /*     */   void forEachInCatch()
 /*     */   {
 /*     */     try
 /*     */     {
-/*  17 */       System.out.println("try");
+/*  20 */       System.out.println("try");
 /*     */     } catch (Exception e) {
-/*  19 */       for (StackTraceElement stackTraceElement : e.getStackTrace()) {
-/*  20 */         System.out.println(stackTraceElement);
+/*  22 */       for (StackTraceElement stackTraceElement : e.getStackTrace()) {
+/*  23 */         System.out.println(stackTraceElement);
 /*     */       }
 /*     */     }
 /*     */   }
@@ -26,8 +29,8 @@
 /*     */ 
 /*     */   public static void main(String[] args)
 /*     */   {
-/*  29 */     for (Object arg : args) {
-/*  30 */       System.out.println(arg);
+/*  32 */     for (Object arg : args) {
+/*  33 */       System.out.println(arg);
 /*     */     }
 /*     */   }
 /*     */   
@@ -35,97 +38,97 @@
 /*     */ 
 /*     */   void enhancedForEachStatement(Integer... ints)
 /*     */   {
-/*  38 */     for (Integer anInt : ints) {
-/*  39 */       System.out.println(anInt);
+/*  41 */     for (Integer anInt : ints) {
+/*  42 */       System.out.println(anInt);
 /*     */     }
-/*  41 */     List<Integer> intList = new ArrayList<>();
-/*  42 */     if (ints != null) {
-/*  43 */       for (int theInt : ints) {
-/*  44 */         intList.add(Integer.valueOf(theInt));
+/*  44 */     List<Integer> intList = new ArrayList<>();
+/*  45 */     if (ints != null) {
+/*  46 */       for (int theInt : ints) {
+/*  47 */         intList.add(Integer.valueOf(theInt));
 /*     */       }
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   void enhancedForEachStatement(Long... longs) {
-/*  50 */     for (Long aLong : longs) {
-/*  51 */       System.out.println(aLong);
+/*  53 */     for (Long aLong : longs) {
+/*  54 */       System.out.println(aLong);
 /*     */     }
-/*  53 */     List<Long> longList = new ArrayList<>();
-/*  54 */     if (longs != null) {
-/*  55 */       for (long theLong : longs) {
-/*  56 */         longList.add(Long.valueOf(theLong));
+/*  56 */     List<Long> longList = new ArrayList<>();
+/*  57 */     if (longs != null) {
+/*  58 */       for (long theLong : longs) {
+/*  59 */         longList.add(Long.valueOf(theLong));
 /*     */       }
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   void enhancedForEachStatement(Double... doubles) {
-/*  62 */     for (Double aDouble : doubles) {
-/*  63 */       System.out.println(aDouble);
+/*  65 */     for (Double aDouble : doubles) {
+/*  66 */       System.out.println(aDouble);
 /*     */     }
-/*  65 */     List<Double> doubleList = new ArrayList<>();
-/*  66 */     if (doubles != null) {
-/*  67 */       for (double theDouble : doubles) {
-/*  68 */         doubleList.add(Double.valueOf(theDouble));
+/*  68 */     List<Double> doubleList = new ArrayList<>();
+/*  69 */     if (doubles != null) {
+/*  70 */       for (double theDouble : doubles) {
+/*  71 */         doubleList.add(Double.valueOf(theDouble));
 /*     */       }
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   void enhancedForEachStatement(Float... floats) {
-/*  74 */     for (Float aFloat : floats) {
-/*  75 */       System.out.println(aFloat);
+/*  77 */     for (Float aFloat : floats) {
+/*  78 */       System.out.println(aFloat);
 /*     */     }
-/*  77 */     List<Float> floatList = new ArrayList<>();
-/*  78 */     if (floats != null) {
-/*  79 */       for (float theFloat : floats) {
-/*  80 */         floatList.add(Float.valueOf(theFloat));
+/*  80 */     List<Float> floatList = new ArrayList<>();
+/*  81 */     if (floats != null) {
+/*  82 */       for (float theFloat : floats) {
+/*  83 */         floatList.add(Float.valueOf(theFloat));
 /*     */       }
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   void enhancedForEachStatement(Byte... bytes) {
-/*  86 */     for (Byte aByte : bytes) {
-/*  87 */       System.out.println(aByte);
+/*  89 */     for (Byte aByte : bytes) {
+/*  90 */       System.out.println(aByte);
 /*     */     }
-/*  89 */     List<Byte> byteList = new ArrayList<>();
-/*  90 */     if (bytes != null) {
-/*  91 */       for (byte theByte : bytes) {
-/*  92 */         byteList.add(Byte.valueOf(theByte));
+/*  92 */     List<Byte> byteList = new ArrayList<>();
+/*  93 */     if (bytes != null) {
+/*  94 */       for (byte theByte : bytes) {
+/*  95 */         byteList.add(Byte.valueOf(theByte));
 /*     */       }
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   void enhancedForEachStatement(Short... shorts) {
-/*  98 */     for (Short aShort : shorts) {
-/*  99 */       System.out.println(aShort);
+/* 101 */     for (Short aShort : shorts) {
+/* 102 */       System.out.println(aShort);
 /*     */     }
-/* 101 */     List<Short> shortList = new ArrayList<>();
-/* 102 */     if (shorts != null) {
-/* 103 */       for (short theShort : shorts) {
-/* 104 */         shortList.add(Short.valueOf(theShort));
+/* 104 */     List<Short> shortList = new ArrayList<>();
+/* 105 */     if (shorts != null) {
+/* 106 */       for (short theShort : shorts) {
+/* 107 */         shortList.add(Short.valueOf(theShort));
 /*     */       }
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   void enhancedForEachStatement(Character... chars) {
-/* 110 */     for (Character aChar : chars) {
-/* 111 */       System.out.println(aChar);
+/* 113 */     for (Character aChar : chars) {
+/* 114 */       System.out.println(aChar);
 /*     */     }
-/* 113 */     List<Character> charList = new ArrayList<>();
-/* 114 */     if (chars != null) {
-/* 115 */       for (char theChar : chars) {
-/* 116 */         charList.add(Character.valueOf(theChar));
+/* 116 */     List<Character> charList = new ArrayList<>();
+/* 117 */     if (chars != null) {
+/* 118 */       for (char theChar : chars) {
+/* 119 */         charList.add(Character.valueOf(theChar));
 /*     */       }
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   void enhancedForEachStatement(Boolean... booleans) {
-/* 122 */     for (Boolean aBoolean : booleans) {
-/* 123 */       System.out.println(aBoolean);
+/* 125 */     for (Boolean aBoolean : booleans) {
+/* 126 */       System.out.println(aBoolean);
 /*     */     }
-/* 125 */     List<Boolean> booleanList = new ArrayList<>();
-/* 126 */     if (booleans != null) {
-/* 127 */       for (boolean theBoolean : booleans) {
-/* 128 */         booleanList.add(Boolean.valueOf(theBoolean));
+/* 128 */     List<Boolean> booleanList = new ArrayList<>();
+/* 129 */     if (booleans != null) {
+/* 130 */       for (boolean theBoolean : booleans) {
+/* 131 */         booleanList.add(Boolean.valueOf(theBoolean));
 /*     */       }
 /*     */     }
 /*     */   }
@@ -134,16 +137,60 @@
 /*     */ 
 /*     */   void emptyForEach(Class c)
 /*     */   {
-/* 137 */     Method[] methods = c.getMethods();
-/* 138 */     Map m = new HashMap<>();
-/* 139 */     for (Method method : methods) {
-/* 140 */       StringBuilder sb = new StringBuilder();
-/* 141 */       sb.append(method.getName());
-/* 142 */       if (method.getReturnType().equals(Void.TYPE)) {
-/* 143 */         sb.append("");
+/* 140 */     Method[] methods = c.getMethods();
+/* 141 */     Map m = new HashMap<>();
+/* 142 */     for (Method method : methods) {
+/* 143 */       StringBuilder sb = new StringBuilder();
+/* 144 */       sb.append(method.getName());
+/* 145 */       if (method.getReturnType().equals(Void.TYPE)) {
+/* 146 */         sb.append("");
 /*     */       }
-/* 145 */       m.put(method.getName(), sb.toString());
+/* 148 */       m.put(method.getName(), sb.toString());
 /*     */     }
-/* 147 */     for (Iterator iter = m.values().iterator(); iter.hasNext();) {}
+/* 150 */     for (Iterator iter = m.values().iterator(); iter.hasNext();) {}
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   public Map<T, String> addItems(T[] objects, T beforeObject)
+/*     */   {
+/* 157 */     HashMap<T, String> messages = null;
+/*     */     
+/* 159 */     if (!this.flag) {
+/* 160 */       for (T object : objects)
+/* 161 */         this._objects.remove(object);
+/*     */     }
+/* 163 */     int at = -1;
+/*     */     
+/* 165 */     if (beforeObject != null) {
+/* 166 */       at = this._objects.indexOf(beforeObject);
+/*     */     }
+/* 168 */     if (at >= 0) {
+/* 169 */       for (T object : objects) {
+/* 170 */         String message = object.toString();
+/*     */         
+/* 172 */         if (message == null) {
+/* 173 */           this._objects.add(at++, object);
+/*     */         } else {
+/* 175 */           if (messages == null)
+/* 176 */             messages = new HashMap<>();
+/* 177 */           messages.put(object, message);
+/*     */         }
+/*     */       }
+/*     */     } else {
+/* 181 */       for (T object : objects) {
+/* 182 */         String message = object.toString();
+/*     */         
+/* 184 */         if (message == null) {
+/* 185 */           this._objects.add(object);
+/*     */         } else {
+/* 187 */           if (messages == null)
+/* 188 */             messages = new HashMap<>();
+/* 189 */           messages.put(object, message);
+/*     */         }
+/*     */       }
+/*     */     }
+/*     */     
+/* 194 */     return messages;
 /*     */   }
 /*     */ }

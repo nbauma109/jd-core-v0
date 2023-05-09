@@ -7,7 +7,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class ForEachReconstruct {
+public class ForEachReconstruct<T> {
+
+    private boolean flag;
+    private List<T> _objects;
 
     /*
      * SUN 1.5 pattern
@@ -145,5 +148,49 @@ public class ForEachReconstruct {
             m.put(method.getName(), sb.toString());
         }
         for (Iterator iter = m.values().iterator(); iter.hasNext(););
+    }
+
+    /*
+     * CHECKCAST in foreach array pattern
+     */
+    public Map<T, String> addItems(T[] objects, T beforeObject) {
+        HashMap<T, String> messages = null;
+
+        if (!this.flag) {
+            for (T object : objects)
+                this._objects.remove(object);
+        }
+        int at = -1;
+
+        if (beforeObject != null) {
+            at = this._objects.indexOf(beforeObject);
+        }
+        if (at >= 0) {
+            for (T object : objects) {
+                String message = object.toString();
+
+                if (message == null) {
+                    this._objects.add(at++, object);
+                } else {
+                    if (messages == null)
+                        messages = new HashMap<>();
+                    messages.put(object, message);
+                }
+            }
+        } else {
+            for (T object : objects) { // Generates CHECKCAST in JDK8
+                String message = object.toString();
+
+                if (message == null) {
+                    this._objects.add(object);
+                } else {
+                    if (messages == null)
+                        messages = new HashMap<>();
+                    messages.put(object, message);
+                }
+            }
+        }
+
+        return messages;
     }
 }
