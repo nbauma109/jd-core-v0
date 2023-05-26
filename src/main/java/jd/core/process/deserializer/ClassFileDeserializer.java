@@ -35,6 +35,7 @@ import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.Field;
 import jd.core.model.classfile.Method;
+import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
 
 public final class ClassFileDeserializer
 {
@@ -163,6 +164,14 @@ public final class ClassFileDeserializer
         int[] interfaces = javaClass.getInterfaceIndices();
         Field[] fieldInfos = Stream.of(javaClass.getFields()).map(Field::new).toArray(Field[]::new);
         Method[] methodInfos = Stream.of(javaClass.getMethods()).map(Method::new).toArray(Method[]::new);
+
+        for (Method method : methodInfos) {
+            byte[] methodCode = method.getCode();
+            if (methodCode == null) {
+                continue;
+            }
+            ByteCodeUtil.cleanUpByteCode(methodCode);
+        }
 
         return new ClassFile(
                 javaClass.getMinor(),
