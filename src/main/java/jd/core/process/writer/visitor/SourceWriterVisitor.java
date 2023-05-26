@@ -2729,9 +2729,5 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
     }
 
     @Override
-    public void visit(Types types) {
-        for (BaseType type : types) {
-            type.accept(this);
-        }
-    }
+    public void visit(Types types) {}
 }
