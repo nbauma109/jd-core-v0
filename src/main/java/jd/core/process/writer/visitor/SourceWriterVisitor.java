@@ -24,7 +24,7 @@ import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.commons.lang3.Validate;
 import org.jd.core.v1.api.loader.Loader;
-import org.jd.core.v1.model.javasyntax.AbstractJavaSyntaxVisitor;
+import org.jd.core.v1.model.javasyntax.type.AbstractTypeArgumentVisitor;
 import org.jd.core.v1.model.javasyntax.type.BaseType;
 import org.jd.core.v1.model.javasyntax.type.BaseTypeArgument;
 import org.jd.core.v1.model.javasyntax.type.BaseTypeParameter;
@@ -34,6 +34,8 @@ import org.jd.core.v1.model.javasyntax.type.ObjectType;
 import org.jd.core.v1.model.javasyntax.type.Type;
 import org.jd.core.v1.model.javasyntax.type.TypeArgumentVisitable;
 import org.jd.core.v1.model.javasyntax.type.TypeArguments;
+import org.jd.core.v1.model.javasyntax.type.TypeVisitor;
+import org.jd.core.v1.model.javasyntax.type.Types;
 import org.jd.core.v1.model.javasyntax.type.WildcardExtendsTypeArgument;
 import org.jd.core.v1.model.javasyntax.type.WildcardSuperTypeArgument;
 import org.jd.core.v1.model.javasyntax.type.WildcardTypeArgument;
@@ -111,7 +113,7 @@ import jd.core.util.SignatureUtil;
 import jd.core.util.StringUtil;
 import jd.core.util.UtilConstants;
 
-public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
+public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements TypeVisitor
 {
     private static final String[] CMP_NAMES = {
             "==", "<", ">", "", "!", "<=", ">=", "!=" };
@@ -2725,4 +2727,7 @@ public class SourceWriterVisitor extends AbstractJavaSyntaxVisitor
             }
         }
     }
+
+    @Override
+    public void visit(Types types) {}
 }
