@@ -1025,18 +1025,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
             this.printer.print(lineNumber, ' ');
         }
 
-        if (boi.getPriority() > boi.getValue2().getPriority()) {
-            return visit(boi.getValue2());
-        }
-        if (this.firstOffset <= this.previousOffset &&
-            nextOffset <= this.lastOffset) {
-            this.printer.print(lineNumber, '(');
-        }
-        lineNumber = visit(boi.getValue2());
-        if (this.firstOffset <= this.previousOffset &&
-            boi.getOffset() <= this.lastOffset) {
-            this.printer.print(lineNumber, ')');
-        }
+        lineNumber = visit(boi, boi.getValue2());
         return lineNumber;
     }
 
