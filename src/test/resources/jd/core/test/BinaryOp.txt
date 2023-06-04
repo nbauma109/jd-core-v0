@@ -1,0 +1,20 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class BinaryOp
+/*    */ {
+/*    */   public int add(int i, int j, int k) {
+/*  6 */     return i + j + k;
+/*    */   }
+/*    */   
+/*    */   public int mul(int i, int j, int k) {
+/* 10 */     return i * j * k;
+/*    */   }
+/*    */   
+/*    */   public int sub(int i, int j, int k) {
+/* 14 */     return i - (j + k);
+/*    */   }
+/*    */   
+/*    */   public int div(int i, int j, int k) {
+/* 18 */     return i / (j / k);
+/*    */   }
+/*    */ }
