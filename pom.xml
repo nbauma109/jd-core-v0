@@ -6,6 +6,8 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <plexus.compiler.version>2.13.0</plexus.compiler.version>
+		<maven.compiler.source>17</maven.compiler.source>
+		<maven.compiler.target>17</maven.compiler.target>
   </properties>
   <scm>
     <connection>scm:git:https://github.com/nbauma109/jd-core-v0.git</connection>
@@ -29,7 +31,7 @@
             <version>3.12.1</version>
             <configuration>
               <compilerId>eclipse</compilerId>
-              <release>17</release>
+              <release>${maven.compiler.source}</release>
             </configuration>
             <dependencies>
               <dependency>
@@ -60,13 +62,6 @@
   </profiles>
   <build>
     <plugins>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>3.12.1</version>
-        <configuration>
-          <release>17</release>
-        </configuration>
-      </plugin>
       <plugin>
         <groupId>org.jacoco</groupId>
         <artifactId>jacoco-maven-plugin</artifactId>
