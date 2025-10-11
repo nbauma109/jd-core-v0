@@ -47,7 +47,7 @@ jobs:
       run: mvn -V -B -Pecj test jacoco:report --no-transfer-progress
 
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v5
       with:
         fail_ci_if_error: true
         files: ./target/site/jacoco/jacoco.xml
