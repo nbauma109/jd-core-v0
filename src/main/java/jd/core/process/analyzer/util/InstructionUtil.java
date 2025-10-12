@@ -16,7 +16,7 @@
  ******************************************************************************/
 package jd.core.process.analyzer.util;
 
-import org.apache.bcel.commons.lang3.Validate;
+import org.apache.commons.lang3.Validate;
 
 import java.util.List;
 

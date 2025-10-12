@@ -17,7 +17,7 @@
 package jd.core.process.analyzer.classfile.visitor;
 
 import org.apache.bcel.Const;
-import org.apache.bcel.commons.lang3.ObjectUtils;
+import org.apache.commons.lang3.ObjectUtils;
 
 import java.util.Comparator;
 import java.util.List;

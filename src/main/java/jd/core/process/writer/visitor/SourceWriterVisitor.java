@@ -22,7 +22,7 @@ import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
-import org.apache.bcel.commons.lang3.Validate;
+import org.apache.commons.lang3.Validate;
 import org.jd.core.v1.api.loader.Loader;
 import org.jd.core.v1.model.javasyntax.type.AbstractTypeArgumentVisitor;
 import org.jd.core.v1.model.javasyntax.type.BaseType;

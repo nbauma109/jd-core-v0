@@ -20,7 +20,7 @@ import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.Signature;
-import org.apache.bcel.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.List;

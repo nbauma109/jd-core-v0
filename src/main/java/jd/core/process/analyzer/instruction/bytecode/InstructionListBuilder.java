@@ -19,7 +19,7 @@ package jd.core.process.analyzer.instruction.bytecode;
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.CodeException;
 import org.apache.bcel.classfile.LineNumber;
-import org.apache.bcel.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.ArrayDeque;
 import java.util.Arrays;
