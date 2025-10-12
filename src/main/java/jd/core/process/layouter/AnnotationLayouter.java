@@ -20,9 +20,7 @@ import org.apache.bcel.Const;
 import org.apache.bcel.classfile.AnnotationEntry;
 import org.apache.bcel.classfile.Annotations;
 import org.apache.bcel.classfile.Attribute;
-import org.jd.core.v1.service.converter.classfiletojavasyntax.util.ExceptionUtil;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -62,13 +60,6 @@ public final class AnnotationLayouter
             ConstantPool constants = classFile.getConstantPool();
             int typeIndex = constants.getOverrideSignatureIndex();
             AnnotationEntry annotationEntry = new AnnotationEntry(typeIndex, constants.getConstantPool(), false);
-            try {
-                Field elementValuePairs = annotationEntry.getClass().getDeclaredField("elementValuePairs");
-                elementValuePairs.setAccessible(true);
-                elementValuePairs.set(annotationEntry, Collections.emptyList());
-            } catch (Exception e) {
-                assert ExceptionUtil.printStackTrace(e);
-            }
             annotations.add(annotationEntry);
         }
 
