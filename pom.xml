@@ -8,6 +8,7 @@
     <plexus.compiler.version>2.13.0</plexus.compiler.version>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
+    <project.scm.id>github.com</project.scm.id>
   </properties>
   <scm>
     <connection>scm:git:https://github.com/nbauma109/jd-core-v0.git</connection>
