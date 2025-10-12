@@ -5,7 +5,7 @@
   <version>0.8.19-SNAPSHOT</version>
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <plexus.compiler.version>2.13.0</plexus.compiler.version>
+    <plexus.compiler.version>2.15.0</plexus.compiler.version>
 		<maven.compiler.source>17</maven.compiler.source>
 		<maven.compiler.target>17</maven.compiler.target>
   </properties>
