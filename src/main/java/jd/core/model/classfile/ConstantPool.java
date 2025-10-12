@@ -27,7 +27,7 @@ import org.apache.bcel.classfile.ConstantMethodType;
 import org.apache.bcel.classfile.ConstantMethodref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.ConstantUtf8;
-import org.apache.commons.lang3.Validate;
+import org.apache.bcel.commons.lang3.Validate;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.ArrayList;

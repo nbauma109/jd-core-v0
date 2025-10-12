@@ -18,7 +18,7 @@ package jd.core.process.analyzer.instruction.fast;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.CodeException;
-import org.apache.commons.lang3.ArrayUtils;
+import org.apache.bcel.commons.lang3.ArrayUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
