@@ -16,7 +16,7 @@
  ******************************************************************************/
 package jd.core.process.analyzer.classfile;
 
-import org.apache.bcel.commons.lang3.Validate;
+import org.apache.commons.lang3.Validate;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.SignatureFormatException;
 import org.jd.core.v1.util.StringConstants;
 
