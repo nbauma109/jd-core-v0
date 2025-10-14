@@ -18,4 +18,8 @@ public class DiffBuilderTest extends AbstractTestCase {
 	        assertEquals(IOUtils.toString(getClass().getResource("DiffBuilder.txt"), StandardCharsets.UTF_8), output);
     	}
     }
+
+	public boolean recompile() {
+		return false;
+	}
 }
