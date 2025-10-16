@@ -227,7 +227,7 @@ public final class FastInstructionListBuilder {
         }
         for (int i = 0; i < instructions.size(); i++) {
             instruction = instructions.get(i);
-            if (instruction instanceof FastDeclaration declaration) {// to convert to jdk16 pattern matching only when spotbugs #1617 and eclipse #577987 are solved
+            if (instruction instanceof FastDeclaration declaration) {
                 if (insideDeclarations.contains(declaration) || outsideDeclarations.contains(declaration)) {
                     if (declaration.getInstruction() == null) {
                         // remove re-declaration if no assignment
