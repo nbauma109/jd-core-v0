@@ -32,15 +32,15 @@ jobs:
             **/jd-*.jar
 
       # Notify transformer-api after a successful release
-      - name: Notify downstream repos about new jd-core release
+      - name: Notify downstream repos about new jd-core-v0 release
         if: ${{ success() }}
         env:
           VERSION: ${{ github.ref_name }}
           OWNER: ${{ github.repository_owner }}
           TARGETS: '["transformer-api"]'
-          EVENT_TYPE: "bump-jd-core"
+          EVENT_TYPE: "bump-jd-core-v0"
           GROUP_ID: "com.github.nbauma109"
-          ARTIFACT_ID: "jd-core"
+          ARTIFACT_ID: "jd-core-v0"
           TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           set -euo pipefail
