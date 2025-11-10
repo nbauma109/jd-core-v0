@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>io.github.nbauma109</groupId>
   <artifactId>jd-core-v0</artifactId>
-  <version>0.8.27-SNAPSHOT</version>
+  <version>0.8.27</version>
 
   <name>JD Core v0</name>
   <description>A Java decompiler built on top of Emmanuel Dupuy's original version of jd-core based on bytecode pattern matching</description>
@@ -35,7 +35,7 @@
     <connection>scm:git:https://github.com/nbauma109/jd-core-v0.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/nbauma109/jd-core-v0.git</developerConnection>
     <url>https://github.com/nbauma109/jd-core-v0</url>
-    <tag>HEAD</tag>
+    <tag>0.8.27</tag>
   </scm>
   <profiles>
     <profile>
