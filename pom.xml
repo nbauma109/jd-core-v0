@@ -1,8 +1,29 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.github.nbauma109</groupId>
+  <groupId>io.github.nbauma109</groupId>
   <artifactId>jd-core-v0</artifactId>
   <version>0.8.26-SNAPSHOT</version>
+
+  <name>JD Core v0</name>
+  <description>A Java decompiler built on top of Emmanuel Dupuy's original version of jd-core based on bytecode pattern matching</description>
+  <url>https://github.com/nbauma109/jd-core-v0</url>
+
+  <licenses>
+    <license>
+      <name>GNU General Public License, Version 3</name>
+      <url>https://www.gnu.org/licenses/gpl-3.0.html</url>
+      <distribution>repo</distribution>
+    </license>
+  </licenses>
+
+  <developers>
+    <developer>
+      <id>nbauma109</id>
+      <name>Nicolas Baumann</name>
+      <url>https://github.com/nbauma109</url>
+    </developer>
+  </developers>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <plexus.compiler.version>2.13.0</plexus.compiler.version>
@@ -116,25 +137,59 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-release-plugin</artifactId>
-        <version>3.1.1</version>
+        <version>3.2.0</version>
         <configuration>
           <goals>install</goals>
           <tagNameFormat>@{project.version}</tagNameFormat>
         </configuration>
       </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.12.0</version>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>3.2.8</version>
+        <executions>
+          <execution>
+            <id>sign-release</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.sonatype.central</groupId>
+        <artifactId>central-publishing-maven-plugin</artifactId>
+        <version>0.9.0</version>
+        <extensions>true</extensions>
+        <configuration>
+          <publishingServerId>central</publishingServerId>
+          <autoPublish>true</autoPublish>
+        </configuration>
+      </plugin>
     </plugins>
   </build>
-  <repositories>
-    <repository>
-      <id>jitpack.io</id>
-      <url>https://jitpack.io</url>
-    </repository>
-  </repositories>
   <dependencies>
     <dependency>
-      <groupId>com.github.nbauma109</groupId>
+      <groupId>io.github.nbauma109</groupId>
       <artifactId>jd-util</artifactId>
-      <version>1.2.1</version>
+      <version>1.2.3</version>
     </dependency>
     <dependency>
       <groupId>commons-io</groupId>
