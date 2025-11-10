@@ -124,7 +124,7 @@ import jd.core.process.layouter.visitor.MinMaxLineNumberVisitor.MinMaxLineNumber
 import jd.core.util.IntSet;
 import jd.core.util.SignatureUtil;
 
-/**
+/*
  *    Analyze
  *       |
  *       v

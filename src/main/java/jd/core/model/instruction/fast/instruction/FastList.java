@@ -26,7 +26,7 @@ import jd.core.model.classfile.LocalVariables;
 import jd.core.model.instruction.bytecode.instruction.BranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 
-/**
+/*
  * list & while(true)
  */
 public class FastList extends BranchInstruction

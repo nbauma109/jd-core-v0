@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
+import jd.core.process.analyzer.classfile.SignatureAnalyzer;
 
 public final class SignatureUtil
 {
@@ -66,8 +67,8 @@ public final class SignatureUtil
         return index;
     }
 
-    /**
-     * @see SignatureAnalyzer.SignatureAnalyzer(...)
+    /*
+     * see SignatureAnalyzer
      */
     public static int skipSignature(char[] caSignature, int length, int index)
     {

@@ -25,7 +25,7 @@ import jd.core.model.classfile.LocalVariables;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.fast.FastConstants;
 
-/** List & while(true). */
+/* List & while(true). */
 public class FastDeclaration extends Instruction
 {
     private final LocalVariable lv;

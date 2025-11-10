@@ -146,7 +146,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         this.typeMaker = new TypeMaker(loader);
     }
 
-    /**
+    /*
      * Affichage de toutes les instructions avec
      *  - firstOffset <= offset
      *  - offset <= lastOffset.

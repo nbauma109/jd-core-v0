@@ -18,7 +18,7 @@ package jd.core.model.layout.block;
 
 import jd.core.model.layout.section.LayoutSection;
 
-/**
+/*
  * bloc(i).lastLineNumber = bloc(i).firstLineNumber + bloc(i).minimalLineCount
  *
  * bloc(i).firstLineNumber + bloc(i).minimalLineCount <=

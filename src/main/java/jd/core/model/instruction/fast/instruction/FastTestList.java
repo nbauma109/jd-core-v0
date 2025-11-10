@@ -20,7 +20,7 @@ import java.util.List;
 
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 
-/**
+/*
  * while, do-while & if
  */
 public class FastTestList extends FastList
