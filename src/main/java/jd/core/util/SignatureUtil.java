@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
-import jd.core.process.analyzer.classfile.SignatureAnalyzer;
 
 public final class SignatureUtil
 {
