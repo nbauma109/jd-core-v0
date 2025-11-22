@@ -212,7 +212,7 @@ public final class CheckCastAndConvertInstructionVisitor
 
                             if (!parameterSignature.equals(argSignature))
                             {
-                                // Types differents
+                                // Types different
                                 int argBitFields =
                                         SignatureUtil.createArgOrReturnBitFields(argSignature);
                                 int paramBitFields =
@@ -221,7 +221,7 @@ public final class CheckCastAndConvertInstructionVisitor
                                 if ((argBitFields|paramBitFields) == 0)
                                 {
                                     // Ajout d'une instruction cast si les types
-                                    // sont differents
+                                    // sont different
                                     args.set(j, new ConvertInstruction(
                                         ByteCodeConstants.CONVERT,
                                         arg.getOffset()-1, arg.getLineNumber(),
@@ -230,7 +230,7 @@ public final class CheckCastAndConvertInstructionVisitor
                             } else if (SignatureUtil.isByteOrShortSignature(parameterSignature))
                             {
                                 // Ajout d'une instruction cast pour les
-                                // parametres numeriques de type byte ou short
+                                // parameters numeriques de type byte ou short
                                 args.set(j, new ConvertInstruction(
                                     ByteCodeConstants.CONVERT,
                                     arg.getOffset()-1, arg.getLineNumber(),
@@ -364,10 +364,10 @@ public final class CheckCastAndConvertInstructionVisitor
             }
             if (receiverType.isObjectType() && expressionType != null && expressionType.isObjectType()
                 && typeMaker.isRawTypeAssignable((ObjectType) receiverType, (ObjectType) expressionType)) {
-                ObjectType otLeft = (ObjectType) receiverType;
-                ObjectType otRight = (ObjectType) expressionType;
-                BaseTypeArgument typeArgsLeft = otLeft.getTypeArguments();
-                BaseTypeArgument typeArgsRight = otRight.getTypeArguments();
+                ObjectType toLeft = (ObjectType) receiverType;
+                ObjectType toRight = (ObjectType) expressionType;
+                BaseTypeArgument typeArgsLeft = toLeft.getTypeArguments();
+                BaseTypeArgument typeArgsRight = toRight.getTypeArguments();
                 if (typeArgsLeft instanceof ObjectType && typeArgsRight instanceof WildcardTypeArgument
                  || typeArgsLeft instanceof GenericType
                      && (typeArgsRight instanceof WildcardExtendsTypeArgument

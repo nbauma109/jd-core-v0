@@ -13,10 +13,10 @@
 /*    */     }
 /*    */   }
 /*    */   
-/*    */   void assignInSynchronized(ObjectInputStream ois) throws Exception {
+/*    */   void assignInSynchronized(ObjectInputStream is) throws Exception {
 /* 17 */     Object o = null;
 /*    */     
-/* 19 */     synchronized (o = ois.readObject()) {
+/* 19 */     synchronized (o = is.readObject()) {
 /* 20 */       System.out.println(o);
 /*    */     }
 /*    */   }

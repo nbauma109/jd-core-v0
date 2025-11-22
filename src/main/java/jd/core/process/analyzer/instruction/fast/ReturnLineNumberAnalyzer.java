@@ -31,7 +31,7 @@ import jd.core.model.instruction.fast.instruction.FastTry;
 
 /*
  * Le numéro de ligne des instructions 'return' genere par les compilateurs
- * sont faux et perturbe l'affichage des sources
+ * sont faux et perturb l'affichage des sources
  */
 public final class ReturnLineNumberAnalyzer
 {

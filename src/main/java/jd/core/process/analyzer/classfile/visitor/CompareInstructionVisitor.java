@@ -182,7 +182,7 @@ public class CompareInstructionVisitor
             {
 
 
-                // Ce test perturbe le retrait des instructions 'finally' dans
+                // Ce test perturb le retrait des instructions 'finally' dans
                 // les blocs 'try' et 'catch'.
                 //  if (((IfCmp)i1).branch != ((IfCmp)i2).branch)
                 //      return false;
@@ -286,8 +286,8 @@ public class CompareInstructionVisitor
             }
         case ByteCodeConstants.TERNARYOPSTORE:
             {
-                if (((TernaryOpStore)i1).getTernaryOp2ndValueOffset()-i1.getOffset() !=
-                    ((TernaryOpStore)i2).getTernaryOp2ndValueOffset()-i2.getOffset()) {
+                if (((TernaryOpStore)i1).getTernaryOp2andValueOffset()-i1.getOffset() !=
+                    ((TernaryOpStore)i2).getTernaryOp2andValueOffset()-i2.getOffset()) {
                     return false;
                 }
 

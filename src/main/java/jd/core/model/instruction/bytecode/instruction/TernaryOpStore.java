@@ -27,15 +27,15 @@ import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribu
 public class TernaryOpStore extends Instruction implements ObjectrefAttribute
 {
     private Instruction objectref;
-    private int         ternaryOp2ndValueOffset;
+    private int         ternaryOp2andValueOffset;
 
     public TernaryOpStore(
             int opcode, int offset, int lineNumber, Instruction objectref,
-            int ternaryOp2ndValueOffset)
+            int ternaryOp2andValueOffset)
     {
         super(opcode, offset, lineNumber);
         this.setObjectref(objectref);
-        this.setTernaryOp2ndValueOffset(ternaryOp2ndValueOffset);
+        this.setTernaryOp2andValueOffset(ternaryOp2andValueOffset);
     }
 
     @Override
@@ -55,11 +55,11 @@ public class TernaryOpStore extends Instruction implements ObjectrefAttribute
         this.objectref = objectref;
     }
 
-    public int getTernaryOp2ndValueOffset() {
-        return ternaryOp2ndValueOffset;
+    public int getTernaryOp2andValueOffset() {
+        return ternaryOp2andValueOffset;
     }
 
-    public void setTernaryOp2ndValueOffset(int ternaryOp2ndValueOffset) {
-        this.ternaryOp2ndValueOffset = ternaryOp2ndValueOffset;
+    public void setTernaryOp2andValueOffset(int ternaryOp2andValueOffset) {
+        this.ternaryOp2andValueOffset = ternaryOp2andValueOffset;
     }
 }

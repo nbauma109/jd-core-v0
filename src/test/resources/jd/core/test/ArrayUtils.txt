@@ -5352,7 +5352,7 @@
 /*      */ 
 /*      */ 
 /*      */   @Deprecated
-/*      */   public static boolean[] removeAllOccurences(boolean[] array, boolean element)
+/*      */   public static boolean[] removeAllOccurrences(boolean[] array, boolean element)
 /*      */   {
 /* 5357 */     return (boolean[])removeAll(array, indexesOf(array, element));
 /*      */   }
@@ -5373,7 +5373,7 @@
 /*      */ 
 /*      */ 
 /*      */   @Deprecated
-/*      */   public static byte[] removeAllOccurences(byte[] array, byte element)
+/*      */   public static byte[] removeAllOccurrences(byte[] array, byte element)
 /*      */   {
 /* 5378 */     return (byte[])removeAll(array, indexesOf(array, element));
 /*      */   }
@@ -5394,7 +5394,7 @@
 /*      */ 
 /*      */ 
 /*      */   @Deprecated
-/*      */   public static char[] removeAllOccurences(char[] array, char element)
+/*      */   public static char[] removeAllOccurrences(char[] array, char element)
 /*      */   {
 /* 5399 */     return (char[])removeAll(array, indexesOf(array, element));
 /*      */   }
@@ -5415,7 +5415,7 @@
 /*      */ 
 /*      */ 
 /*      */   @Deprecated
-/*      */   public static double[] removeAllOccurences(double[] array, double element)
+/*      */   public static double[] removeAllOccurrences(double[] array, double element)
 /*      */   {
 /* 5420 */     return (double[])removeAll(array, indexesOf(array, element));
 /*      */   }
@@ -5436,7 +5436,7 @@
 /*      */ 
 /*      */ 
 /*      */   @Deprecated
-/*      */   public static float[] removeAllOccurences(float[] array, float element)
+/*      */   public static float[] removeAllOccurrences(float[] array, float element)
 /*      */   {
 /* 5441 */     return (float[])removeAll(array, indexesOf(array, element));
 /*      */   }
@@ -5457,7 +5457,7 @@
 /*      */ 
 /*      */ 
 /*      */   @Deprecated
-/*      */   public static int[] removeAllOccurences(int[] array, int element)
+/*      */   public static int[] removeAllOccurrences(int[] array, int element)
 /*      */   {
 /* 5462 */     return (int[])removeAll(array, indexesOf(array, element));
 /*      */   }
@@ -5478,7 +5478,7 @@
 /*      */ 
 /*      */ 
 /*      */   @Deprecated
-/*      */   public static long[] removeAllOccurences(long[] array, long element)
+/*      */   public static long[] removeAllOccurrences(long[] array, long element)
 /*      */   {
 /* 5483 */     return (long[])removeAll(array, indexesOf(array, element));
 /*      */   }
@@ -5499,7 +5499,7 @@
 /*      */ 
 /*      */ 
 /*      */   @Deprecated
-/*      */   public static short[] removeAllOccurences(short[] array, short element)
+/*      */   public static short[] removeAllOccurrences(short[] array, short element)
 /*      */   {
 /* 5504 */     return (short[])removeAll(array, indexesOf(array, element));
 /*      */   }
@@ -5521,7 +5521,7 @@
 /*      */ 
 /*      */ 
 /*      */   @Deprecated
-/*      */   public static <T> T[] removeAllOccurences(T[] array, T element)
+/*      */   public static <T> T[] removeAllOccurrences(T[] array, T element)
 /*      */   {
 /* 5526 */     return (T[])removeAll(array, indexesOf(array, element));
 /*      */   }

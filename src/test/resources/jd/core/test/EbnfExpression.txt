@@ -71,8 +71,8 @@
 /*  71 */       char ch = it.peek(0);
 /*  72 */       if (!Character.isWhitespace(ch)) {
 /*  73 */         if (isLetterOrDigit(ch)) {
-/*  74 */           String litteral = readLitteral(it);
-/*  75 */           this.tokens.add(new Token(Symbol.LITTERAL, litteral));
+/*  74 */           String literal = readLiteral(it);
+/*  75 */           this.tokens.add(new Token(Symbol.LITERAL, literal));
 /*  76 */           continue; }
 /*  77 */         if (ch == '*') {
 /*  78 */           this.tokens.add(new Token(Symbol.REPETITION_SYMBOL, null));
@@ -106,14 +106,14 @@
 /*     */               return;
 /*     */             }
 /* 108 */             if (ch == '"') {
-/* 109 */               String litteral = readString(it);
-/* 110 */               this.tokens.add(new Token(Symbol.TERMINAL_STRING1, protect(litteral)));
+/* 109 */               String literal = readString(it);
+/* 110 */               this.tokens.add(new Token(Symbol.TERMINAL_STRING1, protect(literal)));
 /* 111 */             } else if (ch == '\'') {
-/* 112 */               String litteral = readString(it);
-/* 113 */               this.tokens.add(new Token(Symbol.TERMINAL_STRING2, protect(litteral)));
+/* 112 */               String literal = readString(it);
+/* 113 */               this.tokens.add(new Token(Symbol.TERMINAL_STRING2, protect(literal)));
 /* 114 */             } else if (ch == '?') {
-/* 115 */               String litteral = readString(it);
-/* 116 */               this.tokens.add(new Token(Symbol.SPECIAL_SEQUENCE, protect(litteral)));
+/* 115 */               String literal = readString(it);
+/* 116 */               this.tokens.add(new Token(Symbol.SPECIAL_SEQUENCE, protect(literal)));
 /*     */             } else {
 /* 118 */               this.tokens.clear();
 /* 119 */               return;
@@ -124,7 +124,7 @@
 /*     */   
 /*     */ 
 /*     */ 
-/* 127 */   private static String protect(String litteral) { return litteral.length() == 0 ? " " : litteral; }
+/* 127 */   private static String protect(String literal) { return literal.length() == 0 ? " " : literal; }
 /*     */   
 /*     */   @Override
 /*     */   public TextBlock getUDrawable(ISkinParam skinParam) {
@@ -143,7 +143,7 @@
 /*     */       }
 /*     */       TextBlock main;
 /* 145 */       if (iterator.hasNext()) {
-/* 146 */         List<Token> full = new ShuntingYard(iterator).getOuputQueue();
+/* 146 */         List<Token> full = new ShuntingYard(iterator).getOutputQueue();
 /* 147 */         if (full.size() == 0) {
 /* 148 */           return EbnfEngine.syntaxError(fc, skinParam);
 /*     */         }
@@ -186,7 +186,7 @@
 /* 186 */     while (it.hasNext()) {
 /* 187 */       Token element = (Token)it.next();
 /* 188 */       if (element.getSymbol() == Symbol.TERMINAL_STRING1 || element.getSymbol() == Symbol.TERMINAL_STRING2 || 
-/* 189 */         element.getSymbol() == Symbol.LITTERAL || element.getSymbol() == Symbol.SPECIAL_SEQUENCE) {
+/* 189 */         element.getSymbol() == Symbol.LITERAL || element.getSymbol() == Symbol.SPECIAL_SEQUENCE) {
 /* 190 */         engine.push(element);
 /* 191 */       } else if (element.getSymbol() == Symbol.COMMENT_ABOVE) {
 /* 192 */         engine.commentAbove(element.getData());
@@ -224,7 +224,7 @@
 /*     */     }
 /*     */   }
 /*     */   
-/*     */   private String readLitteral(CharInspector it) {
+/*     */   private String readLiteral(CharInspector it) {
 /* 228 */     StringBuilder sb = new StringBuilder();
 /*     */     for (;;) {
 /* 230 */       char ch = it.peek(0);

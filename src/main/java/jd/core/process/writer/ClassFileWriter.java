@@ -196,8 +196,8 @@ public final class ClassFileWriter
             case LayoutBlockConstants.PACKAGE:
                 writePackage((PackageLayoutBlock)lb);
                 break;
-            case LayoutBlockConstants.SEPARATOR_AT_BEGINING:
-                writeSeparatorAtBegining(lb);
+            case LayoutBlockConstants.SEPARATOR_AT_BEGINNING:
+                writeSeparatorAtBeginning(lb);
                 break;
             case LayoutBlockConstants.SEPARATOR,
                  LayoutBlockConstants.SEPARATOR_OF_STATEMENTS,
@@ -439,7 +439,7 @@ public final class ClassFileWriter
                 return lb.getFirstLineNumber();
             }
             if ((lb.getTag() == LayoutBlockConstants.SEPARATOR
-                    || lb.getTag() == LayoutBlockConstants.SEPARATOR_AT_BEGINING
+                    || lb.getTag() == LayoutBlockConstants.SEPARATOR_AT_BEGINNING
                     || lb.getTag() == LayoutBlockConstants.SEPARATOR_AFTER_IMPORTS
                     || lb.getTag() == LayoutBlockConstants.SEPARATOR_OF_STATEMENTS
                     || lb.getTag() == LayoutBlockConstants.IMPORTS
@@ -494,7 +494,7 @@ public final class ClassFileWriter
         this.printer.print(';');
     }
 
-    private void writeSeparatorAtBegining(LayoutBlock slb)
+    private void writeSeparatorAtBeginning(LayoutBlock slb)
     {
         int lineCount = slb.getLineCount();
 
@@ -591,7 +591,7 @@ public final class ClassFileWriter
             // Reduction
             if (!references.isEmpty())
             {
-                int delta = ilb.getPreferedLineCount() - ilb.getLineCount();
+                int delta = ilb.getPreferredLineCount() - ilb.getLineCount();
 
                 if (delta > 0)
                 {
@@ -853,7 +853,7 @@ public final class ClassFileWriter
 
     private void writeAccessAndType(ClassFile classFile)
     {
-        // Affichage de la classe, de l'interface, de l'enum ou de l'annotation
+        // Affichage de la class, de l'interface, de l'enum ou de l'annotation
          // Check annotation
         if ((classFile.getAccessFlags() & (Const.ACC_ANNOTATION|Const.ACC_INTERFACE|Const.ACC_ENUM)) != 0)
         {

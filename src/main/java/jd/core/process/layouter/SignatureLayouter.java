@@ -53,7 +53,7 @@ public final class SignatureLayouter
         // Affichage des generics
         index = skipGenerics(caSignature, length, index);
 
-        // Affichage de la classe mere
+        // Affichage de la class mere
         newIndex = SignatureUtil.skipSignature(caSignature, length, index);
 
         if ((classFile.getAccessFlags() &

@@ -39,15 +39,15 @@ import jd.core.process.analyzer.classfile.visitor.CompareInstructionVisitor;
 
 /*
  * Reconstruction des operateurs d'assignation depuis les motifs :
- * 1) Operation sur les attributs de classes:
+ * 1) Operation sure les attributes de classes:
  *    PutStatic(BinaryOperator(GetStatic(), ...))
- * 2) Operation sur les attributs d'instance:
+ * 2) Operation sure les attributes d'instance:
  *    PutField(objectref, BinaryOperator(GetField(objectref), ...))
- * 3) Operation sur les variables locales:
+ * 3) Operation sure les variables locales:
  *    Store(BinaryOperator(Load(), ...))
- * 4) Operation sur les variables locales:
+ * 4) Operation sure les variables locales:
  *    IStore(BinaryOperator(ILoad(), ...))
- * 5) Operation sur des tableaux:
+ * 5) Operation sure des tableaux:
  *    ArrayStore(arrayref, indexref,
  *               BinaryOperator(ArrayLoad(arrayref, indexref), ...))
  */

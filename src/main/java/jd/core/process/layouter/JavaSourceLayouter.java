@@ -648,8 +648,8 @@ public class JavaSourceLayouter
             else if (ali.getArrayref().getOpcode() == Const.GETSTATIC)
             {
                 // Dans le cas des instructions Switch+Enum des autres compilateurs,
-                // la clé de la map est l'indexe du nom de la classe interne
-                // "static class 1" contenant le tableau de correspondance
+                // la clé de la map est l'indexe du nom de la class interne
+                // "static class 1" contenant le tableau de correspondence
                 // "$SwitchMap$basic$data$TestEnum$enum1".
                 GetStatic gs = (GetStatic)ali.getArrayref();
                 ConstantFieldref cfr = constants.getConstantFieldref(gs.getIndex());
@@ -771,12 +771,12 @@ public class JavaSourceLayouter
                 layoutBlockList.add(
                         new FastCatchLayoutBlock(classFile, method, fc));
 
-                int blockEndPreferedLineCount =
+                int blockEndPreferredLineCount =
                         ft.getFinallyInstructions() == null ? 1 : 2;
 
                 createBlockForSubList(
                         preferences, layoutBlockList, classFile, method,
-                        fc.instructions(), false, blockEndPreferedLineCount);
+                        fc.instructions(), false, blockEndPreferredLineCount);
             }
         }
 
@@ -945,7 +945,7 @@ public class JavaSourceLayouter
      * @param method
      * @param instructions
      * @param showSingleInstructionBlock
-     * @param blockEndPreferedLineCount
+     * @param blockEndPreferredLineCount
      *                 2 pour les premiers blocks,
      *                 1 pour le dernier bloc
      */
@@ -956,7 +956,7 @@ public class JavaSourceLayouter
             Method method,
             List<Instruction> instructions,
             boolean showSingleInstructionBlock,
-            int blockEndPreferedLineCount)
+            int blockEndPreferredLineCount)
     {
         if (instructions == null || instructions.isEmpty())
         {
@@ -982,8 +982,8 @@ public class JavaSourceLayouter
 
             BlockLayoutBlock sbelb =
                     showSingleInstructionBlock ?
-                            new SingleStatementBlockEndLayoutBlock(0+1 /* TENTATIVE blockEndPreferedLineCount */) :
-                                new StatementsBlockEndLayoutBlock(blockEndPreferedLineCount);
+                            new SingleStatementBlockEndLayoutBlock(0+1 /* TENTATIVE blockEndPreferredLineCount */) :
+                                new StatementsBlockEndLayoutBlock(blockEndPreferredLineCount);
             sbslb.setOther(sbelb);
             sbelb.setOther(sbslb);
             layoutBlockList.add(sbelb);

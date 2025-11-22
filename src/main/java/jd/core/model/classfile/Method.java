@@ -56,7 +56,7 @@ public class Method extends Base implements SignatureInfo
     private LocalVariables localVariables;
 
     /**
-     * Champs permettant l'affichage des parametres des instanciations des
+     * Champs permettant l'affichage des parameters des instantiations des
      * classes anonymes.
      */
     private int superConstructorParameterCount;
@@ -242,8 +242,8 @@ public class Method extends Base implements SignatureInfo
          && (getAccessFlags() & (Const.ACC_PRIVATE|Const.ACC_ABSTRACT|Const.ACC_STATIC)) == 0) {
             String name = getName(cp);
             String descriptor = getDescriptor(cp);
-            Method overridenMethod = classFile.findMethodInSuperClassAndInterfaces(name, descriptor);
-            if (overridenMethod != null) {
+            Method overriddenMethod = classFile.findMethodInSuperClassAndInterfaces(name, descriptor);
+            if (overriddenMethod != null) {
                 return true;
             }
         }

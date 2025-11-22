@@ -133,7 +133,7 @@
 /*  115 */     obj.data = v;
 /*      */   }
 /*      */   
-/*      */   public static ST_Agedge_s AGIN2OUT(ST_Agedge_s e)
+/*      */   public static ST_Agedge_s AGAIN2OUT(ST_Agedge_s e)
 /*      */   {
 /*  120 */     return e.plus_(-1);
 /*      */   }
@@ -145,12 +145,12 @@
 /*      */   
 /*      */   public static ST_Agedge_s AGOPP(ST_Agedge_s e)
 /*      */   {
-/*  130 */     return e.tag.objtype == 3 ? AGIN2OUT(e) : AGOUT2IN(e);
+/*  130 */     return e.tag.objtype == 3 ? AGAIN2OUT(e) : AGOUT2IN(e);
 /*      */   }
 /*      */   
 /*      */   public static ST_Agedge_s AGMKOUT(ST_Agedge_s e)
 /*      */   {
-/*  135 */     return e.tag.objtype == 2 ? e : AGIN2OUT(e);
+/*  135 */     return e.tag.objtype == 2 ? e : AGAIN2OUT(e);
 /*      */   }
 /*      */   
 /*      */   public static ST_Agedge_s AGMKIN(ST_Agedge_s e)
@@ -190,7 +190,7 @@
 /*      */   
 /*      */   public static int LENGTH(ST_Agedge_s e)
 /*      */   {
-/*  170 */     return ND_rank(M_aghead(e)) - ND_rank(M_agtail(e));
+/*  170 */     return AND_rank(M_aghead(e)) - AND_rank(M_agtail(e));
 /*      */   }
 /*      */   
 /*      */   public static int SLACK(ST_Agedge_s e)
@@ -583,382 +583,382 @@
 /*  546 */     ((ST_Agraphinfo_t)g.data).fontnames = v;
 /*      */   }
 /*      */   
-/*      */   public static int ND_id(ST_Agnode_s n)
+/*      */   public static int AND_id(ST_Agnode_s n)
 /*      */   {
 /*  555 */     return ((ST_Agnodeinfo_t)n.data).id;
 /*      */   }
 /*      */   
-/*      */   public static __ptr__ ND_alg(ST_Agnode_s n)
+/*      */   public static __ptr__ AND_alg(ST_Agnode_s n)
 /*      */   {
 /*  560 */     return ((ST_Agnodeinfo_t)n.data).alg;
 /*      */   }
 /*      */   
-/*      */   public static void ND_alg(ST_Agnode_s n, ST_Agedge_s value)
+/*      */   public static void AND_alg(ST_Agnode_s n, ST_Agedge_s value)
 /*      */   {
 /*  564 */     ((ST_Agnodeinfo_t)n.data).alg = value;
 /*      */   }
 /*      */   
-/*      */   public static ST_Agnode_s ND_UF_parent(ST_Agobj_s n)
+/*      */   public static ST_Agnode_s AND_UF_parent(ST_Agobj_s n)
 /*      */   {
 /*  569 */     return ((ST_Agnodeinfo_t)n.data).UF_parent;
 /*      */   }
 /*      */   
-/*      */   public static void ND_UF_parent(ST_Agobj_s n, ST_Agnode_s v)
+/*      */   public static void AND_UF_parent(ST_Agobj_s n, ST_Agnode_s v)
 /*      */   {
 /*  573 */     ((ST_Agnodeinfo_t)n.data).UF_parent = v;
 /*      */   }
 /*      */   
-/*      */   public static int ND_UF_size(ST_Agnode_s n)
+/*      */   public static int AND_UF_size(ST_Agnode_s n)
 /*      */   {
 /*  579 */     return ((ST_Agnodeinfo_t)n.data).UF_size;
 /*      */   }
 /*      */   
-/*      */   public static void ND_UF_size(ST_Agnode_s n, int v)
+/*      */   public static void AND_UF_size(ST_Agnode_s n, int v)
 /*      */   {
 /*  583 */     ((ST_Agnodeinfo_t)n.data).UF_size = v;
 /*      */   }
 /*      */   
-/*      */   public static ST_Agraph_s ND_clust(ST_Agnode_s n)
+/*      */   public static ST_Agraph_s AND_clust(ST_Agnode_s n)
 /*      */   {
 /*  589 */     return ((ST_Agnodeinfo_t)n.data).clust;
 /*      */   }
 /*      */   
-/*      */   public static void ND_clust(ST_Agnode_s n, ST_Agraph_s v)
+/*      */   public static void AND_clust(ST_Agnode_s n, ST_Agraph_s v)
 /*      */   {
 /*  593 */     ((ST_Agnodeinfo_t)n.data).clust = v;
 /*      */   }
 /*      */   
-/*      */   public static ST_pointf ND_coord(ST_Agnode_s n)
+/*      */   public static ST_pointf AND_coord(ST_Agnode_s n)
 /*      */   {
 /*  598 */     return ((ST_Agnodeinfo_t)n.data).coord;
 /*      */   }
 /*      */   
-/*      */   public static ST_elist ND_flat_in(ST_Agnode_s n)
+/*      */   public static ST_elist AND_flat_in(ST_Agnode_s n)
 /*      */   {
 /*  605 */     return ((ST_Agnodeinfo_t)n.data).flat_in;
 /*      */   }
 /*      */   
-/*      */   public static ST_elist ND_flat_out(ST_Agnode_s n)
+/*      */   public static ST_elist AND_flat_out(ST_Agnode_s n)
 /*      */   {
 /*  610 */     return ((ST_Agnodeinfo_t)n.data).flat_out;
 /*      */   }
 /*      */   
-/*      */   public static boolean ND_has_port(ST_Agnode_s n)
+/*      */   public static boolean AND_has_port(ST_Agnode_s n)
 /*      */   {
 /*  616 */     return ((ST_Agnodeinfo_t)n.data).has_port;
 /*      */   }
 /*      */   
-/*      */   public static void ND_has_port(ST_Agnode_s n, boolean v)
+/*      */   public static void AND_has_port(ST_Agnode_s n, boolean v)
 /*      */   {
 /*  620 */     ((ST_Agnodeinfo_t)n.data).has_port = v;
 /*      */   }
 /*      */   
-/*      */   public static double ND_height(ST_Agnode_s n)
+/*      */   public static double AND_height(ST_Agnode_s n)
 /*      */   {
 /*  627 */     return ((ST_Agnodeinfo_t)n.data).height;
 /*      */   }
 /*      */   
-/*      */   public static void ND_height(ST_Agnode_s n, double v)
+/*      */   public static void AND_height(ST_Agnode_s n, double v)
 /*      */   {
 /*  631 */     ((ST_Agnodeinfo_t)n.data).height = v;
 /*      */   }
 /*      */   
-/*      */   public static double ND_ht(ST_Agnode_s n)
+/*      */   public static double AND_ht(ST_Agnode_s n)
 /*      */   {
 /*  637 */     return ((ST_Agnodeinfo_t)n.data).ht;
 /*      */   }
 /*      */   
-/*      */   public static void ND_ht(ST_Agnode_s n, double v)
+/*      */   public static void AND_ht(ST_Agnode_s n, double v)
 /*      */   {
 /*  641 */     ((ST_Agnodeinfo_t)n.data).ht = v;
 /*      */   }
 /*      */   
-/*      */   public static ST_elist ND_in(ST_Agnode_s n)
+/*      */   public static ST_elist AND_in(ST_Agnode_s n)
 /*      */   {
 /*  646 */     return ((ST_Agnodeinfo_t)n.data).in;
 /*      */   }
 /*      */   
-/*      */   public static void ND_in(ST_Agnode_s n, __struct__<ST_elist> v)
+/*      */   public static void AND_in(ST_Agnode_s n, __struct__<ST_elist> v)
 /*      */   {
 /*  650 */     ((ST_Agnodeinfo_t)n.data).in.___(v);
 /*      */   }
 /*      */   
-/*      */   public static __ptr__ ND_inleaf(ST_Agnode_s n)
+/*      */   public static __ptr__ AND_inleaf(ST_Agnode_s n)
 /*      */   {
 /*  655 */     return ((ST_Agnodeinfo_t)n.data).inleaf;
 /*      */   }
 /*      */   
-/*      */   public static ST_textlabel_t ND_label(ST_Agnode_s n)
+/*      */   public static ST_textlabel_t AND_label(ST_Agnode_s n)
 /*      */   {
 /*  660 */     return ((ST_Agnodeinfo_t)n.data).label;
 /*      */   }
 /*      */   
-/*      */   public static void ND_label(ST_Agnode_s n, ST_textlabel_t v)
+/*      */   public static void AND_label(ST_Agnode_s n, ST_textlabel_t v)
 /*      */   {
 /*  664 */     ((ST_Agnodeinfo_t)n.data).label = v;
 /*      */   }
 /*      */   
-/*      */   public static ST_textlabel_t ND_xlabel(ST_Agnode_s n)
+/*      */   public static ST_textlabel_t AND_xlabel(ST_Agnode_s n)
 /*      */   {
 /*  669 */     return ((ST_Agnodeinfo_t)n.data).xlabel;
 /*      */   }
 /*      */   
-/*      */   public static int ND_lim(ST_Agnode_s n)
+/*      */   public static int AND_lim(ST_Agnode_s n)
 /*      */   {
 /*  674 */     return ((ST_Agnodeinfo_t)n.data).lim;
 /*      */   }
 /*      */   
-/*      */   public static void ND_lim(ST_Agnode_s n, int v)
+/*      */   public static void AND_lim(ST_Agnode_s n, int v)
 /*      */   {
 /*  678 */     ((ST_Agnodeinfo_t)n.data).lim = v;
 /*      */   }
 /*      */   
-/*      */   public static int ND_low(ST_Agnode_s n)
+/*      */   public static int AND_low(ST_Agnode_s n)
 /*      */   {
 /*  683 */     return ((ST_Agnodeinfo_t)n.data).low;
 /*      */   }
 /*      */   
-/*      */   public static void ND_low(ST_Agnode_s n, int v)
+/*      */   public static void AND_low(ST_Agnode_s n, int v)
 /*      */   {
 /*  687 */     ((ST_Agnodeinfo_t)n.data).low = v;
 /*      */   }
 /*      */   
-/*      */   public static double ND_lw(ST_Agnode_s n)
+/*      */   public static double AND_lw(ST_Agnode_s n)
 /*      */   {
 /*  692 */     return ((ST_Agnodeinfo_t)n.data).lw;
 /*      */   }
 /*      */   
-/*      */   public static void ND_lw(ST_Agnode_s n, double v)
+/*      */   public static void AND_lw(ST_Agnode_s n, double v)
 /*      */   {
 /*  696 */     ((ST_Agnodeinfo_t)n.data).lw = v;
 /*      */   }
 /*      */   
-/*      */   public static int ND_mark(ST_Agnode_s n)
+/*      */   public static int AND_mark(ST_Agnode_s n)
 /*      */   {
 /*  701 */     return ((ST_Agnodeinfo_t)n.data).mark;
 /*      */   }
 /*      */   
-/*      */   public static void ND_mark(ST_Agnode_s n, int v)
+/*      */   public static void AND_mark(ST_Agnode_s n, int v)
 /*      */   {
 /*  705 */     ((ST_Agnodeinfo_t)n.data).mark = v;
 /*      */   }
 /*      */   
-/*      */   public static void ND_mark(ST_Agnode_s n, boolean v)
+/*      */   public static void AND_mark(ST_Agnode_s n, boolean v)
 /*      */   {
 /*  709 */     ((ST_Agnodeinfo_t)n.data).mark = v ? 1 : 0;
 /*      */   }
 /*      */   
-/*      */   public static double ND_mval(ST_Agnode_s n)
+/*      */   public static double AND_mval(ST_Agnode_s n)
 /*      */   {
 /*  714 */     return ((ST_Agnodeinfo_t)n.data).mval;
 /*      */   }
 /*      */   
-/*      */   public static void ND_mval(ST_Agnode_s n, double v)
+/*      */   public static void AND_mval(ST_Agnode_s n, double v)
 /*      */   {
 /*  718 */     ((ST_Agnodeinfo_t)n.data).mval = v;
 /*      */   }
 /*      */   
-/*      */   public static ST_Agnode_s ND_next(ST_Agnode_s n)
+/*      */   public static ST_Agnode_s AND_next(ST_Agnode_s n)
 /*      */   {
 /*  724 */     return ((ST_Agnodeinfo_t)n.data).next;
 /*      */   }
 /*      */   
-/*      */   public static void ND_next(ST_Agnode_s n, ST_Agnode_s v)
+/*      */   public static void AND_next(ST_Agnode_s n, ST_Agnode_s v)
 /*      */   {
 /*  728 */     ((ST_Agnodeinfo_t)n.data).next = v;
 /*      */   }
 /*      */   
-/*      */   public static int ND_node_type(ST_Agnode_s n)
+/*      */   public static int AND_node_type(ST_Agnode_s n)
 /*      */   {
 /*  733 */     return ((ST_Agnodeinfo_t)n.data).node_type;
 /*      */   }
 /*      */   
-/*      */   public static void ND_node_type(ST_Agnode_s n, int v)
+/*      */   public static void AND_node_type(ST_Agnode_s n, int v)
 /*      */   {
 /*  737 */     ((ST_Agnodeinfo_t)n.data).node_type = v;
 /*      */   }
 /*      */   
-/*      */   public static boolean ND_onstack(ST_Agnode_s n)
+/*      */   public static boolean AND_onstack(ST_Agnode_s n)
 /*      */   {
 /*  742 */     return ((ST_Agnodeinfo_t)n.data).onstack != 0;
 /*      */   }
 /*      */   
-/*      */   public static void ND_onstack(ST_Agnode_s n, int v)
+/*      */   public static void AND_onstack(ST_Agnode_s n, int v)
 /*      */   {
 /*  746 */     ((ST_Agnodeinfo_t)n.data).onstack = v;
 /*      */   }
 /*      */   
-/*      */   public static void ND_onstack(ST_Agnode_s n, boolean v)
+/*      */   public static void AND_onstack(ST_Agnode_s n, boolean v)
 /*      */   {
 /*  750 */     ((ST_Agnodeinfo_t)n.data).onstack = v ? 1 : 0;
 /*      */   }
 /*      */   
-/*      */   public static int ND_order(ST_Agnode_s n)
+/*      */   public static int AND_order(ST_Agnode_s n)
 /*      */   {
 /*  755 */     return ((ST_Agnodeinfo_t)n.data).order;
 /*      */   }
 /*      */   
-/*      */   public static void ND_order(ST_Agnode_s n, int v)
+/*      */   public static void AND_order(ST_Agnode_s n, int v)
 /*      */   {
 /*  759 */     ((ST_Agnodeinfo_t)n.data).order = v;
 /*      */   }
 /*      */   
-/*      */   public static ST_elist ND_other(ST_Agnode_s n)
+/*      */   public static ST_elist AND_other(ST_Agnode_s n)
 /*      */   {
 /*  764 */     return ((ST_Agnodeinfo_t)n.data).other;
 /*      */   }
 /*      */   
-/*      */   public static ST_elist ND_out(ST_Agnode_s n)
+/*      */   public static ST_elist AND_out(ST_Agnode_s n)
 /*      */   {
 /*  769 */     return ((ST_Agnodeinfo_t)n.data).out;
 /*      */   }
 /*      */   
-/*      */   public static void ND_out(ST_Agnode_s n, __struct__<ST_elist> v)
+/*      */   public static void AND_out(ST_Agnode_s n, __struct__<ST_elist> v)
 /*      */   {
 /*  773 */     ((ST_Agnodeinfo_t)n.data).out.___(v);
 /*      */   }
 /*      */   
-/*      */   public static __ptr__ ND_outleaf(ST_Agnode_s n)
+/*      */   public static __ptr__ AND_outleaf(ST_Agnode_s n)
 /*      */   {
 /*  778 */     return ((ST_Agnodeinfo_t)n.data).outleaf;
 /*      */   }
 /*      */   
-/*      */   public static ST_Agedge_s ND_par(ST_Agnode_s n)
+/*      */   public static ST_Agedge_s AND_par(ST_Agnode_s n)
 /*      */   {
 /*  783 */     return ((ST_Agnodeinfo_t)n.data).par;
 /*      */   }
 /*      */   
-/*      */   public static void ND_par(ST_Agnode_s n, ST_Agedge_s v)
+/*      */   public static void AND_par(ST_Agnode_s n, ST_Agedge_s v)
 /*      */   {
 /*  787 */     ((ST_Agnodeinfo_t)n.data).par = v;
 /*      */   }
 /*      */   
-/*      */   public static ST_Agnode_s ND_prev(ST_Agnode_s n)
+/*      */   public static ST_Agnode_s AND_prev(ST_Agnode_s n)
 /*      */   {
 /*  794 */     return ((ST_Agnodeinfo_t)n.data).prev;
 /*      */   }
 /*      */   
-/*      */   public static void ND_prev(ST_Agnode_s n, ST_Agnode_s v)
+/*      */   public static void AND_prev(ST_Agnode_s n, ST_Agnode_s v)
 /*      */   {
 /*  798 */     ((ST_Agnodeinfo_t)n.data).prev = v;
 /*      */   }
 /*      */   
-/*      */   public static int ND_priority(ST_Agnode_s n)
+/*      */   public static int AND_priority(ST_Agnode_s n)
 /*      */   {
 /*  803 */     return ((ST_Agnodeinfo_t)n.data).priority;
 /*      */   }
 /*      */   
-/*      */   public static void ND_priority(ST_Agnode_s n, int v)
+/*      */   public static void AND_priority(ST_Agnode_s n, int v)
 /*      */   {
 /*  807 */     ((ST_Agnodeinfo_t)n.data).priority = v;
 /*      */   }
 /*      */   
-/*      */   public static int ND_rank(ST_Agnode_s n)
+/*      */   public static int AND_rank(ST_Agnode_s n)
 /*      */   {
 /*  812 */     return ((ST_Agnodeinfo_t)n.data).rank;
 /*      */   }
 /*      */   
-/*      */   public static void ND_rank(ST_Agnode_s n, int v)
+/*      */   public static void AND_rank(ST_Agnode_s n, int v)
 /*      */   {
 /*  816 */     ((ST_Agnodeinfo_t)n.data).rank = v;
 /*      */   }
 /*      */   
-/*      */   public static int ND_ranktype(ST_Agnode_s n)
+/*      */   public static int AND_ranktype(ST_Agnode_s n)
 /*      */   {
 /*  821 */     return ((ST_Agnodeinfo_t)n.data).ranktype;
 /*      */   }
 /*      */   
-/*      */   public static void ND_ranktype(ST_Agnode_s n, int v)
+/*      */   public static void AND_ranktype(ST_Agnode_s n, int v)
 /*      */   {
 /*  825 */     ((ST_Agnodeinfo_t)n.data).ranktype = v;
 /*      */   }
 /*      */   
-/*      */   public static double ND_rw(ST_Agnode_s n)
+/*      */   public static double AND_rw(ST_Agnode_s n)
 /*      */   {
 /*  830 */     return ((ST_Agnodeinfo_t)n.data).rw;
 /*      */   }
 /*      */   
-/*      */   public static void ND_rw(ST_Agnode_s n, double v)
+/*      */   public static void AND_rw(ST_Agnode_s n, double v)
 /*      */   {
 /*  834 */     ((ST_Agnodeinfo_t)n.data).rw = v;
 /*      */   }
 /*      */   
-/*      */   public static ST_elist ND_save_in(ST_Agnode_s n)
+/*      */   public static ST_elist AND_save_in(ST_Agnode_s n)
 /*      */   {
 /*  839 */     return ((ST_Agnodeinfo_t)n.data).save_in;
 /*      */   }
 /*      */   
-/*      */   public static void ND_save_in(ST_Agnode_s n, __struct__<ST_elist> v)
+/*      */   public static void AND_save_in(ST_Agnode_s n, __struct__<ST_elist> v)
 /*      */   {
 /*  843 */     ((ST_Agnodeinfo_t)n.data).save_in.___(v);
 /*      */   }
 /*      */   
-/*      */   public static ST_elist ND_save_out(ST_Agnode_s n)
+/*      */   public static ST_elist AND_save_out(ST_Agnode_s n)
 /*      */   {
 /*  848 */     return ((ST_Agnodeinfo_t)n.data).save_out;
 /*      */   }
 /*      */   
-/*      */   public static void ND_save_out(ST_Agnode_s n, __struct__<ST_elist> v)
+/*      */   public static void AND_save_out(ST_Agnode_s n, __struct__<ST_elist> v)
 /*      */   {
 /*  852 */     ((ST_Agnodeinfo_t)n.data).save_out.___(v);
 /*      */   }
 /*      */   
-/*      */   public static ST_shape_desc ND_shape(ST_Agnode_s n)
+/*      */   public static ST_shape_desc AND_shape(ST_Agnode_s n)
 /*      */   {
 /*  857 */     return ((ST_Agnodeinfo_t)n.data).shape;
 /*      */   }
 /*      */   
-/*      */   public static void ND_shape(ST_Agnode_s n, ST_shape_desc v)
+/*      */   public static void AND_shape(ST_Agnode_s n, ST_shape_desc v)
 /*      */   {
 /*  861 */     ((ST_Agnodeinfo_t)n.data).shape = v;
 /*      */   }
 /*      */   
-/*      */   public static SHAPE_INFO ND_shape_info(ST_Agnode_s n)
+/*      */   public static SHAPE_INFO AND_shape_info(ST_Agnode_s n)
 /*      */   {
 /*  866 */     return ((ST_Agnodeinfo_t)n.data).shape_info;
 /*      */   }
 /*      */   
-/*      */   public static void ND_shape_info(ST_Agnode_s n, SHAPE_INFO v)
+/*      */   public static void AND_shape_info(ST_Agnode_s n, SHAPE_INFO v)
 /*      */   {
 /*  870 */     ((ST_Agnodeinfo_t)n.data).shape_info = v;
 /*      */   }
 /*      */   
-/*      */   public static int ND_showboxes(ST_Agnode_s n)
+/*      */   public static int AND_showboxes(ST_Agnode_s n)
 /*      */   {
 /*  875 */     return ((ST_Agnodeinfo_t)n.data).showboxes;
 /*      */   }
 /*      */   
-/*      */   public static void ND_showboxes(ST_Agnode_s n, int v)
+/*      */   public static void AND_showboxes(ST_Agnode_s n, int v)
 /*      */   {
 /*  879 */     ((ST_Agnodeinfo_t)n.data).showboxes = v;
 /*      */   }
 /*      */   
-/*      */   public static ST_elist ND_tree_in(ST_Agnode_s n)
+/*      */   public static ST_elist AND_tree_in(ST_Agnode_s n)
 /*      */   {
 /*  886 */     return ((ST_Agnodeinfo_t)n.data).tree_in;
 /*      */   }
 /*      */   
-/*      */   public static ST_elist ND_tree_out(ST_Agnode_s n)
+/*      */   public static ST_elist AND_tree_out(ST_Agnode_s n)
 /*      */   {
 /*  891 */     return ((ST_Agnodeinfo_t)n.data).tree_out;
 /*      */   }
 /*      */   
-/*      */   public static int ND_weight_class(ST_Agnode_s n)
+/*      */   public static int AND_weight_class(ST_Agnode_s n)
 /*      */   {
 /*  896 */     return ((ST_Agnodeinfo_t)n.data).weight_class;
 /*      */   }
 /*      */   
-/*      */   public static void ND_weight_class(ST_Agnode_s n, int v)
+/*      */   public static void AND_weight_class(ST_Agnode_s n, int v)
 /*      */   {
 /*  900 */     ((ST_Agnodeinfo_t)n.data).weight_class = v;
 /*      */   }
 /*      */   
-/*      */   public static double ND_width(ST_Agnode_s n)
+/*      */   public static double AND_width(ST_Agnode_s n)
 /*      */   {
 /*  905 */     return ((ST_Agnodeinfo_t)n.data).width;
 /*      */   }
 /*      */   
-/*      */   public static void ND_width(ST_Agnode_s n, double v)
+/*      */   public static void AND_width(ST_Agnode_s n, double v)
 /*      */   {
 /*  909 */     ((ST_Agnodeinfo_t)n.data).width = v;
 /*      */   }
@@ -1726,23 +1726,23 @@
 /*      */ 
 /*      */   public static __ptr__ AGCLOS_id(ST_Agraph_s g)
 /*      */   {
-/* 1623 */     return g.clos.state.id;
+/* 1623 */     return g.close.state.id;
 /*      */   }
 /*      */   
 /*      */   public static ST_Agiddisc_s AGDISC_id(ST_Agraph_s g) {
-/* 1627 */     return g.clos.disc.id;
+/* 1627 */     return g.close.disc.id;
 /*      */   }
 /*      */   
 /*      */   public static __ptr__ AGCLOS_mem(ST_Agraph_s g) {
-/* 1631 */     return g.clos.state.mem;
+/* 1631 */     return g.close.state.mem;
 /*      */   }
 /*      */   
 /*      */   public static ST_Agmemdisc_s AGDISC_mem(ST_Agraph_s g) {
-/* 1635 */     return g.clos.disc.mem;
+/* 1635 */     return g.close.disc.mem;
 /*      */   }
 /*      */   
 /*      */   public static ST_Agiodisc_s AGDISC_io(ST_Agraph_s g) {
-/* 1639 */     return g.clos.disc.io;
+/* 1639 */     return g.close.disc.io;
 /*      */   }
 /*      */   
 /*      */ 
@@ -1786,20 +1786,20 @@
 /*      */   
 /*      */   public static int flatindex(ST_Agnode_s v)
 /*      */   {
-/* 1684 */     return ND_low(v);
+/* 1684 */     return AND_low(v);
 /*      */   }
 /*      */   
 /*      */   public static void flatindex(ST_Agnode_s v, int data)
 /*      */   {
-/* 1688 */     ND_low(v, data);
+/* 1688 */     AND_low(v, data);
 /*      */   }
 /*      */   
-/*      */   public static ST_subtree_t ND_subtree(ST_Agnode_s n)
+/*      */   public static ST_subtree_t AND_subtree(ST_Agnode_s n)
 /*      */   {
 /* 1699 */     throw new UnsupportedOperationException();
 /*      */   }
 /*      */   
-/*      */   public static void ND_subtree_set(ST_Agnode_s n, ST_subtree_t value)
+/*      */   public static void AND_subtree_set(ST_Agnode_s n, ST_subtree_t value)
 /*      */   {
 /* 1704 */     throw new UnsupportedOperationException();
 /*      */   }

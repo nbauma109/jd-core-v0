@@ -852,7 +852,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
     {
         if (this.classFile.getField(fieldNameIndex, fieldDescriptorIndex) != null)
         {
-            // La classe courante contient un champ ayant le même nom et la
+            // La class courante contient un champ ayant le même nom et la
             // même signature
             return true;
         }
@@ -877,7 +877,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
 
             if (outerClassFile.getField(fieldName, fieldDescriptor) != null)
             {
-                // La classe englobante courante contient un champ ayant le
+                // La class englobante courante contient un champ ayant le
                 // même nom et la même signature
                 return true;
             }
@@ -1481,8 +1481,8 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         BaseType interfaces = newInvokeType.getInterfaces();
         if (interfaces != null) {
             for (Type interf : interfaces) {
-                if (interf instanceof ObjectType ot && ot.getTypeArguments() != null) {
-                    return ot.getTypeArguments();
+                if (interf instanceof ObjectType to && to.getTypeArguments() != null) {
+                    return to.getTypeArguments();
                 }
             }
         }
@@ -1673,7 +1673,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                 }
                 String descriptor =
                     this.constants.getConstantUtf8(cnat.getSignatureIndex());
-                // Methode de la classe courante : elimination du prefix 'this.'
+                // Method de la class courante : elimination du prefix 'this.'
                 this.printer.printMethod(
                     insi.getLineNumber(), internalClassName, methodName,
                     descriptor, this.classFile.getThisClassName());
@@ -1746,7 +1746,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         String methodDescriptor = constants.getConstantUtf8(methodDescriptorIndex);
         if (this.classFile.getMethod(methodName, methodDescriptor) != null)
         {
-            // La classe courante contient une method ayant le même nom et la
+            // La class courante contient une method ayant le même nom et la
             // même signature
             return true;
         }
@@ -1768,7 +1768,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
 
             if (outerClassFile.getMethod(methodName, methodDescriptor) != null)
             {
-                // La classe englobante courante contient une method ayant le
+                // La class englobante courante contient une method ayant le
                 // même nom et la même signature
                 return true;
             }
@@ -1807,7 +1807,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         {
             if (cmr.getClassIndex() == classFile.getThisClassIndex())
             {
-                // Appel d'un constructeur de la classe courante
+                // Appel d'un constructeur de la class courante
                 if ((this.classFile.getAccessFlags() & Const.ACC_ENUM) == 0)
                 {
                     if (this.classFile.isAInnerClass() &&
@@ -1829,7 +1829,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                     // static inner enum: firstIndex=2
                     firstIndex = 2;
                 }
-            } else // Appel d'un constructeur de la classe mere
+            } else // Appel d'un constructeur de la class mere
             if (this.classFile.isAInnerClass())
             {
                 // inner class: firstIndex=1 in case of outer this, else 0
@@ -1876,7 +1876,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                 {
                     if (cmr.getClassIndex() == classFile.getThisClassIndex())
                     {
-                        // Appel d'un constructeur de la classe courante
+                        // Appel d'un constructeur de la class courante
                         this.printer.printKeyword(lineNumber, "this");
                     }
                     else
@@ -1885,7 +1885,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                             visit(is.getPrefix());
                             this.printer.print('.');
                         }
-                        // Appel d'un constructeur de la classe mere
+                        // Appel d'un constructeur de la class mere
                         this.printer.printKeyword(lineNumber, "super");
                     }
                 }
@@ -1899,13 +1899,13 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                     if (method == null ||
                         (method.getAccessFlags() & Const.ACC_PRIVATE) == 0)
                     {
-                        // Methode de la classe mere
+                        // Method de la class mere
                         this.printer.printKeyword(lineNumber, "super");
                         this.printer.print(lineNumber, '.');
                     }
                     //else
                     //{
-                    //    // Methode de la classe courante : elimination du prefix 'this.'
+                    //    // Method de la class courante : elimination du prefix 'this.'
                     //}
 
                     String internalClassName =
@@ -2157,7 +2157,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
             // Dans les specs, LDC pointe vers une constante du pool. Lors de la
             // declaration d'enumeration, le byte code de la méthode
             // 'Enum.valueOf(Class<T> enumType, String name)' contient une
-            // instruction LDC pointant un objet de type 'ConstantClass'.
+            // instruction LDC pointant un object de type 'ConstantClass'.
             Constant cst = constants.get(ii.getIndex());
 
             if (cst instanceof ConstantClass cc)
@@ -2554,7 +2554,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
     /**
      * Affichage des initialisations de tableaux associees aux instructions
      * 'NEWARRAY' et 'ANEWARRAY' dans les affectations '?Store' et passees
-     * en parametres.
+     * en parameters.
      */
     private int writeInitArrayInstruction(InitArrayInstruction iai)
     {
@@ -2608,7 +2608,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
     /**
      * Affichage des initialisations de tableaux associees aux instructions
      * 'NEWARRAY' et 'ANEWARRAY' dans les affectations '?Store' et passees
-     * en parametres.
+     * en parameters.
      */
     private int writeNewAndInitArrayInstruction(InitArrayInstruction iai)
     {

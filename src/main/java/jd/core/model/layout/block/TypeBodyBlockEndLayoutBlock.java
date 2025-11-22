@@ -23,10 +23,10 @@ public class TypeBodyBlockEndLayoutBlock extends BlockLayoutBlock
         this(1);
     }
 
-    public TypeBodyBlockEndLayoutBlock(int preferedLineCount)
+    public TypeBodyBlockEndLayoutBlock(int preferredLineCount)
     {
         super(
             LayoutBlockConstants.TYPE_BODY_BLOCK_END,
-            0, 1, preferedLineCount);
+            0, 1, preferredLineCount);
     }
 }

@@ -33,12 +33,12 @@ public class ExtendsSuperTypeLayoutBlock extends LayoutBlock
 
     protected ExtendsSuperTypeLayoutBlock(
         byte tag, int firstLineNumber, int lastLineNumber,
-        int minimalLineCount, int maximalLineCount, int preferedLineCount,
+        int minimalLineCount, int maximalLineCount, int preferredLineCount,
         ClassFile classFile)
     {
         super(
             tag, firstLineNumber, lastLineNumber,
-            minimalLineCount, maximalLineCount, preferedLineCount);
+            minimalLineCount, maximalLineCount, preferredLineCount);
         this.classFile = classFile;
     }
 

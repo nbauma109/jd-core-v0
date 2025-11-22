@@ -18,7 +18,7 @@ public class TryCatchFinallyClassForTesting {
     // 15: aload_3 <===== finallyFromOffset
     // 16: monitorexit
     // 17: athrow
-    // 18: astore 4 <~~~~~ entrée de la sous procecure ('jsr')
+    // 18: astore 4 <~~~~~ entrée de la sous procedure ('jsr')
     // 20: aload_3
     // 21: monitorexit
     // 22: ret 4 <-----

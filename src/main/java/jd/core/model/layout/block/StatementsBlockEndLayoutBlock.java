@@ -18,10 +18,10 @@ package jd.core.model.layout.block;
 
 public class StatementsBlockEndLayoutBlock extends BlockLayoutBlock
 {
-    public StatementsBlockEndLayoutBlock(int preferedLineCount)
+    public StatementsBlockEndLayoutBlock(int preferredLineCount)
     {
         super(
             LayoutBlockConstants.STATEMENTS_BLOCK_END, 0,
-            LayoutBlockConstants.UNLIMITED_LINE_COUNT, preferedLineCount);
+            LayoutBlockConstants.UNLIMITED_LINE_COUNT, preferredLineCount);
     }
 }

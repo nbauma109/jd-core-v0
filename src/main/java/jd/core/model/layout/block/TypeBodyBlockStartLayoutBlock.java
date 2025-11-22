@@ -23,16 +23,16 @@ public class TypeBodyBlockStartLayoutBlock extends BlockLayoutBlock
         this(2);
     }
 
-    public TypeBodyBlockStartLayoutBlock(int preferedLineCount)
+    public TypeBodyBlockStartLayoutBlock(int preferredLineCount)
     {
         super(
             LayoutBlockConstants.TYPE_BODY_BLOCK_START,
-            0, 2, preferedLineCount);
+            0, 2, preferredLineCount);
     }
 
-    public void transformToStartEndBlock(int preferedLineCount)
+    public void transformToStartEndBlock(int preferredLineCount)
     {
         this.setTag(LayoutBlockConstants.TYPE_BODY_BLOCK_START_END);
-        this.setPreferedLineCount(this.setLineCount(preferedLineCount));
+        this.setPreferredLineCount(this.setLineCount(preferredLineCount));
     }
 }

@@ -52,7 +52,7 @@ import jd.core.model.classfile.LocalVariables;
  * 12        ||         Boolean (logical) OR                 Left to Right
  * 13        ? :        Conditional                          Right to Left
  * 14        =          Assignment                           Right to Left
- *           *= /= +=   Combinated assignment
+ *           *= /= +=   Combined assignment
  *           -= %=      (operation and assignment)
  *           <<= >>=
  *           >>>=

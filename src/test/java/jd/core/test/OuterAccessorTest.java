@@ -7,11 +7,11 @@ import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.assertEquals;
 
-public class OuterAccesorTest extends AbstractTestCase {
+public class OuterAccessorTest extends AbstractTestCase {
     @Test
     public void test() throws Exception {
         String output = decompile("jd/core/test/OuterAcessor");
-        assertEquals(IOUtils.toString(getClass().getResource("OuterAcessor.txt"), StandardCharsets.UTF_8), output);
+        assertEquals(IOUtils.toString(getClass().getResource("OuterAccessor.txt"), StandardCharsets.UTF_8), output);
     }
 
     @Test

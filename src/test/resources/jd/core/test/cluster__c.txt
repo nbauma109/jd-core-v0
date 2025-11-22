@@ -1,6 +1,6 @@
 /*     */ package gen.lib.dotgen;
 /*     */ 
-/*     */ import gen.annotation.HasND_Rank;
+/*     */ import gen.annotation.HasAND_Rank;
 /*     */ import gen.annotation.Original;
 /*     */ import gen.annotation.Reviewed;
 /*     */ import gen.annotation.Unused;
@@ -135,10 +135,10 @@
 /* 135 */     SmetanaDebug.ENTERING("8bd317q0mykfu6wpr3e4cxmh2", "map_interclust_node");
 /*     */     try {
 /*     */       ST_Agnode_s rv;
-/* 138 */       if (Macro.ND_clust(n) == null || Macro.GD_expanded(Macro.ND_clust(n))) {
+/* 138 */       if (Macro.AND_clust(n) == null || Macro.GD_expanded(Macro.AND_clust(n))) {
 /* 139 */         rv = n;
 /*     */       } else
-/* 141 */         rv = (ST_Agnode_s)Macro.GD_rankleader(Macro.ND_clust(n)).get_(Macro.ND_rank(n));
+/* 141 */         rv = (ST_Agnode_s)Macro.GD_rankleader(Macro.AND_clust(n)).get_(Macro.AND_rank(n));
 /* 142 */       return rv;
 /*     */     } finally {
 /* 144 */       SmetanaDebug.LEAVING("8bd317q0mykfu6wpr3e4cxmh2", "map_interclust_node");
@@ -161,8 +161,8 @@
 /* 161 */       if (d <= 0) { int i;
 /* 162 */         for (i = pos - d + 1; i < ((ST_rank_t)Macro.GD_rank(root).get__(r)).n; i++) {
 /* 163 */           ST_Agnode_s v = (ST_Agnode_s)vlist.get_(i);
-/* 164 */           Macro.ND_order(v, i + d - 1);
-/* 165 */           vlist.set_(Macro.ND_order(v), v);
+/* 164 */           Macro.AND_order(v, i + d - 1);
+/* 165 */           vlist.set_(Macro.AND_order(v), v);
 /*     */         }
 /* 167 */         for (i = ((ST_rank_t)Macro.GD_rank(root).get__(r)).n + d - 1; i < ((ST_rank_t)Macro.GD_rank(root).get__(r)).n; i++)
 /* 168 */           vlist.set_(i, null);
@@ -170,8 +170,8 @@
 /*     */       int i;
 /* 171 */       for (i = ((ST_rank_t)Macro.GD_rank(root).get__(r)).n - 1; i > pos; i--) {
 /* 172 */         ST_Agnode_s v = (ST_Agnode_s)vlist.get_(i);
-/* 173 */         Macro.ND_order(v, i + d - 1);
-/* 174 */         vlist.set_(Macro.ND_order(v), v);
+/* 173 */         Macro.AND_order(v, i + d - 1);
+/* 174 */         vlist.set_(Macro.AND_order(v), v);
 /*     */       }
 /* 176 */       for (i = pos + 1; i < pos + d; i++) {
 /* 177 */         vlist.set_(i, null);
@@ -187,7 +187,7 @@
 /*     */ 
 /*     */ 
 /*     */   @Unused
-/*     */   @HasND_Rank
+/*     */   @HasAND_Rank
 /*     */   @Original(version="2.38.0", path="lib/dotgen/cluster.c", name="clone_vn", key="d4mwxesl56uh9dyttg9cjlq70", definition="static node_t*  clone_vn(graph_t * g, node_t * vn)")
 /*     */   public static ST_Agnode_s clone_vn(ST_Agraph_s g, ST_Agnode_s vn)
 /*     */   {
@@ -195,12 +195,12 @@
 /*     */     
 /*     */     try
 /*     */     {
-/* 198 */       int r = Macro.ND_rank(vn);
-/* 199 */       make_slots(g, r, Macro.ND_order(vn), 2);
+/* 198 */       int r = Macro.AND_rank(vn);
+/* 199 */       make_slots(g, r, Macro.AND_order(vn), 2);
 /* 200 */       ST_Agnode_s rv = fastgr__c.virtual_node(g);
-/* 201 */       Macro.ND_lw(rv, Macro.ND_lw(vn));
-/* 202 */       Macro.ND_rw(rv, Macro.ND_rw(vn));
-/* 203 */       Macro.ND_rank(rv, Macro.ND_rank(vn));
+/* 201 */       Macro.AND_lw(rv, Macro.AND_lw(vn));
+/* 202 */       Macro.AND_rw(rv, Macro.AND_rw(vn));
+/* 203 */       Macro.AND_rank(rv, Macro.AND_rank(vn));
 /* 204 */       Macro.UNSUPPORTED("adc0qfdhup29vh8qu1cwl5jgj");
 /* 205 */       Macro.UNSUPPORTED("v7vqc9l7ge2bfdwnw11z7rzi");
 /* 206 */       Macro.UNSUPPORTED("c24nfmv9i7o5eoqaymbibp7m7");
@@ -224,23 +224,23 @@
 /*     */ 
 /*     */     try
 /*     */     {
-/* 227 */       assert (Macro.ND_rank(from) < Macro.ND_rank(to));
+/* 227 */       assert (Macro.AND_rank(from) < Macro.AND_rank(to));
 /* 228 */       if (edge__c.agtail(ve) == from && edge__c.aghead(ve) == to)
 /* 229 */         return;
 /* 230 */       if (Macro.ED_count(ve) > 1) {
 /* 231 */         Macro.ED_to_virt(orig, null);
-/* 232 */         ST_Agedge_s e; if (Macro.ND_rank(to) - Macro.ND_rank(from) == 1 && 
+/* 232 */         ST_Agedge_s e; if (Macro.AND_rank(to) - Macro.AND_rank(from) == 1 && 
 /* 233 */           (e = fastgr__c.find_fast_edge(from, to)) != null && position__c.ports_eq(orig, e)) {
 /* 234 */           fastgr__c.merge_oneway(orig, e);
-/* 235 */           if (Macro.ND_node_type(from) == 0 && 
-/* 236 */             Macro.ND_node_type(to) == 0)
+/* 235 */           if (Macro.AND_node_type(from) == 0 && 
+/* 236 */             Macro.AND_node_type(to) == 0)
 /* 237 */             fastgr__c.other_edge(orig);
 /* 238 */           return;
 /*     */         }
 /*     */         
 /* 241 */         ST_Agnode_s u = from;
-/* 242 */         for (int r = Macro.ND_rank(from); r < Macro.ND_rank(to); r++) { ST_Agnode_s v;
-/* 243 */           if (r < Macro.ND_rank(to) - 1) {
+/* 242 */         for (int r = Macro.AND_rank(from); r < Macro.AND_rank(to); r++) { ST_Agnode_s v;
+/* 243 */           if (r < Macro.AND_rank(to) - 1) {
 /* 244 */             v = clone_vn(dotinit__c.dot_root(from), edge__c.aghead(ve));
 /*     */           } else
 /* 246 */             v = to;
@@ -248,17 +248,17 @@
 /* 248 */           Macro.ED_edge_type(e, type);
 /* 249 */           u = v;
 /* 250 */           Macro.ED_count(ve, Macro.ED_count(ve) - 1);
-/* 251 */           ve = (ST_Agedge_s)Macro.ND_out(edge__c.aghead(ve)).list.get_(0);
+/* 251 */           ve = (ST_Agedge_s)Macro.AND_out(edge__c.aghead(ve)).list.get_(0);
 /*     */         }
 /*     */       }
-/* 254 */       if (Macro.ND_rank(to) - Macro.ND_rank(from) == 1) {
+/* 254 */       if (Macro.AND_rank(to) - Macro.AND_rank(from) == 1) {
 /* 255 */         if ((ve = fastgr__c.find_fast_edge(from, to)) != null && position__c.ports_eq(orig, ve))
 /*     */         {
 /* 257 */           Macro.ED_to_virt(orig, ve);
 /* 258 */           Macro.ED_edge_type(ve, type);
 /* 259 */           Macro.ED_count(ve, Macro.ED_count(ve) + 1);
-/* 260 */           if (Macro.ND_node_type(from) == 0 && 
-/* 261 */             Macro.ND_node_type(to) == 0)
+/* 260 */           if (Macro.AND_node_type(from) == 0 && 
+/* 261 */             Macro.AND_node_type(to) == 0)
 /* 262 */             fastgr__c.other_edge(orig);
 /*     */         } else {
 /* 264 */           Macro.ED_to_virt(orig, null);
@@ -266,7 +266,7 @@
 /* 266 */           Macro.ED_edge_type(ve, type);
 /*     */         }
 /*     */       }
-/* 269 */       if (Macro.ND_rank(to) - Macro.ND_rank(from) > 1) {
+/* 269 */       if (Macro.AND_rank(to) - Macro.AND_rank(from) > 1) {
 /* 270 */         ST_Agedge_s e = ve;
 /* 271 */         if (edge__c.agtail(ve) != from) {
 /* 272 */           Macro.ED_to_virt(orig, null);
@@ -275,8 +275,8 @@
 /* 275 */           fastgr__c.delete_fast_edge(ve);
 /*     */         } else {
 /* 277 */           e = ve; }
-/* 278 */         while (Macro.ND_rank(edge__c.aghead(e)) != Macro.ND_rank(to))
-/* 279 */           e = (ST_Agedge_s)Macro.ND_out(edge__c.aghead(e)).list.get_(0);
+/* 278 */         while (Macro.AND_rank(edge__c.aghead(e)) != Macro.AND_rank(to))
+/* 279 */           e = (ST_Agedge_s)Macro.AND_out(edge__c.aghead(e)).list.get_(0);
 /* 280 */         if (edge__c.aghead(e) != to) {
 /* 281 */           ve = e;
 /* 282 */           e = fastgr__c.virtual_edge(edge__c.agtail(e), to, orig);
@@ -345,7 +345,7 @@
 /* 345 */           e = Macro.AGMKOUT(e);
 /*     */           
 /* 347 */           if (class2__c.mergeable(prev, e)) {
-/* 348 */             if (Macro.ND_rank(edge__c.agtail(e)) == Macro.ND_rank(edge__c.aghead(e))) {
+/* 348 */             if (Macro.AND_rank(edge__c.agtail(e)) == Macro.AND_rank(edge__c.aghead(e))) {
 /* 349 */               Macro.ED_to_virt(e, prev);
 /*     */             } else
 /* 351 */               Macro.ED_to_virt(e, null);
@@ -357,7 +357,7 @@
 /*     */ 
 /*     */ 
 /*     */           }
-/* 360 */           else if (Macro.ND_rank(edge__c.agtail(e)) == Macro.ND_rank(edge__c.aghead(e))) {
+/* 360 */           else if (Macro.AND_rank(edge__c.agtail(e)) == Macro.AND_rank(edge__c.aghead(e))) {
 /*     */             ST_Agedge_s fe;
 /* 362 */             if ((fe = fastgr__c.find_flat_edge(edge__c.agtail(e), edge__c.aghead(e))) == null) {
 /* 363 */               fastgr__c.flat_edge(g, e);
@@ -370,7 +370,7 @@
 /*     */             
 /*     */ 
 /*     */           }
-/* 373 */           else if (Macro.ND_rank(edge__c.aghead(e)) > Macro.ND_rank(edge__c.agtail(e))) {
+/* 373 */           else if (Macro.AND_rank(edge__c.aghead(e)) > Macro.AND_rank(edge__c.agtail(e))) {
 /* 374 */             make_interclust_chain(g, edge__c.agtail(e), edge__c.aghead(e), e);
 /* 375 */             prev = e;
 /*     */ 
@@ -411,14 +411,14 @@
 /* 411 */         ((ST_rank_t)Macro.GD_rank(root).get__(Macro.GD_minrank(subg) - 1)).valid = 0;
 /* 412 */       int r; for (r = Macro.GD_minrank(subg); r <= Macro.GD_maxrank(subg); r++) {
 /* 413 */         int d = ((ST_rank_t)Macro.GD_rank(subg).get__(r)).n;
-/* 414 */         int pos; int ipos = pos = Macro.ND_order((ST_Agnode_s)Macro.GD_rankleader(subg).get_(r));
+/* 414 */         int pos; int ipos = pos = Macro.AND_order((ST_Agnode_s)Macro.GD_rankleader(subg).get_(r));
 /* 415 */         make_slots(root, r, pos, d);
 /* 416 */         for (int i = 0; i < ((ST_rank_t)Macro.GD_rank(subg).get__(r)).n; i++) {
 /* 417 */           ST_Agnode_s v = (ST_Agnode_s)((ST_rank_t)Macro.GD_rank(subg).get__(r)).v.get_(i);
 /* 418 */           ((ST_rank_t)Macro.GD_rank(root).get__(r)).v.set_(pos, v);
-/* 419 */           Macro.ND_order(v, pos++);
+/* 419 */           Macro.AND_order(v, pos++);
 /*     */           
-/* 421 */           if (Macro.ND_node_type(v) == 1)
+/* 421 */           if (Macro.AND_node_type(v) == 1)
 /* 422 */             v.root = obj__c.agroot(root);
 /* 423 */           fastgr__c.delete_fast_node(subg, v);
 /* 424 */           fastgr__c.fast_node(root, v);
@@ -451,9 +451,9 @@
 /* 451 */         ST_Agnode_s v = (ST_Agnode_s)Macro.GD_rankleader(g).get_(r);
 /*     */         
 /*     */         ST_Agedge_s e;
-/* 454 */         while ((e = (ST_Agedge_s)Macro.ND_out(v).list.get_(0)) != null)
+/* 454 */         while ((e = (ST_Agedge_s)Macro.AND_out(v).list.get_(0)) != null)
 /* 455 */           fastgr__c.delete_fast_edge(e);
-/* 456 */         while ((e = (ST_Agedge_s)Macro.ND_in(v).list.get_(0)) != null)
+/* 456 */         while ((e = (ST_Agedge_s)Macro.AND_in(v).list.get_(0)) != null)
 /* 457 */           fastgr__c.delete_fast_edge(e);
 /* 458 */         fastgr__c.delete_fast_node(dotinit__c.dot_root(g), v);
 /* 459 */         Macro.GD_rankleader(g).set_(r, null);
@@ -504,9 +504,9 @@
 /*     */       
 /*     */ 
 /* 506 */       for (n = node__c.agfstnode(zz, g); n != null; n = node__c.agnxtnode(zz, g, n)) {
-/* 507 */         if (Macro.ND_ranktype(n) == 7)
+/* 507 */         if (Macro.AND_ranktype(n) == 7)
 /* 508 */           utils__c.UF_singleton(n);
-/* 509 */         Macro.ND_clust(n, null);
+/* 509 */         Macro.AND_clust(n, null);
 /*     */       }
 /*     */       
 /*     */ 
@@ -514,7 +514,7 @@
 /* 514 */         ST_Agraph_s clust = (ST_Agraph_s)Macro.GD_clust(g).get_(c);
 /* 515 */         for (n = node__c.agfstnode(zz, clust); n != null; n = nn) {
 /* 516 */           nn = node__c.agnxtnode(zz, clust, n);
-/* 517 */           if (Macro.ND_ranktype(n) != 0) {
+/* 517 */           if (Macro.AND_ranktype(n) != 0) {
 /* 518 */             Macro.UNSUPPORTED("5l8jenkv77ax02t47zzxyv1k0");
 /* 519 */             Macro.UNSUPPORTED("2ipl4umxgijawr7756ysp9hhd");
 /* 520 */             Macro.UNSUPPORTED("7r0ulsiau9cygesawzzjnpt5j");
@@ -522,17 +522,17 @@
 /* 522 */             Macro.UNSUPPORTED("6hyelvzskqfqa07xtgjtvg2is");
 /*     */           }
 /* 524 */           utils__c.UF_setname(n, Macro.GD_leader(clust));
-/* 525 */           Macro.ND_clust(n, clust);
-/* 526 */           Macro.ND_ranktype(n, 7);
+/* 525 */           Macro.AND_clust(n, clust);
+/* 526 */           Macro.AND_ranktype(n, 7);
 /*     */           
 /*     */ 
 /*     */ 
 /* 530 */           for (ST_Agedge_s orig = edge__c.agfstout(zz, clust, n); orig != null; 
 /* 531 */               orig = edge__c.agnxtout(zz, clust, orig)) { ST_Agedge_s e;
 /* 532 */             if ((e = Macro.ED_to_virt(orig)) != null) { ST_Agnode_s vn;
-/* 533 */               while (e != null && Macro.ND_node_type(vn = edge__c.aghead(e)) == 1) {
-/* 534 */                 Macro.ND_clust(vn, clust);
-/* 535 */                 e = (ST_Agedge_s)Macro.ND_out(edge__c.aghead(e)).list.get_(0);
+/* 533 */               while (e != null && Macro.AND_node_type(vn = edge__c.aghead(e)) == 1) {
+/* 534 */                 Macro.AND_clust(vn, clust);
+/* 535 */                 e = (ST_Agedge_s)Macro.AND_out(edge__c.aghead(e)).list.get_(0);
 /*     */               }
 /*     */             }
 /*     */           }
@@ -547,7 +547,7 @@
 /*     */ 
 /*     */ 
 /*     */   @Reviewed(when="15/11/2020")
-/*     */   @HasND_Rank
+/*     */   @HasAND_Rank
 /*     */   @Original(version="2.38.0", path="lib/dotgen/cluster.c", name="build_skeleton", key="bwrw5u0gi2rgah1cn9h0glpse", definition="void build_skeleton(graph_t * g, graph_t * subg)")
 /*     */   public static void build_skeleton(Globals zz, ST_Agraph_s g, ST_Agraph_s subg)
 /*     */   {
@@ -562,9 +562,9 @@
 /* 562 */       int r; for (r = Macro.GD_minrank(subg); r <= Macro.GD_maxrank(subg); r++) {
 /* 563 */         ST_Agnode_s v = fastgr__c.virtual_node(g);
 /* 564 */         Macro.GD_rankleader(subg).set_(r, v);
-/* 565 */         Macro.ND_rank(v, r);
-/* 566 */         Macro.ND_ranktype(v, 7);
-/* 567 */         Macro.ND_clust(v, subg);
+/* 565 */         Macro.AND_rank(v, r);
+/* 566 */         Macro.AND_ranktype(v, 7);
+/* 567 */         Macro.AND_clust(v, subg);
 /* 568 */         if (prev != null) {
 /* 569 */           ST_Agedge_s e = fastgr__c.virtual_edge(prev, v, null);
 /* 570 */           Macro.ED_xpenalty(e, Macro.ED_xpenalty(e) * 1000);
@@ -575,18 +575,18 @@
 /*     */ 
 /*     */ 
 /* 577 */       for (ST_Agnode_s v = node__c.agfstnode(zz, subg); v != null; v = node__c.agnxtnode(zz, subg, v)) {
-/* 578 */         ST_Agnode_s rl = (ST_Agnode_s)Macro.GD_rankleader(subg).get_(Macro.ND_rank(v));
-/* 579 */         Macro.ND_UF_size(rl, Macro.ND_UF_size(rl) + 1);
+/* 578 */         ST_Agnode_s rl = (ST_Agnode_s)Macro.GD_rankleader(subg).get_(Macro.AND_rank(v));
+/* 579 */         Macro.AND_UF_size(rl, Macro.AND_UF_size(rl) + 1);
 /* 580 */         for (ST_Agedge_s e = edge__c.agfstout(zz, subg, v); e != null; e = edge__c.agnxtout(zz, subg, e)) {
-/* 581 */           for (r = Macro.ND_rank(edge__c.agtail(e)); r < Macro.ND_rank(edge__c.aghead(e)); r++) {
-/* 582 */             Macro.ED_count((ST_Agedge_s)Macro.ND_out(rl).list.get_(0), Macro.ED_count((ST_Agedge_s)Macro.ND_out(rl).list.get_(0)) + 1);
+/* 581 */           for (r = Macro.AND_rank(edge__c.agtail(e)); r < Macro.AND_rank(edge__c.aghead(e)); r++) {
+/* 582 */             Macro.ED_count((ST_Agedge_s)Macro.AND_out(rl).list.get_(0), Macro.ED_count((ST_Agedge_s)Macro.AND_out(rl).list.get_(0)) + 1);
 /*     */           }
 /*     */         }
 /*     */       }
 /* 586 */       for (r = Macro.GD_minrank(subg); r <= Macro.GD_maxrank(subg); r++) {
 /* 587 */         ST_Agnode_s rl = (ST_Agnode_s)Macro.GD_rankleader(subg).get_(r);
-/* 588 */         if (Macro.ND_UF_size(rl) > 1)
-/* 589 */           Macro.ND_UF_size(rl, Macro.ND_UF_size(rl) - 1);
+/* 588 */         if (Macro.AND_UF_size(rl) > 1)
+/* 589 */           Macro.AND_UF_size(rl, Macro.AND_UF_size(rl) - 1);
 /*     */       }
 /*     */     } finally {
 /* 592 */       SmetanaDebug.LEAVING("bwrw5u0gi2rgah1cn9h0glpse", "build_skeleton");
@@ -603,7 +603,7 @@
 /*     */     
 /*     */     try
 /*     */     {
-/* 606 */       ST_Agraph_s clust = Macro.ND_clust(n);
+/* 606 */       ST_Agraph_s clust = Macro.AND_clust(n);
 /*     */       
 /* 608 */       if (Macro.GD_installed(clust) != pass + 1) { int r;
 /* 609 */         for (r = Macro.GD_minrank(clust); r <= Macro.GD_maxrank(clust); r++)
@@ -630,12 +630,12 @@
 /*     */     try
 /*     */     {
 /* 632 */       for (ST_Agnode_s n = node__c.agfstnode(zz, root); n != null; n = node__c.agnxtnode(zz, root, n)) {
-/* 633 */         Macro.ND_clust(n, null);
+/* 633 */         Macro.AND_clust(n, null);
 /* 634 */         for (ST_Agedge_s orig = edge__c.agfstout(zz, root, n); orig != null; orig = edge__c.agnxtout(zz, root, orig)) { ST_Agedge_s e;
 /* 635 */           if ((e = Macro.ED_to_virt(orig)) != null) { ST_Agnode_s vn;
-/* 636 */             while (e != null && Macro.ND_node_type(vn = edge__c.aghead(e)) == 1) {
-/* 637 */               Macro.ND_clust(vn, null);
-/* 638 */               e = (ST_Agedge_s)Macro.ND_out(edge__c.aghead(e)).list.get_(0);
+/* 636 */             while (e != null && Macro.AND_node_type(vn = edge__c.aghead(e)) == 1) {
+/* 637 */               Macro.AND_clust(vn, null);
+/* 638 */               e = (ST_Agedge_s)Macro.AND_out(edge__c.aghead(e)).list.get_(0);
 /*     */             }
 /*     */           }
 /*     */         }
@@ -668,14 +668,14 @@
 /*     */       }
 /*     */       
 /* 670 */       for (ST_Agnode_s n = node__c.agfstnode(zz, g); n != null; n = node__c.agnxtnode(zz, g, n)) {
-/* 671 */         if (Macro.ND_clust(n) == null)
-/* 672 */           Macro.ND_clust(n, g);
+/* 671 */         if (Macro.AND_clust(n) == null)
+/* 672 */           Macro.AND_clust(n, g);
 /* 673 */         for (ST_Agedge_s orig = edge__c.agfstout(zz, g, n); orig != null; orig = edge__c.agnxtout(zz, g, orig)) { ST_Agedge_s e;
 /* 674 */           if ((e = Macro.ED_to_virt(orig)) != null) { ST_Agnode_s vn;
-/* 675 */             while (e != null && Macro.ND_node_type(vn = edge__c.aghead(e)) == 1) {
-/* 676 */               if (Macro.ND_clust(vn) == null)
-/* 677 */                 Macro.ND_clust(vn, g);
-/* 678 */               e = (ST_Agedge_s)Macro.ND_out(edge__c.aghead(e)).list.get_(0);
+/* 675 */             while (e != null && Macro.AND_node_type(vn = edge__c.aghead(e)) == 1) {
+/* 676 */               if (Macro.AND_clust(vn) == null)
+/* 677 */                 Macro.AND_clust(vn, g);
+/* 678 */               e = (ST_Agedge_s)Macro.AND_out(edge__c.aghead(e)).list.get_(0);
 /*     */             }
 /*     */           }
 /*     */         }

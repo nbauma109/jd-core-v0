@@ -78,8 +78,8 @@ public class ClassFile extends Base
      *   est l'indexe du nom de la méthode
      *   "static int[] $SWITCH_TABLE$basic$data$TestEnum$enum1()".
      * - Dans le cas des instructions Switch+Enum des autres compilateurs, la
-     *   clé de la map est le nom de la classe interne "static class 1"
-     *   contenant le tableau de correspondance
+     *   clé de la map est le nom de la class interne "static class 1"
+     *   contenant le tableau de correspondence
      *   "$SwitchMap$basic$data$TestEnum$enum1".
      */
     private final Map<String, List<Integer>> switchMaps;
@@ -481,8 +481,8 @@ public class ClassFile extends Base
         if (signature != null) {
             TypeMaker typeMaker = new TypeMaker(loader);
             Type type = typeMaker.makeFromSignature(signature.getSignature());
-            if (type instanceof ObjectType ot) {
-                ot.accept(new AbstractTypeArgumentVisitor() {
+            if (type instanceof ObjectType to) {
+                to.accept(new AbstractTypeArgumentVisitor() {
                     @Override
                     public void visit(InnerObjectType type) {
                         typeArgumentInnerClasses.add(type.getInternalName());

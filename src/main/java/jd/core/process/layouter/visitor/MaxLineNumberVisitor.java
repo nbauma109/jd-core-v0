@@ -144,7 +144,7 @@ public final class MaxLineNumberVisitor
                 else
                 {
                     // Correction pour un tres curieux bug : les numéros de
-                    // ligne des parametres ne sont pas toujours en ordre croissant
+                    // ligne des parameters ne sont pas toujours en ordre croissant
                     maxLineNumber = computeMaxLineNumber(list);
                 }
             }
@@ -207,7 +207,7 @@ public final class MaxLineNumberVisitor
 //            break;
         }
 
-        // Autre curieux bug : les constantes finales passees en parametres
+        // Autre curieux bug : les constantes finales passees en parameters
         // peuvent avoir un numéro de ligne plus petit que le numéro de ligne
         // de l'instruction INVOKE*
         if (maxLineNumber < instruction.getLineNumber())

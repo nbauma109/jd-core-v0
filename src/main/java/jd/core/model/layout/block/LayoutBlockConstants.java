@@ -26,7 +26,7 @@ public final class LayoutBlockConstants
 
     public static final byte PACKAGE                                      = 1;
     public static final byte SEPARATOR                                    = 2;
-    public static final byte SEPARATOR_AT_BEGINING                        = 3;
+    public static final byte SEPARATOR_AT_BEGINNING                        = 3;
     public static final byte SEPARATOR_AFTER_IMPORTS                      = 4;
     public static final byte SEPARATOR_OF_STATEMENTS                      = 5;
 

@@ -32,17 +32,17 @@ public class Field extends Base implements SignatureInfo
     private ConstantPool constantPool;
     private boolean outerLocalVariable;
     /*
-     * Attributs pour l'affichage des champs synthetique des classes anonymes.
+     * Attributes pour l'affichage des champs synthetique des classes anonymes.
      * Champs modifié par:
      * 1) ClassFileAnalyzer.AnalyseAndModifyConstructors(...) pour y placer le
-     *    numéro (position) du parametre du constructeur initialisant le champs.
+     *    numéro (position) du parameter du constructeur initialisant le champs.
      */
     private int anonymousClassConstructorParameterIndex;
     /*
      * 2) NewInstructionReconstructorBase.InitAnonymousClassConstructorParameterName(...)
-     *    pour y placer l'index du nom du parametre.
+     *    pour y placer l'index du nom du parameter.
      * 3) SourceWriterVisitor.writeGetField(...) pour afficher le nom du
-     *    parameter de la classe englobante.
+     *    parameter de la class englobante.
      */
     private int outerMethodLocalVariableNameIndex;
 

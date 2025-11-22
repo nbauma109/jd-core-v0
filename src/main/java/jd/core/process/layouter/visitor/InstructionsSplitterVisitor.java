@@ -66,7 +66,7 @@ public class InstructionsSplitterVisitor extends BaseInstructionSplitterVisitor
     {
         int lastOffset = this.list.get(this.index2).getOffset();
 
-        // S'il reste un fragment d'instruction a traiter...
+        // S'il reset un fragment d'instruction a traiter...
         if (this.index1 != this.index2 || this.offset1 != lastOffset || lastOffset == 0)
         {
             // Add last part of instruction
@@ -105,8 +105,8 @@ public class InstructionsSplitterVisitor extends BaseInstructionSplitterVisitor
             // - du 1er statement
             // - d'un statement qui suit un statement dont la derniere
             //   instruction est 'AnonymousNewInvoke'
-            // Assez complexe a comprendre sans exemple sous les yeux
-            // Methode d'exemple :
+            // Assez complex a comprendre sans example sous les yeux
+            // Method d'example :
             //   java.io.ObjectInputStream, auditSubclass(...)
             int initialFirstLineNumber =
                 this.list.get(this.initialIndex1).getLineNumber();
@@ -199,7 +199,7 @@ public class InstructionsSplitterVisitor extends BaseInstructionSplitterVisitor
 
     protected void addInstructionsLayoutBlock(int lastLineNumber, int lastOffset)
     {
-        int preferedLineCount;
+        int preferredLineCount;
 
         if (this.firstLineNumber != Instruction.UNKNOWN_LINE_NUMBER &&
             lastLineNumber != Instruction.UNKNOWN_LINE_NUMBER)
@@ -207,19 +207,19 @@ public class InstructionsSplitterVisitor extends BaseInstructionSplitterVisitor
             if (lastLineNumber < this.firstLineNumber)
             {
                 // Les instructions newAnonymousClass imbriquées n'ont pas de
-                // numéros de ligne correctes. Exemple: com.googlecode.dex2jar.v3.Dex2jar
+                // numéros de ligne correctes. Example: com.googlecode.dex2jar.v3.Dex2jar
                 lastLineNumber = this.firstLineNumber;
             }
-            preferedLineCount = lastLineNumber - this.firstLineNumber;
+            preferredLineCount = lastLineNumber - this.firstLineNumber;
         }
         else
         {
-            preferedLineCount = LayoutBlockConstants.UNLIMITED_LINE_COUNT;
+            preferredLineCount = LayoutBlockConstants.UNLIMITED_LINE_COUNT;
         }
 
         this.layoutBlockList.add(new InstructionsLayoutBlock(
             this.firstLineNumber, lastLineNumber,
-            preferedLineCount, preferedLineCount, preferedLineCount,
+            preferredLineCount, preferredLineCount, preferredLineCount,
             this.classFile, this.method, this.list,
             this.index1, this.index2,
             this.offset1, lastOffset));

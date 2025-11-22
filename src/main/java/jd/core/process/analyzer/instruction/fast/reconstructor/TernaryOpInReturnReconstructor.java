@@ -106,7 +106,7 @@ public final class TernaryOpInReturnReconstructor
                 continue;
             }
 
-            // Verification qu'aucune instruction saute sur 'ri1'
+            // Verification qu'aucune instruction saute sure 'ri1'
             boolean found = false;
             int i = index2;
 

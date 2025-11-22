@@ -295,9 +295,9 @@ public final class CheckLocalVariableUsedVisitor
                 if (visit(predicate, ft.getInstructions()) || ft.getFinallyInstructions() != null && visit(predicate, ft.getFinallyInstructions())) {
                     return true;
                 }
-                List<FastCatch> catchs = ft.getCatches();
-                for (int i=catchs.size()-1; i>=0; --i) {
-                    if (visit(predicate, catchs.get(i).instructions())) {
+                List<FastCatch> catches = ft.getCatches();
+                for (int i=catches.size()-1; i>=0; --i) {
+                    if (visit(predicate, catches.get(i).instructions())) {
                         return true;
                     }
                 }

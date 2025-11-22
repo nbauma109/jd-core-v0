@@ -34,11 +34,11 @@ public class TypeNameLayoutBlock extends LayoutBlock
     protected TypeNameLayoutBlock(
         byte tag, int firstLineNumber, int lastLineNumber,
         int minimalLineCount, int maximalLineCount,
-        int preferedLineCount, ClassFile classFile)
+        int preferredLineCount, ClassFile classFile)
     {
         super(
             tag, firstLineNumber, lastLineNumber,
-            minimalLineCount, maximalLineCount, preferedLineCount);
+            minimalLineCount, maximalLineCount, preferredLineCount);
         this.classFile = classFile;
     }
 

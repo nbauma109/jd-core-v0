@@ -32,12 +32,12 @@ public class BlockLayoutBlock extends LayoutBlock
 
     public BlockLayoutBlock(
         byte tag, int minimalLineCount,
-        int maximalLineCount, int preferedLineCount)
+        int maximalLineCount, int preferredLineCount)
     {
         super(
             tag,
             Instruction.UNKNOWN_LINE_NUMBER, Instruction.UNKNOWN_LINE_NUMBER,
-            minimalLineCount, maximalLineCount, preferedLineCount);
+            minimalLineCount, maximalLineCount, preferredLineCount);
         this.setOther(null);
     }
 

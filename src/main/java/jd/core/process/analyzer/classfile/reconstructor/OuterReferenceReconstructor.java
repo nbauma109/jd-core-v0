@@ -72,21 +72,21 @@ public class OuterReferenceReconstructor
             new ReplaceMultipleOuterReferenceVisitor(classFile);
         this.outerAccessorVisitor =
             new ReplaceOuterAccessorVisitor(classFile);
-        // Initialisation des visiteurs traitant l'acces des champs externes
+        // Initialisation des visiteurs traitant l'access des champs externes
         this.outerIncGetFieldVisitor =
             new OuterIncGetFieldVisitor(innerClassesMap, constants);
         this.outerGetFieldVisitor =
                 new OuterGetFieldVisitor(innerClassesMap, constants);
         this.outerPutFieldVisitor =
             new OuterPutFieldVisitor(innerClassesMap, constants);
-        // Initialisation du visiteur traitant l'acces des champs statics externes
+        // Initialisation du visiteur traitant l'access des champs statics externes
         this.outerIncGetStaticVisitor =
             new OuterIncGetStaticVisitor(innerClassesMap, constants);
         this.outerGetStaticVisitor =
                 new OuterGetStaticVisitor(innerClassesMap, constants);
         this.outerPutStaticVisitor =
             new OuterPutStaticVisitor(innerClassesMap, constants);
-        // Initialisation du visiteur traitant l'acces des méthodes externes
+        // Initialisation du visiteur traitant l'access des méthodes externes
         this.outerMethodVisitor =
             new OuterInvokeMethodVisitor(innerClassesMap, constants);
     }

@@ -132,15 +132,15 @@
 /*  132 */       this.carrier.visit();
 /*      */     }
 /*      */     
-/*      */     private void checkIndex(Node referrer, int index, Class<?> shouldbe) {
+/*      */     private void checkIndex(Node referrer, int index, Class<?> should) {
 /*  136 */       if (index < 0 || index >= this.cplen) {
 /*  137 */         throw new ClassConstraintException("Invalid index '" + index + "' used by '" + Pass2Verifier.tostring(referrer) + "'.");
 /*      */       }
 /*  139 */       Constant c = this.cp.getConstant(index);
-/*  140 */       if (shouldbe.isInstance(c)) {
+/*  140 */       if (should.isInstance(c)) {
 /*      */         return;
 /*      */       }
-/*  143 */       throw new ClassConstraintException("Illegal constant '" + Pass2Verifier.tostring(c) + "' at index '" + index + "'. '" + Pass2Verifier.tostring(referrer) + "' expects a '" + shouldbe + "'.");
+/*  143 */       throw new ClassConstraintException("Illegal constant '" + Pass2Verifier.tostring(c) + "' at index '" + index + "'. '" + Pass2Verifier.tostring(referrer) + "' expects a '" + should + "'.");
 /*      */     }
 /*      */     
 /*      */ 
@@ -206,7 +206,7 @@
 /*  206 */               vr = v.doPass1();
 /*  207 */               if (vr != VerificationResult.VR_OK)
 /*      */               {
-/*  209 */                 throw new ClassConstraintException("Code attribute '" + Pass2Verifier.tostring(obj) + "' (method '" + m + "') has an exception_table entry '" + Pass2Verifier.tostring(element) + "' that references '" + cname + "' as an Exception but '" + e.getSuperclassName() + "' in the ancestor hierachy does not pass verification pass 1: " + vr);
+/*  209 */                 throw new ClassConstraintException("Code attribute '" + Pass2Verifier.tostring(obj) + "' (method '" + m + "') has an exception_table entry '" + Pass2Verifier.tostring(element) + "' that references '" + cname + "' as an Exception but '" + e.getSuperclassName() + "' in the ancestor hierarchy does not pass verification pass 1: " + vr);
 /*      */               }
 /*      */               
 /*  212 */               e = Repository.lookupClass(e.getSuperclassName());
@@ -535,7 +535,7 @@
 /*  535 */             vr = v.doPass1();
 /*  536 */             if (vr != VerificationResult.VR_OK)
 /*      */             {
-/*  538 */               throw new ClassConstraintException("Exceptions attribute '" + Pass2Verifier.tostring(obj) + "' references '" + cname + "' as an Exception but '" + e.getSuperclassName() + "' in the ancestor hierachy does not pass verification pass 1: " + vr);
+/*  538 */               throw new ClassConstraintException("Exceptions attribute '" + Pass2Verifier.tostring(obj) + "' references '" + cname + "' as an Exception but '" + e.getSuperclassName() + "' in the ancestor hierarchy does not pass verification pass 1: " + vr);
 /*      */             }
 /*  540 */             e = Repository.lookupClass(e.getSuperclassName());
 /*      */           }
@@ -916,7 +916,7 @@
 /*      */ 
 /*  917 */       String nameanddesc = name + sig;
 /*  918 */       if (this.methodNamesAndDesc.contains(nameanddesc)) {
-/*  919 */         throw new ClassConstraintException("No two methods (like '" + Pass2Verifier.tostring(obj) + "') are allowed have same names and desciptors!");
+/*  919 */         throw new ClassConstraintException("No two methods (like '" + Pass2Verifier.tostring(obj) + "') are allowed have same names and descriptors!");
 /*      */       }
 /*  921 */       this.methodNamesAndDesc.add(nameanddesc);
 /*      */       

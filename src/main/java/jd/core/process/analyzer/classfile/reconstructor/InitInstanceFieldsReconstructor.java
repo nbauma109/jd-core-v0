@@ -103,8 +103,8 @@ public final class InitInstanceFieldsReconstructor
                         break;
                     }
 
-                    ALoad aLaod = (ALoad)putField.getObjectref();
-                    if (aLaod.getIndex() != 0) {
+                    ALoad aLoad = (ALoad)putField.getObjectref();
+                    if (aLoad.getIndex() != 0) {
                         break;
                     }
 
@@ -125,7 +125,7 @@ public final class InitInstanceFieldsReconstructor
                     int i = putFieldList.size();
                     int lineNumberAfter = instruction.getLineNumber();
 
-                    // Si l'instruction qui suit la serie de 'PUTFIELD' est une
+                    // Si l'instruction qui suit la series de 'PUTFIELD' est une
                     // 'RETURN' ayant le même numéro de ligne que le dernier
                     // 'PUTFIELD', le constructeur est synthetique et ne sera
                     // pas filtre.

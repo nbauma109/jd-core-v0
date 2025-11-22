@@ -125,9 +125,9 @@
 /*      */ {
 /*      */   private static final int HASTEXT = 1;
 /*      */   private static final int HASPORT = 2;
-/*      */   private static final int HASTABLE = 4;
+/*      */   private static final int HASHTABLE = 4;
 /*      */   private static final int INTEXT = 8;
-/*      */   private static final int INPORT = 16;
+/*      */   private static final int IMPORT = 16;
 /*      */   
 /*      */   @Unused
 /*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="same_side", key="eb4jyrh981apg1fy13fczexdl", definition="static int same_side(pointf p0, pointf p1, pointf L0, pointf L1)")
@@ -157,12 +157,12 @@
 /*      */   {
 /*  158 */     SmetanaDebug.ENTERING("5gahokttzv65lspm84ao1le37", "shapeOf");
 /*      */     try {
-/*  160 */       ST_shape_desc sh = Macro.ND_shape(n);
+/*  160 */       ST_shape_desc sh = Macro.AND_shape(n);
 /*      */       
 /*      */ 
 /*  163 */       if (sh == null)
 /*  164 */         return EN_shape_kind.SH_UNSET;
-/*  165 */       CFunction ifn = Macro.ND_shape(n).fns.initfn;
+/*  165 */       CFunction ifn = Macro.AND_shape(n).fns.initfn;
 /*  166 */       if (ifn.getName().equals("poly_init"))
 /*  167 */         return EN_shape_kind.SH_POLY;
 /*  168 */       if (ifn.getName().equals("record_init"))
@@ -225,12 +225,12 @@
 /*  225 */       ST_polygon_t poly = new ST_polygon_t();
 /*      */       
 /*      */ 
-/*  228 */       boolean regular = Macro.ND_shape(n).polygon.regular;
-/*  229 */       int peripheries = Macro.ND_shape(n).polygon.peripheries;
-/*  230 */       int sides = Macro.ND_shape(n).polygon.sides;
-/*  231 */       double orientation = Macro.ND_shape(n).polygon.orientation;
-/*  232 */       double skew = Macro.ND_shape(n).polygon.skew;
-/*  233 */       double distortion = Macro.ND_shape(n).polygon.distortion;
+/*  228 */       boolean regular = Macro.AND_shape(n).polygon.regular;
+/*  229 */       int peripheries = Macro.AND_shape(n).polygon.peripheries;
+/*  230 */       int sides = Macro.AND_shape(n).polygon.sides;
+/*  231 */       double orientation = Macro.AND_shape(n).polygon.orientation;
+/*  232 */       double skew = Macro.AND_shape(n).polygon.skew;
+/*  233 */       double distortion = Macro.AND_shape(n).polygon.distortion;
 /*  234 */       regular |= utils__c.mapbool(attr__c.agget(zz, n, new CString("regular")));
 /*      */       
 /*      */ 
@@ -250,8 +250,8 @@
 /*  250 */         Macro.UNSUPPORTED("61qxt5l8ums7d9os9ungn3rao");
 /*  251 */         Macro.UNSUPPORTED("flupwh3kosf3fkhkxllllt1");
 /*      */       } else {
-/*  253 */         width = Macro.POINTS(Macro.ND_width(n));
-/*  254 */         height = Macro.POINTS(Macro.ND_height(n));
+/*  253 */         width = Macro.POINTS(Macro.AND_width(n));
+/*  254 */         height = Macro.POINTS(Macro.AND_height(n));
 /*      */       }
 /*      */       
 /*      */ 
@@ -265,7 +265,7 @@
 /*      */       
 /*      */ 
 /*      */ 
-/*  268 */       dimen.___(Macro.ND_label(n).dimen);
+/*  268 */       dimen.___(Macro.AND_label(n).dimen);
 /*      */       
 /*      */ 
 /*      */ 
@@ -289,7 +289,7 @@
 /*      */         } else {
 /*  290 */           Macro.PAD(dimen);
 /*      */         } }
-/*  292 */       double spacex = dimen.x - Macro.ND_label(n).dimen.x;
+/*  292 */       double spacex = dimen.x - Macro.AND_label(n).dimen.x;
 /*      */       
 /*      */       double temp;
 /*      */       
@@ -301,7 +301,7 @@
 /*      */       
 /*      */ 
 /*  303 */       imagesize.x = imagesize.y = 0;
-/*  304 */       if (Macro.ND_shape(n).usershape)
+/*  304 */       if (Macro.AND_shape(n).usershape)
 /*      */       {
 /*      */ 
 /*      */ 
@@ -321,7 +321,7 @@
 /*  321 */         Macro.UNSUPPORTED("6t98dcecgbvbvtpycwiq2ynnj");
 /*  322 */         Macro.UNSUPPORTED("flupwh3kosf3fkhkxllllt1"); } else { CString sfile;
 /*  323 */         if ((sfile = attr__c.agget(zz, n, new CString("image"))) != null && sfile.charAt(0) != 0) {
-/*  324 */           Macro.UNSUPPORTED("76t38i30025xohbzg8w9z4pn9");
+/*  324 */           Macro.UNSUPPORTED("76t38i30025xohbzg8w9z4on9");
 /*  325 */           Macro.UNSUPPORTED("b8spvmvtuxcciaejq8j1xhu5s");
 /*  326 */           Macro.UNSUPPORTED("cw5grwj6gbj94jcztvnp2ooyj");
 /*  327 */           Macro.UNSUPPORTED("68jdsrao22ymfpb8e1rdezyez");
@@ -350,9 +350,9 @@
 /*      */ 
 /*  351 */       CString p = attr__c.agget(zz, n, new CString("labelloc"));
 /*  352 */       if (p != null && (p.charAt(0) == 't' || p.charAt(0) == 'b')) {
-/*  353 */         Macro.ND_label(n).valign = p.charAt(0);
+/*  353 */         Macro.AND_label(n).valign = p.charAt(0);
 /*      */       } else {
-/*  355 */         Macro.ND_label(n).valign = 99;
+/*  355 */         Macro.AND_label(n).valign = 99;
 /*      */       }
 /*      */       
 /*      */ 
@@ -360,7 +360,7 @@
 /*      */       
 /*  361 */       if (!isBox)
 /*      */       {
-/*  363 */         if (Macro.ND_shape(n).polygon.vertices != null) {
+/*  363 */         if (Macro.AND_shape(n).polygon.vertices != null) {
 /*  364 */           Macro.UNSUPPORTED("4adqsyjwqwzs50ggjp57ok6u7");
 /*  365 */           Macro.UNSUPPORTED("1fjwgzo5xkijo98ycmzhal8yv");
 /*      */ 
@@ -369,7 +369,7 @@
 /*      */         {
 /*      */ 
 /*  371 */           temp = bb.y * Macro.SQRT2;
-/*  372 */           if (height > temp && Macro.ND_label(n).valign == 99)
+/*  372 */           if (height > temp && Macro.AND_label(n).valign == 99)
 /*      */           {
 /*      */ 
 /*      */ 
@@ -401,7 +401,7 @@
 /*  401 */         poly.option |= 0x800;
 /*  402 */       } else if (utils__c.mapbool(fxd))
 /*      */       {
-/*  404 */         if (width < Macro.ND_label(n).dimen.x || height < Macro.ND_label(n).dimen.y) {
+/*  404 */         if (width < Macro.AND_label(n).dimen.x || height < Macro.AND_label(n).dimen.y) {
 /*  405 */           System.err.println("node '%s', graph '%s' size too small for label\n");
 /*      */         }
 /*      */         
@@ -424,16 +424,16 @@
 /*      */ 
 /*  425 */       if (!utils__c.mapbool(utils__c.late_string(n, zz.N_nojustify, new CString("false")))) {
 /*  426 */         if (isBox) {
-/*  427 */           Macro.ND_label(n).space.x = Math.max(dimen.x, bb.x) - spacex;
+/*  427 */           Macro.AND_label(n).space.x = Math.max(dimen.x, bb.x) - spacex;
 /*      */         }
 /*  429 */         else if (dimen.y < bb.y) {
 /*  430 */           temp = bb.x * Math.sqrt(1.0D - Macro.SQR(dimen.y) / Macro.SQR(bb.y));
-/*  431 */           Macro.ND_label(n).space.x = Math.max(dimen.x, temp) - spacex;
+/*  431 */           Macro.AND_label(n).space.x = Math.max(dimen.x, temp) - spacex;
 /*      */         }
 /*      */         else {
-/*  434 */           Macro.ND_label(n).space.x = dimen.x - spacex;
+/*  434 */           Macro.AND_label(n).space.x = dimen.x - spacex;
 /*      */         }
-/*  436 */       } else { Macro.ND_label(n).space.x = dimen.x - spacex;
+/*  436 */       } else { Macro.AND_label(n).space.x = dimen.x - spacex;
 /*      */       }
 /*      */       
 /*      */ 
@@ -441,7 +441,7 @@
 /*  441 */         temp = bb.y - min_bb.y;
 /*  442 */         if (dimen.y < imagesize.y)
 /*  443 */           temp += imagesize.y - dimen.y;
-/*  444 */         Macro.ND_label(n).space.y = dimen.y + temp;
+/*  444 */         Macro.AND_label(n).space.y = dimen.y + temp;
 /*      */       }
 /*      */       
 /*      */ 
@@ -469,7 +469,7 @@
 /*  469 */           Macro.UNSUPPORTED("dy64x78vvm5nufbuxsn0bi8ng");
 /*  470 */           Macro.UNSUPPORTED("en9fjm2thtauyxn9t7v4j2xgl");
 /*  471 */           Macro.UNSUPPORTED("6t98dcecgbvbvtpycwiq2ynnj");
-/*  472 */           Macro.UNSUPPORTED("6g6b8zsanvqyc953c4jh1j7iy");
+/*  472 */           Macro.UNSUPPORTED("6g6b8zsanvqyc953c4jh1j7it");
 /*  473 */           Macro.UNSUPPORTED("b5z0hw4dacenv33xsaex70g8d");
 /*      */ 
 /*      */ 
@@ -486,7 +486,7 @@
 /*      */ 
 /*      */ 
 /*  488 */         vertices = CArray.ALLOC__(outp * sides, ZType.ST_pointf);
-/*  489 */         if (Macro.ND_shape(n).polygon.vertices != null) {
+/*  489 */         if (Macro.AND_shape(n).polygon.vertices != null) {
 /*  490 */           Macro.UNSUPPORTED("3ghle84ieryaenfnlbzrfv7bw");
 /*  491 */           Macro.UNSUPPORTED("227lpcg9dt83m2bm8yshb4djf");
 /*  492 */           Macro.UNSUPPORTED("cc3jvnwvbhjhro4adeet363yd");
@@ -581,7 +581,7 @@
 /*  581 */           Macro.UNSUPPORTED("bgx8ee996r89memnp0ea0b80m");
 /*  582 */           Macro.UNSUPPORTED("5p9jzpcd51evtwqyugnwk50vf");
 /*  583 */           Macro.UNSUPPORTED("dwskcoivmu9pc5kth75x0ersl");
-/*  584 */           Macro.UNSUPPORTED("cmm5tvlcafe2aso9bkk3kl7of");
+/*  584 */           Macro.UNSUPPORTED("cmm5tvlcafe2also9bkk3kl7of");
 /*  585 */           Macro.UNSUPPORTED("bebwurfm1a1h1bywf9kf5ueug");
 /*  586 */           Macro.UNSUPPORTED("1mtgr15b978d0tdunbpj2pkdp");
 /*  587 */           Macro.UNSUPPORTED("28mxt6c4230xruf63s6u415y9");
@@ -614,13 +614,13 @@
 /*      */ 
 /*  615 */       if ((poly.option & 0x800) != 0)
 /*      */       {
-/*  617 */         Macro.UNSUPPORTED("7kk8oru3b3copylmq3gssx6qx");
+/*  617 */         Macro.UNSUPPORTED("7kk8our3b3copylmq3gssx6qx");
 /*  618 */         Macro.UNSUPPORTED("8oouzms2x039fhfcfxm7yc4su");
 /*      */       } else {
-/*  620 */         Macro.ND_width(n, Macro.PS2INCH(bb.x));
-/*  621 */         Macro.ND_height(n, Macro.PS2INCH(bb.y));
+/*  620 */         Macro.AND_width(n, Macro.PS2INCH(bb.x));
+/*  621 */         Macro.AND_height(n, Macro.PS2INCH(bb.y));
 /*      */       }
-/*  623 */       Macro.ND_shape_info(n, poly);
+/*  623 */       Macro.AND_shape_info(n, poly);
 /*      */     } finally {
 /*  625 */       SmetanaDebug.LEAVING("a11xv6duihbr3d6gkgo2ye2j5", "poly_init");
 /*      */     }
@@ -682,7 +682,7 @@
 /*      */       double n_width;
 /*  683 */       if (n != zz.lastn) {
 /*  684 */         n_width = 0.0D;double n_height = 0.0D;
-/*  685 */         zz.poly = (ST_polygon_t)Macro.ND_shape_info(n);
+/*  685 */         zz.poly = (ST_polygon_t)Macro.AND_shape_info(n);
 /*  686 */         zz.vertex = zz.poly.vertices;
 /*  687 */         zz.sides = zz.poly.sides;
 /*  688 */         if ((zz.poly.option & 0x800) != 0) {
@@ -700,14 +700,14 @@
 /*      */         }
 /*      */         else {
 /*  702 */           if (Macro.GD_flip(obj__c.agraphof(n))) {
-/*  703 */             zz.ysize = Macro.ND_lw(n) + Macro.ND_rw(n);
-/*  704 */             zz.xsize = Macro.ND_ht(n);
+/*  703 */             zz.ysize = Macro.AND_lw(n) + Macro.AND_rw(n);
+/*  704 */             zz.xsize = Macro.AND_ht(n);
 /*      */           } else {
-/*  706 */             zz.xsize = Macro.ND_lw(n) + Macro.ND_rw(n);
-/*  707 */             zz.ysize = Macro.ND_ht(n);
+/*  706 */             zz.xsize = Macro.AND_lw(n) + Macro.AND_rw(n);
+/*  707 */             zz.ysize = Macro.AND_ht(n);
 /*      */           }
-/*  709 */           n_width = Macro.ROUND(Macro.ND_width(n) * 72.0D);
-/*  710 */           n_height = Macro.ROUND(Macro.ND_height(n) * 72.0D);
+/*  709 */           n_width = Macro.ROUND(Macro.AND_width(n) * 72.0D);
+/*  710 */           n_height = Macro.ROUND(Macro.AND_height(n) * 72.0D);
 /*      */         }
 /*      */         
 /*  713 */         if (zz.xsize == 0.0D)
@@ -781,7 +781,7 @@
 /*  781 */     SmetanaDebug.ENTERING("5mmuhvq40xadw0g9mzlauyztq", "poly_path");
 /*      */     try {
 /*  783 */       side = 0;
-/*  784 */       if (Macro.ND_label(n).html && Macro.ND_has_port(n)) {
+/*  784 */       if (Macro.AND_label(n).html && Macro.AND_has_port(n)) {
 /*  785 */         Macro.UNSUPPORTED("67g7bthntnw8syb6zd03ueg84");
 /*      */       }
 /*  787 */       return side;
@@ -807,7 +807,7 @@
 /*  807 */       Macro.UNSUPPORTED("asl0z4i3qt99vpfphpr7hpk5");
 /*  808 */       Macro.UNSUPPORTED("ai3czg6gaaxspsmndknpyvuiu");
 /*  809 */       Macro.UNSUPPORTED("5uxczmgv9jelovrky9lyqmqxn");
-/*  810 */       Macro.UNSUPPORTED("aj9jgzaslnfuc2iy41yo6577i");
+/*  810 */       Macro.UNSUPPORTED("aj9jgzaslnfuc2it41yo6577i");
 /*  811 */       Macro.UNSUPPORTED("ai3czg6gaaxspsmndknpyvuiu");
 /*  812 */       Macro.UNSUPPORTED("1drv0xz8hp34qnf72b4jpprg2");
 /*  813 */       Macro.UNSUPPORTED("ai3czg6gaaxspsmndknpyvuiu");
@@ -822,7 +822,7 @@
 /*  822 */       Macro.UNSUPPORTED("6ob9sb98jfamphtvv99f9nny7");
 /*  823 */       Macro.UNSUPPORTED("ai3czg6gaaxspsmndknpyvuiu");
 /*  824 */       Macro.UNSUPPORTED("3vvicpwbia6xzcxsn2qnkbzq8");
-/*  825 */       Macro.UNSUPPORTED("aj9jgzaslnfuc2iy41yo6577i");
+/*  825 */       Macro.UNSUPPORTED("aj9jgzaslnfuc2it41yo6577i");
 /*  826 */       Macro.UNSUPPORTED("ai3czg6gaaxspsmndknpyvuiu");
 /*  827 */       Macro.UNSUPPORTED("ad90yo3mu0ffjurb9egult4pi");
 /*  828 */       Macro.UNSUPPORTED("asl0z4i3qt99vpfphpr7hpk5");
@@ -841,7 +841,7 @@
 /*  841 */       Macro.UNSUPPORTED("asl0z4i3qt99vpfphpr7hpk5");
 /*  842 */       Macro.UNSUPPORTED("ai3czg6gaaxspsmndknpyvuiu");
 /*  843 */       Macro.UNSUPPORTED("ad90yo3mu0ffjurb9egult4pi");
-/*  844 */       Macro.UNSUPPORTED("aj9jgzaslnfuc2iy41yo6577i");
+/*  844 */       Macro.UNSUPPORTED("aj9jgzaslnfuc2it41yo6577i");
 /*  845 */       Macro.UNSUPPORTED("ai3czg6gaaxspsmndknpyvuiu");
 /*  846 */       Macro.UNSUPPORTED("flupwh3kosf3fkhkxllllt1");
 /*  847 */       Macro.UNSUPPORTED("6aw91xzjmqvmtdvt1di23af8y");
@@ -953,9 +953,9 @@
 /*  953 */         Macro.UNSUPPORTED("7luuqd8n7bpffoa8v27jp7tn3");
 /*  954 */         Macro.UNSUPPORTED("922vazdrkwhoxxy4yw5axu6i7");
 /*      */       } else {
-/*  956 */         b.UR.y = Macro.ND_ht(n) / 2.0D;
+/*  956 */         b.UR.y = Macro.AND_ht(n) / 2.0D;
 /*  957 */         b.LL.y = -b.UR.y;
-/*  958 */         b.UR.x = Macro.ND_lw(n);
+/*  958 */         b.UR.x = Macro.AND_lw(n);
 /*  959 */         b.LL.x = -b.UR.x;
 /*      */       }
 /*  961 */       defined = false;
@@ -1150,7 +1150,7 @@
 /* 1150 */       if (compass == null)
 /* 1151 */         compass = new CString("_");
 /* 1152 */       sides[0] = 15;
-/* 1153 */       ST_inside_t ictxtp; ST_boxf bp; if (Macro.ND_label(n).html && (bp = htmltable__c.html_port(n, portname, sides)) != null) {
+/* 1153 */       ST_inside_t ictxtp; ST_boxf bp; if (Macro.AND_label(n).html && (bp = htmltable__c.html_port(n, portname, sides)) != null) {
 /* 1154 */         Macro.UNSUPPORTED("dl6n43wu7irkeiaxb6wed3388");
 /* 1155 */         Macro.UNSUPPORTED("cw5grwj6gbj94jcztvnp2ooyj");
 /* 1156 */         Macro.UNSUPPORTED("en2xpqtprfng8gmc77dzq7klv");
@@ -1180,7 +1180,7 @@
 /*      */ 
 /*      */   private static boolean IS_BOX(Globals zz, ST_Agnode_s n)
 /*      */   {
-/* 1183 */     return Macro.ND_shape(n).polygon == zz.p_box;
+/* 1183 */     return Macro.AND_shape(n).polygon == zz.p_box;
 /*      */   }
 /*      */   
 /*      */ 
@@ -1218,7 +1218,7 @@
 /* 1218 */     Macro.UNSUPPORTED("e8a863hfpkzgw2w09pemrprir");
 /* 1219 */     Macro.UNSUPPORTED("44eync2gzhkt36aljp0pdxlws");
 /* 1220 */     Macro.UNSUPPORTED("bt0ymhl3qyi2wkx6awwozl8pm");
-/* 1221 */     Macro.UNSUPPORTED("axi5xtmkixooa3vai8uysr8y1");
+/* 1221 */     Macro.UNSUPPORTED("axi5xtmkixooa3via8uysr8y1");
 /* 1222 */     Macro.UNSUPPORTED("3yzb2exxpwntmjik61bia8qin");
 /* 1223 */     Macro.UNSUPPORTED("6czsf4ed6c2x6qn10dz9vvpc2");
 /* 1224 */     Macro.UNSUPPORTED("4fxnv89xcha2g2jkqjznbfhtl");
@@ -1292,7 +1292,7 @@
 /* 1292 */     Macro.UNSUPPORTED("7v8vwyf8talmtwk6o9fv16cu7");
 /* 1293 */     Macro.UNSUPPORTED("dvgyxsnyeqqnyzq696k3vskib");
 /* 1294 */     Macro.UNSUPPORTED("dzz4jp9gamcvlyn9e3vzfb9m5");
-/* 1295 */     Macro.UNSUPPORTED("867znru6ot29tjqobp8dlbw6z");
+/* 1295 */     Macro.UNSUPPORTED("867znru6to29tjqobp8dlbw6z");
 /* 1296 */     Macro.UNSUPPORTED("42p7y58vqzgaceefog269961h");
 /* 1297 */     Macro.UNSUPPORTED("15ha366z6aj0vmrwy4kws0mqd");
 /* 1298 */     Macro.UNSUPPORTED("9h0jwzscq5xyee6v8y9a84z5z");
@@ -1315,7 +1315,7 @@
 /* 1315 */     Macro.UNSUPPORTED("chb5tdwhi8a8xmy8ftheo6824");
 /* 1316 */     Macro.UNSUPPORTED("efwhq15vj62j7hdj6evx064cg");
 /* 1317 */     Macro.UNSUPPORTED("6t98dcecgbvbvtpycwiq2ynnj");
-/* 1318 */     Macro.UNSUPPORTED("aci5r7yyn8mzrv3exe7znstcn");
+/* 1318 */     Macro.UNSUPPORTED("acpi5r7yyn8mzrv3exe7znstcn");
 /* 1319 */     Macro.UNSUPPORTED("dgwuupvm0kjmgthk4ugim8woz");
 /* 1320 */     Macro.UNSUPPORTED("3x4ndf7fx76diabv9nfllk0b5");
 /* 1321 */     Macro.UNSUPPORTED("4195dkkxygfup9x2hevx5t0kt");
@@ -1445,7 +1445,7 @@
 /* 1445 */       CString tmpport = null;
 /*      */       
 /*      */ 
-/* 1448 */       ST_textlabel_t lbl = Macro.ND_label(n);
+/* 1448 */       ST_textlabel_t lbl = Macro.AND_label(n);
 /*      */       
 /* 1450 */       ST_field_t fp = null;
 /* 1451 */       CString sp; int maxf; int cnt; for (maxf = 1, cnt = 0, sp = zz.reclblp; sp.charAt(0) != 0; sp = sp.plus_(1)) {
@@ -1790,7 +1790,7 @@
 /* 1790 */       int sides = 15;
 /*      */       
 /* 1792 */       boolean flip = Macro.GD_realflip(obj__c.agraphof(n)) == 0;
-/* 1793 */       zz.reclblp = Macro.ND_label(n).text;
+/* 1793 */       zz.reclblp = Macro.AND_label(n).text;
 /* 1794 */       int len = zz.reclblp.length();
 /*      */       
 /*      */ 
@@ -1804,8 +1804,8 @@
 /*      */       }
 /* 1805 */       Memory.free(textbuf);
 /* 1806 */       size_reclbl(zz, n, info);
-/* 1807 */       sz.x = Macro.POINTS(Macro.ND_width(n));
-/* 1808 */       sz.y = Macro.POINTS(Macro.ND_height(n));
+/* 1807 */       sz.x = Macro.POINTS(Macro.AND_width(n));
+/* 1808 */       sz.y = Macro.POINTS(Macro.AND_height(n));
 /* 1809 */       if (utils__c.mapbool(utils__c.late_string(n, zz.N_fixed, new CString("false")))) {
 /* 1810 */         Macro.UNSUPPORTED("8iu51xbtntpdf5sc00g91djym");
 /* 1811 */         Macro.UNSUPPORTED("4vs5u30jzsrn6fpjd327xjf7r");
@@ -1819,10 +1819,10 @@
 /* 1819 */       resize_reclbl(info, sz, utils__c.mapbool(utils__c.late_string(n, zz.N_nojustify, new CString("false"))));
 /* 1820 */       ul.___(ST_pointf.pointfof(-sz.x / 2.0D, sz.y / 2.0D));
 /* 1821 */       pos_reclbl(info, ul, sides);
-/* 1822 */       Macro.ND_width(n, Macro.PS2INCH(info.size.x));
-/* 1823 */       Macro.ND_height(n, Macro.PS2INCH(info.size.y + 1.0D));
+/* 1822 */       Macro.AND_width(n, Macro.PS2INCH(info.size.x));
+/* 1823 */       Macro.AND_height(n, Macro.PS2INCH(info.size.y + 1.0D));
 /*      */       
-/* 1825 */       Macro.ND_shape_info(n, info);
+/* 1825 */       Macro.AND_shape_info(n, info);
 /*      */     } finally {
 /* 1827 */       SmetanaDebug.LEAVING("h2lcuthzwljbcjwdeidw1jiv", "poly_init");
 /*      */     }
@@ -1890,7 +1890,7 @@
 /* 1890 */     int sides = 15;
 /* 1891 */     if (compass == null)
 /* 1892 */       compass = new CString("_");
-/* 1893 */     ST_field_t f = (ST_field_t)Macro.ND_shape_info(n);
+/* 1893 */     ST_field_t f = (ST_field_t)Macro.AND_shape_info(n);
 /* 1894 */     ST_field_t subf; if ((subf = map_rec_port(f, portname)) != null) {
 /* 1895 */       if (compassPort(n, subf.b, rv, compass, subf.sides, null)) {
 /* 1896 */         Macro.UNSUPPORTED("cw5grwj6gbj94jcztvnp2ooyj");
@@ -1927,7 +1927,7 @@
 /*      */       
 /* 1928 */       p.___(geom__c.ccwrotatepf(p, 90 * Macro.GD_rankdir(obj__c.agraphof(n))));
 /* 1929 */       if (bp == null) {
-/* 1930 */         ST_field_t fld0 = (ST_field_t)Macro.ND_shape_info(n);
+/* 1930 */         ST_field_t fld0 = (ST_field_t)Macro.AND_shape_info(n);
 /* 1931 */         bbox.___(fld0.b);
 /*      */       } else {
 /* 1933 */         bbox.___(bp); }
@@ -1954,7 +1954,7 @@
 /* 1954 */     if (!prt.defined)
 /* 1955 */       return 0;
 /* 1956 */     p.___(prt.p);
-/* 1957 */     ST_field_t info = (ST_field_t)Macro.ND_shape_info(n);
+/* 1957 */     ST_field_t info = (ST_field_t)Macro.AND_shape_info(n);
 /* 1958 */     for (int i = 0; i < info.n_flds; i++) {
 /* 1959 */       if (!Macro.GD_flip(obj__c.agraphof(n))) {
 /* 1960 */         ls = (int)((ST_field_t)info.fld.get_(i)).b.LL.x;
@@ -1968,11 +1968,11 @@
 /* 1968 */       if (Macro.GD_flip(obj__c.agraphof(n))) {
 /* 1969 */         Macro.UNSUPPORTED("8p9z8b0nypgkzi1b3k7sx0fyz");
 /*      */       } else {
-/* 1971 */         rv.LL.x = Macro.ND_coord(n).x + ls;
-/* 1972 */         rv.LL.y = Macro.ND_coord(n).y - Macro.ND_ht(n) / 2.0D;
-/* 1973 */         rv.UR.x = Macro.ND_coord(n).x + rs;
+/* 1971 */         rv.LL.x = Macro.AND_coord(n).x + ls;
+/* 1972 */         rv.LL.y = Macro.AND_coord(n).y - Macro.AND_ht(n) / 2.0D;
+/* 1973 */         rv.UR.x = Macro.AND_coord(n).x + rs;
 /*      */       }
-/* 1975 */       rv.UR.y = Macro.ND_coord(n).y + Macro.ND_ht(n) / 2.0D;
+/* 1975 */       rv.UR.y = Macro.AND_coord(n).y + Macro.AND_ht(n) / 2.0D;
 /* 1976 */       kptr[0] = 1;
 /* 1977 */       break;
 /*      */     }
@@ -2014,7 +2014,7 @@
 /* 2014 */     Macro.UNSUPPORTED("6yjfupcwvts03fbmr493ea2ja");
 /* 2015 */     Macro.UNSUPPORTED("5qxdje5wxqq1c9786htlyohkx");
 /* 2016 */     Macro.UNSUPPORTED("92hvfvrwzs8dy1vdgk97mu8rm");
-/* 2017 */     Macro.UNSUPPORTED("a0xb2wsthoxt62j0aks4aht13");
+/* 2017 */     Macro.UNSUPPORTED("a0xb2wsthoxt62j0ask4aht13");
 /* 2018 */     Macro.UNSUPPORTED("64vz86w7mg90duu37ik1bcm8m");
 /* 2019 */     Macro.UNSUPPORTED("4xv0cmpfa4sol0pqmfumr0rnm");
 /* 2020 */     Macro.UNSUPPORTED("dily1m3rwbo5mniq7aneh3qhu");
@@ -2131,7 +2131,7 @@
 /*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="epsf_inside", key="9n2zfdpzi6zgvnhcb3kz7nw1u", definition="static boolean epsf_inside(inside_t * inside_context, pointf p)")
 /*      */   public static Object epsf_inside(Object... arg)
 /*      */   {
-/* 2134 */     Macro.UNSUPPORTED("cq9kgtgzrb9sazy7y2fpt859x");
+/* 2134 */     Macro.UNSUPPORTED("cq9kgtgzrb9sazy7y2ftp859x");
 /* 2135 */     Macro.UNSUPPORTED("erg9i1970wdri39osu8hx2a6e");
 /* 2136 */     Macro.UNSUPPORTED("7lh87lvufqsd73q9difg0omei");
 /* 2137 */     Macro.UNSUPPORTED("9ikeydfq03qx7m09iencqsk36");
@@ -2196,12 +2196,12 @@
 /* 2196 */     Macro.UNSUPPORTED("erg9i1970wdri39osu8hx2a6e");
 /* 2197 */     Macro.UNSUPPORTED("3zlnn621zia9mss7z1ay24myc");
 /* 2198 */     Macro.UNSUPPORTED("5u7lf36burm76yokjuxgcd4tn");
-/* 2199 */     Macro.UNSUPPORTED("9ya7hg30u0pmebfvhy4ba5kfp");
+/* 2199 */     Macro.UNSUPPORTED("9ya7hg30u0pmebfvhy4by5kfp");
 /* 2200 */     Macro.UNSUPPORTED("y09869s34d94qtdcsuuz4mjy");
 /* 2201 */     Macro.UNSUPPORTED("1qn336ppz1ubj5d9vmolmwhfa");
 /* 2202 */     Macro.UNSUPPORTED("99spig8n4dowh045zi2u054cf");
 /* 2203 */     Macro.UNSUPPORTED("3h9e5okkzg8gzypvpzok96ikc");
-/* 2204 */     Macro.UNSUPPORTED("19ba70prhdthsxh7ukqn07tw9");
+/* 2204 */     Macro.UNSUPPORTED("19by70prhdthsxh7ukqn07tw9");
 /* 2205 */     Macro.UNSUPPORTED("ban3s2canux7qwxava1n2e4v2");
 /* 2206 */     Macro.UNSUPPORTED("c24nfmv9i7o5eoqaymbibp7m7");
 /*      */     
@@ -2223,7 +2223,7 @@
 /* 2223 */     Macro.UNSUPPORTED("daheewjo1ertfvnwnfdg2fcxr");
 /* 2224 */     Macro.UNSUPPORTED("6ir3jujwrh6dpiqug6p2v3ttj");
 /* 2225 */     Macro.UNSUPPORTED("3dcxsdbybxzvk7jsod9d2ubvm");
-/* 2226 */     Macro.UNSUPPORTED("o422759cptua4yuo9guk3367");
+/* 2226 */     Macro.UNSUPPORTED("o422759cptua4you9guk3367");
 /* 2227 */     Macro.UNSUPPORTED("4czf228z5owjh6ew3vh3ugvdv");
 /* 2228 */     Macro.UNSUPPORTED("97gq966jokpf07dc3wv6hgk45");
 /* 2229 */     Macro.UNSUPPORTED("dvgyxsnyeqqnyzq696k3vskib");
@@ -2233,7 +2233,7 @@
 /* 2233 */     Macro.UNSUPPORTED("a8zuo1xnr4jnza3araqzl5q43");
 /* 2234 */     Macro.UNSUPPORTED("5j3gmpqii05zcp2ncicxs2si");
 /* 2235 */     Macro.UNSUPPORTED("214oro38cddbf9fk06d0m6duf");
-/* 2236 */     Macro.UNSUPPORTED("4rot7vm0whb5r2oo8ne4pn1j4");
+/* 2236 */     Macro.UNSUPPORTED("4rot7vm0whb5r2oo8ne4on1j4");
 /* 2237 */     Macro.UNSUPPORTED("aa1u9d9ckbucmn1eyvyyijwkf");
 /* 2238 */     Macro.UNSUPPORTED("5zsqst1ddsdoai9yogpi1mnfl");
 /* 2239 */     Macro.UNSUPPORTED("dy5yk8kfoxfn3h4wby7vyciqz");
@@ -2288,7 +2288,7 @@
 /* 2288 */     Macro.UNSUPPORTED("bs8ipj0v83bijiw6u6kpz14s1");
 /* 2289 */     Macro.UNSUPPORTED("cmwbnui44mpmy3kjz18pxp1cd");
 /* 2290 */     Macro.UNSUPPORTED("4oudcajkxkcstsh2bvjaheadi");
-/* 2291 */     Macro.UNSUPPORTED("b4anc6i6r4xczgkhjcjudktb");
+/* 2291 */     Macro.UNSUPPORTED("b4and6i6r4xczgkhjcjudktb");
 /* 2292 */     Macro.UNSUPPORTED("b291xvw4hm8vcmlaoxcl8dj94");
 /* 2293 */     Macro.UNSUPPORTED("flupwh3kosf3fkhkxllllt1");
 /* 2294 */     Macro.UNSUPPORTED("3mpbcjrh8r4u6u2twxvyqx9v9");
@@ -2350,8 +2350,8 @@
 /* 2350 */     ST_boxf b = new ST_boxf();
 /* 2351 */     int rkd = Macro.GD_rankdir(obj__c.agraphof(n).root);
 /* 2352 */     ST_point p = new ST_point();
-/* 2353 */     ST_point pt = cvtPt(Macro.ND_coord(n), rkd);
-/* 2354 */     ST_point opt = cvtPt(Macro.ND_coord(other), rkd);
+/* 2353 */     ST_point pt = cvtPt(Macro.AND_coord(n), rkd);
+/* 2354 */     ST_point opt = cvtPt(Macro.AND_coord(other), rkd);
 /* 2355 */     int sides = oldport.side;
 /* 2356 */     CString rv = null;
 /* 2357 */     int mind = 0;

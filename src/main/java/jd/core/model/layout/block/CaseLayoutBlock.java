@@ -40,13 +40,13 @@ public class CaseLayoutBlock extends LayoutBlock
 
     protected CaseLayoutBlock(
         byte tag, ClassFile classFile, Method method, FastSwitch fs,
-        int firstIndex, int lastIndex, int preferedLineCount)
+        int firstIndex, int lastIndex, int preferredLineCount)
     {
         super(
             tag,
             Instruction.UNKNOWN_LINE_NUMBER,
             Instruction.UNKNOWN_LINE_NUMBER,
-            0, preferedLineCount, preferedLineCount);
+            0, preferredLineCount, preferredLineCount);
 
         this.classFile = classFile;
         this.method = method;

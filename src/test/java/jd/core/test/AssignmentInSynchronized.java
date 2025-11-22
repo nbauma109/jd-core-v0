@@ -13,10 +13,10 @@ public class AssignmentInSynchronized {
         }
     }
 
-    void assignInSynchronized(ObjectInputStream ois) throws Exception {
+    void assignInSynchronized(ObjectInputStream is) throws Exception {
         Object o = null;
         // Object o; // TODO FIXME
-        synchronized (o = ois.readObject()) {
+        synchronized (o = is.readObject()) {
             System.out.println(o);
         }
     }

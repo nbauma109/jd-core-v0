@@ -1,6 +1,6 @@
 /*    */ package jd.core.test;
 /*    */ 
-/*    */ public class OuterAcessor
+/*    */ public class OuterAccessor
 /*    */ {
 /*    */   void init(int i) {}
 /*    */   
@@ -12,7 +12,7 @@
 /*    */         @Override
 /*    */         public void run() {
 /* 14 */           int i = 0;
-/* 15 */           OuterAcessor.this.init(i++);
+/* 15 */           OuterAccessor.this.init(i++);
 /*    */         }
 /*    */       }.start();
 /*    */     }

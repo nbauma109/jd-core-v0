@@ -506,8 +506,8 @@
 /*  506 */     ensureExistingParameterAnnotationsUnpacked();
 /*  507 */     if (!this.hasParameterAnnotations)
 /*      */     {
-/*  509 */       List<AnnotationEntryGen>[] parmList = new List[this.argTypes.length];
-/*  510 */       this.paramAnnotations = parmList;
+/*  509 */       List<AnnotationEntryGen>[] paramList = new List[this.argTypes.length];
+/*  510 */       this.paramAnnotations = paramList;
 /*  511 */       this.hasParameterAnnotations = true;
 /*      */     }
 /*  513 */     List<AnnotationEntryGen> existingAnnotations = this.paramAnnotations[parameterIndex];
@@ -594,8 +594,8 @@
 /*      */         continue;
 /*  595 */       if (!this.hasParameterAnnotations)
 /*      */       {
-/*  597 */         List<AnnotationEntryGen>[] parmList = new List[this.argTypes.length];
-/*  598 */         this.paramAnnotations = parmList;
+/*  597 */         List<AnnotationEntryGen>[] paramList = new List[this.argTypes.length];
+/*  598 */         this.paramAnnotations = paramList;
 /*  599 */         Arrays.setAll(this.paramAnnotations,  i -> new ArrayList<>());
 /*      */       }
 /*  601 */       this.hasParameterAnnotations = true;

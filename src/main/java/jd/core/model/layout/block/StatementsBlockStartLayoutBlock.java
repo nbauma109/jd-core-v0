@@ -23,16 +23,16 @@ public class StatementsBlockStartLayoutBlock extends BlockLayoutBlock
         this(2);
     }
 
-    public StatementsBlockStartLayoutBlock(int preferedLineCount)
+    public StatementsBlockStartLayoutBlock(int preferredLineCount)
     {
         super(
             LayoutBlockConstants.STATEMENTS_BLOCK_START, 0,
-            LayoutBlockConstants.UNLIMITED_LINE_COUNT, preferedLineCount);
+            LayoutBlockConstants.UNLIMITED_LINE_COUNT, preferredLineCount);
     }
 
-    public void transformToStartEndBlock(int preferedLineCount)
+    public void transformToStartEndBlock(int preferredLineCount)
     {
         this.setTag(LayoutBlockConstants.STATEMENTS_BLOCK_START_END);
-        this.setPreferedLineCount(this.setLineCount(preferedLineCount));
+        this.setPreferredLineCount(this.setLineCount(preferredLineCount));
     }
 }

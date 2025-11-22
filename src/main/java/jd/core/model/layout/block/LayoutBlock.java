@@ -34,7 +34,7 @@ public class LayoutBlock {
 
     private final int minimalLineCount;
     private final int maximalLineCount;
-    private int preferedLineCount;
+    private int preferredLineCount;
 
     private int lineCount;
 
@@ -49,7 +49,7 @@ public class LayoutBlock {
         this.lastLineNumber = lastLineNumber;
         this.minimalLineCount = lineCount;
         this.maximalLineCount = lineCount;
-        this.setPreferedLineCount(lineCount);
+        this.setPreferredLineCount(lineCount);
         this.setLineCount(lineCount);
         this.setIndex(0);
         this.setSection(null);
@@ -57,15 +57,15 @@ public class LayoutBlock {
 
     public LayoutBlock(
         byte tag, int firstLineNumber, int lastLineNumber,
-        int minimalLineCount, int maximalLineCount, int preferedLineCount)
+        int minimalLineCount, int maximalLineCount, int preferredLineCount)
     {
         this.setTag(tag);
         this.firstLineNumber = firstLineNumber;
         this.lastLineNumber = lastLineNumber;
         this.minimalLineCount = minimalLineCount;
         this.maximalLineCount = maximalLineCount;
-        this.setPreferedLineCount(preferedLineCount);
-        this.setLineCount(preferedLineCount);
+        this.setPreferredLineCount(preferredLineCount);
+        this.setLineCount(preferredLineCount);
         this.setIndex(0);
         this.setSection(null);
     }
@@ -127,11 +127,11 @@ public class LayoutBlock {
         this.section = section;
     }
 
-    public int getPreferedLineCount() {
-        return preferedLineCount;
+    public int getPreferredLineCount() {
+        return preferredLineCount;
     }
 
-    public void setPreferedLineCount(int preferedLineCount) {
-        this.preferedLineCount = preferedLineCount;
+    public void setPreferredLineCount(int preferredLineCount) {
+        this.preferredLineCount = preferredLineCount;
     }
 }

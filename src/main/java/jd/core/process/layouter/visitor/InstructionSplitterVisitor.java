@@ -55,27 +55,27 @@ public class InstructionSplitterVisitor extends BaseInstructionSplitterVisitor
 
     public void end()
     {
-        // S'il reste un fragment d'instruction a traiter...
+        // S'il reset un fragment d'instruction a traiter...
         if (this.offset1 == 0 || this.offset1 != this.instruction.getOffset())
         {
             // Add last part of instruction
             int lastLineNumber = MaxLineNumberVisitor.visit(instruction);
-            int preferedLineNumber;
+            int preferredLineNumber;
 
             if (firstLineNumber != Instruction.UNKNOWN_LINE_NUMBER &&
                 lastLineNumber != Instruction.UNKNOWN_LINE_NUMBER)
             {
-                preferedLineNumber = lastLineNumber-firstLineNumber;
+                preferredLineNumber = lastLineNumber-firstLineNumber;
             }
             else
             {
-                preferedLineNumber = LayoutBlockConstants.UNLIMITED_LINE_COUNT;
+                preferredLineNumber = LayoutBlockConstants.UNLIMITED_LINE_COUNT;
             }
 
             layoutBlockList.add(new InstructionLayoutBlock(
                 LayoutBlockConstants.INSTRUCTION,
                 this.firstLineNumber, lastLineNumber,
-                preferedLineNumber, preferedLineNumber, preferedLineNumber,
+                preferredLineNumber, preferredLineNumber, preferredLineNumber,
                 this.classFile, this.method, this.instruction,
                 this.offset1, this.instruction.getLastOffset()));
         }
@@ -87,22 +87,22 @@ public class InstructionSplitterVisitor extends BaseInstructionSplitterVisitor
     {
         // Add a new part of instruction
         int lastLineNumber = MaxLineNumberVisitor.visit(in);
-        int preferedLineNumber;
+        int preferredLineNumber;
 
         if (this.firstLineNumber != Instruction.UNKNOWN_LINE_NUMBER &&
             lastLineNumber != Instruction.UNKNOWN_LINE_NUMBER)
         {
-            preferedLineNumber = lastLineNumber-this.firstLineNumber;
+            preferredLineNumber = lastLineNumber-this.firstLineNumber;
         }
         else
         {
-            preferedLineNumber = LayoutBlockConstants.UNLIMITED_LINE_COUNT;
+            preferredLineNumber = LayoutBlockConstants.UNLIMITED_LINE_COUNT;
         }
 
         this.layoutBlockList.add(new InstructionLayoutBlock(
             LayoutBlockConstants.INSTRUCTION,
             this.firstLineNumber, lastLineNumber,
-            preferedLineNumber, preferedLineNumber, preferedLineNumber,
+            preferredLineNumber, preferredLineNumber, preferredLineNumber,
             this.classFile, this.method, this.instruction,
             this.offset1, in.getOffset()));
 
@@ -119,22 +119,22 @@ public class InstructionSplitterVisitor extends BaseInstructionSplitterVisitor
     {
         // Add a new part of instruction
         int lastLineNumber = MaxLineNumberVisitor.visit(in);
-        int preferedLineNumber;
+        int preferredLineNumber;
         
         if (this.firstLineNumber != Instruction.UNKNOWN_LINE_NUMBER &&
                 lastLineNumber != Instruction.UNKNOWN_LINE_NUMBER)
         {
-            preferedLineNumber = lastLineNumber-this.firstLineNumber;
+            preferredLineNumber = lastLineNumber-this.firstLineNumber;
         }
         else
         {
-            preferedLineNumber = LayoutBlockConstants.UNLIMITED_LINE_COUNT;
+            preferredLineNumber = LayoutBlockConstants.UNLIMITED_LINE_COUNT;
         }
         
         this.layoutBlockList.add(new InstructionLayoutBlock(
                 LayoutBlockConstants.INSTRUCTION,
                 this.firstLineNumber, lastLineNumber,
-                preferedLineNumber, preferedLineNumber, preferedLineNumber,
+                preferredLineNumber, preferredLineNumber, preferredLineNumber,
                 this.classFile, this.method, this.instruction,
                 this.offset1, in.getOffset()));
         

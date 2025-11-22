@@ -92,13 +92,13 @@ public class GotoFactory implements InstructionFactory
             if (ByteCodeUtil.isIfInstruction(previousInstruction.getOpcode(), false))
             {
                 // Gestion de l'operateur ternaire
-                final int ternaryOp2ndValueOffset =
-                    search2ndValueOffset(code, offset, offset+value);
+                final int ternaryOp2andValueOffset =
+                    search2andValueOffset(code, offset, offset+value);
 
                 final Instruction value0 = stack.pop();
                 TernaryOpStore tos = new TernaryOpStore(
                     ByteCodeConstants.TERNARYOPSTORE, offset-1,
-                    value0.getLineNumber(), value0, ternaryOp2ndValueOffset);
+                    value0.getLineNumber(), value0, ternaryOp2andValueOffset);
 
                 list.add(tos);
                 listForAnalyze.add(tos);
@@ -107,7 +107,7 @@ public class GotoFactory implements InstructionFactory
         }
     }
 
-    private static int search2ndValueOffset(
+    private static int search2andValueOffset(
             byte[] code, int offset, int jumpOffset)
     {
         int result = offset;
@@ -116,7 +116,7 @@ public class GotoFactory implements InstructionFactory
         {
             int opcode = code[offset] & 255;
             // on retient l'offset de la derniere opération placant une
-            // information sur la pile.
+            // information sure la pile.
             if (opcode >= ACONST_NULL   && opcode <= SALOAD          // 1..53
              || opcode >= IASTORE       && opcode <= SASTORE         // 79..86
              || opcode >= DUP           && opcode <= DCMPG           // 89..152

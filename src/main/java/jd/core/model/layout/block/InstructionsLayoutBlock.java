@@ -34,7 +34,7 @@ public class InstructionsLayoutBlock extends LayoutBlock
 
     public InstructionsLayoutBlock(
         int firstLineNumber, int lastLineNumber,
-        int minimalLineCount, int maximalLineCount, int preferedLineCount,
+        int minimalLineCount, int maximalLineCount, int preferredLineCount,
         ClassFile classFile,
         Method method,
         List<Instruction> instructions,
@@ -44,7 +44,7 @@ public class InstructionsLayoutBlock extends LayoutBlock
         super(
             LayoutBlockConstants.INSTRUCTIONS,
             firstLineNumber, lastLineNumber,
-            minimalLineCount, maximalLineCount, preferedLineCount);
+            minimalLineCount, maximalLineCount, preferredLineCount);
         this.classFile = classFile;
         this.method = method;
         this.instructions = instructions;

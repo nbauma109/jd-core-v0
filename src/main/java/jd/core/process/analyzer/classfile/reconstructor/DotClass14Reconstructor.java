@@ -48,7 +48,7 @@ import jd.core.process.analyzer.classfile.visitor.ReplaceGetStaticVisitor;
  * JDK 1.4 de SUN :
  * ...
  * ifnotnull( getstatic( current or outer class, 'class$...', Class ) )
- *  dupstore( invokestatic( current or outer class, 'class$', nom de la classe ) )
+ *  dupstore( invokestatic( current or outer class, 'class$', nom de la class ) )
  *  putstatic( current class, 'class$...', Class, dupload )
  *  ternaryOpStore( dupload )
  *  goto
@@ -216,13 +216,13 @@ public final class DotClass14Reconstructor
 
             // Ajout du nom interne
             int index = constants.addConstantUtf8(internalName);
-            // Ajout d'une nouvelle classe
+            // Ajout d'une nouvelle class
             index = constants.addConstantClass(index);
             ldc = new Ldc(
                 Const.LDC, ii.getOffset(),
                 ii.getLineNumber(), index);
 
-            // Remplacement de l'instruction GetStatic par l'instruction Ldc
+            // Replacement de l'instruction GetStatic par l'instruction Ldc
             ReplaceGetStaticVisitor visitor =
                 new ReplaceGetStaticVisitor(gs.getIndex(), ldc);
 
@@ -241,7 +241,7 @@ public final class DotClass14Reconstructor
 
             if (matchingClassFile == classFile)
             {
-                // Recherche de l'attribut statique et ajout de l'attribut SYNTHETIC
+                // Recherche de l'attribute statique et ajout de l'attribute SYNTHETIC
                 Field[] fields = classFile.getFields();
                 int j = fields.length;
 
@@ -256,7 +256,7 @@ public final class DotClass14Reconstructor
                     }
                 }
 
-                // Recherche de la méthode statique et ajout de l'attribut SYNTHETIC
+                // Recherche de la méthode statique et ajout de l'attribute SYNTHETIC
                 Method[] methods = classFile.getMethods();
                 j = methods.length;
 
@@ -273,7 +273,7 @@ public final class DotClass14Reconstructor
             }
             else
             {
-                // Recherche de l'attribut statique et ajout de l'attribut SYNTHETIC
+                // Recherche de l'attribute statique et ajout de l'attribute SYNTHETIC
                 ConstantPool matchingConstants =
                     matchingClassFile.getConstantPool();
                 Field[] fields = matchingClassFile.getFields();
@@ -291,7 +291,7 @@ public final class DotClass14Reconstructor
                     }
                 }
 
-                // Recherche de la méthode statique et ajout de l'attribut SYNTHETIC
+                // Recherche de la méthode statique et ajout de l'attribute SYNTHETIC
                 Method[] methods = matchingClassFile.getMethods();
                 j = methods.length;
 

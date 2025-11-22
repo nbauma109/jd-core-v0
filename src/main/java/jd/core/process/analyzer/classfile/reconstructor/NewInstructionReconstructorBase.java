@@ -40,7 +40,7 @@ public class NewInstructionReconstructorBase
     }
 
     /**
-     * Methode permettant l'affichage des variables locales d'une méthode d'une
+     * Method permettant l'affichage des variables locales d'une méthode d'une
      * outer class dans une inner class.
      */
     public static void initAnonymousClassConstructorParameterName(
@@ -86,13 +86,13 @@ public class NewInstructionReconstructorBase
 
                             if (lv != null)
                             {
-                                // Ajout du nom du parametre au ConstantPool
-                                // de la classe anonyme
+                                // Ajout du nom du parameter au ConstantPool
+                                // de la class anonyme
                                 String name =
                                     constants.getConstantUtf8(lv.getNameIndex());
                                 innerField.setOuterMethodLocalVariableNameIndex(innerConstants.addConstantUtf8(name));
                                 innerField.setConstantPool(innerConstants);
-                                // Ajout du flag 'final' sur la variable
+                                // Ajout du flag 'final' sure la variable
                                 // locale de la méthode contenant
                                 // l'instruction "new"
                                 lv.setFinalFlag(true);

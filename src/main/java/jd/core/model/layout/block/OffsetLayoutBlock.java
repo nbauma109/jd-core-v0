@@ -22,12 +22,12 @@ public class OffsetLayoutBlock extends LayoutBlock
 
     public OffsetLayoutBlock(
         byte tag, int firstLineNumber, int lastLineNumber,
-        int minimalLineCount, int maximalLineCount, int preferedLineCount,
+        int minimalLineCount, int maximalLineCount, int preferredLineCount,
         int offset)
     {
         super(
             tag, firstLineNumber, lastLineNumber,
-            minimalLineCount, maximalLineCount, preferedLineCount);
+            minimalLineCount, maximalLineCount, preferredLineCount);
         this.offset = offset;
     }
 

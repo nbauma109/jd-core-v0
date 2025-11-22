@@ -27,7 +27,7 @@ import jd.core.process.analyzer.classfile.visitor.ReplaceDupLoadVisitor;
 
 /*
  * Retrait des instructions DupLoads & DupStore associés à une constante ou un
- * attribut:
+ * attribute:
  * DupStore( GetField | GetStatic | BIPush | SIPush | ALoad )
  * ...
  * ???( DupLoad )

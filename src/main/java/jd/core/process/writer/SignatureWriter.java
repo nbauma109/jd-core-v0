@@ -135,7 +135,7 @@ public final class SignatureWriter
         // - var 2: index de la valeur => ne pas afficher
         // Signature:
         // - variableIndex = 1 + 1 + 1
-        // Le premier parametre des méthodes non statiques est 'this'
+        // Le premier parameter des méthodes non statiques est 'this'
         printer.print('(');
 
         int variableIndex = staticMethodFlag ? 0 : 1;
@@ -189,7 +189,7 @@ public final class SignatureWriter
                         invisibleParameterAnnotations[parameterIndex]);
                 }
 
-                // Affichage des annotations visibles
+                // Affichage des annotations visible
                 if (visibleParameterAnnotations != null) {
                     AnnotationWriter.writeParameterAnnotation(
                         loader, printer, referenceMap, classFile,
@@ -522,13 +522,13 @@ public final class SignatureWriter
     {
         if (classFile.getThisClassName().equals(internalName))
         {
-            // La classe est la classe courante ou l'une de ses classes
+            // La class est la class courante ou l'une de ses classes
             // internes
 
-            // Reduction du nom de classe courante
+            // Reduction du nom de class courante
             int index = internalName.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR);
             if (index >= 0) {
-                // Reduction des noms de classe interne
+                // Reduction des noms de class interne
                 internalName = internalName.substring(index + 1);
             } else {
                 index = internalName.lastIndexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR);
@@ -540,7 +540,7 @@ public final class SignatureWriter
         }
         else
         {
-            // La classe n'est pas la classe courante ou l'une de ses classes
+            // La class n'est pas la class courante ou l'une de ses classes
             // internes
             int index = internalName.lastIndexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR);
             int lastIndexOfDollar = internalName.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR);
@@ -551,17 +551,17 @@ public final class SignatureWriter
 
                 if (classFile.getInternalPackageName().equals(internalPackageName))
                 {
-                    // Classe appartenant au même package que la classe courante
+                    // Class appartenant au même package que la class courante
                     if (classFile.getInnerClassFile(internalName) != null)
                     {
-                        // Dans le cas d'une classe interne, on retire le nom
-                        // de la classe externe
+                        // Dans le cas d'une class interne, on retire le nom
+                        // de la class externe
                         internalName = internalName.substring(classFile.getThisClassName().length() + 1);
                     }
                     else
                     {
-                        // Le nom est celui d'une classe appartenant au package
-                        // de la classe courante
+                        // Le nom est celui d'une class appartenant au package
+                        // de la class courante
                         internalName = internalName.substring(index + 1);
                     }
                 } else if (referenceMap.contains(internalName))
@@ -575,7 +575,7 @@ public final class SignatureWriter
                 }
                 else if ("java/lang".equals(internalPackageName))
                 {
-                    // Si c'est une classe du package "java.lang"
+                    // Si c'est une class du package "java.lang"
                     String internalClassName =
                         internalName.substring(index + 1);
 
@@ -586,8 +586,8 @@ public final class SignatureWriter
                         StringConstants.CLASS_FILE_SUFFIX;
 
                     if (loader.canLoad(currentPackageNamePlusInternalClassName)) {
-                        // Une class du package local contient une classe qui
-                        // porte le même nom que la classe du package "java.lang".
+                        // Une class du package local contient une class qui
+                        // porte le même nom que la class du package "java.lang".
                         // On conserve le nom du package.
                         internalName = internalName.replace(StringConstants.INTERNAL_PACKAGE_SEPARATOR,
                             StringConstants.PACKAGE_SEPARATOR);

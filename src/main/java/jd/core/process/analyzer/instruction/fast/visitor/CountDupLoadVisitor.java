@@ -304,9 +304,9 @@ public class CountDupLoadVisitor
                 if (ft.getFinallyInstructions() != null) {
                     visit(ft.getFinallyInstructions());
                 }
-                List<FastCatch> catchs = ft.getCatches();
-                for (int i=catchs.size()-1; i>=0; --i) {
-                    visit(catchs.get(i).instructions());
+                List<FastCatch> catches = ft.getCatches();
+                for (int i=catches.size()-1; i>=0; --i) {
+                    visit(catches.get(i).instructions());
                 }
             }
             break;
@@ -374,7 +374,7 @@ public class CountDupLoadVisitor
     }
 
     /**
-     * @return le dernier parent sur lequel une substitution a été faite
+     * @return le dernier parent sure lequel une substitution a été faite
      */
     public int getCounter()
     {

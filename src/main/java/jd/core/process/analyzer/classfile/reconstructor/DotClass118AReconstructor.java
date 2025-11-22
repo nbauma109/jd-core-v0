@@ -50,7 +50,7 @@ import jd.core.process.analyzer.classfile.visitor.ReplaceDupLoadVisitor;
  * ifnotnull( getstatic( current class, 'class$...', Class ) )
  *  ternaryopstore( getstatic( class, 'class$...' ) )
  *  goto
- *  dupstore( invokestatic( current class, 'class$', nom de la classe ) )
+ *  dupstore( invokestatic( current class, 'class$', nom de la class ) )
  *  putstatic( current class, 'class$...', Class, dupload ) )
  *  ??? ( dupload )
  * ...
@@ -199,13 +199,13 @@ public final class DotClass118AReconstructor
 
             // Ajout du nom interne
             int index = constants.addConstantUtf8(internalName);
-            // Ajout d'une nouvelle classe
+            // Ajout d'une nouvelle class
             index = constants.addConstantClass(index);
             ldc = new Ldc(
                 Const.LDC, ii.getOffset(),
                 ii.getLineNumber(), index);
 
-            // Remplacement de l'instruction GetStatic par l'instruction Ldc
+            // Replacement de l'instruction GetStatic par l'instruction Ldc
             ReplaceDupLoadVisitor visitor = new ReplaceDupLoadVisitor(ds, ldc);
 
             for (int j=i+5; j<list.size(); j++)
@@ -227,7 +227,7 @@ public final class DotClass118AReconstructor
             // Retrait de l'instruction IfNotNull
             list.remove(i);
 
-            // Recherche de l'attribut statique et ajout de l'attribut SYNTHETIC
+            // Recherche de l'attribute statique et ajout de l'attribute SYNTHETIC
             for (Field field : classFile.getFields())
             {
                 if (field.getNameIndex() == cnatField.getNameIndex())
@@ -236,7 +236,7 @@ public final class DotClass118AReconstructor
                     break;
                 }
             }
-            // Recherche de la méthode statique et ajout de l'attribut SYNTHETIC
+            // Recherche de la méthode statique et ajout de l'attribute SYNTHETIC
             for (Method method : classFile.getMethods())
             {
                 if (method.getNameIndex() == cnatMethod.getNameIndex())

@@ -136,10 +136,10 @@
 /* 136 */       return null;
 /*     */     }
 /* 138 */     byte[] objectData = serialize(object);
-/* 139 */     ByteArrayInputStream bais = new ByteArrayInputStream(objectData);
+/* 139 */     ByteArrayInputStream bias = new ByteArrayInputStream(objectData);
 /*     */     
 /*     */ 
-/* 142 */     try (ClassLoaderAwareObjectInputStream in = new ClassLoaderAwareObjectInputStream(bais, object.getClass().getClassLoader()))
+/* 142 */     try (ClassLoaderAwareObjectInputStream in = new ClassLoaderAwareObjectInputStream(bias, object.getClass().getClassLoader()))
 /*     */     {
 /*     */ 
 /*     */ 

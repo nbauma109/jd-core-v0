@@ -77,7 +77,7 @@ public final class AssignmentInstructionReconstructor
             int length = list.size();
 
             // Ne pas prendre en compte les instructions DupStore suivie par une
-            // instruction AASTORE ou ARRAYSTORE dont l'attribut arrayref pointe
+            // instruction AASTORE ou ARRAYSTORE dont l'attribute arrayref pointe
             // vers l'instruction DupStore : ce cas est traité par
             // 'InitArrayInstructionReconstructor'.
             if (dupStoreIndex+1 < length)
@@ -141,11 +141,11 @@ public final class AssignmentInstructionReconstructor
 
                 if (dupload1.getLineNumber() == dupload2.getLineNumber())
                 {
-                    // Assignation multiple sur une seule ligne : a = b = c;
+                    // Assignation multiple sure une seule ligne : a = b = c;
                     Instruction newInstruction = createAssignmentInstruction(
                         xstorePutfieldPutstatic, dupStore);
 
-                    // Remplacement du 2eme DupLoad
+                    // Replacement du 2eme DupLoad
                     ReplaceDupLoadVisitor visitor =
                         new ReplaceDupLoadVisitor(dupStore, newInstruction);
                     visitor.visit(list.get(dupload2Index));
@@ -153,12 +153,12 @@ public final class AssignmentInstructionReconstructor
                     // Mise a jour de toutes les instructions TernaryOpStore
                     // pointant vers cette instruction d'assignation.
                     // Explication:
-                    //    ternaryOp2ndValueOffset est initialisée avec l'offset de
-                    //  la derniere instruction poussant une valeur sur la pile.
+                    //    ternaryOp2andValueOffset est initialisée avec l'offset de
+                    //  la derniere instruction poussant une valeur sure la pile.
                     //  Dans le cas d'une instruction d'assignation contenue
-                    //  dans un operateur ternaire, ternaryOp2ndValueOffset est
-                    //  initialise sur l'offset de dupstore. Il faut reajuster
-                    //  ternaryOp2ndValueOffset a l'offset de AssignmentInstruction,
+                    //  dans un operateur ternaire, ternaryOp2andValueOffset est
+                    //  initialise sure l'offset de dupstore. Il faut reajuster
+                    //  ternaryOp2andValueOffset a l'offset de AssignmentInstruction,
                     //  pour que TernaryOpReconstructor fonctionne.
                     int j = dupStoreIndex;
 
@@ -168,9 +168,9 @@ public final class AssignmentInstructionReconstructor
                         {
                             // TernaryOpStore trouvé
                             TernaryOpStore tos = (TernaryOpStore)list.get(j);
-                            if (tos.getTernaryOp2ndValueOffset() == dupStore.getOffset())
+                            if (tos.getTernaryOp2andValueOffset() == dupStore.getOffset())
                             {
-                                tos.setTernaryOp2ndValueOffset(newInstruction.getOffset());
+                                tos.setTernaryOp2andValueOffset(newInstruction.getOffset());
                                 break;
                             }
                         }
@@ -183,7 +183,7 @@ public final class AssignmentInstructionReconstructor
                 }
                 else
                 {
-                    // Assignation multiple sur deux lignes : b = c; a = b;
+                    // Assignation multiple sure deux lignes : b = c; a = b;
 
                     // Create new instruction
                     // {?Load | GetField | GetStatic | AALoad | ARRAYLoad }
@@ -192,12 +192,12 @@ public final class AssignmentInstructionReconstructor
 
                     if (newInstruction != null)
                     {
-                        // Remplacement du 1er DupLoad
+                        // Replacement du 1er DupLoad
                         ReplaceDupLoadVisitor visitor =
                             new ReplaceDupLoadVisitor(dupStore, dupStore.getObjectref());
                         visitor.visit(xstorePutfieldPutstatic);
 
-                        // Remplacement du 2eme DupLoad
+                        // Replacement du 2eme DupLoad
                         visitor.init(dupStore, newInstruction);
                         visitor.visit(list.get(dupload2Index));
 
@@ -323,7 +323,7 @@ public final class AssignmentInstructionReconstructor
                 case Const.AASTORE:
                     if (value1.getOpcode() == Const.AALOAD)
                     {
-                        ArrayStoreInstruction aas =
+                        ArrayStoreInstruction as =
                             (ArrayStoreInstruction)xstorePutfieldPutstatic;
                         ArrayLoadInstruction aal =
                             (ArrayLoadInstruction)value1;
@@ -331,9 +331,9 @@ public final class AssignmentInstructionReconstructor
                             new CompareInstructionVisitor();
 
                         if (visitor.visit(
-                                aas.getArrayref(), aal.getArrayref()) &&
+                                as.getArrayref(), aal.getArrayref()) &&
                             visitor.visit(
-                                aas.getIndexref(), aal.getIndexref())) {
+                                as.getIndexref(), aal.getIndexref())) {
                             return createBinaryOperatorAssignmentInstruction(
                                     xstorePutfieldPutstatic, dupStore);
                         }
@@ -342,7 +342,7 @@ public final class AssignmentInstructionReconstructor
                 case ByteCodeConstants.ARRAYSTORE:
                     if (value1.getOpcode() == ByteCodeConstants.ARRAYLOAD)
                     {
-                        ArrayStoreInstruction aas =
+                        ArrayStoreInstruction as =
                             (ArrayStoreInstruction)xstorePutfieldPutstatic;
                         ArrayLoadInstruction aal =
                             (ArrayLoadInstruction)value1;
@@ -350,9 +350,9 @@ public final class AssignmentInstructionReconstructor
                             new CompareInstructionVisitor();
 
                         if (visitor.visit(
-                                aas.getArrayref(), aal.getArrayref()) &&
+                                as.getArrayref(), aal.getArrayref()) &&
                             visitor.visit(
-                                aas.getIndexref(), aal.getIndexref())) {
+                                as.getIndexref(), aal.getIndexref())) {
                             return createBinaryOperatorAssignmentInstruction(
                                     xstorePutfieldPutstatic, dupStore);
                         }

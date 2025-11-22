@@ -24,11 +24,11 @@ public class SubListLayoutBlock extends LayoutBlock
 
     public SubListLayoutBlock(
         byte tag, List<LayoutBlock> subList,
-        int firstLineNumber, int lastLineNumber, int preferedLineCount)
+        int firstLineNumber, int lastLineNumber, int preferredLineCount)
     {
         super(
             tag, firstLineNumber, lastLineNumber,
-            0, preferedLineCount, preferedLineCount);
+            0, preferredLineCount, preferredLineCount);
         this.subList = subList;
     }
 

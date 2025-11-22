@@ -1,6 +1,6 @@
 package jd.core.test;
 
-public class OuterAcessor {
+public class OuterAccessor {
     @SuppressWarnings("unused")
     void init(int i) {
     }
@@ -12,7 +12,7 @@ public class OuterAcessor {
                 @Override
                 public void run() {
                     int i = 0;
-                    OuterAcessor.this.init(i++);
+                    OuterAccessor.this.init(i++);
                 }
             }.start();
         }

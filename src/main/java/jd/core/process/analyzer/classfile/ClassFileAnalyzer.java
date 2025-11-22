@@ -86,7 +86,7 @@ public final class ClassFileAnalyzer
 
     public static void analyze(ReferenceMap referenceMap, ClassFile classFile)
     {
-        // Creation du tableau associatif [nom de classe interne, objet class].
+        // Creation du tableau associatif [nom de class interne, object class].
         // Ce tableau est utilisé pour la suppression des accesseurs des
         // classes internes.
         Map<String, ClassFile> innerClassesMap;
@@ -103,7 +103,7 @@ public final class ClassFileAnalyzer
 
         preAnalyzeClass(referenceMap, innerClassesMap, classFile);
 
-        // Generation des listes d'instructions
+        // Generation des listed d'instructions
         // Creation du tableau des variables locales si necessaire
         analyzeClass(referenceMap, innerClassesMap, classFile);
     }
@@ -130,8 +130,8 @@ public final class ClassFileAnalyzer
     {
         if ((classFile.getAccessFlags() & Const.ACC_SYNTHETIC) == 0)
         {
-            // L'analyse preliminaire permet d'identifier l'attribut de chaque
-            // classe interne non statique portant la reference vers la classe
+            // L'analyse preliminaire permet d'identifier l'attribute de chaque
+            // class interne non statique portant la reference vers la class
             // externe. 'PreAnalyzeMethods' doit être execute avant l'analyse
             // des classes internes. Elle permet egalement de construire la liste
             // des accesseurs et de parser les tableaux "SwitchMap" produit par le
@@ -159,7 +159,7 @@ public final class ClassFileAnalyzer
         }
         else
         {
-            // Analyse des classes internes avant l'analyse de la classe pour
+            // Analyse des classes internes avant l'analyse de la class pour
             // afficher correctement des classes anonymes.
             List<ClassFile> innerClassFiles = classFile.getInnerClassFiles();
             if (innerClassFiles != null)
@@ -169,7 +169,7 @@ public final class ClassFileAnalyzer
                 }
             }
 
-            // Analyse de la classe
+            // Analyse de la class
             checkUnicityOfFieldNames(classFile);
             checkUnicityOfFieldrefNames(classFile);
             analyzeMethods(referenceMap, innerClassesMap, classFile);
@@ -292,8 +292,8 @@ public final class ClassFileAnalyzer
                         enumNameIndexes.add(outerEnumNameIndex);
                     }
 
-                    // Key = le nom de la classe interne dans le
-                    // pool de constantes de la classe externe
+                    // Key = le nom de la class interne dans le
+                    // pool de constantes de la class externe
                     outerClassFile.getSwitchMaps().put(
                             fieldName, enumNameIndexes);
 
@@ -391,7 +391,7 @@ public final class ClassFileAnalyzer
     {
         ConstantPool constants = classFile.getConstantPool();
 
-        // Popuplate array
+        // Populate array
         int i = constants.size();
         Object[] array = new Object[i];
 
@@ -738,8 +738,8 @@ public final class ClassFileAnalyzer
             LocalVariableAnalyzer.analyze(
                     classFile, method, variableNameGenerator, list, listForAnalyze);
 
-            // Recherche du numéro de l'attribut contenant la reference
-            // de la classe externe
+            // Recherche du numéro de l'attribute contenant la reference
+            // de la class externe
             outerThisFieldrefIndex = searchOuterThisFieldrefIndex(
                     classFile, method, list, outerThisFieldrefIndex);
         }
@@ -760,8 +760,8 @@ public final class ClassFileAnalyzer
     {
         Method[] methods = classFile.getMethods();
 
-        // Initialisation du reconstructeur traitant l'acces des champs et
-        // méthodes externes si la classe courante est une classe interne ou
+        // Initialisation du reconstructeur traitant l'access des champs et
+        // méthodes externes si la class courante est une class interne ou
         // si elle contient des classes internes
         OuterReferenceReconstructor outerReferenceReconstructor =
                 innerClassesMap != null ?
@@ -787,11 +787,11 @@ public final class ClassFileAnalyzer
             }
         }
 
-        // Recherche des initialisations des attributs statiques Enum
+        // Recherche des initialisations des attributes statiques Enum
         InitDexEnumFieldsReconstructor.reconstruct(classFile);
-        // Recherche des initialisations des attributs statiques
+        // Recherche des initialisations des attributes statiques
         InitStaticFieldsReconstructor.reconstruct(classFile);
-        // Recherche des initialisations des attributs d'instance
+        // Recherche des initialisations des attributes d'instance
         InitInstanceFieldsReconstructor.reconstruct(classFile);
 
         postAnalyzeMethods(classFile, methods);
@@ -834,7 +834,7 @@ public final class ClassFileAnalyzer
                 referenceMap, classFile, list);
         // Remove unused pop instruction
         removeUnusedPopInstruction(list);
-        // Transformation des tests sur des types 'long' et 'double'
+        // Transformation des tests sure des types 'long' et 'double'
         transformTestOnLongOrDouble(list);
         // Set constant type of "String.indexOf(...)" methods
         setConstantTypeInStringIndexOfMethods(classFile, list);
@@ -958,7 +958,7 @@ public final class ClassFileAnalyzer
     {
         Method[] methods = classFile.getMethods();
 
-        // Recherche de l'attribut portant la reference vers la classe
+        // Recherche de l'attribute portant la reference vers la class
         // externe.
         ConstantPool constants = classFile.getConstantPool();
         ConstantFieldref cfr = constants.getConstantFieldref(outerThisFieldrefIndex);
@@ -1020,7 +1020,7 @@ public final class ClassFileAnalyzer
      * 1) Retrait de la sequence suivante pour les constructeurs :
      *    Invokespecial(ALoad 0, <init>, [ ])
      * 2) Store super constructor parameter count to display anonymous
-     *    class instanciation
+     *    class instantiation
      * 3) Store outer parameter position on field for inner and anonymous classes
      */
     private static void analyseAndModifyConstructors(
@@ -1068,7 +1068,7 @@ public final class ClassFileAnalyzer
                                 } else if (count == 0)
                                 {
                                     // Retrait de l'appel du constructeur s'il
-                                    // n'a aucun parametre, sauf s'il est préfixé comme
+                                    // n'a aucun parameter, sauf s'il est préfixé comme
                                     // dans a.super()
                                     if (is.getPrefix() == null) {
                                         list.remove(0);
@@ -1110,16 +1110,16 @@ public final class ClassFileAnalyzer
                      || pf.getValueref().getOpcode() == Const.ALOAD
                      || pf.getValueref().getOpcode() == Const.ILOAD) {
                         IndexInstruction ii = (IndexInstruction)pf.getValueref();
-                        // Rappel sur l'ordre des parametres passes aux constructeurs:
+                        // Rappel sure l'ordre des parameters passes aux constructeurs:
                         //  <init>(outer this, p1, p2, ..., outer local var1, ...)
-                        // Rappel sur l'organisation des variables locales:
+                        // Rappel sure l'organisation des variables locales:
                         //  0: this
                         //  1: outer this
                         //  2: p1
                         //  ...
                         if (ii.getIndex() > 1)
                         {
-                            // Stockage de la position du parametre du
+                            // Stockage de la position du parameter du
                             // constructeur initialisant le champs
                             ConstantFieldref cfr = constants.getConstantFieldref(pf.getIndex());
                             ConstantNameAndType cnat =
@@ -1134,7 +1134,7 @@ public final class ClassFileAnalyzer
                 }
 
                 // Retrait des instructions precedents l'appel au constructeur
-                // de la classe mere.
+                // de la class mere.
                 list.remove(0);
             }
         }
@@ -1241,7 +1241,7 @@ public final class ClassFileAnalyzer
         ConstantPool constants = classFile.getConstantPool();
         String enumArraySignature = "[" + classFile.getInternalClassName();
 
-        // Recherche du champ statique possedant un acces ACC_ENUM et un
+        // Recherche du champ statique possedant un access ACC_ENUM et un
         // type '[LenumXXXX;'
         Instruction instruction;
         String fieldName;

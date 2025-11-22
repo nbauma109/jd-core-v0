@@ -141,16 +141,16 @@ public class InvokeDynamicFactory implements InstructionFactory
         
         if (indyParameters == null) {
             // Create static method reference
-            ObjectType ot = typeMaker.makeFromInternalTypeName(typeName);
+            ObjectType to = typeMaker.makeFromInternalTypeName(typeName);
 
             if (arrayRef) {
                 String arrayDescriptor = descriptor1.replace("(I)", "");
                 ObjectType type = typeMaker.makeFromDescriptor(arrayDescriptor);
                 stack.push(new ArrayReference(opcode, offset, lineNumber, type, arrayDescriptor));
             } else if (StringConstants.INSTANCE_CONSTRUCTOR.equals(name1)) {
-                stack.push(new ConstructorReference(opcode, offset, lineNumber, ot, descriptor1));
+                stack.push(new ConstructorReference(opcode, offset, lineNumber, to, descriptor1));
             } else {
-                stack.push(new StaticMethodReference(opcode, offset, lineNumber, new ObjectTypeReferenceExpression(lineNumber, ot), typeName, name1, descriptor1));
+                stack.push(new StaticMethodReference(opcode, offset, lineNumber, new ObjectTypeReferenceExpression(lineNumber, to), typeName, name1, descriptor1));
             }
             
             return Const.getNoOfOperands(opcode);

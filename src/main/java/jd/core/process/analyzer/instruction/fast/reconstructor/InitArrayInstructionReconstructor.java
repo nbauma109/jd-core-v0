@@ -149,7 +149,7 @@ public final class InitArrayInstructionReconstructor
 
         if (lastAsi != null)
         {
-            // Instanciation d'une instruction InitArrayInstruction
+            // Instantiation d'une instruction InitArrayInstruction
             InitArrayInstruction iai = new InitArrayInstruction(
                     ByteCodeConstants.NEWANDINITARRAY, lastAsi.getOffset(),
                     dupStore.getLineNumber(), dupStore.getObjectref(), values);
@@ -205,26 +205,26 @@ public final class InitArrayInstructionReconstructor
                 switch (na.getType())
                 {
                 case Const.T_BOOLEAN:
-                    setContantTypes("Z", iai.getValues());
+                    setConstantTypes("Z", iai.getValues());
                     break;
                 case Const.T_CHAR:
-                    setContantTypes("C", iai.getValues());
+                    setConstantTypes("C", iai.getValues());
                     break;
                 case Const.T_BYTE:
-                    setContantTypes("B", iai.getValues());
+                    setConstantTypes("B", iai.getValues());
                     break;
                 case Const.T_SHORT:
-                    setContantTypes("S", iai.getValues());
+                    setConstantTypes("S", iai.getValues());
                     break;
                 case Const.T_INT:
-                    setContantTypes("I", iai.getValues());
+                    setConstantTypes("I", iai.getValues());
                     break;
                 }
             }
         }
     }
 
-    private static void setContantTypes(
+    private static void setConstantTypes(
             String signature, List<Instruction> values)
     {
         for (Instruction value : values)

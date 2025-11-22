@@ -103,7 +103,7 @@ public final class LocalVariableAnalyzer
 
         if (localVariables == null)
         {
-            // Ajout d'entrées dans le tableau pour les parametres
+            // Ajout d'entrées dans le tableau pour les parameters
             localVariables = new LocalVariables();
             method.setLocalVariables(localVariables);
 
@@ -154,7 +154,7 @@ public final class LocalVariableAnalyzer
         }
         else
         {
-            // Traitement des entrées correspondant aux parametres
+            // Traitement des entrées correspondent aux parameters
             String methodSignature = constants.getConstantUtf8(method.getSignatureIndex());
 
             int indexOfFirstLocalVariable =
@@ -164,7 +164,7 @@ public final class LocalVariableAnalyzer
             if (indexOfFirstLocalVariable > localVariables.size())
             {
                 // Dans le cas des méthodes générées automatiquement par le
-                // compilateur (comme par exemple les méthodes des enums), le
+                // compilateur (comme par example les méthodes des enums), le
                 // tableau des variables locales est incomplet.
                 // Add Parameters
                 analyzeMethodParameter(
@@ -188,13 +188,13 @@ public final class LocalVariableAnalyzer
             // commentaire a la version 0.5.3.
             //  fr.oseo.fui.actions.partenaire.FicheInformationAction:
             //   InterlocuteurBO interlocuteur;
-            //   for (InterlocuteurBO partenaire = projet.getPartenaires().iterator(); partenaire.hasNext(); )
+            //   for (InterlocuteurBO partenaire = project.getPartenaires().iterator(); partenaire.hasNext(); )
             //   {
             //    interlocuteur = (InterlocuteurBO)partenaire.next();
             //    ...
             //   }
             //   ...
-            //   for (partenaire = projet.getPartenaires().iterator(); partenaire.hasNext(); )
+            //   for (partenaire = project.getPartenaires().iterator(); partenaire.hasNext(); )
             //   {
             //    interlocuteur = (InterlocuteurBO)partenaire.next();
             //    ...
@@ -219,7 +219,7 @@ public final class LocalVariableAnalyzer
                     classFile, localVariables,
                     list, listForAnalyze, returnedSignature);
 
-            initialyzeExceptionLoad(listForAnalyze, localVariables);
+            initializeExceptionLoad(listForAnalyze, localVariables);
         }
 
         generateLocalVariableNames(
@@ -231,7 +231,7 @@ public final class LocalVariableAnalyzer
             Method method, LocalVariables localVariables,
             VariableNameGenerator variableNameGenerator, int codeLength)
     {
-        // Le descripteur et la signature sont differentes pour les
+        // Le descripteur et la signature sont differences pour les
         // constructeurs des Enums !
         Signature as = method.getAttributeSignature();
         int methodSignatureIndex = method.getSignatureIndex();
@@ -250,7 +250,7 @@ public final class LocalVariableAnalyzer
             // - var 2: index de la valeur => ne pas afficher
             // Signature:
             // - variableIndex = 1 + 1 + 1
-            // Le premier parametre des méthodes non statiques est 'this'
+            // Le premier parameter des méthodes non statiques est 'this'
             boolean staticMethodFlag =
                     (method.getAccessFlags() & Const.ACC_STATIC) != 0;
             int variableIndex = staticMethodFlag ? 0 : 1;
@@ -435,7 +435,7 @@ public final class LocalVariableAnalyzer
                 continue;
             }
 
-            // Verification de l'existance d'une variable locale
+            // Verification de l'existence d'une variable locale
             lv = localVariables.getLocalVariableWithIndexAndOffset(
                     monitorLocalVariableIndex, monitorLocalVariableOffset);
 
@@ -455,7 +455,7 @@ public final class LocalVariableAnalyzer
     /**
      * Verification de la portee de chaque variable : la portee generee par les
      * compilateurs est incorrecte : elle commence une instruction trop tard!
-     * De plus, la longueur de la portee est tres importante. Elle est
+     * De plus, la longueur de la portee est tres important. Elle est
      * recalculée.
      */
     private static void checkLocalVariableRanges(
@@ -615,7 +615,7 @@ public final class LocalVariableAnalyzer
             {
                 // Mise à jour de la longueur de la portée de la
                 // variable possedant le même index et precedemment
-                // definie.
+                // definite.
                 lv = localVariables.searchLocalVariableWithIndexAndOffset(ii.getIndex(), ii.getOffset());
                 if (lv != null) {
                     lv.updateRange(ii.getOffset());
@@ -633,13 +633,13 @@ public final class LocalVariableAnalyzer
     // commentaire a la version 0.5.3.
     //  fr.oseo.fui.actions.partenaire.FicheInformationAction:
     //   InterlocuteurBO interlocuteur;
-    //   for (InterlocuteurBO partenaire = projet.getPartenaires().iterator(); partenaire.hasNext(); )
+    //   for (InterlocuteurBO partenaire = project.getPartenaires().iterator(); partenaire.hasNext(); )
     //   {
     //    interlocuteur = (InterlocuteurBO)partenaire.next();
     //    ...
     //   }
     //   ...
-    //   for (partenaire = projet.getPartenaires().iterator(); partenaire.hasNext(); )
+    //   for (partenaire = project.getPartenaires().iterator(); partenaire.hasNext(); )
     //   {
     //    interlocuteur = (InterlocuteurBO)partenaire.next();
     //    ...
@@ -682,7 +682,7 @@ public final class LocalVariableAnalyzer
      * Strategie :
      *     - Recherche de tous les instructions '?store' et '?load'
      *  - Determiner le type de la variable
-     *  - Si la variable n'est pas encore definie, ajouter une entrée dans la
+     *  - Si la variable n'est pas encore definite, ajouter une entrée dans la
      *    Liste
      *  - Sinon, si le type est compatible
      */
@@ -713,9 +713,9 @@ public final class LocalVariableAnalyzer
             if (instruction.getOpcode() == ByteCodeConstants.TERNARYOPSTORE && i<listForAnalyze.size()-1) {
                 TernaryOpStore ternaryOpStore = (TernaryOpStore) instruction;
                 SearchInstructionByTypeVisitor<Instruction> searchInstructionByOffsetVisitor
-                    = new SearchInstructionByTypeVisitor<>(Instruction.class, instr -> instr.getOffset() == ternaryOpStore.getTernaryOp2ndValueOffset());
-                Instruction ternaryOp2ndValue = searchInstructionByOffsetVisitor.visit(listForAnalyze.get(i+1));
-                if (ternaryOp2ndValue instanceof AConstNull aConstNull) {
+                    = new SearchInstructionByTypeVisitor<>(Instruction.class, instr -> instr.getOffset() == ternaryOpStore.getTernaryOp2andValueOffset());
+                Instruction ternaryOp2andValue = searchInstructionByOffsetVisitor.visit(listForAnalyze.get(i+1));
+                if (ternaryOp2andValue instanceof AConstNull aConstNull) {
                     aConstNull.setSignatureFunction(ternaryOpStore::getReturnedSignature);
                 }
             }
@@ -795,7 +795,7 @@ public final class LocalVariableAnalyzer
                 // decompilateur ne connait pas le graphe d'heritage des
                 // classes decompilées. Le type de la variable est valué à 
                 // 'Object'. Des instructions 'cast' supplémentaires doivent
-                // être ajoutés. Voir la limitation de JAD sur ce point.
+                // être ajoutés. Voir la limitation de JAD sure ce point.
                 lv.setSignatureIndex(internalObjectSignatureIndex);
                 break;
             }
@@ -819,7 +819,7 @@ public final class LocalVariableAnalyzer
         {
             // Variable locale deja traitée
 
-            // Verification que l'attribut 'exception' est correctement
+            // Verification que l'attribute 'exception' est correctement
             // positionné.
             if (firstInstruction.getOpcode() == Const.ASTORE)
             {
@@ -835,7 +835,7 @@ public final class LocalVariableAnalyzer
         final int length = listForAnalyze.size();
 
         Instruction instruction;
-        // Recherche des instructions de lecture, d'ecriture et de comparaison
+        // Recherche des instructions de lecture, d'ecriture et de comparison
         // des variables locales.
         for (int i=startIndex; i<length; i++)
         {
@@ -1122,8 +1122,8 @@ public final class LocalVariableAnalyzer
                         lv.setSignatureIndex(constants.addConstantUtf8(signature));
                     } else if (lv.getSignatureIndex() == NUMBER_TYPE) {
                         new Throwable("type inattendu").printStackTrace();
-                        // NE PAS GENERER DE CONFLIT DE TYPE LORSQUE LE TYPE
-                        // D'UNE VARIABLE EST DIFFERENT DU TYPE D'UN PARAMETRE.
+                        // NE PAS GENERER DE CONFLICT DE TYPE LORSQUE LE TYPE
+                        // D'UNE VARIABLE EST DIFFERENT DU TYPE D'UN PARAMETER.
                         /* case OBJECT_TYPE:
                             break;
                         default:
@@ -1135,8 +1135,8 @@ public final class LocalVariableAnalyzer
                                 !argSignature.equals(
                                     Constants.INTERNAL_OBJECT_SIGNATURE))
                             {
-                                // La signature du parametre ne correspond pas
-                                // a la signature de l'objet passé en parametre
+                                // La signature du parameter ne correspond pas
+                                // a la signature de l'object passé en parameter
                                 lv.signatureIndex = OBJECT_TYPE;
                             }*/
                     }
@@ -1316,7 +1316,7 @@ public final class LocalVariableAnalyzer
             else
             {
                 // Type incompatible => 2 cas :
-                // 1) si une signature est de type 'Object' et la seconde est
+                // 1) si une signature est de type 'Object' et la second est
                 //    un type primitif, creation d'une nouvelle variable.
                 // 2) si les deux signatures sont de type 'Object',
                 //    modification du type de la variable en 'Object' puis
@@ -1477,9 +1477,9 @@ public final class LocalVariableAnalyzer
     {
         if (tos.getObjectref().getOpcode() == Const.BIPUSH || tos.getObjectref().getOpcode() == ByteCodeConstants.ICONST
                 || tos.getObjectref().getOpcode() == Const.SIPUSH) {
-            // Recherche de la seconde valeur de l'instruction ternaire
+            // Recherche de la second valeur de l'instruction ternaire
             int index = InstructionUtil.getIndexForOffset(
-                    list, tos.getTernaryOp2ndValueOffset());
+                    list, tos.getTernaryOp2andValueOffset());
 
             if (index != -1)
             {
@@ -1487,7 +1487,7 @@ public final class LocalVariableAnalyzer
 
                 Instruction result;
                 SearchInstructionByTypeVisitor<Instruction> searchInstructionByOffsetVisitor
-                    = new SearchInstructionByTypeVisitor<>(Instruction.class, i -> i.getOffset() == tos.getTernaryOp2ndValueOffset());
+                    = new SearchInstructionByTypeVisitor<>(Instruction.class, i -> i.getOffset() == tos.getTernaryOp2andValueOffset());
                 while (index < length)
                 {
                     result = searchInstructionByOffsetVisitor.visit(list.get(index));
@@ -1638,13 +1638,13 @@ public final class LocalVariableAnalyzer
         return SignatureUtil.getMethodReturnedSignature(signature);
     }
 
-    private static void initialyzeExceptionLoad(
+    private static void initializeExceptionLoad(
             List<Instruction> listForAnalyze, LocalVariables localVariables)
     {
         int length = listForAnalyze.size();
 
         /*
-         * Methode d'initialisation des instructions ExceptionLoad non
+         * Method d'initialisation des instructions ExceptionLoad non
          * initialisées. Cela se produit lorsque les méthodes possèdent un bloc
          * de definition de variables locales.
          * Les instructions ExceptionLoad appartenant aux blocs 'finally' ne

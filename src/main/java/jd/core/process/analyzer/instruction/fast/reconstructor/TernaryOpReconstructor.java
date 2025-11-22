@@ -86,17 +86,17 @@ public final class TernaryOpReconstructor
 
                 TernaryOperator fto = new TernaryOperator(
                     ByteCodeConstants.TERNARYOP,
-                    value1.getTernaryOp2ndValueOffset(), test.getLineNumber(),
+                    value1.getTernaryOp2andValueOffset(), test.getLineNumber(),
                     test, value1.getObjectref(), null);
 
                 ReplaceInstructionVisitor visitor =
                     new ReplaceInstructionVisitor(
-                            value1.getTernaryOp2ndValueOffset(), fto);
+                            value1.getTernaryOp2andValueOffset(), fto);
 
                 int indexVisitor;
                 for (indexVisitor = index+2; indexVisitor<length && visitor.getOldInstruction()==null; indexVisitor++) {
                    Instruction instruction = list.get(indexVisitor);
-                   if (instruction.getOffset() == value1.getTernaryOp2ndValueOffset()) {
+                   if (instruction.getOffset() == value1.getTernaryOp2andValueOffset()) {
                        visitor.setOldInstruction(instruction);
                        list.set(indexVisitor, fto);
                    } else {

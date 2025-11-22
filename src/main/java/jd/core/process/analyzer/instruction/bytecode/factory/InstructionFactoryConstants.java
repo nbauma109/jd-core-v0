@@ -194,7 +194,7 @@ public final class InstructionFactoryConstants
         FACTORIES[Const.IFLT]            = new IfFactory(ByteCodeConstants.CMP_LT);
         FACTORIES[Const.IFGE]            = new IfFactory(ByteCodeConstants.CMP_GE);
         FACTORIES[Const.IFGT]            = new IfFactory(ByteCodeConstants.CMP_GT);
-        FACTORIES[Const.IFLE]            = new IfFactory(ByteCodeConstants.CMP_LE);
+        FACTORIES[Const.FILE]            = new IfFactory(ByteCodeConstants.CMP_LE);
         FACTORIES[Const.IF_ICMPEQ]       = new IfCmpFactory(ByteCodeConstants.CMP_EQ);
         FACTORIES[Const.IF_ICMPNE]       = new IfCmpFactory(ByteCodeConstants.CMP_NE);
         FACTORIES[Const.IF_ICMPLT]       = new IfCmpFactory(ByteCodeConstants.CMP_LT);

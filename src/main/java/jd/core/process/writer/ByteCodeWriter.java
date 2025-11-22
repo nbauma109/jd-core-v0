@@ -113,7 +113,7 @@ public final class ByteCodeWriter
                          Const.IFLT,
                          Const.IFGE,
                          Const.IFGT,
-                         Const.IFLE,
+                         Const.FILE,
                          Const.IF_ICMPEQ,
                          Const.IF_ICMPNE,
                          Const.IF_ICMPLT,

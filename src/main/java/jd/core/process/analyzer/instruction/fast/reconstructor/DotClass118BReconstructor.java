@@ -55,7 +55,7 @@ import jd.core.process.analyzer.classfile.visitor.ReplaceDupLoadVisitor;
  *   {
  *     ternaryopstore( AssignmentInstruction(
  *             putstatic( dupload ),
- *             invokestatic( current class, 'class$...', nom de la classe ) ) )
+ *             invokestatic( current class, 'class$...', nom de la class ) ) )
  *   }
  *   catch (ClassNotFoundException localClassNotFoundException1)
  *   {
@@ -236,13 +236,13 @@ public final class DotClass118BReconstructor
 
             // Ajout du nom interne
             int index = constants.addConstantUtf8(internalName);
-            // Ajout d'une nouvelle classe
+            // Ajout d'une nouvelle class
             index = constants.addConstantClass(index);
             ldc = new Ldc(
                 Const.LDC, ii.getOffset(),
                 ii.getLineNumber(), index);
 
-            // Remplacement de l'instruction GetStatic par l'instruction Ldc
+            // Replacement de l'instruction GetStatic par l'instruction Ldc
             ReplaceDupLoadVisitor visitor = new ReplaceDupLoadVisitor(ds, ldc);
 
             visitor.visit(list.get(i+4));
@@ -258,7 +258,7 @@ public final class DotClass118BReconstructor
                 list.remove(i);
             }
 
-            // Recherche de l'attribut statique et ajout de l'attribut SYNTHETIC
+            // Recherche de l'attribute statique et ajout de l'attribute SYNTHETIC
             Field[] fields = classFile.getFields();
             int j = fields.length;
 

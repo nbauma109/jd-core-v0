@@ -30,7 +30,7 @@ public class InstructionLayoutBlock extends LayoutBlock
 
     public InstructionLayoutBlock(
         byte tag, int firstLineNumber, int lastLineNumber,
-        int minimalLineCount, int maximalLineCount, int preferedLineCount,
+        int minimalLineCount, int maximalLineCount, int preferredLineCount,
         ClassFile classFile,
         Method method,
         Instruction instruction,
@@ -38,7 +38,7 @@ public class InstructionLayoutBlock extends LayoutBlock
     {
         super(
             tag, firstLineNumber, lastLineNumber,
-            minimalLineCount, maximalLineCount, preferedLineCount);
+            minimalLineCount, maximalLineCount, preferredLineCount);
         this.classFile = classFile;
         this.method = method;
         this.instruction = instruction;

@@ -36,7 +36,7 @@ import jd.core.model.instruction.bytecode.instruction.PutStatic;
  * Les valeurs des Enum des classes produites par "javac" sont correctement
  * reconnues par "InitStaticFieldsReconstructor.Reconstruct(...)".
  *
- * Cette classe a ete creee car les enums produits par "dex2jar" contients un
+ * Cette class a ete creee car les enums produits par "dex2jar" contients un
  * motif particulier (Extrait de: gr\androiddev\FuelPrices\StaticTools.class):
  *
  * private static final synthetic LocationProvider ANY;

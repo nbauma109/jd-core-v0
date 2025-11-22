@@ -47,7 +47,7 @@ public final class ComparisonInstructionAnalyzer
      */
     public static void aggregate(List<Instruction> list)
     {
-        int afterOffest = -1;
+        int afterOffset = -1;
         int index = list.size();
 
         while (index-- > 0)
@@ -67,17 +67,17 @@ public final class ComparisonInstructionAnalyzer
 
                     // Le 2eme if appartient-il au même bloc que le 1er ?
                             if (prevBiJumpOffset == bi.getJumpOffset() ||
-                                prevBi.getBranch() > 0 && prevBiJumpOffset <= afterOffest)
+                                prevBi.getBranch() > 0 && prevBiJumpOffset <= afterOffset)
                     {
                         // Oui
-                        // Test complexe : plusieurs instructions byte-code de test
+                        // Test complex : plusieurs instructions byte-code de test
                         index = analyzeIfInstructions(
-                            list, index, bi, afterOffest);
+                            list, index, bi, afterOffset);
                     }
                 }
             }
 
-            afterOffest = instruction.getOffset();
+            afterOffset = instruction.getOffset();
         }
     }
 
@@ -93,7 +93,7 @@ public final class ComparisonInstructionAnalyzer
      */
     private static int analyzeIfInstructions(
             List<Instruction> list, int index,
-            BranchInstruction lastBi, int afterOffest)
+            BranchInstruction lastBi, int afterOffset)
     {
         int arrayLength = list.get(list.size()-1).getOffset();
         boolean[] offsetToPreviousGotoFlag = new boolean[arrayLength];
@@ -102,14 +102,14 @@ public final class ComparisonInstructionAnalyzer
         // Recherche de l'indexe de la premiere instruction 'if' du bloc et
         // initialisation de 'offsetToPreviousGotoFlag'
         int firstIndex = searchFirstIndex(
-            list, index, lastBi, afterOffest,
+            list, index, lastBi, afterOffset,
             offsetToPreviousGotoFlag, inversedTernaryOpLogic);
 
         firstIndex = reduceFirstIndex(list, firstIndex, index);
 
         if (firstIndex < index)
         {
-            // Extraction des instructions de test formant un bloc
+            // Extraction des instructions de test format un bloc
             List<Instruction> branchInstructions =
                 new ArrayList<>(index - firstIndex + 1);
 
@@ -183,7 +183,7 @@ public final class ComparisonInstructionAnalyzer
 
     private static int searchFirstIndex(
         List<Instruction> list, int lastIndex,
-        BranchInstruction lastBi, int afterOffest,
+        BranchInstruction lastBi, int afterOffset,
         boolean[] offsetToPreviousGotoFlag,
         boolean[] inversedTernaryOpLogic)
     {
@@ -242,7 +242,7 @@ public final class ComparisonInstructionAnalyzer
                     }
                 }
                 else if (jumpOffset != lastBiJumpOffset &&
-                         (bi.getBranch() <= 0 || jumpOffset > afterOffest))
+                         (bi.getBranch() <= 0 || jumpOffset > afterOffset))
                 {
                     break; // Non
                 }
@@ -255,7 +255,7 @@ public final class ComparisonInstructionAnalyzer
                 // Ce 'goto' appartient-il au même bloc que le 1er 'if' ?
                 if (jumpOffset != lastBiJumpOffset &&
                     (jumpOffset <= nextInstruction.getOffset() ||
-                     jumpOffset > afterOffest))
+                     jumpOffset > afterOffset))
                  {
                     break; // Non
                 }
@@ -357,7 +357,7 @@ public final class ComparisonInstructionAnalyzer
         ComplexConditionalBranchInstruction cbl =
             assembleAndCreateIfInstructions(branchInstructions, lastBi);
 
-        // Affectation des comparaisons    & des operateurs
+        // Affectation des comparisons    & des operateurs
         setOperator(cbl, lastBi, false);
 
         return cbl;
@@ -376,7 +376,7 @@ public final class ComparisonInstructionAnalyzer
         // Recherche des instructions 'if' sautant vers des instructions 'goto'
         // en commencant par la derniere instruction
         int index = branchInstructions.size()-1;
-        int nextOffest = branchInstructions.get(index).getOffset();
+        int nextOffset = branchInstructions.get(index).getOffset();
 
         while (index-- > 0)
         {
@@ -392,7 +392,7 @@ public final class ComparisonInstructionAnalyzer
                     lastBi.getOffset() >= lastTernaryOpTestBiJumpOffset &&
                     offsetToPreviousGotoFlag[lastTernaryOpTestBiJumpOffset])
                 {
-                    // Extraction de la sous liste d'instructions constituant
+                    // Extraction de la sous liste d'instructions constituent
                     // le test de l'operateur ternaire
                     List<Instruction> ternaryOpTestInstructions =
                         new ArrayList<>();
@@ -418,7 +418,7 @@ public final class ComparisonInstructionAnalyzer
 
                         // L'instruction if courante appartient-elle au même bloc que le 1er ?
                         if (jumpOffset != lastTernaryOpTestBiJumpOffset &&
-                            (branchOffset <= 0 || jumpOffset > nextOffest))
+                            (branchOffset <= 0 || jumpOffset > nextOffset))
                         {
                             // Non
                             index++;
@@ -444,7 +444,7 @@ public final class ComparisonInstructionAnalyzer
                     }
                     inverseComparison(test);
 
-                    // Extraction de la sous liste d'instructions constituant
+                    // Extraction de la sous liste d'instructions constituent
                     // la premiere valeur de l'operateur ternaire (instructions
                     // entre le test et l'instruction 'goto')
                     List<Instruction> ternaryOpValue1Instructions =
@@ -498,8 +498,8 @@ public final class ComparisonInstructionAnalyzer
                         gotoJumpOffset = g.getJumpOffset();
                     }
 
-                    // Extraction de la sous liste d'instructions constituant
-                    // la seconde valeur de l'operateur ternaire (instructions entre
+                    // Extraction de la sous liste d'instructions constituent
+                    // la second valeur de l'operateur ternaire (instructions entre
                     // l'instruction 'goto' et la prochaine instruction 'goto' ou
                     // jusqu'au saut du test)
                     List<Instruction> ternaryOpValue2Instructions =
@@ -557,7 +557,7 @@ public final class ComparisonInstructionAnalyzer
                 }
             }
 
-            nextOffest = i.getOffset();
+            nextOffset = i.getOffset();
         }
     }
 
@@ -698,7 +698,7 @@ public final class ComparisonInstructionAnalyzer
             cbl.setCmp(inverse ?
                 ByteCodeConstants.CMP_OR : ByteCodeConstants.CMP_AND);
 
-            // Inverse all comparaisons except last one
+            // Inverse all comparisons except last one
             boolean tmpInverse = !inverse;
             int i = 0;
 
@@ -811,10 +811,10 @@ public final class ComparisonInstructionAnalyzer
             // Recherche de l'indexe de la premiere instruction 'if' du bloc et
             // initialisation de 'offsetToPreviousGotoFlag'
             BranchInstruction lastBi = (BranchInstruction)list.get(index);
-            int afterOffest = index+1 < length ? list.get(index+1).getOffset() : -1;
+            int afterOffset = index+1 < length ? list.get(index+1).getOffset() : -1;
 
             int firstIndexTmp = searchFirstIndex(
-                list, index, lastBi, afterOffest, dummy, dummy);
+                list, index, lastBi, afterOffset, dummy, dummy);
 
             firstIndexTmp = reduceFirstIndex(list, firstIndexTmp, index);
 

@@ -91,7 +91,7 @@ public final class ClassFileLayouter {
                 preferences, referenceMap, classFile, layoutBlockList);
 
         // "layoutBlockList" contient une structure lineaire classee dans
-        // l'ordre naturel sans prendre les contraintes d'alignement.
+        // l'ordre naturel sans prendre les constraints d'alignment.
 
         if (maxLineNumber != Instruction.UNKNOWN_LINE_NUMBER &&
             preferences.getRealignmentLineNumber())
@@ -134,7 +134,7 @@ public final class ClassFileLayouter {
         if (separator)
         {
             layoutBlockList.add(new SeparatorLayoutBlock(
-                LayoutBlockConstants.SEPARATOR_AT_BEGINING, 0));
+                LayoutBlockConstants.SEPARATOR_AT_BEGINNING, 0));
         }
 
         // Layout class
@@ -196,7 +196,7 @@ public final class ClassFileLayouter {
 
         if (layoutBlockListLength == layoutBlockList.size())
         {
-            // Classe vide. Transformation du bloc 'BodyBlockStartLayoutBlock'
+            // Class vide. Transformation du bloc 'BodyBlockStartLayoutBlock'
             if (displayExtendsOrImplementsFlag) {
                 bbslb.transformToStartEndBlock(1);
             } else {
@@ -231,15 +231,15 @@ public final class ClassFileLayouter {
             layoutBlockList.add(new CommentDeprecatedLayoutBlock());
         }
 
-        // Affichage des attributs de la classe
+        // Affichage des attributes de la class
         //LayoutAttributes(
         //    layoutBlockList, classFile, classFile.getAttributes());
 
-        // Affichage des annotations de la classe
+        // Affichage des annotations de la class
         AnnotationLayouter.createBlocksForAnnotations(
             classFile, classFile.getAttributes(), layoutBlockList);
 
-        // Affichage de la classe, de l'interface, de l'enum ou de l'annotation
+        // Affichage de la class, de l'interface, de l'enum ou de l'annotation
          // Check annotation
         Signature as = classFile.getAttributeSignature();
         if (as == null)
@@ -331,7 +331,7 @@ public final class ClassFileLayouter {
 
         if (layoutBlockListLength == layoutBlockList.size())
         {
-            // Classe vide. Transformation du bloc 'BodyBlockStartLayoutBlock'
+            // Class vide. Transformation du bloc 'BodyBlockStartLayoutBlock'
             ibbslb.transformToStartEndBlock();
         }
         else
@@ -409,7 +409,7 @@ public final class ClassFileLayouter {
                 Field field;
                 ValueAndMethod vam;
                 InvokeNew invokeNew;
-                // Pour chaque valeur, recherche du l'attribut d'instance, puis
+                // Pour chaque valeur, recherche du l'attribute d'instance, puis
                 // du constructeur
                 for (int i=0; i<valuesLength; i++)
                 {
@@ -510,7 +510,7 @@ public final class ClassFileLayouter {
         MarkerLayoutBlock fmslb;
         int firstLineNumber;
         int lastLineNumber;
-        int preferedLineNumber;
+        int preferredLineNumber;
         MarkerLayoutBlock fmelb;
         for (Field field : fields)
         {
@@ -540,7 +540,7 @@ public final class ClassFileLayouter {
 
             firstLineNumber = Instruction.UNKNOWN_LINE_NUMBER;
             lastLineNumber = Instruction.UNKNOWN_LINE_NUMBER;
-            preferedLineNumber = LayoutBlockConstants.UNLIMITED_LINE_COUNT;
+            preferredLineNumber = LayoutBlockConstants.UNLIMITED_LINE_COUNT;
 
             if (field.getValueAndMethod() != null)
             {
@@ -550,7 +550,7 @@ public final class ClassFileLayouter {
 
                 firstLineNumber = value.getLineNumber();
                 lastLineNumber = MaxLineNumberVisitor.visit(value);
-                preferedLineNumber = lastLineNumber - firstLineNumber;
+                preferredLineNumber = lastLineNumber - firstLineNumber;
 
                 // Affichage des instructions d'initialisation des valeurs
                 visitor.start(
@@ -571,7 +571,7 @@ public final class ClassFileLayouter {
             sortedFieldBlockList.add(new SubListLayoutBlock(
                 LayoutBlockConstants.SUBLIST_FIELD,
                 subLayoutBlockList, firstLineNumber,
-                lastLineNumber, preferedLineNumber));
+                lastLineNumber, preferredLineNumber));
         }
         return sortBlocks(sortedFieldBlockList, true);
     }
@@ -613,7 +613,7 @@ public final class ClassFileLayouter {
         boolean displayThrowsFlag;
         int firstLineNumber;
         int lastLineNumber;
-        int preferedLineNumber;
+        int preferredLineNumber;
         MarkerLayoutBlock mmelb;
         for (Method method : methods)
         {
@@ -624,7 +624,7 @@ public final class ClassFileLayouter {
 
             as = method.getAttributeSignature();
 
-            // Le descripteur et la signature sont differentes pour les
+            // Le descripteur et la signature sont differences pour les
             // constructeurs des Enums ! Cette information est passée à 
             // "SignatureWriter.writeMethodSignature(...)".
             signatureIndex = method.getSignatureIndex();
@@ -655,7 +655,7 @@ public final class ClassFileLayouter {
                         {
                             if ("()V".equals(signature) || "(Ljava/lang/String;I)V".equals(signature))
                             {
-                                // Ne pas afficher le constructeur par defaut
+                                // Ne pas afficher le constructeur par default
                                 // des Enum si il est vide et si c'est le seul
                                 // constructeur.
                                 continue;
@@ -663,7 +663,7 @@ public final class ClassFileLayouter {
                         } else if (!showDefaultConstructor)
                         {
                             if ("()V".equals(signature)) {
-                                // Ne pas afficher le constructeur par defaut si
+                                // Ne pas afficher le constructeur par default si
                                 // il est vide et si c'est le seul constructeur.
                                 continue;
                             }
@@ -736,7 +736,7 @@ public final class ClassFileLayouter {
 
             firstLineNumber = Instruction.UNKNOWN_LINE_NUMBER;
             lastLineNumber = Instruction.UNKNOWN_LINE_NUMBER;
-            preferedLineNumber = LayoutBlockConstants.UNLIMITED_LINE_COUNT;
+            preferredLineNumber = LayoutBlockConstants.UNLIMITED_LINE_COUNT;
 
             if (!nullCodeFlag)
             {
@@ -836,7 +836,7 @@ public final class ClassFileLayouter {
             sortedMethodBlockList.add(new SubListLayoutBlock(
                 LayoutBlockConstants.SUBLIST_METHOD,
                 subLayoutBlockList, firstLineNumber,
-                lastLineNumber, preferedLineNumber));
+                lastLineNumber, preferredLineNumber));
         }
         return sortBlocks(sortedMethodBlockList, false);
     }
@@ -857,7 +857,7 @@ public final class ClassFileLayouter {
         int afterIndex;
         int firstLineNumber;
         int lastLineNumber;
-        int preferedLineCount;
+        int preferredLineCount;
         for (ClassFile innerClassFile : innerClassFiles)
         {
             if ((innerClassFile.getAccessFlags() & Const.ACC_SYNTHETIC) != 0 ||
@@ -877,17 +877,17 @@ public final class ClassFileLayouter {
             lastLineNumber = searchLastLineNumber(
                 innerClassLayoutBlockList, 0, afterIndex);
 
-            preferedLineCount = LayoutBlockConstants.UNLIMITED_LINE_COUNT;
+            preferredLineCount = LayoutBlockConstants.UNLIMITED_LINE_COUNT;
             if (firstLineNumber != Instruction.UNKNOWN_LINE_NUMBER &&
                 lastLineNumber != Instruction.UNKNOWN_LINE_NUMBER)
             {
-                preferedLineCount = lastLineNumber-firstLineNumber;
+                preferredLineCount = lastLineNumber-firstLineNumber;
             }
 
             sortedInnerClassBlockList.add(new SubListLayoutBlock(
                 LayoutBlockConstants.SUBLIST_INNER_CLASS,
                 innerClassLayoutBlockList, firstLineNumber,
-                lastLineNumber, preferedLineCount));
+                lastLineNumber, preferredLineCount));
         }
         return sortBlocks(sortedInnerClassBlockList, false);
     }
@@ -976,7 +976,7 @@ public final class ClassFileLayouter {
 
         return blockList;
     }
-    /* POURQUOI AVOIR UTILISE UNE SIGNATURE SI COMPLEXE A CONVERTIR EN C++ ?
+    /* POURQUOI AVOIR UTILISE UNE SIGNATURE SI COMPLEX A CONVERTIR EN C++ ?
      * private static <T extends LayoutBlock> List<T> SortBlocks(List<T> blockList)
     {
         // Detection de l'ordre de génération des champs par le compilateur:
@@ -1036,11 +1036,11 @@ public final class ClassFileLayouter {
         return blockList;
     } */
 
-    /** Premiere phase du realignement,
+    /** Premiere phase du realignment,
      * 3 jeux de cartes,
      * Conserver l'ordre naturel jusqu'à une impossibilite:
-     * Copie des blocs sans numéro de ligne des champs au plus tot
-     * Copie des blocs sans numéro de ligne des méthodes et des classes internes au plus tard
+     * Copied des blocs sans numéro de ligne des champs au plus tot
+     * Copied des blocs sans numéro de ligne des méthodes et des classes internes au plus tard
      */
     private static int mergeBlocks(
         List<LayoutBlock> layoutBlockList,
@@ -1068,19 +1068,19 @@ public final class ClassFileLayouter {
             {
                 if (minLineNumberInnerClass == Instruction.UNKNOWN_LINE_NUMBER)
                 {
-                    // Copie de tout dans l'ordre naturel
+                    // Copied de tout dans l'ordre naturel
                     maxLineNumber = mergeFieldBlockList(
                         layoutBlockList, sortedFieldBlockList, maxLineNumber);
                     break;
                 }
-                // Copie des champs avec et sans numéro de ligne
+                // Copied des champs avec et sans numéro de ligne
                 maxLineNumber = exclusiveMergeFieldBlockList(
                     layoutBlockList, sortedFieldBlockList,
                     minLineNumberInnerClass, maxLineNumber);
-                // Copie de toutes les méthodes sans numéro de ligne
+                // Copied de toutes les méthodes sans numéro de ligne
                 maxLineNumber = mergeBlockList(
                     layoutBlockList, sortedMethodBlockList, maxLineNumber);
-                // Copie des classes internes jusqu'à l'inner classe ayant
+                // Copied des classes internes jusqu'à l'inner class ayant
                 // le plus petit numéro de ligne
                 maxLineNumber = inclusiveMergeBlockList(
                     layoutBlockList, sortedInnerClassBlockList,
@@ -1090,11 +1090,11 @@ public final class ClassFileLayouter {
             } else if (minLineNumberInnerClass == Instruction.UNKNOWN_LINE_NUMBER ||
                 minLineNumberMethod < minLineNumberInnerClass)
             {
-                // Copie des champs avec et sans numéro de ligne
+                // Copied des champs avec et sans numéro de ligne
                 maxLineNumber = exclusiveMergeFieldBlockList(
                     layoutBlockList, sortedFieldBlockList,
                     minLineNumberMethod, maxLineNumber);
-                // Copie des méthodes jusqu'à la méthode ayant le plus
+                // Copied des méthodes jusqu'à la méthode ayant le plus
                 // petit numéro de ligne
                 maxLineNumber = inclusiveMergeBlockList(
                     layoutBlockList, sortedMethodBlockList,
@@ -1104,15 +1104,15 @@ public final class ClassFileLayouter {
             }
             else
             {
-                // Copie des champs avec et sans numéro de ligne
+                // Copied des champs avec et sans numéro de ligne
                 maxLineNumber = exclusiveMergeFieldBlockList(
                     layoutBlockList, sortedFieldBlockList,
                     minLineNumberInnerClass, maxLineNumber);
-                // Copie des méthodes avec et sans numéro de ligne
+                // Copied des méthodes avec et sans numéro de ligne
                 maxLineNumber = exclusiveMergeMethodOrInnerClassBlockList(
                     layoutBlockList, sortedMethodBlockList,
                     minLineNumberInnerClass, maxLineNumber);
-                // Copie des classes internes jusqu'à l'inner classe ayant
+                // Copied des classes internes jusqu'à l'inner class ayant
                 // le plus petit numéro de ligne
                 maxLineNumber = inclusiveMergeBlockList(
                     layoutBlockList, sortedInnerClassBlockList,
@@ -1122,7 +1122,7 @@ public final class ClassFileLayouter {
             }
         }
 
-        // 2) Methodes
+        // 2) Methods
         while (!sortedMethodBlockList.isEmpty())
         {
             if (minLineNumberInnerClass == Instruction.UNKNOWN_LINE_NUMBER)
@@ -1131,11 +1131,11 @@ public final class ClassFileLayouter {
                     layoutBlockList, sortedMethodBlockList, maxLineNumber);
                 break;
             }
-            // Copie des méthodes avec et sans numéro de ligne
+            // Copied des méthodes avec et sans numéro de ligne
             maxLineNumber = exclusiveMergeMethodOrInnerClassBlockList(
                 layoutBlockList, sortedMethodBlockList,
                 minLineNumberInnerClass, maxLineNumber);
-            // Copie des classes internes jusqu'à l'inner classe ayant le
+            // Copied des classes internes jusqu'à l'inner class ayant le
             // plus petit numéro de ligne
             maxLineNumber = inclusiveMergeBlockList(
                 layoutBlockList, sortedInnerClassBlockList,
@@ -1602,7 +1602,7 @@ public final class ClassFileLayouter {
                          blockIndex++)
                 {
                     lb = layoutBlockList.get(blockIndex);
-                    lb.setLineCount(lb.getPreferedLineCount());
+                    lb.setLineCount(lb.getPreferredLineCount());
                 }
             }
         }
@@ -2169,7 +2169,7 @@ public final class ClassFileLayouter {
             {
                 lb = layoutBlockList.get(i);
 
-                if (lb.getTag() == LayoutBlockConstants.SEPARATOR_AT_BEGINING || lb.getTag() == LayoutBlockConstants.SEPARATOR_AFTER_IMPORTS) {
+                if (lb.getTag() == LayoutBlockConstants.SEPARATOR_AT_BEGINNING || lb.getTag() == LayoutBlockConstants.SEPARATOR_AFTER_IMPORTS) {
                     lb.setLineCount(lb.getLineCount() + delta);
                     delta = 0;
                 }
@@ -2525,9 +2525,9 @@ public final class ClassFileLayouter {
                     lb = layoutBlockList.get(blockIndex);
 
                     if (lb.getTag() == LayoutBlockConstants.SEPARATOR) {
-                        if (lb.getLineCount() < lb.getPreferedLineCount())
+                        if (lb.getLineCount() < lb.getPreferredLineCount())
                         {
-                            sumScore += lb.getPreferedLineCount()-lb.getLineCount();
+                            sumScore += lb.getPreferredLineCount()-lb.getLineCount();
 
                             if (lb.getLineCount() > 0)
                             {
@@ -2535,9 +2535,9 @@ public final class ClassFileLayouter {
                                 sumScore = 0;
                             }
                         }
-                        else if (lb.getLineCount() > lb.getPreferedLineCount())
+                        else if (lb.getLineCount() > lb.getPreferredLineCount())
                         {
-                            int delta = lb.getLineCount() - lb.getPreferedLineCount();
+                            int delta = lb.getLineCount() - lb.getPreferredLineCount();
                             score -= delta*delta;
                         }
                     }
@@ -2563,7 +2563,7 @@ public final class ClassFileLayouter {
         List<LayoutSection> layoutSectionList)
     {
         // Identifier la section avec le plus haut score c.a.d. la section
-        // sur laquelle il faut relacher des contraintes.
+        // sure laquelle il faut relacher des constraints.
         int sectionLength = layoutSectionList.size();
 
         List<LayoutSection> sortedLayoutSectionList =
@@ -2599,7 +2599,7 @@ public final class ClassFileLayouter {
         List<LayoutSection> layoutSectionList)
     {
         // Identifier la section avec le plus haut score c.a.d. la section
-        // sur laquelle il faut relacher des contraintes.
+        // sure laquelle il faut relacher des constraints.
         int sectionLength = layoutSectionList.size();
 
         List<LayoutSection> sortedLayoutSectionList =
@@ -2746,7 +2746,7 @@ public final class ClassFileLayouter {
 
                 if (mlb.getSection() != mlb.getOther().getSection() || mlb.getOther().getIndex() <= firstBlockIndex)
                 {
-                    // Le marqueur de début est avant la limite.
+                    // Le marqueur de début est avant la limit.
                     return false;
                 }
 
@@ -2777,7 +2777,7 @@ public final class ClassFileLayouter {
 
                         if (mlb.getSection() != mlb.getOther().getSection() || mlb.getOther().getIndex() <= firstBlockIndex)
                         {
-                            // Le marqueur de début est avant la limite.
+                            // Le marqueur de début est avant la limit.
                             break;
                         }
 
@@ -2915,11 +2915,11 @@ public final class ClassFileLayouter {
                         sourceDeltaIndex++;
                     }
 
-                    // Modify separator brefore blocks if exists
+                    // Modify separator before blocks if exists
                     if (layoutBlockList.get(blockIndex).getTag() ==
                         LayoutBlockConstants.SEPARATOR)
                     {
-                        layoutBlockList.get(blockIndex).setPreferedLineCount(2);
+                        layoutBlockList.get(blockIndex).setPreferredLineCount(2);
                     }
 
                     // Blocs pas encore inserés.
@@ -2931,20 +2931,20 @@ public final class ClassFileLayouter {
                         (insertionLayoutBlock.tag == LayoutBlockConstants.SEPARATOR_BEFORE_OR_AFTER_BLOCK)*/)
                     {
                         // Insert new separator before blocks
-                        int preferedLineCount = 2;
+                        int preferredLineCount = 2;
 
                         if (markerEndTag == LayoutBlockConstants.FIELD_MARKER_END &&
                             layoutBlockList.get(lowerScoreBlockIndex-1).getTag() ==
                                 LayoutBlockConstants.FIELD_MARKER_END)
                         {
-                            preferedLineCount = 1;
+                            preferredLineCount = 1;
                         }
 
                         layoutBlockList.add(
                             lowerScoreBlockIndex,
                             new SeparatorLayoutBlock(
                                 LayoutBlockConstants.SEPARATOR,
-                                preferedLineCount));
+                                preferredLineCount));
 
                         targetDeltaIndex++;
                     }
@@ -2954,16 +2954,16 @@ public final class ClassFileLayouter {
                         LayoutBlock beforeLayoutBlock =
                             layoutBlockList.get(lowerScoreBlockIndex-1);
 
-                        int preferedLineCount = 2;
+                        int preferredLineCount = 2;
 
                         if (markerEndTag == LayoutBlockConstants.FIELD_MARKER_END &&
                             layoutBlockList.get(lowerScoreBlockIndex-2).getTag() ==
                                 LayoutBlockConstants.FIELD_MARKER_END)
                         {
-                            preferedLineCount = 1;
+                            preferredLineCount = 1;
                         }
 
-                        beforeLayoutBlock.setPreferedLineCount(preferedLineCount);
+                        beforeLayoutBlock.setPreferredLineCount(preferredLineCount);
                     }
 
                     // Insert blocks
@@ -2979,18 +2979,18 @@ public final class ClassFileLayouter {
                     if (insertionLayoutBlock.getTag() != LayoutBlockConstants.TYPE_BODY_BLOCK_END /*&&
                         (insertionLayoutBlock.tag != LayoutBlockConstants.SEPARATOR_BEFORE_OR_AFTER_BLOCK)*/)
                     {
-                        int preferedLineCount = 2;
+                        int preferredLineCount = 2;
 
                         if (markerStartTag == LayoutBlockConstants.FIELD_MARKER_START)
                         {
-                            preferedLineCount = 1;
+                            preferredLineCount = 1;
                         }
 
                         layoutBlockList.add(
                             lowerScoreBlockIndex+targetDeltaIndex,
                             new SeparatorLayoutBlock(
                                 LayoutBlockConstants.SEPARATOR,
-                                preferedLineCount));
+                                preferredLineCount));
 
                         targetDeltaIndex++;
                     }
@@ -3159,7 +3159,7 @@ public final class ClassFileLayouter {
 
                 if (mlb.getSection() != mlb.getOther().getSection() || mlb.getOther().getIndex() >= lastBlockIndex)
                 {
-                    // Le marqueur de fin est après la limite.
+                    // Le marqueur de fin est après la limit.
                     return false;
                 }
 
@@ -3190,7 +3190,7 @@ public final class ClassFileLayouter {
 
                         if (mlb.getSection() != mlb.getOther().getSection() || mlb.getOther().getIndex() >= lastBlockIndex)
                         {
-                            // Le marqueur de début est avant la limite.
+                            // Le marqueur de début est avant la limit.
                             break;
                         }
 
@@ -3327,11 +3327,11 @@ public final class ClassFileLayouter {
                         sourceDeltaIndex++;
                     }
 
-                    // Modify separator brefore blocks if exists
+                    // Modify separator before blocks if exists
                     if (layoutBlockList.get(blockIndex).getTag() ==
                         LayoutBlockConstants.SEPARATOR)
                     {
-                        layoutBlockList.get(blockIndex).setPreferedLineCount(2);
+                        layoutBlockList.get(blockIndex).setPreferredLineCount(2);
                     }
 
                     // Blocs pas encore inserés.
@@ -3343,18 +3343,18 @@ public final class ClassFileLayouter {
                         (insertionLayoutBlock.tag != LayoutBlockConstants.SEPARATOR_BEFORE_OR_AFTER_BLOCK)*/)
                     {
                         // Insert new separator before blocks
-                        int preferedLineCount = 2;
+                        int preferredLineCount = 2;
 
                         if (markerEndTag == LayoutBlockConstants.FIELD_MARKER_END)
                         {
-                            preferedLineCount = 1;
+                            preferredLineCount = 1;
                         }
 
                         layoutBlockList.add(
                             lowerScoreBlockIndex,
                             new SeparatorLayoutBlock(
                                 LayoutBlockConstants.SEPARATOR,
-                                preferedLineCount));
+                                preferredLineCount));
 
                         targetDeltaIndex++;
                     }
@@ -3373,20 +3373,20 @@ public final class ClassFileLayouter {
                         (insertionLayoutBlock.tag == LayoutBlockConstants.SEPARATOR_BEFORE_OR_AFTER_BLOCK)*/)
                     {
                         // Insert new separator after blocks
-                        int preferedLineCount = 2;
+                        int preferredLineCount = 2;
 
                         if (markerEndTag == LayoutBlockConstants.FIELD_MARKER_END &&
                             layoutBlockList.get(lowerScoreBlockIndex+targetDeltaIndex).getTag() ==
                                 LayoutBlockConstants.FIELD_MARKER_END)
                         {
-                            preferedLineCount = 1;
+                            preferredLineCount = 1;
                         }
 
                         layoutBlockList.add(
                             lowerScoreBlockIndex+targetDeltaIndex,
                             new SeparatorLayoutBlock(
                                 LayoutBlockConstants.SEPARATOR,
-                                preferedLineCount));
+                                preferredLineCount));
 
                         targetDeltaIndex++;
                     }
@@ -3396,16 +3396,16 @@ public final class ClassFileLayouter {
                         LayoutBlock afterLayoutBlock =
                             layoutBlockList.get(lowerScoreBlockIndex+targetDeltaIndex);
 
-                        int preferedLineCount = 2;
+                        int preferredLineCount = 2;
 
                         if (markerStartTag == LayoutBlockConstants.FIELD_MARKER_START &&
                             layoutBlockList.get(lowerScoreBlockIndex+targetDeltaIndex+1).getTag() ==
                                 LayoutBlockConstants.FIELD_MARKER_START)
                         {
-                            preferedLineCount = 1;
+                            preferredLineCount = 1;
                         }
 
-                        afterLayoutBlock.setPreferedLineCount(preferedLineCount);
+                        afterLayoutBlock.setPreferredLineCount(preferredLineCount);
                     }
 
                     // -- 4 ------------------------------------------------- //
@@ -3538,7 +3538,7 @@ public final class ClassFileLayouter {
         
         int firstLineNumber = Instruction.UNKNOWN_LINE_NUMBER;
         int lastLineNumber = Instruction.UNKNOWN_LINE_NUMBER;
-        int preferedLineNumber = LayoutBlockConstants.UNLIMITED_LINE_COUNT;
+        int preferredLineNumber = LayoutBlockConstants.UNLIMITED_LINE_COUNT;
 
         if (!nullCodeFlag)
         {
@@ -3621,7 +3621,7 @@ public final class ClassFileLayouter {
         sortedMethodBlockList.add(new SubListLayoutBlock(
             LayoutBlockConstants.SUBLIST_METHOD,
             subLayoutBlockList, firstLineNumber,
-            lastLineNumber, preferedLineNumber));
+            lastLineNumber, preferredLineNumber));
         return sortBlocks(sortedMethodBlockList, false);
     }
 }

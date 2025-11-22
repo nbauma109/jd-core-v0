@@ -23,17 +23,17 @@ public class MethodBodyBlockStartLayoutBlock extends BlockLayoutBlock
         this(2);
     }
 
-    public MethodBodyBlockStartLayoutBlock(int preferedLineCount)
+    public MethodBodyBlockStartLayoutBlock(int preferredLineCount)
     {
         super(
             LayoutBlockConstants.METHOD_BODY_BLOCK_START, 0,
-            LayoutBlockConstants.UNLIMITED_LINE_COUNT, preferedLineCount);
+            LayoutBlockConstants.UNLIMITED_LINE_COUNT, preferredLineCount);
     }
 
-    public void transformToStartEndBlock(int preferedLineCount)
+    public void transformToStartEndBlock(int preferredLineCount)
     {
         this.setTag(LayoutBlockConstants.METHOD_BODY_BLOCK_START_END);
-        this.setPreferedLineCount(this.setLineCount(preferedLineCount));
+        this.setPreferredLineCount(this.setLineCount(preferredLineCount));
     }
 
     public void transformToSingleLineBlock()

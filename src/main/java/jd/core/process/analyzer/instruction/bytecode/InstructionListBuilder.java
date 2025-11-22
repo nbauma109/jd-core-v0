@@ -74,7 +74,7 @@ public final class InstructionListBuilder
 
                 // Declaration du tableau des sauts vers les sous procedures
                 // (jsr ... ret). A chaque début de sous procedures, une pseudo
-                // adresse de retour doit être inseree sur la pile.
+                // address de retour doit être inseree sure la pile.
                 IntSet offsetSet = new IntSet();
 
                 // Population des deux tableaux dans la même passe.
@@ -200,9 +200,9 @@ public final class InstructionListBuilder
                     // Ajout de ReturnAddressLoad
                     if (offset == subProcOffset)
                     {
-                        // Ajout d'une pseudo adresse de retour en début de
+                        // Ajout d'une pseudo address de retour en début de
                         // sous procedure. Lors de l'execution, cette
-                        // adresse est normalement placée sur la pile par
+                        // address est normalement placée sure la pile par
                         // l'instruction JSR.
                         stack.push(new ReturnAddressLoad(
                                 ByteCodeConstants.RETURNADDRESSLOAD,
@@ -294,7 +294,7 @@ public final class InstructionListBuilder
                      Const.IFLT,
                      Const.IFGE,
                      Const.IFGT,
-                     Const.IFLE,
+                     Const.FILE,
 
                      Const.IF_ICMPEQ,
                      Const.IF_ICMPNE,

@@ -61,7 +61,7 @@ import jd.core.process.analyzer.util.InstructionUtil;
 import jd.core.util.IntSet;
 import jd.core.util.UtilConstants;
 
-/** Agglomeration des informations 'CodeException'. */
+/** Agglomeration des information 'CodeException'. */
 public final class FastCodeExceptionAnalyzer
 {
     private FastCodeExceptionAnalyzer() {
@@ -415,7 +415,7 @@ public final class FastCodeExceptionAnalyzer
                     fce.nbrFinally += fastAggregatedCodeException.nbrFinally;
                     return true;
                 }
-                /* Mis en commentaire a cause d'erreurs pour le jdk1.5.0 dans
+                /* Miss en commentaire a cause d'erreurs pour le jdk1.5.0 dans
                  * TryCatchFinallyClass.complexMethodTryCatchCatchFinally()
                  *
                  * else if ((fce.catches != null) &&
@@ -496,7 +496,7 @@ public final class FastCodeExceptionAnalyzer
 
         case Const.RET:
             // Particularite de la structure try-catch-finally du JDK 1.1.8:
-            // une sous routine termine le bloc precedent 'offset'.
+            // une sous routine determine le bloc precedent 'offset'.
             // Strategie : recheche de l'instruction goto, sautant après
             // 'offset', et suivie par le sequence d'instructions suivante :
             //  30: goto +105 -> 135
@@ -780,7 +780,7 @@ public final class FastCodeExceptionAnalyzer
             else
             {
                 // Yes, contains catch(s) & multiple finally
-                // Control que toutes les instructions 'goto' sautent sur la
+                // Control que toutes les instructions 'goto' sautent sure la
                 // même instruction.
                 boolean uniqueJumpAddressFlag = true;
                 int uniqueJumpAddress = -1;
@@ -1113,7 +1113,7 @@ public final class FastCodeExceptionAnalyzer
                 // L'un des deux cas les plus complexes :
                 // - le bloc 'finally' est dupliqué deux fois.
                 // - aucun 'goto' ne saute après le dernier bloc finally.
-                // Methode de calcul de 'afterOffset' :
+                // Method de calcul de 'afterOffset' :
                 // - compter le nombre d'instructions entre le début du 1er bloc
                 //   'finally' et le saut du goto en fin de bloc 'try'.
                 // - Ajouter ce nombre à l'index de l'instruction vers laquelle
@@ -1148,7 +1148,7 @@ public final class FastCodeExceptionAnalyzer
             // L'un des deux cas les plus complexes :
             // - le bloc 'finally' est dupliqué deux ou trois fois.
             // - aucun 'goto' ne saute après le dernier bloc finally.
-            // Methode de calcul de 'afterOffset' :
+            // Method de calcul de 'afterOffset' :
             // - compter le nombre d'instructions entre le début du 1er bloc
             //   'finally' et le saut du goto en fin de bloc 'try'.
             // - Ajouter ce nombre à l'index de l'instruction vers laquelle
@@ -1229,7 +1229,7 @@ public final class FastCodeExceptionAnalyzer
         break;
         case FastConstants.TYPE_118_FINALLY:
         {
-            // Re-estimation de la valeur de l'attribut 'afterOffset'.
+            // Re-estimation de la valeur de l'attribute 'afterOffset'.
             // Strategie : le bon offset, après le bloc 'try-finally', se
             // trouve après l'instruction 'ret' de la sous procedure du
             // bloc 'finally'.
@@ -1304,7 +1304,7 @@ public final class FastCodeExceptionAnalyzer
         {
             int length = list.size();
 
-            // Re-estimation de la valeur de l'attribut 'afterOffset'.
+            // Re-estimation de la valeur de l'attribute 'afterOffset'.
             // Strategie : parcours du bytecode jusqu'à trouver une
             // instruction de saut vers la derniere instruction 'return',
             // ou une instruction 'athrow' ou une instruction de saut
@@ -1416,14 +1416,14 @@ public final class FastCodeExceptionAnalyzer
                         // Verification que toutes les variables
                         // locales utilisees sont definies dans le
                         // bloc du dernier catch ou de finally
-                        // OU que l'instruction participe a un
+                        // OU que l'instruction participate a un
                         // operateur ternaire
                         if (CheckLocalVariableUsedVisitor.visit(
                                 method.getLocalVariables(),
                                 fastCodeException.maxOffset,
                                 instruction) || checkTernaryOperator(list, index))
                         {
-                            // => Instruction incluse au bloc
+                            // => Instruction includes au bloc
                             fastCodeException.setAfterOffset(instruction.getOffset()+1);
                         } else if (index+1 >= length)
                         {
@@ -1431,7 +1431,7 @@ public final class FastCodeExceptionAnalyzer
                             if (instruction.getOpcode() == Const.ATHROW)
                             {
                                 // Dernier 'throw'
-                                // => Instruction incluse au bloc
+                                // => Instruction includes au bloc
                                 fastCodeException.setAfterOffset(instruction.getOffset()+1);
                             }
                             else
@@ -1444,7 +1444,7 @@ public final class FastCodeExceptionAnalyzer
                         else
                         {
                             // Une instruction du bloc 'try-catch-finally'
-                            // saute-t-elle vers l'instuction qui suit
+                            // saute-t-elle vers l'instruction qui suit
                             // cette instruction ?
                             int tryFromIndex =
                                     InstructionUtil.getIndexForOffset(
@@ -1459,7 +1459,7 @@ public final class FastCodeExceptionAnalyzer
                                 // Aucune instruction du bloc
                                 // 'try-catch-finally' ne saute vers
                                 // cette instruction.
-                                // => Instruction incluse au bloc
+                                // => Instruction includes au bloc
                                 fastCodeException.setAfterOffset(instruction.getOffset()+1);
                             }
                             else
@@ -1504,7 +1504,7 @@ public final class FastCodeExceptionAnalyzer
                                         jumpOffsetTmp != afterOffset)
                                 {
                                     // Une instruction du bloc 'try-catch-finally'
-                                    // saute-t-elle vers cett instuction ?
+                                    // saute-t-elle vers cett instruction ?
                                     int tryFromIndex =
                                             InstructionUtil.getIndexForOffset(
                                                     list, fastCodeException.getTryFromOffset());
@@ -1517,15 +1517,15 @@ public final class FastCodeExceptionAnalyzer
                                     {
                                         // Aucune instruction du bloc
                                         // 'try-catch-finally' ne saute vers
-                                        // cette instuction
-                                        // => Instruction incluse au bloc
+                                        // cette instruction
+                                        // => Instruction includes au bloc
                                         fastCodeException.setAfterOffset(instruction.getOffset()+1);
                                     }
                                     else
                                     {
                                         // Une instruction du bloc
                                         // 'try-catch-finally' saute vers
-                                        // cette instuction
+                                        // cette instruction
                                         // => Instruction placée après le bloc
                                         fastCodeException.setAfterOffset(instruction.getOffset());
                                     }
@@ -2156,7 +2156,7 @@ public final class FastCodeExceptionAnalyzer
         finallyInstructions.remove(0);
     }
 
-    /* Deux variantes existent. La sous procedure [finally] ne se trouve pas
+    /* Deux variants existent. La sous procedure [finally] ne se trouve pas
      * toujours dans le block 'finally'.
      */
     private static void format131CatchFinally(

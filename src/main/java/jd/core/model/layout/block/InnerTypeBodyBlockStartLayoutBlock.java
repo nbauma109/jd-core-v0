@@ -28,6 +28,6 @@ public class InnerTypeBodyBlockStartLayoutBlock extends BlockLayoutBlock
     public void transformToStartEndBlock()
     {
         this.setTag(LayoutBlockConstants.INNER_TYPE_BODY_BLOCK_START_END);
-        this.setPreferedLineCount(this.setLineCount(0));
+        this.setPreferredLineCount(this.setLineCount(0));
     }
 }

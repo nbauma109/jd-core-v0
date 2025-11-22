@@ -21,7 +21,7 @@ import jd.core.model.classfile.LocalVariables;
 
 /*
  * Pseudo instruction placée en début de sous procedure. Lors de l'execution,
- * cette adresse est normalement placée sur la pile par l'instruction JSR.
+ * cette address est normalement placée sure la pile par l'instruction JSR.
  */
 public class ReturnAddressLoad extends Instruction
 {
