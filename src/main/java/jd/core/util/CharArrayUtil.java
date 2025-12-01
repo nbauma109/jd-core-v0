@@ -19,7 +19,6 @@ package jd.core.util;
 public final class CharArrayUtil
 {
     private CharArrayUtil() {
-        super();
     }
 
     public static String substring(char[] ca, int beginIndex, int endIndex)

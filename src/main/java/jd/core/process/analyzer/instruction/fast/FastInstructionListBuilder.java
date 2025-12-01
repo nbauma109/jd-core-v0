@@ -809,22 +809,22 @@ public final class FastInstructionListBuilder {
         // Remove "monitorenter localTestSynchronize1"
         MonitorEnter menter = (MonitorEnter) list.remove(index);
         index--;
-        switch (menter.getObjectref().getOpcode()) {
-        case ByteCodeConstants.ASSIGNMENT:
-            return ((AssignmentInstruction) menter.getObjectref()).getValue2();
-        case ByteCodeConstants.DUPLOAD:
-            // Remove Astore(DupLoad)
+        return switch (menter.getObjectref().getOpcode()) {
+		case ByteCodeConstants.ASSIGNMENT -> ((AssignmentInstruction) menter.getObjectref()).getValue2();
+		case ByteCodeConstants.DUPLOAD -> {
+			// Remove Astore(DupLoad)
             list.remove(index);
-            index--;
-            // Remove DupStore(...)
+			index--;
+			// Remove DupStore(...)
             DupStore dupstore = (DupStore) list.remove(index);
-            return dupstore.getObjectref();
-        case Const.ALOAD:
-            AStore astore = (AStore) list.remove(index);
-            return astore.getValueref();
-        default:
-            return null;
-        }
+			yield dupstore.getObjectref();
+		}
+		case Const.ALOAD -> {
+			AStore astore = (AStore) list.remove(index);
+			yield astore.getValueref();
+		}
+		default -> null;
+		};
     }
 
     private static void removeAllMonitorExitInstructions(List<Instruction> instructions, int length,
@@ -1052,7 +1052,8 @@ public final class FastInstructionListBuilder {
             Instruction last = tryInstructions.get(length);
             if (last.getOpcode() == Const.RET) {
                 tryInstructions.remove(length);
-                last = tryInstructions.get(--length);
+                length--;
+				last = tryInstructions.get(length);
                 // Skip MONITOREXIT
                 if (last.getOpcode() == Const.MONITOREXIT) {
                     last = tryInstructions.get(--length);
@@ -1071,7 +1072,7 @@ public final class FastInstructionListBuilder {
                 }
             }
         }
-        
+
         // Analyze lists of instructions
         executeReconstructors(referenceMap, classFile, tryInstructions, localVariables);
 
@@ -1086,7 +1087,7 @@ public final class FastInstructionListBuilder {
                 catchInstructions = fc.instructions();
                 executeReconstructors(referenceMap, classFile, catchInstructions, localVariables);
             }
-            
+
             fastTry.removeOutOfBounds();
         }
 
@@ -3026,7 +3027,7 @@ public final class FastInstructionListBuilder {
                         list.remove(i);
                         beforeWhileLoopIndex--;
                     }
-                    
+
                 }
                 list.set(beforeWhileLoopIndex, new FastFor(FastConstants.FOR, forLoopOffset, beforeWhileLoop.getLineNumber(),
                         branch, beforeWhileLoop, test, lastBodyWhileLoop, subList));
@@ -3052,13 +3053,9 @@ public final class FastInstructionListBuilder {
     private static boolean isAForEachIteratorPattern(ClassFile classFile, Method method, Instruction init,
             Instruction test, List<Instruction> subList) {
         // Tests: (Java 5 or later) + (Not empty sub list)
-        if (classFile.getMajorVersion() < 49 || subList.isEmpty()) {
-            return false;
-        }
-
         // Test: Same line number
         // Test 'init' instruction: Iterator localIterator = strings.iterator()
-        if (test.getLineNumber() != subList.get(0).getLineNumber() || init.getOpcode() != Const.ASTORE) {
+        if (classFile.getMajorVersion() < 49 || subList.isEmpty() || test.getLineNumber() != subList.get(0).getLineNumber() || init.getOpcode() != Const.ASTORE) {
             return false;
         }
         AStore astoreIterator = (AStore) init;
@@ -3152,7 +3149,7 @@ public final class FastInstructionListBuilder {
      * 14: String[] strings = { "a", "b" };
      * 20: int j = (arrayOfString1 = strings).length;
      * 48: for (int i = 0; i < j; ++i) {
-     * 33: String s = arrayOfString1[i]; 
+     * 33: String s = arrayOfString1[i];
      * 38: System.out.println(s);
      * }
      *
@@ -3217,7 +3214,7 @@ public final class FastInstructionListBuilder {
             ConstantNameAndType cnat = cp.getConstantNameAndType(cmr.getNameAndTypeIndex());
             String name = cp.getConstantUtf8(cnat.getNameIndex());
             String signature = cp.getConstantUtf8(cnat.getSignatureIndex());
-            if (!StringUtils.equalsAny(name + signature, 
+            if (!StringUtils.equalsAny(name + signature,
                     "intValue()I", "longValue()J", "doubleValue()D", "floatValue()F",
                     "byteValue()B", "shortValue()S", "charValue()C", "booleanValue()Z")) {
                 return 0;
@@ -3252,7 +3249,7 @@ public final class FastInstructionListBuilder {
      * Possible return values:
      * 0: No pattern
      * 2: Pattern SUN 1.6
-     * @param cp 
+     * @param cp
      */
     private static int getForEachArraySun16PatternType(Instruction init, Instruction test, Instruction inc,
             Instruction firstInstruction, StoreInstruction siLength, Instruction beforeBeforeForInstruction, ConstantPool cp) {
@@ -3310,7 +3307,7 @@ public final class FastInstructionListBuilder {
             ConstantNameAndType cnat = cp.getConstantNameAndType(cmr.getNameAndTypeIndex());
             String name = cp.getConstantUtf8(cnat.getNameIndex());
             String signature = cp.getConstantUtf8(cnat.getSignatureIndex());
-            if (!StringUtils.equalsAny(name + signature, 
+            if (!StringUtils.equalsAny(name + signature,
                     "intValue()I", "longValue()J", "doubleValue()D", "floatValue()F",
                     "byteValue()B", "shortValue()S", "charValue()C", "booleanValue()Z")) {
                 return 0;
@@ -3430,8 +3427,8 @@ public final class FastInstructionListBuilder {
      *
      * Possible return values:
      * 0: No pattern
-     * 1: Pattern SUN 1.5 
-     * 2: Pattern SUN 1.6 
+     * 1: Pattern SUN 1.5
+     * 2: Pattern SUN 1.6
      * 3: Pattern IBM
      */
     private static int getForEachArrayPatternType(ClassFile classFile, Instruction init, Instruction test,
@@ -3513,7 +3510,7 @@ public final class FastInstructionListBuilder {
                 return beforeLastBodyLoop != null && beforeLastBodyLoop.getLineNumber() > lastBodyLoop.getLineNumber() ? 4
                         : 0;
             }
-            /* 
+            /*
              * 2: while (test)
              * 6: for (; test; lastBodyLoop)
              */
@@ -3558,7 +3555,7 @@ public final class FastInstructionListBuilder {
         }
         if (lastBodyLoop == null) {
             // Cas possibles : 2, 3
-            /* 
+            /*
              * 2: while (test)
              * 3: for (beforeLoop; test;)
              */
@@ -3575,7 +3572,7 @@ public final class FastInstructionListBuilder {
             // beforeLoop & lastBodyLoop sont-elles des instructions
             // d'affectation ou d'incrementation ?
             // (a|d|f|i|l|s)store ou iinc ?
-            /* 
+            /*
              * 2: while (test)
              * 7: for (beforeLoop; test; lastBodyLoop)
              */
@@ -3584,14 +3581,14 @@ public final class FastInstructionListBuilder {
         if (beforeLastBodyLoop == null) {
             if (beforeLoop.getLineNumber() == test.getLineNumber()) {
                 // Cas possibles : 3, 7
-                /* 
+                /*
                  * 3: for (beforeLoop; test;)
                  * 7: for (beforeLoop; test; lastBodyLoop)
                  */
                 return beforeLoop.getLineNumber() == lastBodyLoop.getLineNumber() ? 7 : 3;
             }
             // Cas possibles : 2, 6
-            /* 
+            /*
              * 2: while (test)
              * 6: for (; test; lastBodyLoop)
              */
@@ -3599,14 +3596,14 @@ public final class FastInstructionListBuilder {
         }
         if (beforeLastBodyLoop.getLineNumber() < lastBodyLoop.getLineNumber()) {
             // Cas possibles : 2, 3
-            /* 
+            /*
              * 2: while (test)
              * 3: for (beforeLoop; test;)
              */
             return beforeLoop.getLineNumber() == test.getLineNumber() ? 3 : 2;
         }
         // Cas possibles : 6, 7
-        /* 
+        /*
          * 6: for (; test; lastBodyLoop)
          * 7: for (beforeLoop; test; lastBodyLoop)
          */

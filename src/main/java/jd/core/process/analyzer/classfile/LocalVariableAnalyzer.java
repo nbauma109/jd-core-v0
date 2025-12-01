@@ -1539,13 +1539,13 @@ public final class LocalVariableAnalyzer
                 ALoad aload = (ALoad)asi.getArrayref();
                 LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(
                         aload.getIndex(), aload.getOffset());
-                
+
                 if (lv == null)
                 {
                     new Throwable("lv is null. index=" + aload.getIndex()).printStackTrace();
                     return;
                 }
-                
+
                 String signature =
                         lv.getSignature(constants);
                 ((IConst)asi.getValueref()).setReturnedSignature(
@@ -1565,7 +1565,7 @@ public final class LocalVariableAnalyzer
             }
         }
     }
-    
+
     private static void setConstantTypesIStore(
             ConstantPool constants,
             LocalVariables localVariables,

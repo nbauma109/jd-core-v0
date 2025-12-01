@@ -37,7 +37,6 @@ import jd.core.process.analyzer.classfile.visitor.ReplaceDupLoadVisitor;
 public final class RemoveDupConstantsAttributes
 {
     private RemoveDupConstantsAttributes() {
-        super();
     }
 
     public static void reconstruct(List<Instruction> list)
@@ -90,7 +89,8 @@ public final class RemoveDupConstantsAttributes
                 dupLoadIndex++;
             }
 
-            list.remove(dupStoreIndex--);
+            list.remove(dupStoreIndex);
+			dupStoreIndex--;
         }
     }
 }

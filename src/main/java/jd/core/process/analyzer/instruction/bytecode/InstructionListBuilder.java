@@ -44,7 +44,6 @@ import jd.core.util.SignatureUtil;
 public final class InstructionListBuilder
 {
     private InstructionListBuilder() {
-        super();
     }
 
     private static final CodeExceptionComparator COMPARATOR =
@@ -181,7 +180,8 @@ public final class InstructionListBuilder
                         int nextOffsetException;
                         for (;;)
                         {
-                            if (++codeExceptionsIndex >= codeExceptions.length)
+                            codeExceptionsIndex++;
+							if (codeExceptionsIndex >= codeExceptions.length)
                             {
                                 nextOffsetException = -1;
                                 break;

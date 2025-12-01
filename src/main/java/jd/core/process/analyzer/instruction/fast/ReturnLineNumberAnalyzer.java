@@ -36,7 +36,6 @@ import jd.core.model.instruction.fast.instruction.FastTry;
 public final class ReturnLineNumberAnalyzer
 {
     private ReturnLineNumberAnalyzer() {
-        super();
     }
 
     public static void check(Method method)

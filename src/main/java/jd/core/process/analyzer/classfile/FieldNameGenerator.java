@@ -23,7 +23,6 @@ import jd.core.util.CharArrayUtil;
 public final class FieldNameGenerator
 {
     private FieldNameGenerator() {
-        super();
     }
 
     public static String generateName(
@@ -97,7 +96,8 @@ public final class FieldNameGenerator
                 index++;
                 break;
             case 'L', '.' :
-                beginIndex = ++index;
+                index++;
+				beginIndex = index;
                 c = '.';
 
                 // Recherche de ; ou de <

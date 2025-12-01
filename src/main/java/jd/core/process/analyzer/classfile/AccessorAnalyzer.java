@@ -52,33 +52,24 @@ import jd.core.util.SignatureUtil;
 public final class AccessorAnalyzer
 {
     private AccessorAnalyzer() {
-        super();
     }
 
     public static void analyze(ClassFile classFile, Method method)
     {
         // Recherche des accesseurs de champs statiques
         //   static AuthenticatedSubject access$000()
-        if (searchGetStaticAccessor(classFile, method)) {
-            return;
-        }
+        
 
         // Recherche des accesseurs de champs statiques
         //   static void access$0(int)
-        if (searchPutStaticAccessor(classFile, method)) {
-            return;
-        }
+        
 
         // Recherche des accesseurs de champs avec increment
-        if (searchIncGetFieldAccessor(classFile, method)) {
+        // Recherche des accesseurs de champs static avec increment
+        if (searchGetStaticAccessor(classFile, method) || searchPutStaticAccessor(classFile, method) || searchIncGetFieldAccessor(classFile, method) || searchIncGetStaticAccessor(classFile, method)) {
             return;
         }
 
-        // Recherche des accesseurs de champs static avec increment
-        if (searchIncGetStaticAccessor(classFile, method)) {
-            return;
-        }
-        
         // Recherche des accesseurs de champs
         //   static int access$1(TestInnerClass)
         if (searchGetFieldAccessor(classFile, method)) {
@@ -166,12 +157,8 @@ public final class AccessorAnalyzer
         ClassFile classFile, Method method)
     {
         List<Instruction> list = method.getInstructions();
-        if (list.size() != 2) {
-            return false;
-        }
-
-        if (list.get(1).getOpcode() != ByteCodeConstants.XRETURN
-         && list.get(1).getOpcode() != Const.RETURN) {
+        if ((list.size() != 2) || (list.get(1).getOpcode() != ByteCodeConstants.XRETURN
+         && list.get(1).getOpcode() != Const.RETURN)) {
             return false;
         }
 
@@ -251,10 +238,7 @@ public final class AccessorAnalyzer
 
         String methodDescriptor =
             constants.getConstantUtf8(method.getDescriptorIndex());
-        if (methodDescriptor.charAt(1) == ')') {
-            return false;
-        }
-        if (SignatureUtil.getParameterSignatureCount(methodDescriptor) != 1) {
+        if ((methodDescriptor.charAt(1) == ')') || (SignatureUtil.getParameterSignatureCount(methodDescriptor) != 1)) {
             return false;
         }
 
@@ -282,12 +266,12 @@ public final class AccessorAnalyzer
         if (list.size() != 1) {
             return false;
         }
-        
+
         Instruction instruction = list.get(0);
         if (instruction.getOpcode() != ByteCodeConstants.XRETURN) {
             return false;
         }
-        
+
         instruction = ((ReturnInstruction)instruction).getValueref();
         if (!(instruction instanceof IncInstruction inc)) {
             return false;
@@ -300,28 +284,25 @@ public final class AccessorAnalyzer
 
         ConstantFieldref cfr = constants.getConstantFieldref(
                 ((GetField)inc.getValue()).getIndex());
-        
+
         if (cfr.getClassIndex() != classFile.getThisClassIndex()) {
             return false;
         }
-        
+
         String methodDescriptor =
                 constants.getConstantUtf8(method.getDescriptorIndex());
-        if (methodDescriptor.charAt(1) == ')') {
+        if ((methodDescriptor.charAt(1) == ')') || (SignatureUtil.getParameterSignatureCount(methodDescriptor) != 1)) {
             return false;
         }
-        if (SignatureUtil.getParameterSignatureCount(methodDescriptor) != 1) {
-            return false;
-        }
-        
+
         String methodName = constants.getConstantUtf8(method.getNameIndex());
-        
+
         ConstantNameAndType cnat = constants.getConstantNameAndType(
                 cfr.getNameAndTypeIndex());
-        
+
         String fieldDescriptor = constants.getConstantUtf8(cnat.getSignatureIndex());
         String fieldName = constants.getConstantUtf8(cnat.getNameIndex());
-        
+
         // Trouve ! Ajout de l'accesseur.
         classFile.addAccessor(methodName, methodDescriptor,
                 new IncGetFieldAccessor(
@@ -338,12 +319,12 @@ public final class AccessorAnalyzer
         if (list.size() != 1) {
             return false;
         }
-        
+
         Instruction instruction = list.get(0);
         if (instruction.getOpcode() != ByteCodeConstants.XRETURN) {
             return false;
         }
-        
+
         instruction = ((ReturnInstruction)instruction).getValueref();
         if (!(instruction instanceof IncInstruction inc)) {
             return false;
@@ -356,25 +337,25 @@ public final class AccessorAnalyzer
 
         ConstantFieldref cfr = constants.getConstantFieldref(
                 ((GetStatic)inc.getValue()).getIndex());
-        
+
         if (cfr.getClassIndex() != classFile.getThisClassIndex()) {
             return false;
         }
-        
+
         String methodDescriptor =
                 constants.getConstantUtf8(method.getDescriptorIndex());
         if (methodDescriptor.charAt(1) != ')') {
             return false;
         }
-        
+
         String methodName = constants.getConstantUtf8(method.getNameIndex());
-        
+
         ConstantNameAndType cnat = constants.getConstantNameAndType(
                 cfr.getNameAndTypeIndex());
-        
+
         String fieldDescriptor = constants.getConstantUtf8(cnat.getSignatureIndex());
         String fieldName = constants.getConstantUtf8(cnat.getNameIndex());
-        
+
         // Trouve ! Ajout de l'accesseur.
         classFile.addAccessor(methodName, methodDescriptor,
                 new IncGetStaticAccessor(
@@ -383,7 +364,7 @@ public final class AccessorAnalyzer
                         inc.getCount(), inc.getOpcode()));
         return true;
     }
-    
+
     /* Recherche des accesseurs de champs:
      *   static void access$0(TestInnerClass, int)
      *   {
@@ -447,10 +428,7 @@ public final class AccessorAnalyzer
 
         String methodDescriptor =
             constants.getConstantUtf8(method.getDescriptorIndex());
-        if (methodDescriptor.charAt(1) == ')') {
-            return false;
-        }
-        if (SignatureUtil.getParameterSignatureCount(methodDescriptor) != 2) {
+        if ((methodDescriptor.charAt(1) == ')') || (SignatureUtil.getParameterSignatureCount(methodDescriptor) != 2)) {
             return false;
         }
 

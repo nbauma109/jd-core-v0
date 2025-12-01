@@ -33,7 +33,6 @@ import jd.core.model.instruction.fast.instruction.FastSynchronized;
 public final class EmptySynchronizedBlockReconstructor
 {
     private EmptySynchronizedBlockReconstructor() {
-        super();
     }
 
     public static void reconstruct(
@@ -100,7 +99,8 @@ public final class EmptySynchronizedBlockReconstructor
             fastSynchronized.setMonitor(dupStore.getObjectref());
 
             // Remove MonitorExit/MonitorEnter
-            list.remove(index--);
+            list.remove(index);
+			index--;
             // Remove MonitorEnter/Astore
             list.remove(index--);
             // Replace DupStore with FastSynchronized

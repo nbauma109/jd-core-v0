@@ -66,7 +66,7 @@ public class ReplaceStringBuxxxerVisitor extends AbstractReplaceInstructionVisit
         if (i.getOpcode() == Const.INVOKEVIRTUAL)
         {
             Invokevirtual iv = (Invokevirtual)i;
-            
+
             ConstantPool constants = classFile.getConstantPool();
             ConstantCP cmr = constants .getConstantMethodref(iv.getIndex());
             ConstantClass cc = constants.getConstantClass(cmr.getClassIndex());
