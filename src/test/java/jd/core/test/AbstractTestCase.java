@@ -48,7 +48,7 @@ public abstract class AbstractTestCase {
             String[] classpathEntries = System.getProperty("java.class.path").split(File.pathSeparator);
             parser.setEnvironment(classpathEntries, null, null, true);
             parser.setUnitName(internalTypeName + ".java");
-    
+
             Map<String, String> options = JavaCore.getOptions();
             options.put(JavaCore.CORE_ENCODING, StandardCharsets.UTF_8.name());
             options.put(JavaCore.COMPILER_COMPLIANCE, jdkVersion);
@@ -85,23 +85,23 @@ public abstract class AbstractTestCase {
     protected String decompile(String internalTypeName) throws IOException {
         return decompile(internalTypeName, DEFAULT_JDK_VERSION);
     }
-    
+
     protected String decompile(String internalTypeName, Loader loader) throws IOException {
         return decompile(internalTypeName, loader, DEFAULT_JDK_VERSION);
     }
-    
+
     protected String decompile(String internalTypeName, String jdkVersion) throws IOException {
         return decompile(internalTypeName, new ClassPathLoader(), jdkVersion);
     }
-    
+
     protected boolean showDefaultConstructor() {
         return false;
     }
-    
+
     protected boolean showMetaData() {
         return false;
     }
-    
+
     protected boolean realignmentLineNumber() {
         return true;
     }

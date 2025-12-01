@@ -33,7 +33,6 @@ import jd.core.util.SignatureUtil;
 public final class SignatureLayouter
 {
     private SignatureLayouter() {
-        super();
     }
 
     public static boolean createLayoutBlocksForClassSignature(
@@ -96,7 +95,8 @@ public final class SignatureLayouter
 
             while (index < length)
             {
-                char c = caSignature[++index];
+                index++;
+				char c = caSignature[index];
 
                 if (c == '<')
                 {

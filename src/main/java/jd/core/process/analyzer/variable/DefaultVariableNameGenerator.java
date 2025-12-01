@@ -117,25 +117,25 @@ public class DefaultVariableNameGenerator implements VariableNameGenerator
 
     private static String getSuffixFromSignature(String signature)
     {
-        switch (signature.charAt(0))
-        {
-        case 'L' : return formatSignature(signature);
-        case 'B' : return "Byte";
-        case 'C' : return "Char";
-        case 'D' : return "Double";
-        case 'F' : return "Float";
-        case 'I' : return "Int";
-        case 'J' : return "Long";
-        case 'S' : return "Short";
-        case 'Z' : return "Boolean";
-        case '[' : return "Array";
-        case 'T' : return formatTemplate(signature);
-        default:
-            // DEBUG
+        return switch (signature.charAt(0)) {
+		case 'L' -> formatSignature(signature);
+		case 'B' -> "Byte";
+		case 'C' -> "Char";
+		case 'D' -> "Double";
+		case 'F' -> "Float";
+		case 'I' -> "Int";
+		case 'J' -> "Long";
+		case 'S' -> "Short";
+		case 'Z' -> "Boolean";
+		case '[' -> "Array";
+		case 'T' -> formatTemplate(signature);
+		default -> {
+			// DEBUG
             new Throwable("NameGenerator.generateParameterNameFromSignature: invalid signature '" + signature + "'").printStackTrace();
-            // DEBUG
-            return "?";
-        }
+			// DEBUG
+			yield "?";
+		}
+		};
     }
 
     private static String formatSignature(String signature)

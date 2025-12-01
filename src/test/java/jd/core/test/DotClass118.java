@@ -20,7 +20,8 @@ public class DotClass118 {
     }
 
     boolean preInc(Object[] array, int i) {
-        return array[++i] == Object.class;
+        i++;
+		return array[i] == Object.class;
     }
 
     boolean postInc(Object[] array, int i) {
@@ -59,9 +60,7 @@ public class DotClass118 {
     }
 
     Class ifCmp(Class c) {
-        if (Object.class == c) {
-            return c;
-        } else if (c == Object.class) {
+        if ((Object.class == c) || (c == Object.class)) {
             return c;
         }
         return null;
@@ -100,8 +99,7 @@ public class DotClass118 {
     }
 
     Class ternaryOpStore(String subtypeName) throws ClassNotFoundException {
-        Class subtype = (subtypeName == null) ? Object.class : Class.forName(subtypeName);
-        return subtype;
+        return (subtypeName == null) ? Object.class : Class.forName(subtypeName);
     }
 
     Class dupStore(Class c) {

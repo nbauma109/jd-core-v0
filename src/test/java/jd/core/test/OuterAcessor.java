@@ -12,7 +12,8 @@ public class OuterAcessor {
                 @Override
                 public void run() {
                     int i = 0;
-                    OuterAcessor.this.init(i++);
+                    OuterAcessor.this.init(i);
+					i++;
                 }
             }.start();
         }

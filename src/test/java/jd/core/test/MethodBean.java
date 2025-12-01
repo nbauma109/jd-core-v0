@@ -16,7 +16,7 @@ import static java.util.stream.Collectors.toList;
 public class MethodBean {
 
     private String methodName;
-    
+
     public MethodBean(String methodName) {
         this.methodName = methodName;
     }

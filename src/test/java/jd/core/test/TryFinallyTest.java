@@ -17,7 +17,7 @@ public class TryFinallyTest extends AbstractTestCase {
     public void testTryFinally180() throws Exception {
         test("/try-finally-javac-1.8.0_331.jar", "TryFinally180.txt");
     }
-    
+
     @Test
     public void testTryFinally142() throws Exception {
         test("/try-finally-javac-1.4.2_19.jar", "TryFinally142.txt");
@@ -27,7 +27,7 @@ public class TryFinallyTest extends AbstractTestCase {
     public void testTryFinally131() throws Exception {
         test("/try-finally-javac-1.3.1_28.jar", "TryFinally131.txt");
     }
-    
+
     @Test
     public void testTryFinally122() throws Exception {
         test("/try-finally-javac-1.2.2.jar", "TryFinally122.txt");

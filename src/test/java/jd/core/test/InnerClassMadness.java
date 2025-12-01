@@ -16,8 +16,7 @@ public class InnerClassMadness {
                     final InnerClassMadness t = new InnerClassMadness();
                     final A a = t.new A();
                     final A.B b = a.new B(a);
-                    final A.D d = a.new D(a, b);
-                    return d;
+                    return a.new D(a, b);
                 }
             }
         }.new Inner().getD();
@@ -29,7 +28,6 @@ public class InnerClassMadness {
 
         public class B extends A {
             public B(final A a) {
-                a.super();
             }
 
             public class C extends B {

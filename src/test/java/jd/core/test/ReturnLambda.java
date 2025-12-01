@@ -11,16 +11,15 @@ public class ReturnLambda {
     Predicate<?> isNotNullReturn() {
         return a -> a != null;
     }
-    
+
     ToIntFunction<?> isNotNullReturnInt() {
         return a -> a != null ? 1 : 0;
     }
-    
+
     Predicate<?> isNotNullStoreReturn() {
-        Predicate<?> predicate = a -> a != null;
-        return predicate;
+        return a -> a != null;
     }
-    
+
     Predicate<?> isNotNullPutFieldReturn() {
         this.predicate = a -> a != null;
         return this.predicate;

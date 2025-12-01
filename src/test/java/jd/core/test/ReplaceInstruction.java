@@ -45,12 +45,14 @@ public class ReplaceInstruction {
             boolean isWhitespace = Character.isWhitespace(actualChar);
             if (isWhitespace) {
                 if (whitespacesCount == 0 && !startWhitespaces) {
-                    newChars[count++] = StringUtils.SPACE.charAt(0);
+                    newChars[count] = StringUtils.SPACE.charAt(0);
+					count++;
                 }
                 whitespacesCount++;
             } else {
                 startWhitespaces = false;
-                newChars[count++] = (actualChar == 160 ? 32 : actualChar);
+                newChars[count] = (actualChar == 160 ? 32 : actualChar);
+				count++;
                 whitespacesCount = 0;
             }
         }
@@ -98,23 +100,23 @@ public class ReplaceInstruction {
     float[] addFirst(float[] array, float element) {
         return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, element);
     }
-    
+
     double[] addFirst(double[] array, double element) {
         return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, element);
     }
-    
+
     byte[] addFirst(byte[] array, byte element) {
         return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, element);
     }
-    
+
     short[] addFirst(short[] array, short element) {
         return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, element);
     }
-    
+
     long[] addFirst(long[] array, long element) {
         return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, element);
     }
-    
+
     /*
      * INSTANCEOF
      */
@@ -128,8 +130,9 @@ public class ReplaceInstruction {
                         : diagram.getSkinParam().getSplitParam()).getFiles();
 
         List<FileImageData> result = new ArrayList<>();
-        for (SFile f : files)
-            result.add(new FileImageData(f, imageData));
+        for (SFile f : files) {
+			result.add(new FileImageData(f, imageData));
+		}
 
         return result;
     }

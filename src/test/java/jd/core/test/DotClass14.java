@@ -16,17 +16,18 @@ public class DotClass14 {
     }
 
     boolean preInc(Object[] array, int i) {
-        return array[++i] == Object.class;
+        i++;
+		return array[i] == Object.class;
     }
-    
+
     boolean postInc(Object[] array, int i) {
         return array[i++] == Object.class;
     }
-    
+
     boolean arrayLoad(Object[] array) {
         return array[0].getClass() == Object.class;
     }
-    
+
     boolean aNewArray() {
         return new Object[0].equals(Object.class);
     }
@@ -34,7 +35,7 @@ public class DotClass14 {
     Class xReturn() {
         return Object.class;
     }
-    
+
     Class ldc(int dim) {
         return dim == 0 ? CONST : ARRAY_CONST;
     }
@@ -59,9 +60,7 @@ public class DotClass14 {
     }
 
     Class ifCmp(Class c) {
-        if (Object.class == c) {
-            return c;
-        } else if (c == Object.class) {
+        if ((Object.class == c) || (c == Object.class)) {
             return c;
         }
         return null;
@@ -101,12 +100,11 @@ public class DotClass14 {
     void pop() {
         readValue(Object.class);
     }
-    
+
     Class ternaryOpStore(String subtypeName) throws ClassNotFoundException {
-        Class subtype = (subtypeName == null) ? Object.class : Class.forName(subtypeName); 
-        return subtype;
+        return (subtypeName == null) ? Object.class : Class.forName(subtypeName);
     }
-    
+
     static native void print(Class c);
 
     Class dupStore(Class c) {
@@ -119,10 +117,6 @@ public class DotClass14 {
     }
 
     Object anonymous() {
-        return AccessController.doPrivileged(new PrivilegedAction() {
-            public Object run() {
-                return Object.class;
-            }
-        });
+        return AccessController.doPrivileged((PrivilegedAction) () -> Object.class);
     }
 }

@@ -28,7 +28,7 @@ public class OuterReference {
             a = new int[] { x, y }; // NEWINITARRAY
             a[x++] = a.length + y; // ARRAYSTORE, ARRAYLENGTH, BINARYOP
             a[++y] = -x; // UNARYOP
-            a[x + y] = d instanceof Double ? (int) Math.round((Double) d) : x; // CONVERT
+            a[x + y] = d instanceof Double d2 ? (int) Math.round(d2) : x; // CONVERT
             p.y = flag ? ++p.x : --p.y; // TERNARYOPSTORE
             // TABLESWITCH
             switch (x) {
@@ -68,7 +68,8 @@ public class OuterReference {
             multiANewArray[0] = new Object[y]; // ANEWARRAY
             multiANewArray[0][1] = new int[x++]; // NEWARRAY
             int i = 0;
-            System.out.println(multiANewArray[i++]); // POSTINC
+            System.out.println(multiANewArray[i]); // POSTINC
+			i++;
             System.out.println(multiANewArray[++i]); // PREINC
         }
     }

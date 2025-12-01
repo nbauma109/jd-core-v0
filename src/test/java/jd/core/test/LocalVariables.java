@@ -13,16 +13,11 @@ public class LocalVariables extends DefaultMutableTreeNode {
 
     Object getTransferData(DataFlavor flavor) throws Exception {
         Object returnObject;
-        if (flavor.equals(flavors[0])) {
-            Object userObject = getUserObject();
-            if (userObject == null) {
-                returnObject = null;
-            } else {
-                returnObject = userObject;
-            }
-        } else {
+        if (!flavor.equals(flavors[0])) {
             throw new UnsupportedFlavorException(flavor);
         }
+		Object userObject = getUserObject();
+		returnObject = userObject;
         return returnObject;
     }
 

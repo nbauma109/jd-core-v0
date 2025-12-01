@@ -39,7 +39,6 @@ import jd.core.process.analyzer.classfile.visitor.ReplaceDupLoadVisitor;
 public final class DupStoreThisReconstructor
 {
     private DupStoreThisReconstructor() {
-        super();
     }
 
     public static void reconstruct(List<Instruction> list)
@@ -98,7 +97,8 @@ public final class DupStoreThisReconstructor
                 }
             }
 
-            list.remove(dupStoreIndex--);
+            list.remove(dupStoreIndex);
+			dupStoreIndex--;
         }
     }
 }

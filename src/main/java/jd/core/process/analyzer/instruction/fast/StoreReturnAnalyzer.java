@@ -32,7 +32,7 @@ import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 /**
  * Compacte les instructions 'store' suivies d'instruction 'return'.
  */
-public class StoreReturnAnalyzer 
+public class StoreReturnAnalyzer
 {
     private StoreReturnAnalyzer() {
     }
@@ -47,13 +47,13 @@ public class StoreReturnAnalyzer
 			if (list.get(index).getOpcode() != ByteCodeConstants.XRETURN) {
                 continue;
             }
-			
+
 			ReturnInstruction ri = (ReturnInstruction)list.get(index);
-			
+
 			if (ri.getLineNumber() == Instruction.UNKNOWN_LINE_NUMBER) {
                 continue;
             }
-			
+
 			switch (ri.getValueref().getOpcode())
 			{
 			case Const.ALOAD:
@@ -74,23 +74,23 @@ public class StoreReturnAnalyzer
 			}
 		}
 	}
-	
+
 	private static int compact(
-		List<Instruction> list, LocalVariables localVariables, 
+		List<Instruction> list, LocalVariables localVariables,
 		ReturnInstruction ri, int index)
 	{
 		IndexInstruction load = (IndexInstruction)ri.getValueref();
 		StoreInstruction store = (StoreInstruction)list.get(index-1);
-		
-		if (load.getIndex() == store.getIndex() && 
+
+		if (load.getIndex() == store.getIndex() &&
 			load.getLineNumber() == store.getLineNumber())
 		{
 			// Remove local variable
 			LocalVariable lv = localVariables.
 				getLocalVariableWithIndexAndOffset(
 						store.getIndex(), store.getOffset());
-			
-			if (lv != null && lv.getStartPc() == store.getOffset() && 
+
+			if (lv != null && lv.getStartPc() == store.getOffset() &&
 				lv.getStartPc() + lv.getLength() <= ri.getOffset()) {
                 localVariables.
 					removeLocalVariableWithIndexAndOffset(
@@ -98,10 +98,11 @@ public class StoreReturnAnalyzer
             }
 			// Replace returned instruction
 			ri.setValueref(store.getValueref());
+			index--;
 			// Remove 'store' instruction
-			list.remove(--index);						
-		}	
-		
+			list.remove(index);
+		}
+
 		return index;
 	}
 }

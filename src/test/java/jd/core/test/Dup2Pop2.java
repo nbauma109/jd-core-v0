@@ -15,7 +15,8 @@ public class Dup2Pop2 {
     }
 
     long dup2Form1(long a) {
-        return ++a;
+        a++;
+		return a;
     }
 
     void dup2Form2(double d) {

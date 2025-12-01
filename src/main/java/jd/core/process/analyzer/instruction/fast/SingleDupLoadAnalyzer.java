@@ -31,7 +31,6 @@ import jd.core.process.analyzer.instruction.fast.visitor.CountDupLoadVisitor;
 public final class SingleDupLoadAnalyzer
 {
     private SingleDupLoadAnalyzer() {
-        super();
     }
 
     public static void cleanup(List<Instruction> list)
@@ -73,7 +72,8 @@ public final class SingleDupLoadAnalyzer
                     }
                 }
 
-                list.remove(dupStoreIndex--);
+                list.remove(dupStoreIndex);
+				dupStoreIndex--;
                 length--;
             }
         }

@@ -7,9 +7,9 @@ public class ForLoopPatterns {
     void beforeLoop() {
         int i = 0;
         for (;;) {
-            System.out.println(i++);
+            System.out.println(i);
+			i++;
             if (i < 10) {
-                continue;
             }
         }
     }

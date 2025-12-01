@@ -25,8 +25,9 @@ public class AddCheckCast {
         ReflectionData rd = reflectionData();
         if (rd != null) {
             res = publicOnly ? rd.publicConstructors : rd.declaredConstructors;
-            if (res != null)
-                return res;
+            if (res != null) {
+				return res;
+			}
         }
         if (c.isInterface()) {
             Constructor<?>[] temporaryRes = new Constructor[0];
@@ -50,8 +51,9 @@ public class AddCheckCast {
         StaticReflectionData rd = staticReflectionData();
         if (rd != null) {
             res = publicOnly ? rd.publicConstructors : rd.declaredConstructors;
-            if (res != null)
-                return res;
+            if (res != null) {
+				return res;
+			}
         }
         if (c.isInterface()) {
             Constructor<?>[] temporaryRes = new Constructor[0];

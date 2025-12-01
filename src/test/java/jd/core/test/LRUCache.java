@@ -10,7 +10,7 @@ public class LRUCache {
 
     public LRUCache(int capacity) {
         CAPACITY = capacity;
-        map = new LinkedHashMap<Integer, Integer>(capacity, 0.75f, true) {
+        map = new LinkedHashMap<>(capacity, 0.75f, true) {
 
             private static final long serialVersionUID = 1L;
 

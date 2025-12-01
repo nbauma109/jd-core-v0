@@ -26,7 +26,6 @@ import jd.core.util.CharArrayUtil;
 public final class SignatureAnalyzer
 {
     private SignatureAnalyzer() {
-        super();
     }
 
     public static void analyzeClassSignature(
@@ -166,7 +165,8 @@ public final class SignatureAnalyzer
             {
             case 'L', '.' :
                 boolean classFlag = caSignature[index] == 'L';
-                int beginIndex = ++index;
+                index++;
+				int beginIndex = index;
                 c = '.';
 
                 // Recherche de ; ou de <

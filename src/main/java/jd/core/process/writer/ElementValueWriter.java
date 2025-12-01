@@ -32,7 +32,6 @@ import jd.core.util.SignatureUtil;
 public final class ElementValueWriter
 {
     private ElementValueWriter() {
-        super();
     }
 
     public static void writeElementValue(

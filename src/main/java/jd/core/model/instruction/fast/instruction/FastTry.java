@@ -129,16 +129,7 @@ public class FastTry extends FastList {
         for (int i = instructions.size() - 1; i >= 3; i--) {
             Instruction firstInstruction = instructions.get(i-3);
             int firstLineNumber = firstInstruction.getLineNumber();
-            if (instructions.subList(i-3, i).stream().anyMatch(instr -> instr.getLineNumber() != firstLineNumber)) {
-                continue;
-            }
-            if (!(firstInstruction instanceof IfInstruction)) {
-                continue;
-            }
-            if (!(instructions.get(i-2) instanceof IfInstruction)) {
-                continue;
-            }
-            if (!(instructions.get(i-1) instanceof FastTry)) {
+            if (instructions.subList(i-3, i).stream().anyMatch(instr -> instr.getLineNumber() != firstLineNumber) || !(firstInstruction instanceof IfInstruction) || !(instructions.get(i-2) instanceof IfInstruction) || !(instructions.get(i-1) instanceof FastTry)) {
                 continue;
             }
             if (!(instructions.get(i) instanceof InvokeNoStaticInstruction)) {
@@ -197,8 +188,8 @@ public class FastTry extends FastList {
             String catchInstructionMethodName = cp.getConstantUtf8(catchInstructionMethod.getNameIndex());
             String catchInstructionMethodDesc = cp.getConstantUtf8(catchInstructionMethod.getSignatureIndex());
             String catchInstructionClassName = cp.getConstantUtf8(catchInstructionClass.getNameIndex());
-            if ("java/lang/Throwable".equals(catchInstructionClassName) 
-                && "addSuppressed".equals(catchInstructionMethodName) 
+            if ("java/lang/Throwable".equals(catchInstructionClassName)
+                && "addSuppressed".equals(catchInstructionMethodName)
                 && "(Ljava/lang/Throwable;)V".equals(catchInstructionMethodDesc)) {
                 lv2.setThrowableFromTryResources(true);
                 if (lv2.isExceptionOrThrowable(cp)) {
