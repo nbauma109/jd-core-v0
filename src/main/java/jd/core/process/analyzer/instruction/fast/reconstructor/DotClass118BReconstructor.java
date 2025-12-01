@@ -68,7 +68,6 @@ import jd.core.process.analyzer.classfile.visitor.ReplaceDupLoadVisitor;
 public final class DotClass118BReconstructor
 {
     private DotClass118BReconstructor() {
-        super();
     }
 
     public static void reconstruct(

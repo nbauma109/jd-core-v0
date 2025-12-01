@@ -46,7 +46,6 @@ import jd.core.model.instruction.bytecode.instruction.InvokeNew;
 public final class AssertInstructionReconstructor
 {
     private AssertInstructionReconstructor() {
-        super();
     }
 
     public static void reconstruct(ClassFile classFile, List<Instruction> list)
@@ -76,24 +75,21 @@ public final class AssertInstructionReconstructor
                 cbl = (ComplexConditionalBranchInstruction) instruction;
                 int jumpOffset = cbl.getJumpOffset();
                 int lastOffset = list.get(index+1).getOffset();
-    
+
                 if (athrow.getOffset() >= jumpOffset || jumpOffset > lastOffset) {
                     continue;
                 }
-    
+
                 if (cbl.getCmp() != 2 || cbl.getInstructions().isEmpty()) {
                     continue;
                 }
-    
+
                 instruction = cbl.getInstructions().get(0);
                 if (instruction.getOpcode() != ByteCodeConstants.IF) {
                     continue;
                 }
             }
-            if (!(instruction instanceof IfInstruction if1)) {
-                continue;
-            }
-            if (if1.getCmp() != 7 || if1.getValue().getOpcode() != Const.GETSTATIC) {
+            if (!(instruction instanceof IfInstruction if1) || if1.getCmp() != 7 || if1.getValue().getOpcode() != Const.GETSTATIC) {
                 continue;
             }
 
@@ -123,12 +119,13 @@ public final class AssertInstructionReconstructor
             }
 
             Instruction msg = in.getArgs().isEmpty() ? null : in.getArgs().get(0);
-            list.remove(index--);
+            list.remove(index);
+			index--;
 
             if (cbl != null) {
                 // Remove first condition "!($assertionsDisabled)"
                 cbl.getInstructions().remove(0);
-    
+
                 list.set(index, new AssertInstruction(
                     ByteCodeConstants.ASSERT, athrow.getOffset(),
                     cbl.getLineNumber(), cbl, msg));

@@ -64,7 +64,7 @@ public abstract class AbstractReplaceInstructionVisitor<T>
     {
         init(newInstruction);
     }
-    
+
     protected AbstractReplaceInstructionVisitor()
     {
         this(null);
@@ -101,7 +101,7 @@ public abstract class AbstractReplaceInstructionVisitor<T>
                     ali.setArrayref(newInstruction(ali.getArrayref(), found));
                 }
                 visit(ali.getArrayref());
-    
+
                 if (this.oldInstruction == null)
                 {
                     found = match(ali, ali.getIndexref());
@@ -415,7 +415,7 @@ public abstract class AbstractReplaceInstructionVisitor<T>
                     ai.setValue1(newInstruction(ai.getValue1(), found));
                 }
                 visit(ai.getValue1());
-    
+
                 if (this.oldInstruction == null)
                 {
                     found = match(ai, ai.getValue2());
@@ -429,7 +429,7 @@ public abstract class AbstractReplaceInstructionVisitor<T>
         case FastConstants.FOR:
             {
                 FastFor ff = (FastFor)instruction;
-    
+
                 if (ff.getInit() != null)
                 {
                     T found = match(ff, ff.getInit());
@@ -438,7 +438,7 @@ public abstract class AbstractReplaceInstructionVisitor<T>
                     }
                     visit(ff.getInit());
                 }
-    
+
                 if (this.oldInstruction == null && ff.getInc() != null)
                 {
                     T found = match(ff, ff.getInc());
@@ -484,7 +484,7 @@ public abstract class AbstractReplaceInstructionVisitor<T>
                     fs.setTest(newInstruction(fs.getTest(), found));
                 }
                 visit(fs.getTest());
-    
+
                 FastSwitch.Pair[] pairs = fs.getPairs();
                 for (int i=pairs.length-1; i>=0 && this.oldInstruction == null; --i) {
                     visit(fs, pairs[i].getInstructions());

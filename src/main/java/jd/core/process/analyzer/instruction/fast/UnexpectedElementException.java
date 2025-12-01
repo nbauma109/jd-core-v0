@@ -22,7 +22,6 @@ public class UnexpectedElementException extends RuntimeException
 
     public UnexpectedElementException()
     {
-        super();
     }
 
     public UnexpectedElementException(String s)

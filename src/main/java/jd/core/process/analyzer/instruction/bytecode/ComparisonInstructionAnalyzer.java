@@ -37,7 +37,6 @@ import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
 public final class ComparisonInstructionAnalyzer
 {
     private ComparisonInstructionAnalyzer() {
-        super();
     }
 
     /*
@@ -115,7 +114,8 @@ public final class ComparisonInstructionAnalyzer
 
             branchInstructions.add(lastBi);
             while (index > firstIndex) {
-                branchInstructions.add(list.remove(--index));
+                index--;
+				branchInstructions.add(list.remove(index));
             }
 
             Collections.reverse(branchInstructions);
@@ -253,15 +253,10 @@ public final class ComparisonInstructionAnalyzer
                 int jumpOffset = g.getJumpOffset();
 
                 // Ce 'goto' appartient-il au même bloc que le 1er 'if' ?
-                if (jumpOffset != lastBiJumpOffset &&
-                    (jumpOffset <= nextInstruction.getOffset() ||
-                     jumpOffset > afterOffest))
-                 {
-                    break; // Non
-                }
-
                 // Recherche de l'offset de l'instruction avant le 'goto'
-                if (index <= 0)
+                if ((jumpOffset != lastBiJumpOffset &&
+                    (jumpOffset <= nextInstruction.getOffset() ||
+                     jumpOffset > afterOffest)) || (index <= 0))
                 {
                     break; // Non
                 }
@@ -400,8 +395,9 @@ public final class ComparisonInstructionAnalyzer
 
                     while (index > 0)
                     {
-                        Instruction ternaryOpTestInstruction =
-                            branchInstructions.get(--index);
+                        index--;
+						Instruction ternaryOpTestInstruction =
+                            branchInstructions.get(index);
 
                         int opcode = ternaryOpTestInstruction.getOpcode();
 
@@ -666,8 +662,9 @@ public final class ComparisonInstructionAnalyzer
                     // First branch instruction line number
                     int lineNumber = branchInstructions.get(0).getLineNumber();
 
-                    branchInstructions.set(
-                        --i, new ComplexConditionalBranchInstruction(
+                    i--;
+					branchInstructions.set(
+                        i, new ComplexConditionalBranchInstruction(
                             ByteCodeConstants.COMPLEXIF, subLastBi.getOffset(),
                             lineNumber, ByteCodeConstants.CMP_NONE,
                             subJumpInstructions, subLastBi.getBranch()));
@@ -703,7 +700,8 @@ public final class ComparisonInstructionAnalyzer
             int i = 0;
 
             while (i < lastIndex) {
-                setOperator(instructions.get(i++), tmpInverse);
+                setOperator(instructions.get(i), tmpInverse);
+				i++;
             }
 
             setOperator(instructions.get(i), inverse);

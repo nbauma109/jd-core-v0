@@ -58,7 +58,6 @@ import jd.core.process.analyzer.classfile.visitor.ReplaceDupLoadVisitor;
 public final class DotClass118AReconstructor
 {
     private DotClass118AReconstructor() {
-        super();
     }
 
     public static void reconstruct(
@@ -114,11 +113,7 @@ public final class DotClass118AReconstructor
 
             instruction = list.get(i+3);
 
-            if (instruction.getOpcode() != ByteCodeConstants.DUPSTORE) {
-                continue;
-            }
-
-            if (g.getOffset() >= jumpOffset || jumpOffset > instruction.getOffset()) {
+            if ((instruction.getOpcode() != ByteCodeConstants.DUPSTORE) || g.getOffset() >= jumpOffset || jumpOffset > instruction.getOffset()) {
                 continue;
             }
 

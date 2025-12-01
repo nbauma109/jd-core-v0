@@ -40,7 +40,6 @@ import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
 public final class ClassFileDeserializer
 {
     private ClassFileDeserializer() {
-        super();
     }
 
     public static ClassFile deserialize(Loader loader, String internalClassPath)

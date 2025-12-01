@@ -19,7 +19,6 @@ package jd.core.util;
 public final class UtilConstants
 {
     private UtilConstants() {
-        super();
     }
 
     public static final int INVALID_INDEX = -1;

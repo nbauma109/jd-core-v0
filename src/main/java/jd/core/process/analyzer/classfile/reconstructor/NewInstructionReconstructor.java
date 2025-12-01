@@ -44,7 +44,6 @@ import jd.core.process.analyzer.util.ReconstructorUtil;
 public final class NewInstructionReconstructor extends NewInstructionReconstructorBase
 {
     private NewInstructionReconstructor() {
-        super();
     }
 
     public static void reconstruct(
@@ -114,7 +113,8 @@ public final class NewInstructionReconstructor extends NewInstructionReconstruct
                     if (parentFound == null) {
                         list.set(dupStoreIndex, invokeNew);
                     } else {
-                        list.remove(dupStoreIndex--);
+                        list.remove(dupStoreIndex);
+						dupStoreIndex--;
                     }
 
                     initAnonymousClassConstructorParameterName(

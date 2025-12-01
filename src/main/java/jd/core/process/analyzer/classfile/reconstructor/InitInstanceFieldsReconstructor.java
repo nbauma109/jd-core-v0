@@ -41,7 +41,6 @@ import jd.core.process.analyzer.classfile.visitor.SearchInstructionByTypeVisitor
 public final class InitInstanceFieldsReconstructor
 {
     private InitInstanceFieldsReconstructor() {
-        super();
     }
 
     public static void reconstruct(ClassFile classFile)
@@ -56,7 +55,8 @@ public final class InitInstanceFieldsReconstructor
         // Recherche du dernier constructeur ne faisant pas appel a 'this(...)'
         while (methodIndex > 0)
         {
-            final Method method = methods[--methodIndex];
+            methodIndex--;
+			final Method method = methods[methodIndex];
 
             if ((method.getAccessFlags() & (Const.ACC_SYNTHETIC|Const.ACC_BRIDGE)) != 0 ||
                 method.getCode() == null ||
@@ -157,16 +157,11 @@ public final class InitInstanceFieldsReconstructor
 
         while (methodIndex > 0)
         {
-            final Method method = methods[--methodIndex];
+            methodIndex--;
+			final Method method = methods[methodIndex];
 
-            if ((method.getAccessFlags() &
-                    (Const.ACC_SYNTHETIC|Const.ACC_BRIDGE)) != 0) {
-                continue;
-            }
-            if (method.getCode() == null) {
-                continue;
-            }
-            if (method.getNameIndex() != constants.getInstanceConstructorIndex()) {
+            if (((method.getAccessFlags() &
+                    (Const.ACC_SYNTHETIC|Const.ACC_BRIDGE)) != 0) || (method.getCode() == null) || (method.getNameIndex() != constants.getInstanceConstructorIndex())) {
                 continue;
             }
 
@@ -261,14 +256,8 @@ public final class InitInstanceFieldsReconstructor
                 {
                     final Method method = methods[methodIndex];
 
-                    if ((method.getAccessFlags() &
-                            (Const.ACC_SYNTHETIC|Const.ACC_BRIDGE)) != 0) {
-                        continue;
-                    }
-                    if (method.getCode() == null) {
-                        continue;
-                    }
-                    if (method.getNameIndex() != constants.getInstanceConstructorIndex()) {
+                    if (((method.getAccessFlags() &
+                            (Const.ACC_SYNTHETIC|Const.ACC_BRIDGE)) != 0) || (method.getCode() == null) || (method.getNameIndex() != constants.getInstanceConstructorIndex())) {
                         continue;
                     }
 
@@ -309,7 +298,7 @@ public final class InitInstanceFieldsReconstructor
                              * inside the constructor.
                              */
                             Instruction putFieldValueref = putField.getValueref();
-                               
+
                             if (putFieldValueref instanceof ALoad aload && aload.getIndex() != 0) {
                                 continue;
                             }
@@ -318,7 +307,8 @@ public final class InitInstanceFieldsReconstructor
                                 continue;
                             }
 
-                            list.remove(index--);
+                            list.remove(index);
+							index--;
 
                             if (++putFieldListIndex >= putFieldListLength) {
                                 break;
