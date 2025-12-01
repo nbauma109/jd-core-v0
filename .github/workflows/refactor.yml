@@ -104,7 +104,7 @@ jobs:
           cleanup_do_while_rather_than_while: true
           cleanup_primitive_serialization: true
           cleanup_stringbuffer_to_stringbuilder: true
-          cleanup_extract_increment: true
+          cleanup_extract_increment: false
           cleanup_comparison_statement: true
           cleanup_insert_inferred_type_arguments: false
           cleanup_make_private_fields_final: false
