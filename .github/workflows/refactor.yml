@@ -99,7 +99,7 @@ jobs:
           cleanup_qualify_static_field_accesses_with_declaring_class: false
           cleanup_add_generated_serial_version_id: false
           cleanup_stringbuilder_for_local_vars: true
-          cleanup_controlflow_merge: true
+          cleanup_controlflow_merge: false
           cleanup_comparing_on_criteria: true
           cleanup_do_while_rather_than_while: true
           cleanup_primitive_serialization: true
