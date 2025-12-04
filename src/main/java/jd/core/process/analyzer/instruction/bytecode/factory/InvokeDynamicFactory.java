@@ -82,35 +82,35 @@ public class InvokeDynamicFactory implements InstructionFactory
 
         final int opcode = code[offset] & 255;
         final int index = (code[offset+1] & 255) << 8 | code[offset+2] & 255;
-        
+
         TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
 
         ConstantInvokeDynamic cid = constants.getConstantInvokeDynamic(index);
         ConstantNameAndType indyCnat = constants.getConstantNameAndType(cid.getNameAndTypeIndex());
         String indyMethodName = constants.getConstantUtf8(indyCnat.getNameIndex());
         String indyDescriptor = constants.getConstantUtf8(indyCnat.getSignatureIndex());
-        
+
         MethodTypes indyMethodTypes = typeMaker.makeMethodTypes(classFile.getThisClassName(), indyMethodName, indyDescriptor);
         BootstrapMethods attributeBootstrapMethods = classFile.getAttributeBootstrapMethods();
         List<Instruction> indyParameters = extractParametersFromStack(stack, indyMethodTypes.getParameterTypes());
         BootstrapMethod bootstrapMethod = attributeBootstrapMethods.getBootstrapMethods()[cid.getClassIndex()];
         int[] bootstrapArguments = bootstrapMethod.getBootstrapArguments();
 //        BaseType parameterTypes = indyMethodTypes.getParameterTypes();
-        
+
         ConstantMethodType cmt0 = constants.getConstantMethodType(bootstrapArguments[0]);
         String descriptor0 = constants.getConstantUtf8(cmt0.getDescriptorIndex());
         TypeMaker.MethodTypes methodTypes0 = typeMaker.makeMethodTypes(classFile.getThisClassName(), null, descriptor0);
         int parameterCount = Optional.ofNullable(methodTypes0.getParameterTypes()).map(BaseType::size).orElse(0);
         ConstantMethodHandle constantMethodHandle1 = constants.getConstantMethodHandle(bootstrapArguments[1]);
-        
+
         ConstantCP cmr1 = constants.getConstantMethodref(constantMethodHandle1.getReferenceIndex());
         String typeName = constants.getConstantClassName(cmr1.getClassIndex());
         ConstantNameAndType cnat1 = constants.getConstantNameAndType(cmr1.getNameAndTypeIndex());
         String name1 = constants.getConstantUtf8(cnat1.getNameIndex());
         String descriptor1 = constants.getConstantUtf8(cnat1.getSignatureIndex());
         String internalTypeName = classFile.getInternalClassName();
-        
-        
+
+
         boolean arrayRef = false;
         Method lambdaMethod = null;
         if (typeName.equals(internalTypeName.substring(1,  internalTypeName.length() - 1))) {
@@ -126,7 +126,7 @@ public class InvokeDynamicFactory implements InstructionFactory
                 }
             }
         }
-        
+
         if (lambdaMethod != null && lambdaMethod.isLambda(constants)) {
             ClassFileAnalyzer.preAnalyzeSingleMethod(classFile, classFile.getVariableNameGenerator(), -1, lambdaMethod);
             ClassFileAnalyzer.analyzeSingleMethod(null, classFile, null, lambdaMethod);
@@ -138,7 +138,7 @@ public class InvokeDynamicFactory implements InstructionFactory
             return Const.getNoOfOperands(opcode);
 
         }
-        
+
         if (indyParameters == null) {
             // Create static method reference
             ObjectType ot = typeMaker.makeFromInternalTypeName(typeName);
@@ -152,13 +152,13 @@ public class InvokeDynamicFactory implements InstructionFactory
             } else {
                 stack.push(new StaticMethodReference(opcode, offset, lineNumber, new ObjectTypeReferenceExpression(lineNumber, ot), typeName, name1, descriptor1));
             }
-            
+
             return Const.getNoOfOperands(opcode);
         }
 
         // Create method reference
         stack.push(new MethodReference(opcode, offset, lineNumber, indyParameters, typeName, name1, descriptor1));
-        
+
         return Const.getNoOfOperands(opcode);
     }
 
@@ -194,7 +194,7 @@ public class InvokeDynamicFactory implements InstructionFactory
                 return parameters;
         }
     }
-    
+
     private static List<String> prepareLambdaParameterNames(List<String> formalParameters, int parameterCount) {
         if (formalParameters == null || parameterCount == 0) {
             return Collections.emptyList();

@@ -38,7 +38,6 @@ import jd.core.model.instruction.fast.instruction.FastTry;
 public final class DupLocalVariableAnalyzer
 {
     private DupLocalVariableAnalyzer() {
-        super();
     }
 
     public static void declare(

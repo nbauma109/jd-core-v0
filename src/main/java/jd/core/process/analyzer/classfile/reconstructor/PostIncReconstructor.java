@@ -41,7 +41,6 @@ import jd.core.process.analyzer.util.ReconstructorUtil;
 public final class PostIncReconstructor
 {
     private PostIncReconstructor() {
-        super();
     }
 
     public static void reconstruct(List<Instruction> list)

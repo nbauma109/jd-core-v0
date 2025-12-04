@@ -33,7 +33,6 @@ import jd.core.model.classfile.Method;
 public final class ClassFileUtil
 {
     private ClassFileUtil() {
-        super();
     }
 
     public static boolean containsMultipleConstructor(ClassFile classFile)

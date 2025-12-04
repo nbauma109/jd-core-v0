@@ -23,7 +23,6 @@ import jd.core.model.instruction.bytecode.ByteCodeConstants;
 public final class InstructionFactoryConstants
 {
     private InstructionFactoryConstants() {
-        super();
     }
 
     private static final InstructionFactory[] FACTORIES;

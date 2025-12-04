@@ -6,7 +6,7 @@ public class AssertAssignment {
         String line;
         assert flag : line = "";
     }
-    
+
     void test2(boolean flag) {
         String line;
         assert (line = flag + "") != null : "";

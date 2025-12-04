@@ -82,11 +82,11 @@ public class Assignment {
     void multiAssignIncPutStatic() {
         i = j += k;
     }
-    
+
     void multiAssignIncIStore(int a, int b, int c) {
         a = b += c;
     }
-    
+
     void multiAssignIncStore(float a, float b, float c) {
         a = b += c;
     }

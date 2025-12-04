@@ -19,7 +19,6 @@ package jd.core.model.instruction.fast;
 public final class FastConstants
 {
     private FastConstants() {
-        super();
     }
 
     // Fast opcode

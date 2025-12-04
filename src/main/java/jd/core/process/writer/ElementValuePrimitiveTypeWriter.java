@@ -29,7 +29,6 @@ import jd.core.util.StringUtil;
 public final class ElementValuePrimitiveTypeWriter
 {
     private ElementValuePrimitiveTypeWriter() {
-        super();
     }
 
     public static void write(

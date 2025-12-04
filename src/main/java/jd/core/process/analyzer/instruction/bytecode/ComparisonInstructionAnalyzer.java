@@ -37,7 +37,6 @@ import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
 public final class ComparisonInstructionAnalyzer
 {
     private ComparisonInstructionAnalyzer() {
-        super();
     }
 
     /*

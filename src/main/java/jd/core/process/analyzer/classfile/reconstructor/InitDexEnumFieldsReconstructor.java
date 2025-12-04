@@ -65,7 +65,6 @@ import jd.core.model.instruction.bytecode.instruction.PutStatic;
 public final class InitDexEnumFieldsReconstructor
 {
     private InitDexEnumFieldsReconstructor() {
-        super();
     }
 
     public static void reconstruct(ClassFile classFile)

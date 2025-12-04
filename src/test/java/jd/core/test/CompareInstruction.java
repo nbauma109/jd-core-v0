@@ -37,7 +37,7 @@ public class CompareInstruction {
     void arrayStore() {
         a[x] = y;
     }
- 
+
     int arrayLoad(int x) {
         return a[x];
     }
@@ -61,7 +61,7 @@ public class CompareInstruction {
     Double checkcast() throws Exception {
         return (Double) n;
     }
-    
+
     void fastSynchronized() {
         synchronized (o) {
             System.out.println("ok");
@@ -78,7 +78,7 @@ public class CompareInstruction {
             System.out.println("finally");
         }
     }
-    
+
     native void invoke(double d) throws IOException, ClassNotFoundException;
 
     int preInc() {

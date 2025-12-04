@@ -58,7 +58,6 @@ import jd.core.process.analyzer.classfile.visitor.ReplaceGetStaticVisitor;
 public final class DotClass14Reconstructor
 {
     private DotClass14Reconstructor() {
-        super();
     }
 
     public static void reconstruct(

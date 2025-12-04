@@ -25,7 +25,6 @@ import jd.core.process.analyzer.classfile.visitor.ReplaceDupLoadVisitor;
 public final class ReconstructorUtil
 {
     private ReconstructorUtil() {
-        super();
     }
 
     public static Instruction replaceDupLoad(

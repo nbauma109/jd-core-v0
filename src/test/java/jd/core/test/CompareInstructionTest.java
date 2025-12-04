@@ -38,7 +38,7 @@ public class CompareInstructionTest {
         FastCompareInstructionVisitor cmp = new FastCompareInstructionVisitor();
         for (int i = 0; i < cf1.getMethods().length; i++) {
             assertTrue(cmp.visit(cf1.getMethods()[i].getFastNodes(), cf2.getMethods()[i].getFastNodes()));
-        }            
+        }
     }
 
     private static ClassFile buildClass(String internalClassPath, Loader loader) {
