@@ -25,7 +25,7 @@ public class TryCatchFinallyBRTest extends AbstractTestCase {
     public void testJavac_1_3_1_28_novar() throws Exception {
         test("javac-1.3.1_28", true);
     }
-   
+
     @Test
     public void testJavac_1_4_2_19() throws Exception {
         test("javac-1.4.2_19", false);

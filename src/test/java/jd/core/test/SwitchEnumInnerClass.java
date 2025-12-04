@@ -7,26 +7,20 @@ public class SwitchEnumInnerClass {
     }
 
     String getString(DataElement dataElement) {
-        switch (dataElement) {
-        case KEY:
-            return "key";
-        case VALUE:
-            return "value";
-        default:
-            throw new IllegalArgumentException();
-        }
+        return switch (dataElement) {
+            case KEY -> "key";
+            case VALUE -> "value";
+            default -> throw new IllegalArgumentException();
+        };
     }
 
     class Node {
         String getString(DataElement dataElement) {
-            switch (dataElement) {
-            case KEY:
-                return "key";
-            case VALUE:
-                return "value";
-            default:
-                throw new IllegalArgumentException();
-            }
+            return switch (dataElement) {
+                case KEY -> "key";
+                case VALUE -> "value";
+                default -> throw new IllegalArgumentException();
+            };
         }
     }
 }

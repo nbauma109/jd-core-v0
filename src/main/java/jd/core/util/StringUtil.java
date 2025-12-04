@@ -19,7 +19,6 @@ package jd.core.util;
 public final class StringUtil
 {
     private StringUtil() {
-        super();
     }
 
     private static void escapeChar(StringBuilder sb, char c)

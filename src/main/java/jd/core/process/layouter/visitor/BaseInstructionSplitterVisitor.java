@@ -296,6 +296,6 @@ public abstract class BaseInstructionSplitterVisitor
     }
 
     public abstract void visitAnonymousNewInvoke(Instruction parent, InvokeNew in, ClassFile innerClass);
-    
+
     public abstract void visitAnonymousLambda(Instruction parent, LambdaInstruction in);
 }

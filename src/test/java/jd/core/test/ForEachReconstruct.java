@@ -2,6 +2,7 @@ package jd.core.test;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -43,93 +44,77 @@ public class ForEachReconstruct<T> {
         }
         List<Integer> intList = new ArrayList<>();
         if (ints != null) {
-            for (int theInt : ints) {
-                intList.add(theInt);
-            }
+            Collections.addAll(intList, ints);
         }
     }
-    
+
     void enhancedForEachStatement(Long... longs) {
         for (Long aLong : longs) {
             System.out.println(aLong);
         }
         List<Long> longList = new ArrayList<>();
         if (longs != null) {
-            for (long theLong : longs) {
-                longList.add(theLong);
-            }
+            Collections.addAll(longList, longs);
         }
     }
-    
+
     void enhancedForEachStatement(Double... doubles) {
         for (Double aDouble : doubles) {
             System.out.println(aDouble);
         }
         List<Double> doubleList = new ArrayList<>();
         if (doubles != null) {
-            for (double theDouble : doubles) {
-                doubleList.add(theDouble);
-            }
+            Collections.addAll(doubleList, doubles);
         }
     }
-    
+
     void enhancedForEachStatement(Float... floats) {
         for (Float aFloat : floats) {
             System.out.println(aFloat);
         }
         List<Float> floatList = new ArrayList<>();
         if (floats != null) {
-            for (float theFloat : floats) {
-                floatList.add(theFloat);
-            }
+            Collections.addAll(floatList, floats);
         }
     }
-    
+
     void enhancedForEachStatement(Byte... bytes) {
         for (Byte aByte : bytes) {
             System.out.println(aByte);
         }
         List<Byte> byteList = new ArrayList<>();
         if (bytes != null) {
-            for (byte theByte : bytes) {
-                byteList.add(theByte);
-            }
+            Collections.addAll(byteList, bytes);
         }
     }
-    
+
     void enhancedForEachStatement(Short... shorts) {
         for (Short aShort : shorts) {
             System.out.println(aShort);
         }
         List<Short> shortList = new ArrayList<>();
         if (shorts != null) {
-            for (short theShort : shorts) {
-                shortList.add(theShort);
-            }
+            Collections.addAll(shortList, shorts);
         }
     }
-    
+
     void enhancedForEachStatement(Character... chars) {
         for (Character aChar : chars) {
             System.out.println(aChar);
         }
         List<Character> charList = new ArrayList<>();
         if (chars != null) {
-            for (char theChar : chars) {
-                charList.add(theChar);
-            }
+            Collections.addAll(charList, chars);
         }
     }
-    
+
     void enhancedForEachStatement(Boolean... booleans) {
         for (Boolean aBoolean : booleans) {
             System.out.println(aBoolean);
         }
         List<Boolean> booleanList = new ArrayList<>();
         if (booleans != null) {
-            for (boolean theBoolean : booleans) {
-                booleanList.add(theBoolean);
-            }
+            Collections.addAll(booleanList, booleans);
         }
     }
 
@@ -147,7 +132,9 @@ public class ForEachReconstruct<T> {
             }
             m.put(method.getName(), sb.toString());
         }
-        for (Iterator iter = m.values().iterator(); iter.hasNext(););
+        for (Iterator iter = m.values().iterator(); iter.hasNext();) {
+
+        }
     }
 
     /*
@@ -157,8 +144,9 @@ public class ForEachReconstruct<T> {
         HashMap<T, String> messages = null;
 
         if (!this.flag) {
-            for (T object : objects)
+            for (T object : objects) {
                 this._objects.remove(object);
+            }
         }
         int at = -1;
 
@@ -172,8 +160,9 @@ public class ForEachReconstruct<T> {
                 if (message == null) {
                     this._objects.add(at++, object);
                 } else {
-                    if (messages == null)
+                    if (messages == null) {
                         messages = new HashMap<>();
+                    }
                     messages.put(object, message);
                 }
             }
@@ -184,8 +173,9 @@ public class ForEachReconstruct<T> {
                 if (message == null) {
                     this._objects.add(object);
                 } else {
-                    if (messages == null)
+                    if (messages == null) {
                         messages = new HashMap<>();
+                    }
                     messages.put(object, message);
                 }
             }

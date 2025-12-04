@@ -9,10 +9,10 @@ import java.nio.charset.StandardCharsets;
 import static org.junit.Assert.assertEquals;
 
 /*
- * FastInstructionListBuilder.isAForEachIteratorPattern() : 
+ * FastInstructionListBuilder.isAForEachIteratorPattern() :
  * fix for (??? = sorted.iterator(); ((Iterator)???).hasNext();) { String zoneName = (String)((Iterator)???).next();
- * 
- * ClassFileAnalyzer.analyseAndModifyConstructors() : Remove default constructors of inner classes 
+ *
+ * ClassFileAnalyzer.analyseAndModifyConstructors() : Remove default constructors of inner classes
  */
 public class FastDateParserTest extends AbstractTestCase {
     @Test

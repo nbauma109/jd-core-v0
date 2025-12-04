@@ -179,19 +179,19 @@ public class InstructionsSplitterVisitor extends BaseInstructionSplitterVisitor
         this.index1 = this.index2;
         this.offset1 = in.getOffset();
     }
-    
+
     @Override
     public void visitAnonymousLambda(
             Instruction parent, LambdaInstruction in)
     {
         // Add a new part of instruction
         addInstructionsLayoutBlock(in.getLineNumber(), in.getOffset());
-        
+
         // Add blocks for lambda method body
         this.maxLineNumber =
                 ClassFileLayouter.createBlocksForBodyOfLambda(
                         this.preferences, in, this.layoutBlockList);
-        
+
         this.firstLineNumber = Instruction.UNKNOWN_LINE_NUMBER;
         this.index1 = this.index2;
         this.offset1 = in.getOffset();

@@ -47,15 +47,15 @@ public class LambdaInstruction extends Instruction {
     public List<Instruction> getInstructions() {
         return method.getFastNodes();
     }
-    
+
     public Method getMethod() {
         return method;
     }
-    
+
     public ClassFile getClassFile() {
         return classFile;
     }
-    
+
     public List<String> getParameterNames() {
         return parameterNames;
     }

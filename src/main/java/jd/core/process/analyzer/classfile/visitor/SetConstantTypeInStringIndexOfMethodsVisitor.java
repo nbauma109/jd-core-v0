@@ -162,7 +162,7 @@ public class SetConstantTypeInStringIndexOfMethodsVisitor
 
                         String methodReturnedSignature = SignatureUtil.getMethodReturnedSignature(methodDescriptor);
                         List<String> parameterSignatures = SignatureUtil.getParameterSignatures(methodDescriptor);
-                        
+
                         if ((opcode==Const.BIPUSH ||
                              opcode==Const.SIPUSH) &&
                              "I".equals(methodReturnedSignature) &&

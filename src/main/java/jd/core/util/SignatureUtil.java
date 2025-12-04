@@ -36,7 +36,6 @@ public final class SignatureUtil
     private static final char[] OBJECT_SIGNATURE        = {'L'};
 
     private SignatureUtil() {
-        super();
     }
 
     public static int countDimensionOfArray(String signature)

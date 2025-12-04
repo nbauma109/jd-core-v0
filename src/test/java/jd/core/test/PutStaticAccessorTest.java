@@ -19,7 +19,7 @@ public class PutStaticAccessorTest extends AbstractTestCase {
             assertEquals(IOUtils.toString(getClass().getResource("PutStaticAccessor.txt"), StandardCharsets.UTF_8), output);
         }
     }
-    
+
     @Test
     public void test142() throws Exception {
         try (InputStream in = getClass().getResourceAsStream("/putstatic-accessor-jdk1.4.2_19.jar")) {
@@ -28,7 +28,7 @@ public class PutStaticAccessorTest extends AbstractTestCase {
             assertEquals(IOUtils.toString(getClass().getResource("PutStaticAccessor.txt"), StandardCharsets.UTF_8), output);
         }
     }
-    
+
     @Test
     public void test122() throws Exception {
         try (InputStream in = getClass().getResourceAsStream("/putstatic-accessor-jdk1.2.2.jar")) {

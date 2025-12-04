@@ -30,7 +30,6 @@ import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribu
 public final class MinLineNumberVisitor
 {
     private MinLineNumberVisitor() {
-        super();
     }
 
     public static int visit(Instruction instruction)

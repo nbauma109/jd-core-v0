@@ -41,7 +41,6 @@ import jd.core.process.analyzer.classfile.visitor.SearchInstructionByTypeVisitor
 public final class InitInstanceFieldsReconstructor
 {
     private InitInstanceFieldsReconstructor() {
-        super();
     }
 
     public static void reconstruct(ClassFile classFile)
@@ -309,7 +308,7 @@ public final class InitInstanceFieldsReconstructor
                              * inside the constructor.
                              */
                             Instruction putFieldValueref = putField.getValueref();
-                               
+
                             if (putFieldValueref instanceof ALoad aload && aload.getIndex() != 0) {
                                 continue;
                             }

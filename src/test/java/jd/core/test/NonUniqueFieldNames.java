@@ -3,6 +3,7 @@ package jd.core.test;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class NonUniqueFieldNames<T> {
 
@@ -29,8 +30,7 @@ public class NonUniqueFieldNames<T> {
         result = prime * result + Arrays.hashCode(b1d);
         result = prime * result + Arrays.deepHashCode(b2d);
         result = prime * result + c;
-        long temp;
-        temp = Double.doubleToLongBits(d);
+        long temp = Double.doubleToLongBits(d);
         result = prime * result + (int) (temp ^ (temp >>> 32));
         result = prime * result + Float.floatToIntBits(f);
         result = prime * result + (flag ? 1231 : 1237);
@@ -40,8 +40,7 @@ public class NonUniqueFieldNames<T> {
         result = prime * result + s;
         result = prime * result + ((str == null) ? 0 : str.hashCode());
         result = prime * result + ((t == null) ? 0 : t.hashCode());
-        result = prime * result + ((w == null) ? 0 : w.hashCode());
-        return result;
+        return prime * result + ((w == null) ? 0 : w.hashCode());
     }
 
     @Override
@@ -84,35 +83,19 @@ public class NonUniqueFieldNames<T> {
         if (l != other.l) {
             return false;
         }
-        if (m == null) {
-            if (other.m != null) {
-                return false;
-            }
-        } else if (!m.equals(other.m)) {
+        if (!Objects.equals(m, other.m)) {
             return false;
         }
         if (s != other.s) {
             return false;
         }
-        if (str == null) {
-            if (other.str != null) {
-                return false;
-            }
-        } else if (!str.equals(other.str)) {
+        if (!Objects.equals(str, other.str)) {
             return false;
         }
-        if (t == null) {
-            if (other.t != null) {
-                return false;
-            }
-        } else if (!t.equals(other.t)) {
+        if (!Objects.equals(t, other.t)) {
             return false;
         }
-        if (w == null) {
-            if (other.w != null) {
-                return false;
-            }
-        } else if (!w.equals(other.w)) {
+        if (!Objects.equals(w, other.w)) {
             return false;
         }
         return true;

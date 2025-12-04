@@ -24,7 +24,7 @@ public final class MinMaxLineNumberVisitor {
 
     private MinMaxLineNumberVisitor() {
     }
-    
+
     public static MinMaxLineNumber visit(List<Instruction> instructions) {
         int minLineNumber = Integer.MAX_VALUE;
         int maxLineNumber = Integer.MIN_VALUE;
@@ -34,7 +34,7 @@ public final class MinMaxLineNumberVisitor {
         }
         return new MinMaxLineNumber(minLineNumber, maxLineNumber);
     }
-    
+
     public record MinMaxLineNumber(int minLineNumber, int maxLineNumber) {
 
         public boolean isValid() {

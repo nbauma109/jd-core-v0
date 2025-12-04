@@ -33,7 +33,6 @@ import jd.core.util.SignatureUtil;
 public final class SignatureLayouter
 {
     private SignatureLayouter() {
-        super();
     }
 
     public static boolean createLayoutBlocksForClassSignature(

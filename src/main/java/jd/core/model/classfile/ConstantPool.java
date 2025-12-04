@@ -294,12 +294,12 @@ public class ConstantPool
     {
         return (ConstantMethodType)this.listOfConstants.get(index);
     }
-    
+
     public ConstantMethodHandle getConstantMethodHandle(int index)
     {
         return (ConstantMethodHandle)this.listOfConstants.get(index);
     }
-    
+
     public ConstantInterfaceMethodref getConstantInterfaceMethodref(int index)
     {
         return (ConstantInterfaceMethodref)this.listOfConstants.get(index);
@@ -366,7 +366,7 @@ public class ConstantPool
     public int getThisLocalVariableNameIndex() {
         return thisLocalVariableNameIndex;
     }
-    
+
     public String getLocalVariableName(LocalVariable localVariable) {
         return getConstantUtf8(localVariable.getNameIndex());
     }
