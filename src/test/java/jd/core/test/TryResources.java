@@ -44,7 +44,7 @@ public class TryResources {
         }
         return lines;
     }
-    
+
     public static Map.Entry<Integer, String> get(Connection connection, int employeeId) throws SQLException {
         try (PreparedStatement ps = connection.prepareStatement("SELECT * FROM employee WHERE employee_id = ?")) {
             ps.setInt(1, employeeId);

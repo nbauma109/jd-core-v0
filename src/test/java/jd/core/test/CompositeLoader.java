@@ -17,7 +17,7 @@ public class CompositeLoader implements Loader {
 		classPathLoader = new ClassPathLoader();
 		zipLoader = new ZipLoader(in);
 	}
-	
+
 	@Override
 	public boolean canLoad(String internalName) {
 		return zipLoader.canLoad(internalName) || classPathLoader.canLoad(internalName);

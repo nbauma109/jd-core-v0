@@ -4,7 +4,7 @@ package jd.core.test;
  */
 public class EnumSwitch {
 
-    static enum Digit {
+    enum Digit {
         _0, _1, _2, _3, _4, _5, _6, _7, _8, _9
     }
 

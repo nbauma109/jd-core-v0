@@ -26,7 +26,6 @@ import jd.core.util.CharArrayUtil;
 public final class SignatureAnalyzer
 {
     private SignatureAnalyzer() {
-        super();
     }
 
     public static void analyzeClassSignature(

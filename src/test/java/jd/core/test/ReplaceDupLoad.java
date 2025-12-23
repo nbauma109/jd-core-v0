@@ -29,8 +29,7 @@ public abstract class ReplaceDupLoad {
      * FOR
      */
     public static void loadtriangle(__ptr__ pnlap, __ptr__ pnlbp, __ptr__ pnlcp) {
-        CArray<ST_triangle_t> trip;
-        trip = Z.z().tris.plus_(Z.z().tril++);
+        CArray<ST_triangle_t> trip = Z.z().tris.plus_(Z.z().tril++);
         trip.get__(0).mark = 0;
         trip.get__(0).e[0].pnl0p = (ST_pointnlink_t) pnlap;
         trip.get__(0).e[0].pnl1p = (ST_pointnlink_t) pnlbp;

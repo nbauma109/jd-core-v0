@@ -61,7 +61,8 @@ public class DotClass118 {
     Class ifCmp(Class c) {
         if (Object.class == c) {
             return c;
-        } else if (c == Object.class) {
+        }
+        if (c == Object.class) {
             return c;
         }
         return null;
@@ -100,8 +101,7 @@ public class DotClass118 {
     }
 
     Class ternaryOpStore(String subtypeName) throws ClassNotFoundException {
-        Class subtype = (subtypeName == null) ? Object.class : Class.forName(subtypeName);
-        return subtype;
+        return (subtypeName == null) ? Object.class : Class.forName(subtypeName);
     }
 
     Class dupStore(Class c) {

@@ -1,7 +1,6 @@
 package jd.core.test;
 
 import java.util.List;
-import java.util.function.Consumer;
 
 public class ForEach {
 
@@ -24,12 +23,7 @@ public class ForEach {
     }
 
     void forEachWithAnonymousClass(List<String> elements) {
-        elements.forEach(new Consumer<String>() {
-            @Override
-            public void accept(String o) {
-                print(o);
-            }
-        });
+        elements.forEach(this::print);
     }
 
     private static void printStatic(Object o) {
@@ -39,10 +33,10 @@ public class ForEach {
     private void print(Object o) {
         printStatic(o);
     }
-    
+
     public static void main(String[] args) {
-        for (int i = 0; i < args.length; i++) {
-            System.out.println(args[i]);
+        for (String arg : args) {
+            System.out.println(arg);
         }
     }
 }

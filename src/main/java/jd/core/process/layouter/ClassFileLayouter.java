@@ -360,21 +360,21 @@ public final class ClassFileLayouter {
             layoutBlockList, sortedFieldBlockList,
             sortedMethodBlockList, sortedInnerClassBlockList);
     }
-    
+
     private static int createBlocksForBody(
             Preferences preferences,
             ClassFile classFile,
             List<LayoutBlock> layoutBlockList)
     {
         createBlockForEnumValues(preferences, classFile, layoutBlockList);
-        
+
         List<SubListLayoutBlock> sortedFieldBlockList =
                 createSortedBlocksForFields(preferences, classFile);
         List<SubListLayoutBlock> sortedMethodBlockList =
                 createSortedBlocksForMethods(preferences, classFile);
         List<SubListLayoutBlock> sortedInnerClassBlockList =
                 createSortedBlocksForInnerClasses(preferences, classFile);
-        
+
         return mergeBlocks(
                 layoutBlockList, sortedFieldBlockList,
                 sortedMethodBlockList, sortedInnerClassBlockList);
@@ -680,7 +680,7 @@ public final class ClassFileLayouter {
                 }
             }
 
-            if (method.getNameIndex() == constants.getClassConstructorIndex() 
+            if (method.getNameIndex() == constants.getClassConstructorIndex()
                     && (method.getFastNodes() == null || method.getFastNodes().isEmpty())) {
                 continue;
             }
@@ -3524,7 +3524,7 @@ public final class ClassFileLayouter {
         Signature as = method.getAttributeSignature();
         int signatureIndex = method.getSignatureIndex();
         String signature = constants.getConstantUtf8(signatureIndex);
-            
+
         List<LayoutBlock> subLayoutBlockList = new ArrayList<>();
 
         boolean nullCodeFlag = method.getCode() == null;
@@ -3535,7 +3535,7 @@ public final class ClassFileLayouter {
         int lineNumber = lambdaInstruction.getLineNumber();
         LayoutBlock arrow = new LambdaArrowLayoutBlock(classFile, method, lineNumber);
         subLayoutBlockList.add(arrow);
-        
+
         int firstLineNumber = Instruction.UNKNOWN_LINE_NUMBER;
         int lastLineNumber = Instruction.UNKNOWN_LINE_NUMBER;
         int preferedLineNumber = LayoutBlockConstants.UNLIMITED_LINE_COUNT;

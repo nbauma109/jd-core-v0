@@ -30,7 +30,7 @@ public class MonitorSynchronizedTest extends AbstractTestCase {
             assertEquals(IOUtils.toString(getClass().getResource("MonitorSynchronized.txt"), StandardCharsets.UTF_8), output);
         }
     }
-    
+
     @Test
     public void testJavac131() throws Exception {
         try (InputStream in = getClass().getResourceAsStream("/monitor-synchronized-jdk1.3.1_28.jar")) {

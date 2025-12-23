@@ -9,7 +9,6 @@ public class ForLoopPatterns {
         for (;;) {
             System.out.println(i++);
             if (i < 10) {
-                continue;
             }
         }
     }

@@ -9,7 +9,7 @@ public class WideInstructionInnerClasses {
     class ILOAD {
         @SuppressWarnings("unused")
         public static void largeIncrement(int i) { i += 1000; }
-    
+
         @SuppressWarnings("unused")
         public static int largeVarIndex() {
             int i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18,
@@ -27,7 +27,7 @@ public class WideInstructionInnerClasses {
             k10, k11, k12, k13, k14, k15, k16, k17, k18, k19, k20, k21, k22, k23, k24, k25, k26,
             k27, k28, k29, k30, k31, k32, k33, k34, k35, k36, k37, k38, k39, k40, k41, k42, k43,
             k44, k45, k46, k47, k48, k49, k50, k51, k52, k53, k54, k55, k56, k57 = 42;
-    
+
             return k57;
         }
     }
@@ -35,7 +35,7 @@ public class WideInstructionInnerClasses {
     class FLOAD {
         @SuppressWarnings("unused")
         public static void largeIncrement(float i) { i += 1000; }
-        
+
         @SuppressWarnings("unused")
         public static float largeVarIndex() {
             float i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18,
@@ -53,15 +53,15 @@ public class WideInstructionInnerClasses {
             k10, k11, k12, k13, k14, k15, k16, k17, k18, k19, k20, k21, k22, k23, k24, k25, k26,
             k27, k28, k29, k30, k31, k32, k33, k34, k35, k36, k37, k38, k39, k40, k41, k42, k43,
             k44, k45, k46, k47, k48, k49, k50, k51, k52, k53, k54, k55, k56, k57 = 42;
-            
+
             return k57;
         }
     }
-    
+
     class DLOAD {
         @SuppressWarnings("unused")
         public static void largeIncrement(double i) { i += 1000; }
-        
+
         @SuppressWarnings("unused")
         public static double largeVarIndex() {
             double i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18,
@@ -79,15 +79,15 @@ public class WideInstructionInnerClasses {
             k10, k11, k12, k13, k14, k15, k16, k17, k18, k19, k20, k21, k22, k23, k24, k25, k26,
             k27, k28, k29, k30, k31, k32, k33, k34, k35, k36, k37, k38, k39, k40, k41, k42, k43,
             k44, k45, k46, k47, k48, k49, k50, k51, k52, k53, k54, k55, k56, k57 = 42;
-            
+
             return k57;
         }
     }
-    
+
     class LLOAD {
         @SuppressWarnings("unused")
         public static void largeIncrement(long i) { i += 1000; }
-        
+
         @SuppressWarnings("unused")
         public static long largeVarIndex() {
             long i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18,
@@ -105,14 +105,14 @@ public class WideInstructionInnerClasses {
             k10, k11, k12, k13, k14, k15, k16, k17, k18, k19, k20, k21, k22, k23, k24, k25, k26,
             k27, k28, k29, k30, k31, k32, k33, k34, k35, k36, k37, k38, k39, k40, k41, k42, k43,
             k44, k45, k46, k47, k48, k49, k50, k51, k52, k53, k54, k55, k56, k57 = 42;
-            
+
             return k57;
         }
     }
-    
+
     class ALOAD {
         public static void largeIncrement(Long i) { i += 1000; }
-        
+
         @SuppressWarnings("unused")
         public static Long largeVarIndex() {
             Long i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18,
@@ -130,23 +130,23 @@ public class WideInstructionInnerClasses {
             k10, k11, k12, k13, k14, k15, k16, k17, k18, k19, k20, k21, k22, k23, k24, k25, k26,
             k27, k28, k29, k30, k31, k32, k33, k34, k35, k36, k37, k38, k39, k40, k41, k42, k43,
             k44, k45, k46, k47, k48, k49, k50, k51, k52, k53, k54, k55, k56, k57 = 42L;
-            
+
             return k57;
         }
     }
-    
+
     /*
      * Example courtesy of https://stackoverflow.com/users/2711488/holger
      * https://stackoverflow.com/a/61282257/8315843
      */
     public static void methodWithLargeJump(int i) {
         for(; i == 0;) {
-            try {x();} finally { switch(i){ case 1: try {x();} finally { switch(i){ case 1: 
-            try {x();} finally { switch(i){ case 1: try {x();} finally { switch(i){ case 1: 
-            try {x();} finally { switch(i){ case 1: try {x();} finally { switch(i){ case 1: 
-            try {x();} finally { switch(i){ case 1: try {x();} finally { switch(i){ case 1: 
-            try {x();} finally { switch(i){ case 1: try {x();} finally { switch(i){ case 1: 
-            } } } } } } } } } } } } } } } } } } } } 
+            try {x();} finally { switch(i){ case 1: try {x();} finally { switch(i){ case 1:
+            try {x();} finally { switch(i){ case 1: try {x();} finally { switch(i){ case 1:
+            try {x();} finally { switch(i){ case 1: try {x();} finally { switch(i){ case 1:
+            try {x();} finally { switch(i){ case 1: try {x();} finally { switch(i){ case 1:
+            try {x();} finally { switch(i){ case 1: try {x();} finally { switch(i){ case 1:
+            } } } } } } } } } } } } } } } } } } } }
         }
     }
 

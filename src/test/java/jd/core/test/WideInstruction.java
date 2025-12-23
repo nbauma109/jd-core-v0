@@ -42,10 +42,10 @@ public class WideInstruction {
         k10, k11, k12, k13, k14, k15, k16, k17, k18, k19, k20, k21, k22, k23, k24, k25, k26,
         k27, k28, k29, k30, k31, k32, k33, k34, k35, k36, k37, k38, k39, k40, k41, k42, k43,
         k44, k45, k46, k47, k48, k49, k50, k51, k52, k53, k54, k55, k56, k57 = 42;
-        
+
         return k57;
     }
-    
+
     static double largeVarIndexDouble() {
         double i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18,
         i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29, i30, i31, i32, i33, i34, i35,
@@ -62,10 +62,10 @@ public class WideInstruction {
         k10, k11, k12, k13, k14, k15, k16, k17, k18, k19, k20, k21, k22, k23, k24, k25, k26,
         k27, k28, k29, k30, k31, k32, k33, k34, k35, k36, k37, k38, k39, k40, k41, k42, k43,
         k44, k45, k46, k47, k48, k49, k50, k51, k52, k53, k54, k55, k56, k57 = 42;
-        
+
         return k57;
     }
-    
+
     static long largeVarIndex() {
         long i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18,
         i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29, i30, i31, i32, i33, i34, i35,
@@ -82,10 +82,10 @@ public class WideInstruction {
         k10, k11, k12, k13, k14, k15, k16, k17, k18, k19, k20, k21, k22, k23, k24, k25, k26,
         k27, k28, k29, k30, k31, k32, k33, k34, k35, k36, k37, k38, k39, k40, k41, k42, k43,
         k44, k45, k46, k47, k48, k49, k50, k51, k52, k53, k54, k55, k56, k57 = 42;
-        
+
         return k57;
     }
-    
+
     static Long largeVarIndexLong() {
         Long i1, i2, i3, i4, i5, i6, i7, i8, i9, i10, i11, i12, i13, i14, i15, i16, i17, i18,
         i19, i20, i21, i22, i23, i24, i25, i26, i27, i28, i29, i30, i31, i32, i33, i34, i35,
@@ -101,23 +101,23 @@ public class WideInstruction {
         j91, j92, j93, j94, j95, j96, j97, j98, j99, k0, k1, k2, k3, k4, k5, k6, k7, k8, k9,
         k10, k11, k12, k13, k14, k15, k16, k17, k18, k19, k20, k21, k22, k23, k24, k25, k26,
         k27, k28, k29, k30, k31, k32, k33, k34, k35, k36, k37, k38, k39, k40, k41, k42, k43,
-        k44, k45, k46, k47, k48, k49, k50, k51, k52, k53, k54, k55, k56, k57 = new Long(42L);
-        
+        k44, k45, k46, k47, k48, k49, k50, k51, k52, k53, k54, k55, k56, k57 = 42L;
+
         return k57;
     }
-    
+
     /*
      * Example courtesy of https://stackoverflow.com/users/2711488/holger
      * https://stackoverflow.com/a/61282257/8315843
      */
     static void methodWithLargeJump(int i) {
         for(; i == 0;) {
-            try {x();} finally { switch(i){ case 1: try {x();} finally { switch(i){ case 1: 
-            try {x();} finally { switch(i){ case 1: try {x();} finally { switch(i){ case 1: 
-            try {x();} finally { switch(i){ case 1: try {x();} finally { switch(i){ case 1: 
-            try {x();} finally { switch(i){ case 1: try {x();} finally { switch(i){ case 1: 
-            try {x();} finally { switch(i){ case 1: try {x();} finally { switch(i){ case 1: 
-            } } } } } } } } } } } } } } } } } } } } 
+            try {x();} finally { switch(i){ case 1: try {x();} finally { switch(i){ case 1:
+            try {x();} finally { switch(i){ case 1: try {x();} finally { switch(i){ case 1:
+            try {x();} finally { switch(i){ case 1: try {x();} finally { switch(i){ case 1:
+            try {x();} finally { switch(i){ case 1: try {x();} finally { switch(i){ case 1:
+            try {x();} finally { switch(i){ case 1: try {x();} finally { switch(i){ case 1:
+            } } } } } } } } } } } } } } } } } } } }
         }
     }
 

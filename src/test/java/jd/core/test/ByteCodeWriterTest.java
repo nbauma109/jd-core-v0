@@ -58,7 +58,7 @@ public class ByteCodeWriterTest {
     public void testJavac_1_3_1_28_novar() throws Exception {
         test("javac-1.3.1_28");
     }
-   
+
     private void test(String compiler) throws IOException {
         StringBuilder expectedFileName = new StringBuilder("TryCatchFinallyBRByteCode");
         StringBuilder jarPath = new StringBuilder("/try-catch-finally-");

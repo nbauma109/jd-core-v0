@@ -27,7 +27,7 @@ public class MetaDataTest extends AbstractTestCase implements VersionAware {
             assertEquals("1 (45.3)", getProperty(output, "Java compiler version:"));
         }
     }
-    
+
     private static String getProperty(String output, String property) {
         int beginIdx = output.indexOf(property);
         int endIdx = output.indexOf('\n', beginIdx);

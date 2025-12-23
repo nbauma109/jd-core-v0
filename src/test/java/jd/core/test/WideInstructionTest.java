@@ -31,7 +31,7 @@ public class WideInstructionTest extends AbstractTestCase {
             assertEquals(IOUtils.toString(getClass().getResource("WideInstructionECJ17.txt"), StandardCharsets.UTF_8), output);
         }
     }
-    
+
     @Test
     public void testECJ142() throws Exception {
         try (InputStream in = getClass().getResourceAsStream("/wide-instructions-ecj1.4.jar")) {
@@ -40,7 +40,7 @@ public class WideInstructionTest extends AbstractTestCase {
             assertEquals(IOUtils.toString(getClass().getResource("WideInstructionECJ142.txt"), StandardCharsets.UTF_8), output);
         }
     }
-    
+
     @Test
     public void testJDK1704() throws Exception {
         try (InputStream in = getClass().getResourceAsStream("/wide-instructions-jdk17.0.4.jar")) {
@@ -58,7 +58,7 @@ public class WideInstructionTest extends AbstractTestCase {
             assertEquals(IOUtils.toString(getClass().getResource("WideInstruction180.txt"), StandardCharsets.UTF_8), output);
         }
     }
-    
+
     @Test
     public void testJDK142() throws Exception {
         try (InputStream in = getClass().getResourceAsStream("/wide-instructions-jdk1.4.2.jar")) {
@@ -67,7 +67,7 @@ public class WideInstructionTest extends AbstractTestCase {
             assertEquals(IOUtils.toString(getClass().getResource("WideInstruction142.txt"), StandardCharsets.UTF_8), output);
         }
     }
-    
+
     @Test
     public void testJDK122() throws Exception {
         try (InputStream in = getClass().getResourceAsStream("/wide-instructions-jdk1.2.2.jar")) {
@@ -76,7 +76,7 @@ public class WideInstructionTest extends AbstractTestCase {
             assertEquals(IOUtils.toString(getClass().getResource("WideInstruction122.txt"), StandardCharsets.UTF_8), output);
         }
     }
-    
+
     @Override
     protected boolean recompile() {
         return false;

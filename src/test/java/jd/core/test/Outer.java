@@ -8,11 +8,11 @@ public class Outer {
     private void init() {
         id = name = "";
     }
-    
+
     private static void staticInit() {
         name = "";
     }
-    
+
     public void method1() {
         System.out.println("Test.method1");
     }

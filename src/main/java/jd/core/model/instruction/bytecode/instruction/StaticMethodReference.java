@@ -46,7 +46,7 @@ public class StaticMethodReference extends Instruction implements SourceWriteabl
     public String getName() {
         return name;
     }
-    
+
     public String getDescriptor() {
         return descriptor;
     }
