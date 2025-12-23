@@ -17,7 +17,7 @@ public class ForEachReconstructTest extends AbstractTestCase {
         String output = decompile("jd/core/test/ForEachReconstruct");
         assertEquals(IOUtils.toString(getClass().getResource("ForEachReconstruct.txt"), StandardCharsets.UTF_8), output);
     }
-    
+
     @Test
     public void test180() throws IOException {
         try (InputStream in = getClass().getResourceAsStream("/foreach-jdk1.8.0_331.jar")) {

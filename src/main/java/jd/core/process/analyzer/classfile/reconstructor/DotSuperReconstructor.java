@@ -37,7 +37,6 @@ import jd.core.process.analyzer.classfile.visitor.SearchInstructionByTypeVisitor
 public final class DotSuperReconstructor
 {
     private DotSuperReconstructor() {
-        super();
     }
 
     public static void reconstruct(ClassFile classFile, List<Instruction> list)

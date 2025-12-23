@@ -20,7 +20,7 @@ public class TrySynchronized122Test extends AbstractTestCase {
             assertEquals(IOUtils.toString(getClass().getResource("TryCatchFinallyClassForTest.txt"), StandardCharsets.UTF_8), output);
         }
     }
-    
+
     @Test
     public void testSynchronize() throws Exception {
         try (InputStream in = getClass().getResourceAsStream("/try-synchronized-jdk1.2.2.jar")) {
@@ -30,7 +30,7 @@ public class TrySynchronized122Test extends AbstractTestCase {
             assertEquals(IOUtils.toString(getClass().getResource("TestSynchronize.txt"), StandardCharsets.UTF_8), output);
         }
     }
-    
+
     @Test
     public void testEmptySynchronizedBlock() throws Exception {
         try (InputStream in = getClass().getResourceAsStream("/try-synchronized-jdk1.2.2.jar")) {

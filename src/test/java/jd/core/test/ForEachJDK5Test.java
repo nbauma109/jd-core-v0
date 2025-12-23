@@ -21,7 +21,7 @@ public class ForEachJDK5Test extends AbstractTestCase {
     public void testSunJDK6() throws Exception {
         test("/foreach-jdk1.6.0_45.jar");
     }
-    
+
     private void test(String jarPath) throws IOException {
         try (InputStream in = getClass().getResourceAsStream(jarPath)) {
             ZipLoader loader = new ZipLoader(in);

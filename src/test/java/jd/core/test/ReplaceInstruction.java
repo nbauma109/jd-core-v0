@@ -98,23 +98,23 @@ public class ReplaceInstruction {
     float[] addFirst(float[] array, float element) {
         return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, element);
     }
-    
+
     double[] addFirst(double[] array, double element) {
         return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, element);
     }
-    
+
     byte[] addFirst(byte[] array, byte element) {
         return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, element);
     }
-    
+
     short[] addFirst(short[] array, short element) {
         return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, element);
     }
-    
+
     long[] addFirst(long[] array, long element) {
         return array == null ? ArrayUtils.add(array, element) : ArrayUtils.insert(0, array, element);
     }
-    
+
     /*
      * INSTANCEOF
      */
@@ -128,8 +128,9 @@ public class ReplaceInstruction {
                         : diagram.getSkinParam().getSplitParam()).getFiles();
 
         List<FileImageData> result = new ArrayList<>();
-        for (SFile f : files)
+        for (SFile f : files) {
             result.add(new FileImageData(f, imageData));
+        }
 
         return result;
     }

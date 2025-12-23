@@ -21,5 +21,5 @@ public class LabelledBreaksTest extends AbstractTestCase {
             assertEquals(IOUtils.toString(getClass().getResource("LabelledBreaks.txt"), StandardCharsets.UTF_8), output);
         }
     }
-    
+
 }

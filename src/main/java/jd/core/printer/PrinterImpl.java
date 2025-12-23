@@ -53,7 +53,7 @@ public class PrinterImpl extends PlainTextPrinter {
             textAreaLineNumber += count;
         }
     }
-    
+
     // --- Add strings --- //
     @Override
     public void printString(String s, String scopeInternalName)  {

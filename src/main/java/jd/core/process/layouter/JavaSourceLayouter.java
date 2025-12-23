@@ -737,7 +737,7 @@ public class JavaSourceLayouter
             }
             layoutBlockList.add(new FragmentLayoutBlock(
                     LayoutBlockConstants.FRAGMENT_RIGHT_ROUND_BRACKET));
-            
+
         }
 
         createBlockForSubList(

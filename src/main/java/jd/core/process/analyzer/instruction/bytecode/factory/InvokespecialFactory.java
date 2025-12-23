@@ -48,7 +48,7 @@ public class InvokespecialFactory implements InstructionFactory
         ConstantPool constants = classFile.getConstantPool();
         ConstantCP cmr =
             constants.getConstantMethodref(index);
-        
+
         Objects.requireNonNull(cmr, "Invalid ConstantMethodref index");
 
         ConstantNameAndType cnat = constants.getConstantNameAndType(

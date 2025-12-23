@@ -29,7 +29,7 @@ public class MethodNameLayoutBlock extends LayoutBlock
     private final boolean nullCodeFlag;
 
     public MethodNameLayoutBlock(
-        ClassFile classFile, Method method, String signature, 
+        ClassFile classFile, Method method, String signature,
         boolean descriptorFlag, boolean nullCodeFlag)
     {
         super(

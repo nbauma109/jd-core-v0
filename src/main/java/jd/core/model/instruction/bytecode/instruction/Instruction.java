@@ -30,7 +30,7 @@ public abstract class Instruction
     private final int offset;
     private int lineNumber;
     private Instruction next; // comma-separated instruction in for and declarations
-    
+
     protected Instruction(int opcode, int offset, int lineNumber)
     {
         this.opcode = opcode;

@@ -32,9 +32,9 @@ public class OuterGetStatic {
                 System.out.println("ok");
             }
         }
-        
+
         Object newInstance(Class c) throws InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, NoSuchMethodException, SecurityException {
-            return c.getConstructor(new Class[0]).newInstance(new Object[0]);
+            return c.getConstructor().newInstance();
         }
 
         int binaryOp() {
@@ -44,7 +44,7 @@ public class OuterGetStatic {
         int preIncPostInc() {
             return x > 0 ? ++y : x++;
         }
-        
+
         byte convert() {
             return (byte) a[Byte.class.hashCode()];
         }
@@ -92,7 +92,7 @@ public class OuterGetStatic {
         Object[][] multiANewArray() {
             return new Object[Object.class.hashCode()][Object.class.hashCode()];
         }
-        
+
         void dupStore() {
             synchronized (Object.class.toString()) {
                 System.out.println("ok");

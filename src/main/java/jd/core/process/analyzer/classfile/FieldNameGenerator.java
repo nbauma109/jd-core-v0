@@ -23,7 +23,6 @@ import jd.core.util.CharArrayUtil;
 public final class FieldNameGenerator
 {
     private FieldNameGenerator() {
-        super();
     }
 
     public static String generateName(

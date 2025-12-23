@@ -113,14 +113,14 @@ public class InstructionSplitterVisitor extends BaseInstructionSplitterVisitor
         ClassFileLayouter.createBlocksForBodyOfAnonymousClass(
             this.preferences, innerClassFile, this.layoutBlockList);
     }
-    
+
     @Override
     public void visitAnonymousLambda(Instruction parent, LambdaInstruction in)
     {
         // Add a new part of instruction
         int lastLineNumber = MaxLineNumberVisitor.visit(in);
         int preferedLineNumber;
-        
+
         if (this.firstLineNumber != Instruction.UNKNOWN_LINE_NUMBER &&
                 lastLineNumber != Instruction.UNKNOWN_LINE_NUMBER)
         {
@@ -130,17 +130,17 @@ public class InstructionSplitterVisitor extends BaseInstructionSplitterVisitor
         {
             preferedLineNumber = LayoutBlockConstants.UNLIMITED_LINE_COUNT;
         }
-        
+
         this.layoutBlockList.add(new InstructionLayoutBlock(
                 LayoutBlockConstants.INSTRUCTION,
                 this.firstLineNumber, lastLineNumber,
                 preferedLineNumber, preferedLineNumber, preferedLineNumber,
                 this.classFile, this.method, this.instruction,
                 this.offset1, in.getOffset()));
-        
+
         this.firstLineNumber = parent.getLineNumber();
         this.offset1 = in.getOffset();
-        
+
         // Add blocks for lambda
         ClassFileLayouter.createBlocksForBodyOfLambda(this.preferences, in, this.layoutBlockList);
     }

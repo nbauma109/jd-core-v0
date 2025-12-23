@@ -5,11 +5,13 @@ public class DeprecatedMember {
     /**
      * @deprecated
      */
+    @Deprecated
     private Object o;
-    
+
     /**
      * @deprecated
      */
+    @Deprecated
     void doNothing() {
     }
 }

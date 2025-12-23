@@ -28,7 +28,6 @@ import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
 public final class InstructionUtil
 {
     private InstructionUtil() {
-        super();
     }
 
     public static Instruction getInstructionAt(

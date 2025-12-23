@@ -28,7 +28,6 @@ import org.jd.core.v1.util.StringConstants;
 public final class TypeNameUtil
 {
     private TypeNameUtil() {
-        super();
     }
 
     public static String internalTypeNameToInternalPackageName(String path)

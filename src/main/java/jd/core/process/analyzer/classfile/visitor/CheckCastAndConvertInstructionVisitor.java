@@ -75,13 +75,12 @@ import jd.core.util.SignatureUtil;
 public final class CheckCastAndConvertInstructionVisitor
 {
     private CheckCastAndConvertInstructionVisitor() {
-        super();
     }
 
     private static void visit(ClassFile classFile, Method method,
             Instruction instruction)
     {
-        LocalVariables localVariables = method.getLocalVariables(); 
+        LocalVariables localVariables = method.getLocalVariables();
         switch (instruction.getOpcode())
         {
         case ByteCodeConstants.ARRAYSTORE,
@@ -152,7 +151,7 @@ public final class CheckCastAndConvertInstructionVisitor
                 visit(classFile, method, si.getValueref());
             break;
         case ByteCodeConstants.DUPSTORE,
-             ByteCodeConstants.TERNARYOPSTORE, 
+             ByteCodeConstants.TERNARYOPSTORE,
              Const.GETFIELD,
              Const.INSTANCEOF,
              Const.MONITORENTER,

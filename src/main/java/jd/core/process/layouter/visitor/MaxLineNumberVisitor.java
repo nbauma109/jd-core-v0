@@ -49,7 +49,6 @@ import jd.core.model.instruction.fast.instruction.FastDeclaration;
 public final class MaxLineNumberVisitor
 {
     private MaxLineNumberVisitor() {
-        super();
     }
 
     public static int visit(Instruction instruction)

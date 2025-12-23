@@ -38,7 +38,6 @@ import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
 public final class TernaryOpInReturnReconstructor
 {
     private TernaryOpInReturnReconstructor() {
-        super();
     }
 
     public static void reconstruct(List<Instruction> list)

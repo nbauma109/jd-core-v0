@@ -25,8 +25,9 @@ public class TryCatchFinallyInTryCatchFinally {
             } catch (RuntimeException e) {
                 System.err.println(e);
 
-                if (r.nextBoolean())
+                if (r.nextBoolean()) {
                     throw new RuntimeException();
+                }
 
                 System.out.println("in catch in inner try");
             } finally {
@@ -47,8 +48,9 @@ public class TryCatchFinallyInTryCatchFinally {
             } catch (RuntimeException e) {
                 e.printStackTrace();
 
-                if (r.nextBoolean())
+                if (r.nextBoolean()) {
                     throw new RuntimeException();
+                }
 
                 System.out.println("in catch in inner try");
             } finally {

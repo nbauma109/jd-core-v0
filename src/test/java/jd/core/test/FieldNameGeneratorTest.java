@@ -19,12 +19,12 @@ public class FieldNameGeneratorTest extends AbstractTestCase {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         nonUniqueFieldNamesCreator.create(out);
         Loader loader = new ClassPathLoader() {
-            
+
             @Override
             public byte[] load(String internalName) throws IOException {
                 return "jd/core/test/NonUniqueFieldNames.class".equals(internalName) ? out.toByteArray() : super.load(internalName);
             }
-            
+
             @Override
             public boolean canLoad(String internalName) {
                 return "jd/core/test/NonUniqueFieldNames.class".equals(internalName) || super.canLoad(internalName);

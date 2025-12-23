@@ -33,7 +33,6 @@ import jd.core.model.instruction.fast.instruction.FastSynchronized;
 public final class EmptySynchronizedBlockReconstructor
 {
     private EmptySynchronizedBlockReconstructor() {
-        super();
     }
 
     public static void reconstruct(
