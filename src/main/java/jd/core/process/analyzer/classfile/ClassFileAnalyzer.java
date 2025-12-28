@@ -17,24 +17,30 @@
 package jd.core.process.analyzer.classfile;
 
 import org.apache.bcel.Const;
+import org.apache.bcel.classfile.AnnotationEntry;
+import org.apache.bcel.classfile.Annotations;
+import org.apache.bcel.classfile.Attribute;
 import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
+import org.apache.bcel.classfile.Record;
+import org.apache.bcel.classfile.RecordComponentInfo;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.ExceptionUtil;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.Field;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.classfile.Method;
+import jd.core.model.classfile.RecordComponent;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.ALoad;
 import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
@@ -681,9 +687,7 @@ public final class ClassFileAnalyzer
 
         if (classFile.isRecord())
         {
-            classFile.setMethods(RecordHelper.removeImplicitDefaultRecordMethods(classFile));
-            classFile.setRecordComponents(classFile.getFields());
-            classFile.setFields(new Field[0]);
+            preAnalyzeRecord(classFile);
         }
 
         for (final Method method : classFile.getMethods())
@@ -715,6 +719,33 @@ public final class ClassFileAnalyzer
         if (outerThisFieldrefIndex != 0) {
             analyzeOuterReferences(classFile, outerThisFieldrefIndex);
         }
+    }
+
+    private static void preAnalyzeRecord(ClassFile classFile) {
+        classFile.setMethods(RecordHelper.removeImplicitDefaultRecordMethods(classFile));
+        Record attributeRecord = classFile.getAttributeRecord();
+        List<RecordComponent> recordComponents = new ArrayList<>();
+        for (RecordComponentInfo recordComponentInfo : attributeRecord.getComponents())
+        {
+            int index = recordComponentInfo.getIndex();
+            int descriptorIndex = recordComponentInfo.getDescriptorIndex();
+            ConstantPool cp = classFile.getConstantPool();
+            String name = cp.getConstantUtf8(index);
+            String signature = cp.getConstantUtf8(descriptorIndex);
+            List<AnnotationEntry> annotationEntries = new ArrayList<>();
+            for (Attribute attribute : recordComponentInfo.getAttributes())
+            {
+                if (attribute.getTag() == Const.ATTR_RUNTIME_VISIBLE_ANNOTATIONS
+                 || attribute.getTag() == Const.ATTR_RUNTIME_INVISIBLE_ANNOTATIONS)
+                {
+                    Annotations annotations = (Annotations) attribute;
+                    Collections.addAll(annotationEntries, annotations.getAnnotationEntries());
+                }
+            }
+            recordComponents.add(new RecordComponent(annotationEntries, name, signature));
+        }
+        classFile.setRecordComponents(recordComponents.toArray(RecordComponent[]::new));
+        classFile.setFields(new Field[0]);
     }
 
     public static int preAnalyzeSingleMethod(ClassFile classFile, VariableNameGenerator variableNameGenerator, int outerThisFieldrefIndex, final Method method) {
