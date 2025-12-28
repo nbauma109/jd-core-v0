@@ -33,7 +33,7 @@ public class LambdaMethodLayoutBlock extends MethodNameLayoutBlock
     public List<String> getParameterNames() {
         return parameterNames;
     }
-    
+
     @Override
     public boolean isLambda() {
         return true;

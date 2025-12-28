@@ -84,7 +84,7 @@ public class ClassFile extends Base
      *   "$SwitchMap$basic$data$TestEnum$enum1".
      */
     private final Map<String, List<Integer>> switchMaps;
-    
+
     private final Loader loader;
 
     public ClassFile(int minorVersion, int majorVersion,
@@ -142,7 +142,7 @@ public class ClassFile extends Base
         }
         return null;
     }
-    
+
     public ConstantPool getConstantPool()
     {
         return this.constants;
@@ -237,7 +237,7 @@ public class ClassFile extends Base
     {
         return this.methods;
     }
-    
+
     public void setMethods(Method[] methods)
     {
         this.methods = methods;
@@ -267,7 +267,7 @@ public class ClassFile extends Base
         }
         return null;
     }
-    
+
     public MethodParameters getAttributeMethodParameters()
     {
         for (Attribute attribute : this.getAttributes()) {
@@ -277,7 +277,7 @@ public class ClassFile extends Base
         }
         return null;
     }
-    
+
     private boolean isAnonymousClass()
     {
         int index = this.thisClassName.lastIndexOf(
@@ -443,7 +443,7 @@ public class ClassFile extends Base
             if (method != null) {
                 return method;
             }
-            
+
         }
         return null;
     }

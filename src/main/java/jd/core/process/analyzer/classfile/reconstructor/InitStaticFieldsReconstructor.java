@@ -35,7 +35,6 @@ import jd.core.process.analyzer.classfile.visitor.SearchInstructionByTypeVisitor
 public final class InitStaticFieldsReconstructor
 {
     private InitStaticFieldsReconstructor() {
-        super();
     }
 
     public static void reconstruct(ClassFile classFile)

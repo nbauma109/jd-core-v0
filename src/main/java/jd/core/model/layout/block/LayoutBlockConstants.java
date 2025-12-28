@@ -19,7 +19,6 @@ package jd.core.model.layout.block;
 public final class LayoutBlockConstants
 {
     private LayoutBlockConstants() {
-        super();
     }
 
     public static final byte UNDEFINED                                    = 0;

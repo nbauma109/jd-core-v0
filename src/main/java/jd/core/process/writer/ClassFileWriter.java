@@ -135,7 +135,7 @@ public final class ClassFileWriter
         PUBLIC, PRIVATE, PROTECTED, STATIC, FINAL, SYNCHRONIZED,
         null, null, NATIVE, null, ABSTRACT, STRICTFP
     };
-    
+
     private static final String[] ACCESS_NESTED_CLASS_NAMES = {
         PUBLIC, PRIVATE, PROTECTED, STATIC, FINAL
     };
@@ -1852,7 +1852,7 @@ public final class ClassFileWriter
                 this.printer.print(
                     SignatureWriter.internalClassNameToShortClassName(
                         this.referenceMap, classFile, firstInternalClassName));
-    
+
                 String nextInternalClassName;
                 for (int j=1; j<exceptionIndexesLength; j++)
                 {
@@ -1915,7 +1915,7 @@ public final class ClassFileWriter
             boolean inlineLambda = this.printer.toString().endsWith(" -> ");
 
             this.visitor.visit(instruction);
-            
+
             if (idx < lastIndex || ilb.getLastOffset() == instruction.getOffset())
             {
                 // Ne pas afficher de ';' si une instruction n'a pas ete
@@ -2039,7 +2039,7 @@ public final class ClassFileWriter
     {
         this.printer.print(" -> ");
     }
-    
+
     private void writeSwitch()
     {
         addSpaceIfNeeded();
@@ -2508,10 +2508,10 @@ public final class ClassFileWriter
     private void writeTryWithResources()
     {
         addSpaceIfNeeded();
-        
+
         this.printer.printKeyword("try (");
     }
-    
+
     private void writeFinally()
     {
         addSpaceIfNeeded();

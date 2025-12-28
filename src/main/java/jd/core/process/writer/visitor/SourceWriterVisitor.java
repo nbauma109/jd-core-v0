@@ -1315,7 +1315,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         {
             int count = ii.getCount();
             Validate.inclusiveBetween(-1, 1, count, "PreInc with value=" + count);
-            
+
             this.printer.print(lineNumber, count == -1 ? "--" : "++");
             lineNumber = visit(ii.getValue());
         }
@@ -1425,7 +1425,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         if (this.firstOffset <= this.previousOffset && this.previousOffset < this.lastOffset)
         {
             if (in.getPrefix() != null) {
-                this.printer.print('.');  
+                this.printer.print('.');
             }
             this.printer.printKeyword(lineNumber, "new");
             this.printer.print(' ');

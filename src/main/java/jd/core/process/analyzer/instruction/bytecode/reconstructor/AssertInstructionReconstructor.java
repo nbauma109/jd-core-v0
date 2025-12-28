@@ -46,7 +46,6 @@ import jd.core.model.instruction.bytecode.instruction.InvokeNew;
 public final class AssertInstructionReconstructor
 {
     private AssertInstructionReconstructor() {
-        super();
     }
 
     public static void reconstruct(ClassFile classFile, List<Instruction> list)
@@ -76,15 +75,15 @@ public final class AssertInstructionReconstructor
                 cbl = (ComplexConditionalBranchInstruction) instruction;
                 int jumpOffset = cbl.getJumpOffset();
                 int lastOffset = list.get(index+1).getOffset();
-    
+
                 if (athrow.getOffset() >= jumpOffset || jumpOffset > lastOffset) {
                     continue;
                 }
-    
+
                 if (cbl.getCmp() != 2 || cbl.getInstructions().isEmpty()) {
                     continue;
                 }
-    
+
                 instruction = cbl.getInstructions().get(0);
                 if (instruction.getOpcode() != ByteCodeConstants.IF) {
                     continue;
@@ -128,7 +127,7 @@ public final class AssertInstructionReconstructor
             if (cbl != null) {
                 // Remove first condition "!($assertionsDisabled)"
                 cbl.getInstructions().remove(0);
-    
+
                 list.set(index, new AssertInstruction(
                     ByteCodeConstants.ASSERT, athrow.getOffset(),
                     cbl.getLineNumber(), cbl, msg));
