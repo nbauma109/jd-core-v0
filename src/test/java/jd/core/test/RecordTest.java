@@ -9,6 +9,12 @@ import static org.junit.Assert.assertEquals;
 
 public class RecordTest extends AbstractTestCase {
     @Test
+    public void testGetFieldAccessor() throws Exception {
+        String output = decompile("jd/core/model/classfile/accessor/GetFieldAccessor", "17");
+        assertEquals(IOUtils.toString(getClass().getResource("GetFieldAccessor.txt"), StandardCharsets.UTF_8), output);
+    }
+
+    @Test
     public void testRecordWithConstructor() throws Exception {
         String output = decompile("jd/core/test/RecordWithConstructor", "17");
         assertEquals(IOUtils.toString(getClass().getResource("RecordWithConstructor.txt"), StandardCharsets.UTF_8), output);
