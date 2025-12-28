@@ -861,6 +861,12 @@ public final class ClassFileWriter
             classFile.setAccessFlags(classFile.getAccessFlags() & ~Const.ACC_ABSTRACT);
         }
 
+        if (classFile.isRecord())
+        {
+            // Retrait du flag 'final'
+            classFile.setAccessFlags(classFile.getAccessFlags() & ~Const.ACC_FINAL);
+        }
+
         // Access : public private static volatile ...
         if ((classFile.getAccessFlags() & Const.ACC_ENUM) == 0)
         {
@@ -875,7 +881,14 @@ public final class ClassFileWriter
             writeAccessEnum(classFile.getAccessFlags());
         }
 
-        writeType(classFile.getAccessFlags());
+        if (classFile.isRecord())
+        {
+            this.printer.printKeyword("record");
+        }
+        else
+        {
+            writeType(classFile.getAccessFlags());
+        }
         this.printer.print(' ');
     }
 
@@ -964,6 +977,14 @@ public final class ClassFileWriter
 
     private void writeExtendsSuperType(ExtendsSuperTypeLayoutBlock stelb)
     {
+        ClassFile classFile = stelb.getClassFile();
+
+        if (classFile.isRecord())
+        {
+            writeRecordComponents(classFile);
+            return;
+        }
+
         this.printer.debugStartOfLayoutBlock();
         //DEBUG this.printer.print('^');
 
@@ -979,7 +1000,6 @@ public final class ClassFileWriter
             this.printer.print(' ');
         }
 
-        ClassFile classFile = stelb.getClassFile();
 
         this.printer.printKeyword(EXTENDS);
         this.printer.print(' ');
@@ -990,6 +1010,22 @@ public final class ClassFileWriter
             classFile, signature);
 
         this.printer.debugEndOfLayoutBlock();
+    }
+
+    private void writeRecordComponents(ClassFile classFile)
+    {
+        printer.print('(');
+        Field[] recordComponents = classFile.getRecordComponents();
+        for (int i = 0; i < recordComponents.length; i++) {
+            String signature = recordComponents[i].getSignature(classFile.getConstantPool());
+            SignatureWriter.writeSignature(loader, printer, referenceMap, classFile, signature);
+            printer.print(' ');
+            printer.print(recordComponents[i].getName(classFile.getConstantPool()));
+            if (i < recordComponents.length - 1) {
+                printer.print(", ");
+            }
+        }
+        printer.print(')');
     }
 
     private void writeExtendsSuperInterfaces(
@@ -1631,7 +1667,7 @@ public final class ClassFileWriter
         String internalClassName = classFile.getThisClassName();
         String descriptor = constants.getConstantUtf8(field.getDescriptorIndex());
 
-        if ((field.getAccessFlags() & Const.ACC_STATIC) != 0) {
+        if (field.isStatic()) {
             this.printer.printStaticFieldDeclaration(
                 internalClassName, fieldName, descriptor);
         } else {

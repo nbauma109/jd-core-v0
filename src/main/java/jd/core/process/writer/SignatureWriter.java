@@ -72,7 +72,7 @@ public final class SignatureWriter
         char[] caSignature = signature.toCharArray();
         int length = caSignature.length;
         ConstantPool constants = classFile.getConstantPool();
-        boolean staticMethodFlag = (method.getAccessFlags() & Const.ACC_STATIC) != 0;
+        boolean staticMethodFlag = method.isStatic();
         int index = 0;
         if (!lambda) {
             // Affichage des generics
@@ -126,6 +126,11 @@ public final class SignatureWriter
                 }
             }
         }
+
+        if ("<init>".equals(method.getName(constants)) && classFile.isRecord()) {
+            return;
+        }
+
         // Arguments
         // Constructeur des classes interne non static :
         // - var 1: outer this => ne pas generer de nom
@@ -148,7 +153,7 @@ public final class SignatureWriter
                 } else {
                     variableIndex = 3;
                 }
-            } else if (classFile.isAInnerClass() && (classFile.getAccessFlags() & Const.ACC_STATIC) == 0) {
+            } else if (classFile.isAInnerClass() && !classFile.isStatic()) {
                 if (method.getAttributeSignature() != null) {
                     firstVisibleParameterIndex = 0;
                     variableIndex++;

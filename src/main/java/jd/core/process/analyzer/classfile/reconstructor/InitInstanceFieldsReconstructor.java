@@ -231,7 +231,7 @@ public final class InitInstanceFieldsReconstructor
 
                     if (cnat.getNameIndex() == field.getNameIndex() &&
                         cnat.getSignatureIndex() == field.getDescriptorIndex() &&
-                        (field.getAccessFlags() & Const.ACC_STATIC) == 0)
+                        !field.isStatic())
                     {
                         // Field found
                         Instruction valueref = putField.getValueref();

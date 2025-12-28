@@ -22,6 +22,11 @@ import org.apache.bcel.classfile.Annotations;
 import org.apache.bcel.classfile.Attribute;
 import org.apache.bcel.classfile.Signature;
 
+import static org.apache.bcel.Const.ACC_FINAL;
+import static org.apache.bcel.Const.ACC_PRIVATE;
+import static org.apache.bcel.Const.ACC_PUBLIC;
+import static org.apache.bcel.Const.ACC_STATIC;
+
 public class Base
 {
     private int accessFlags;
@@ -95,4 +100,21 @@ public class Base
     public void setAccessFlags(int accessFlags) {
         this.accessFlags = accessFlags;
     }
+
+    public boolean isFinal() {
+        return (accessFlags & ACC_FINAL) != 0;
+    }
+
+    public boolean isPrivate() {
+        return (accessFlags & ACC_PRIVATE) != 0;
+    }
+
+    public boolean isPublic() {
+        return (accessFlags & ACC_PUBLIC) != 0;
+    }
+
+    public boolean isStatic() {
+        return (accessFlags & ACC_STATIC) != 0;
+    }
+
 }

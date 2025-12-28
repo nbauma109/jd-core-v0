@@ -85,7 +85,7 @@ public final class InitStaticFieldsReconstructor
             {
                 Field field = fields[indexField++];
 
-                if ((field.getAccessFlags() & Const.ACC_STATIC) != 0 &&
+                if (field.isStatic() &&
                     cnat.getSignatureIndex() == field.getDescriptorIndex() &&
                     cnat.getNameIndex() == field.getNameIndex())
                 {
@@ -147,7 +147,7 @@ public final class InitStaticFieldsReconstructor
                 {
                     Field field = fields[indexField];
 
-                    if ((field.getAccessFlags() & Const.ACC_STATIC) != 0 &&
+                    if (field.isStatic() &&
                         cnat.getSignatureIndex() == field.getDescriptorIndex() &&
                         cnat.getNameIndex() == field.getNameIndex())
                     {

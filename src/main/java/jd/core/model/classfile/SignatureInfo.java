@@ -28,6 +28,10 @@ public interface SignatureInfo {
                        .orElseGet(this::getDescriptorIndex);
     }
 
+    default String getSignature(ConstantPool cp) {
+        return cp.getConstantUtf8(getSignatureIndex());
+    }
+
     Signature getAttributeSignature();
 
     int getDescriptorIndex();

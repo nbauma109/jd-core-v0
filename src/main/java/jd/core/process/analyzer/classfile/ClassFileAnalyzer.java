@@ -77,6 +77,7 @@ import jd.core.process.analyzer.instruction.fast.DupLocalVariableAnalyzer;
 import jd.core.process.analyzer.instruction.fast.FastInstructionListBuilder;
 import jd.core.process.analyzer.instruction.fast.ReturnLineNumberAnalyzer;
 import jd.core.process.analyzer.instruction.fast.reconstructor.InitArrayInstructionReconstructor;
+import jd.core.process.analyzer.util.RecordHelper;
 import jd.core.process.analyzer.variable.VariableNameGenerator;
 
 public final class ClassFileAnalyzer
@@ -186,7 +187,7 @@ public final class ClassFileAnalyzer
         // Recherche des classes internes utilisees par les instructions
         // Switch+Enum generees par les compilateurs autre qu'Eclipse.
 
-        if ((classFile.getAccessFlags() & Const.ACC_STATIC) != 0 &&
+        if (classFile.isStatic() &&
                 classFile.getOuterClass() != null &&
                 classFile.getInternalAnonymousClassName() != null &&
                 classFile.getFields().length > 0 &&
@@ -674,13 +675,18 @@ public final class ClassFileAnalyzer
 
     private static void preAnalyzeMethods(ClassFile classFile)
     {
-        Method[] methods = classFile.getMethods();
-
         VariableNameGenerator variableNameGenerator =
                 classFile.getVariableNameGenerator();
         int outerThisFieldrefIndex = 0;
 
-        for (final Method method : methods)
+        if (classFile.isRecord())
+        {
+            classFile.setMethods(RecordHelper.removeImplicitDefaultRecordMethods(classFile));
+            classFile.setRecordComponents(classFile.getFields());
+            classFile.setFields(new Field[0]);
+        }
+
+        for (final Method method : classFile.getMethods())
         {
             try
             {
@@ -895,8 +901,7 @@ public final class ClassFileAnalyzer
             List<Instruction> list, int outerThisFieldrefIndex)
     {
         // Is classFile an inner class ?
-        if (!classFile.isAInnerClass() ||
-                (classFile.getAccessFlags() & Const.ACC_STATIC) != 0) {
+        if (!classFile.isAInnerClass() || classFile.isStatic()) {
             return 0;
         }
 

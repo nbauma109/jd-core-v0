@@ -51,8 +51,9 @@ public class ClassFile extends Base
     private final int superClass;
 
     private final int[] interfaces;
-    private final Field[] fields;
-    private final Method[] methods;
+    private Field[] fields;
+    private Field[] recordComponents;
+    private Method[] methods;
 
     private final ConstantPool constants;
     private final String thisClassName;
@@ -133,7 +134,7 @@ public class ClassFile extends Base
     private Method findStaticMethod() {
         for (Method method : methods)
         {
-            if ((method.getAccessFlags() & Const.ACC_STATIC) != 0 &&
+            if (method.isStatic() &&
                 method.getNameIndex() == this.constants.getClassConstructorIndex())
             {
                 return method;
@@ -217,9 +218,29 @@ public class ClassFile extends Base
         return this.fields;
     }
 
+    public void setFields(Field[] fields)
+    {
+        this.fields = fields;
+    }
+
+    public Field[] getRecordComponents()
+    {
+        return recordComponents;
+    }
+
+    public void setRecordComponents(Field[] recordComponents)
+    {
+        this.recordComponents = recordComponents;
+    }
+
     public Method[] getMethods()
     {
         return this.methods;
+    }
+    
+    public void setMethods(Method[] methods)
+    {
+        this.methods = methods;
     }
 
     public Method getMethod(int i)
@@ -491,5 +512,9 @@ public class ClassFile extends Base
             }
         }
         return typeArgumentInnerClasses;
+    }
+
+    public boolean isRecord() {
+        return "java/lang/Record".equals(superClassName);
     }
 }
