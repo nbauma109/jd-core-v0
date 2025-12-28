@@ -44,6 +44,7 @@ import jd.core.model.classfile.Field;
 import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.classfile.Method;
+import jd.core.model.classfile.RecordComponent;
 import jd.core.model.instruction.bytecode.instruction.ArrayLoadInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
@@ -1015,12 +1016,18 @@ public final class ClassFileWriter
     private void writeRecordComponents(ClassFile classFile)
     {
         printer.print('(');
-        Field[] recordComponents = classFile.getRecordComponents();
-        for (int i = 0; i < recordComponents.length; i++) {
-            String signature = recordComponents[i].getSignature(classFile.getConstantPool());
+        RecordComponent[] recordComponents = classFile.getRecordComponents();
+        for (int i = 0; i < recordComponents.length; i++)
+        {
+            for (AnnotationEntry ann : recordComponents[i].annotations())
+            {
+                AnnotationWriter.writeAnnotation(loader, printer, referenceMap, classFile, ann);
+                printer.print(' ');
+            }
+            String signature = recordComponents[i].signature();
             SignatureWriter.writeSignature(loader, printer, referenceMap, classFile, signature);
             printer.print(' ');
-            printer.print(recordComponents[i].getName(classFile.getConstantPool()));
+            printer.print(recordComponents[i].name());
             if (i < recordComponents.length - 1) {
                 printer.print(", ");
             }

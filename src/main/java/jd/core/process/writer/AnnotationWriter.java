@@ -31,7 +31,8 @@ public final class AnnotationWriter
 {
     private AnnotationWriter() {
     }
-        public static void writeParameterAnnotation(
+
+    public static void writeParameterAnnotation(
         Loader loader, Printer printer, ReferenceMap referenceMap,
         ClassFile classFile, ParameterAnnotationEntry parameterAnnotation)
     {

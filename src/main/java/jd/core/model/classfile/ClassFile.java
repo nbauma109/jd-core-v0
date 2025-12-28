@@ -22,6 +22,7 @@ import org.apache.bcel.classfile.BootstrapMethods;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.InnerClasses;
 import org.apache.bcel.classfile.MethodParameters;
+import org.apache.bcel.classfile.Record;
 import org.apache.bcel.classfile.Signature;
 import org.jd.core.v1.api.loader.Loader;
 import org.jd.core.v1.model.javasyntax.type.AbstractTypeArgumentVisitor;
@@ -52,7 +53,7 @@ public class ClassFile extends Base
 
     private final int[] interfaces;
     private Field[] fields;
-    private Field[] recordComponents;
+    private RecordComponent[] recordComponents;
     private Method[] methods;
 
     private final ConstantPool constants;
@@ -223,12 +224,12 @@ public class ClassFile extends Base
         this.fields = fields;
     }
 
-    public Field[] getRecordComponents()
+    public RecordComponent[] getRecordComponents()
     {
         return recordComponents;
     }
 
-    public void setRecordComponents(Field[] recordComponents)
+    public void setRecordComponents(RecordComponent[] recordComponents)
     {
         this.recordComponents = recordComponents;
     }
@@ -273,6 +274,16 @@ public class ClassFile extends Base
         for (Attribute attribute : this.getAttributes()) {
             if (attribute.getTag() == Const.ATTR_METHOD_PARAMETERS) {
                 return (MethodParameters)attribute;
+            }
+        }
+        return null;
+    }
+
+    public Record getAttributeRecord()
+    {
+        for (Attribute attribute : this.getAttributes()) {
+            if (attribute.getTag() == Const.ATTR_RECORD) {
+                return (Record)attribute;
             }
         }
         return null;

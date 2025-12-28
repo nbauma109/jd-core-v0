@@ -27,6 +27,12 @@ public class RecordTest extends AbstractTestCase {
     }
     
     @Test
+    public void testRecordWithAnnotations() throws Exception {
+        String output = decompile("jd/core/test/RecordWithAnnotations", "17");
+        assertEquals(IOUtils.toString(getClass().getResource("RecordWithAnnotations.txt"), StandardCharsets.UTF_8), output);
+    }
+
+    @Test
     public void testRecordWithEmptyBody() throws Exception {
         String output = decompile("jd/core/test/RecordWithEmptyBody", "17");
         assertEquals(IOUtils.toString(getClass().getResource("RecordWithEmptyBody.txt"), StandardCharsets.UTF_8), output);
