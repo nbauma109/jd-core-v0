@@ -1667,7 +1667,7 @@ public final class ClassFileWriter
         String internalClassName = classFile.getThisClassName();
         String descriptor = constants.getConstantUtf8(field.getDescriptorIndex());
 
-        if ((field.getAccessFlags() & Const.ACC_STATIC) != 0) {
+        if (field.isStatic()) {
             this.printer.printStaticFieldDeclaration(
                 internalClassName, fieldName, descriptor);
         } else {

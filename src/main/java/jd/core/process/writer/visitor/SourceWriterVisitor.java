@@ -1810,8 +1810,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                 // Appel d'un constructeur de la classe courante
                 if ((this.classFile.getAccessFlags() & Const.ACC_ENUM) == 0)
                 {
-                    if (this.classFile.isAInnerClass() &&
-                        (this.classFile.getAccessFlags() & Const.ACC_STATIC) == 0)
+                    if (this.classFile.isAInnerClass() && !this.classFile.isStatic())
                     {
                         // inner class: firstIndex=1
                         firstIndex = 1;
@@ -1896,8 +1895,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                     String descriptor = constants.getConstantUtf8(cnat.getSignatureIndex());
                     Method method = this.classFile.getMethod(methodName, descriptor);
 
-                    if (method == null ||
-                        (method.getAccessFlags() & Const.ACC_PRIVATE) == 0)
+                    if (method == null || !method.isPrivate())
                     {
                         // Methode de la classe mere
                         this.printer.printKeyword(lineNumber, "super");

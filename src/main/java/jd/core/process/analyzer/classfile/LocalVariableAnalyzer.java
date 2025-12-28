@@ -108,7 +108,7 @@ public final class LocalVariableAnalyzer
             method.setLocalVariables(localVariables);
 
             // Add this
-            if ((method.getAccessFlags() & Const.ACC_STATIC) == 0)
+            if (!method.isStatic())
             {
                 int nameIndex = constants.addConstantUtf8(
                         StringConstants.THIS_LOCAL_VARIABLE_NAME);
@@ -121,7 +121,7 @@ public final class LocalVariableAnalyzer
 
             if (method.getNameIndex() == constants.getInstanceConstructorIndex() &&
                     classFile.isAInnerClass() &&
-                    (classFile.getAccessFlags() & Const.ACC_STATIC) == 0)
+                    !classFile.isStatic())
             {
                 // Add outer this
                 int nameIndex = constants.addConstantUtf8(
@@ -158,7 +158,7 @@ public final class LocalVariableAnalyzer
             String methodSignature = constants.getConstantUtf8(method.getSignatureIndex());
 
             int indexOfFirstLocalVariable =
-                    ((method.getAccessFlags() & Const.ACC_STATIC) == 0 ? 1 : 0) +
+                    (!method.isStatic() ? 1 : 0) +
                     SignatureUtil.getParameterSignatureCount(methodSignature);
 
             if (indexOfFirstLocalVariable > localVariables.size())
@@ -251,8 +251,7 @@ public final class LocalVariableAnalyzer
             // Signature:
             // - variableIndex = 1 + 1 + 1
             // Le premier parametre des méthodes non statiques est 'this'
-            boolean staticMethodFlag =
-                    (method.getAccessFlags() & Const.ACC_STATIC) != 0;
+            boolean staticMethodFlag = method.isStatic();
             int variableIndex = staticMethodFlag ? 0 : 1;
 
             int firstVisibleParameterCounter = 0;
@@ -266,7 +265,7 @@ public final class LocalVariableAnalyzer
                     } else {
                         variableIndex = 3;
                     }
-                } else if (classFile.isAInnerClass() && (classFile.getAccessFlags() & Const.ACC_STATIC) == 0) {
+                } else if (classFile.isAInnerClass() && !classFile.isStatic()) {
                     firstVisibleParameterCounter = 1;
                 }
             }

@@ -187,7 +187,7 @@ public final class ClassFileAnalyzer
         // Recherche des classes internes utilisees par les instructions
         // Switch+Enum generees par les compilateurs autre qu'Eclipse.
 
-        if ((classFile.getAccessFlags() & Const.ACC_STATIC) != 0 &&
+        if (classFile.isStatic() &&
                 classFile.getOuterClass() != null &&
                 classFile.getInternalAnonymousClassName() != null &&
                 classFile.getFields().length > 0 &&
@@ -901,8 +901,7 @@ public final class ClassFileAnalyzer
             List<Instruction> list, int outerThisFieldrefIndex)
     {
         // Is classFile an inner class ?
-        if (!classFile.isAInnerClass() ||
-                (classFile.getAccessFlags() & Const.ACC_STATIC) != 0) {
+        if (!classFile.isAInnerClass() || classFile.isStatic()) {
             return 0;
         }
 

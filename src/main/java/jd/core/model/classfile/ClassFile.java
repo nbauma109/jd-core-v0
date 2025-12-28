@@ -134,7 +134,7 @@ public class ClassFile extends Base
     private Method findStaticMethod() {
         for (Method method : methods)
         {
-            if ((method.getAccessFlags() & Const.ACC_STATIC) != 0 &&
+            if (method.isStatic() &&
                 method.getNameIndex() == this.constants.getClassConstructorIndex())
             {
                 return method;
