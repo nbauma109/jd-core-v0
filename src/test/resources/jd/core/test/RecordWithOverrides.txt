@@ -1,0 +1,18 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public record RecordWithOverrides(String a, double d) {
+/*    */   @Override
+/*    */   public final int hashCode() {
+/*  6 */     throw new UnsupportedOperationException();
+/*    */   }
+/*    */   
+/*    */   @Override
+/*    */   public final boolean equals(Object o) {
+/* 11 */     throw new UnsupportedOperationException();
+/*    */   }
+/*    */   
+/*    */   @Override
+/*    */   public final String toString() {
+/* 16 */     throw new UnsupportedOperationException();
+/*    */   }
+/*    */ }

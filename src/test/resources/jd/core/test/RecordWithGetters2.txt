@@ -1,0 +1,4 @@
+package jd.core.test;
+
+public record RecordWithGetters2(String a, double d)
+{}

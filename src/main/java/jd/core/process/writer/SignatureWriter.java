@@ -126,6 +126,11 @@ public final class SignatureWriter
                 }
             }
         }
+
+        if ("<init>".equals(method.getName(constants)) && classFile.isRecord()) {
+            return;
+        }
+
         // Arguments
         // Constructeur des classes interne non static :
         // - var 1: outer this => ne pas generer de nom

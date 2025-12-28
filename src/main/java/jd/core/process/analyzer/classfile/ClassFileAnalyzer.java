@@ -77,6 +77,7 @@ import jd.core.process.analyzer.instruction.fast.DupLocalVariableAnalyzer;
 import jd.core.process.analyzer.instruction.fast.FastInstructionListBuilder;
 import jd.core.process.analyzer.instruction.fast.ReturnLineNumberAnalyzer;
 import jd.core.process.analyzer.instruction.fast.reconstructor.InitArrayInstructionReconstructor;
+import jd.core.process.analyzer.util.RecordHelper;
 import jd.core.process.analyzer.variable.VariableNameGenerator;
 
 public final class ClassFileAnalyzer
@@ -674,13 +675,18 @@ public final class ClassFileAnalyzer
 
     private static void preAnalyzeMethods(ClassFile classFile)
     {
-        Method[] methods = classFile.getMethods();
-
         VariableNameGenerator variableNameGenerator =
                 classFile.getVariableNameGenerator();
         int outerThisFieldrefIndex = 0;
 
-        for (final Method method : methods)
+        if (classFile.isRecord())
+        {
+            classFile.setMethods(RecordHelper.removeImplicitDefaultRecordMethods(classFile));
+            classFile.setRecordComponents(classFile.getFields());
+            classFile.setFields(new Field[0]);
+        }
+
+        for (final Method method : classFile.getMethods())
         {
             try
             {

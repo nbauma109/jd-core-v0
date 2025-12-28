@@ -254,4 +254,8 @@ public class Method extends Base implements SignatureInfo
         return getName(constants).startsWith("lambda$");
     }
 
+    public org.apache.bcel.classfile.Method getMethod() {
+        return (org.apache.bcel.classfile.Method) fieldOrMethod;
+    }
+
 }

@@ -123,4 +123,8 @@ public class Field extends Base implements SignatureInfo
     public void setOuterLocalVariable(boolean outerLocalVariable) {
         this.outerLocalVariable = outerLocalVariable;
     }
+
+    public String getName(ConstantPool cp) {
+        return cp.getConstantUtf8(fieldOrMethod.getNameIndex());
+    }
 }
