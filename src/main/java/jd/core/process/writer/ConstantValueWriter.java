@@ -35,7 +35,6 @@ import jd.core.util.StringUtil;
 public final class ConstantValueWriter
 {
     private ConstantValueWriter() {
-        super();
     }
 
     public static void write(

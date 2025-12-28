@@ -38,7 +38,6 @@ import jd.core.process.analyzer.instruction.fast.visitor.ReplaceInstructionVisit
 public final class TernaryOpReconstructor
 {
     private TernaryOpReconstructor() {
-        super();
     }
 
     public static void reconstruct(List<Instruction> list)

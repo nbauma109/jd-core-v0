@@ -52,7 +52,6 @@ import jd.core.util.SignatureUtil;
 public final class AccessorAnalyzer
 {
     private AccessorAnalyzer() {
-        super();
     }
 
     public static void analyze(ClassFile classFile, Method method)
@@ -78,7 +77,7 @@ public final class AccessorAnalyzer
         if (searchIncGetStaticAccessor(classFile, method)) {
             return;
         }
-        
+
         // Recherche des accesseurs de champs
         //   static int access$1(TestInnerClass)
         if (searchGetFieldAccessor(classFile, method)) {
@@ -282,12 +281,12 @@ public final class AccessorAnalyzer
         if (list.size() != 1) {
             return false;
         }
-        
+
         Instruction instruction = list.get(0);
         if (instruction.getOpcode() != ByteCodeConstants.XRETURN) {
             return false;
         }
-        
+
         instruction = ((ReturnInstruction)instruction).getValueref();
         if (!(instruction instanceof IncInstruction inc)) {
             return false;
@@ -300,11 +299,11 @@ public final class AccessorAnalyzer
 
         ConstantFieldref cfr = constants.getConstantFieldref(
                 ((GetField)inc.getValue()).getIndex());
-        
+
         if (cfr.getClassIndex() != classFile.getThisClassIndex()) {
             return false;
         }
-        
+
         String methodDescriptor =
                 constants.getConstantUtf8(method.getDescriptorIndex());
         if (methodDescriptor.charAt(1) == ')') {
@@ -313,15 +312,15 @@ public final class AccessorAnalyzer
         if (SignatureUtil.getParameterSignatureCount(methodDescriptor) != 1) {
             return false;
         }
-        
+
         String methodName = constants.getConstantUtf8(method.getNameIndex());
-        
+
         ConstantNameAndType cnat = constants.getConstantNameAndType(
                 cfr.getNameAndTypeIndex());
-        
+
         String fieldDescriptor = constants.getConstantUtf8(cnat.getSignatureIndex());
         String fieldName = constants.getConstantUtf8(cnat.getNameIndex());
-        
+
         // Trouve ! Ajout de l'accesseur.
         classFile.addAccessor(methodName, methodDescriptor,
                 new IncGetFieldAccessor(
@@ -338,12 +337,12 @@ public final class AccessorAnalyzer
         if (list.size() != 1) {
             return false;
         }
-        
+
         Instruction instruction = list.get(0);
         if (instruction.getOpcode() != ByteCodeConstants.XRETURN) {
             return false;
         }
-        
+
         instruction = ((ReturnInstruction)instruction).getValueref();
         if (!(instruction instanceof IncInstruction inc)) {
             return false;
@@ -356,25 +355,25 @@ public final class AccessorAnalyzer
 
         ConstantFieldref cfr = constants.getConstantFieldref(
                 ((GetStatic)inc.getValue()).getIndex());
-        
+
         if (cfr.getClassIndex() != classFile.getThisClassIndex()) {
             return false;
         }
-        
+
         String methodDescriptor =
                 constants.getConstantUtf8(method.getDescriptorIndex());
         if (methodDescriptor.charAt(1) != ')') {
             return false;
         }
-        
+
         String methodName = constants.getConstantUtf8(method.getNameIndex());
-        
+
         ConstantNameAndType cnat = constants.getConstantNameAndType(
                 cfr.getNameAndTypeIndex());
-        
+
         String fieldDescriptor = constants.getConstantUtf8(cnat.getSignatureIndex());
         String fieldName = constants.getConstantUtf8(cnat.getNameIndex());
-        
+
         // Trouve ! Ajout de l'accesseur.
         classFile.addAccessor(methodName, methodDescriptor,
                 new IncGetStaticAccessor(
@@ -383,7 +382,7 @@ public final class AccessorAnalyzer
                         inc.getCount(), inc.getOpcode()));
         return true;
     }
-    
+
     /* Recherche des accesseurs de champs:
      *   static void access$0(TestInnerClass, int)
      *   {

@@ -197,8 +197,8 @@ public class FastTry extends FastList {
             String catchInstructionMethodName = cp.getConstantUtf8(catchInstructionMethod.getNameIndex());
             String catchInstructionMethodDesc = cp.getConstantUtf8(catchInstructionMethod.getSignatureIndex());
             String catchInstructionClassName = cp.getConstantUtf8(catchInstructionClass.getNameIndex());
-            if ("java/lang/Throwable".equals(catchInstructionClassName) 
-                && "addSuppressed".equals(catchInstructionMethodName) 
+            if ("java/lang/Throwable".equals(catchInstructionClassName)
+                && "addSuppressed".equals(catchInstructionMethodName)
                 && "(Ljava/lang/Throwable;)V".equals(catchInstructionMethodDesc)) {
                 lv2.setThrowableFromTryResources(true);
                 if (lv2.isExceptionOrThrowable(cp)) {

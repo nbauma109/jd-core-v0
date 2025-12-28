@@ -60,7 +60,6 @@ import jd.core.process.analyzer.classfile.visitor.SearchInstructionByTypeVisitor
 public final class AssignmentInstructionReconstructor
 {
     private AssignmentInstructionReconstructor() {
-        super();
     }
 
     public static void reconstruct(List<Instruction> list)
@@ -105,7 +104,7 @@ public final class AssignmentInstructionReconstructor
                 Instruction dupload1 = null;
 
                 if (xstorePutfieldPutstatic instanceof ValuerefAttribute valRefAttr)
-                {  
+                {
                     Instruction i = valRefAttr.getValueref();
                     if (i.getOpcode() == ByteCodeConstants.DUPLOAD &&
                         ((DupLoad)i).getDupStore() == dupStore)

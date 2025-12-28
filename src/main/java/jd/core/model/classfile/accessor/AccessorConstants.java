@@ -19,7 +19,6 @@ package jd.core.model.classfile.accessor;
 public final class AccessorConstants
 {
     private AccessorConstants() {
-        super();
     }
 
     public static final byte ACCESSOR_GETSTATIC = 1;

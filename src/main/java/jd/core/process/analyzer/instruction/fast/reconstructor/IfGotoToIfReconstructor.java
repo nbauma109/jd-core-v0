@@ -42,7 +42,6 @@ import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
 public final class IfGotoToIfReconstructor
 {
     private IfGotoToIfReconstructor() {
-        super();
     }
 
     public static void reconstruct(List<Instruction> list)

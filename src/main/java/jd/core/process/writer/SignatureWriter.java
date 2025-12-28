@@ -79,46 +79,46 @@ public final class SignatureWriter
             int newIndex = writeGenerics(
                     loader, printer, referenceMap, classFile,
                     caSignature, length, index);
-    
+
             if (newIndex != index) {
                 printer.print(' ');
                 index = newIndex;
             }
-    
+
             if (caSignature[index] != '(') {
                 throw new SignatureFormatException(signature);
             }
-    
+
             // pass '('
             index++;
-    
+
             String internalClassName = classFile.getThisClassName();
             String descriptor = constants.getConstantUtf8(method.getDescriptorIndex());
-    
+
             if (method.getNameIndex() == constants.getInstanceConstructorIndex())
             {
                 printer.printConstructorDeclaration(internalClassName, classFile.getClassName(), descriptor);
             }
             else
             {
-    
+
                 newIndex = index;
-    
+
                 while (newIndex < length && caSignature[newIndex++] != ')') {
                     // search ')'
                 }
-    
+
                 writeSignature(
                     loader, printer, referenceMap, classFile,
                     caSignature, length, newIndex, false, null, false);
-    
+
                 printer.print(' ');
-    
+
                 String methodName = constants.getConstantUtf8(method.getNameIndex());
                 if (keywordSet.contains(methodName)) {
                     methodName = StringConstants.JD_METHOD_PREFIX + methodName;
                 }
-    
+
                 if (staticMethodFlag) {
                     printer.printStaticMethodDeclaration(internalClassName, methodName, descriptor);
                 } else {
@@ -601,7 +601,7 @@ public final class SignatureWriter
                     }
                 } else if (lastIndexOfDollar != -1) {
                     internalName = internalName.substring(index+1)
-                                               .replace(StringConstants.INTERNAL_INNER_SEPARATOR, 
+                                               .replace(StringConstants.INTERNAL_INNER_SEPARATOR,
                                                         StringConstants.PACKAGE_SEPARATOR);
                 } else {
                     // Sinon, on conserve le nom du package

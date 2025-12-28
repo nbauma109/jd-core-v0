@@ -54,7 +54,6 @@ import jd.core.process.analyzer.classfile.visitor.CompareInstructionVisitor;
 public final class AssignmentOperatorReconstructor
 {
     private AssignmentOperatorReconstructor() {
-        super();
     }
 
     public static void reconstruct(List<Instruction> list)

@@ -44,7 +44,6 @@ import jd.core.util.SignatureUtil;
 public final class InstructionListBuilder
 {
     private InstructionListBuilder() {
-        super();
     }
 
     private static final CodeExceptionComparator COMPARATOR =

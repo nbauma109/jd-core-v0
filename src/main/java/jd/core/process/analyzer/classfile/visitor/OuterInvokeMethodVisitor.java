@@ -96,37 +96,29 @@ public class OuterInvokeMethodVisitor extends OuterGetStaticVisitor
         int cmrIndex = constants.addConstantMethodref(
             classIndex, cnatIndex);
 
-        switch (ima.methodOpcode())
-        {
-        case Const.INVOKESPECIAL:
-            {
+        return switch (ima.methodOpcode()) {
+            case Const.INVOKESPECIAL -> {
                 Instruction objectref = is.getArgs().remove(0);
-                return new Invokespecial(
-                    Const.INVOKESPECIAL, i.getOffset(), i.getLineNumber(),
-                    cmrIndex, objectref, is.getArgs());
+                yield new Invokespecial(
+                                    Const.INVOKESPECIAL, i.getOffset(), i.getLineNumber(),
+                                    cmrIndex, objectref, is.getArgs());
             }
-        case Const.INVOKEVIRTUAL:
-            {
+            case Const.INVOKEVIRTUAL -> {
                 Instruction objectref = is.getArgs().remove(0);
-                return new Invokevirtual(
-                    Const.INVOKEVIRTUAL, i.getOffset(), i.getLineNumber(),
-                    cmrIndex, objectref, is.getArgs());
+                yield new Invokevirtual(
+                                    Const.INVOKEVIRTUAL, i.getOffset(), i.getLineNumber(),
+                                    cmrIndex, objectref, is.getArgs());
             }
-        case Const.INVOKEINTERFACE:
-            {
+            case Const.INVOKEINTERFACE -> {
                 Instruction objectref = is.getArgs().remove(0);
-                return new Invokeinterface(
-                    Const.INVOKEINTERFACE, i.getOffset(), i.getLineNumber(),
-                    cmrIndex, objectref, is.getArgs());
+                yield new Invokeinterface(
+                                    Const.INVOKEINTERFACE, i.getOffset(), i.getLineNumber(),
+                                    cmrIndex, objectref, is.getArgs());
             }
-        case Const.INVOKESTATIC:
-            {
-                return new Invokestatic(
-                    Const.INVOKESTATIC, i.getOffset(), i.getLineNumber(),
-                    cmrIndex, is.getArgs());
-            }
-        default:
-            return i;
-        }
+            case Const.INVOKESTATIC -> new Invokestatic(
+                                Const.INVOKESTATIC, i.getOffset(), i.getLineNumber(),
+                                cmrIndex, is.getArgs());
+            default -> i;
+        };
     }
 }
