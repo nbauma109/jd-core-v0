@@ -84,10 +84,6 @@ public final class StringConcatenationUtil {
         RecipeParseResult parseResult = parseRecipe(context, recipe, indyParameters);
         List<Instruction> parts = parseResult.parts;
 
-        if (parts.isEmpty()) {
-            return createUtf8StringLiteral(context, "");
-        }
-
         if (parseResult.requiresLeadingEmptyString) {
             parts.add(0, createUtf8StringLiteral(context, ""));
         }
@@ -96,9 +92,7 @@ public final class StringConcatenationUtil {
     }
 
     private static Instruction createWithoutRecipe(Context ctx, List<Instruction> indyParameters) {
-        if (indyParameters == null || indyParameters.isEmpty()) {
-            return createUtf8StringLiteral(ctx, "");
-        }
+        Objects.requireNonNull(indyParameters, "indyParameters");
 
         if (containsString(indyParameters)) {
             return foldConcatenation(ctx, indyParameters);
@@ -120,9 +114,7 @@ public final class StringConcatenationUtil {
     }
 
     private static boolean isString(Instruction instruction) {
-        if (instruction == null) {
-            return false;
-        }
+        Objects.requireNonNull(instruction, "instruction");
 
         Context ctx = CONTEXT.get();
         String returnedSignature = instruction.getReturnedSignature(ctx.classFile, ctx.localVariables);
