@@ -24,6 +24,7 @@ import org.apache.bcel.classfile.ConstantInvokeDynamic;
 import org.apache.bcel.classfile.ConstantMethodHandle;
 import org.apache.bcel.classfile.ConstantMethodType;
 import org.apache.bcel.classfile.ConstantNameAndType;
+import org.apache.bcel.classfile.ConstantString;
 import org.jd.core.v1.model.javasyntax.expression.ObjectTypeReferenceExpression;
 import org.jd.core.v1.model.javasyntax.type.BaseType;
 import org.jd.core.v1.model.javasyntax.type.ObjectType;
@@ -53,6 +54,7 @@ import jd.core.model.instruction.bytecode.instruction.MethodReference;
 import jd.core.model.instruction.bytecode.instruction.StaticMethodReference;
 import jd.core.process.analyzer.classfile.ClassFileAnalyzer;
 import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
+import jd.core.process.analyzer.util.StringConcatenationUtil;
 
 public class InvokeDynamicFactory implements InstructionFactory
 {
@@ -97,6 +99,31 @@ public class InvokeDynamicFactory implements InstructionFactory
         int[] bootstrapArguments = bootstrapMethod.getBootstrapArguments();
 //        BaseType parameterTypes = indyMethodTypes.getParameterTypes();
 
+        if ("makeConcatWithConstants".equals(indyMethodName)) {
+            ConstantString constantString = (ConstantString) constants.getConstantValue(bootstrapArguments[0]);
+            String recipe = constants.getConstantUtf8(constantString.getStringIndex());
+
+            LocalVariables localVariables = method.getLocalVariables();
+            StringConcatenationUtil.enter(classFile, localVariables, offset, lineNumber, bootstrapArguments, 1);
+            try {
+                stack.push(StringConcatenationUtil.create(recipe, indyParameters));
+            } finally {
+                StringConcatenationUtil.exit();
+            }
+            return Const.getNoOfOperands(opcode);
+        }
+
+        if ("makeConcat".equals(indyMethodName)) {
+            LocalVariables localVariables = method.getLocalVariables();
+            StringConcatenationUtil.enter(classFile, localVariables, offset, lineNumber);
+            try {
+                stack.push(StringConcatenationUtil.create(indyParameters));
+            } finally {
+                StringConcatenationUtil.exit();
+            }
+            return Const.getNoOfOperands(opcode);
+        }
+
         ConstantMethodType cmt0 = constants.getConstantMethodType(bootstrapArguments[0]);
         String descriptor0 = constants.getConstantUtf8(cmt0.getDescriptorIndex());
         TypeMaker.MethodTypes methodTypes0 = typeMaker.makeMethodTypes(classFile.getThisClassName(), null, descriptor0);
@@ -136,7 +163,6 @@ public class InvokeDynamicFactory implements InstructionFactory
             List<String> lambdaParameterNames = prepareLambdaParameterNames(localVariableNames, parameterCount);
             stack.push(new LambdaInstruction(opcode, offset+1, lineNumber, lambdaParameterNames, indyMethodTypes.getReturnedType(), lambdaMethod, classFile));
             return Const.getNoOfOperands(opcode);
-
         }
 
         if (indyParameters == null) {

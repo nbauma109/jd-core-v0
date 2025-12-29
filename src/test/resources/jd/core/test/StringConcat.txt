@@ -1,0 +1,16 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class StringConcat
+/*    */ {
+/*    */   String concat(String a, String b, String c) {
+/*  6 */     return a + ":" + b + ":" + c;
+/*    */   }
+/*    */   
+/*    */   public String needsLeadingEmptyString(int i) {
+/* 10 */     return "" + i;
+/*    */   }
+/*    */   
+/*    */   public String usesBootstrapConstant2(String s) {
+/* 14 */     return "\001" + s;
+/*    */   }
+/*    */ }
