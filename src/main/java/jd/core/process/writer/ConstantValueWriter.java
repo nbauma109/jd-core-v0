@@ -23,6 +23,7 @@ import org.apache.bcel.classfile.ConstantFloat;
 import org.apache.bcel.classfile.ConstantInteger;
 import org.apache.bcel.classfile.ConstantLong;
 import org.apache.bcel.classfile.ConstantString;
+import org.apache.bcel.classfile.ConstantUtf8;
 import org.jd.core.v1.api.loader.Loader;
 import org.jd.core.v1.util.StringConstants;
 
@@ -220,6 +221,15 @@ public final class ConstantValueWriter
             {
                 String s = constants.getConstantUtf8(
                     ((ConstantString)cv).getStringIndex());
+                String escapedString =
+                    StringUtil.escapeStringAndAppendQuotationMark(s);
+                String scopeInternalName = classFile.getThisClassName();
+                printer.printString(escapedString, scopeInternalName);
+            }
+            break;
+          case Const.CONSTANT_Utf8:
+            {
+                String s = ((ConstantUtf8) cv).getBytes();
                 String escapedString =
                     StringUtil.escapeStringAndAppendQuotationMark(s);
                 String scopeInternalName = classFile.getThisClassName();
