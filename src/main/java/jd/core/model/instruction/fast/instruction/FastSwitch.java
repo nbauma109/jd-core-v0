@@ -25,7 +25,7 @@ import jd.core.model.instruction.bytecode.instruction.BranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.process.analyzer.classfile.visitor.SearchInstructionByTypeVisitor;
 
-/* While, do-while & if. */
+/* Switch statement */
 public class FastSwitch extends BranchInstruction
 {
     private Instruction test;
