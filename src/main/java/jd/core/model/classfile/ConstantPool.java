@@ -26,7 +26,6 @@ import org.apache.bcel.classfile.ConstantMethodHandle;
 import org.apache.bcel.classfile.ConstantMethodType;
 import org.apache.bcel.classfile.ConstantMethodref;
 import org.apache.bcel.classfile.ConstantNameAndType;
-import org.apache.bcel.classfile.ConstantString;
 import org.apache.bcel.classfile.ConstantUtf8;
 import org.apache.commons.lang3.Validate;
 import org.jd.core.v1.util.StringConstants;
@@ -43,7 +42,6 @@ public class ConstantPool
     private final org.apache.bcel.classfile.ConstantPool constantPool;
     private final List<Constant> listOfConstants;
     private final StringToIndexMap constantUtf8ToIndex;
-    private final IndexToIndexMap constantStringToIndex;
     private final IndexToIndexMap constantClassToIndex;
 
     private final int instanceConstructorIndex;
@@ -68,7 +66,6 @@ public class ConstantPool
         this.constantPool = constantPool;
         this.listOfConstants = new ArrayList<>();
         this.constantUtf8ToIndex = new StringToIndexMap();
-        this.constantStringToIndex = new IndexToIndexMap();
         this.constantClassToIndex = new IndexToIndexMap();
 
         Constant[] constants = constantPool.getConstantPool();
@@ -80,10 +77,6 @@ public class ConstantPool
             if (constant instanceof ConstantUtf8 cu)
             {
                 this.constantUtf8ToIndex.put(cu.getBytes(), index);
-            }
-            if (constant instanceof ConstantString cs)
-            {
-                this.constantStringToIndex.put(cs.getStringIndex(), index);
             }
             if (constant instanceof ConstantClass cc)
             {
@@ -171,34 +164,6 @@ public class ConstantPool
         }
 
         return index;
-    }
-
-    public int addConstantString(int nameIndex)
-    {
-        String internalName = getConstantUtf8(nameIndex);
-        if (internalName == null ||
-            internalName.isEmpty() ||
-            internalName.charAt(internalName.length()-1) == ';') {
-            System.err.println("ConstantPool.addConstantString: invalid name index");
-        }
-
-        int index = this.constantStringToIndex.get(nameIndex);
-
-        if (index == -1)
-        {
-            ConstantString cs =
-                new ConstantString(nameIndex);
-            index = this.listOfConstants.size();
-            this.listOfConstants.add(cs);
-            this.constantStringToIndex.put(nameIndex, index);
-        }
-
-        return index;
-    }
-
-    public int addConstantString(String string)
-    {
-        return addConstantString(addConstantUtf8(string));
     }
 
     public int addConstantClass(int nameIndex)
@@ -344,11 +309,6 @@ public class ConstantPool
     {
         return (ConstantInvokeDynamic) this.listOfConstants.get(index);
     }
-    
-    public ConstantString getConstantString(int index)
-    {
-        return (ConstantString) this.listOfConstants.get(index);
-    }
 
     public Constant getConstantValue(int index)
     {
@@ -414,5 +374,4 @@ public class ConstantPool
     public org.apache.bcel.classfile.ConstantPool getConstantPool() {
         return constantPool;
     }
-
 }
