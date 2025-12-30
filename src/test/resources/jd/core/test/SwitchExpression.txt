@@ -1,0 +1,49 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class SwitchExpression
+/*    */ {
+/*    */   public String simpleSwitch(int i) {
+/*  6 */     String s = switch (i) {
+/*  7 */       case 0 -> "simpleSwitch case 0";
+/*  8 */       case 1 -> "simpleSwitch case 1";
+/*  9 */       case 2 -> "simpleSwitch case 2";
+/* 10 */       case 3 -> "simpleSwitch case 3";
+/* 11 */       default -> throw new IllegalArgumentException();
+/*    */     };
+/* 13 */     return String.format("return from simpleSwitch: %s", s);
+/*    */   }
+/*    */ 
+/*    */   public String returnSwitch(int i) {
+/* 17 */     return switch (i) {
+/* 18 */       case 0 -> "returnSwitch case 0";
+/* 19 */       case 1 -> "returnSwitch case 1";
+/* 20 */       case 2 -> "returnSwitch case 2";
+/* 21 */       case 3 -> "returnSwitch case 3";
+/* 22 */       default -> throw new IllegalArgumentException();
+/*    */     };
+/*    */   }
+/*    */   
+/*    */   @SuppressWarnings("all")
+/*    */   public String yieldSwitch(int i) {
+/* 28 */     String s = switch (i) {
+/*    */       case 0 -> {
+/* 30 */         System.out.println("yieldSwitch case 0");
+/* 31 */         yield "0";
+/*    */       }
+/*    */       case 1 -> {
+/* 34 */         System.out.println("yieldSwitch case 1");
+/* 35 */         yield "1";
+/*    */       }
+/*    */       case 2 -> {
+/* 38 */         System.out.println("yieldSwitch case 2");
+/* 39 */         yield "2";
+/*    */       }
+/*    */       case 3 -> {
+/* 42 */         System.out.println("yieldSwitch case 3");
+/* 43 */         yield "3";
+/*    */       }
+/* 45 */       default -> throw new IllegalArgumentException(); 
+/*    */     };
+/* 47 */     return String.format("return from yield switch: %s", s);
+/*    */   }
+/*    */ }
