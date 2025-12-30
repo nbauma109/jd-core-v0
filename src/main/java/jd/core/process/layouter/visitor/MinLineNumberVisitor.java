@@ -24,8 +24,11 @@ import jd.core.model.instruction.bytecode.instruction.AssignmentInstruction;
 import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.IncInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
+import jd.core.model.instruction.bytecode.instruction.SwitchExpression;
+import jd.core.model.instruction.bytecode.instruction.SwitchExpressionYield;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
+import jd.core.model.instruction.fast.FastConstants;
 
 public final class MinLineNumberVisitor
 {
@@ -76,6 +79,10 @@ public final class MinLineNumberVisitor
             return visit(((ObjectrefAttribute)instruction).getObjectref());
         case ByteCodeConstants.TERNARYOP:
             return visit(((TernaryOperator)instruction).getTest());
+        case FastConstants.SWITCH_EXPRESSION:
+            return visit(((SwitchExpression)instruction).getSwitch().getTest());
+        case FastConstants.SWITCH_EXPRESSION_YIELD:
+            return visit(((SwitchExpressionYield)instruction).getValue());
         }
 
         return instruction.getLineNumber();

@@ -39,6 +39,8 @@ import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
 import jd.core.model.instruction.bytecode.instruction.MultiANewArray;
 import jd.core.model.instruction.bytecode.instruction.NewArray;
 import jd.core.model.instruction.bytecode.instruction.Switch;
+import jd.core.model.instruction.bytecode.instruction.SwitchExpression;
+import jd.core.model.instruction.bytecode.instruction.SwitchExpressionYield;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
@@ -108,6 +110,9 @@ public final class MaxLineNumberVisitor
                     maxLineNumber = visit(fd.getInstruction());
                 }
             }
+            break;
+        case FastConstants.SWITCH_EXPRESSION:
+            maxLineNumber = visit(((SwitchExpression)instruction).getSwitch().getTest());
             break;
         case ByteCodeConstants.IFCMP:
             IfCmp ifCmp = (IfCmp)instruction;
@@ -196,6 +201,9 @@ public final class MaxLineNumberVisitor
             break;
         case ByteCodeConstants.TERNARYOP:
             maxLineNumber = visit(((TernaryOperator)instruction).getValue2());
+            break;
+        case FastConstants.SWITCH_EXPRESSION_YIELD:
+            maxLineNumber = visit(((SwitchExpressionYield)instruction).getValue());
             break;
 //        TODO check whether this necessary
 //        case FastConstants.SYNCHRONIZED:
