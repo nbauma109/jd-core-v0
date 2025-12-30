@@ -115,6 +115,7 @@ import jd.core.process.analyzer.instruction.fast.reconstructor.EmptySynchronized
 import jd.core.process.analyzer.instruction.fast.reconstructor.IfGotoToIfReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.InitArrayInstructionReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.RemoveDupConstantsAttributes;
+import jd.core.process.analyzer.instruction.fast.reconstructor.SwitchExpressionReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.TernaryOpInReturnReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.TernaryOpReconstructor;
 import jd.core.process.analyzer.instruction.fast.visitor.CheckLocalVariableUsedVisitor;
@@ -1207,6 +1208,8 @@ public final class FastInstructionListBuilder {
         // Retrait des instructions DupLoads & DupStore associés à 
         // une constante ou un attribut.
         RemoveDupConstantsAttributes.reconstruct(list);
+        // Replace switch statement patterns with switch expressions.
+        SwitchExpressionReconstructor.reconstruct(list);
         // Replace StringBuffer and StringBuilder in java source line
         ClassFileAnalyzer.replaceStringBufferAndStringBuilder(classFile, localVariables, list);
     }

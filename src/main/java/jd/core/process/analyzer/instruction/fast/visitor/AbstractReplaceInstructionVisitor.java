@@ -41,6 +41,8 @@ import jd.core.model.instruction.bytecode.instruction.MultiANewArray;
 import jd.core.model.instruction.bytecode.instruction.NewArray;
 import jd.core.model.instruction.bytecode.instruction.PutField;
 import jd.core.model.instruction.bytecode.instruction.Switch;
+import jd.core.model.instruction.bytecode.instruction.SwitchExpression;
+import jd.core.model.instruction.bytecode.instruction.SwitchExpressionYield;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
@@ -489,6 +491,34 @@ public abstract class AbstractReplaceInstructionVisitor<T>
                 for (int i=pairs.length-1; i>=0 && this.oldInstruction == null; --i) {
                     visit(fs, pairs[i].getInstructions());
                 }
+            }
+            break;
+        case FastConstants.SWITCH_EXPRESSION:
+            {
+                SwitchExpression expression = (SwitchExpression)instruction;
+                FastSwitch fs = expression.getSwitch();
+                T found = match(fs, fs.getTest());
+                if (found != null)
+                {
+                    fs.setTest(newInstruction(fs.getTest(), found));
+                }
+                visit(fs.getTest());
+
+                FastSwitch.Pair[] pairs = fs.getPairs();
+                for (int i=pairs.length-1; i>=0 && this.oldInstruction == null; --i) {
+                    visit(fs, pairs[i].getInstructions());
+                }
+            }
+            break;
+        case FastConstants.SWITCH_EXPRESSION_YIELD:
+            {
+                SwitchExpressionYield yield = (SwitchExpressionYield)instruction;
+                T found = match(yield, yield.getValue());
+                if (found != null)
+                {
+                    yield.setValue(newInstruction(yield.getValue(), found));
+                }
+                visit(yield.getValue());
             }
             break;
         case FastConstants.TRY:

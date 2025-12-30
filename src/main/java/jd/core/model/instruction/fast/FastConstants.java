@@ -48,6 +48,8 @@ public final class FastConstants
     public static final int LABEL              = 320;
 
     public static final int ENUMVALUE          = 321;
+    public static final int SWITCH_EXPRESSION  = 322;
+    public static final int SWITCH_EXPRESSION_YIELD = 323;
 
     // Type of try blocks
     public static final int TYPE_UNDEFINED                 = 0;

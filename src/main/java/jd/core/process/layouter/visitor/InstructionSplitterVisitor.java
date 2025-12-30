@@ -23,11 +23,13 @@ import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNew;
 import jd.core.model.instruction.bytecode.instruction.LambdaInstruction;
+import jd.core.model.instruction.bytecode.instruction.SwitchExpression;
 import jd.core.model.layout.block.InstructionLayoutBlock;
 import jd.core.model.layout.block.LayoutBlock;
 import jd.core.model.layout.block.LayoutBlockConstants;
 import jd.core.preferences.Preferences;
 import jd.core.process.layouter.ClassFileLayouter;
+import jd.core.process.layouter.JavaSourceLayouter;
 
 public class InstructionSplitterVisitor extends BaseInstructionSplitterVisitor
 {
@@ -143,5 +145,36 @@ public class InstructionSplitterVisitor extends BaseInstructionSplitterVisitor
 
         // Add blocks for lambda
         ClassFileLayouter.createBlocksForBodyOfLambda(this.preferences, in, this.layoutBlockList);
+    }
+
+    @Override
+    public void visitSwitchExpression(Instruction parent, SwitchExpression expression)
+    {
+        int lastLineNumber = MaxLineNumberVisitor.visit(expression);
+        int preferedLineNumber;
+
+        if (this.firstLineNumber != Instruction.UNKNOWN_LINE_NUMBER &&
+            lastLineNumber != Instruction.UNKNOWN_LINE_NUMBER)
+        {
+            preferedLineNumber = lastLineNumber - this.firstLineNumber;
+        }
+        else
+        {
+            preferedLineNumber = LayoutBlockConstants.UNLIMITED_LINE_COUNT;
+        }
+
+        this.layoutBlockList.add(new InstructionLayoutBlock(
+                LayoutBlockConstants.INSTRUCTION,
+                this.firstLineNumber, lastLineNumber,
+                preferedLineNumber, preferedLineNumber, preferedLineNumber,
+                this.classFile, this.method, this.instruction,
+                this.offset1, expression.getOffset()));
+
+        JavaSourceLayouter layouter = new JavaSourceLayouter();
+        layouter.createBlocksForSwitchExpression(
+                this.preferences, this.layoutBlockList, this.classFile, this.method, expression);
+
+        this.firstLineNumber = parent.getLineNumber();
+        this.offset1 = expression.getOffset();
     }
 }

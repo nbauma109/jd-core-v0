@@ -36,6 +36,7 @@ import jd.core.model.instruction.bytecode.instruction.GetStatic;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.Invokestatic;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
+import jd.core.model.instruction.bytecode.instruction.SwitchExpression;
 import jd.core.model.instruction.fast.FastConstants;
 import jd.core.model.instruction.fast.instruction.FastDeclaration;
 import jd.core.model.instruction.fast.instruction.FastFor;
@@ -220,6 +221,32 @@ public class JavaSourceLayouter
         }
 
         return singleLine;
+    }
+
+    public void createBlocksForSwitchExpression(
+            Preferences preferences,
+            List<LayoutBlock> layoutBlockList, ClassFile classFile,
+            Method method, SwitchExpression switchExpression)
+    {
+        FastSwitch fs = switchExpression.getSwitch();
+        switch (fs.getOpcode())
+        {
+        case FastConstants.SWITCH_ENUM:
+            createBlocksForSwitchExpression(
+                    preferences, layoutBlockList, classFile, method, fs,
+                    LayoutBlockConstants.FRAGMENT_CASE_ENUM);
+            break;
+        case FastConstants.SWITCH_STRING:
+            createBlocksForSwitchExpression(
+                    preferences, layoutBlockList, classFile, method, fs,
+                    LayoutBlockConstants.FRAGMENT_CASE_STRING);
+            break;
+        default:
+            createBlocksForSwitchExpression(
+                    preferences, layoutBlockList, classFile, method, fs,
+                    LayoutBlockConstants.FRAGMENT_CASE);
+            break;
+        }
     }
 
     private void createBlockForFastTestList(
@@ -616,6 +643,76 @@ public class JavaSourceLayouter
         sbslb.setOther(sbelb);
         sbelb.setOther(sbslb);
         layoutBlockList.add(sbelb);
+    }
+
+    private void createBlocksForSwitchExpression(
+            Preferences preferences,
+            List<LayoutBlock> layoutBlockList, ClassFile classFile,
+            Method method, FastSwitch fs, byte tagCase)
+    {
+        layoutBlockList.add(new FragmentLayoutBlock(
+                LayoutBlockConstants.FRAGMENT_SWITCH));
+
+        createBlockForInstruction(
+                preferences, layoutBlockList, classFile, method, fs.getTest());
+
+        layoutBlockList.add(new FragmentLayoutBlock(
+                LayoutBlockConstants.FRAGMENT_RIGHT_ROUND_BRACKET));
+
+        BlockLayoutBlock sbslb = new SwitchBlockStartLayoutBlock();
+        layoutBlockList.add(sbslb);
+
+        FastSwitch.Pair[] pairs = fs.getPairs();
+        int length = pairs.length;
+        int firstIndex = 0;
+
+        boolean last;
+        FastSwitch.Pair pair;
+        List<Instruction> instructions;
+        for (int i=0; i<length; i++)
+        {
+            last = i == length-1;
+            pair = pairs[i];
+            instructions = pair.getInstructions();
+
+            // Don't write default case on last position with empty
+            // instructions list.
+            if (pair.isDefault() && last && (instructions == null || instructions.isEmpty() || instructions.size() == 1 &&
+                    instructions.get(0).getOpcode() == FastConstants.GOTO_BREAK)) {
+                break;
+            }
+
+            if (instructions != null)
+            {
+                layoutBlockList.add(new CaseLayoutBlock(
+                        tagCase, classFile, method, fs, firstIndex, i));
+                firstIndex = i+1;
+
+                boolean needBrackets = needsSwitchExpressionBrackets(pair, instructions);
+                layoutBlockList.add(new CaseBlockStartLayoutBlock(needBrackets));
+                createBlocks(
+                        preferences, layoutBlockList, classFile, method, instructions);
+                layoutBlockList.add(new CaseBlockEndLayoutBlock(needBrackets));
+            }
+        }
+
+        BlockLayoutBlock sbelb = new SwitchBlockEndLayoutBlock();
+        sbslb.setOther(sbelb);
+        sbelb.setOther(sbslb);
+        layoutBlockList.add(sbelb);
+    }
+
+    private static boolean needsSwitchExpressionBrackets(
+            FastSwitch.Pair pair, List<Instruction> instructions)
+    {
+        if (pair.hasDeclaration()) {
+            return true;
+        }
+        if (instructions.size() > 1) {
+            return true;
+        }
+        return !instructions.isEmpty()
+                && instructions.get(0).getOpcode() == FastConstants.SWITCH_EXPRESSION_YIELD;
     }
 
     private void createBlocksForSwitchEnum(

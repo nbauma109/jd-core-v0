@@ -25,7 +25,9 @@ import java.util.ArrayDeque;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
@@ -89,6 +91,7 @@ public final class InstructionListBuilder
                 // Declaration de variables additionnelles pour le traitement
                 // des blocs 'catch' et 'finally'.
                 final Deque<Instruction> stack = new ArrayDeque<>();
+                final Map<Integer, Deque<Instruction>> pendingStacks = new HashMap<>();
                 final CodeException[] codeExceptions = method.getCodeExceptions();
                 int codeExceptionsIndex = 0;
                 int exceptionOffset;
@@ -139,6 +142,7 @@ public final class InstructionListBuilder
                 // Boucle principale : aggregation des instructions
                 for (offset=0; offset<length; ++offset)
                 {
+                    int instructionOffset = offset;
                     int opcode = code[offset] & 255;
                     InstructionFactory factory =
                             InstructionFactoryConstants.getInstructionFactory(opcode);
@@ -149,6 +153,11 @@ public final class InstructionListBuilder
                         System.err.println(msg);
                         throw new UnexpectedOpcodeException(opcode);
                     }
+                    Deque<Instruction> pending = pendingStacks.remove(offset);
+                    if (pending != null && stack.isEmpty()) {
+                        stack.addAll(pending);
+                    }
+
                     // Ajout de ExceptionLoad
                     if (offset == exceptionOffset && codeExceptions != null)
                     {
@@ -240,6 +249,29 @@ public final class InstructionListBuilder
                     offset += factory.create(
                             classFile, method, list, listForAnalyze, stack,
                             code, offset, lineNumber, jumps);
+
+                    if (!stack.isEmpty()
+                            && (opcode == Const.GOTO || opcode == Const.GOTO_W)) {
+                        int jumpOffset;
+
+                        if (opcode == Const.GOTO) {
+                            jumpOffset = instructionOffset +
+                                    (short)((code[instructionOffset + 1] & 255) << 8 |
+                                            code[instructionOffset + 2] & 255);
+                        } else {
+                            jumpOffset = instructionOffset +
+                                    ((code[instructionOffset + 1] & 255) << 24) |
+                                    (code[instructionOffset + 2] & 255) << 16 |
+                                    (code[instructionOffset + 3] & 255) << 8 |
+                                    code[instructionOffset + 4] & 255;
+                        }
+
+                        if (jumpOffset > instructionOffset) {
+                            pendingStacks.putIfAbsent(
+                                    jumpOffset, new ArrayDeque<>(stack));
+                        }
+                        stack.clear();
+                    }
                 }
 
                 if (! stack.isEmpty())

@@ -44,6 +44,8 @@ import jd.core.model.instruction.bytecode.instruction.MultiANewArray;
 import jd.core.model.instruction.bytecode.instruction.NewArray;
 import jd.core.model.instruction.bytecode.instruction.PutField;
 import jd.core.model.instruction.bytecode.instruction.Switch;
+import jd.core.model.instruction.bytecode.instruction.SwitchExpression;
+import jd.core.model.instruction.bytecode.instruction.SwitchExpressionYield;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
@@ -281,11 +283,29 @@ public class CountDupLoadVisitor
                 }
             }
             break;
+        case FastConstants.SWITCH_EXPRESSION_YIELD:
+            visit(((SwitchExpressionYield)instruction).getValue());
+            break;
         case FastConstants.SWITCH,
              FastConstants.SWITCH_ENUM,
              FastConstants.SWITCH_STRING:
             {
                 FastSwitch fs = (FastSwitch)instruction;
+                visit(fs.getTest());
+                FastSwitch.Pair[] pairs = fs.getPairs();
+                for (int i=pairs.length-1; i>=0; --i)
+                {
+                    List<Instruction> instructions = pairs[i].getInstructions();
+                    if (instructions != null) {
+                        visit(instructions);
+                    }
+                }
+            }
+            break;
+        case FastConstants.SWITCH_EXPRESSION:
+            {
+                SwitchExpression expression = (SwitchExpression)instruction;
+                FastSwitch fs = expression.getSwitch();
                 visit(fs.getTest());
                 FastSwitch.Pair[] pairs = fs.getPairs();
                 for (int i=pairs.length-1; i>=0; --i)

@@ -49,6 +49,8 @@ import jd.core.model.instruction.bytecode.instruction.NewArray;
 import jd.core.model.instruction.bytecode.instruction.PutField;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.Switch;
+import jd.core.model.instruction.bytecode.instruction.SwitchExpression;
+import jd.core.model.instruction.bytecode.instruction.SwitchExpressionYield;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
@@ -270,11 +272,31 @@ public final class CheckLocalVariableUsedVisitor
                 FastInstruction fi = (FastInstruction)instruction;
                 return fi.getInstruction() != null && visit(predicate, fi.getInstruction());
             }
+        case FastConstants.SWITCH_EXPRESSION_YIELD:
+            return visit(predicate, ((SwitchExpressionYield)instruction).getValue());
         case FastConstants.SWITCH,
              FastConstants.SWITCH_ENUM,
              FastConstants.SWITCH_STRING:
             {
                 FastSwitch fs = (FastSwitch)instruction;
+                if (visit(predicate, fs.getTest())) {
+                    return true;
+                }
+                FastSwitch.Pair[] pairs = fs.getPairs();
+                List<Instruction> instructions;
+                for (int i=pairs.length-1; i>=0; --i)
+                {
+                    instructions = pairs[i].getInstructions();
+                    if (instructions != null && visit(predicate, instructions)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+        case FastConstants.SWITCH_EXPRESSION:
+            {
+                SwitchExpression expression = (SwitchExpression)instruction;
+                FastSwitch fs = expression.getSwitch();
                 if (visit(predicate, fs.getTest())) {
                     return true;
                 }

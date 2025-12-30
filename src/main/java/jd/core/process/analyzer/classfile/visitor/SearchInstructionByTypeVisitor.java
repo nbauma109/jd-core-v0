@@ -43,6 +43,8 @@ import jd.core.model.instruction.bytecode.instruction.MultiANewArray;
 import jd.core.model.instruction.bytecode.instruction.NewArray;
 import jd.core.model.instruction.bytecode.instruction.PutField;
 import jd.core.model.instruction.bytecode.instruction.Switch;
+import jd.core.model.instruction.bytecode.instruction.SwitchExpression;
+import jd.core.model.instruction.bytecode.instruction.SwitchExpressionYield;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
@@ -372,6 +374,31 @@ public final class SearchInstructionByTypeVisitor<T extends Instruction>
                 }
             }
             break;
+        case FastConstants.SWITCH_EXPRESSION:
+            {
+                SwitchExpression expression = (SwitchExpression)instruction;
+                FastSwitch fs = expression.getSwitch();
+                T tmp = visit(fs.getTest());
+                if (tmp != null) {
+                    return tmp;
+                }
+
+                Pair[] pairs = fs.getPairs();
+                for (int i=pairs.length-1; i>=0; --i)
+                {
+                    List<Instruction> instructions = pairs[i].getInstructions();
+                    if (instructions != null)
+                    {
+                        tmp = visit(instructions);
+                        if (tmp != null) {
+                            return tmp;
+                        }
+                    }
+                }
+            }
+            break;
+        case FastConstants.SWITCH_EXPRESSION_YIELD:
+            return visit(((SwitchExpressionYield)instruction).getValue());
         case Const.ACONST_NULL,
              ByteCodeConstants.ARRAYLOAD,
              ByteCodeConstants.LOAD,
