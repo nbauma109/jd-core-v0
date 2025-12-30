@@ -25,12 +25,14 @@ import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNew;
 import jd.core.model.instruction.bytecode.instruction.LambdaInstruction;
+import jd.core.model.instruction.bytecode.instruction.SwitchExpression;
 import jd.core.model.layout.block.FragmentLayoutBlock;
 import jd.core.model.layout.block.InstructionsLayoutBlock;
 import jd.core.model.layout.block.LayoutBlock;
 import jd.core.model.layout.block.LayoutBlockConstants;
 import jd.core.preferences.Preferences;
 import jd.core.process.layouter.ClassFileLayouter;
+import jd.core.process.layouter.JavaSourceLayouter;
 
 public class InstructionsSplitterVisitor extends BaseInstructionSplitterVisitor
 {
@@ -195,6 +197,20 @@ public class InstructionsSplitterVisitor extends BaseInstructionSplitterVisitor
         this.firstLineNumber = Instruction.UNKNOWN_LINE_NUMBER;
         this.index1 = this.index2;
         this.offset1 = in.getOffset();
+    }
+
+    @Override
+    public void visitSwitchExpression(Instruction parent, SwitchExpression expression)
+    {
+        addInstructionsLayoutBlock(expression.getLineNumber(), expression.getOffset());
+
+        JavaSourceLayouter layouter = new JavaSourceLayouter();
+        layouter.createBlocksForSwitchExpression(
+                this.preferences, this.layoutBlockList, this.classFile, this.method, expression);
+
+        this.firstLineNumber = Instruction.UNKNOWN_LINE_NUMBER;
+        this.index1 = this.index2;
+        this.offset1 = expression.getOffset();
     }
 
     protected void addInstructionsLayoutBlock(int lastLineNumber, int lastOffset)

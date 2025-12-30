@@ -55,9 +55,13 @@ import jd.core.model.instruction.bytecode.instruction.NewArray;
 import jd.core.model.instruction.bytecode.instruction.PutField;
 import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
+import jd.core.model.instruction.bytecode.instruction.SwitchExpression;
+import jd.core.model.instruction.bytecode.instruction.SwitchExpressionYield;
 import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
+import jd.core.model.instruction.fast.FastConstants;
+import jd.core.model.instruction.fast.instruction.FastSwitch;
 
 public class CompareInstructionVisitor
 {
@@ -406,6 +410,10 @@ public class CompareInstructionVisitor
             return visit(((DupLoad)i1).getDupStore(), ((DupLoad)i2).getDupStore());
         case ByteCodeConstants.XRETURN:
             return visit(((ReturnInstruction)i1).getValueref(), ((ReturnInstruction)i2).getValueref());
+        case FastConstants.SWITCH_EXPRESSION:
+            return compareSwitchExpression((SwitchExpression)i1, (SwitchExpression)i2);
+        case FastConstants.SWITCH_EXPRESSION_YIELD:
+            return visit(((SwitchExpressionYield)i1).getValue(), ((SwitchExpressionYield)i2).getValue());
         case Const.RETURN,
              Const.TABLESWITCH,
              Const.PUTSTATIC,
@@ -435,6 +443,46 @@ public class CompareInstructionVisitor
                 i1.getClass().getName() + " and " + i2.getClass().getName());
             return false;
         }
+    }
+
+    private boolean compareSwitchExpression(SwitchExpression expr1, SwitchExpression expr2)
+    {
+        FastSwitch fs1 = expr1.getSwitch();
+        FastSwitch fs2 = expr2.getSwitch();
+
+        if (fs1.getOpcode() != fs2.getOpcode()) {
+            return false;
+        }
+
+        if (!visit(fs1.getTest(), fs2.getTest())) {
+            return false;
+        }
+
+        FastSwitch.Pair[] pairs1 = fs1.getPairs();
+        FastSwitch.Pair[] pairs2 = fs2.getPairs();
+
+        if (pairs1 == null || pairs2 == null) {
+            return pairs1 == pairs2;
+        }
+
+        if (pairs1.length != pairs2.length) {
+            return false;
+        }
+
+        for (int i = 0; i < pairs1.length; i++) {
+            FastSwitch.Pair pair1 = pairs1[i];
+            FastSwitch.Pair pair2 = pairs2[i];
+
+            if (pair1.isDefault() != pair2.isDefault() || pair1.getKey() != pair2.getKey()) {
+                return false;
+            }
+
+            if (!visit(pair1.getInstructions(), pair2.getInstructions())) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public boolean visit(

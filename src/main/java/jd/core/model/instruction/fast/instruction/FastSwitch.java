@@ -30,6 +30,7 @@ public class FastSwitch extends BranchInstruction
 {
     private Instruction test;
     private final Pair[] pairs;
+    private boolean switchExpression;
 
     public FastSwitch(
         int opcode, int offset, int lineNumber, int branch,
@@ -150,5 +151,13 @@ public class FastSwitch extends BranchInstruction
 
     public void setTest(Instruction test) {
         this.test = test;
+    }
+
+    public boolean isSwitchExpression() {
+        return switchExpression;
+    }
+
+    public void setSwitchExpression(boolean switchExpression) {
+        this.switchExpression = switchExpression;
     }
 }

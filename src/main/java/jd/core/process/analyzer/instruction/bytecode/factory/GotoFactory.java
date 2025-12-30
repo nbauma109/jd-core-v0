@@ -74,6 +74,12 @@ public class GotoFactory implements InstructionFactory
                 list, listForAnalyze, stack, code, offset, value);
         }
 
+        if (!stack.isEmpty()) {
+            Instruction valueInstruction = stack.pop();
+            list.add(valueInstruction);
+            listForAnalyze.add(valueInstruction);
+        }
+
         list.add(new Goto(opcode, offset, lineNumber, value));
 
         return Const.getNoOfOperands(opcode);
