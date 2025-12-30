@@ -2047,6 +2047,18 @@ public final class ClassFileWriter
         this.printer.print(" -> ");
     }
 
+    private void writeCaseSeparator(boolean switchExpression)
+    {
+        if (switchExpression)
+        {
+            writeArrow();
+        }
+        else
+        {
+            this.printer.print(": ");
+        }
+    }
+
     private void writeSwitch()
     {
         addSpaceIfNeeded();
@@ -2064,6 +2076,7 @@ public final class ClassFileWriter
         char type = signature == null ? 'X' : signature.charAt(0);
 
         FastSwitch.Pair[] pairs = clb.getFs().getPairs();
+        boolean switchExpression = clb.getFs().isSwitchExpression();
         int lineCount = clb.getLineCount() + 1;
         int lastIndex = clb.getLastIndex();
         int caseCount = lastIndex - clb.getFirstIndex() + 1;
@@ -2101,7 +2114,7 @@ public final class ClassFileWriter
                 }
                 this.printer.debugEndOfInstructionBlockLayoutBlock();
             }
-            this.printer.print(": ");
+            writeCaseSeparator(switchExpression);
 
             if (lineCount > 0)
             {
@@ -2149,7 +2162,7 @@ public final class ClassFileWriter
                 }
                 this.printer.debugEndOfInstructionBlockLayoutBlock();
             }
-            this.printer.print(": ");
+            writeCaseSeparator(switchExpression);
 
             if (lineCount > 0)
             {
@@ -2189,6 +2202,7 @@ public final class ClassFileWriter
         String enumDescriptor = SignatureUtil.createTypeName(internalEnumName);
 
         FastSwitch.Pair[] pairs = celb.getFs().getPairs();
+        boolean switchExpression = celb.getFs().isSwitchExpression();
         int lineCount = celb.getLineCount() + 1;
         int lastIndex = celb.getLastIndex();
         int caseCount = lastIndex - celb.getFirstIndex() + 1;
@@ -2229,7 +2243,7 @@ public final class ClassFileWriter
                 }
                 this.printer.debugEndOfInstructionBlockLayoutBlock();
             }
-            this.printer.print(": ");
+            writeCaseSeparator(switchExpression);
 
             if (lineCount > 0)
             {
@@ -2280,7 +2294,7 @@ public final class ClassFileWriter
                 }
                 this.printer.debugEndOfInstructionBlockLayoutBlock();
             }
-            this.printer.print(": ");
+            writeCaseSeparator(switchExpression);
 
             if (lineCount > 0)
             {
@@ -2306,6 +2320,7 @@ public final class ClassFileWriter
         ConstantPool constants = classFile.getConstantPool();
 
         FastSwitch.Pair[] pairs = clb.getFs().getPairs();
+        boolean switchExpression = clb.getFs().isSwitchExpression();
         int lineCount = clb.getLineCount() + 1;
         int lastIndex = clb.getLastIndex();
         int caseCount = lastIndex - clb.getFirstIndex() + 1;
@@ -2337,7 +2352,7 @@ public final class ClassFileWriter
 
                 this.printer.debugEndOfInstructionBlockLayoutBlock();
             }
-            this.printer.print(": ");
+            writeCaseSeparator(switchExpression);
 
             if (lineCount > 0)
             {
@@ -2379,7 +2394,7 @@ public final class ClassFileWriter
 
                 this.printer.debugEndOfInstructionBlockLayoutBlock();
             }
-            this.printer.print(": ");
+            writeCaseSeparator(switchExpression);
 
             if (lineCount > 0)
             {

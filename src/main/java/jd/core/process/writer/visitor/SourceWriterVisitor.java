@@ -98,6 +98,7 @@ import jd.core.model.instruction.bytecode.instruction.PutField;
 import jd.core.model.instruction.bytecode.instruction.PutStatic;
 import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
+import jd.core.model.instruction.bytecode.instruction.SwitchExpressionYield;
 import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
@@ -409,6 +410,9 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         case FastConstants.DECLARE:
             lineNumber = writeDeclaration((FastDeclaration)instruction);
             break;
+        case FastConstants.SWITCH_EXPRESSION:
+            lineNumber = instruction.getLineNumber();
+            break;
         case ByteCodeConstants.DUPSTORE:
             {
                 DupStore dupStore = (DupStore)instruction;
@@ -483,6 +487,21 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                 instruction.getOffset() <= this.lastOffset)
             {
                 this.printer.printKeyword(lineNumber, "break");
+            }
+            break;
+        case FastConstants.SWITCH_EXPRESSION_YIELD:
+            {
+                SwitchExpressionYield yield = (SwitchExpressionYield)instruction;
+                int nextOffset = this.previousOffset + 1;
+
+                if (this.firstOffset <= this.previousOffset &&
+                    nextOffset <= this.lastOffset)
+                {
+                    this.printer.printKeyword(lineNumber, "yield");
+                    this.printer.print(' ');
+                }
+
+                lineNumber = visit(yield, yield.getValue());
             }
             break;
         case ByteCodeConstants.IF:

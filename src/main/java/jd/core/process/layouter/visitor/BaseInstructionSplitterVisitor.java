@@ -55,6 +55,8 @@ import jd.core.model.instruction.bytecode.instruction.PutStatic;
 import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.Switch;
+import jd.core.model.instruction.bytecode.instruction.SwitchExpression;
+import jd.core.model.instruction.bytecode.instruction.SwitchExpressionYield;
 import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
@@ -143,6 +145,10 @@ public abstract class BaseInstructionSplitterVisitor
                     visit(instruction, fd.getInstruction());
                 }
             }
+            break;
+        case FastConstants.SWITCH_EXPRESSION:
+            visitSwitchExpression(Optional.ofNullable(parent).orElse(instruction),
+                    (SwitchExpression)instruction);
             break;
         case Const.GETFIELD:
             visit(instruction, ((GetField)instruction).getObjectref());
@@ -266,6 +272,9 @@ public abstract class BaseInstructionSplitterVisitor
         case ByteCodeConstants.XRETURN:
             visit(instruction, ((ReturnInstruction)instruction).getValueref());
             break;
+        case FastConstants.SWITCH_EXPRESSION_YIELD:
+            visit(instruction, ((SwitchExpressionYield)instruction).getValue());
+            break;
         case ByteCodeConstants.STORE,
              Const.ASTORE,
              Const.ISTORE:
@@ -298,4 +307,6 @@ public abstract class BaseInstructionSplitterVisitor
     public abstract void visitAnonymousNewInvoke(Instruction parent, InvokeNew in, ClassFile innerClass);
 
     public abstract void visitAnonymousLambda(Instruction parent, LambdaInstruction in);
+
+    public abstract void visitSwitchExpression(Instruction parent, SwitchExpression expression);
 }

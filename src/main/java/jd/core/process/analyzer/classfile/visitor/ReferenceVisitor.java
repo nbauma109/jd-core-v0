@@ -49,6 +49,8 @@ import jd.core.model.instruction.bytecode.instruction.New;
 import jd.core.model.instruction.bytecode.instruction.NewArray;
 import jd.core.model.instruction.bytecode.instruction.PutField;
 import jd.core.model.instruction.bytecode.instruction.Switch;
+import jd.core.model.instruction.bytecode.instruction.SwitchExpression;
+import jd.core.model.instruction.bytecode.instruction.SwitchExpressionYield;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
@@ -343,6 +345,24 @@ public class ReferenceVisitor
                 {
                     visit(pairs[i].getInstructions());
                 }
+            }
+            break;
+        case FastConstants.SWITCH_EXPRESSION:
+            {
+                SwitchExpression expression = (SwitchExpression)instruction;
+                FastSwitch fs = expression.getSwitch();
+                visit(fs.getTest());
+                Pair[] pairs = fs.getPairs();
+                for (int i=pairs.length-1; i>=0; --i)
+                {
+                    visit(pairs[i].getInstructions());
+                }
+            }
+            break;
+        case FastConstants.SWITCH_EXPRESSION_YIELD:
+            {
+                SwitchExpressionYield yield = (SwitchExpressionYield)instruction;
+                visit(yield.getValue());
             }
             break;
         case FastConstants.DECLARE:
