@@ -78,7 +78,7 @@ public final class SwitchExpressionReconstructor {
 
     private static boolean tryReplaceWithSwitchExpression(ClassFile classFile, Method method, FastSwitch fs, Instruction targetInstruction) {
         Instruction target = unwrapTarget(targetInstruction);
-        if (!(target instanceof StoreInstruction || target instanceof ReturnInstruction)) {
+        if ((!(target instanceof StoreInstruction) && !(target instanceof ReturnInstruction))) {
             return false;
         }
 
