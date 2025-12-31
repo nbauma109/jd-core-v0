@@ -35,7 +35,13 @@ public class Sample {
             preferences.setUnicodeEscape(false);
             preferences.setWriteMetaData(true);
 
-            String out = printer.buildDecompiledOutput(loader, "java/lang/String", preferences, DECOMPILER);
+            String out =
+                    printer.buildDecompiledOutput(
+                            loader,
+                            "java/lang/String",
+                            preferences,
+                            DECOMPILER
+                    );
 
             System.out.println(out);
 
