@@ -2731,10 +2731,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                 if (result != null)
                 {
                     autoIndentActive = markAutoIndent(result.getLineNumber(), autoIndentActive);
-                    if (result.getOpcode() == Const.ATHROW)
-                    {
-                    }
-                    else
+                    if (result.getOpcode() != Const.ATHROW)
                     {
                         this.printer.printKeyword(result.getLineNumber(), "yield");
                         this.printer.print(' ');
