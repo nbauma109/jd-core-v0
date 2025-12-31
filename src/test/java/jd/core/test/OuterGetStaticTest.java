@@ -21,6 +21,26 @@ public class OuterGetStaticTest extends AbstractTestCase {
     }
 
     @Test
+    public void testJDK2108() throws Exception {
+        try (InputStream in = getClass().getResourceAsStream("/outer-getstatic-jdk21.0.8.jar")) {
+            ZipLoader loader = new ZipLoader(in);
+            String internalClassName = "jd/core/test/OuterGetStatic";
+            String output = decompile(internalClassName, loader);
+            assertEquals(IOUtils.toString(getClass().getResource("OuterGetStatic.txt"), StandardCharsets.UTF_8), output);
+        }
+    }
+    
+    @Test
+    public void testECJ2108() throws Exception {
+        try (InputStream in = getClass().getResourceAsStream("/outer-getstatic-ecj21.0.8.jar")) {
+            ZipLoader loader = new ZipLoader(in);
+            String internalClassName = "jd/core/test/OuterGetStatic";
+            String output = decompile(internalClassName, loader);
+            assertEquals(IOUtils.toString(getClass().getResource("OuterGetStatic.txt"), StandardCharsets.UTF_8), output);
+        }
+    }
+    
+    @Test
     public void test() throws Exception {
         String output = decompile("jd/core/test/OuterGetStatic");
         assertEquals(IOUtils.toString(getClass().getResource("OuterGetStatic.txt"), StandardCharsets.UTF_8), output);
