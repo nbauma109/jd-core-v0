@@ -1,8 +1,11 @@
 package jd.core.test;
 
+import java.time.DayOfWeek;
+
 public class SwitchExpression {
 
     public String simpleSwitch(int i) {
+        System.out.println("start simpleSwitch");
         String s = switch (i) {
         case 0 -> "simpleSwitch case 0";
         case 1 -> "simpleSwitch case 1";
@@ -14,6 +17,7 @@ public class SwitchExpression {
     }
 
     public String returnSwitch(int i) {
+        System.out.println("start returnSwitch");
         return switch (i) {
         case 0 -> "returnSwitch case 0";
         case 1 -> "returnSwitch case 1";
@@ -25,6 +29,7 @@ public class SwitchExpression {
     
     @SuppressWarnings("all")
     public String yieldSwitch(int i) {
+        System.out.println("start yieldSwitch");
         String s = switch (i) {
         case 0 -> {
             System.out.println("yieldSwitch case 0");
@@ -45,5 +50,13 @@ public class SwitchExpression {
         default -> throw new IllegalArgumentException();
         };
         return String.format("return from yield switch: %s", s);
+    }
+
+    boolean enumSwitch(DayOfWeek dayOfWeek) {
+        System.out.println("start enumSwitch");
+        return switch (dayOfWeek) {
+            case MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY -> true;
+            case SATURDAY, SUNDAY -> false;
+        };
     }
 }

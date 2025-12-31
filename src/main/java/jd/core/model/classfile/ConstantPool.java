@@ -26,6 +26,7 @@ import org.apache.bcel.classfile.ConstantMethodHandle;
 import org.apache.bcel.classfile.ConstantMethodType;
 import org.apache.bcel.classfile.ConstantMethodref;
 import org.apache.bcel.classfile.ConstantNameAndType;
+import org.apache.bcel.classfile.ConstantString;
 import org.apache.bcel.classfile.ConstantUtf8;
 import org.apache.commons.lang3.Validate;
 import org.jd.core.v1.util.StringConstants;
@@ -163,6 +164,15 @@ public class ConstantPool
             this.constantUtf8ToIndex.put(s, index);
         }
 
+        return index;
+    }
+
+    public int addConstantString(String s)
+    {
+        int utf8Index = addConstantUtf8(s);
+        ConstantString constantString = new ConstantString(utf8Index);
+        int index = this.listOfConstants.size();
+        this.listOfConstants.add(constantString);
         return index;
     }
 

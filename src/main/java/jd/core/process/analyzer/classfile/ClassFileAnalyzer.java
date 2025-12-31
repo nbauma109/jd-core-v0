@@ -46,6 +46,7 @@ import jd.core.model.instruction.bytecode.instruction.ALoad;
 import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.GetStatic;
+import jd.core.model.instruction.bytecode.instruction.IConst;
 import jd.core.model.instruction.bytecode.instruction.IfCmp;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
 import jd.core.model.instruction.bytecode.instruction.IndexInstruction;
@@ -609,7 +610,9 @@ public final class ClassFileAnalyzer
                     break;
                 }
 
-                instruction = ((ArrayStoreInstruction)instruction).getIndexref();
+                ArrayStoreInstruction arrayStore = (ArrayStoreInstruction) instruction;
+
+                instruction = arrayStore.getIndexref();
 
                 if (instruction.getOpcode() != Const.INVOKEVIRTUAL) {
                     break;
@@ -654,7 +657,9 @@ public final class ClassFileAnalyzer
                     break;
                 }
 
-                instruction = ((ArrayStoreInstruction)instruction).getIndexref();
+                ArrayStoreInstruction arrayStore = (ArrayStoreInstruction) instruction;
+
+                instruction = arrayStore.getIndexref();
 
                 if (instruction.getOpcode() != Const.INVOKEVIRTUAL) {
                     break;
@@ -670,7 +675,7 @@ public final class ClassFileAnalyzer
                 cnat = constants.getConstantNameAndType(
                         cfr.getNameAndTypeIndex());
 
-                // Add enum name index
+                // Add enum name index in assignment order for DEX switch tables.
                 enumNameIndexes.add(cnat.getNameIndex());
             }
 
