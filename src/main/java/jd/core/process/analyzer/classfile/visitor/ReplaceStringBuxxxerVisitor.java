@@ -36,6 +36,7 @@ import jd.core.model.instruction.bytecode.instruction.InvokeNew;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
 import jd.core.model.instruction.bytecode.instruction.Invokestatic;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
+import jd.core.model.instruction.bytecode.instruction.Ldc;
 import jd.core.process.analyzer.instruction.fast.visitor.AbstractReplaceInstructionVisitor;
 import jd.core.util.SignatureUtil;
 
@@ -82,6 +83,10 @@ public class ReplaceStringBuxxxerVisitor extends AbstractReplaceInstructionVisit
                     Instruction result = match(iv.getObjectref(), cmr.getClassIndex(), signatureInfo);
                     if (signatureInfo.accept()) {
                         return result;
+                    }
+                    Instruction simplified = simplifySingleArgument(i, result, signatureInfo);
+                    if (simplified != null) {
+                        return simplified;
                     }
                 }
             }
@@ -145,6 +150,7 @@ public class ReplaceStringBuxxxerVisitor extends AbstractReplaceInstructionVisit
 
                         if (cnat.getNameIndex() == constants.getValueOfIndex() &&
                             is.getArgs().size() == 1) {
+                            signatureInfo.invokeNewSignature = StringConstants.INTERNAL_STRING_SIGNATURE;
                             return is.getArgs().get(0);
                         }
                     }
@@ -158,6 +164,25 @@ public class ReplaceStringBuxxxerVisitor extends AbstractReplaceInstructionVisit
         return null;
     }
 
+    private Instruction simplifySingleArgument(Instruction anchor, Instruction result, SignatureInfo signatureInfo) {
+        if (result == null || !signatureInfo.canSimplifySingleArgument()) {
+            return null;
+        }
+
+        String signature = result.getReturnedSignature(classFile, localVariables);
+        if (StringConstants.INTERNAL_STRING_SIGNATURE.equals(signature)) {
+            return result;
+        }
+
+        ConstantPool constants = classFile.getConstantPool();
+        int emptyIndex = constants.addConstantString("");
+        Instruction emptyLiteral = new Ldc(Const.LDC, anchor.getOffset(), anchor.getLineNumber(), emptyIndex);
+        return new BinaryOperatorInstruction(
+                ByteCodeConstants.BINARYOP, anchor.getOffset(), anchor.getLineNumber(),
+                4, StringConstants.INTERNAL_STRING_SIGNATURE, "+",
+                emptyLiteral, result);
+    }
+
     private static class SignatureInfo {
         private String invokeNewSignature;
         private Set<String> appendSignatures = new HashSet<>();
@@ -165,6 +190,11 @@ public class ReplaceStringBuxxxerVisitor extends AbstractReplaceInstructionVisit
         private boolean accept() {
             return !"I".equals(invokeNewSignature)
                     && appendSignatures.contains(StringConstants.INTERNAL_STRING_SIGNATURE);
+        }
+
+        private boolean canSimplifySingleArgument() {
+            return appendSignatures.isEmpty()
+                    && StringConstants.INTERNAL_STRING_SIGNATURE.equals(invokeNewSignature);
         }
     }
 }

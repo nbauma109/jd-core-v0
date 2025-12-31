@@ -611,6 +611,7 @@ public final class ClassFileAnalyzer
                 }
 
                 ArrayStoreInstruction arrayStore = (ArrayStoreInstruction) instruction;
+                int caseValue = readSwitchMapCaseValue(arrayStore.getValueref());
 
                 instruction = arrayStore.getIndexref();
 
@@ -629,7 +630,7 @@ public final class ClassFileAnalyzer
                         cfr.getNameAndTypeIndex());
 
                 // Add enum name index
-                enumNameIndexes.add(cnat.getNameIndex());
+                putSwitchMapEntry(enumNameIndexes, caseValue, cnat.getNameIndex());
             }
 
             classFile.getSwitchMaps().put(
@@ -681,6 +682,24 @@ public final class ClassFileAnalyzer
 
             classFile.getSwitchMaps().put(
                     constants.getConstantUtf8(method.getNameIndex()), enumNameIndexes);
+        }
+    }
+
+    private static int readSwitchMapCaseValue(Instruction instruction) {
+        if (instruction instanceof IConst iConst) {
+            return iConst.getValue();
+        }
+        return -1;
+    }
+
+    private static void putSwitchMapEntry(List<Integer> enumNameIndexes, int caseValue, int nameIndex) {
+        if (caseValue > 0) {
+            while (enumNameIndexes.size() < caseValue) {
+                enumNameIndexes.add(0);
+            }
+            enumNameIndexes.set(caseValue - 1, nameIndex);
+        } else {
+            enumNameIndexes.add(nameIndex);
         }
     }
 
