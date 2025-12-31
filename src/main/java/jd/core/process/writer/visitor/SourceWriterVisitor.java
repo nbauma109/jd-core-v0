@@ -2733,21 +2733,17 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                     autoIndentActive = markAutoIndent(result.getLineNumber(), autoIndentActive);
                     if (result.getOpcode() == Const.ATHROW)
                     {
-                        visit(result);
-                        this.printer.print(';');
                     }
                     else
                     {
                         this.printer.printKeyword(result.getLineNumber(), "yield");
                         this.printer.print(' ');
-                        visit(result);
-                        this.printer.print(';');
                     }
+                    visit(result);
+                    this.printer.print(';');
                 }
 
-                if (manualBodyIndent) {
-                    this.printer.desindent();
-                } else if (autoIndentForBody && autoIndentActive) {
+                if (manualBodyIndent || (autoIndentForBody && autoIndentActive)) {
                     this.printer.desindent();
                 }
 
