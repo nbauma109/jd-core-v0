@@ -18,6 +18,8 @@ package jd.core.process.analyzer.util;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.Constant;
+import org.apache.bcel.classfile.ConstantCP;
+import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.ConstantString;
 import org.apache.commons.lang3.Validate;
 import org.jd.core.v1.util.StringConstants;
@@ -27,10 +29,12 @@ import java.util.List;
 import java.util.Objects;
 
 import jd.core.model.classfile.ClassFile;
+import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
+import jd.core.model.instruction.bytecode.instruction.Invokestatic;
 import jd.core.model.instruction.bytecode.instruction.Ldc;
 
 public final class StringConcatenationUtil {
@@ -82,9 +86,8 @@ public final class StringConcatenationUtil {
 
     private static Instruction createFromRecipe(Context context, String recipe, List<Instruction> indyParameters) {
         RecipeParseResult parseResult = parseRecipe(context, recipe, indyParameters);
-        List<Instruction> parts = parseResult.parts;
-
-        if (parseResult.requiresLeadingEmptyString) {
+        List<Instruction> parts = normalizeParts(context, parseResult.parts);
+        if (!containsString(parts)) {
             parts.add(0, createUtf8StringLiteral(context, ""));
         }
 
@@ -93,20 +96,16 @@ public final class StringConcatenationUtil {
 
     private static Instruction createWithoutRecipe(Context ctx, List<Instruction> indyParameters) {
         Objects.requireNonNull(indyParameters, "indyParameters");
-
-        if (containsString(indyParameters)) {
-            return foldConcatenation(ctx, indyParameters);
+        List<Instruction> parts = normalizeParts(ctx, indyParameters);
+        if (!containsString(parts)) {
+            parts.add(0, createUtf8StringLiteral(ctx, ""));
         }
-
-        List<Instruction> parts = new ArrayList<>(indyParameters.size() + 1);
-        parts.add(createUtf8StringLiteral(ctx, ""));
-        parts.addAll(indyParameters);
         return foldConcatenation(ctx, parts);
     }
 
-    private static boolean containsString(List<Instruction> indyParameters) {
-        for (Instruction indyParameter : indyParameters) {
-            if (isString(indyParameter)) {
+    private static boolean containsString(List<Instruction> parts) {
+        for (Instruction part : parts) {
+            if (isString(part)) {
                 return true;
             }
         }
@@ -146,8 +145,6 @@ public final class StringConcatenationUtil {
         int dynamicIndex = 0;
         int bootstrapIndex = context.bootstrapConstantsStartIndex;
 
-        boolean hasStringBootstrapConstant = false;
-
         for (int i = 0; i < recipe.length(); i++) {
             char c = recipe.charAt(i);
 
@@ -158,7 +155,6 @@ public final class StringConcatenationUtil {
                 flushLiteralIfNeeded(context, literal, parts);
                 BootstrapConstantResult constantResult = addBootstrapConstant(context, bootstrapIndex, parts);
                 bootstrapIndex = constantResult.nextBootstrapIndex;
-                hasStringBootstrapConstant = hasStringBootstrapConstant || constantResult.isStringConstant;
             } else {
                 literal.append(c);
             }
@@ -166,9 +162,7 @@ public final class StringConcatenationUtil {
 
         flushLiteralIfNeeded(context, literal, parts);
 
-        boolean requiresLeadingEmptyString = !containsString(indyParameters);
-
-        return new RecipeParseResult(parts, requiresLeadingEmptyString);
+        return new RecipeParseResult(parts);
     }
 
     private static void flushLiteralIfNeeded(Context context, StringBuilder literal, List<Instruction> parts) {
@@ -201,13 +195,48 @@ public final class StringConcatenationUtil {
         return new BootstrapConstantResult(bootstrapIndex + 1, isStringConstant);
     }
 
+    private static List<Instruction> normalizeParts(Context context, List<Instruction> parts) {
+        List<Instruction> normalized = new ArrayList<>(parts.size());
+        for (Instruction part : parts) {
+            normalized.add(unwrapStringValueOf(context, part));
+        }
+        return normalized;
+    }
+
+    private static Instruction unwrapStringValueOf(Context context, Instruction instruction) {
+        if (!(instruction instanceof Invokestatic invokestatic)) {
+            return instruction;
+        }
+        if (invokestatic.getArgs().size() != 1) {
+            return instruction;
+        }
+        ConstantPool constants = context.classFile.getConstantPool();
+        ConstantCP cmr = constants.getConstantMethodref(invokestatic.getIndex());
+        if (cmr == null) {
+            return instruction;
+        }
+        ConstantNameAndType cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
+        if (cnat == null) {
+            return instruction;
+        }
+        String className = constants.getConstantClassName(cmr.getClassIndex());
+        if (!"java/lang/String".equals(className)) {
+            return instruction;
+        }
+        String methodName = constants.getConstantUtf8(cnat.getNameIndex());
+        if (!"valueOf".equals(methodName)) {
+            return instruction;
+        }
+        return invokestatic.getArgs().get(0);
+    }
+
     private static Instruction createConstantLoadInstruction(Context context, int constantPoolIndex, Constant constant) {
         return new Ldc(Const.LDC, context.offset, context.lineNumber, constantPoolIndex);
     }
 
     private static Instruction createUtf8StringLiteral(Context context, String value) {
-        int utf8Index = context.classFile.getConstantPool().addConstantUtf8(value);
-        return new Ldc(Const.LDC, context.offset, context.lineNumber, utf8Index);
+        int stringIndex = context.classFile.getConstantPool().addConstantString(value);
+        return new Ldc(Const.LDC, context.offset, context.lineNumber, stringIndex);
     }
 
     private record Context(ClassFile classFile,
@@ -218,7 +247,7 @@ public final class StringConcatenationUtil {
                         int bootstrapConstantsStartIndex) {
     }
 
-    private record RecipeParseResult(List<Instruction> parts, boolean requiresLeadingEmptyString) {
+    private record RecipeParseResult(List<Instruction> parts) {
     }
 
     private record BootstrapConstantResult(int nextBootstrapIndex, boolean isStringConstant) {

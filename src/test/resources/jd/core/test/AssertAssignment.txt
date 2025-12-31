@@ -9,6 +9,6 @@
 /*    */   
 /*    */   void test2(boolean flag) {
 /*    */     String line;
-/* 12 */     assert ((line = new StringBuilder(String.valueOf(flag)).toString()) != null) : "";
+/* 12 */     assert ((line = "" + flag) != null) : "";
 /*    */   }
 /*    */ }

@@ -46,6 +46,7 @@ import jd.core.model.instruction.bytecode.instruction.ALoad;
 import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.GetStatic;
+import jd.core.model.instruction.bytecode.instruction.IConst;
 import jd.core.model.instruction.bytecode.instruction.IfCmp;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
 import jd.core.model.instruction.bytecode.instruction.IndexInstruction;
@@ -609,7 +610,10 @@ public final class ClassFileAnalyzer
                     break;
                 }
 
-                instruction = ((ArrayStoreInstruction)instruction).getIndexref();
+                ArrayStoreInstruction arrayStore = (ArrayStoreInstruction) instruction;
+                int caseValue = readSwitchMapCaseValue(arrayStore.getValueref());
+
+                instruction = arrayStore.getIndexref();
 
                 if (instruction.getOpcode() != Const.INVOKEVIRTUAL) {
                     break;
@@ -626,7 +630,7 @@ public final class ClassFileAnalyzer
                         cfr.getNameAndTypeIndex());
 
                 // Add enum name index
-                enumNameIndexes.add(cnat.getNameIndex());
+                putSwitchMapEntry(enumNameIndexes, caseValue, cnat.getNameIndex());
             }
 
             classFile.getSwitchMaps().put(
@@ -654,7 +658,9 @@ public final class ClassFileAnalyzer
                     break;
                 }
 
-                instruction = ((ArrayStoreInstruction)instruction).getIndexref();
+                ArrayStoreInstruction arrayStore = (ArrayStoreInstruction) instruction;
+
+                instruction = arrayStore.getIndexref();
 
                 if (instruction.getOpcode() != Const.INVOKEVIRTUAL) {
                     break;
@@ -670,12 +676,30 @@ public final class ClassFileAnalyzer
                 cnat = constants.getConstantNameAndType(
                         cfr.getNameAndTypeIndex());
 
-                // Add enum name index
+                // Add enum name index in assignment order for DEX switch tables.
                 enumNameIndexes.add(cnat.getNameIndex());
             }
 
             classFile.getSwitchMaps().put(
                     constants.getConstantUtf8(method.getNameIndex()), enumNameIndexes);
+        }
+    }
+
+    private static int readSwitchMapCaseValue(Instruction instruction) {
+        if (instruction instanceof IConst iConst) {
+            return iConst.getValue();
+        }
+        return -1;
+    }
+
+    private static void putSwitchMapEntry(List<Integer> enumNameIndexes, int caseValue, int nameIndex) {
+        if (caseValue > 0) {
+            while (enumNameIndexes.size() < caseValue) {
+                enumNameIndexes.add(0);
+            }
+            enumNameIndexes.set(caseValue - 1, nameIndex);
+        } else {
+            enumNameIndexes.add(nameIndex);
         }
     }
 

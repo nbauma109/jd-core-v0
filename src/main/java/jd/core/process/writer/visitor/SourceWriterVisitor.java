@@ -89,6 +89,7 @@ import jd.core.model.instruction.bytecode.instruction.InvokeNew;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
 import jd.core.model.instruction.bytecode.instruction.Invokespecial;
 import jd.core.model.instruction.bytecode.instruction.Invokestatic;
+import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
 import jd.core.model.instruction.bytecode.instruction.Jsr;
 import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
 import jd.core.model.instruction.bytecode.instruction.MultiANewArray;
@@ -103,6 +104,8 @@ import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
 import jd.core.model.instruction.fast.FastConstants;
 import jd.core.model.instruction.fast.instruction.FastDeclaration;
+import jd.core.model.instruction.fast.instruction.FastInstruction;
+import jd.core.model.instruction.fast.instruction.FastSwitch;
 import jd.core.model.reference.ReferenceMap;
 import jd.core.printer.InstructionPrinter;
 import jd.core.process.layouter.visitor.MinLineNumberVisitor;
@@ -408,6 +411,11 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
             break;
         case FastConstants.DECLARE:
             lineNumber = writeDeclaration((FastDeclaration)instruction);
+            break;
+        case FastConstants.SWITCH,
+             FastConstants.SWITCH_ENUM,
+             FastConstants.SWITCH_STRING:
+            lineNumber = writeSwitchExpression((FastSwitch)instruction);
             break;
         case ByteCodeConstants.DUPSTORE:
             {
@@ -2645,6 +2653,430 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
 
         return writeInitArrayInstruction(iai);
     }
+
+    private int writeSwitchExpression(FastSwitch fs)
+    {
+        int lineNumber = fs.getLineNumber();
+        int nextOffset = this.previousOffset + 1;
+
+        if (this.firstOffset <= this.previousOffset &&
+            nextOffset <= this.lastOffset)
+        {
+            this.printer.printKeyword(lineNumber, "switch");
+            this.printer.print(" (");
+        }
+
+        Instruction switchTest = resolveSwitchExpressionTest(fs);
+        lineNumber = visit(switchTest);
+
+        if (this.firstOffset <= this.previousOffset &&
+            fs.getTest().getOffset() <= this.lastOffset)
+        {
+            this.printer.print(lineNumber, ") {");
+        }
+
+        FastSwitch.Pair[] pairs = fs.getPairs();
+        if (pairs == null || pairs.length == 0) {
+            return lineNumber;
+        }
+
+        SwitchEnumInfo switchEnumInfo = null;
+        if (fs.getOpcode() == FastConstants.SWITCH_ENUM) {
+            switchEnumInfo = resolveSwitchEnumInfo(fs);
+        }
+
+        List<SwitchCaseGroup> groups = collectSwitchExpressionGroups(fs, switchEnumInfo);
+        if (groups.isEmpty()) {
+            this.printer.print('}');
+            return lineNumber;
+        }
+
+        SwitchCaseGroup firstCase = groups.get(0);
+        boolean manualCaseIndent = firstCase.data().isBlock();
+        boolean autoIndentActive = false;
+
+        if (manualCaseIndent) {
+            this.printer.indent();
+        }
+
+        for (SwitchCaseGroup group : groups)
+        {
+            SwitchCaseData data = group.data();
+
+            if (data.isBlock())
+            {
+                startUnknownLine();
+                writeSwitchExpressionCaseLabel(fs, group.labels(), Instruction.UNKNOWN_LINE_NUMBER, switchEnumInfo);
+                this.printer.print(" -> {");
+
+                boolean autoIndentForBody = !autoIndentActive;
+                boolean manualBodyIndent = autoIndentActive;
+                if (manualBodyIndent) {
+                    this.printer.indent();
+                }
+
+                List<Instruction> instructions = data.instructions();
+                for (int i = 0; i < data.resultIndex(); i++)
+                {
+                    Instruction instruction = instructions.get(i);
+                    if (instruction == null) {
+                        continue;
+                    }
+                    autoIndentActive = markAutoIndent(instruction.getLineNumber(), autoIndentActive);
+                    visit(instruction);
+                    this.printer.print(';');
+                }
+
+                Instruction result = data.result();
+                if (result != null)
+                {
+                    autoIndentActive = markAutoIndent(result.getLineNumber(), autoIndentActive);
+                    if (result.getOpcode() == Const.ATHROW)
+                    {
+                        visit(result);
+                        this.printer.print(';');
+                    }
+                    else
+                    {
+                        this.printer.printKeyword(result.getLineNumber(), "yield");
+                        this.printer.print(' ');
+                        visit(result);
+                        this.printer.print(';');
+                    }
+                }
+
+                if (manualBodyIndent) {
+                    this.printer.desindent();
+                } else if (autoIndentForBody && autoIndentActive) {
+                    this.printer.desindent();
+                }
+
+                this.printer.endOfLine();
+                this.printer.startOfLine(Instruction.UNKNOWN_LINE_NUMBER);
+                this.printer.print('}');
+            }
+            else
+            {
+                int caseLineNumber = data.result().getLineNumber();
+                autoIndentActive = markAutoIndent(caseLineNumber, autoIndentActive);
+                writeSwitchExpressionCaseLabel(fs, group.labels(), caseLineNumber, switchEnumInfo);
+                this.printer.print(" -> ");
+                lineNumber = visit(data.result());
+                this.printer.print(';');
+            }
+        }
+
+        boolean caseIndentActive = manualCaseIndent || autoIndentActive;
+        this.printer.endOfLine();
+        if (caseIndentActive) {
+            this.printer.desindent();
+        }
+        this.printer.startOfLine(Instruction.UNKNOWN_LINE_NUMBER);
+        this.printer.print('}');
+        if (autoIndentActive) {
+            this.printer.indent();
+        }
+
+        return lineNumber;
+    }
+
+    private Instruction resolveSwitchExpressionTest(FastSwitch fs)
+    {
+        if (fs.getOpcode() != FastConstants.SWITCH_ENUM) {
+            return fs.getTest();
+        }
+
+        Instruction test = fs.getTest();
+        if (test instanceof ArrayLoadInstruction ali && ali.getIndexref() instanceof Invokevirtual iv) {
+            return iv.getObjectref();
+        }
+
+        return test;
+    }
+
+    private List<SwitchCaseGroup> collectSwitchExpressionGroups(FastSwitch fs, SwitchEnumInfo switchEnumInfo)
+    {
+        FastSwitch.Pair[] pairs = fs.getPairs();
+        List<SwitchCaseGroup> groups = new java.util.ArrayList<>();
+
+        for (FastSwitch.Pair pair : pairs) {
+            SwitchCaseData data = toSwitchCaseData(pair);
+            if (data == null) {
+                continue;
+            }
+            if (shouldSkipSwitchExpressionCase(fs, data)) {
+                continue;
+            }
+
+            if (pair.isDefault()) {
+                groups.add(new SwitchCaseGroup(new java.util.ArrayList<>(List.of(pair)), data));
+                continue;
+            }
+
+            if (!groups.isEmpty()) {
+                SwitchCaseGroup last = groups.get(groups.size() - 1);
+                if (!last.isDefault() && last.data().pair().getOffset() == pair.getOffset()) {
+                    last.labels().add(pair);
+                    continue;
+                }
+            }
+
+            groups.add(new SwitchCaseGroup(new java.util.ArrayList<>(List.of(pair)), data));
+        }
+
+        return groups;
+    }
+
+    private boolean shouldSkipSwitchExpressionCase(FastSwitch fs, SwitchCaseData data)
+    {
+        if (!data.pair().isDefault()) {
+            return false;
+        }
+        if (fs.getOpcode() != FastConstants.SWITCH_ENUM) {
+            return false;
+        }
+        if (data.isBlock()) {
+            return false;
+        }
+        return isMatchExceptionThrow(data.result());
+    }
+
+    private boolean isMatchExceptionThrow(Instruction instruction)
+    {
+        if (!(instruction instanceof AThrow athrow)) {
+            return false;
+        }
+        Instruction value = athrow.getValue();
+        if (!(value instanceof InvokeNew invokeNew)) {
+            return false;
+        }
+        ConstantCP cmr = constants.getConstantMethodref(invokeNew.getIndex());
+        if (cmr == null) {
+            return false;
+        }
+        String internalName = constants.getConstantClassName(cmr.getClassIndex());
+        return "java/lang/MatchException".equals(internalName);
+    }
+
+    private boolean markAutoIndent(int lineNumber, boolean autoIndentActive)
+    {
+        if (autoIndentActive || lineNumber == Instruction.UNKNOWN_LINE_NUMBER) {
+            return autoIndentActive;
+        }
+        return lineNumber > this.printer.getPreviousLineNumber();
+    }
+
+    private void startUnknownLine()
+    {
+        this.printer.endOfLine();
+        this.printer.startOfLine(Instruction.UNKNOWN_LINE_NUMBER);
+    }
+
+    private void writeSwitchExpressionCaseLabel(FastSwitch fs, List<FastSwitch.Pair> labels, int lineNumber, SwitchEnumInfo switchEnumInfo)
+    {
+        if (labels.isEmpty()) {
+            return;
+        }
+
+        boolean defaultOnly = labels.size() == 1 && labels.get(0).isDefault();
+
+        if (lineNumber == Instruction.UNKNOWN_LINE_NUMBER)
+        {
+            if (defaultOnly) {
+                this.printer.printKeyword("default");
+                return;
+            }
+            this.printer.printKeyword("case");
+            this.printer.print(' ');
+        }
+        else
+        {
+            if (defaultOnly) {
+                this.printer.printKeyword(lineNumber, "default");
+                return;
+            }
+            this.printer.printKeyword(lineNumber, "case");
+            this.printer.print(lineNumber, ' ');
+        }
+
+        for (int i = 0; i < labels.size(); i++)
+        {
+            if (i > 0) {
+                this.printer.print(", ");
+            }
+            writeSwitchExpressionCaseValue(fs, labels.get(i), switchEnumInfo);
+        }
+    }
+
+    private void writeSwitchExpressionCaseValue(FastSwitch fs, FastSwitch.Pair pair, SwitchEnumInfo switchEnumInfo)
+    {
+        switch (fs.getOpcode())
+        {
+        case FastConstants.SWITCH_ENUM:
+            writeSwitchExpressionEnumCase(pair, switchEnumInfo);
+            break;
+        case FastConstants.SWITCH_STRING:
+            Constant cv = constants.getConstantValue(pair.getKey());
+            ConstantValueWriter.write(
+                this.loader, this.printer, this.referenceMap,
+                this.classFile, cv);
+            break;
+        default:
+            String signature = fs.getTest().getReturnedSignature(
+                this.classFile, this.localVariables);
+            char type = signature == null ? 'X' : signature.charAt(0);
+
+            if (type == 'C')
+            {
+                String escapedString =
+                    StringUtil.escapeCharAndAppendApostrophe((char)pair.getKey());
+                this.printer.printString(
+                    escapedString, this.classFile.getThisClassName());
+            }
+            else
+            {
+                this.printer.printNumeric(String.valueOf(pair.getKey()));
+            }
+        }
+    }
+
+    private void writeSwitchExpressionEnumCase(FastSwitch.Pair pair, SwitchEnumInfo switchEnumInfo)
+    {
+        if (switchEnumInfo == null || switchEnumInfo.switchMap == null)
+        {
+            this.printer.startOfError();
+            this.printer.print("???");
+            this.printer.endOfError();
+            return;
+        }
+
+        int key = pair.getKey();
+        if (0 < key && key <= switchEnumInfo.switchMap.size())
+        {
+            Integer valueIndex = switchEnumInfo.switchMap.get(key - 1);
+            if (valueIndex == null || valueIndex <= 0) {
+                this.printer.startOfError();
+                this.printer.print("???");
+                this.printer.endOfError();
+                return;
+            }
+
+            String value = switchEnumInfo.constants.getConstantUtf8(valueIndex);
+            String enumDescriptor = SignatureUtil.createTypeName(switchEnumInfo.internalEnumName);
+            this.printer.printStaticField(
+                switchEnumInfo.internalEnumName, value,
+                enumDescriptor, this.classFile.getThisClassName());
+        }
+        else
+        {
+            this.printer.startOfError();
+            this.printer.print("???");
+            this.printer.endOfError();
+        }
+    }
+
+    private SwitchEnumInfo resolveSwitchEnumInfo(FastSwitch fs)
+    {
+        if (fs.getTest().getOpcode() != ByteCodeConstants.ARRAYLOAD) {
+            return null;
+        }
+
+        ArrayLoadInstruction ali = (ArrayLoadInstruction)fs.getTest();
+        ConstantPool cp = this.classFile.getConstantPool();
+        ConstantNameAndType cnat;
+
+        if (ali.getArrayref().getOpcode() == Const.INVOKESTATIC)
+        {
+            Invokestatic is = (Invokestatic)ali.getArrayref();
+            ConstantCP cmr = cp.getConstantMethodref(is.getIndex());
+            cnat = cp.getConstantNameAndType(cmr.getNameAndTypeIndex());
+        }
+        else if (ali.getArrayref().getOpcode() == Const.GETSTATIC)
+        {
+            GetStatic gs = (GetStatic)ali.getArrayref();
+            ConstantFieldref cfr = cp.getConstantFieldref(gs.getIndex());
+            cnat = cp.getConstantNameAndType(cfr.getNameAndTypeIndex());
+        }
+        else
+        {
+            return null;
+        }
+
+        String switchMapKey = cp.getConstantUtf8(cnat.getNameIndex());
+
+        if (!(ali.getIndexref() instanceof Invokevirtual iv)) {
+            return null;
+        }
+        ConstantCP cmr = cp.getConstantMethodref(iv.getIndex());
+        String internalEnumName = cp.getConstantClassName(cmr.getClassIndex());
+
+        List<Integer> switchMap = this.classFile.getSwitchMaps().get(switchMapKey);
+        ConstantPool mapConstants = cp;
+        if (switchMap == null && this.classFile.getOuterClass() != null)
+        {
+            mapConstants = this.classFile.getOuterClass().getConstantPool();
+            switchMap = this.classFile.getOuterClass().getSwitchMaps().get(switchMapKey);
+        }
+
+        return new SwitchEnumInfo(mapConstants, internalEnumName, switchMap);
+    }
+
+    private static SwitchCaseData toSwitchCaseData(FastSwitch.Pair pair)
+    {
+        List<Instruction> instructions = pair.getInstructions();
+        if (instructions == null || instructions.isEmpty()) {
+            return null;
+        }
+
+        int lastIndex = instructions.size() - 1;
+        if (lastIndex < 0) {
+            return null;
+        }
+
+        Instruction last = instructions.get(lastIndex);
+        if (last instanceof FastInstruction fi && fi.getOpcode() == FastConstants.GOTO_BREAK) {
+            lastIndex--;
+        }
+        if (lastIndex < 0) {
+            return null;
+        }
+
+        return new SwitchCaseData(pair, instructions, lastIndex);
+    }
+
+    private record SwitchCaseData(FastSwitch.Pair pair, List<Instruction> instructions, int resultIndex) {
+        Instruction result() {
+            return instructions.get(resultIndex);
+        }
+
+        boolean isBlock() {
+            return resultIndex > 0;
+        }
+    }
+
+    private static final class SwitchCaseGroup {
+        private final List<FastSwitch.Pair> labels;
+        private final SwitchCaseData data;
+
+        private SwitchCaseGroup(List<FastSwitch.Pair> labels, SwitchCaseData data) {
+            this.labels = labels;
+            this.data = data;
+        }
+
+        private List<FastSwitch.Pair> labels() {
+            return labels;
+        }
+
+        private SwitchCaseData data() {
+            return data;
+        }
+
+        private boolean isDefault() {
+            return labels.size() == 1 && labels.get(0).isDefault();
+        }
+    }
+
+    private record SwitchEnumInfo(ConstantPool constants, String internalEnumName, List<Integer> switchMap) {}
 
     @Override
     public void visit(TypeArguments arguments) {

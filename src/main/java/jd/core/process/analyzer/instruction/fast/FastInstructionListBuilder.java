@@ -115,6 +115,7 @@ import jd.core.process.analyzer.instruction.fast.reconstructor.EmptySynchronized
 import jd.core.process.analyzer.instruction.fast.reconstructor.IfGotoToIfReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.InitArrayInstructionReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.RemoveDupConstantsAttributes;
+import jd.core.process.analyzer.instruction.fast.reconstructor.SwitchExpressionReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.TernaryOpInReturnReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.TernaryOpReconstructor;
 import jd.core.process.analyzer.instruction.fast.visitor.CheckLocalVariableUsedVisitor;
@@ -203,6 +204,7 @@ public final class FastInstructionListBuilder {
         }
 
         manageRedeclaredVariables(list);
+        SwitchExpressionReconstructor.reconstruct(classFile, method, list);
 
         // Add labels
         if (!offsetLabelSet.isEmpty()) {

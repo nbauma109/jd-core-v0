@@ -2216,10 +2216,17 @@ public final class ClassFileWriter
 
                 if (0 < key && key <= switchMap.size())
                 {
-                    String value = constants.getConstantUtf8(switchMap.get(key-1));
-                    this.printer.printStaticField(
-                        internalEnumName, value,
-                        enumDescriptor, classFile.getThisClassName());
+                    Integer valueIndex = switchMap.get(key - 1);
+                    if (valueIndex == null || valueIndex <= 0) {
+                        this.printer.startOfError();
+                        this.printer.print("???");
+                        this.printer.endOfError();
+                    } else {
+                        String value = constants.getConstantUtf8(valueIndex);
+                        this.printer.printStaticField(
+                            internalEnumName, value,
+                            enumDescriptor, classFile.getThisClassName());
+                    }
                 }
                 else
                 {

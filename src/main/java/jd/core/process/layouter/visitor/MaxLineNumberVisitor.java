@@ -45,6 +45,7 @@ import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribu
 import jd.core.model.instruction.bytecode.instruction.attribute.ValuerefAttribute;
 import jd.core.model.instruction.fast.FastConstants;
 import jd.core.model.instruction.fast.instruction.FastDeclaration;
+import jd.core.model.instruction.fast.instruction.FastSwitch;
 
 public final class MaxLineNumberVisitor
 {
@@ -196,6 +197,27 @@ public final class MaxLineNumberVisitor
             break;
         case ByteCodeConstants.TERNARYOP:
             maxLineNumber = visit(((TernaryOperator)instruction).getValue2());
+            break;
+        case FastConstants.SWITCH,
+             FastConstants.SWITCH_ENUM,
+             FastConstants.SWITCH_STRING:
+            {
+                FastSwitch fs = (FastSwitch)instruction;
+                maxLineNumber = visit(fs.getTest());
+                for (FastSwitch.Pair pair : fs.getPairs())
+                {
+                    if (pair.getInstructions() == null) {
+                        continue;
+                    }
+                    for (Instruction i : pair.getInstructions())
+                    {
+                        int candidate = visit(i);
+                        if (maxLineNumber < candidate) {
+                            maxLineNumber = candidate;
+                        }
+                    }
+                }
+            }
             break;
 //        TODO check whether this necessary
 //        case FastConstants.SYNCHRONIZED:
