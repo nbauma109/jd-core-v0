@@ -2810,6 +2810,10 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                 SwitchCaseGroup last = groups.get(groups.size() - 1);
                 if (!last.isDefault() && last.data().pair().getOffset() == pair.getOffset()) {
                     last.labels().add(pair);
+                    SwitchCaseData preferred = selectPreferredSwitchCaseData(last.data(), data);
+                    if (preferred != last.data()) {
+                        groups.set(groups.size() - 1, new SwitchCaseGroup(last.labels(), preferred));
+                    }
                     continue;
                 }
             }
@@ -2818,6 +2822,26 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         }
 
         return groups;
+    }
+
+    private static SwitchCaseData selectPreferredSwitchCaseData(SwitchCaseData current, SwitchCaseData candidate)
+    {
+        if (candidate == null) {
+            return current;
+        }
+        if (current == null) {
+            return candidate;
+        }
+        if (candidate.isBlock() && !current.isBlock()) {
+            return candidate;
+        }
+        if (!candidate.isBlock() && current.isBlock()) {
+            return current;
+        }
+        if (candidate.instructions().size() > current.instructions().size()) {
+            return candidate;
+        }
+        return current;
     }
 
     private boolean shouldSkipSwitchExpressionCase(FastSwitch fs, SwitchCaseData data)

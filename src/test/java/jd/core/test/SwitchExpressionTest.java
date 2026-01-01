@@ -28,4 +28,10 @@ public class SwitchExpressionTest extends AbstractTestCase {
             assertEquals(IOUtils.toString(getClass().getResource("SwitchExpression.txt"), StandardCharsets.UTF_8), output);
         }
     }
+
+    @Test
+    public void testSwitchExpressionCaseMerge() throws Exception {
+        String output = decompile("jd/core/test/SwitchExpressionCaseMerge", "17");
+        assertEquals(IOUtils.toString(getClass().getResource("SwitchExpressionCaseMerge.txt"), StandardCharsets.UTF_8), output);
+    }
 }
