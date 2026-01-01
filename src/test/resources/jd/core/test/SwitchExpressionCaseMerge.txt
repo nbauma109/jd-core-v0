@@ -1,0 +1,14 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class SwitchExpressionCaseMerge
+/*    */ {
+/*    */   public int withSideEffect(int i) {
+/*  6 */     return switch (i) {
+/*    */       case 1, 2 -> {
+/*  8 */         System.out.println("hit");
+/*  9 */         yield 42;
+/*    */       }
+/* 11 */       default -> 0;
+/*    */     };
+/*    */   }
+/*    */ }
