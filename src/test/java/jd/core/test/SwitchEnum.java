@@ -3,7 +3,7 @@ package jd.core.test;
 public class SwitchEnum {
 
     public enum ColourEnum {
-        BLUE, GREEN, RED // TODO FIXME does not work when enum constants are unordered 
+        BLUE, GREEN, RED
     }
 
     static class ColourObject {
