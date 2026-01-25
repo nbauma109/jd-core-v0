@@ -1,0 +1,46 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class SwitchInCatch2
+/*    */ {
+/*    */   void tableSwitch() {
+/*    */     try {
+/*  7 */       System.out.println("try");
+/*    */     } catch (Exception e) {
+/*  9 */       switch (e.hashCode()) {
+/*    */       case 1: 
+/* 11 */         System.out.println("One");
+/* 12 */         break;
+/*    */       case 2: 
+/* 14 */         System.out.println("Two");
+/* 15 */         break;
+/*    */       case 3: 
+/* 17 */         System.out.println("Three");
+/* 18 */         break;
+/*    */       default: 
+/* 20 */         throw new IllegalArgumentException();
+/*    */       }
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   void lookupSwitch()
+/*    */   {
+/*    */     try
+/*    */     {
+/* 29 */       System.out.println("try");
+/*    */     } catch (Exception e) {
+/* 31 */       switch (e.hashCode()) {
+/*    */       case 1: 
+/* 33 */         System.out.println("One");
+/* 34 */         break;
+/*    */       case 1000: 
+/* 36 */         System.out.println("One thousand");
+/* 37 */         break;
+/*    */       case 1000000: 
+/* 39 */         System.out.println("One million");
+/* 40 */         break;
+/*    */       default: 
+/* 42 */         throw new IllegalArgumentException();
+/*    */       }
+/*    */     }
+/*    */   }
+/*    */ }

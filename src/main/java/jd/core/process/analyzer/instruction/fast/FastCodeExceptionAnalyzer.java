@@ -1413,6 +1413,9 @@ public final class FastCodeExceptionAnalyzer
                     case Const.ATHROW,
                          Const.RETURN,
                          ByteCodeConstants.XRETURN:
+                        if (isInsideSwitchBlock(list, instruction.getOffset())) {
+                            break;
+                        }
                         // Verification que toutes les variables
                         // locales utilisees sont definies dans le
                         // bloc du dernier catch ou de finally
@@ -1480,6 +1483,9 @@ public final class FastCodeExceptionAnalyzer
 
                         if (instruction.getOpcode() == Const.GOTO)
                         {
+                            if (isInsideSwitchBlock(list, instruction.getOffset())) {
+                                break;
+                            }
                             jumpOffsetTmp =
                                     ((BranchInstruction)instruction).getJumpOffset();
                         }
@@ -1825,6 +1831,70 @@ public final class FastCodeExceptionAnalyzer
         }
 
         return afterOffset;
+    }
+
+    private static boolean isInsideSwitchBlock(
+            List<Instruction> list, int instructionOffset)
+    {
+        int i = list.size();
+        Instruction instruction;
+        while (i-- > 0)
+        {
+            instruction = list.get(i);
+            if (instruction.getOpcode() == Const.LOOKUPSWITCH
+                    || instruction.getOpcode() == Const.TABLESWITCH)
+            {
+                Switch s = (Switch)instruction;
+                int maxOffset = s.getDefaultOffset();
+                int j = s.getOffsets().length;
+                while (j-- > 0)
+                {
+                    int offset = s.getOffset(j);
+                    if (maxOffset < offset) {
+                        maxOffset = offset;
+                    }
+                }
+
+                int switchOffset = s.getOffset();
+                int maxCaseOffset = switchOffset + maxOffset;
+                int afterSwitchOffset = findAfterSwitchOffset(
+                        list, switchOffset, maxCaseOffset);
+                int endOffset = afterSwitchOffset == UtilConstants.INVALID_OFFSET
+                        ? maxCaseOffset
+                        : afterSwitchOffset;
+
+                if (switchOffset < instructionOffset && instructionOffset < endOffset) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private static int findAfterSwitchOffset(
+            List<Instruction> list, int switchOffset, int maxCaseOffset)
+    {
+        int afterSwitchOffset = UtilConstants.INVALID_OFFSET;
+        for (Instruction instruction : list)
+        {
+            if (instruction.getOpcode() == Const.GOTO)
+            {
+                int instructionOffset = instruction.getOffset();
+                if (switchOffset < instructionOffset
+                        && instructionOffset <= maxCaseOffset)
+                {
+                    int jumpOffset = ((Goto)instruction).getJumpOffset();
+                    if (jumpOffset > maxCaseOffset &&
+                            (afterSwitchOffset == UtilConstants.INVALID_OFFSET
+                                    || jumpOffset < afterSwitchOffset)) {
+                        afterSwitchOffset = jumpOffset;
+                    }
+                }
+            }
+        }
+
+        return afterSwitchOffset;
     }
 
     private static int reduceAfterOffsetWithExceptions(

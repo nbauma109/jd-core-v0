@@ -13,4 +13,15 @@ public class SwitchInCatchTest extends AbstractTestCase {
         String output = decompile("jd/core/test/SwitchInCatch");
         assertEquals(IOUtils.toString(getClass().getResource("SwitchInCatch.txt"), StandardCharsets.UTF_8), output);
     }
+
+    @Test
+    public void test2() throws Exception {
+        String output = decompile("jd/core/test/SwitchInCatch2");
+        assertEquals(IOUtils.toString(getClass().getResource("SwitchInCatch2.txt"), StandardCharsets.UTF_8), output);
+    }
+    
+    @Override
+    protected boolean recompile() {
+        return false;
+    }
 }
