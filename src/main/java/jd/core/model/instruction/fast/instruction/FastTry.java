@@ -118,18 +118,6 @@ public class FastTry extends FastList {
             this.removedGotoJumpOffset = jumpOffset;
         }
 
-        public boolean hasRemovedGoto() {
-            return removedGotoOffset != -1;
-        }
-
-        public int getRemovedGotoOffset() {
-            return removedGotoOffset;
-        }
-
-        public int getRemovedGotoJumpOffset() {
-            return removedGotoJumpOffset;
-        }
-
         public int[] otherExceptionTypeIndexes() {
             return otherExceptionTypeIndexes;
         }
