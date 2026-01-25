@@ -41,6 +41,8 @@ public class FastTry extends FastList {
     private final List<FastCatch> catches;
     private final List<Instruction> finallyInstructions;
     private final List<Instruction> resources;
+    private int removedTryGotoOffset = -1;
+    private int removedTryGotoJumpOffset = -1;
 
     public FastTry(int opcode, int offset, int lineNumber, int branch, List<Instruction> instructions, List<FastCatch> catches, List<Instruction> finallyInstructions) {
         super(opcode, offset, lineNumber, branch, instructions);
@@ -57,12 +59,31 @@ public class FastTry extends FastList {
         return finallyInstructions;
     }
 
+    public void setRemovedTryGoto(int offset, int jumpOffset) {
+        this.removedTryGotoOffset = offset;
+        this.removedTryGotoJumpOffset = jumpOffset;
+    }
+
+    public boolean hasRemovedTryGoto() {
+        return removedTryGotoOffset != -1;
+    }
+
+    public int getRemovedTryGotoOffset() {
+        return removedTryGotoOffset;
+    }
+
+    public int getRemovedTryGotoJumpOffset() {
+        return removedTryGotoJumpOffset;
+    }
+
     public static class FastCatch {
         int exceptionOffset;
         int exceptionTypeIndex;
         int[] otherExceptionTypeIndexes;
         int localVarIndex;
         List<Instruction> instructions;
+        int removedGotoOffset = -1;
+        int removedGotoJumpOffset = -1;
 
         public FastCatch(int exceptionOffset, int exceptionTypeIndex, int[] otherExceptionTypeIndexes, int localVarIndex, List<Instruction> instructions) {
             this.exceptionOffset = exceptionOffset;
@@ -90,6 +111,23 @@ public class FastTry extends FastList {
 
         public List<Instruction> instructions() {
             return instructions;
+        }
+
+        public void setRemovedGoto(int offset, int jumpOffset) {
+            this.removedGotoOffset = offset;
+            this.removedGotoJumpOffset = jumpOffset;
+        }
+
+        public boolean hasRemovedGoto() {
+            return removedGotoOffset != -1;
+        }
+
+        public int getRemovedGotoOffset() {
+            return removedGotoOffset;
+        }
+
+        public int getRemovedGotoJumpOffset() {
+            return removedGotoJumpOffset;
         }
 
         public int[] otherExceptionTypeIndexes() {

@@ -2,7 +2,7 @@ package jd.core.test;
 
 import java.lang.reflect.Method;
 
-public class ReflectionUtil {
+public class ReflectionUtil2 {
 
     <T> T invokeMethod(Class<?> clazz, Object object, String methodName, Class<?>[] parameterTypes, Object[] parameters) {
         T value = null;
@@ -15,10 +15,10 @@ public class ReflectionUtil {
                 } catch (Exception e) {
                     e.printStackTrace();
                     superClass = superClass.getSuperclass();
+                    continue;
                 }
+                break;
             }
-
-
             if (method != null) {
                 try {
                     value = (T) method.invoke(object, parameters);

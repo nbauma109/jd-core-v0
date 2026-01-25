@@ -1031,6 +1031,12 @@ public class JavaSourceLayouter
         {
             instruction = list.get(index);
 
+            if (instruction.getOpcode() == FastConstants.GOTO_CONTINUE
+             && instruction instanceof FastInstruction
+             && ((FastInstruction)instruction).getInstruction() == null) {
+                return index-1;
+            }
+
             if (instruction.getOpcode() == FastConstants.WHILE
              || instruction.getOpcode() == FastConstants.DO_WHILE
              || instruction.getOpcode() == FastConstants.INFINITE_LOOP

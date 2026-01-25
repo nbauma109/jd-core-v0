@@ -1,0 +1,32 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.lang.reflect.Method;
+/*    */ 
+/*    */ public class ReflectionUtil2
+/*    */ {
+/*    */   <T> T invokeMethod(Class<?> clazz, Object object, String methodName, Class<?>[] parameterTypes, Object[] parameters) {
+/*  8 */     T value = null;
+/*  9 */     if (clazz != null && object != null) {
+/* 10 */       Method method = null;
+/* 11 */       Class<?> superClass = clazz;
+/* 12 */       while (superClass != null && superClass != Object.class && method == null) {
+/*    */         try {
+/* 14 */           method = superClass.getMethod(methodName, parameterTypes);
+/*    */         } catch (Exception e) {
+/* 16 */           e.printStackTrace();
+/* 17 */           superClass = superClass.getSuperclass();
+/*    */           continue;
+/*    */         }
+/*    */         break;
+/*    */       }
+/* 22 */       if (method != null) {
+/*    */         try {
+/* 24 */           value = (T)method.invoke(object, parameters);
+/*    */         } catch (Exception e) {
+/* 26 */           e.printStackTrace();
+/*    */         }
+/*    */       }
+/*    */     }
+/* 30 */     return value;
+/*    */   }
+/*    */ }

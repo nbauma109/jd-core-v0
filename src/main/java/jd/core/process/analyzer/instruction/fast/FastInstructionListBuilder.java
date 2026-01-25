@@ -1406,6 +1406,8 @@ public final class FastInstructionListBuilder {
         createBreakAndContinue(classFile, method, list, offsetLabelSet, beforeLoopEntryOffset, loopEntryOffset,
                 afterBodyLoopOffset, afterListOffset, breakOffset, returnOffset);
 
+        moveBreakOutOfTry(list, breakOffset);
+
         // Retrait des instructions DupStore associées à une seule
         // instruction DupLoad
         SingleDupLoadAnalyzer.cleanup(list);
@@ -1832,14 +1834,14 @@ public final class FastInstructionListBuilder {
                         List<FastCatch> catches = fastTry.getCatches();
                         FastCatch fastCatch = catches.get(catches.size() - 1);
                         fastCatch.instructions().add(new FastInstruction(
-                            FastConstants.GOTO_CONTINUE, g.getOffset(), lineNumber, null));
+                            FastConstants.GOTO_CONTINUE, g.getOffset(), lineNumber, g));
                         list.remove(index);
                         index--;
                         length--;
                     } else {
                         // Creation d'une instruction 'continue'
                         list.set(index, new FastInstruction(
-                            FastConstants.GOTO_CONTINUE, g.getOffset(), lineNumber, null));
+                            FastConstants.GOTO_CONTINUE, g.getOffset(), lineNumber, g));
                     }
                 } else // Si la méthode retourne 'void' et si l'instruction
                 // saute un goto qui saut sur un goto ... qui saute
@@ -4774,6 +4776,88 @@ public final class FastInstructionListBuilder {
 
     private static void removeLastInstruction(List<Instruction> instructions) {
         instructions.remove(instructions.size() - 1);
+    }
+
+    private static void moveBreakOutOfTry(List<Instruction> list, int breakOffset) {
+        if (breakOffset < 0 || list == null || list.size() != 1) {
+            return;
+        }
+
+        Instruction only = list.get(0);
+        if (!(only instanceof FastTry ft)) {
+            return;
+        }
+        if (!ft.hasCatch() || ft.hasFinally() || ft.hasResource()) {
+            return;
+        }
+        if (!ft.hasRemovedTryGoto()) {
+            return;
+        }
+        if (ft.getRemovedTryGotoJumpOffset() != breakOffset
+                || ft.getRemovedTryGotoJumpOffset() <= ft.getRemovedTryGotoOffset()) {
+            return;
+        }
+        if (!appendContinueToCatches(ft)) {
+            return;
+        }
+
+        FastInstruction breakInstruction = new FastInstruction(FastConstants.GOTO_BREAK,
+                ft.getRemovedTryGotoOffset(), Instruction.UNKNOWN_LINE_NUMBER, null);
+        list.add(1, breakInstruction);
+    }
+
+    private static boolean appendContinueToCatches(FastTry ft) {
+        for (FastCatch fastCatch : ft.getCatches()) {
+            List<Instruction> catchInstructions = fastCatch.instructions();
+            if (catchInstructions.isEmpty() || hasControlFlow(catchInstructions)) {
+                return false;
+            }
+
+            Instruction lastInstruction = catchInstructions.get(catchInstructions.size() - 1);
+            if (isTerminalInstruction(lastInstruction)) {
+                return false;
+            }
+
+            int continueOffset = lastInstruction.getOffset() + 1;
+            catchInstructions.add(new FastInstruction(FastConstants.GOTO_CONTINUE, continueOffset,
+                    Instruction.UNKNOWN_LINE_NUMBER, null));
+        }
+
+        return true;
+    }
+
+    private static boolean hasControlFlow(List<Instruction> instructions) {
+        for (Instruction instruction : instructions) {
+            int opcode = instruction.getOpcode();
+            if (ByteCodeUtil.isIfOrGotoInstruction(opcode, true)
+                    || opcode == FastConstants.IF_SIMPLE
+                    || opcode == FastConstants.IF_ELSE
+                    || opcode == FastConstants.IF_CONTINUE
+                    || opcode == FastConstants.IF_BREAK
+                    || opcode == FastConstants.IF_LABELED_BREAK
+                    || opcode == FastConstants.GOTO_BREAK
+                    || opcode == FastConstants.GOTO_CONTINUE
+                    || opcode == FastConstants.GOTO_LABELED_BREAK
+                    || opcode == FastConstants.SWITCH
+                    || opcode == FastConstants.SWITCH_ENUM
+                    || opcode == FastConstants.SWITCH_STRING
+                    || opcode == FastConstants.TRY
+                    || opcode == FastConstants.SYNCHRONIZED) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isTerminalInstruction(Instruction instruction) {
+        int opcode = instruction.getOpcode();
+        return opcode == Const.RETURN
+                || opcode == ByteCodeConstants.XRETURN
+                || opcode == Const.ATHROW
+                || opcode == Const.GOTO
+                || opcode == FastConstants.GOTO_BREAK
+                || opcode == FastConstants.GOTO_CONTINUE
+                || opcode == FastConstants.GOTO_LABELED_BREAK;
     }
 
     private static void addLabels(List<Instruction> list, IntSet offsetLabelSet) {

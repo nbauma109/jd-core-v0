@@ -13,4 +13,10 @@ public class ReflectionUtilTest extends AbstractTestCase {
         String output = decompile("jd/core/test/ReflectionUtil");
         assertEquals(IOUtils.toString(getClass().getResource("ReflectionUtil.txt"), StandardCharsets.UTF_8), output);
     }
+
+    @Test
+    public void test2() throws Exception {
+        String output = decompile("jd/core/test/ReflectionUtil2");
+        assertEquals(IOUtils.toString(getClass().getResource("ReflectionUtil2.txt"), StandardCharsets.UTF_8), output);
+    }
 }

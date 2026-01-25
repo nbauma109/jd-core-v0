@@ -1999,6 +1999,7 @@ public final class FastCodeExceptionAnalyzer
                 {
                     jumpOffset = tmpJumpOffset;
                     fce.setTryToOffset(instruction.getOffset());
+                    fastTry.setRemovedTryGoto(instruction.getOffset(), tmpJumpOffset);
                     tryInstructions.remove(lastIndex);
                 }
             }
@@ -2012,7 +2013,8 @@ public final class FastCodeExceptionAnalyzer
         List<Instruction> catchInstructions;
         while (i-- > 0)
         {
-            catchInstructions = fastTry.getCatches().get(i).instructions();
+            FastCatch fastCatch = fastTry.getCatches().get(i);
+            catchInstructions = fastCatch.instructions();
 
             // Remove first catch instruction in each catch block
             if (formatCatchRemoveFirstCatchInstruction(catchInstructions.get(0))) {
@@ -2035,10 +2037,12 @@ public final class FastCodeExceptionAnalyzer
                         if (jumpOffset == -1)
                         {
                             jumpOffset = tmpJumpOffset;
+                            fastCatch.setRemovedGoto(instruction.getOffset(), tmpJumpOffset);
                             catchInstructions.remove(lastIndex);
                         }
                         else if (jumpOffset == tmpJumpOffset)
                         {
+                            fastCatch.setRemovedGoto(instruction.getOffset(), tmpJumpOffset);
                             catchInstructions.remove(lastIndex);
                         }
                     }
