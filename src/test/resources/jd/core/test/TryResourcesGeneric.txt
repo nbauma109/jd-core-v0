@@ -1,0 +1,13 @@
+/*   */ package org.jd.core.v1;
+/*   */ 
+/*   */ public abstract class TryResources<T extends AutoCloseable> {
+/*   */   void tryResources() {
+/* 5 */     try (T t = getResource()) {
+/* 6 */       System.out.println(t);
+/*   */     } catch (Exception e) {
+/* 8 */       e.printStackTrace();
+/*   */     }
+/*   */   }
+/*   */   
+/*   */   abstract T getResource();
+/*   */ }
