@@ -84,6 +84,7 @@ import jd.core.model.instruction.bytecode.instruction.IncInstruction;
 import jd.core.model.instruction.bytecode.instruction.IndexInstruction;
 import jd.core.model.instruction.bytecode.instruction.InitArrayInstruction;
 import jd.core.model.instruction.bytecode.instruction.InstanceOf;
+import jd.core.model.instruction.bytecode.instruction.PatternInstanceOf;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNew;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
@@ -101,6 +102,7 @@ import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
+import jd.core.model.instruction.bytecode.instruction.TypeSwitch;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
 import jd.core.model.instruction.fast.FastConstants;
 import jd.core.model.instruction.fast.instruction.FastDeclaration;
@@ -108,6 +110,7 @@ import jd.core.model.instruction.fast.instruction.FastInstruction;
 import jd.core.model.instruction.fast.instruction.FastSwitch;
 import jd.core.model.reference.ReferenceMap;
 import jd.core.printer.InstructionPrinter;
+import jd.core.process.analyzer.classfile.visitor.SearchInstructionByTypeVisitor;
 import jd.core.process.layouter.visitor.MinLineNumberVisitor;
 import jd.core.process.writer.ConstantValueWriter;
 import jd.core.process.writer.SignatureWriter;
@@ -550,6 +553,19 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                     SignatureWriter.writeSignature(
                         this.loader, this.printer, this.referenceMap,
                         this.classFile, signature);
+
+                    if (instanceOf instanceof PatternInstanceOf patternInstanceOf) {
+                        LocalVariable lv = this.localVariables.getLocalVariableWithIndexAndOffset(
+                                patternInstanceOf.getPatternIndex(), patternInstanceOf.getPatternOffset());
+                        if (lv == null || lv.getNameIndex() <= 0) {
+                            this.printer.startOfError();
+                            this.printer.print(" ???");
+                            this.printer.endOfError();
+                        } else {
+                            this.printer.print(' ');
+                            this.printer.print(lineNumber, constants.getConstantUtf8(lv.getNameIndex()));
+                        }
+                    }
                 }
             }
             break;
@@ -2703,6 +2719,16 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         {
             SwitchCaseData data = group.data();
 
+            if (fs.getTest() instanceof TypeSwitch typeSwitch && data.isBlock() && canInlineTypeSwitchCase(data, typeSwitch)) {
+                int caseLineNumber = data.result().getLineNumber();
+                autoIndentActive = markAutoIndent(caseLineNumber, autoIndentActive);
+                writeSwitchExpressionCaseLabel(fs, group.labels(), caseLineNumber, switchEnumInfo);
+                this.printer.print(" -> ");
+                lineNumber = visit(data.result());
+                this.printer.print(';');
+                continue;
+            }
+
             if (data.isBlock())
             {
                 startUnknownLine();
@@ -2771,6 +2797,54 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         }
 
         return lineNumber;
+    }
+
+    private boolean canInlineTypeSwitchCase(SwitchCaseData data, TypeSwitch typeSwitch)
+    {
+        if (!(data.pair().getInstructions() != null)) {
+            return false;
+        }
+        List<Instruction> instructions = data.instructions();
+        if (instructions.size() < 2) {
+            return false;
+        }
+        Instruction first = instructions.get(0);
+        StoreInstruction store = null;
+        Instruction value = null;
+
+        if (first instanceof AssignmentInstruction ai) {
+            if (!"=".equals(ai.getOperator()) || !(ai.getValue1() instanceof StoreInstruction)) {
+                return false;
+            }
+            store = (StoreInstruction) ai.getValue1();
+            value = ai.getValue2();
+        } else if (first instanceof StoreInstruction si) {
+            store = si;
+            value = si.getValueref();
+        } else if (first instanceof FastDeclaration fd && fd.getInstruction() instanceof StoreInstruction si) {
+            store = si;
+            value = si.getValueref();
+        }
+
+        if (store == null || !(value instanceof CheckCast checkCast)) {
+            return false;
+        }
+        return typeSwitch == null || isSameTypeSwitchObject(typeSwitch, checkCast.getObjectref());
+    }
+
+    private boolean isSameTypeSwitchObject(TypeSwitch typeSwitch, Instruction objectref)
+    {
+        if (typeSwitch == null || objectref == null) {
+            return false;
+        }
+        Instruction switchObject = typeSwitch.getObjectref();
+        if (switchObject == objectref) {
+            return true;
+        }
+        if (switchObject instanceof LoadInstruction load1 && objectref instanceof LoadInstruction load2) {
+            return load1.getIndex() == load2.getIndex();
+        }
+        return false;
     }
 
     private Instruction resolveSwitchExpressionTest(FastSwitch fs)
@@ -2849,7 +2923,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         if (!data.pair().isDefault()) {
             return false;
         }
-        if (fs.getOpcode() != FastConstants.SWITCH_ENUM) {
+        if (fs.getOpcode() != FastConstants.SWITCH_ENUM && !(fs.getTest() instanceof TypeSwitch)) {
             return false;
         }
         if (data.isBlock()) {
@@ -2927,6 +3001,11 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
 
     private void writeSwitchExpressionCaseValue(FastSwitch fs, FastSwitch.Pair pair, SwitchEnumInfo switchEnumInfo)
     {
+        if (fs.getTest() instanceof TypeSwitch typeSwitch) {
+            writeTypeSwitchCaseValue(typeSwitch, pair);
+            return;
+        }
+
         switch (fs.getOpcode())
         {
         case FastConstants.SWITCH_ENUM:
@@ -2955,6 +3034,63 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                 this.printer.printNumeric(String.valueOf(pair.getKey()));
             }
         }
+    }
+
+    private void writeTypeSwitchCaseValue(TypeSwitch typeSwitch, FastSwitch.Pair pair)
+    {
+        LocalVariable localVariable = resolveTypeSwitchLocalVariable(pair);
+        String variableName = "jd$case";
+        String typeSignature = null;
+
+        if (localVariable != null) {
+            variableName = localVariable.getName(constants);
+            typeSignature = localVariable.getSignature(constants);
+        }
+
+        if (typeSignature == null) {
+            String internalTypeName = typeSwitch.getCaseType(pair.getKey());
+            if (internalTypeName != null) {
+                typeSignature = SignatureUtil.createTypeName(internalTypeName);
+            }
+        }
+
+        if (typeSignature == null) {
+            this.printer.startOfError();
+            this.printer.print("???");
+            this.printer.endOfError();
+            return;
+        }
+
+        SignatureWriter.writeSignature(this.loader, this.printer, this.referenceMap, this.classFile, typeSignature);
+        this.printer.print(' ');
+        this.printer.print(variableName);
+    }
+
+    private LocalVariable resolveTypeSwitchLocalVariable(FastSwitch.Pair pair)
+    {
+        if (localVariables == null) {
+            return null;
+        }
+
+        List<Instruction> instructions = pair.getInstructions();
+        if (instructions == null || instructions.isEmpty()) {
+            return null;
+        }
+
+        SearchInstructionByTypeVisitor<StoreInstruction> visitor =
+            new SearchInstructionByTypeVisitor<>(StoreInstruction.class);
+
+        for (Instruction instruction : instructions) {
+            StoreInstruction store = visitor.visit(instruction);
+            if (store == null) {
+                continue;
+            }
+            LocalVariable localVariable = localVariables.getLocalVariableForStoreInstruction(store);
+            if (localVariable != null) {
+                return localVariable;
+            }
+        }
+        return null;
     }
 
     private void writeSwitchExpressionEnumCase(FastSwitch.Pair pair, SwitchEnumInfo switchEnumInfo)

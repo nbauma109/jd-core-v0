@@ -175,7 +175,7 @@ public final class RecordHelper {
 
         String expectedSignature =
                 buildCanonicalConstructorSignature(recordFields, constantPool);
-        if (!expectedSignature.equals(method.getSignature(constantPool))) {
+        if (!expectedSignature.equals(method.getDescriptor(constantPool))) {
             return false;
         }
 
@@ -240,7 +240,7 @@ public final class RecordHelper {
                 String putFieldSignature = constantPool.getConstantUtf8(cnat.getSignatureIndex());
 
                 if (!field.getName(constantPool).equals(putFieldName)
-                        || !field.getSignature(constantPool).equals(putFieldSignature)) {
+                        || !constantPool.getConstantUtf8(field.getDescriptorIndex()).equals(putFieldSignature)) {
                     return false;
                 }
                 index++;
@@ -316,7 +316,7 @@ public final class RecordHelper {
                 || !method.isPublic()) {
             return false;
         }
-        return expectedConstructorSignature.equals(method.getSignature(cp));
+        return expectedConstructorSignature.equals(method.getDescriptor(cp));
     }
 
     /**
@@ -397,7 +397,7 @@ public final class RecordHelper {
             String putFieldSignature = constantPool.getConstantUtf8(cnat.getSignatureIndex());
 
             if (!field.getName(constantPool).equals(putFieldName)
-                    || !field.getSignature(constantPool).equals(putFieldSignature)) {
+                    || !constantPool.getConstantUtf8(field.getDescriptorIndex()).equals(putFieldSignature)) {
                 return constructor;
             }
 
@@ -495,7 +495,7 @@ public final class RecordHelper {
 
     private static int[] computeConstructorParameterSlots(Method constructor, ConstantPool cp) {
         Type[] args =
-                Type.getArgumentTypes(constructor.getSignature(cp));
+                Type.getArgumentTypes(constructor.getDescriptor(cp));
         int[] slots = new int[args.length];
 
         int slot = 1;
@@ -565,7 +565,7 @@ public final class RecordHelper {
         StringBuilder sb = new StringBuilder();
         sb.append('(');
         for (Field field : recordFields) {
-            sb.append(field.getSignature(cp));
+            sb.append(cp.getConstantUtf8(field.getDescriptorIndex()));
         }
         sb.append(")V");
         return sb.toString();
@@ -627,7 +627,7 @@ public final class RecordHelper {
 
     private static boolean isEqualsHashCodeToStringSignature(Method method, ConstantPool cp) {
         String name = method.getName(cp);
-        String signature = method.getSignature(cp);
+        String signature = method.getDescriptor(cp);
 
         return isToString(name, signature)
                 || isHashCode(name, signature)
@@ -727,7 +727,7 @@ public final class RecordHelper {
         }
 
         String methodName = method.getName(constantPool);
-        String methodSignature = method.getSignature(constantPool);
+        String methodSignature = method.getDescriptor(constantPool);
 
         InstructionList instructionList =
                 toInstructionList(method);

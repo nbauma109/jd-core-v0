@@ -683,6 +683,44 @@ public final class ClassFileAnalyzer
             classFile.getSwitchMaps().put(
                     constants.getConstantUtf8(method.getNameIndex()), enumNameIndexes);
         }
+        else
+        {
+            ConstantPool constants = classFile.getConstantPool();
+            List<Integer> enumNameIndexes = new ArrayList<>();
+
+            for (Instruction instruction : list)
+            {
+                if (instruction.getOpcode() != ByteCodeConstants.ARRAYSTORE) {
+                    continue;
+                }
+
+                ArrayStoreInstruction arrayStore = (ArrayStoreInstruction) instruction;
+                int caseValue = readSwitchMapCaseValue(arrayStore.getValueref());
+                if (caseValue <= 0) {
+                    continue;
+                }
+
+                Instruction indexref = arrayStore.getIndexref();
+                if (!(indexref instanceof Invokevirtual iv) || !isOrdinalInvoke(constants, iv)) {
+                    continue;
+                }
+
+                Instruction objectref = iv.getObjectref();
+                if (!(objectref instanceof GetStatic gs)) {
+                    continue;
+                }
+
+                ConstantFieldref cfr = constants.getConstantFieldref(gs.getIndex());
+                ConstantNameAndType cnat = constants.getConstantNameAndType(
+                        cfr.getNameAndTypeIndex());
+                putSwitchMapEntry(enumNameIndexes, caseValue, cnat.getNameIndex());
+            }
+
+            if (!enumNameIndexes.isEmpty()) {
+                classFile.getSwitchMaps().put(
+                        constants.getConstantUtf8(method.getNameIndex()), enumNameIndexes);
+            }
+        }
     }
 
     private static int readSwitchMapCaseValue(Instruction instruction) {
@@ -690,6 +728,15 @@ public final class ClassFileAnalyzer
             return iConst.getValue();
         }
         return -1;
+    }
+
+    private static boolean isOrdinalInvoke(ConstantPool constants, Invokevirtual iv)
+    {
+        ConstantCP cmr = constants.getConstantMethodref(iv.getIndex());
+        ConstantNameAndType cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
+        String name = constants.getConstantUtf8(cnat.getNameIndex());
+        String descriptor = constants.getConstantUtf8(cnat.getSignatureIndex());
+        return StringConstants.ORDINAL_METHOD_NAME.equals(name) && "()I".equals(descriptor);
     }
 
     private static void putSwitchMapEntry(List<Integer> enumNameIndexes, int caseValue, int nameIndex) {

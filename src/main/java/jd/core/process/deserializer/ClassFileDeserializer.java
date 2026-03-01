@@ -28,7 +28,9 @@ import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import jd.core.model.classfile.ClassFile;
@@ -44,32 +46,54 @@ public final class ClassFileDeserializer
 
     public static ClassFile deserialize(Loader loader, String internalClassPath)
     {
-        return deserialize(loader, internalClassPath, false);
+        return deserialize(loader, internalClassPath, false, new HashMap<>());
     }
 
     public static ClassFile deserialize(Loader loader, String internalClassPath, boolean skipInnerClasses)
     {
-        ClassFile classFile = loadSingleClass(loader, internalClassPath);
+        return deserialize(loader, internalClassPath, skipInnerClasses, new HashMap<>());
+    }
+
+    private static ClassFile deserialize(
+            Loader loader,
+            String internalClassPath,
+            boolean skipInnerClasses,
+            Map<String, ClassFile> cache)
+    {
+        String cacheKey = normalizeInternalClassPath(internalClassPath);
+        ClassFile classFile = cache.get(cacheKey);
+        boolean newlyLoaded = false;
         if (classFile == null) {
-            return null;
+            classFile = loadSingleClass(loader, internalClassPath);
+            if (classFile == null) {
+                return null;
+            }
+            cache.put(cacheKey, classFile);
+            newlyLoaded = true;
         }
 
-        if (classFile.getSuperClassName() != null
-                && !StringConstants.JAVA_LANG_OBJECT.equals(internalClassPath)
-                && loader.canLoad(classFile.getSuperClassName())) {
-            ClassFile superClass = deserialize(loader, classFile.getSuperClassName(), true);
-            classFile.getSuperClassAndInterfaces().put(classFile.getSuperClassName(), superClass);
-        }
+        if (newlyLoaded) {
+            if (classFile.getSuperClassName() != null
+                    && !StringConstants.JAVA_LANG_OBJECT.equals(internalClassPath)
+                    && loader.canLoad(classFile.getSuperClassName())) {
+                ClassFile superClass = deserialize(loader, classFile.getSuperClassName(), true, cache);
+                classFile.getSuperClassAndInterfaces().put(classFile.getSuperClassName(), superClass);
+            }
 
-        for (int interfaceIndex : classFile.getInterfaces()) {
-            String interfaceName = classFile.getConstantPool().getConstantClassName(interfaceIndex);
-            if (loader.canLoad(interfaceName)) {
-                ClassFile interfass = deserialize(loader, interfaceName);
-                classFile.getSuperClassAndInterfaces().put(interfaceName, interfass);
+            for (int interfaceIndex : classFile.getInterfaces()) {
+                String interfaceName = classFile.getConstantPool().getConstantClassName(interfaceIndex);
+                if (loader.canLoad(interfaceName)) {
+                    ClassFile interfass = deserialize(loader, interfaceName, false, cache);
+                    classFile.getSuperClassAndInterfaces().put(interfaceName, interfass);
+                }
             }
         }
 
         if (skipInnerClasses) {
+            return classFile;
+        }
+
+        if (classFile.getInnerClassFiles() != null) {
             return classFile;
         }
 
@@ -78,14 +102,18 @@ public final class ClassFileDeserializer
             return classFile;
         }
 
-        String internalClassPathPrefix =
-            internalClassPath.substring(
-                0, internalClassPath.length() - StringConstants.CLASS_FILE_SUFFIX.length());
+        String internalClassPathPrefix = internalClassPath;
+        if (internalClassPath.endsWith(StringConstants.CLASS_FILE_SUFFIX)) {
+            internalClassPathPrefix =
+                internalClassPath.substring(
+                    0, internalClassPath.length() - StringConstants.CLASS_FILE_SUFFIX.length());
+        }
         String innerInternalClassNamePrefix =
             internalClassPathPrefix + StringConstants.INTERNAL_INNER_SEPARATOR;
         ConstantPool constants = classFile.getConstantPool();
 
         List<ClassFile> innerClassFiles = new ArrayList<>(aics.getLength());
+        classFile.setInnerClassFiles(innerClassFiles);
 
         for (InnerClass innerClass : aics.getInnerClasses())
         {
@@ -110,8 +138,11 @@ public final class ClassFileDeserializer
             }
 
             ClassFile innerClassFile =
-                deserialize(loader, innerInternalClassPath +
-                StringConstants.CLASS_FILE_SUFFIX);
+                deserialize(
+                    loader,
+                    innerInternalClassPath + StringConstants.CLASS_FILE_SUFFIX,
+                    false,
+                    cache);
 
             if (innerClassFile != null)
             {
@@ -124,10 +155,15 @@ public final class ClassFileDeserializer
             }
         }
 
-        // Add inner classes
-        classFile.setInnerClassFiles(innerClassFiles);
-
         return classFile;
+    }
+
+    private static String normalizeInternalClassPath(String internalClassPath) {
+        if (internalClassPath.endsWith(StringConstants.CLASS_FILE_SUFFIX)) {
+            return internalClassPath.substring(
+                0, internalClassPath.length() - StringConstants.CLASS_FILE_SUFFIX.length());
+        }
+        return internalClassPath;
     }
 
     private static ClassFile loadSingleClass(

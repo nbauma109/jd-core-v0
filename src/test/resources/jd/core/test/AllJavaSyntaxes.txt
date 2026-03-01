@@ -1,0 +1,941 @@
+package demo;
+
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
+
+public abstract class AllJavaSyntaxes<E extends Comparable<E>> extends ArrayList<E> implements java.io.Serializable, Comparable<E>, Iterable<E>
+{
+  private static final long serialVersionUID = 1L;
+  private static volatile transient char[] CHARS;
+  private static final java.util.concurrent.atomic.AtomicInteger COUNTER;
+  
+  static
+  {
+    CHARS = new char[] { 'A', 'B' };
+    
+    COUNTER = new java.util.concurrent.atomic.AtomicInteger();
+    
+
+    int x = 1;
+    int y = 2;
+    
+
+    init();
+  }
+  
+
+  @Deprecated(forRemoval=true, since="11")
+  void deprecatedMethod() {}
+  
+  private static void init()
+  {
+    COUNTER.incrementAndGet();
+  }
+  
+  @SafeVarargs
+  protected final <T> Object[] methodReferencesAndLambdas(T... arguments)
+  {
+    java.util.stream.Stream.of(arguments).forEach(System.out::println);
+    return java.util.stream.Stream.of(arguments).map(Object::toString).toArray(Object[]::new);
+  }
+  
+  void classicFor(String[] arguments) {
+    for (int index = 0; index < arguments.length; index++) {
+      log(arguments[index]);
+    }
+    for (int index = 0; index < arguments.length; index++)
+      log(arguments[index]);
+  }
+  
+  void whileLoop(String[] arguments) {
+    int index = 0;
+    while (index < arguments.length) {
+      log(arguments[(index++)]);
+    }
+    index = 0;
+    while (index < arguments.length)
+      log(arguments[(index++)]);
+  }
+  
+  void doWhileLoop(String[] arguments) {
+    int index = 0;
+    do {
+      log(arguments[(index++)]);
+    } while (
+    
+      index < arguments.length);
+    index = 0;
+    do {
+      log(arguments[(index++)]);
+    } while (
+    
+      index < arguments.length);
+  }
+  
+  void lambdaAndOptional() {
+    java.util.function.Supplier<String> supplier = () -> "value";
+    java.util.function.Function<String, Integer> function = String::length;
+    java.util.Optional.ofNullable((String)supplier.get()).map(function).ifPresent( length -> log("length=" + length));
+  }
+  
+  void typedLambdaParams(List<String> list) {
+    list.sort((a, b) -> b.compareTo(a));
+  }
+  
+  void unTypedLambdaParams(List<String> list) {
+    list.sort((a, b) -> b.compareTo(a));
+  }
+  
+  synchronized void synchronizedMethod() {
+    log("synchronized");
+  }
+  
+  void tryCatchFinally() {
+    try {
+      if (COUNTER.get() < 0)
+        throw new IllegalStateException();
+    } catch (RuntimeException exception) {
+      log(exception.getClass().getSimpleName());
+    } finally {
+      log("finally");
+    }
+  }
+  
+  void tryWithResources(Path path)
+  {
+    try {
+      Object localObject1 = null;Object localObject4 = null; Object localObject3; label79: try { br = java.nio.file.Files.newBufferedReader(path);
+      }
+      finally
+      {
+        localObject3 = localThrowable; break label79;if (localObject3 != localThrowable) localObject3.addSuppressed(localThrowable);
+      } } catch (IOException exception) { log(exception.getMessage());
+    }
+  }
+  
+  void assertions(int value) {
+    assert (value >= 0) : "negative";
+  }
+  
+  void boxingAndNumbers() {
+    Integer boxed = Integer.valueOf(1);
+    int primitive = boxed.intValue();
+    java.math.BigDecimal decimal = java.math.BigDecimal.valueOf(primitive);
+    log(decimal.toPlainString());
+  }
+  
+  void instanceofPattern(Object object) {
+    if (object instanceof String text && !text.isEmpty()) {
+      log(text);
+    }
+  }
+  
+  void enumSwitch(Day day) {
+    switch (day) {
+    case MONDAY: case TUESDAY:  log("weekday"); break;
+    default:  log("other");
+    }
+  }
+  
+  public String expressionSwitch(int value) {
+    return switch (value) {
+      case 0 -> "zero";
+      case 1 -> "one";
+      default -> throw new IllegalArgumentException();
+    };
+  }
+  
+
+  public int compareTo(E other)
+  {
+    return Comparator.naturalOrder().compare(null, other);
+  }
+  
+  public int hashCode()
+  {
+    return Objects.hash(new Object[] { Integer.valueOf(super.hashCode()), Integer.valueOf(COUNTER.get()) });
+  }
+  
+
+  public boolean equals(Object object)
+  {
+    if (this == object)
+      return true;
+    if (!super.equals(object) || getClass() != object.getClass())
+      return false;
+    return true;
+  }
+  
+
+
+  public abstract void log(String paramString);
+  
+
+
+  static class Entity
+    implements AllJavaSyntaxes.Named, AllJavaSyntaxes.Identified, Comparable<Entity>
+  {
+    private long id;
+    
+
+    private String name;
+    
+
+
+    Entity(long id, String name)
+    {
+      this.id = id;
+      this.name = name;
+    }
+    
+    @Override
+    public String name() {
+      return this.name;
+    }
+    
+    @Override
+    public long id() {
+      return this.id;
+    }
+    
+    public int hashCode()
+    {
+      return Objects.hash(new Object[] { Long.valueOf(this.id), this.name });
+    }
+    
+    public boolean equals(Object obj)
+    {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (getClass() != obj.getClass())
+        return false;
+      Entity other = (Entity)obj;
+      return this.id == other.id && Objects.equals(this.name, other.name);
+    }
+    
+    public int compareTo(Entity other)
+    {
+      return Long.compare(this.id, other.id);
+    }
+  }
+  
+  static <T extends Named & Identified & Comparable<T>> T intersectionBound(T value) {
+    return value;
+  }
+  
+  void intersectionCast(Object object) {
+    log(((Named)(Identified)object).name());
+  }
+  
+
+
+  static final class Circle
+    implements AllJavaSyntaxes.Shape
+  {
+    private final double radius;
+    
+
+    Circle(double radius)
+    {
+      this.radius = radius;
+    }
+    
+    @Override
+    public double area() {
+      return 3.141592653589793D * this.radius * this.radius;
+    }
+  }
+  
+  static final class Rectangle implements AllJavaSyntaxes.Shape {
+    private final double width;
+    private final double height;
+    
+    Rectangle(double width, double height) {
+      this.width = width;
+      this.height = height;
+    }
+    
+    @Override
+    public double area() {
+      return this.width * this.height;
+    }
+  }
+  
+  void guardedPattern(Object object) {
+    switch (object) {
+      case String s when s.length() > 3 -> log(s);
+    }
+    
+  }
+  
+  double sealedSwitch(Shape shape)
+  {
+    return switch (shape) {
+      case Circle circle -> circle.area();
+      case Rectangle rectangle -> rectangle.area();
+    };
+  }
+  
+
+
+
+
+  static final class Success<T>
+    extends AllJavaSyntaxes.Result<T>
+  {
+    private final T value;
+    
+
+
+
+    Success(T value)
+    {
+      this.value = value;
+    }
+    
+    T value() {
+      return this.value;
+    }
+  }
+  
+  static final class Failure<T> extends AllJavaSyntaxes.Result<T> {
+    private final Exception exception;
+    
+    Failure(Exception exception) {
+      this.exception = exception;
+    }
+    
+    Exception exception() {
+      return this.exception;
+    }
+  }
+  
+  <T> String handleResult(Result<T> result) {
+    return switch (result) {
+      case Success<T> success -> "success:" + success.value();
+      case Failure<T> failure -> "failure:" + failure.exception().getClass().getSimpleName();
+    };
+  }
+  
+
+
+  class Inner
+  {
+    Inner()
+    {
+      AllJavaSyntaxes.this.log("Inner constructor");
+    }
+    
+    void anonymousClass() {
+      new Thread(new Runnable()
+      {
+        private static final long CONSTANT = 1L;
+        
+
+        int index = -1;
+        
+
+        public void run()
+        {
+          AllJavaSyntaxes.this.log("index=" + this.index + ",constant=1");
+        }
+      }).start();
+    }
+    
+    void lambda() {
+      new Thread(() -> AllJavaSyntaxes.this.log("Inner.lambda")).start();
+    }
+  }
+  
+  static record Rec(String s, List l)
+  {
+    public Rec
+    {
+      s = s == null ? "" : s;
+      l = l == null ? List.of() : List.copyOf(l);
+    }
+  }
+  
+
+  static enum Day
+  {
+    MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY;
+  }
+  
+
+
+
+
+
+
+
+
+  static <T> T genericMethod(T value)
+  {
+    return value;
+  }
+  
+  transient java.util.concurrent.Callable<String> callable = () -> "callable";
+  
+
+  void labeledLoops()
+  {
+    for (int i = 0; i < 3; i++) {
+      for (int j = 0; j < 3; j++) {
+        if (i == j || 
+        
+          i + j > 3) {
+          break;
+        }
+      }
+    }
+  }
+  
+
+  void labeledBlock()
+  {
+    if (COUNTER.get() >= 0) {
+      return;
+    }
+    log("unreachable");
+  }
+  
+
+
+  void localVar()
+  {
+    int number = 123;
+    String text = "text";
+    ArrayList<String> list = new ArrayList<>();
+    log(text + number + list.size());
+  }
+  
+  void multiCatch() throws Exception
+  {
+    try
+    {
+      throw new IOException();
+    } catch (IOException|RuntimeException exception) {
+      throw exception;
+    }
+  }
+  
+  void suppressed()
+    throws Exception
+  {
+    Exception primary = new Exception("primary");
+    Exception secondary = new Exception("secondary");
+    primary.addSuppressed(secondary);
+    throw primary;
+  }
+  
+
+  String throwExpression(Integer value)
+  {
+    return (String)java.util.Optional.ofNullable(value).map(Object::toString).orElseThrow(() -> new IllegalArgumentException());
+  }
+  
+
+  void synchronizedBlock()
+  {
+    synchronized (this) {
+      log("sync");
+    }
+  }
+  
+
+
+
+
+
+
+  void localClass()
+  {
+    log(new Object()
+    {
+      String value()
+      {
+        return "local";
+      }
+    }.value());
+  }
+  
+
+
+
+
+
+
+  <T extends Exception & java.io.Serializable> void intersectionThrows()
+    throws T
+  {}
+  
+
+
+
+
+
+  void wildcard(List<?> list)
+  {
+    capture(list);
+  }
+  
+  private <T> void capture(List<T> list) {
+    for (T element : list) {
+      log(String.valueOf(element));
+    }
+  }
+  
+
+  static interface AdvancedInterface
+  {
+    default String defaultMethod()
+    {
+      return privateHelper();
+    }
+    
+    default String staticMethod() {
+      return "static";
+    }
+    
+    default private String privateHelper() {
+      return "private";
+    }
+  }
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  void typeUse()
+  {
+    String value = "x";
+    List<String> list = List.of(value);
+    log((String)list.get(0));
+  }
+  
+
+
+  void arrays()
+  {
+    new int[0];
+    new int[] { 1, 2, 3 };
+    new String[][] { { "a" }, { "b" } };
+    new int[1];
+    
+    new int[] { 0, 1 };new int[][] { { 1, 2, 3 }, { 4, 5, 6 } };
+  }
+  
+
+  void literals()
+  {
+    int bin = 10;
+    int hex = 255;
+    long underscore = 1000000L;
+    float f = 1.0F;
+    double d = 1000.0D;
+    char ch = 'A';
+    log("" + bin + hex + underscore + f + d + ch);
+  }
+  
+
+  void textBlock()
+  {
+    String text = "line1\nline2\n";
+    
+
+
+    log(text);
+  }
+  
+
+  int switchYield(int i)
+  {
+    return switch (i) {
+    
+      case 0 -> 10;
+      
+
+      default -> -1;
+    };
+  }
+  
+
+
+  static abstract class Base
+  {
+    String value()
+    {
+      return "base";
+    }
+  }
+  
+  class Derived extends AllJavaSyntaxes.Base
+  {
+    Derived() {
+      this("x");
+    }
+    
+
+    Derived(String s) {}
+    
+    @Override
+    String value()
+    {
+      return super.value();
+    }
+    
+    void qualifiedThis() {
+      AllJavaSyntaxes.this.log("qualified");
+    }
+  }
+  
+
+  static enum Operation
+  {
+    ADD {
+      @Override
+      int apply(int a, int b) {
+        return a + b;
+      }
+    }, 
+    SUB {
+      @Override
+      int apply(int a, int b) {
+        return a - b;
+      }
+    };
+    
+
+
+    native int apply(int paramInt1, int paramInt2);
+  }
+  
+
+
+  void allOperators()
+  {
+    int a = 10;
+    int b = 3;
+    
+
+
+
+    a / b;
+    a % b;
+    
+
+
+
+    a++;
+    a--;
+    a++;
+    a--;
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    if (a > b) {}
+    
+
+    "x" instanceof String;
+    
+
+    long widened = a;
+    
+
+
+    new Object();
+    int[] array = new int[3];
+    
+
+    int element = array[0];
+    
+
+    log(String.valueOf(element));
+    
+
+    array.length;String::length; () -> Integer.valueOf(42);
+    log("this");
+    
+
+    super.size();String::compareTo;
+    
+
+
+
+
+    int[][] matrix = new int[1][1];
+    
+
+    matrix[0].length; () -> log("run");ArrayList::new;
+    
+
+
+    int yielded = switch (a) {
+        case 0 -> 0;
+        default -> 1;
+      };
+      
+
+
+      assert (yielded >= 0);
+      
+
+      RuntimeException exception = new RuntimeException();
+      
+
+      if (exception == null) {}
+      
+
+      for (int i = 0, j = 10; i < j; i++, j--) {
+        log(i + ":" + j);
+      }
+    }
+    
+
+
+
+
+    class Outer
+    {
+      int value = 1;
+      
+      class Inner {
+        Inner() {
+          AllJavaSyntaxes.this.log("Inner");
+        }
+        
+        class Deep {
+          Deep() {
+            AllJavaSyntaxes.this.log("Deep");
+          }
+        }
+      }
+      
+      static class StaticNested
+      {
+        StaticNested() {
+          System.out.println("StaticNested");
+        }
+      }
+    }
+    
+
+
+    void qualifiedNew(AllJavaSyntaxes<E>.Outer outer)
+    {
+      outer.new AllJavaSyntaxes.Outer.Inner();
+      
+
+      outer.new AllJavaSyntaxes.Outer.Inner().new AllJavaSyntaxes.Outer.Inner.Deep();
+      
+
+      outer.new AllJavaSyntaxes.Outer.Inner();
+      
+
+      getClass();new Outer().new AllJavaSyntaxes.Outer.Inner();
+      
+
+      outer.getClass();new AllJavaSyntaxes.Outer.Inner(outer); {} ;
+      new AllJavaSyntaxes.Outer.StaticNested();
+      
+
+      new AllJavaSyntaxes.Outer.StaticNested();
+    }
+    
+    void receiverParameter()
+    {
+      log("receiver");
+    }
+    
+    void diamondAnonymous()
+    {
+      Comparator<String> c = new Comparator<>()
+      {
+        public int compare(String a, String b) {
+          return a.compareTo(b);
+        }
+      };
+      log(String.valueOf(c.compare("a", "b")));
+    }
+    
+
+    void emptyStatement(boolean flag)
+    {
+      while (flag) {}
+    }
+    
+    class SuperOuter
+    {
+      String value()
+      {
+        return "outer";
+      }
+    }
+    
+    class SuperInner extends AllJavaSyntaxes<E>.SuperOuter {
+      class Deep {
+        String value() {
+          return AllJavaSyntaxes.SuperInner.this.value();
+        }
+      }
+    }
+    
+    void multiDimVarargs(int[]... values)
+    {
+      log(String.valueOf(values.length));
+    }
+    
+    double strict(double a, double b)
+    {
+      return a / b;
+    }
+    
+    static class StrictClass
+    {
+      double value() {
+        return 0.3333333333333333D;
+      }
+    }
+    
+
+
+
+    void chainedAssignment()
+    {
+      int c;
+      
+
+
+      int b;
+      
+
+      int a = b = c = 10;
+      log(String.valueOf(a + b + c));
+    }
+    
+    void parameterAnnotation(@Deprecated String value)
+    {
+      log(value);
+    }
+    
+    static class GenericConstructor
+    {
+      <T> GenericConstructor(T value) {}
+    }
+    
+    static interface Identified
+    {
+      long id();
+    }
+    
+    @java.lang.annotation.Retention(java.lang.annotation.RetentionPolicy.RUNTIME)
+    @java.lang.annotation.Target({java.lang.annotation.ElementType.TYPE, java.lang.annotation.ElementType.METHOD})
+    static @interface Marker {}
+    
+    static interface Named
+    {
+      String name();
+    }
+    
+    static abstract class Result<T> {}
+    
+    static interface Shape
+    {
+      double area();
+    }
+    
+    @java.lang.annotation.Repeatable(AllJavaSyntaxes.Tags.class)
+    static @interface Tag
+    {
+      String value();
+    }
+    
+    @AllJavaSyntaxes.Tags({@AllJavaSyntaxes.Tag("one"), @AllJavaSyntaxes.Tag("two")})
+    class Tagged {}
+    
+    static @interface Tags
+    {
+      AllJavaSyntaxes.Tag[] value();
+    }
+    
+    @java.lang.annotation.Target({java.lang.annotation.ElementType.TYPE_USE})
+    static @interface TypeUse {}
+    
+    static @interface WithDefaults
+    {
+      int number() default 42;
+      
+      String text() default "default";
+      
+      Class<?> type() default Object.class;
+    }
+  }
+
+
+/*
+ * Java compiler version: 25 (69.0)
+ * JD-Core Version:       SNAPSHOT
+ */

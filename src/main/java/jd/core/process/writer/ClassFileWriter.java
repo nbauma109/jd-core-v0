@@ -46,8 +46,15 @@ import jd.core.model.classfile.LocalVariables;
 import jd.core.model.classfile.Method;
 import jd.core.model.classfile.RecordComponent;
 import jd.core.model.instruction.bytecode.instruction.ArrayLoadInstruction;
+import jd.core.model.instruction.bytecode.instruction.CheckCast;
+import jd.core.model.instruction.bytecode.instruction.IfCmp;
+import jd.core.model.instruction.bytecode.instruction.IfInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
+import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
+import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
+import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
+import jd.core.model.instruction.bytecode.instruction.TypeSwitch;
 import jd.core.model.instruction.fast.FastConstants;
 import jd.core.model.instruction.fast.instruction.FastDeclaration;
 import jd.core.model.instruction.fast.instruction.FastSwitch;
@@ -86,6 +93,7 @@ import jd.core.model.reference.Reference;
 import jd.core.model.reference.ReferenceMap;
 import jd.core.printer.InstructionPrinter;
 import jd.core.printer.Printer;
+import jd.core.process.analyzer.classfile.visitor.SearchInstructionByTypeVisitor;
 import jd.core.process.writer.visitor.SourceWriterVisitor;
 import jd.core.util.SignatureUtil;
 import jd.core.util.StringUtil;
@@ -153,6 +161,8 @@ public final class ClassFileWriter
     private final List<LayoutBlock> layoutBlockList;
     private int index;
     private boolean addSpace;
+    private boolean skipNextCaseBlock;
+    private int skipCaseBlockDepth;
 
     public static void write(
         Loader loader, Printer printer, ReferenceMap referenceMap,
@@ -1386,6 +1396,12 @@ public final class ClassFileWriter
 
     private void writeCaseBlockStart(CaseBlockStartLayoutBlock lb)
     {
+        if (skipNextCaseBlock) {
+            skipNextCaseBlock = false;
+            skipCaseBlockDepth++;
+            return;
+        }
+
         this.printer.indent();
         this.printer.debugStartOfCaseBlockLayoutBlock();
         if (lb.isBracketNeeded()) {
@@ -1422,6 +1438,11 @@ public final class ClassFileWriter
 
     private void writeCaseBlockEnd(CaseBlockEndLayoutBlock lb)
     {
+        if (skipCaseBlockDepth > 0) {
+            skipCaseBlockDepth--;
+            return;
+        }
+
         this.printer.desindent();
         this.printer.debugStartOfCaseBlockLayoutBlock();
         //writeSeparator(lb);
@@ -1881,6 +1902,10 @@ public final class ClassFileWriter
 
     private void writeInstruction(InstructionLayoutBlock ilb)
     {
+        if (skipCaseBlockDepth > 0) {
+            return;
+        }
+
         this.printer.debugStartOfInstructionBlockLayoutBlock();
 
         addSpaceIfNeeded();
@@ -1897,6 +1922,10 @@ public final class ClassFileWriter
 
     private void writeInstructions(InstructionsLayoutBlock ilb)
     {
+        if (skipCaseBlockDepth > 0) {
+            return;
+        }
+
         this.printer.debugStartOfInstructionBlockLayoutBlock();
 
         addSpaceIfNeeded();
@@ -2059,6 +2088,12 @@ public final class ClassFileWriter
     {
         addSpaceIfNeeded();
 
+        Instruction test = clb.getFs().getTest();
+        if (test instanceof TypeSwitch typeSwitch) {
+            writeTypeSwitchCase(clb, typeSwitch);
+            return;
+        }
+
         String signature = clb.getFs().getTest().getReturnedSignature(
             clb.getClassFile(), clb.getMethod().getLocalVariables());
         char type = signature == null ? 'X' : signature.charAt(0);
@@ -2167,6 +2202,521 @@ public final class ClassFileWriter
         }
     }
 
+    private void writeTypeSwitchCase(CaseLayoutBlock clb, TypeSwitch typeSwitch)
+    {
+        FastSwitch.Pair[] pairs = clb.getFs().getPairs();
+        int lineCount = clb.getLineCount() + 1;
+        int lastIndex = clb.getLastIndex();
+        int caseCount = lastIndex - clb.getFirstIndex() + 1;
+
+        int caseByLine = caseCount / lineCount;
+        int middleLineCount = caseCount - caseByLine * lineCount;
+        int middleIndex = clb.getFirstIndex() + middleLineCount * (caseByLine + 1);
+        int j = caseByLine + 1;
+
+        for (int i = clb.getFirstIndex(); i < middleIndex; i++)
+        {
+            FastSwitch.Pair pair = pairs[i];
+            writeTypeSwitchCaseLabel(clb, typeSwitch, pair);
+
+            if (lineCount > 0)
+            {
+                if (j == 1 && i < lastIndex)
+                {
+                    endOfLine();
+                    this.printer.startOfLine(Printer.UNKNOWN_LINE_NUMBER);
+                    j = caseByLine + 1;
+                }
+                else
+                {
+                    j--;
+                }
+            }
+        }
+
+        j = caseByLine;
+        for (int i = middleIndex; i <= lastIndex; i++)
+        {
+            FastSwitch.Pair pair = pairs[i];
+            writeTypeSwitchCaseLabel(clb, typeSwitch, pair);
+
+            if (lineCount > 0)
+            {
+                if (j == 1 && i < lastIndex)
+                {
+                    endOfLine();
+                    this.printer.startOfLine(Printer.UNKNOWN_LINE_NUMBER);
+                    j = caseByLine;
+                }
+                else
+                {
+                    j--;
+                }
+            }
+        }
+    }
+
+    private void writeTypeSwitchCaseLabel(CaseLayoutBlock clb, TypeSwitch typeSwitch, FastSwitch.Pair pair)
+    {
+        if (pair.isDefault())
+        {
+            this.printer.printKeyword(DEFAULT);
+            this.printer.print(": ");
+            return;
+        }
+
+        this.printer.printKeyword("case");
+        this.printer.print(' ');
+        this.printer.debugStartOfInstructionBlockLayoutBlock();
+
+        LocalVariable localVariable = resolveTypeSwitchLocalVariable(clb, pair);
+        String variableName = "jd$case";
+        String typeSignature = null;
+
+        if (localVariable != null) {
+            variableName = localVariable.getName(clb.getClassFile().getConstantPool());
+            typeSignature = localVariable.getSignature(clb.getClassFile().getConstantPool());
+        }
+
+        if (typeSignature == null) {
+            String internalTypeName = typeSwitch.getCaseType(pair.getKey());
+            if (internalTypeName != null) {
+                typeSignature = SignatureUtil.createTypeName(internalTypeName);
+            }
+        }
+
+        if (typeSignature == null)
+        {
+            this.printer.startOfError();
+            this.printer.print("???");
+            this.printer.endOfError();
+        }
+        else
+        {
+            SignatureWriter.writeSignature(this.loader, this.printer, this.referenceMap, clb.getClassFile(), typeSignature);
+            this.printer.print(' ');
+            this.printer.print(variableName);
+        }
+
+        this.printer.debugEndOfInstructionBlockLayoutBlock();
+
+        Instruction guardInstruction = resolveTypeSwitchGuardInstruction(clb, typeSwitch, pair);
+        if (guardInstruction != null) {
+            this.printer.print(" when ");
+            writeTypeSwitchGuardExpression(clb, guardInstruction);
+        }
+
+        Instruction inlineInstruction = resolveTypeSwitchInlineInstruction(clb, typeSwitch, pair);
+        if (inlineInstruction != null) {
+            this.printer.print(" -> ");
+            writeInlineCaseInstruction(clb, inlineInstruction);
+            this.printer.print(';');
+            this.skipNextCaseBlock = true;
+        } else {
+            this.printer.print(" -> ");
+        }
+    }
+
+    private LocalVariable resolveTypeSwitchLocalVariable(CaseLayoutBlock clb, FastSwitch.Pair pair)
+    {
+        LocalVariables localVariables = clb.getMethod().getLocalVariables();
+        if (localVariables == null) {
+            return null;
+        }
+
+        List<Instruction> instructions = pair.getInstructions();
+        if (instructions == null || instructions.isEmpty()) {
+            return null;
+        }
+
+        SearchInstructionByTypeVisitor<StoreInstruction> visitor =
+            new SearchInstructionByTypeVisitor<>(StoreInstruction.class);
+
+        for (Instruction instruction : instructions) {
+            StoreInstruction store = visitor.visit(instruction);
+            if (store == null) {
+                continue;
+            }
+            LocalVariable localVariable = localVariables.getLocalVariableForStoreInstruction(store);
+            if (localVariable != null) {
+                return localVariable;
+            }
+        }
+        return null;
+    }
+
+    private Instruction resolveTypeSwitchGuardInstruction(
+            CaseLayoutBlock clb, TypeSwitch typeSwitch, FastSwitch.Pair pair)
+    {
+        List<Instruction> instructions = pair.getInstructions();
+        if (instructions == null || instructions.isEmpty()) {
+            return resolveTypeSwitchGuardFromBytecode(clb, typeSwitch, pair);
+        }
+
+        int switchOffset = typeSwitch == null ? -1 : typeSwitch.getOffset();
+        java.util.Map<Integer, Instruction> byOffset = new java.util.HashMap<>();
+        for (Instruction instruction : instructions) {
+            byOffset.put(instruction.getOffset(), instruction);
+        }
+
+        for (Instruction instruction : instructions) {
+            Instruction guard = findTypeSwitchGuard(instruction, byOffset, switchOffset);
+            if (guard != null) {
+                return guard;
+            }
+        }
+
+        SearchInstructionByTypeVisitor<IfCmp> ifCmpVisitor =
+            new SearchInstructionByTypeVisitor<>(IfCmp.class);
+        for (Instruction instruction : instructions) {
+            IfCmp ifCmp = ifCmpVisitor.visit(instruction);
+            if (ifCmp != null) {
+                return ifCmp;
+            }
+        }
+
+        SearchInstructionByTypeVisitor<IfInstruction> ifVisitor =
+            new SearchInstructionByTypeVisitor<>(IfInstruction.class);
+        for (Instruction instruction : instructions) {
+            IfInstruction ifInstruction = ifVisitor.visit(instruction);
+            if (ifInstruction != null) {
+                return ifInstruction;
+            }
+        }
+
+        SearchInstructionByTypeVisitor<jd.core.model.instruction.bytecode.instruction.ComplexConditionalBranchInstruction> complexVisitor =
+            new SearchInstructionByTypeVisitor<>(jd.core.model.instruction.bytecode.instruction.ComplexConditionalBranchInstruction.class);
+        for (Instruction instruction : instructions) {
+            jd.core.model.instruction.bytecode.instruction.ComplexConditionalBranchInstruction ccbi = complexVisitor.visit(instruction);
+            if (ccbi != null) {
+                return ccbi;
+            }
+        }
+
+        Instruction bytecodeGuard = resolveTypeSwitchGuardFromBytecode(clb, typeSwitch, pair);
+        if (bytecodeGuard != null) {
+            return bytecodeGuard;
+        }
+
+        return null;
+    }
+
+    private Instruction findTypeSwitchGuard(
+            Instruction instruction,
+            java.util.Map<Integer, Instruction> byOffset,
+            int switchOffset)
+    {
+        if (instruction instanceof jd.core.model.instruction.fast.instruction.FastTestList ftl) {
+            Instruction test = ftl.getTest();
+            if (test != null && isTypeSwitchGuard(test, byOffset, switchOffset, ftl.getInstructions())) {
+                return test;
+            }
+        }
+
+        if (instruction instanceof IfCmp ifCmp) {
+            if (isTypeSwitchGuard(ifCmp, byOffset, switchOffset, null)) {
+                return ifCmp;
+            }
+        }
+        if (instruction instanceof IfInstruction ifInstruction) {
+            if (isTypeSwitchGuard(ifInstruction, byOffset, switchOffset, null)) {
+                return ifInstruction;
+            }
+        }
+        return null;
+    }
+
+    private boolean isTypeSwitchGuard(
+            Instruction branch,
+            java.util.Map<Integer, Instruction> byOffset,
+            int switchOffset,
+            List<Instruction> body)
+    {
+        if (!(branch instanceof jd.core.model.instruction.bytecode.instruction.BranchInstruction bi)) {
+            return false;
+        }
+        int targetOffset = bi.getJumpOffset();
+        Instruction target = byOffset.get(targetOffset);
+        if (target instanceof jd.core.model.instruction.bytecode.instruction.Goto g) {
+            if (switchOffset > 0 && g.getJumpOffset() <= switchOffset) {
+                return true;
+            }
+            if (g.getJumpOffset() < branch.getOffset()) {
+                return true;
+            }
+        }
+
+        if (body != null) {
+            for (Instruction bodyInstruction : body) {
+                if (bodyInstruction instanceof jd.core.model.instruction.bytecode.instruction.Goto g) {
+                    if (switchOffset > 0 && g.getJumpOffset() <= switchOffset) {
+                        return true;
+                    }
+                    if (g.getJumpOffset() < branch.getOffset()) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private Instruction resolveTypeSwitchGuardFromBytecode(
+            CaseLayoutBlock clb, TypeSwitch typeSwitch, FastSwitch.Pair pair)
+    {
+        if (clb == null || typeSwitch == null || pair == null) {
+            return null;
+        }
+        Method method = clb.getMethod();
+        byte[] code = method.getCode();
+        if (code == null) {
+            return null;
+        }
+
+        int caseOffset = pair.getOffset();
+        int endOffset = resolveTypeSwitchCaseEndOffset(clb.getFs(), pair, code.length);
+        if (caseOffset < 0 || caseOffset >= endOffset) {
+            return null;
+        }
+
+        java.util.Deque<Instruction> stack = new java.util.ArrayDeque<>();
+        List<Instruction> list = new java.util.ArrayList<>();
+        List<Instruction> listForAnalyze = new java.util.ArrayList<>();
+        boolean[] jumps = new boolean[code.length];
+        java.util.Map<Integer, Integer> indexByOffset = new java.util.HashMap<>();
+
+        int offset = caseOffset;
+        while (offset < endOffset) {
+            int opcode = code[offset] & 255;
+            jd.core.process.analyzer.instruction.bytecode.factory.InstructionFactory factory =
+                    jd.core.process.analyzer.instruction.bytecode.factory.InstructionFactoryConstants.getInstructionFactory(opcode);
+            if (factory == null) {
+                break;
+            }
+            int consumed = factory.create(
+                    clb.getClassFile(), method, list, listForAnalyze, stack,
+                    code, offset, Instruction.UNKNOWN_LINE_NUMBER, jumps);
+
+            if (!list.isEmpty()) {
+                Instruction last = list.get(list.size() - 1);
+                indexByOffset.put(last.getOffset(), list.size() - 1);
+                if (last instanceof jd.core.model.instruction.bytecode.instruction.BranchInstruction bi) {
+                    int jumpOffset = bi.getJumpOffset();
+                    if (jumpOffset >= 0 && jumpOffset < code.length) {
+                        int targetOpcode = code[jumpOffset] & 255;
+                        if (targetOpcode == Const.GOTO || targetOpcode == Const.GOTO_W) {
+                            int gotoTarget = jumpOffset + readBranchOffset(code, jumpOffset, targetOpcode);
+                            if (gotoTarget <= typeSwitch.getOffset() + 4) {
+                                if (last instanceof IfCmp || last instanceof IfInstruction
+                                        || last instanceof jd.core.model.instruction.bytecode.instruction.ComplexConditionalBranchInstruction) {
+                                    return last;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            offset += consumed + 1;
+        }
+
+        for (Instruction instruction : list) {
+            if (!(instruction instanceof jd.core.model.instruction.bytecode.instruction.BranchInstruction bi)) {
+                continue;
+            }
+            if (isTypeSwitchResumeSequence(clb.getClassFile(), method, typeSwitch, bi.getJumpOffset())) {
+                return instruction;
+            }
+        }
+
+        return null;
+    }
+
+    private boolean isTypeSwitchResumeSequence(
+            ClassFile classFile,
+            Method method,
+            TypeSwitch typeSwitch,
+            int targetOffset)
+    {
+        byte[] code = method.getCode();
+        if (code == null || targetOffset < 0 || targetOffset >= code.length) {
+            return false;
+        }
+
+        java.util.Deque<Instruction> stack = new java.util.ArrayDeque<>();
+        List<Instruction> list = new java.util.ArrayList<>();
+        List<Instruction> listForAnalyze = new java.util.ArrayList<>();
+        boolean[] jumps = new boolean[code.length];
+
+        int offset = targetOffset;
+        for (int steps = 0; steps < 4 && offset < code.length; steps++) {
+            int opcode = code[offset] & 255;
+            jd.core.process.analyzer.instruction.bytecode.factory.InstructionFactory factory =
+                    jd.core.process.analyzer.instruction.bytecode.factory.InstructionFactoryConstants.getInstructionFactory(opcode);
+            if (factory == null) {
+                break;
+            }
+            int consumed = factory.create(
+                    classFile, method, list, listForAnalyze, stack,
+                    code, offset, Instruction.UNKNOWN_LINE_NUMBER, jumps);
+            if (!list.isEmpty()) {
+                Instruction last = list.get(list.size() - 1);
+                if (last instanceof jd.core.model.instruction.bytecode.instruction.Goto g) {
+                    return g.getJumpOffset() <= typeSwitch.getOffset() + 4;
+                }
+            }
+            offset += consumed + 1;
+        }
+        return false;
+    }
+
+    private static int resolveTypeSwitchCaseEndOffset(FastSwitch fs, FastSwitch.Pair pair, int codeLength)
+    {
+        if (fs == null || pair == null) {
+            return codeLength;
+        }
+        FastSwitch.Pair[] pairs = fs.getPairs();
+        if (pairs == null || pairs.length == 0) {
+            return codeLength;
+        }
+        for (int i = 0; i < pairs.length; i++) {
+            if (pairs[i] == pair) {
+                if (i + 1 < pairs.length) {
+                    return pairs[i + 1].getOffset();
+                }
+                return codeLength;
+            }
+        }
+        return codeLength;
+    }
+
+    private static int readBranchOffset(byte[] code, int offset, int opcode)
+    {
+        if (opcode == Const.GOTO) {
+            return (short)((code[offset + 1] & 255) << 8 | (code[offset + 2] & 255));
+        }
+        if (opcode == Const.GOTO_W) {
+            return (code[offset + 1] << 24)
+                    | ((code[offset + 2] & 255) << 16)
+                    | ((code[offset + 3] & 255) << 8)
+                    | (code[offset + 4] & 255);
+        }
+        return 0;
+    }
+
+    private Instruction resolveTypeSwitchInlineInstruction(CaseLayoutBlock clb, TypeSwitch typeSwitch, FastSwitch.Pair pair)
+    {
+        List<Instruction> instructions = pair.getInstructions();
+        if (instructions == null || instructions.isEmpty()) {
+            return null;
+        }
+
+        Instruction inline = resolveTypeSwitchInlineReturnExpression(typeSwitch, instructions);
+        if (inline != null) {
+            return inline;
+        }
+
+        SearchInstructionByTypeVisitor<Invokevirtual> invokeVisitor =
+            new SearchInstructionByTypeVisitor<>(Invokevirtual.class);
+        for (Instruction instruction : instructions) {
+            Invokevirtual invoke = invokeVisitor.visit(instruction);
+            if (invoke != null) {
+                return invoke;
+            }
+        }
+
+        return null;
+    }
+
+    private Instruction resolveTypeSwitchInlineReturnExpression(TypeSwitch typeSwitch, List<Instruction> instructions)
+    {
+        if (instructions.size() == 1 && instructions.get(0) instanceof ReturnInstruction ri) {
+            return ri.getValueref();
+        }
+        if (instructions.size() == 2) {
+            StoreInstruction store = extractTypeSwitchCaseStore(instructions.get(0));
+            ReturnInstruction ri = extractReturnInstruction(instructions.get(1));
+            if (store != null && ri != null && store.getValueref() instanceof CheckCast checkCast
+                    && isSameTypeSwitchObject(typeSwitch, checkCast.getObjectref())) {
+                return ri.getValueref();
+            }
+        }
+        return null;
+    }
+
+    private StoreInstruction extractTypeSwitchCaseStore(Instruction instruction)
+    {
+        if (instruction instanceof StoreInstruction store) {
+            return store;
+        }
+        if (instruction instanceof FastDeclaration fd && fd.getInstruction() instanceof StoreInstruction store) {
+            return store;
+        }
+        return null;
+    }
+
+    private ReturnInstruction extractReturnInstruction(Instruction instruction)
+    {
+        if (instruction instanceof ReturnInstruction ri) {
+            return ri;
+        }
+        return null;
+    }
+
+    private boolean isSameTypeSwitchObject(TypeSwitch typeSwitch, Instruction objectref)
+    {
+        if (typeSwitch == null || objectref == null) {
+            return false;
+        }
+        Instruction switchObject = typeSwitch.getObjectref();
+        if (switchObject == objectref) {
+            return true;
+        }
+        if (switchObject instanceof LoadInstruction load1 && objectref instanceof LoadInstruction load2) {
+            return load1.getIndex() == load2.getIndex();
+        }
+        return false;
+    }
+
+    private void writeTypeSwitchGuardExpression(CaseLayoutBlock clb, Instruction guardInstruction)
+    {
+        this.instructionPrinter.init(Instruction.UNKNOWN_LINE_NUMBER);
+        this.visitor.init(clb.getClassFile(), clb.getMethod(), 0, guardInstruction.getOffset());
+        this.instructionPrinter.startOfInstruction();
+
+        if (guardInstruction instanceof IfCmp ifCmp) {
+            int cmp = ifCmp.getCmp();
+            ifCmp.setCmp(jd.core.model.instruction.bytecode.ByteCodeConstants.CMP_MAX_INDEX - cmp);
+            this.visitor.visit(ifCmp);
+            ifCmp.setCmp(cmp);
+        } else if (guardInstruction instanceof IfInstruction ifInstruction) {
+            int cmp = ifInstruction.getCmp();
+            ifInstruction.setCmp(jd.core.model.instruction.bytecode.ByteCodeConstants.CMP_MAX_INDEX - cmp);
+            this.visitor.visit(ifInstruction);
+            ifInstruction.setCmp(cmp);
+        } else if (guardInstruction instanceof jd.core.model.instruction.bytecode.instruction.ComplexConditionalBranchInstruction ccbi) {
+            jd.core.process.analyzer.instruction.bytecode.ComparisonInstructionAnalyzer.inverseComparison(ccbi);
+            this.visitor.visit(ccbi);
+            jd.core.process.analyzer.instruction.bytecode.ComparisonInstructionAnalyzer.inverseComparison(ccbi);
+        } else {
+            this.visitor.visit(guardInstruction);
+        }
+
+        this.instructionPrinter.endOfInstruction();
+        this.instructionPrinter.release();
+    }
+
+    private void writeInlineCaseInstruction(CaseLayoutBlock clb, Instruction instruction)
+    {
+        this.instructionPrinter.init(Instruction.UNKNOWN_LINE_NUMBER);
+        this.visitor.init(clb.getClassFile(), clb.getMethod(), 0, instruction.getOffset());
+        this.instructionPrinter.startOfInstruction();
+        this.visitor.visit(instruction);
+        this.instructionPrinter.endOfInstruction();
+        this.instructionPrinter.release();
+    }
+
     private void writeCaseEnum(CaseEnumLayoutBlock celb)
     {
         addSpaceIfNeeded();
@@ -2175,8 +2725,15 @@ public final class ClassFileWriter
         ConstantPool constants = classFile.getConstantPool();
         List<Integer> switchMap =
             classFile.getSwitchMaps().get(celb.getSwitchMapKey());
-        ArrayLoadInstruction ali = (ArrayLoadInstruction)celb.getFs().getTest();
-        Invokevirtual iv = (Invokevirtual)ali.getIndexref();
+        Instruction test = celb.getFs().getTest();
+        Invokevirtual iv;
+        if (test instanceof ArrayLoadInstruction ali) {
+            iv = (Invokevirtual) ali.getIndexref();
+        } else if (test instanceof Invokevirtual ivTest) {
+            iv = ivTest;
+        } else {
+            throw new IllegalStateException("Unexpected switch enum test");
+        }
         ConstantCP cmr = constants.getConstantMethodref(iv.getIndex());
         String internalEnumName =
             constants.getConstantClassName(cmr.getClassIndex());

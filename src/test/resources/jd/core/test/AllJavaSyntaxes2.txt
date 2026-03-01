@@ -1,0 +1,1030 @@
+package demo;
+
+import java.io.IOException;
+import java.io.Serializable;
+import java.lang.annotation.Annotation;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Stream;
+
+public abstract class AllJavaSyntaxes<E extends Comparable<E>> extends ArrayList<E> implements Serializable, Comparable<E>, Iterable<E>
+{
+  private static final long serialVersionUID = 1L;
+  private static volatile transient char[] CHARS;
+  private static volatile transient char[] CHARS2;
+  private static final java.util.concurrent.atomic.AtomicInteger COUNTER;
+  List<?> list;
+  List<Class<?>> list2;
+  char[] alphabet = { 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z' };
+  
+
+
+
+
+  protected int i = 0; protected int j = 1; protected int k = 2;
+  
+  static
+  {
+    CHARS = new char[] { 'A', 'B' };
+    CHARS2 = new char[] { 'A', 'B' };
+    
+
+
+
+
+    COUNTER = new java.util.concurrent.atomic.AtomicInteger();
+    
+
+
+    Object record = null;
+    double yield = 0.0D;
+    Thread.yield();
+    int x = 1;
+    int y = 2;
+    
+    int z = 1 + y + (1 + y);
+    init();
+  }
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  private static void init()
+  {
+    COUNTER.incrementAndGet();
+  }
+  
+  @SafeVarargs
+  protected final <T> CharSequence[] methodReferencesAndLambdas(T... arguments)
+  {
+    Objects.requireNonNull(System.out);Stream.of(arguments).forEach(System.out::println);
+    Stream.of(arguments).forEach(this::log);
+    return (CharSequence[])Stream.of(arguments).map(Object::toString).toArray(CharSequence[]::new);
+  }
+  
+  void classicFor(String[] arguments) {
+    for (int index = 0; index < arguments.length; index++) {
+      log(arguments[index]);
+    }
+    for (int index = 0; index < arguments.length; index++)
+      log(arguments[index]);
+  }
+  
+  void whileLoop(String[] arguments) {
+    int index = 0;
+    while (index < arguments.length) {
+      log(arguments[(index++)]);
+    }
+    index = 0;
+    while (index < arguments.length)
+      log(arguments[(index++)]);
+  }
+  
+  void doWhileLoop(String[] arguments) {
+    int index = 0;
+    do {
+      log(arguments[(index++)]);
+    } while (index < arguments.length);
+    index = 0;
+    do {
+      log(arguments[(index++)]);
+    } while (index < arguments.length);
+  }
+  
+  void lambdaAndOptional() {
+    java.util.function.Supplier<String> supplier = () -> "value";
+    java.util.function.Function<String, Integer> function = String::length;
+    java.util.Optional.ofNullable((String)supplier.get()).map(function).ifPresent( length -> log("length=" + length));
+  }
+  
+  void unTypedLambdaParams(List<String> list) {
+    list.sort((a, b) -> b.compareTo(a));
+    list.sort( (a, b) ->  {
+      log("Comparing a and b");
+      return b.compareTo(a);
+    });
+  }
+  
+  synchronized void synchronizedMethod() throws Exception, Error {
+    log("synchronized");
+  }
+  
+  void tryCatchFinally() {
+    try {
+      if (COUNTER.get() < 0) {
+        throw new IllegalStateException();
+      }
+    } catch (RuntimeException exception) {
+      log(exception.getClass().getSimpleName());
+    } finally {
+      log("finally");
+    }
+  }
+  
+  void tryWithResources(java.nio.file.Path path) {
+    try {
+      java.io.BufferedReader br = java.nio.file.Files.newBufferedReader(path, java.nio.charset.StandardCharsets.UTF_8);
+      try { String line; while ((line = br.readLine()) != null) {
+          log(line);
+        }
+        if (br == null) return; br.close();
+      }
+      finally {}
+      try
+      {
+        br.close(); } catch (Throwable localThrowable1) { localThrowable.addSuppressed(localThrowable1); } throw localThrowable;
+
+    }
+    catch (IOException exception)
+    {
+      log(exception.getMessage());
+    }
+  }
+  
+  void tryWith2Resources(java.io.File file) {
+    try {
+      fr = new java.io.FileReader(file); try { java.io.BufferedReader br = new java.io.BufferedReader(fr);
+        try { String line; while ((line = br.readLine()) != null) {
+            log(line);
+          }
+          br.close();
+        }
+        catch (Throwable localThrowable) {}
+        try
+        {
+          br.close(); } catch (Throwable localThrowable1) { localThrowable.addSuppressed(localThrowable1); } throw localThrowable; } catch (Throwable localThrowable2) { try { fr.close(); } catch (Throwable localThrowable3) { localThrowable2.addSuppressed(localThrowable3); } throw localThrowable2;
+      }
+      
+
+      fr.close();
+    } catch (IOException exception) { log(exception.getMessage());
+    }
+  }
+  
+  void assertions(int value) {
+    assert (value >= 0) : "negative";
+  }
+  
+  void boxingAndNumbers() {
+    Integer boxed = Integer.valueOf(1);
+    int primitive = boxed.intValue();
+    java.math.BigDecimal decimal = java.math.BigDecimal.valueOf(primitive);
+    log(decimal.toPlainString());
+  }
+  
+  void instanceofPattern(Object object) {
+    if (object instanceof String text && !text.isEmpty()) {
+      log(text);
+    }
+  }
+  
+  void enumSwitch(Day day) {
+    switch (day) {
+    case MONDAY: case TUESDAY:  log("weekday"); break;
+    default:  log("other");
+    }
+  }
+  
+  public String expressionSwitch(int value) {
+    return switch (value) {
+      case 0 -> "zero";
+      case 1 -> "one";
+      default -> throw new IllegalArgumentException();
+    };
+  }
+  
+
+  public int compareTo(E other)
+  {
+    return Comparator.naturalOrder().compare(null, other);
+  }
+  
+  public int hashCode()
+  {
+    return Objects.hash(new Object[] { Integer.valueOf(super.hashCode()), Integer.valueOf(COUNTER.get()) });
+  }
+  
+
+  public boolean equals(Object object)
+  {
+    if (this == object)
+      return true;
+    if (!super.equals(object) || getClass() != object.getClass())
+      return false;
+    return true;
+  }
+  
+
+
+
+  static @interface Quality
+  {
+    Level value();
+    
+
+
+    public static enum Level
+    {
+      LOW, MIDDLE, HIGH;
+    }
+  }
+  
+
+
+
+  @AllJavaSyntaxes.Quality(AllJavaSyntaxes.Quality.Level.HIGH)
+  @AllJavaSyntaxes.Author(value=@AllJavaSyntaxes.Name(salutation="Mr", value="Donald", last="Duck"), contributors={@AllJavaSyntaxes.Name("Huey"), @AllJavaSyntaxes.Name("Dewey"), @AllJavaSyntaxes.Name("Louie")})
+  protected static class Entity
+    implements AllJavaSyntaxes.Named, AllJavaSyntaxes.Identified, Comparable<Entity>
+  {
+    private long id;
+    
+
+
+    private String name;
+    
+
+
+
+    Entity(long id, String name)
+    {
+      this.id = id;
+      this.name = name;
+    }
+    
+    Entity() {}
+    
+    @Override
+    public String name() {
+      return this.name;
+    }
+    
+    @Override
+    public long id() {
+      return this.id;
+    }
+    
+    public int hashCode()
+    {
+      return Objects.hash(new Object[] { Long.valueOf(this.id), this.name });
+    }
+    
+    public boolean equals(Object obj)
+    {
+      if (this == obj)
+        return true;
+      if (obj == null)
+        return false;
+      if (getClass() != obj.getClass())
+        return false;
+      Entity other = (Entity)obj;
+      return this.id == other.id && Objects.equals(this.name, other.name);
+    }
+    
+    public int compareTo(Entity other)
+    {
+      return Long.compare(this.id, other.id);
+    }
+  }
+  
+  static <T extends Named & Identified & Comparable<T>> T intersectionBound(T value) {
+    return value;
+  }
+  
+
+  static final class Circle
+    implements AllJavaSyntaxes.Shape
+  {
+    private final double radius;
+    
+    Circle(double radius)
+    {
+      this.radius = radius;
+    }
+    
+    @Override
+    public double area() {
+      return 3.141592653589793D * this.radius * this.radius;
+    }
+  }
+  
+  static final class Rectangle implements AllJavaSyntaxes.Shape {
+    private final double width;
+    private final double height;
+    
+    Rectangle(double width, double height) {
+      this.width = width;
+      this.height = height;
+    }
+    
+    @Override
+    public double area() {
+      return this.width * this.height;
+    }
+  }
+  
+
+
+  static class Success<T>
+    extends AllJavaSyntaxes.Result<T>
+  {
+    private final T value;
+    
+
+
+    Success(T value)
+    {
+      this.value = value;
+    }
+    
+    T value() {
+      return this.value;
+    }
+  }
+  
+  static class Failure<T> extends AllJavaSyntaxes.Result<T> {
+    private final Exception exception;
+    
+    Failure(Exception exception) {
+      this.exception = exception;
+    }
+    
+    Exception exception() {
+      return this.exception;
+    }
+  }
+  
+
+
+
+
+
+  private class Inner
+  {
+    Inner()
+      throws Exception, Error
+    {
+      AllJavaSyntaxes.this.log("Inner constructor");
+    }
+    
+    void anonymousClass() {
+      new Thread(new Runnable()
+      {
+        private static final long CONSTANT = 1L;
+        
+
+        int index;
+        
+
+        public void run()
+        {
+          AllJavaSyntaxes.this.log("index=" + this.index + ",constant=1");
+        }
+      }).start();
+    }
+    
+    void lambda() {
+      new Thread(() -> AllJavaSyntaxes.this.log("Inner.lambda")).start();
+    }
+    
+    void lambdaBlock() {
+      new Thread(() ->  {
+        AllJavaSyntaxes.this.log("Inner.lambda 1");
+        AllJavaSyntaxes.this.log("Inner.lambda 2");
+      }).start();
+    }
+  }
+  
+
+
+  static record Rec(@AllJavaSyntaxes.Sensitive("C0") String s, @AllJavaSyntaxes.Sensitive("C1") List l)
+    implements Serializable
+  {
+    public Rec
+    {
+      s = s == null ? "" : s;
+      l = l == null ? List.of() : List.copyOf(l);
+    }
+  }
+  
+  static record Point(int x, int y) {
+    Point {
+      this.x = x;this.y = y; } }
+  
+  static record GenericPoint<X, Y> extends Record { GenericPoint { this.x = x;this.y = y;
+    } }
+  
+  static enum Day implements Serializable { MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY;
+  }
+  
+
+
+
+  static <T> T genericMethod(T value)
+  {
+    return value;
+  }
+  
+  transient java.util.concurrent.Callable<String> callable = () -> "callable";
+  
+  void labeledLoops() {
+    for (int i = 0; i < 3; i++) {
+      for (int j = 0; j < 3; j++) {
+        if (i == j || 
+        
+          i + j > 3) {
+          break;
+        }
+      }
+    }
+  }
+  
+  void labeledBlock() {
+    if (COUNTER.get() >= 0) {
+      return;
+    }
+    log("unreachable");
+  }
+  
+  void localVar()
+  {
+    int number = 123;
+    String text = "text";
+    ArrayList<String> list = new ArrayList<>();
+    log(text + number + list.size());
+  }
+  
+  void multiCatch() throws Exception {
+    try {
+      throw new IOException();
+    } catch (IOException|RuntimeException exception) {
+      throw exception;
+    }
+  }
+  
+  void suppressed() throws Exception {
+    Exception primary = new Exception("primary");
+    Exception secondary = new Exception("secondary");
+    primary.addSuppressed(secondary);
+    throw primary;
+  }
+  
+  String throwExpression(Integer value) {
+    return (String)java.util.Optional.ofNullable(value).map(Object::toString).orElseThrow(() -> new IllegalArgumentException());
+  }
+  
+  void synchronizedBlock() {
+    synchronized (this) {
+      log("sync");
+    }
+  }
+  
+
+
+
+
+
+  void wildcard(List<?> list)
+  {
+    capture(list);
+  }
+  
+  private <T> void capture(List<T> list) {
+    for (T element : list) {
+      log(String.valueOf(element));
+    }
+  }
+  
+  void forIter(List<String> list) {
+    for (java.util.Iterator<String> iterator = list.iterator(); iterator.hasNext();) {
+      String element = (String)iterator.next();
+      System.out.println(element);
+    }
+  }
+  
+  static interface AdvancedInterface
+  {
+    default String defaultMethod() {
+      return privateHelper();
+    }
+    
+    default String staticMethod() {
+      return "static";
+    }
+    
+    default private String privateHelper() {
+      return "private";
+    }
+  }
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  void typeUse()
+  {
+    String value = "x";
+    List<String> list = List.of(value);
+    log(list.get(0));
+  }
+  
+  void arrays()
+  {
+    int[] empty = new int[0];
+    int[] a123 = { 1, 2, 3 };
+    String[][] b = { { "a" }, { "b" } };
+    String[][] b2 = { { "a" }, { "b" } };
+    int[] a = new int[1];
+    
+    int[] f = { 0, 1 };int[][] g = { { 1, 2, 3 }, { 4, 5, 6 } };
+  }
+  
+  void literals() {
+    float f = 1.0F;
+    char ch = 'A';
+    double d = 1000.0D;
+    long underscore = 1000000L;
+    int bin = 10;
+    int hex = 255;
+    log("" + bin + hex + underscore + f + d + ch);
+  }
+  
+  void textBlock() {
+    String text = "line1\nline2\n";
+    
+
+
+    log(text);
+  }
+  
+  int switchYield(int i) {
+    return switch (i) {
+      case 0 -> {
+        log("before yield");
+        yield 10;
+      }
+      default -> {
+        log("before yield");
+        yield -1;
+      }
+    };
+  }
+  
+  static abstract class Base
+  {
+    String value()
+    {
+      return "base";
+    }
+  }
+  
+  class Derived extends AllJavaSyntaxes.Base
+  {
+    Derived() {
+      this("x");
+    }
+    
+
+    Derived(String s) {}
+    
+    @Override
+    String value()
+    {
+      return super.value();
+    }
+    
+    void qualifiedThis() {
+      AllJavaSyntaxes.this.log("qualified");
+    }
+  }
+  
+  static enum Operation {
+    ADD {
+      @Override
+      int apply(int a, int b) {
+        return a + b;
+      }
+    }, 
+    SUB {
+      @Override
+      int apply(int a, int b) {
+        return a - b;
+      }
+    };
+    
+
+    native int apply(int paramInt1, int paramInt2);
+  }
+  
+  void allOperators()
+  {
+    int a = 10;
+    int b = 3;
+    int add = a + b;
+    int sub = a - b;
+    int mul = a * b;
+    int div = a / b;
+    int mod = a % b;
+    int pos = a;
+    int neg = -a;
+    a++;int preInc = a;
+    a--;int preDec = a;
+    int postInc = a++;
+    int postDec = a--;
+    boolean not = true;
+    int bitNot = a ^ 0xFFFFFFFF;
+    boolean lt = a < b;
+    boolean gt = a > b;
+    boolean le = a <= b;
+    boolean ge = a >= b;
+    boolean eq = a == b;
+    boolean ne = a != b;
+    boolean and = false;
+    boolean or = true;
+    int bitAnd = a & b;
+    int bitOr = a | b;
+    int bitXor = a ^ b;
+    int leftShift = a << 1;
+    int rightShift = a >> 1;
+    int unsignedShift = a >>> 1;
+    int c = 0;
+    c += a;
+    c -= a;
+    c *= a;
+    c /= a;
+    c %= a;
+    c &= a;
+    c |= a;
+    c ^= a;
+    c <<= 1;
+    c >>= 1;
+    c >>>= 1;
+    int ternary = a > b ? a : b;
+    boolean isString = "x" instanceof String;
+    long widened = a;
+    int narrowed = (int)widened;
+    Object object = new Object();
+    int[] array = new int[3];
+    int element = array[0];
+    log(String.valueOf(element));
+    int length = array.length;
+    Class<?> clazz = String.class;
+    java.util.function.Function<String, Integer> lengthRef = String::length;
+    java.util.function.Supplier<Integer> lambda =  () -> Integer.valueOf(42);
+    log("this");
+    super.size();
+    Comparator<String> cmp = String::compareTo;
+    int[][] matrix = new int[1][1];
+    int value = matrix[0].length;
+    Runnable runnable =  () -> log("run");
+    java.util.function.Supplier<ArrayList<String>> ctorRef = ArrayList::new;
+    int yielded = switch (a) {
+      case 0 -> {tmpTernaryOp = 0;yield 0;
+      }
+        default -> 1;
+      };
+      
+      assert (yielded >= 0);
+      RuntimeException exception = new RuntimeException();
+      String text = exception == null ? "ok" : "error";
+      for (int i = 0, j = 10; i < j; i++, j--) {
+        log(i + ":" + j);
+      }
+    }
+    
+    class Outer
+    {
+      int value = 1;
+      
+      class Inner {
+        Inner() {
+          AllJavaSyntaxes.this.log("Inner");
+        }
+        
+        class Deep {
+          Deep() {
+            this$2.this$1.this$0.log("Deep");
+          }
+        }
+      }
+      
+      static class StaticNested
+      {
+        StaticNested() {
+          System.out.println("StaticNested");
+        }
+      }
+    }
+    
+
+    void qualifiedNew(AllJavaSyntaxes<E>.Outer outer)
+    {
+      Objects.requireNonNull(outer);AllJavaSyntaxes<E>.Outer.Inner i1 = new AllJavaSyntaxes.Outer.Inner(outer);
+      Objects.requireNonNull(outer);AllJavaSyntaxes<E>.Outer.Inner.Deep d1 = new AllJavaSyntaxes.Outer.Inner.Deep(new AllJavaSyntaxes.Outer.Inner(outer));
+      Objects.requireNonNull(outer);AllJavaSyntaxes<E>.Outer.Inner i2 = new AllJavaSyntaxes.Outer.Inner(outer);
+      AllJavaSyntaxes<E>.Outer.Inner i3 = new AllJavaSyntaxes.Outer.Inner(new Outer());
+      Objects.requireNonNull(outer);AllJavaSyntaxes<E>.Outer.Inner i4 = new AllJavaSyntaxes.Outer.Inner(outer) {} ;
+      AllJavaSyntaxes.Outer.StaticNested s2 = new AllJavaSyntaxes.Outer.StaticNested();
+    }
+    
+    void diamondAnonymous() {
+      Comparator<String> c = new Comparator<>()
+      {
+        public int compare(String a, String b) {
+          return a.compareTo(b);
+        }
+      };
+      log(String.valueOf(c.compare("a", "b")));
+    }
+    
+    void emptyStatement(boolean flag)
+    {
+      while (flag) {}
+    }
+    
+
+    class SuperOuter
+    {
+      String value() { return "outer"; }
+    }
+    
+    class SuperInner extends AllJavaSyntaxes<E>.SuperOuter {
+      SuperInner() { super(this$0); }
+      
+      class Deep {
+        String value() { return AllJavaSyntaxes.SuperInner.this.value(); }
+      }
+    }
+    
+    void multiDimVarargs(int[]... values)
+    {
+      log(String.valueOf(values.length));
+    }
+    
+    double strict(double a, double b) {
+      return a / b;
+    }
+    
+
+    static class StrictClass {
+      double value() { return 0.3333333333333333D; }
+    }
+    
+    void chainedAssignment() {
+      int c;
+      int b;
+      int a = b = c = 10;
+      log(String.valueOf(a + b + c));
+    }
+    
+    void parameterAnnotation(@Deprecated String value) {
+      log(value);
+    }
+    
+    List<?> getList()
+    {
+      return null;
+    }
+    
+    List<Class<?>> getClassList() { return null; }
+    
+    void forMap(Map<String, List<String>> map) {
+      for (Map.Entry<String, List<String>> entry : map.entrySet()) {
+        System.out.println(entry);
+      }
+    }
+    
+    void forMap2(Map<String, List<String>> map) {
+      for (Map.Entry<String, List<String>> entry : map.entrySet()) {
+        System.out.println(entry);
+      }
+    }
+    
+    <T> void testCastGeneric(Object o) {
+      T t = (T)o;
+      
+      List<java.util.ServiceLoader<T>> action = (List)o;
+    }
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    boolean booleanTernaryOp1(boolean flag)
+    {
+      return flag;
+    }
+    
+    boolean booleanTernaryOp2(boolean flag) {
+      return flag;
+    }
+    
+    boolean booleanTernaryOp3(boolean flag) {
+      return !flag;
+    }
+    
+    boolean booleanTernaryOp4(boolean flag) {
+      return !flag;
+    }
+    
+    void methodWithLocalTypes() {}
+    
+    @Deprecated(forRemoval=true, since="11")
+    void deprecatedMethod() {}
+    
+    public abstract void log(Object paramObject);
+    
+    <T extends Exception & Serializable> void intersectionThrows()
+      throws T
+    {}
+    
+    native List<?> getNativeList();
+    
+    native List<Class<?>> getNativeClassList();
+    
+    protected void ping(@Deprecated java.io.Writer writer, @Deprecated @Value(str="localhost") String host, long timeout)
+      throws java.net.UnknownHostException, UnsatisfiedLinkError
+    {}
+    
+    static enum EmptyEnum
+    {
+      static final int A = 0;
+    }
+    
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target({java.lang.annotation.ElementType.FIELD, java.lang.annotation.ElementType.METHOD, java.lang.annotation.ElementType.PARAMETER})
+    public static @interface Value
+    {
+      boolean z() default true;
+      
+      byte b() default 1;
+      
+      short s() default 1;
+      
+      int i() default 1;
+      
+      long l() default 1L;
+      
+      float f() default 1.0F;
+      
+      double d() default 1.0D;
+      
+      String str() default "str";
+      
+      Class<?> clazz() default Object.class;
+    }
+    
+    @Target({java.lang.annotation.ElementType.TYPE_USE})
+    static @interface TypeUse {}
+    
+    @AllJavaSyntaxes.Tags({@AllJavaSyntaxes.Tag("one"), @AllJavaSyntaxes.Tag("two")})
+    class Tagged {}
+    
+    static @interface Tags
+    {
+      AllJavaSyntaxes.Tag[] value();
+    }
+    
+    @java.lang.annotation.Repeatable(AllJavaSyntaxes.Tags.class)
+    static @interface Tag
+    {
+      String value();
+    }
+    
+    static class GenericConstructor
+    {
+      <T> GenericConstructor(T value) {}
+    }
+    
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target({java.lang.annotation.ElementType.TYPE, java.lang.annotation.ElementType.METHOD})
+    static @interface Marker {}
+    
+    static record EmptyRecord()
+    {}
+    
+    @Retention(RetentionPolicy.RUNTIME)
+    @Target({java.lang.annotation.ElementType.PARAMETER, java.lang.annotation.ElementType.RECORD_COMPONENT})
+    public static @interface Sensitive
+    {
+      String value();
+    }
+    
+    static abstract class Result<T> {}
+    
+    static interface SpecialShape
+      extends AllJavaSyntaxes.Shape
+    {}
+    
+    static interface Shape
+    {
+      double area();
+    }
+    
+    static @interface Author
+    {
+      AllJavaSyntaxes.Name value();
+      
+      AllJavaSyntaxes.Name[] contributors() default {};
+    }
+    
+    static @interface Name
+    {
+      String salutation() default "";
+      
+      String value();
+      
+      String last() default "";
+    }
+    
+    static interface Identified
+    {
+      long id();
+    }
+    
+    static interface Named
+    {
+      String name();
+    }
+    
+    static @interface A
+    {
+      int number() default 42;
+      
+      String[] names() default {"a", "b"};
+      
+      Class<?> clazz() default Object.class;
+    }
+  }
+
+
+/*
+ * Java compiler version: 21 (65.0)
+ * JD-Core Version:       SNAPSHOT
+ */

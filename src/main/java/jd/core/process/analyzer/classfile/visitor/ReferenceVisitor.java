@@ -50,6 +50,7 @@ import jd.core.model.instruction.bytecode.instruction.NewArray;
 import jd.core.model.instruction.bytecode.instruction.PutField;
 import jd.core.model.instruction.bytecode.instruction.Switch;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
+import jd.core.model.instruction.bytecode.instruction.TypeSwitch;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
 import jd.core.model.instruction.bytecode.instruction.attribute.ValuerefAttribute;
@@ -193,7 +194,13 @@ public class ReferenceVisitor
             }
             break;
         case Const.INVOKEDYNAMIC:
-            if (instruction instanceof SourceWriteable ref) {
+            if (instruction instanceof TypeSwitch typeSwitch) {
+                for (String caseType : typeSwitch.getCaseTypes()) {
+                    if (caseType != null) {
+                        addReference(caseType);
+                    }
+                }
+            } else if (instruction instanceof SourceWriteable ref) {
                 addReference(ref.getInternalTypeName());
             }
             break;

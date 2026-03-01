@@ -19,6 +19,8 @@ package jd.core.process.analyzer.instruction.bytecode.factory;
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.BootstrapMethod;
 import org.apache.bcel.classfile.BootstrapMethods;
+import org.apache.bcel.classfile.Constant;
+import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantInvokeDynamic;
 import org.apache.bcel.classfile.ConstantMethodHandle;
@@ -52,6 +54,7 @@ import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
 import jd.core.model.instruction.bytecode.instruction.LambdaInstruction;
 import jd.core.model.instruction.bytecode.instruction.MethodReference;
 import jd.core.model.instruction.bytecode.instruction.StaticMethodReference;
+import jd.core.model.instruction.bytecode.instruction.TypeSwitch;
 import jd.core.process.analyzer.classfile.ClassFileAnalyzer;
 import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
 import jd.core.process.analyzer.util.StringConcatenationUtil;
@@ -121,6 +124,24 @@ public class InvokeDynamicFactory implements InstructionFactory
             } finally {
                 StringConcatenationUtil.exit();
             }
+            return Const.getNoOfOperands(opcode);
+        }
+
+        if ("typeSwitch".equals(indyMethodName)) {
+            List<String> caseTypes = new ArrayList<>();
+            for (int bootstrapArgument : bootstrapArguments) {
+                Constant constant = constants.getConstantValue(bootstrapArgument);
+                if (constant instanceof ConstantClass cc) {
+                    caseTypes.add(constants.getConstantUtf8(cc.getNameIndex()));
+                }
+            }
+
+            Instruction objectref = null;
+            if (indyParameters != null && !indyParameters.isEmpty()) {
+                objectref = indyParameters.get(0);
+            }
+
+            stack.push(new TypeSwitch(opcode, offset, lineNumber, objectref, caseTypes));
             return Const.getNoOfOperands(opcode);
         }
 

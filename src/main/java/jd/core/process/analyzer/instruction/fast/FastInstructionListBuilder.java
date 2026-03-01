@@ -31,6 +31,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -57,6 +58,7 @@ import jd.core.model.instruction.bytecode.instruction.AssignmentInstruction;
 import jd.core.model.instruction.bytecode.instruction.BIPush;
 import jd.core.model.instruction.bytecode.instruction.BranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.CheckCast;
+import jd.core.model.instruction.bytecode.instruction.ComplexConditionalBranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.ConditionalBranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.DupStore;
 import jd.core.model.instruction.bytecode.instruction.ExceptionLoad;
@@ -71,7 +73,9 @@ import jd.core.model.instruction.bytecode.instruction.IfInstruction;
 import jd.core.model.instruction.bytecode.instruction.IncInstruction;
 import jd.core.model.instruction.bytecode.instruction.IndexInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
+import jd.core.model.instruction.bytecode.instruction.InstanceOf;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
+import jd.core.model.instruction.bytecode.instruction.Invokeinterface;
 import jd.core.model.instruction.bytecode.instruction.Invokestatic;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
 import jd.core.model.instruction.bytecode.instruction.Jsr;
@@ -80,12 +84,14 @@ import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
 import jd.core.model.instruction.bytecode.instruction.LookupSwitch;
 import jd.core.model.instruction.bytecode.instruction.MonitorEnter;
 import jd.core.model.instruction.bytecode.instruction.MonitorExit;
+import jd.core.model.instruction.bytecode.instruction.PatternInstanceOf;
 import jd.core.model.instruction.bytecode.instruction.Return;
 import jd.core.model.instruction.bytecode.instruction.ReturnAddressLoad;
 import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.Switch;
 import jd.core.model.instruction.bytecode.instruction.TableSwitch;
+import jd.core.model.instruction.bytecode.instruction.TypeSwitch;
 import jd.core.model.instruction.fast.FastConstants;
 import jd.core.model.instruction.fast.instruction.FastDeclaration;
 import jd.core.model.instruction.fast.instruction.FastFor;
@@ -119,6 +125,7 @@ import jd.core.process.analyzer.instruction.fast.reconstructor.SwitchExpressionR
 import jd.core.process.analyzer.instruction.fast.reconstructor.TernaryOpInReturnReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.TernaryOpReconstructor;
 import jd.core.process.analyzer.instruction.fast.visitor.CheckLocalVariableUsedVisitor;
+import jd.core.process.analyzer.instruction.fast.visitor.FastCompareInstructionVisitor;
 import jd.core.process.analyzer.util.InstructionUtil;
 import jd.core.process.layouter.visitor.MinMaxLineNumberVisitor;
 import jd.core.process.layouter.visitor.MinMaxLineNumberVisitor.MinMaxLineNumber;
@@ -187,7 +194,7 @@ public final class FastInstructionListBuilder {
                 if (fce.hasSynchronizedFlag()) {
                     createSynchronizedBlock(referenceMap, classFile, list, localVariables, fce);
                 } else {
-                    createFastTry(referenceMap, classFile, list, localVariables, fce, returnOffset);
+                    createFastTry(referenceMap, classFile, method, list, localVariables, fce, returnOffset);
                 }
             }
         }
@@ -198,6 +205,12 @@ public final class FastInstructionListBuilder {
         executeReconstructors(referenceMap, classFile, list, localVariables);
 
         analyzeList(classFile, method, list, localVariables, offsetLabelSet, -1, -1, -1, -1, -1, -1, returnOffset);
+
+        mergeInstanceOfPatterns(list, localVariables);
+        normalizeTypeSwitchPrelude(classFile, list);
+        removeTypeSwitchCaseStores(classFile, list, localVariables);
+        removeExceptionSelfStores(list);
+        removeDuplicateFinallyBlocks(list);
 
         if (localVariables != null) {
             localVariables.removeUselessLocalVariables();
@@ -888,7 +901,7 @@ public final class FastInstructionListBuilder {
         }
     }
 
-    private static void createFastTry(ReferenceMap referenceMap, ClassFile classFile,
+    private static void createFastTry(ReferenceMap referenceMap, ClassFile classFile, Method method,
             List<Instruction> list, LocalVariables localVariables, FastCodeExcepcion fce,
             int returnOffset) {
         int afterListOffset = fce.getAfterOffset();
@@ -921,6 +934,7 @@ public final class FastInstructionListBuilder {
             Validate.notEmpty(finallyInstructions, "Unexpected structure for finally block");
 
             Collections.reverse(finallyInstructions);
+            removeFinallyRethrow(finallyInstructions);
             //////////////////////////////////afterListOffset = finallyInstructions.get(0).offset;
 
             // Calcul de l'offset le plus haut pour le block 'try'
@@ -1099,8 +1113,17 @@ public final class FastInstructionListBuilder {
         boolean removedTryResourcesPattern = fastTry.removeTryResourcesPattern(localVariables, cp, finallyInstructions);
         removedTryResourcesPattern |= fastTry.removeTryResourcesPattern(localVariables, cp, tryInstructions);
         boolean processTryResources = fastTry.processTryResources();
+        boolean reconstructedTryResources = false;
+        if (!processTryResources) {
+            reconstructedTryResources = reconstructTryWithResourcesFromTryBody(classFile, method, fastTry, tryInstructions,
+                    localVariables);
+            if (!reconstructedTryResources) {
+                reconstructedTryResources = attachResourceFromPreTryStores(cp, localVariables, fastTry, tryInstructions, list, index);
+            }
+        }
 
-        if (index >= 1 && removedTryResourcesPattern && !processTryResources && !fastTry.hasCatch() && !fastTry.hasFinally()) {
+        if (index >= 1 && removedTryResourcesPattern && !processTryResources && !reconstructedTryResources
+                && !fastTry.hasCatch() && !fastTry.hasFinally()) {
             Instruction beforeTry1 = list.get(index - 1);
             Instruction beforeTry2 = list.get(index);
             if (beforeTry1 instanceof AStore beforeTryAstore1 && beforeTry2 instanceof AStore beforeTryAstore2) {
@@ -1163,6 +1186,399 @@ public final class FastInstructionListBuilder {
         }
     }
 
+    private static boolean reconstructTryWithResourcesFromTryBody(
+            ClassFile classFile,
+            Method method,
+            FastTry fastTry,
+            List<Instruction> tryInstructions,
+            LocalVariables localVariables)
+    {
+        if (classFile == null || method == null || fastTry == null || tryInstructions == null || localVariables == null) {
+            return false;
+        }
+        ConstantPool cp = classFile.getConstantPool();
+        List<StoreInstruction> resourceStores = findTryResourceStores(cp, localVariables, tryInstructions);
+        if (resourceStores.isEmpty()) {
+            return false;
+        }
+
+        int closeOffset = findFirstCloseOffset(cp, resourceStores, tryInstructions);
+        if (closeOffset != -1) {
+            tryInstructions.removeIf(instr -> instr.getOffset() >= closeOffset);
+        }
+
+        for (StoreInstruction store : resourceStores) {
+            LocalVariable lv = resolveLocalVariableForResourceStore(localVariables, store.getIndex(), store.getOffset());
+            if (lv == null) {
+                continue;
+            }
+            lv.setTryResources(fastTry);
+            fastTry.addResource(store, lv);
+            tryInstructions.remove(store);
+        }
+        java.util.Set<Integer> resourceIndexes = resourceStores.stream()
+                .map(StoreInstruction::getIndex)
+                .collect(java.util.stream.Collectors.toSet());
+        removeResourceStores(tryInstructions, resourceIndexes);
+        removeTryResourcesBoilerplateBlocks(classFile, method, tryInstructions, localVariables);
+
+        removeTryResourcesBoilerplateCatches(cp, fastTry);
+        return fastTry.hasResource();
+    }
+
+    private static boolean attachResourceFromPreTryStores(
+            ConstantPool cp,
+            LocalVariables localVariables,
+            FastTry fastTry,
+            List<Instruction> tryInstructions,
+            List<Instruction> list,
+            int index)
+    {
+        if (index < 0 || list == null || list.isEmpty()) {
+            return false;
+        }
+        int start = Math.max(0, index - 3);
+        for (int i = index; i >= start; i--) {
+            Instruction candidate = list.get(i);
+            StoreInstruction store = null;
+            if (candidate instanceof StoreInstruction si) {
+                store = si;
+            } else if (candidate instanceof FastDeclaration fd && fd.getInstruction() instanceof StoreInstruction si) {
+                store = si;
+            }
+            if (store == null) {
+                continue;
+            }
+            if (store.getValueref() instanceof AConstNull
+                    || store.getValueref() instanceof ExceptionLoad) {
+                continue;
+            }
+            LocalVariable lv = resolveLocalVariableForResourceStore(localVariables, store.getIndex(), store.getOffset());
+            if (lv == null || lv.isExceptionOrReturnAddress()) {
+                continue;
+            }
+            String signature = lv.getSignature(cp);
+            if (signature == null || signature.isEmpty() || signature.charAt(0) != 'L') {
+                continue;
+            }
+            if (!hasCloseInvoke(cp, store.getIndex(), tryInstructions)
+                    && !hasAddSuppressedInvoke(cp, tryInstructions)) {
+                continue;
+            }
+            lv.setTryResources(fastTry);
+            fastTry.addResource(store, lv);
+            list.remove(i);
+            removeResourceStores(tryInstructions, java.util.Collections.singleton(store.getIndex()));
+            removeTryResourcesBoilerplateBlocks(null, null, tryInstructions, localVariables);
+            removeTryResourcesBoilerplateCatches(cp, fastTry);
+            return true;
+        }
+        return false;
+    }
+
+    private static List<StoreInstruction> findTryResourceStores(
+            ConstantPool cp,
+            LocalVariables localVariables,
+            List<Instruction> instructions)
+    {
+        List<StoreInstruction> resources = new ArrayList<>();
+        SearchInstructionByTypeVisitor<StoreInstruction> visitor =
+                new SearchInstructionByTypeVisitor<>(StoreInstruction.class);
+
+        for (Instruction instruction : instructions) {
+            StoreInstruction store = visitor.visit(instruction);
+            if (store == null) {
+                continue;
+            }
+            if (store.getValueref() instanceof AConstNull
+                    || store.getValueref() instanceof ExceptionLoad) {
+                continue;
+            }
+            LocalVariable lv = resolveLocalVariableForResourceStore(localVariables, store.getIndex(), store.getOffset());
+            if (lv == null || lv.isExceptionOrReturnAddress()) {
+                continue;
+            }
+            String signature = lv.getSignature(cp);
+            if (signature == null || signature.isEmpty() || signature.charAt(0) != 'L') {
+                continue;
+            }
+            if (!hasCloseInvoke(cp, store.getIndex(), instructions)
+                    && !hasAddSuppressedInvoke(cp, instructions)) {
+                continue;
+            }
+            resources.add(store);
+        }
+        return resources;
+    }
+
+    private static boolean hasCloseInvoke(
+            ConstantPool cp,
+            int localIndex,
+            List<Instruction> instructions)
+    {
+        SearchInstructionByTypeVisitor<InvokeNoStaticInstruction> invokeVisitor =
+                new SearchInstructionByTypeVisitor<>(InvokeNoStaticInstruction.class);
+        for (Instruction instruction : instructions) {
+            InvokeNoStaticInstruction invoke = invokeVisitor.visit(instruction);
+            if (invoke == null) {
+                continue;
+            }
+            if (!isCloseInvoke(cp, invoke)) {
+                continue;
+            }
+            Instruction objectref = invoke.getObjectref();
+            if (objectref instanceof ALoad load && load.getIndex() == localIndex) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasAddSuppressedInvoke(ConstantPool cp, List<Instruction> instructions) {
+        SearchInstructionByTypeVisitor<InvokeNoStaticInstruction> invokeVisitor =
+                new SearchInstructionByTypeVisitor<>(InvokeNoStaticInstruction.class);
+        for (Instruction instruction : instructions) {
+            InvokeNoStaticInstruction invoke = invokeVisitor.visit(instruction);
+            if (invoke == null) {
+                continue;
+            }
+            if (isAddSuppressedInvoke(cp, invoke)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static void removeResourceStores(List<Instruction> instructions, java.util.Set<Integer> resourceIndexes) {
+        if (instructions == null || instructions.isEmpty() || resourceIndexes == null || resourceIndexes.isEmpty()) {
+            return;
+        }
+        for (int i = 0; i < instructions.size(); i++) {
+            Instruction instruction = instructions.get(i);
+            StoreInstruction store = null;
+            if (instruction instanceof StoreInstruction si) {
+                store = si;
+            } else if (instruction instanceof FastDeclaration fd && fd.getInstruction() instanceof StoreInstruction si) {
+                store = si;
+            }
+            if (store != null && resourceIndexes.contains(store.getIndex())
+                    && !(store.getValueref() instanceof AConstNull)
+                    && !(store.getValueref() instanceof ExceptionLoad)) {
+                instructions.remove(i);
+                i--;
+                continue;
+            }
+            for (List<Instruction> block : getBlocks(instruction)) {
+                removeResourceStores(block, resourceIndexes);
+            }
+        }
+    }
+
+    private static void removeTryResourcesBoilerplateBlocks(
+            ClassFile classFile,
+            Method method,
+            List<Instruction> instructions,
+            LocalVariables localVariables)
+    {
+        if (instructions == null || instructions.isEmpty() || localVariables == null) {
+            return;
+        }
+        ConstantPool cp = classFile == null ? null : classFile.getConstantPool();
+        for (int i = 0; i < instructions.size(); i++) {
+            Instruction instruction = instructions.get(i);
+            if (instruction instanceof FastDeclaration fd && fd.getInstruction() == null) {
+                LocalVariable lv = fd.getLv();
+                if (cp != null && isSyntheticTryResourcesLocal(lv, cp)) {
+                    instructions.remove(i--);
+                    continue;
+                }
+            }
+            if (instruction instanceof StoreInstruction si && si.getValueref() instanceof AConstNull) {
+                LocalVariable lv = resolveLocalVariableForResourceStore(localVariables, si.getIndex(), si.getOffset());
+                if (cp != null && isSyntheticTryResourcesLocal(lv, cp)) {
+                    instructions.remove(i--);
+                    continue;
+                }
+            }
+            if (instruction instanceof FastDeclaration fd
+                    && fd.getInstruction() instanceof StoreInstruction si
+                    && si.getValueref() instanceof AConstNull) {
+                LocalVariable lv = fd.getLv();
+                if (cp != null && isSyntheticTryResourcesLocal(lv, cp)) {
+                    instructions.remove(i--);
+                    continue;
+                }
+            }
+            if (instruction instanceof FastTry ft) {
+                removeTryResourcesBoilerplateBlocks(classFile, method, ft.getInstructions(), localVariables);
+                if (ft.getCatches() != null) {
+                    for (FastCatch fc : ft.getCatches()) {
+                        removeTryResourcesBoilerplateBlocks(classFile, method, fc.instructions(), localVariables);
+                    }
+                }
+                if (ft.getFinallyInstructions() != null) {
+                    removeTryResourcesBoilerplateBlocks(classFile, method, ft.getFinallyInstructions(), localVariables);
+                }
+                if (isTryResourcesBoilerplateTry(cp, ft)) {
+                    instructions.remove(i--);
+                    continue;
+                }
+            }
+            for (List<Instruction> block : getBlocks(instruction)) {
+                removeTryResourcesBoilerplateBlocks(classFile, method, block, localVariables);
+            }
+        }
+    }
+
+    private static boolean isSyntheticTryResourcesLocal(LocalVariable lv, ConstantPool cp) {
+        if (lv == null || cp == null) {
+            return false;
+        }
+        String name = lv.getName(cp);
+        return name != null && (name.startsWith("localObject") || name.startsWith("localThrowable"));
+    }
+
+    private static boolean isTryResourcesBoilerplateTry(ConstantPool cp, FastTry ft) {
+        if (ft == null) {
+            return false;
+        }
+        if (ft.getInstructions() != null && !ft.getInstructions().isEmpty()) {
+            return false;
+        }
+        if (ft.getCatches() != null && !ft.getCatches().isEmpty()) {
+            return false;
+        }
+        List<Instruction> finallyInstructions = ft.getFinallyInstructions();
+        return isTryResourcesBoilerplateCatch(cp, finallyInstructions);
+    }
+
+    private static LocalVariable resolveLocalVariableForResourceStore(
+            LocalVariables localVariables, int index, int offset)
+    {
+        LocalVariable direct = localVariables.getLocalVariableWithIndexAndOffset(index, offset);
+        if (direct != null) {
+            return direct;
+        }
+        LocalVariable best = null;
+        for (int i = 0; i < localVariables.size(); i++) {
+            LocalVariable candidate = localVariables.getLocalVariableAt(i);
+            if (candidate == null || candidate.getIndex() != index) {
+                continue;
+            }
+            if (candidate.getStartPc() < offset) {
+                continue;
+            }
+            if (best == null || candidate.getStartPc() < best.getStartPc()) {
+                best = candidate;
+            }
+        }
+        return best;
+    }
+
+    private static int findFirstCloseOffset(
+            ConstantPool cp,
+            List<StoreInstruction> resourceStores,
+            List<Instruction> instructions)
+    {
+        if (resourceStores.isEmpty()) {
+            return -1;
+        }
+        java.util.Set<Integer> resourceIndexes = resourceStores.stream()
+                .map(StoreInstruction::getIndex)
+                .collect(java.util.stream.Collectors.toSet());
+        int closeOffset = -1;
+        SearchInstructionByTypeVisitor<InvokeNoStaticInstruction> invokeVisitor =
+                new SearchInstructionByTypeVisitor<>(InvokeNoStaticInstruction.class);
+
+        for (Instruction instruction : instructions) {
+            InvokeNoStaticInstruction invoke = invokeVisitor.visit(instruction);
+            if (invoke == null || !isCloseInvoke(cp, invoke)) {
+                continue;
+            }
+            Instruction objectref = invoke.getObjectref();
+            if (!(objectref instanceof ALoad load) || !resourceIndexes.contains(load.getIndex())) {
+                continue;
+            }
+            int offset = invoke.getOffset();
+            if (closeOffset == -1 || offset < closeOffset) {
+                closeOffset = offset;
+            }
+        }
+        return closeOffset;
+    }
+
+    private static boolean isCloseInvoke(ConstantPool cp, InvokeNoStaticInstruction invoke) {
+        String name = null;
+        String desc = null;
+        if (invoke instanceof Invokeinterface) {
+            ConstantNameAndType cnat = cp.getConstantNameAndType(
+                    cp.getConstantInterfaceMethodref(invoke.getIndex()).getNameAndTypeIndex());
+            name = cp.getConstantUtf8(cnat.getNameIndex());
+            desc = cp.getConstantUtf8(cnat.getSignatureIndex());
+        } else {
+            ConstantCP cmr = cp.getConstantMethodref(invoke.getIndex());
+            ConstantNameAndType cnat = cp.getConstantNameAndType(cmr.getNameAndTypeIndex());
+            name = cp.getConstantUtf8(cnat.getNameIndex());
+            desc = cp.getConstantUtf8(cnat.getSignatureIndex());
+        }
+        return "close".equals(name) && "()V".equals(desc);
+    }
+
+    private static boolean isAddSuppressedInvoke(ConstantPool cp, InvokeNoStaticInstruction invoke) {
+        ConstantCP cmr = cp.getConstantMethodref(invoke.getIndex());
+        ConstantNameAndType cnat = cp.getConstantNameAndType(cmr.getNameAndTypeIndex());
+        String name = cp.getConstantUtf8(cnat.getNameIndex());
+        String desc = cp.getConstantUtf8(cnat.getSignatureIndex());
+        String className = cp.getConstantUtf8(cp.getConstantClass(cmr.getClassIndex()).getNameIndex());
+        return "java/lang/Throwable".equals(className)
+                && "addSuppressed".equals(name)
+                && "(Ljava/lang/Throwable;)V".equals(desc);
+    }
+
+    private static void removeTryResourcesBoilerplateCatches(ConstantPool cp, FastTry fastTry) {
+        if (fastTry.getCatches() == null || fastTry.getCatches().isEmpty()) {
+            return;
+        }
+        Iterator<FastCatch> iterator = fastTry.getCatches().iterator();
+        while (iterator.hasNext()) {
+            FastCatch fc = iterator.next();
+            if (!isThrowableCatch(cp, fc)) {
+                continue;
+            }
+            if (isTryResourcesBoilerplateCatch(cp, fc.instructions())) {
+                iterator.remove();
+            }
+        }
+    }
+
+    private static boolean isThrowableCatch(ConstantPool cp, FastCatch fc) {
+        if (fc.exceptionTypeIndex() == 0) {
+            return true;
+        }
+        String name = cp.getConstantClassName(fc.exceptionTypeIndex());
+        return "java/lang/Throwable".equals(name);
+    }
+
+    private static boolean isTryResourcesBoilerplateCatch(
+            ConstantPool cp, List<Instruction> instructions)
+    {
+        if (instructions == null || instructions.isEmpty()) {
+            return true;
+        }
+        SearchInstructionByTypeVisitor<InvokeNoStaticInstruction> invokeVisitor =
+                new SearchInstructionByTypeVisitor<>(InvokeNoStaticInstruction.class);
+        for (Instruction instruction : instructions) {
+            InvokeNoStaticInstruction invoke = invokeVisitor.visit(instruction);
+            if (invoke == null) {
+                continue;
+            }
+            if (!isCloseInvoke(cp, invoke) && !isAddSuppressedInvoke(cp, invoke)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     private static ExceptionLoad searchExceptionLoadInstruction(List<Instruction> instructions) {
         SearchInstructionByTypeVisitor<ExceptionLoad> visitor = new SearchInstructionByTypeVisitor<>(ExceptionLoad.class);
         for (Instruction instruction : instructions) {
@@ -1209,8 +1625,468 @@ public final class FastInstructionListBuilder {
         // Retrait des instructions DupLoads & DupStore associés à 
         // une constante ou un attribut.
         RemoveDupConstantsAttributes.reconstruct(list);
+        removeSelfAssignments(list);
         // Replace StringBuffer and StringBuilder in java source line
         ClassFileAnalyzer.replaceStringBufferAndStringBuilder(classFile, localVariables, list);
+    }
+
+    private static void normalizeTypeSwitchPrelude(ClassFile classFile, List<Instruction> list)
+    {
+        if (classFile == null || list == null || list.size() < 2) {
+            return;
+        }
+
+        ConstantPool constants = classFile.getConstantPool();
+        for (int i = 0; i < list.size(); i++) {
+            Instruction instruction = list.get(i);
+
+            for (List<Instruction> block : getBlocks(instruction)) {
+                normalizeTypeSwitchPrelude(classFile, block);
+            }
+
+            if (!(instruction instanceof FastSwitch fs)) {
+                continue;
+            }
+            if (!(fs.getTest() instanceof TypeSwitch typeSwitch)) {
+                continue;
+            }
+            if (!(typeSwitch.getObjectref() instanceof LoadInstruction load)) {
+                continue;
+            }
+
+            int storedIndex = load.getIndex();
+            int searchStart = Math.max(0, i - 6);
+            for (int j = i - 1; j >= searchStart; j--) {
+                Instruction candidate = list.get(j);
+                Instruction replacement = null;
+
+                if (candidate instanceof StoreInstruction store && store.getIndex() == storedIndex) {
+                    replacement = store.getValueref();
+                } else if (candidate instanceof FastDeclaration fd
+                        && fd.getInstruction() instanceof StoreInstruction store
+                        && store.getIndex() == storedIndex) {
+                    replacement = store.getValueref();
+                } else if (candidate instanceof AssignmentInstruction ai
+                        && ai.getValue1() instanceof StoreInstruction store
+                        && store.getIndex() == storedIndex) {
+                    replacement = ai.getValue2();
+                }
+
+                if (replacement == null) {
+                    continue;
+                }
+
+                Instruction requireNonNullArg = extractRequireNonNullArg(constants, replacement);
+                if (requireNonNullArg != null) {
+                    replacement = requireNonNullArg;
+                }
+
+                typeSwitch.setObjectref(replacement);
+                list.remove(j);
+                if (j < i) {
+                    i--;
+                }
+
+                removeRequireNonNullStatement(list, constants, i, replacement);
+                break;
+            }
+
+            removeRequireNonNullStatement(list, constants, i, typeSwitch.getObjectref());
+        }
+    }
+
+    private static void mergeInstanceOfPatterns(List<Instruction> list, LocalVariables localVariables)
+    {
+        if (list == null || list.size() < 3) {
+            return;
+        }
+
+        for (int i = 0; i < list.size(); i++) {
+            Instruction instruction = list.get(i);
+
+            for (List<Instruction> block : getBlocks(instruction)) {
+                mergeInstanceOfPatterns(block, localVariables);
+            }
+
+            if (!(instruction instanceof FastTestList guard) || guard.getOpcode() != FastConstants.IF_SIMPLE) {
+                continue;
+            }
+            if (i + 2 >= list.size()) {
+                continue;
+            }
+            if (!isSingleReturn(guard.getInstructions())) {
+                continue;
+            }
+
+            Instruction guardTest = guard.getTest();
+            InstanceOf instanceOf = extractInstanceOfFromTest(guardTest);
+            if (instanceOf == null || !isNegatedInstanceOfTest(guardTest)) {
+                continue;
+            }
+
+            Instruction storeCandidate = list.get(i + 1);
+            StoreInstruction store = extractStoreInstruction(storeCandidate);
+            if (store == null || !(store.getValueref() instanceof CheckCast checkCast)) {
+                continue;
+            }
+            if (!isSameObjectRef(instanceOf.getObjectref(), checkCast.getObjectref())) {
+                continue;
+            }
+
+            Instruction next = list.get(i + 2);
+            if (!(next instanceof FastTestList bodyIf) || bodyIf.getOpcode() != FastConstants.IF_SIMPLE) {
+                continue;
+            }
+            Instruction bodyTest = bodyIf.getTest();
+            if (!(bodyTest instanceof ConditionalBranchInstruction branchInstruction)) {
+                continue;
+            }
+
+            PatternInstanceOf patternInstanceOf = new PatternInstanceOf(
+                    instanceOf.getOpcode(), instanceOf.getOffset(), instanceOf.getLineNumber(),
+                    instanceOf.getIndex(), instanceOf.getObjectref(),
+                    store.getIndex(), store.getOffset());
+
+            List<Instruction> conditions = new ArrayList<>(2);
+            conditions.add(patternInstanceOf);
+            conditions.add(bodyTest);
+
+            ComplexConditionalBranchInstruction combined = new ComplexConditionalBranchInstruction(
+                    ByteCodeConstants.COMPLEXIF, branchInstruction.getOffset(), branchInstruction.getLineNumber(),
+                    ByteCodeConstants.CMP_AND, conditions, branchInstruction.getBranch());
+
+            bodyIf.setTest(combined);
+
+            if (localVariables != null) {
+                LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(store.getIndex(), store.getOffset());
+                if (lv != null) {
+                    lv.setDeclarationFlag(DECLARED);
+                }
+            }
+
+            list.remove(i); // guard
+            list.remove(i); // store (guard removed)
+            i = Math.max(-1, i - 1);
+        }
+    }
+
+    private static void removeExceptionSelfStores(List<Instruction> list)
+    {
+        if (list == null || list.isEmpty()) {
+            return;
+        }
+
+        for (int i = list.size() - 1; i >= 0; i--) {
+            Instruction instruction = list.get(i);
+
+            if (instruction instanceof AssignmentInstruction ai
+                    && ai.getValue1() instanceof StoreInstruction store
+                    && ai.getValue2() instanceof ExceptionLoad el
+                    && store.getIndex() == el.getIndex()) {
+                list.remove(i);
+                continue;
+            }
+            if (instruction instanceof StoreInstruction store
+                    && store.getValueref() instanceof ExceptionLoad el
+                    && store.getIndex() == el.getIndex()) {
+                list.remove(i);
+                continue;
+            }
+
+            for (List<Instruction> block : getBlocks(instruction)) {
+                removeExceptionSelfStores(block);
+            }
+        }
+    }
+
+    private static void removeDuplicateFinallyBlocks(List<Instruction> list)
+    {
+        if (list == null || list.isEmpty()) {
+            return;
+        }
+
+        FastCompareInstructionVisitor visitor = new FastCompareInstructionVisitor();
+
+        for (int i = 0; i < list.size(); i++) {
+            Instruction instruction = list.get(i);
+
+            if (instruction instanceof FastTry ft) {
+                List<Instruction> finallyInstructions = ft.getFinallyInstructions();
+                if (finallyInstructions != null && !finallyInstructions.isEmpty()) {
+                    int length = finallyInstructions.size();
+                    if (i + 1 + length <= list.size()
+                            && visitor.visit(list, finallyInstructions, i + 1, 0, length)) {
+                        for (int j = 0; j < length; j++) {
+                            list.remove(i + 1);
+                        }
+                    }
+                }
+            }
+
+            for (List<Instruction> block : getBlocks(instruction)) {
+                removeDuplicateFinallyBlocks(block);
+            }
+        }
+    }
+
+    private static void removeTypeSwitchCaseStores(ClassFile classFile, List<Instruction> list, LocalVariables localVariables)
+    {
+        if (list == null || list.isEmpty()) {
+            return;
+        }
+
+        Set<LocalVariable> caseVariables = new HashSet<>();
+        collectTypeSwitchCaseVariables(list, localVariables, caseVariables);
+        if (!caseVariables.isEmpty()) {
+            removeTypeSwitchCaseDeclarations(list, caseVariables);
+        }
+    }
+
+    private static void collectTypeSwitchCaseVariables(
+            List<Instruction> list,
+            LocalVariables localVariables,
+            Set<LocalVariable> caseVariables)
+    {
+        if (list == null) {
+            return;
+        }
+
+        for (Instruction instruction : list) {
+            if (instruction instanceof FastSwitch fs && fs.getTest() instanceof TypeSwitch typeSwitch) {
+                for (FastSwitch.Pair pair : fs.getPairs()) {
+                    List<Instruction> instructions = pair.getInstructions();
+                    if (instructions == null || instructions.isEmpty()) {
+                        continue;
+                    }
+                    StoreInstruction store = extractStoreInstruction(instructions.get(0));
+                    if (store == null || !(store.getValueref() instanceof CheckCast checkCast)) {
+                        continue;
+                    }
+                    if (!isSameObjectRef(typeSwitch.getObjectref(), checkCast.getObjectref())) {
+                        if (typeSwitch.getObjectref() instanceof LoadInstruction) {
+                            checkCast.setObjectref(typeSwitch.getObjectref());
+                        } else {
+                            continue;
+                        }
+                    }
+                    if (localVariables != null) {
+                        LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(store.getIndex(), store.getOffset());
+                        if (lv != null) {
+                            lv.setDeclarationFlag(DECLARED);
+                            caseVariables.add(lv);
+                        }
+                    }
+                }
+            }
+
+            for (List<Instruction> block : getBlocks(instruction)) {
+                collectTypeSwitchCaseVariables(block, localVariables, caseVariables);
+            }
+        }
+    }
+
+    private static void removeTypeSwitchCaseDeclarations(List<Instruction> list, Set<LocalVariable> caseVariables)
+    {
+        if (list == null || caseVariables.isEmpty()) {
+            return;
+        }
+
+        for (int i = 0; i < list.size(); i++) {
+            Instruction instruction = list.get(i);
+            if (instruction instanceof FastDeclaration fd && fd.getInstruction() == null
+                    && caseVariables.contains(fd.getLv())) {
+                list.remove(i--);
+                continue;
+            }
+            for (List<Instruction> block : getBlocks(instruction)) {
+                removeTypeSwitchCaseDeclarations(block, caseVariables);
+            }
+        }
+    }
+
+    private static boolean isSingleReturn(List<Instruction> instructions)
+    {
+        if (instructions == null || instructions.size() != 1) {
+            return false;
+        }
+        Instruction instruction = instructions.get(0);
+        return instruction.getOpcode() == Const.RETURN || instruction.getOpcode() == ByteCodeConstants.XRETURN;
+    }
+
+    private static InstanceOf extractInstanceOfFromTest(Instruction test)
+    {
+        if (!(test instanceof IfInstruction ifInstruction)) {
+            return null;
+        }
+        Instruction value = ifInstruction.getValue();
+        if (value instanceof InstanceOf instanceOf) {
+            return instanceOf;
+        }
+        return null;
+    }
+
+    private static boolean isNegatedInstanceOfTest(Instruction test)
+    {
+        if (!(test instanceof IfInstruction ifInstruction)) {
+            return false;
+        }
+        return ifInstruction.getCmp() == ByteCodeConstants.CMP_EQ;
+    }
+
+    private static StoreInstruction extractStoreInstruction(Instruction instruction)
+    {
+        if (instruction instanceof StoreInstruction store) {
+            return store;
+        }
+        if (instruction instanceof FastDeclaration fd && fd.getInstruction() instanceof StoreInstruction store) {
+            return store;
+        }
+        return null;
+    }
+
+    private static boolean isSameObjectRef(Instruction left, Instruction right)
+    {
+        if (left == right) {
+            return true;
+        }
+        if (left instanceof LoadInstruction l1 && right instanceof LoadInstruction l2) {
+            return l1.getIndex() == l2.getIndex();
+        }
+        return false;
+    }
+
+    private static boolean isObjectsRequireNonNull(ConstantPool constants, Invokestatic is, int index)
+    {
+        if (is.getArgs() == null || is.getArgs().size() != 1) {
+            return false;
+        }
+        Instruction arg = is.getArgs().get(0);
+        if (index >= 0 && (!(arg instanceof LoadInstruction load) || load.getIndex() != index)) {
+            return false;
+        }
+
+        ConstantCP cmr = constants.getConstantMethodref(is.getIndex());
+        String internalName = constants.getConstantClassName(cmr.getClassIndex());
+        if (!"java/util/Objects".equals(internalName)) {
+            return false;
+        }
+        ConstantNameAndType cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
+        String name = constants.getConstantUtf8(cnat.getNameIndex());
+        String descriptor = constants.getConstantUtf8(cnat.getSignatureIndex());
+        return "requireNonNull".equals(name) && "(Ljava/lang/Object;)Ljava/lang/Object;".equals(descriptor);
+    }
+
+    private static Instruction extractRequireNonNullArg(ConstantPool constants, Instruction instruction)
+    {
+        if (!(instruction instanceof Invokestatic is)) {
+            return null;
+        }
+        if (!isObjectsRequireNonNull(constants, is, -1)) {
+            return null;
+        }
+        if (is.getArgs() == null || is.getArgs().size() != 1) {
+            return null;
+        }
+        return is.getArgs().get(0);
+    }
+
+    private static void removeRequireNonNullStatement(
+            List<Instruction> list,
+            ConstantPool constants,
+            int switchIndex,
+            Instruction objectref)
+    {
+        if (list == null || objectref == null) {
+            return;
+        }
+        int searchStart = Math.max(0, switchIndex - 6);
+        for (int j = switchIndex - 1; j >= searchStart; j--) {
+            Instruction candidate = list.get(j);
+            Instruction requireNonNull = null;
+            if (candidate instanceof Invokestatic is && isObjectsRequireNonNull(constants, is, -1)) {
+                requireNonNull = is;
+            } else if (candidate instanceof jd.core.model.instruction.bytecode.instruction.Pop pop
+                    && pop.getObjectref() instanceof Invokestatic is
+                    && isObjectsRequireNonNull(constants, is, -1)) {
+                requireNonNull = is;
+            }
+            if (requireNonNull == null) {
+                continue;
+            }
+            Instruction arg = extractRequireNonNullArg(constants, requireNonNull);
+            if (arg != null && isSameObjectRef(arg, objectref)) {
+                list.remove(j);
+                return;
+            }
+        }
+    }
+
+    private static void removeSelfAssignments(List<Instruction> list)
+    {
+        for (int i = list.size() - 1; i >= 0; i--) {
+            Instruction instruction = list.get(i);
+            if (!(instruction instanceof AssignmentInstruction ai)) {
+                continue;
+            }
+            if (!"=".equals(ai.getOperator())) {
+                continue;
+            }
+            if (isSameLocalAssignment(ai.getValue1(), ai.getValue2())) {
+                list.remove(i);
+            }
+        }
+    }
+
+    private static boolean isSameLocalAssignment(Instruction value1, Instruction value2)
+    {
+        if (value1 instanceof StoreInstruction store && value2 instanceof LoadInstruction load) {
+            return store.getIndex() == load.getIndex();
+        }
+        if (value1 instanceof LoadInstruction load1 && value2 instanceof LoadInstruction load2) {
+            return load1.getIndex() == load2.getIndex();
+        }
+        return false;
+    }
+
+    private static void removeFinallyRethrow(List<Instruction> finallyInstructions)
+    {
+        if (finallyInstructions == null || finallyInstructions.size() < 2) {
+            return;
+        }
+
+        Instruction first = finallyInstructions.get(0);
+        if (first.getOpcode() != Const.ASTORE) {
+            return;
+        }
+
+        int exceptionIndex = ((AStore) first).getIndex();
+        Instruction last = finallyInstructions.get(finallyInstructions.size() - 1);
+        if (last.getOpcode() != Const.ATHROW) {
+            return;
+        }
+
+        AThrow athrow = (AThrow) last;
+        if (!isRethrowOf(exceptionIndex, athrow)) {
+            return;
+        }
+
+        finallyInstructions.remove(finallyInstructions.size() - 1);
+        finallyInstructions.remove(0);
+    }
+
+    private static boolean isRethrowOf(int exceptionIndex, AThrow athrow)
+    {
+        Instruction value = athrow.getValue();
+        if (value.getOpcode() == Const.ALOAD) {
+            return ((ALoad) value).getIndex() == exceptionIndex;
+        }
+        if (value.getOpcode() == Const.CHECKCAST) {
+            CheckCast checkCast = (CheckCast) value;
+            if (checkCast.getObjectref().getOpcode() == Const.ALOAD) {
+                return ((ALoad) checkCast.getObjectref()).getIndex() == exceptionIndex;
+            }
+        }
+        return false;
     }
 
     /** Remove 'goto' jumping on next instruction. */

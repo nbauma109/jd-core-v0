@@ -28,6 +28,9 @@ import java.util.Objects;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
+import jd.core.model.classfile.Field;
+import jd.core.model.classfile.LocalVariable;
+import jd.core.model.classfile.LocalVariables;
 import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.ArrayLoadInstruction;
@@ -36,6 +39,7 @@ import jd.core.model.instruction.bytecode.instruction.GetStatic;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.Invokestatic;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
+import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
 import jd.core.model.instruction.fast.FastConstants;
 import jd.core.model.instruction.fast.instruction.FastDeclaration;
 import jd.core.model.instruction.fast.instruction.FastFor;
@@ -566,6 +570,11 @@ public class JavaSourceLayouter
             List<LayoutBlock> layoutBlockList, ClassFile classFile,
             Method method, FastSwitch fs, byte tagCase)
     {
+        if (tagCase == LayoutBlockConstants.FRAGMENT_CASE
+                && createBlocksForOrdinalEnumSwitch(preferences, layoutBlockList, classFile, method, fs)) {
+            return;
+        }
+
         layoutBlockList.add(new FragmentLayoutBlock(
                 LayoutBlockConstants.FRAGMENT_SWITCH));
 
@@ -616,6 +625,158 @@ public class JavaSourceLayouter
         sbslb.setOther(sbelb);
         sbelb.setOther(sbslb);
         layoutBlockList.add(sbelb);
+    }
+
+    private boolean createBlocksForOrdinalEnumSwitch(
+            Preferences preferences,
+            List<LayoutBlock> layoutBlockList, ClassFile classFile,
+            Method method, FastSwitch fs)
+    {
+        Instruction test = fs.getTest();
+        if (!(test instanceof Invokevirtual iv) || !isOrdinalInvoke(classFile.getConstantPool(), iv)) {
+            return false;
+        }
+
+        String enumInternalName = resolveEnumInternalName(classFile, method, iv.getObjectref());
+        if (enumInternalName == null) {
+            return false;
+        }
+
+        String switchMapKey = "__ordinal__" + enumInternalName;
+        ConstantPool constants = classFile.getConstantPool();
+        if (!classFile.getSwitchMaps().containsKey(switchMapKey)) {
+            List<Integer> enumNameIndexes = buildOrdinalEnumSwitchMap(constants, classFile, enumInternalName);
+            if (enumNameIndexes == null || enumNameIndexes.isEmpty()) {
+                return false;
+            }
+            classFile.getSwitchMaps().put(switchMapKey, enumNameIndexes);
+        }
+
+        adjustOrdinalEnumCaseKeys(fs.getPairs());
+
+        layoutBlockList.add(new FragmentLayoutBlock(
+                LayoutBlockConstants.FRAGMENT_SWITCH));
+
+        createBlockForInstruction(
+                preferences, layoutBlockList, classFile, method, iv.getObjectref());
+
+        layoutBlockList.add(new FragmentLayoutBlock(
+                LayoutBlockConstants.FRAGMENT_RIGHT_ROUND_BRACKET));
+
+        BlockLayoutBlock sbslb = new SwitchBlockStartLayoutBlock();
+        layoutBlockList.add(sbslb);
+
+        FastSwitch.Pair[] pairs = fs.getPairs();
+        int length = pairs.length;
+        int firstIndex = 0;
+
+        boolean last;
+        FastSwitch.Pair pair;
+        List<Instruction> instructions;
+        for (int i=0; i<length; i++)
+        {
+            last = i == length-1;
+            pair = pairs[i];
+            instructions = pair.getInstructions();
+
+            if (pair.isDefault() && last && (instructions == null || instructions.isEmpty() || instructions.size() == 1 &&
+                    instructions.get(0).getOpcode() == FastConstants.GOTO_BREAK)) {
+                break;
+            }
+
+            if (instructions != null)
+            {
+                layoutBlockList.add(new CaseEnumLayoutBlock(
+                        classFile, method, fs, firstIndex, i, switchMapKey));
+                firstIndex = i+1;
+
+                boolean needBrackets = pair.hasDeclaration();
+                layoutBlockList.add(new CaseBlockStartLayoutBlock(needBrackets));
+                createBlocks(
+                        preferences, layoutBlockList, classFile, method, instructions);
+                layoutBlockList.add(new CaseBlockEndLayoutBlock(needBrackets));
+            }
+        }
+
+        BlockLayoutBlock sbelb = new SwitchBlockEndLayoutBlock();
+        sbslb.setOther(sbelb);
+        sbelb.setOther(sbslb);
+        layoutBlockList.add(sbelb);
+        return true;
+    }
+
+    private static boolean isOrdinalInvoke(ConstantPool constants, Invokevirtual iv)
+    {
+        ConstantCP cmr = constants.getConstantMethodref(iv.getIndex());
+        ConstantNameAndType cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
+        String name = constants.getConstantUtf8(cnat.getNameIndex());
+        String descriptor = constants.getConstantUtf8(cnat.getSignatureIndex());
+        return "ordinal".equals(name) && "()I".equals(descriptor);
+    }
+
+    private static String resolveEnumInternalName(ClassFile classFile, Method method, Instruction objectref)
+    {
+        if (!(objectref instanceof LoadInstruction li)) {
+            return null;
+        }
+        LocalVariables localVariables = method.getLocalVariables();
+        if (localVariables == null) {
+            return null;
+        }
+        LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(li.getIndex(), li.getOffset());
+        if (lv == null) {
+            return null;
+        }
+        String signature = lv.getSignature(classFile.getConstantPool());
+        if (signature == null || signature.length() < 3 || signature.charAt(0) != 'L') {
+            return null;
+        }
+        return signature.substring(1, signature.length() - 1);
+    }
+
+    private static List<Integer> buildOrdinalEnumSwitchMap(
+            ConstantPool outerConstants, ClassFile classFile, String enumInternalName)
+    {
+        ClassFile enumClassFile = classFile.getInnerClassFile(enumInternalName);
+        if (enumClassFile == null) {
+            return null;
+        }
+
+        Field[] fields = enumClassFile.getFields();
+        ConstantPool enumConstants = enumClassFile.getConstantPool();
+        List<Integer> enumNameIndexes = new java.util.ArrayList<>();
+
+        for (Field field : fields)
+        {
+            if ((field.getAccessFlags() & Const.ACC_ENUM) == 0) {
+                continue;
+            }
+            String name = enumConstants.getConstantUtf8(field.getNameIndex());
+            enumNameIndexes.add(outerConstants.addConstantUtf8(name));
+        }
+
+        return enumNameIndexes;
+    }
+
+    private static void adjustOrdinalEnumCaseKeys(FastSwitch.Pair[] pairs)
+    {
+        if (pairs == null || pairs.length == 0) {
+            return;
+        }
+        int minKey = Integer.MAX_VALUE;
+        for (FastSwitch.Pair pair : pairs) {
+            if (!pair.isDefault()) {
+                minKey = Math.min(minKey, pair.getKey());
+            }
+        }
+        if (minKey != 0) {
+            return;
+        }
+        for (FastSwitch.Pair pair : pairs) {
+            if (!pair.isDefault()) {
+                pair.setKey(pair.getKey() + 1);
+            }
+        }
     }
 
     private void createBlocksForSwitchEnum(
