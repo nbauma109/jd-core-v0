@@ -1,5 +1,6 @@
 package jd.core.test;
 
+@SuppressWarnings("all")
 public class DoubleCastedFloat {
     public void test() {
         double x = 0.2F;
