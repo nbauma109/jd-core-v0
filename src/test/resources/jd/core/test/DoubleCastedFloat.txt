@@ -1,0 +1,25 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class DoubleCastedFloat {
+/*    */   public void test() {
+/*  5 */     double x = 0.2F;
+/*    */   }
+/*    */   
+/*    */   public void testMultiple() {
+/*  9 */     double a = 0.1F;
+/* 10 */     double b = 0.3F;
+/* 11 */     double c = 0.7F;
+/* 12 */     double d = 3.14F;
+/*    */   }
+/*    */   
+/*    */   public void testDirectDouble() {
+/* 16 */     double x = 0.2D;
+/*    */   }
+/*    */   
+/*    */ 
+/*    */   public void testExactValues()
+/*    */   {
+/* 22 */     double a = 0.5D;
+/* 23 */     double b = 1.5D;
+/*    */   }
+/*    */ }

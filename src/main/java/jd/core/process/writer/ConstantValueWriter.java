@@ -95,12 +95,31 @@ public final class ConstantValueWriter
                 }
                 else
                 {
-                    // TODO Conversion de la valeur en constante ?
-                    String value = String.valueOf(d);
-                    if (value.indexOf('.') == -1) {
-                        value += ".0";
+                    // Check if this double value came from a float cast
+                    // This happens when float-to-double conversion introduces precision artifacts
+                    String doubleStr = String.valueOf(d);
+                    float f = (float) d;
+                    double d2 = f;
+
+                    // Only output as float if:
+                    // 1. The value can be exactly represented as a float (d == d2)
+                    // 2. The string representation suggests float origin (has many decimal places)
+                    if (Double.compare(d, d2) == 0 && doubleStr.length() > 10 && doubleStr.indexOf('.') != -1) {
+                        // This double has precision characteristics of a float-to-double conversion
+                        // Output as float literal instead
+                        String value = String.valueOf(f);
+                        if (value.indexOf('.') == -1) {
+                            value += ".0";
+                        }
+                        printer.printNumeric(value + 'F');
+                    } else {
+                        // This is a true double value
+                        String value = doubleStr;
+                        if (value.indexOf('.') == -1) {
+                            value += ".0";
+                        }
+                        printer.printNumeric(value + 'D');
                     }
-                    printer.printNumeric(value + 'D');
                 }
             }
             break;
