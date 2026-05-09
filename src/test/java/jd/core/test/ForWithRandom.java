@@ -2,6 +2,7 @@ package jd.core.test;
 
 import java.util.Random;
 
+@SuppressWarnings("all")
 public class ForWithRandom {
 
     public static void test(int n, Random r) {

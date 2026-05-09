@@ -1,5 +1,6 @@
 package jd.core.test;
 
+@SuppressWarnings("all")
 public class ForWithIndexes {
 
     public static void test(int n) {

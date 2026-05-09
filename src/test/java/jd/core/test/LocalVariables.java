@@ -5,6 +5,7 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 
 import javax.swing.tree.DefaultMutableTreeNode;
 
+@SuppressWarnings("all")
 public class LocalVariables extends DefaultMutableTreeNode {
 
     private static final long serialVersionUID = 1L;
