@@ -95,7 +95,12 @@ public final class ConstantValueWriter
                 }
                 else
                 {
-                    // TODO Conversion de la valeur en constante ?
+                    // IMPORTANT: Always emit 'D' suffix for double constants, even if the value
+                    // could be represented as a float (e.g., d == (double)(float)d).
+                    // Emitting a float literal would change overload resolution on recompilation:
+                    // - Bytecode: m((double)0.2F) stores CONSTANT_Double and calls m(double)
+                    // - If decompiled as: m(0.2F) would call m(float) when both overloads exist
+                    // This context-free approach preserves the original method binding semantics.
                     String value = String.valueOf(d);
                     if (value.indexOf('.') == -1) {
                         value += ".0";

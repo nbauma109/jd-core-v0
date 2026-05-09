@@ -371,6 +371,8 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
             if (this.firstOffset <= this.previousOffset &&
                 instruction.getOffset() <= this.lastOffset)
             {
+                // IMPORTANT: Always emit 'D' suffix for double constants to preserve overload resolution.
+                // See ConstantValueWriter for detailed explanation of why we must not convert to float literals.
                 String value =
                     String.valueOf(((ConstInstruction)instruction).getValue());
                 if (value.indexOf('.') == -1) {
