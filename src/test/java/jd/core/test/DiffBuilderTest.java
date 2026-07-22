@@ -19,7 +19,4 @@ public class DiffBuilderTest extends AbstractTestCase {
     	}
     }
 
-	public boolean recompile() {
-		return false;
-	}
 }

@@ -1,0 +1,39 @@
+// Byte code:
+/*    */ //   0: aload_0
+/*    */ //   1: dup
+/*    */ //   2: getfield 7	jd/core/test/LookupSwitch:inputValue	I
+/*    */ //   5: dup_x1
+/*    */ //   6: iconst_1
+/*    */ //   7: iadd
+/*    */ //   8: putfield 7	jd/core/test/LookupSwitch:inputValue	I
+/*    */ //   11: lookupswitch	default:+66->77, 1:+33->44, 1000:+44->55, 1000000:+55->66
+/*    */ //   44: getstatic 13	java/lang/System:out	Ljava/io/PrintStream;
+/*    */ //   47: ldc 19
+/*    */ //   49: invokevirtual 21	java/io/PrintStream:println	(Ljava/lang/String;)V
+/*    */ //   52: goto +33 -> 85
+/*    */ //   55: getstatic 13	java/lang/System:out	Ljava/io/PrintStream;
+/*    */ //   58: ldc 27
+/*    */ //   60: invokevirtual 21	java/io/PrintStream:println	(Ljava/lang/String;)V
+/*    */ //   63: goto +22 -> 85
+/*    */ //   66: getstatic 13	java/lang/System:out	Ljava/io/PrintStream;
+/*    */ //   69: ldc 29
+/*    */ //   71: invokevirtual 21	java/io/PrintStream:println	(Ljava/lang/String;)V
+/*    */ //   74: goto +11 -> 85
+/*    */ //   77: new 31	java/lang/IllegalArgumentException
+/*    */ //   80: dup
+/*    */ //   81: invokespecial 33	java/lang/IllegalArgumentException:<init>	()V
+/*    */ //   84: athrow
+/*    */ //   85: return
+/*    */ // Line number table:
+/*    */ //   Java source line #10	-> byte code offset #0
+/*    */ //   Java source line #12	-> byte code offset #44
+/*    */ //   Java source line #13	-> byte code offset #52
+/*    */ //   Java source line #15	-> byte code offset #55
+/*    */ //   Java source line #16	-> byte code offset #63
+/*    */ //   Java source line #18	-> byte code offset #66
+/*    */ //   Java source line #19	-> byte code offset #74
+/*    */ //   Java source line #21	-> byte code offset #77
+/*    */ //   Java source line #23	-> byte code offset #85
+/*    */ // Local variable table:
+/*    */ //   start	length	slot	name	signature
+/*    */ //   0	86	0	this	LookupSwitch

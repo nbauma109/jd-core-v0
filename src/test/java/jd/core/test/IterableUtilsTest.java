@@ -14,8 +14,4 @@ public class IterableUtilsTest extends AbstractTestCase {
         assertEquals(IOUtils.toString(getClass().getResource("IterableUtils.txt"), StandardCharsets.UTF_8), output);
     }
 
-    @Override
-    protected boolean recompile() {
-        return false;
-    }
 }

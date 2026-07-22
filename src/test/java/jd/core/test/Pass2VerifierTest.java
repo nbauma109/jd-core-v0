@@ -19,8 +19,4 @@ public class Pass2VerifierTest extends AbstractTestCase {
 		}
 	}
 
-	@Override
-	protected boolean recompile() {
-		return false;
-	}
 }

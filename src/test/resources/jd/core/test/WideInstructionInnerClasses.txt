@@ -12663,8 +12663,8 @@
 /*     */ 
 /*     */     public static int largeVarIndex()
 /*     */     {
-/*  29 */       int i = 42;
-/*     */       int k57;
+/*  29 */       int i = 42; int k57 = 0;
+/*     */       
 /*  31 */       return k57;
 /*     */     }
 /*     */   }
@@ -12689,8 +12689,8 @@
 /*     */ 
 /*     */     public static float largeVarIndex()
 /*     */     {
-/*  55 */       float f1 = 42.0F;
-/*     */       float k57;
+/*  55 */       float f1 = 42.0F; float k57 = 0.0F;
+/*     */       
 /*  57 */       return k57;
 /*     */     }
 /*     */   }
@@ -12715,8 +12715,8 @@
 /*     */ 
 /*     */     public static double largeVarIndex()
 /*     */     {
-/*  81 */       double d1 = 42.0D;
-/*     */       double k57;
+/*  81 */       double d1 = 42.0D; double k57 = 0.0D;
+/*     */       
 /*  83 */       return k57;
 /*     */     }
 /*     */   }
@@ -12741,8 +12741,8 @@
 /*     */ 
 /*     */     public static long largeVarIndex()
 /*     */     {
-/* 107 */       long l1 = 42L;
-/*     */       long k57;
+/* 107 */       long l1 = 42L; long k57 = 0L;
+/*     */       
 /* 109 */       return k57;
 /*     */     }
 /*     */   }
@@ -12766,8 +12766,8 @@
 /*     */ 
 /*     */     public static Long largeVarIndex()
 /*     */     {
-/* 132 */       Long localLong1 = Long.valueOf(42L);
-/*     */       Long k57;
+/* 132 */       Long localLong1 = Long.valueOf(42L); Long k57 = null;
+/*     */       
 /* 134 */       return k57;
 /*     */     }
 /*     */   }

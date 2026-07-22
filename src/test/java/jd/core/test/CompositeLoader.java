@@ -2,6 +2,7 @@ package jd.core.test;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Map;
 import java.util.Optional;
 
 import org.jd.core.v1.api.loader.Loader;
@@ -26,6 +27,10 @@ public class CompositeLoader implements Loader {
 	@Override
 	public byte[] load(String internalName) throws IOException {
 		return Optional.ofNullable(zipLoader.load(internalName)).orElse(classPathLoader.load(internalName));
+	}
+
+	public Map<String, byte[]> getMap() {
+		return zipLoader.getMap();
 	}
 
 }

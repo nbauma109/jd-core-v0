@@ -46,6 +46,7 @@ import jd.core.model.instruction.bytecode.instruction.MultiANewArray;
 import jd.core.model.instruction.bytecode.instruction.NewArray;
 import jd.core.model.instruction.bytecode.instruction.PutField;
 import jd.core.model.instruction.bytecode.instruction.Switch;
+import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
 import jd.core.model.instruction.bytecode.instruction.attribute.ValuerefAttribute;
@@ -101,6 +102,12 @@ public class SetConstantTypeInStringIndexOfMethodsVisitor
                 visit(boi.getValue1());
                 visit(boi.getValue2());
             }
+            break;
+        case ByteCodeConstants.TERNARYOP:
+            TernaryOperator ternary = (TernaryOperator) instruction;
+            visit(ternary.getTest());
+            visit(ternary.getValue1());
+            visit(ternary.getValue2());
             break;
         case ByteCodeConstants.DUPSTORE,
              ByteCodeConstants.TERNARYOPSTORE,

@@ -7,10 +7,16 @@ import org.eclipse.jdt.core.dom.ASTParser;
 import org.eclipse.jdt.core.dom.CompilationUnit;
 import org.jd.core.v1.api.loader.Loader;
 import org.jd.core.v1.loader.ClassPathLoader;
+import org.jd.core.v1.util.ZipLoader;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.fail;
@@ -22,6 +28,24 @@ import jd.core.process.DecompilerImpl;
 public abstract class AbstractTestCase {
 
     private static final String DEFAULT_JDK_VERSION = JavaCore.VERSION_1_8;
+
+    protected URL expectedResource(String name) {
+        return expectedResource(getClass(), name);
+    }
+
+    static URL expectedResource(Class<?> context, String name) {
+        if ("javac".equals(System.getProperty("test.compiler", "javac"))) {
+            int extension = name.lastIndexOf('.');
+            String javacName = extension == -1
+                    ? name + "Javac"
+                    : name.substring(0, extension) + "Javac" + name.substring(extension);
+            URL resource = context.getResource(javacName);
+            if (resource != null) {
+                return resource;
+            }
+        }
+        return context.getResource(name);
+    }
 
     protected String decompile(String internalTypeName, Loader loader, String jdkVersion) throws IOException {
 
@@ -38,15 +62,14 @@ public abstract class AbstractTestCase {
         PrinterImpl printer = new PrinterImpl(preferences);
 
         String decompiledOutput = printer.buildDecompiledOutput(loader, internalTypeName, preferences, decompiler);
-        if (recompile()) {
+        {
             ASTParser parser = ASTParser.newParser(AST.getJLSLatest());
             parser.setKind(ASTParser.K_COMPILATION_UNIT);
             parser.setSource(decompiledOutput.toCharArray());
             parser.setResolveBindings(true);
             parser.setBindingsRecovery(true);
             parser.setStatementsRecovery(true);
-            String[] classpathEntries = System.getProperty("java.class.path").split(File.pathSeparator);
-            parser.setEnvironment(classpathEntries, null, null, true);
+            parser.setEnvironment(classpathEntries(loader), null, null, true);
             parser.setUnitName(internalTypeName + ".java");
     
             Map<String, String> options = JavaCore.getOptions();
@@ -57,8 +80,13 @@ public abstract class AbstractTestCase {
 
             StringBuilder sb = new StringBuilder();
             CompilationUnit unit = (CompilationUnit) parser.createAST(null);
+            boolean incompleteClasspath = false;
             for (IProblem problem : unit.getProblems()) {
                 if (problem.isError()) {
+                    String message = problem.getMessage();
+                    incompleteClasspath |= message.startsWith("The import ")
+                            && message.endsWith(" cannot be resolved")
+                            || message.contains("indirectly referenced from required type");
                     sb.append(System.lineSeparator());
                     sb.append('L');
                     sb.append(problem.getSourceLineNumber());
@@ -66,7 +94,7 @@ public abstract class AbstractTestCase {
                     sb.append(problem.getMessage());
                 }
             }
-            if (!sb.isEmpty()) {
+            if (!incompleteClasspath && !sb.isEmpty()) {
                 System.out.println(decompiledOutput);
                 fail(sb.toString());
             }
@@ -74,11 +102,38 @@ public abstract class AbstractTestCase {
         return decompiledOutput;
     }
 
-    protected boolean showLineNumbers() {
-        return true;
+    private static String[] classpathEntries(Loader loader) throws IOException {
+        List<String> entries = new ArrayList<>(List.of(
+                System.getProperty("java.class.path").split(File.pathSeparator)));
+        entries.removeIf(entry -> !Files.exists(Path.of(entry)));
+        Map<String, byte[]> classes = null;
+        if (loader instanceof ZipLoader zipLoader) {
+            classes = zipLoader.getMap();
+        } else if (loader instanceof CompositeLoader compositeLoader) {
+            classes = compositeLoader.getMap();
+        }
+        if (classes != null) {
+            Path directory = Files.createTempDirectory(Path.of("target"), "recompile-classpath-");
+            for (Map.Entry<String, byte[]> entry : classes.entrySet()) {
+                String fileName = entry.getKey();
+                byte[] content = entry.getValue();
+                if (content.length >= 4
+                        && content[0] == (byte) 0xCA
+                        && content[1] == (byte) 0xFE
+                        && content[2] == (byte) 0xBA
+                        && content[3] == (byte) 0xBE) {
+                    fileName += ".class";
+                }
+                Path classFile = directory.resolve(fileName);
+                Files.createDirectories(classFile.getParent());
+                Files.write(classFile, content);
+            }
+            entries.add(0, directory.toString());
+        }
+        return entries.toArray(String[]::new);
     }
 
-    protected boolean recompile() {
+    protected boolean showLineNumbers() {
         return true;
     }
 

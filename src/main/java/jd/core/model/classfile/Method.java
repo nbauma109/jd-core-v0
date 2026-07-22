@@ -193,6 +193,11 @@ public class Method extends Base implements SignatureInfo
         return this.codeExceptions;
     }
 
+    public void setCodeExceptions(CodeException[] codeExceptions)
+    {
+        this.codeExceptions = codeExceptions;
+    }
+
     public ParameterAnnotationEntry[] getVisibleParameterAnnotations()
     {
         return this.visibleParameterAnnotations;

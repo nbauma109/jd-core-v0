@@ -59,9 +59,11 @@ import jd.core.model.instruction.bytecode.instruction.BranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.CheckCast;
 import jd.core.model.instruction.bytecode.instruction.ConditionalBranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.DupStore;
+import jd.core.model.instruction.bytecode.instruction.DConst;
 import jd.core.model.instruction.bytecode.instruction.ExceptionLoad;
 import jd.core.model.instruction.bytecode.instruction.GetStatic;
 import jd.core.model.instruction.bytecode.instruction.Goto;
+import jd.core.model.instruction.bytecode.instruction.FConst;
 import jd.core.model.instruction.bytecode.instruction.IConst;
 import jd.core.model.instruction.bytecode.instruction.IInc;
 import jd.core.model.instruction.bytecode.instruction.ILoad;
@@ -76,6 +78,7 @@ import jd.core.model.instruction.bytecode.instruction.Invokestatic;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
 import jd.core.model.instruction.bytecode.instruction.Jsr;
 import jd.core.model.instruction.bytecode.instruction.Ldc;
+import jd.core.model.instruction.bytecode.instruction.LConst;
 import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
 import jd.core.model.instruction.bytecode.instruction.LookupSwitch;
 import jd.core.model.instruction.bytecode.instruction.MonitorEnter;
@@ -192,8 +195,8 @@ public final class FastInstructionListBuilder {
             }
         }
 
-        // last attempt to remove last remaining JSRs that have been missed
-        list.removeIf(instr -> instr.getOpcode() == Const.JSR);
+        // Last attempt to remove legacy subroutine plumbing that has been missed.
+        list.removeIf(instr -> instr.getOpcode() == Const.JSR || instr.getOpcode() == Const.RET);
 
         executeReconstructors(referenceMap, classFile, list, localVariables);
 
@@ -204,12 +207,134 @@ public final class FastInstructionListBuilder {
         }
 
         manageRedeclaredVariables(list);
+        renameConflictingDeclarations(classFile.getConstantPool(), localVariables, list);
+        initializeImmediatelyReturnedDeclarations(classFile.getConstantPool(), list);
+        removeUnreachableReturnAfterInfiniteLoop(list);
         SwitchExpressionReconstructor.reconstruct(classFile, method, list);
 
         // Add labels
         if (!offsetLabelSet.isEmpty()) {
             addLabels(list, offsetLabelSet);
         }
+    }
+
+    private static void renameConflictingDeclarations(
+            ConstantPool constants, LocalVariables localVariables,
+            List<Instruction> instructions)
+    {
+        renameConflictingDeclarations(
+                constants, localVariables, instructions, new ArrayList<>());
+    }
+
+    private static void renameConflictingDeclarations(
+            ConstantPool constants, LocalVariables localVariables,
+            List<Instruction> instructions, List<LocalVariable> outerDeclarations)
+    {
+        if (instructions == null) {
+            return;
+        }
+        List<LocalVariable> visibleDeclarations = new ArrayList<>(outerDeclarations);
+        for (Instruction instruction : instructions) {
+            if (instruction instanceof FastDeclaration declaration) {
+                LocalVariable current = declaration.getLv();
+            String name = current.getName(constants);
+            String signature = constants.getConstantUtf8(current.getSignatureIndex());
+                for (LocalVariable previous : visibleDeclarations) {
+                if (name.equals(previous.getName(constants))
+                            && !signature.equals(constants.getConstantUtf8(previous.getSignatureIndex()))) {
+                    int suffix = 2;
+                    String newName;
+                    do {
+                        newName = name + suffix++;
+                    } while (localVariables.containsLocalVariableWithNameIndex(
+                            constants.addConstantUtf8(newName)));
+                    int newNameIndex = constants.addConstantUtf8(newName);
+                        for (int i = 0; i < localVariables.size(); i++) {
+                            LocalVariable candidate = localVariables.getLocalVariableAt(i);
+                            if (name.equals(candidate.getName(constants))
+                                    && signature.equals(constants.getConstantUtf8(
+                                            candidate.getSignatureIndex()))) {
+                                candidate.setNameIndex(newNameIndex);
+                            }
+                        }
+                    break;
+                }
+            }
+                visibleDeclarations.add(current);
+            }
+            for (List<Instruction> block : getBlocks(instruction)) {
+                renameConflictingDeclarations(
+                        constants, localVariables, block, visibleDeclarations);
+            }
+        }
+    }
+
+    private static void initializeImmediatelyReturnedDeclarations(
+            ConstantPool constants, List<Instruction> instructions)
+    {
+        if (instructions == null) {
+            return;
+        }
+        for (int i = 0; i < instructions.size(); i++) {
+            Instruction instruction = instructions.get(i);
+            if (instruction instanceof FastDeclaration declaration
+                    && declaration.getInstruction() == null
+                    && i + 1 < instructions.size()
+                    && instructions.get(i + 1) instanceof ReturnInstruction returnInstruction
+                    && returnInstruction.getValueref() instanceof LoadInstruction load
+                    && load.getIndex() == declaration.getLv().getIndex()) {
+                LocalVariable variable = declaration.getLv();
+                String signature = constants.getConstantUtf8(variable.getSignatureIndex());
+                Instruction value = defaultValue(declaration.getOffset(), signature);
+                declaration.setInstruction(new StoreInstruction(
+                        ByteCodeConstants.STORE, declaration.getOffset(),
+                        Instruction.UNKNOWN_LINE_NUMBER, variable.getIndex(), signature, value));
+            }
+            for (List<Instruction> block : getBlocks(instruction)) {
+                initializeImmediatelyReturnedDeclarations(constants, block);
+            }
+        }
+    }
+
+    private static Instruction defaultValue(int offset, String signature)
+    {
+        return switch (signature.charAt(0)) {
+            case 'F' -> new FConst(ByteCodeConstants.FCONST, offset, Instruction.UNKNOWN_LINE_NUMBER, 0);
+            case 'D' -> new DConst(ByteCodeConstants.DCONST, offset, Instruction.UNKNOWN_LINE_NUMBER, 0);
+            case 'J' -> new LConst(ByteCodeConstants.LCONST, offset, Instruction.UNKNOWN_LINE_NUMBER, 0);
+            case 'L', '[', 'T' -> new AConstNull(Const.ACONST_NULL, offset, Instruction.UNKNOWN_LINE_NUMBER);
+            default -> new IConst(ByteCodeConstants.ICONST, offset, Instruction.UNKNOWN_LINE_NUMBER, 0);
+        };
+    }
+
+    private static void removeUnreachableReturnAfterInfiniteLoop(List<Instruction> instructions)
+    {
+        if (instructions.size() < 2) {
+            return;
+        }
+        Instruction loop = instructions.get(instructions.size() - 2);
+        Instruction trailing = instructions.get(instructions.size() - 1);
+        if (isMalformedNestedInfiniteLoop(loop)
+                && trailing.getOpcode() == ByteCodeConstants.XRETURN) {
+            instructions.remove(instructions.size() - 1);
+        }
+    }
+
+    private static boolean isMalformedNestedInfiniteLoop(Instruction instruction)
+    {
+        if (!(instruction instanceof FastList fastList)
+                || instruction.getOpcode() != FastConstants.INFINITE_LOOP
+                || fastList.getInstructions() == null
+                || fastList.getInstructions().size() < 2
+                || !(fastList.getInstructions().get(0) instanceof StoreInstruction)) {
+            return false;
+        }
+        for (Instruction child : fastList.getInstructions()) {
+            if (child.getOpcode() == FastConstants.INFINITE_LOOP) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static void manageRedeclaredVariables(List<Instruction> list) {
@@ -311,6 +436,9 @@ public final class FastInstructionListBuilder {
                 instructions.add(fastTry.getFinallyInstructions());
             }
             return instructions;
+        }
+        if (instruction instanceof FastList fastList) {
+            return Collections.singletonList(fastList.getInstructions());
         }
         return Collections.emptyList();
     }
@@ -1553,7 +1681,7 @@ public final class FastInstructionListBuilder {
                             || method.getNameIndex() == classFile.getConstantPool().getClassConstructorIndex())) {
                         FastDeclaration fastDeclaration = new FastDeclaration(si.getOffset(), si.getLineNumber(), lv, si);
                         insertNewDeclaration(localVariables, list, i, fastDeclaration, addDeclarations, outerDeclarations);
-                        updateNewAndInitArrayInstruction(si);
+                        updateNewAndInitArrayInstruction(classFile, si, lv);
                     }
                 }
                 if (instruction instanceof FastFor ff && ff.getInit() instanceof StoreInstruction si) {
@@ -1570,7 +1698,7 @@ public final class FastInstructionListBuilder {
                                 lv = localVariables.getLocalVariableWithIndexAndOffset(ii.getIndex(), ii.getOffset());
                                 lv.setDeclarationFlag(DECLARED);
                             }
-                            updateNewAndInitArrayInstruction(si);
+                            updateNewAndInitArrayInstruction(classFile, si, lv);
                         }
                     }
                 }
@@ -1688,10 +1816,14 @@ public final class FastInstructionListBuilder {
                 .anyMatch(i -> ((FastDeclaration)i).getLv().getNameIndex() == lv.getNameIndex());
     }
 
-    private static void updateNewAndInitArrayInstruction(Instruction instruction) {
+    private static void updateNewAndInitArrayInstruction(
+            ClassFile classFile, Instruction instruction, LocalVariable localVariable) {
         if (instruction.getOpcode() == Const.ASTORE) {
             Instruction valueref = ((StoreInstruction) instruction).getValueref();
-            if (valueref.getOpcode() == ByteCodeConstants.NEWANDINITARRAY) {
+            String signature = classFile.getConstantPool().getConstantUtf8(
+                    localVariable.getSignatureIndex());
+            if (valueref.getOpcode() == ByteCodeConstants.NEWANDINITARRAY
+                    && signature.indexOf('<') < 0) {
                 valueref.setOpcode(ByteCodeConstants.INITARRAY);
             }
         }
@@ -3040,6 +3172,7 @@ public final class FastInstructionListBuilder {
 
         return beforeWhileLoopIndex;
     }
+
 
     private static boolean isAssignment(Instruction instruction) {
         return instruction instanceof IInc

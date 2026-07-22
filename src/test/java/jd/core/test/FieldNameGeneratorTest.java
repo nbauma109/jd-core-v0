@@ -34,8 +34,4 @@ public class FieldNameGeneratorTest extends AbstractTestCase {
         assertEquals(IOUtils.toString(getClass().getResource("NonUniqueFieldNames.txt"), StandardCharsets.UTF_8), output);
     }
 
-    @Override
-    protected boolean recompile() {
-        return false;
-    }
 }

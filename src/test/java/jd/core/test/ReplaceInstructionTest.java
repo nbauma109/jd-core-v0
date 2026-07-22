@@ -11,6 +11,6 @@ public class ReplaceInstructionTest extends AbstractTestCase {
     @Test
     public void test() throws Exception {
         String output = decompile("jd/core/test/ReplaceInstruction");
-        assertEquals(IOUtils.toString(getClass().getResource("ReplaceInstruction.txt"), StandardCharsets.UTF_8), output);
+        assertEquals(IOUtils.toString(expectedResource("ReplaceInstruction.txt"), StandardCharsets.UTF_8), output);
     }
 }

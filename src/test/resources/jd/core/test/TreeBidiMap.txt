@@ -251,7 +251,7 @@
 /*      */   public void putAll(Map<? extends K, ? extends V> map)
 /*      */   {
 /*  253 */     for (Entry<? extends K, ? extends V> e : map.entrySet()) {
-/*  254 */       put((Comparable)e.getKey(), (Comparable)e.getValue());
+/*  254 */       put((K)(Comparable)e.getKey(), (V)(Comparable)e.getValue());
 /*      */     }
 /*      */   }
 /*      */   
@@ -2191,7 +2191,7 @@
 /*      */     @Override
 /*      */     public void putAll(Map<? extends V, ? extends K> map) {
 /* 2193 */       for (Entry<? extends V, ? extends K> e : map.entrySet()) {
-/* 2194 */         put((Comparable)e.getKey(), (Comparable)e.getValue());
+/* 2194 */         put((V)(Comparable)e.getKey(), (K)(Comparable)e.getValue());
 /*      */       }
 /*      */     }
 /*      */     

@@ -527,21 +527,9 @@ public final class SignatureWriter
     {
         if (classFile.getThisClassName().equals(internalName))
         {
-            // La classe est la classe courante ou l'une de ses classes
-            // internes
-
-            // Reduction du nom de classe courante
-            int index = internalName.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR);
-            if (index >= 0) {
-                // Reduction des noms de classe interne
-                internalName = internalName.substring(index + 1);
-            } else {
-                index = internalName.lastIndexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR);
-                if (index >= 0) {
-                    // Retrait du nom du package
-                    internalName = internalName.substring(index + 1);
-                }
-            }
+            // Use exactly the same name as the type declaration. In particular,
+            // a nested class decompiled on its own is declared with its '$' name.
+            return classFile.getClassName();
         }
         else
         {

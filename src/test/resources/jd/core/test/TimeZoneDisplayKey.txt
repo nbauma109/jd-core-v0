@@ -1562,8 +1562,8 @@
 /* 1562 */     if (this == obj) {
 /* 1563 */       return true;
 /*      */     }
-/* 1565 */     if ((obj instanceof TimeZoneDisplayKey)) {
-/* 1566 */       TimeZoneDisplayKey other = (TimeZoneDisplayKey)obj;
+/* 1565 */     if ((obj instanceof FastDatePrinter$TimeZoneDisplayKey)) {
+/* 1566 */       FastDatePrinter$TimeZoneDisplayKey other = (FastDatePrinter$TimeZoneDisplayKey)obj;
 /* 1567 */       return 
 /* 1568 */         this.mTimeZone.equals(other.mTimeZone) && this.mStyle == other.mStyle && 
 /*      */         

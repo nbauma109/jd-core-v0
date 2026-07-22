@@ -285,22 +285,22 @@
 /*      */ 
 /*  286 */             checkIndex(lvt, localvariable.getSignatureIndex(), this.CONST_Utf8);
 /*  287 */             String localsig = ((ConstantUtf8)this.cp.getConstant(localvariable.getSignatureIndex())).getBytes();
-/*      */             Type t;
+/*      */             Type t2;
 /*      */             try {
-/*  290 */               t = Type.getType(localsig);
+/*  290 */               t2 = Type.getType(localsig);
 /*      */             }
 /*      */             catch (ClassFormatException cfe) {
 /*  293 */               throw new ClassConstraintException("Illegal descriptor (==signature) '" + localsig + "' used by LocalVariable '" + Pass2Verifier.tostring(localvariable) + "' referenced by '" + Pass2Verifier.tostring(lvt) + "'.", cfe);
 /*      */             }
 /*  295 */             int localindex = localvariable.getIndex();
-/*  296 */             if ((t == Type.LONG || t == Type.DOUBLE ? localindex + 1 : localindex) >= obj.getMaxLocals())
+/*  296 */             if ((t2 == Type.LONG || t2 == Type.DOUBLE ? localindex + 1 : localindex) >= obj.getMaxLocals())
 /*      */             {
 /*      */ 
 /*  299 */               throw new ClassConstraintException("LocalVariableTable attribute '" + Pass2Verifier.tostring(lvt) + "' references a LocalVariable '" + Pass2Verifier.tostring(localvariable) + "' with an index that exceeds the surrounding Code attribute's max_locals value of '" + obj.getMaxLocals() + "'.");
 /*      */             }
 /*      */             try
 /*      */             {
-/*  303 */               Pass2Verifier.this.localVariablesInfos[methodNumber].add(localindex, localname, localvariable.getStartPC(), localvariable.getLength(), t);
+/*  303 */               Pass2Verifier.this.localVariablesInfos[methodNumber].add(localindex, localname, localvariable.getStartPC(), localvariable.getLength(), t2);
 /*      */             }
 /*      */             catch (LocalVariableInfoInconsistentException lviie) {
 /*  306 */               throw new ClassConstraintException("Conflicting information in LocalVariableTable '" + Pass2Verifier.tostring(lvt) + "' found in Code attribute '" + Pass2Verifier.tostring(obj) + "' (method '" + Pass2Verifier.tostring(m) + "'). " + lviie.getMessage(), lviie);

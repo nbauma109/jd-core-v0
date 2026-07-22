@@ -14,8 +14,4 @@ public class SwitchClosureTest extends AbstractTestCase {
         assertEquals(IOUtils.toString(getClass().getResource("SwitchClosure.txt"), StandardCharsets.UTF_8), output);
     }
 
-    @Override
-    protected boolean recompile() {
-        return false;
-    }
 }

@@ -11,6 +11,6 @@ public class AssignmentTest extends AbstractTestCase {
     @Test
     public void test() throws Exception {
         String output = decompile("jd/core/test/Assignment");
-        assertEquals(IOUtils.toString(getClass().getResource("Assignment.txt"), StandardCharsets.UTF_8), output);
+        assertEquals(IOUtils.toString(expectedResource("Assignment.txt"), StandardCharsets.UTF_8), output);
     }
 }

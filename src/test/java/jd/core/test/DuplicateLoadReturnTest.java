@@ -11,6 +11,6 @@ public class DuplicateLoadReturnTest extends AbstractTestCase {
     @Test
     public void test() throws Exception {
         String output = decompile("jd/core/test/DuplicateLoadReturn");
-        assertEquals(IOUtils.toString(getClass().getResource("DuplicateLoadReturn.txt"), StandardCharsets.UTF_8), output);
+        assertEquals(IOUtils.toString(expectedResource("DuplicateLoadReturn.txt"), StandardCharsets.UTF_8), output);
     }
 }

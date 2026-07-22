@@ -62,7 +62,7 @@
 /*  62 */       throw new IllegalArgumentException("The predicate and closure arrays must be the same size");
 /*     */     }
 /*  64 */     if (predicates.length == 0) {
-/*  65 */       return defaultClosure == null ? NOPClosure.nopClosure() : defaultClosure;
+/*  65 */       return defaultClosure == null ? NOPClosure.nopClosure() : (Closure<E>)defaultClosure;
 /*     */     }
 /*  67 */     return new SwitchClosure<>(predicates, closures, defaultClosure);
 /*     */   }
@@ -94,7 +94,7 @@
 /*  94 */     Closure<? super E> defaultClosure = (Closure)predicatesAndClosures.remove(null);
 /*  95 */     int size = predicatesAndClosures.size();
 /*  96 */     if (size == 0) {
-/*  97 */       return defaultClosure == null ? NOPClosure.nopClosure() : defaultClosure;
+/*  97 */       return defaultClosure == null ? NOPClosure.nopClosure() : (Closure<E>)defaultClosure;
 /*     */     }
 /*  99 */     Closure<E>[] closures = new Closure[size];
 /* 100 */     Predicate<E>[] preds = new Predicate[size];

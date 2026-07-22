@@ -55,8 +55,4 @@ public class RecordTest extends AbstractTestCase {
         return true;
     }
 
-    @Override
-    protected boolean recompile() {
-        return true;
-    }
 }

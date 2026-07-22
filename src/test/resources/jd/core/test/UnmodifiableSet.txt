@@ -70,7 +70,7 @@
 /*     */ 
 /*     */   private UnmodifiableSet(Set<? extends E> set)
 /*     */   {
-/*  73 */     super(set);
+/*  73 */     super((Set)set);
 /*     */   }
 /*     */   
 /*     */   @Override

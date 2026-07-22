@@ -388,8 +388,30 @@ public final class ClassFileAnalyzer
                         constants.getConstantUtf8(field.getNameIndex()));
                 // Add new constant string
                 newNameIndex = constants.addConstantUtf8(newName);
+                renameMatchingFieldReferences(
+                        classFile, field.getNameIndex(), field.getDescriptorIndex(), newNameIndex);
                 // Update name index
                 field.setNameIndex(newNameIndex);
+            }
+        }
+    }
+
+    private static void renameMatchingFieldReferences(
+            ClassFile classFile, int oldNameIndex, int descriptorIndex, int newNameIndex)
+    {
+        ConstantPool constants = classFile.getConstantPool();
+        for (int i = constants.size() - 1; i >= 0; i--)
+        {
+            Constant constant = constants.get(i);
+            if (!(constant instanceof ConstantFieldref cfr)
+                    || cfr.getClassIndex() != classFile.getThisClassIndex()) {
+                continue;
+            }
+            ConstantNameAndType cnat =
+                    constants.getConstantNameAndType(cfr.getNameAndTypeIndex());
+            if (cnat.getNameIndex() == oldNameIndex
+                    && cnat.getSignatureIndex() == descriptorIndex) {
+                cnat.setNameIndex(newNameIndex);
             }
         }
     }
@@ -892,7 +914,7 @@ public final class ClassFileAnalyzer
                 referenceMap, classFile, list);
         // Reconstruction du mot clé '.class' pour le JDK 1.4
         DotClass14Reconstructor.reconstruct(
-                referenceMap, classFile, list);
+                referenceMap, classFile, method, list);
         // Remove unused pop instruction
         removeUnusedPopInstruction(list);
         // Transformation des tests sur des types 'long' et 'double'
