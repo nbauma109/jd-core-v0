@@ -1495,7 +1495,10 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                 } else {
                     typeName = SignatureUtil.createTypeName(internalClassName);
                     if (prefixInstruction != null) { // pattern a.new A(...)
-                        String sig = SignatureUtil.getInternalName(prefixInstruction.getReturnedSignature(classFile, localVariables));
+                        String prefixSignature = prefixInstruction.getReturnedSignature(
+                                classFile, localVariables);
+                        String sig = SignatureUtil.getInternalName(
+                                eraseTypeArguments(prefixSignature));
                         typeName = typeName.replace(sig + '$', "");
                     }
                 }
@@ -1537,6 +1540,23 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
             firstIndex++;
         }
         return firstIndex;
+    }
+
+    private static String eraseTypeArguments(String signature)
+    {
+        int depth = 0;
+        StringBuilder result = new StringBuilder(signature.length());
+        for (int i = 0; i < signature.length(); i++) {
+            char c = signature.charAt(i);
+            if (c == '<') {
+                depth++;
+            } else if (c == '>') {
+                depth--;
+            } else if (depth == 0) {
+                result.append(c);
+            }
+        }
+        return result.toString();
     }
 
     private static ClassFile findInnerClassFile(

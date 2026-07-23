@@ -125,7 +125,10 @@ public class NewInstructionReconstructorBase
         }
 
         List<Instruction> args = invokeNew.getArgs();
-        parameterIndex -= parameterSignatures.size() - args.size();
+        int removedParameterCount = parameterSignatures.size() - args.size();
+        int trailingParameterCount = removedParameterCount > 0
+                && descriptor.endsWith("$1;)V") ? 1 : 0;
+        parameterIndex -= removedParameterCount - trailingParameterCount;
         return parameterIndex >= 0 && parameterIndex < args.size()
                 ? args.get(parameterIndex)
                 : null;
