@@ -2309,7 +2309,12 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         if (parameterIndex >= parameterSignatures.size()) {
             return false;
         }
-        String argumentSignature = argument.getReturnedSignature(classFile, localVariables);
+        String argumentSignature;
+        try {
+            argumentSignature = argument.getReturnedSignature(classFile, localVariables);
+        } catch (UnsupportedOperationException ignored) {
+            return false;
+        }
         return argumentSignature != null
                 && argumentSignature.contains("<+")
                 && parameterSignatures.get(parameterIndex).charAt(0) == 'L';
