@@ -1710,31 +1710,41 @@ public final class ClassFileWriter
             ClassFile classFile, String signature)
     {
         for (int i = 0; i < signature.length(); i++) {
-            if (signature.charAt(i) == 'T'
-                    && (i == 0 || "<+-[".indexOf(signature.charAt(i - 1)) >= 0)) {
-                int end = signature.indexOf(';', i);
-                if (end == -1) {
-                    return true;
-                }
-                String name = signature.substring(i + 1, end);
-                boolean declared = false;
-                for (ClassFile owner = classFile; owner != null; owner = owner.getOuterClass()) {
-                    Signature classSignature = owner.getAttributeSignature();
-                    if (classSignature != null) {
-                        String value = classSignature.getSignature();
-                        if (value.contains("<" + name + ":")
-                                || value.contains(";" + name + ":")) {
-                            declared = true;
-                            break;
-                        }
-                    }
-                }
-                if (!declared) {
-                    return true;
-                }
+            if (isTypeVariableStart(signature, i)
+                    && isUndeclaredTypeVariable(classFile, signature, i)) {
+                return true;
             }
         }
         return false;
+    }
+
+    private static boolean isTypeVariableStart(String signature, int index)
+    {
+        return signature.charAt(index) == 'T'
+                && (index == 0 || "<+-[".indexOf(signature.charAt(index - 1)) >= 0);
+    }
+
+    private static boolean isUndeclaredTypeVariable(
+            ClassFile classFile, String signature, int start)
+    {
+        int end = signature.indexOf(';', start);
+        if (end == -1) {
+            return true;
+        }
+        String name = signature.substring(start + 1, end);
+        for (ClassFile owner = classFile; owner != null; owner = owner.getOuterClass()) {
+            Signature classSignature = owner.getAttributeSignature();
+            if (classSignature != null && declaresTypeVariable(classSignature, name)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean declaresTypeVariable(Signature signature, String name)
+    {
+        String value = signature.getSignature();
+        return value.contains("<" + name + ":") || value.contains(";" + name + ":");
     }
 
     private void writeAccessField(int accessFlags)

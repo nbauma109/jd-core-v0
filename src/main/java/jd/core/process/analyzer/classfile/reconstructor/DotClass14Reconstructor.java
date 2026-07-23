@@ -327,10 +327,15 @@ public final class DotClass14Reconstructor
                 || !(list.get(9) instanceof StoreInstruction)) {
             return;
         }
+        DupStore fieldValue = (DupStore) list.get(1);
+        DupStore invocationValue = (DupStore) list.get(4);
+        if (!(fieldValue.getObjectref() instanceof GetStatic getStatic)
+                || !(invocationValue.getObjectref() instanceof Invokestatic invocation)
+                || invocation.getArgs().size() != 1
+                || !(invocation.getArgs().get(0) instanceof Ldc stringConstant)) {
+            return;
+        }
         IfInstruction test = (IfInstruction) list.get(0);
-        GetStatic getStatic = (GetStatic) ((DupStore) list.get(1)).getObjectref();
-        Invokestatic invocation = (Invokestatic) ((DupStore) list.get(4)).getObjectref();
-        Ldc stringConstant = (Ldc) invocation.getArgs().get(0);
         PutStatic putStatic = (PutStatic) list.get(5);
         StoreInstruction result = (StoreInstruction) list.get(9);
         if (putStatic.getIndex() != getStatic.getIndex()) {

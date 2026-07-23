@@ -411,7 +411,9 @@ public final class ClassFileAnalyzer
                     constants.getConstantNameAndType(cfr.getNameAndTypeIndex());
             if (cnat.getNameIndex() == oldNameIndex
                     && cnat.getSignatureIndex() == descriptorIndex) {
-                cnat.setNameIndex(newNameIndex);
+                int nameAndTypeIndex = constants.addConstantNameAndType(
+                        newNameIndex, descriptorIndex);
+                cfr.setNameAndTypeIndex(nameAndTypeIndex);
             }
         }
     }

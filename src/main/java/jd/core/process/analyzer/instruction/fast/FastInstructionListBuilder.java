@@ -174,13 +174,7 @@ public final class FastInstructionListBuilder {
         IntSet offsetLabelSet = new IntSet();
 
         // Initialisation de 'returnOffset' ...
-        int returnOffset = -1;
-        if (!list.isEmpty()) {
-            Instruction instruction = list.get(list.size() - 1);
-            if (instruction.getOpcode() == Const.RETURN) {
-                returnOffset = instruction.getOffset();
-            }
-        }
+        int returnOffset = getReturnOffset(list);
 
         // Recursive call
         if (lfce != null) {
@@ -218,6 +212,12 @@ public final class FastInstructionListBuilder {
         }
     }
 
+    private static int getReturnOffset(List<Instruction> list)
+    {
+        Instruction instruction = list.get(list.size() - 1);
+        return instruction.getOpcode() == Const.RETURN ? instruction.getOffset() : -1;
+    }
+
     private static void renameConflictingDeclarations(
             ConstantPool constants, LocalVariables localVariables,
             List<Instruction> instructions)
@@ -237,29 +237,8 @@ public final class FastInstructionListBuilder {
         for (Instruction instruction : instructions) {
             if (instruction instanceof FastDeclaration declaration) {
                 LocalVariable current = declaration.getLv();
-            String name = current.getName(constants);
-            String signature = constants.getConstantUtf8(current.getSignatureIndex());
-                for (LocalVariable previous : visibleDeclarations) {
-                if (name.equals(previous.getName(constants))
-                            && !signature.equals(constants.getConstantUtf8(previous.getSignatureIndex()))) {
-                    int suffix = 2;
-                    String newName;
-                    do {
-                        newName = name + suffix++;
-                    } while (localVariables.containsLocalVariableWithNameIndex(
-                            constants.addConstantUtf8(newName)));
-                    int newNameIndex = constants.addConstantUtf8(newName);
-                        for (int i = 0; i < localVariables.size(); i++) {
-                            LocalVariable candidate = localVariables.getLocalVariableAt(i);
-                            if (name.equals(candidate.getName(constants))
-                                    && signature.equals(constants.getConstantUtf8(
-                                            candidate.getSignatureIndex()))) {
-                                candidate.setNameIndex(newNameIndex);
-                            }
-                        }
-                    break;
-                }
-            }
+                renameDeclarationIfConflicting(
+                        constants, localVariables, current, visibleDeclarations);
                 visibleDeclarations.add(current);
             }
             for (List<Instruction> block : getBlocks(instruction)) {
@@ -267,6 +246,42 @@ public final class FastInstructionListBuilder {
                         constants, localVariables, block, visibleDeclarations);
             }
         }
+    }
+
+    private static void renameDeclarationIfConflicting(
+            ConstantPool constants, LocalVariables localVariables,
+            LocalVariable current, List<LocalVariable> visibleDeclarations)
+    {
+        String name = current.getName(constants);
+        String signature = constants.getConstantUtf8(current.getSignatureIndex());
+        boolean conflicts = visibleDeclarations.stream().anyMatch(previous ->
+                name.equals(previous.getName(constants))
+                        && !signature.equals(constants.getConstantUtf8(
+                                previous.getSignatureIndex())));
+        if (!conflicts) {
+            return;
+        }
+
+        int newNameIndex = createUniqueNameIndex(constants, localVariables, name);
+        for (int i = 0; i < localVariables.size(); i++) {
+            LocalVariable candidate = localVariables.getLocalVariableAt(i);
+            if (name.equals(candidate.getName(constants))
+                    && signature.equals(constants.getConstantUtf8(
+                            candidate.getSignatureIndex()))) {
+                candidate.setNameIndex(newNameIndex);
+            }
+        }
+    }
+
+    private static int createUniqueNameIndex(
+            ConstantPool constants, LocalVariables localVariables, String name)
+    {
+        int suffix = 2;
+        int nameIndex;
+        do {
+            nameIndex = constants.addConstantUtf8(name + suffix++);
+        } while (localVariables.containsLocalVariableWithNameIndex(nameIndex));
+        return nameIndex;
     }
 
     private static void initializeImmediatelyReturnedDeclarations(

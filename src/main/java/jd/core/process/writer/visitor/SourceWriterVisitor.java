@@ -1460,6 +1460,9 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         {
             // Anonymous new invoke
             firstIndex = computeFirstIndex(this.methodAccessFlags, in);
+            if (inferredPrefix) {
+                firstIndex = skipInferredPrefix(firstIndex, in.getArgs(), prefixInstruction);
+            }
             // Search parameter count of super constructor
             Method constructor =
                 innerClassFile.getMethod(constructorName, constructorDescriptor);
@@ -1522,6 +1525,18 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         }
 
         return writeArgs(in.getLineNumber(), firstIndex, length, in.getArgs(), varArgs);
+    }
+
+    private static int skipInferredPrefix(
+            int firstIndex, List<Instruction> arguments, Instruction prefix)
+    {
+        firstIndex = Math.max(firstIndex, 1);
+        while (firstIndex < arguments.size()
+                && (arguments.get(firstIndex) == prefix
+                    || arguments.get(firstIndex).getOffset() == prefix.getOffset())) {
+            firstIndex++;
+        }
+        return firstIndex;
     }
 
     private static ClassFile findInnerClassFile(
@@ -1825,8 +1840,9 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         String descriptor = constants.getConstantUtf8(cnat.getSignatureIndex());
         return writeArgs(
                 insi.getLineNumber(), 0, insi.getArgs().size(), insi.getArgs(), varArgs,
-                internalClassName, methodName,
-                resolveMethodSignature(internalClassName, methodName, descriptor));
+                new MethodReference(
+                        internalClassName, methodName,
+                        resolveMethodSignature(internalClassName, methodName, descriptor)));
     }
 
     private String getStreamElementSignature(
@@ -1870,7 +1886,9 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         if (classFile.getThisClassName().equals(internalClassName)) {
             Method method = classFile.getMethod(methodName, descriptor);
             if (method != null && method.getAttributeSignature() != null) {
-                return method.getAttributeSignature().getSignature();
+                String signature = method.getAttributeSignature().getSignature();
+                // Method type parameters are not visible in the calling method.
+                return signature.startsWith("<") ? descriptor : signature;
             }
         }
         return descriptor;
@@ -2089,9 +2107,10 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
 
         return writeArgs(
             insi.getLineNumber(), firstIndex, insi.getArgs().size(), insi.getArgs(), varArgs,
-            constants.getConstantClassName(cmr.getClassIndex()),
-            constants.getConstantUtf8(cnat.getNameIndex()),
-            constants.getConstantUtf8(cnat.getSignatureIndex()));
+            new MethodReference(
+                    constants.getConstantClassName(cmr.getClassIndex()),
+                    constants.getConstantUtf8(cnat.getNameIndex()),
+                    constants.getConstantUtf8(cnat.getSignatureIndex())));
     }
 
     private int writeInvokestatic(Invokestatic invokestatic)
@@ -2142,18 +2161,22 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         return writeArgs(
             invokestatic.getLineNumber(), 0,
             invokestatic.getArgs().size(), invokestatic.getArgs(), varArgs,
-            internalClassName, constants.getConstantUtf8(cnat.getNameIndex()), descriptor);
+            new MethodReference(
+                    internalClassName,
+                    constants.getConstantUtf8(cnat.getNameIndex()), descriptor));
     }
 
     private int writeArgs(
         int lineNumber, int firstIndex, int length, List<Instruction> args, boolean varArgs)
     {
-        return writeArgs(lineNumber, firstIndex, length, args, varArgs, null, null, null);
+        return writeArgs(
+                lineNumber, firstIndex, length, args, varArgs,
+                new MethodReference(null, null, null));
     }
 
     private int writeArgs(
         int lineNumber, int firstIndex, int length, List<Instruction> args, boolean varArgs,
-        String internalClassName, String methodName, String descriptor)
+        MethodReference methodReference)
     {
         if (length > firstIndex)
         {
@@ -2166,8 +2189,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
 
             if (firstIndex < args.size()) {
                 lineNumber = writeArgument(
-                        lineNumber, args.get(firstIndex), 0,
-                        internalClassName, methodName, descriptor);
+                        lineNumber, args.get(firstIndex), firstIndex, methodReference);
             }
             for (int i=firstIndex+1; i<length && i<args.size(); i++)
             {
@@ -2195,8 +2217,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                     }
                 } else {
                     lineNumber = writeArgument(
-                            lineNumber, args.get(i), i - firstIndex,
-                            internalClassName, methodName, descriptor);
+                            lineNumber, args.get(i), i, methodReference);
                 }
             }
 
@@ -2222,10 +2243,11 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
 
     private int writeArgument(
             int lineNumber, Instruction argument, int parameterIndex,
-            String internalClassName, String methodName, String descriptor)
+            MethodReference methodReference)
     {
+        String descriptor = methodReference.descriptor();
         if (argument.getOpcode() == Const.ACONST_NULL
-                && requiresNullCast(internalClassName, methodName, descriptor, parameterIndex))
+                && requiresNullCast(methodReference, parameterIndex))
         {
             List<String> parameterSignatures = SignatureUtil.getParameterSignatures(descriptor);
             this.printer.print(lineNumber, '(');
@@ -2235,7 +2257,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
             this.printer.print(lineNumber, ')');
         }
         else if (requiresWildcardErasureCast(
-                argument, methodName, descriptor, parameterIndex))
+                argument, methodReference.methodName(), descriptor, parameterIndex))
         {
             List<String> parameterSignatures = SignatureUtil.getParameterSignatures(descriptor);
             this.printer.print(lineNumber, '(');
@@ -2294,12 +2316,13 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
     }
 
     private boolean requiresNullCast(
-            String internalClassName, String methodName, String descriptor, int parameterIndex)
+            MethodReference methodReference, int parameterIndex)
     {
+        String descriptor = methodReference.descriptor();
         if (descriptor != null && descriptor.indexOf('<') >= 0) {
             return false;
         }
-        if (!this.classFile.getThisClassName().equals(internalClassName)) {
+        if (!this.classFile.getThisClassName().equals(methodReference.internalClassName())) {
             return false;
         }
         List<String> parameters = SignatureUtil.getParameterSignatures(descriptor);
@@ -2308,34 +2331,33 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         }
         for (Method method : this.classFile.getMethods())
         {
-            if (!methodName.equals(method.getName(constants))) {
-                continue;
-            }
             String candidateDescriptor = method.getDescriptor(constants);
-            if (descriptor.equals(candidateDescriptor)) {
-                continue;
-            }
-            List<String> candidateParameters =
-                    SignatureUtil.getParameterSignatures(candidateDescriptor);
-            if (candidateParameters.size() == parameters.size()
-                    && !candidateParameters.get(parameterIndex).equals(parameters.get(parameterIndex))
-                    && isReferenceSignature(candidateParameters.get(parameterIndex))
-                    && isReferenceSignature(parameters.get(parameterIndex))) {
-                boolean otherwiseIdentical = true;
-                for (int i = 0; i < parameters.size(); i++) {
-                    if (i != parameterIndex
-                            && !candidateParameters.get(i).equals(parameters.get(i))) {
-                        otherwiseIdentical = false;
-                        break;
-                    }
-                }
-                if (otherwiseIdentical || descriptor.indexOf('<') == -1) {
-                    return true;
-                }
+            if (methodReference.methodName().equals(method.getName(constants))
+                    && !descriptor.equals(candidateDescriptor)
+                    && hasAmbiguousParameter(
+                            parameters, candidateDescriptor, parameterIndex)) {
+                return true;
             }
         }
         return false;
     }
+
+    private static boolean hasAmbiguousParameter(
+            List<String> parameters, String candidateDescriptor, int parameterIndex)
+    {
+        List<String> candidateParameters =
+                SignatureUtil.getParameterSignatures(candidateDescriptor);
+        if (candidateParameters.size() != parameters.size()
+                || candidateParameters.get(parameterIndex).equals(parameters.get(parameterIndex))
+                || !isReferenceSignature(candidateParameters.get(parameterIndex))
+                || !isReferenceSignature(parameters.get(parameterIndex))) {
+            return false;
+        }
+        return true;
+    }
+
+    private record MethodReference(
+            String internalClassName, String methodName, String descriptor) {}
 
     private static boolean isReferenceSignature(String signature)
     {
