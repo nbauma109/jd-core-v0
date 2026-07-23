@@ -332,7 +332,8 @@ public final class DotClass14Reconstructor
         if (!(fieldValue.getObjectref() instanceof GetStatic getStatic)
                 || !(invocationValue.getObjectref() instanceof Invokestatic invocation)
                 || invocation.getArgs().size() != 1
-                || !(invocation.getArgs().get(0) instanceof Ldc stringConstant)) {
+                || !(invocation.getArgs().get(0) instanceof Ldc stringConstant)
+                || !isClassForName(classFile.getConstantPool(), invocation)) {
             return;
         }
         IfInstruction test = (IfInstruction) list.get(0);
@@ -369,6 +370,14 @@ public final class DotClass14Reconstructor
                 break;
             }
         }
+    }
+
+    private static boolean isClassForName(ConstantPool constants, Invokestatic invocation)
+    {
+        ConstantCP cmr = constants.getConstantMethodref(invocation.getIndex());
+        ConstantNameAndType cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
+        return "java/lang/Class".equals(constants.getConstantClassName(cmr.getClassIndex()))
+                && "forName".equals(constants.getConstantUtf8(cnat.getNameIndex()));
     }
 
     private static ClassFile searchMatchingClassFile(
