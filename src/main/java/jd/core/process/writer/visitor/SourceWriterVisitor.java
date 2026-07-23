@@ -2246,6 +2246,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
             MethodReference methodReference)
     {
         String descriptor = methodReference.descriptor();
+        boolean castWritten = false;
         if (argument.getOpcode() == Const.ACONST_NULL
                 && requiresNullCast(methodReference, parameterIndex))
         {
@@ -2255,6 +2256,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                     this.loader, this.printer, this.referenceMap, this.classFile,
                     parameterSignatures.get(parameterIndex));
             this.printer.print(lineNumber, ')');
+            castWritten = true;
         }
         else if (requiresWildcardErasureCast(
                 argument, methodReference.methodName(), descriptor, parameterIndex))
@@ -2265,6 +2267,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                     this.loader, this.printer, this.referenceMap, this.classFile,
                     parameterSignatures.get(parameterIndex));
             this.printer.print(lineNumber, ')');
+            castWritten = true;
         }
         else if (requiresGenericParameterCast(argument, descriptor, parameterIndex))
         {
@@ -2274,8 +2277,9 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                     this.loader, this.printer, this.referenceMap, this.classFile,
                     parameterSignatures.get(parameterIndex));
             this.printer.print(lineNumber, ')');
+            castWritten = true;
         }
-        return visit(argument);
+        return castWritten ? visit(2, argument, true) : visit(argument);
     }
 
     private boolean requiresGenericParameterCast(
