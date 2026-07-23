@@ -117,7 +117,8 @@ public abstract class AbstractTestCase {
             for (Map.Entry<String, byte[]> entry : classes.entrySet()) {
                 String fileName = entry.getKey();
                 byte[] content = entry.getValue();
-                if (content.length >= 4
+                if (!fileName.endsWith(".class")
+                        && content.length >= 4
                         && content[0] == (byte) 0xCA
                         && content[1] == (byte) 0xFE
                         && content[2] == (byte) 0xBA
