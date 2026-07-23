@@ -2347,13 +2347,10 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
     {
         List<String> candidateParameters =
                 SignatureUtil.getParameterSignatures(candidateDescriptor);
-        if (candidateParameters.size() != parameters.size()
-                || candidateParameters.get(parameterIndex).equals(parameters.get(parameterIndex))
-                || !isReferenceSignature(candidateParameters.get(parameterIndex))
-                || !isReferenceSignature(parameters.get(parameterIndex))) {
-            return false;
-        }
-        return true;
+        return candidateParameters.size() == parameters.size()
+                && !candidateParameters.get(parameterIndex).equals(parameters.get(parameterIndex))
+                && isReferenceSignature(candidateParameters.get(parameterIndex))
+                && isReferenceSignature(parameters.get(parameterIndex));
     }
 
     private record MethodReference(
