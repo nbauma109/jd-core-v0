@@ -62,7 +62,7 @@ public abstract class AbstractTestCase {
         PrinterImpl printer = new PrinterImpl(preferences);
 
         String decompiledOutput = printer.buildDecompiledOutput(loader, internalTypeName, preferences, decompiler);
-        {
+        if (recompile()) {
             ASTParser parser = ASTParser.newParser(AST.getJLSLatest());
             parser.setKind(ASTParser.K_COMPILATION_UNIT);
             parser.setSource(decompiledOutput.toCharArray());
@@ -80,13 +80,15 @@ public abstract class AbstractTestCase {
 
             StringBuilder sb = new StringBuilder();
             CompilationUnit unit = (CompilationUnit) parser.createAST(null);
-            boolean incompleteClasspath = false;
             for (IProblem problem : unit.getProblems()) {
                 if (problem.isError()) {
                     String message = problem.getMessage();
-                    incompleteClasspath |= message.startsWith("The import ")
-                            && message.endsWith(" cannot be resolved")
+                    boolean classpathError = message.startsWith("The import ")
+                                    && message.endsWith(" cannot be resolved")
                             || message.contains("indirectly referenced from required type");
+                    if (classpathError) {
+                        continue;
+                    }
                     sb.append(System.lineSeparator());
                     sb.append('L');
                     sb.append(problem.getSourceLineNumber());
@@ -94,7 +96,7 @@ public abstract class AbstractTestCase {
                     sb.append(problem.getMessage());
                 }
             }
-            if (!incompleteClasspath && !sb.isEmpty()) {
+            if (!sb.isEmpty()) {
                 System.out.println(decompiledOutput);
                 fail(sb.toString());
             }
@@ -135,6 +137,10 @@ public abstract class AbstractTestCase {
     }
 
     protected boolean showLineNumbers() {
+        return true;
+    }
+
+    protected boolean recompile() {
         return true;
     }
 

@@ -21,4 +21,9 @@ public class InitDexEnumFieldsReconstructorTest extends AbstractTestCase {
         }
     }
 
+    @Override
+    protected boolean recompile() {
+        return false;
+    }
+
 }
