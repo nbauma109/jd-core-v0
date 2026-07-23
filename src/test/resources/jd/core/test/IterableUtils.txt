@@ -539,7 +539,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   public static <E> Iterable<E> zippingIterable(Iterable<? extends E> first, final Iterable<? extends E>... others)
+/*      */   public static <E> Iterable<E> zippingIterable(final Iterable<? extends E> first, Iterable<? extends E>... others)
 /*      */   {
 /*  544 */     checkNotNull(first);
 /*  545 */     checkNotNull(others);
@@ -549,7 +549,7 @@
 /*      */       public Iterator<E> iterator()
 /*      */       {
 /*  551 */         Iterator<? extends E>[] iterators = new Iterator[others.length + 1];
-/*  552 */         iterators[0] = others.iterator();
+/*  552 */         iterators[0] = first.iterator();
 /*  553 */         for (int i = 0; i < others.length; i++) {
 /*  554 */           iterators[(i + 1)] = others[i].iterator();
 /*      */         }
@@ -770,7 +770,7 @@
 /*      */   {
 /*  771 */     CollectionUtils.checkIndexBounds(index);
 /*  772 */     if ((iterable instanceof List)) {
-/*  773 */       return ((List)iterable).get(index);
+/*  773 */       return (T)((List)iterable).get(index);
 /*      */     }
 /*  775 */     return IteratorUtils.get(emptyIteratorIfNull(iterable), index);
 /*      */   }
@@ -843,9 +843,9 @@
 /*  843 */       throw new NullPointerException("Predicate must not be null.");
 /*      */     }
 /*      */     
-/*  846 */     Factory<List<O>> factory = FactoryUtils.instantiateFactory(ArrayList.class);
+/*  846 */     Factory<List<O>> factory = (Factory)FactoryUtils.instantiateFactory(ArrayList.class);
 /*      */     
-/*  848 */     Predicate<? super O>[] predicates = { predicate };
+/*  848 */     Predicate<? super O>[] predicates = new Predicate[] { predicate };
 /*  849 */     return partition(iterable, factory, predicates);
 /*      */   }
 /*      */   
@@ -885,7 +885,7 @@
 /*      */ 
 /*      */   public static <O> List<List<O>> partition(Iterable<? extends O> iterable, Predicate<? super O>... predicates)
 /*      */   {
-/*  888 */     Factory<List<O>> factory = FactoryUtils.instantiateFactory(ArrayList.class);
+/*  888 */     Factory<List<O>> factory = (Factory)FactoryUtils.instantiateFactory(ArrayList.class);
 /*  889 */     return partition(iterable, factory, predicates);
 /*      */   }
 /*      */   

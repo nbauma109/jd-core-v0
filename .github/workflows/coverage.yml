@@ -22,11 +22,17 @@ permissions:
 
 jobs:
   build:
-
+    name: Build (${{ matrix.compiler.name }})
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         java: [ 17 ]
+        compiler:
+          - name: javac
+            profile: ''
+          - name: ecj
+            profile: '-Pecj'
 
     steps:
     - uses: actions/checkout@v7
@@ -44,7 +50,7 @@ jobs:
         distribution: 'temurin'
         java-version: ${{ matrix.java }}
     - name: Build with Maven
-      run: mvn -V -B -Pecj test jacoco:report --no-transfer-progress
+      run: mvn -V -B ${{ matrix.compiler.profile }} test jacoco:report --no-transfer-progress
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v7

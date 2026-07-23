@@ -25,8 +25,4 @@ public class PathUtilsTest extends AbstractTestCase {
         }
     }
 
-    @Override
-    protected boolean recompile() {
-        return false;
-    }
 }

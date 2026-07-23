@@ -1,0 +1,26 @@
+// Byte code:
+/*    */ //   0: iconst_0
+/*    */ //   1: istore_1
+/*    */ //   2: iload_1
+/*    */ //   3: aload_0
+/*    */ //   4: getfield 7	jd/core/test/ByteCodeInput:list	Ljava/util/List;
+/*    */ //   7: invokeinterface 13 1 0
+/*    */ //   12: if_icmpge +25 -> 37
+/*    */ //   15: getstatic 19	java/lang/System:out	Ljava/io/PrintStream;
+/*    */ //   18: aload_0
+/*    */ //   19: getfield 7	jd/core/test/ByteCodeInput:list	Ljava/util/List;
+/*    */ //   22: iload_1
+/*    */ //   23: invokeinterface 25 2 0
+/*    */ //   28: invokevirtual 29	java/io/PrintStream:println	(Ljava/lang/Object;)V
+/*    */ //   31: iinc 1 1
+/*    */ //   34: goto -32 -> 2
+/*    */ //   37: return
+/*    */ // Line number table:
+/*    */ //   Java source line #11	-> byte code offset #0
+/*    */ //   Java source line #12	-> byte code offset #15
+/*    */ //   Java source line #11	-> byte code offset #31
+/*    */ //   Java source line #14	-> byte code offset #37
+/*    */ // Local variable table:
+/*    */ //   start	length	slot	name	signature
+/*    */ //   0	38	0	this	ByteCodeInput
+/*    */ //   1	31	1	i	int

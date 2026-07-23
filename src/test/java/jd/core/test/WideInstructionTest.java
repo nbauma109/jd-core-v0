@@ -14,13 +14,13 @@ public class WideInstructionTest extends AbstractTestCase {
     @Test
     public void test() throws Exception {
         String output = decompile("jd/core/test/WideInstruction");
-        assertEquals(IOUtils.toString(getClass().getResource("WideInstruction.txt"), StandardCharsets.UTF_8), output);
+        assertEquals(IOUtils.toString(expectedResource("WideInstruction.txt"), StandardCharsets.UTF_8), output);
     }
 
     @Test
     public void testECJInnerClasses() throws Exception {
-        String output = decompile("jd/core/test/WideInstructionInnerClasses");
-        assertEquals(IOUtils.toString(getClass().getResource("WideInstructionInnerClasses.txt"), StandardCharsets.UTF_8), output);
+        String output = decompile("jd/core/test/WideInstructionInnerClasses", "17");
+        assertEquals(IOUtils.toString(expectedResource("WideInstructionInnerClasses.txt"), StandardCharsets.UTF_8), output);
     }
 
     @Test
@@ -77,8 +77,4 @@ public class WideInstructionTest extends AbstractTestCase {
         }
     }
     
-    @Override
-    protected boolean recompile() {
-        return false;
-    }
 }

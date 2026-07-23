@@ -1660,6 +1660,9 @@ public final class ClassFileWriter
         int signatureIndex = field.getSignatureIndex();
 
         String signature = constants.getConstantUtf8(signatureIndex);
+        if (containsUndeclaredTypeVariable(classFile, signature)) {
+            signature = constants.getConstantUtf8(field.getDescriptorIndex());
+        }
 
         SignatureWriter.writeSignature(
             this.loader, this.printer, this.referenceMap,
@@ -1701,6 +1704,47 @@ public final class ClassFileWriter
             }
             this.printer.print(';');
         }
+    }
+
+    private static boolean containsUndeclaredTypeVariable(
+            ClassFile classFile, String signature)
+    {
+        for (int i = 0; i < signature.length(); i++) {
+            if (isTypeVariableStart(signature, i)
+                    && isUndeclaredTypeVariable(classFile, signature, i)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isTypeVariableStart(String signature, int index)
+    {
+        return signature.charAt(index) == 'T'
+                && (index == 0 || "<+-[".indexOf(signature.charAt(index - 1)) >= 0);
+    }
+
+    private static boolean isUndeclaredTypeVariable(
+            ClassFile classFile, String signature, int start)
+    {
+        int end = signature.indexOf(';', start);
+        if (end == -1) {
+            return true;
+        }
+        String name = signature.substring(start + 1, end);
+        for (ClassFile owner = classFile; owner != null; owner = owner.getOuterClass()) {
+            Signature classSignature = owner.getAttributeSignature();
+            if (classSignature != null && declaresTypeVariable(classSignature, name)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean declaresTypeVariable(Signature signature, String name)
+    {
+        String value = signature.getSignature();
+        return value.contains("<" + name + ":") || value.contains(";" + name + ":");
     }
 
     private void writeAccessField(int accessFlags)

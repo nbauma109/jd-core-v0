@@ -22,6 +22,7 @@ import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.ConstantString;
+import org.apache.bcel.classfile.CodeException;
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.List;
@@ -39,6 +40,8 @@ import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.Invokestatic;
 import jd.core.model.instruction.bytecode.instruction.Ldc;
 import jd.core.model.instruction.bytecode.instruction.PutStatic;
+import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
+import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
 import jd.core.model.reference.ReferenceMap;
 import jd.core.process.analyzer.classfile.visitor.ReplaceGetStaticVisitor;
@@ -61,8 +64,11 @@ public final class DotClass14Reconstructor
     }
 
     public static void reconstruct(
-        ReferenceMap referenceMap, ClassFile classFile, List<Instruction> list)
+        ReferenceMap referenceMap, ClassFile classFile, Method currentMethod,
+        List<Instruction> list)
     {
+        reconstructEcjInlineDotClass(referenceMap, classFile, currentMethod, list);
+
         int i = list.size();
 
         if  (i < 6) {
@@ -307,6 +313,71 @@ public final class DotClass14Reconstructor
                 }
             }
         }
+    }
+
+    private static void reconstructEcjInlineDotClass(
+            ReferenceMap referenceMap, ClassFile classFile, Method method,
+            List<Instruction> list)
+    {
+        if (list.size() != 11
+                || !(list.get(0) instanceof IfInstruction)
+                || !(list.get(1) instanceof DupStore)
+                || !(list.get(4) instanceof DupStore)
+                || !(list.get(5) instanceof PutStatic)
+                || !(list.get(9) instanceof StoreInstruction)) {
+            return;
+        }
+        DupStore fieldValue = (DupStore) list.get(1);
+        DupStore invocationValue = (DupStore) list.get(4);
+        if (!(fieldValue.getObjectref() instanceof GetStatic getStatic)
+                || !(invocationValue.getObjectref() instanceof Invokestatic invocation)
+                || invocation.getArgs().size() != 1
+                || !(invocation.getArgs().get(0) instanceof Ldc stringConstant)
+                || !isClassForName(classFile.getConstantPool(), invocation)) {
+            return;
+        }
+        IfInstruction test = (IfInstruction) list.get(0);
+        PutStatic putStatic = (PutStatic) list.get(5);
+        StoreInstruction result = (StoreInstruction) list.get(9);
+        if (putStatic.getIndex() != getStatic.getIndex()) {
+            return;
+        }
+
+        Constant value = classFile.getConstantPool().getConstantValue(stringConstant.getIndex());
+        if (!(value instanceof ConstantString constantString)) {
+            return;
+        }
+        String dottedName = classFile.getConstantPool().getConstantUtf8(constantString.getStringIndex());
+        String internalName = dottedName.replace(
+                StringConstants.PACKAGE_SEPARATOR, StringConstants.INTERNAL_PACKAGE_SEPARATOR);
+        referenceMap.add(internalName);
+        int classNameIndex = classFile.getConstantPool().addConstantUtf8(internalName);
+        int classIndex = classFile.getConstantPool().addConstantClass(classNameIndex);
+        Ldc classLiteral = new Ldc(Const.LDC, test.getOffset(), test.getLineNumber(), classIndex);
+        test.setCmp(test.getCmp() == ByteCodeConstants.CMP_EQ
+                ? ByteCodeConstants.CMP_NE : ByteCodeConstants.CMP_EQ);
+        result.setValueref(new TernaryOperator(
+                ByteCodeConstants.TERNARYOP, result.getOffset(), result.getLineNumber(),
+                test, classLiteral, result.getValueref()));
+        list.subList(0, 9).clear();
+        method.setCodeExceptions(new CodeException[0]);
+
+        ConstantFieldref fieldref = classFile.getConstantPool().getConstantFieldref(getStatic.getIndex());
+        for (Field field : classFile.getFields()) {
+            if (field.getNameIndex() == classFile.getConstantPool()
+                    .getConstantNameAndType(fieldref.getNameAndTypeIndex()).getNameIndex()) {
+                field.setAccessFlags(field.getAccessFlags() | Const.ACC_SYNTHETIC);
+                break;
+            }
+        }
+    }
+
+    private static boolean isClassForName(ConstantPool constants, Invokestatic invocation)
+    {
+        ConstantCP cmr = constants.getConstantMethodref(invocation.getIndex());
+        ConstantNameAndType cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
+        return "java/lang/Class".equals(constants.getConstantClassName(cmr.getClassIndex()))
+                && "forName".equals(constants.getConstantUtf8(cnat.getNameIndex()));
     }
 
     private static ClassFile searchMatchingClassFile(

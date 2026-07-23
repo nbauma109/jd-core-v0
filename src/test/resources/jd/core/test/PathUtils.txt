@@ -693,7 +693,7 @@
 /*  693 */     Objects.requireNonNull(filter, "filter");
 /*  694 */     Objects.requireNonNull(collector, "collector");
 /*  695 */     if (stream == null) {
-/*  696 */       return Stream.empty().collect(collector);
+/*  696 */       return ((Stream<Path>)(Stream)Stream.empty()).collect(collector);
 /*      */     }
 /*  698 */     return stream.filter(p ->  {
 /*      */       try {
@@ -950,7 +950,7 @@
 /*      */ 
 /*      */   static Set<FileVisitOption> toFileVisitOptionSet(FileVisitOption... fileVisitOptions)
 /*      */   {
-/*  953 */     return fileVisitOptions == null ? EnumSet.noneOf(FileVisitOption.class) : 
+/*  953 */     return fileVisitOptions == null ? (Set)EnumSet.noneOf(FileVisitOption.class) : 
 /*  954 */       (Set)Stream.of(fileVisitOptions).collect(Collectors.toSet());
 /*      */   }
 /*      */   

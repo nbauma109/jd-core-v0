@@ -22,8 +22,4 @@ public class FieldUtilsTest extends AbstractTestCase {
     	}
     }
 
-    @Override
-    protected boolean recompile() {
-        return false;
-    }
 }

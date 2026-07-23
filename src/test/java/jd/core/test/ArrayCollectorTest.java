@@ -11,6 +11,6 @@ public class ArrayCollectorTest extends AbstractTestCase {
     @Test
     public void test() throws Exception {
         String output = decompile("jd/core/test/ArrayCollector");
-        assertEquals(IOUtils.toString(getClass().getResource("ArrayCollector.txt"), StandardCharsets.UTF_8), output);
+        assertEquals(IOUtils.toString(expectedResource("ArrayCollector.txt"), StandardCharsets.UTF_8), output);
     }
 }

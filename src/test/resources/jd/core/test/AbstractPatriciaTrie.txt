@@ -144,7 +144,7 @@
 /*      */     }
 /*      */     
 /*  146 */     TrieEntry<K, V> found = getNearestEntryForKey(key, lengthInBits);
-/*  147 */     if (compareKeys(key, found.key)) {
+/*  147 */     if (compareKeys(key, (K)found.key)) {
 /*  148 */       if (found.isEmpty()) {
 /*  149 */         incrementSize();
 /*      */       } else {
@@ -153,7 +153,7 @@
 /*  153 */       return found.setKeyValue(key, value);
 /*      */     }
 /*      */     
-/*  156 */     int bitIndex = bitIndex(key, found.key);
+/*  156 */     int bitIndex = bitIndex(key, (K)found.key);
 /*  157 */     if (!KeyAnalyzer.isOutOfBoundsIndex(bitIndex)) {
 /*  158 */       if (KeyAnalyzer.isValidBitIndex(bitIndex))
 /*      */       {
@@ -198,7 +198,7 @@
 /*      */       {
 /*  199 */         entry.predecessor = entry;
 /*      */         
-/*  201 */         if (!isBitSet(entry.key, entry.bitIndex, lengthInBits)) {
+/*  201 */         if (!isBitSet((K)entry.key, entry.bitIndex, lengthInBits)) {
 /*  202 */           entry.left = entry;
 /*  203 */           entry.right = current;
 /*      */         } else {
@@ -216,7 +216,7 @@
 /*  216 */           current.predecessor = entry;
 /*      */         }
 /*      */         
-/*  219 */         if (path == this.root || !isBitSet(entry.key, path.bitIndex, lengthInBits)) {
+/*  219 */         if (path == this.root || !isBitSet((K)entry.key, path.bitIndex, lengthInBits)) {
 /*  220 */           path.left = entry;
 /*      */         } else {
 /*  222 */           path.right = entry;
@@ -227,7 +227,7 @@
 /*      */       
 /*  228 */       path = current;
 /*      */       
-/*  230 */       if (!isBitSet(entry.key, current.bitIndex, lengthInBits)) {
+/*  230 */       if (!isBitSet((K)entry.key, current.bitIndex, lengthInBits)) {
 /*  231 */         current = current.left;
 /*      */       } else {
 /*  233 */         current = current.right;
@@ -256,7 +256,7 @@
 /*      */     
 /*  257 */     int lengthInBits = lengthInBits(key);
 /*  258 */     TrieEntry<K, V> entry = getNearestEntryForKey(key, lengthInBits);
-/*  259 */     return !entry.isEmpty() && compareKeys(key, entry.key) ? entry : null;
+/*  259 */     return !entry.isEmpty() && compareKeys(key, (K)entry.key) ? entry : null;
 /*      */   }
 /*      */   
 /*      */ 
@@ -382,7 +382,7 @@
 /*  382 */     K key = castKey(k);
 /*  383 */     int lengthInBits = lengthInBits(key);
 /*  384 */     TrieEntry<K, V> entry = getNearestEntryForKey(key, lengthInBits);
-/*  385 */     return !entry.isEmpty() && compareKeys(key, entry.key);
+/*  385 */     return !entry.isEmpty() && compareKeys(key, (K)entry.key);
 /*      */   }
 /*      */   
 /*      */   @Override
@@ -426,7 +426,7 @@
 /*  426 */     TrieEntry<K, V> path = this.root;
 /*      */     for (;;) {
 /*  428 */       if (current.bitIndex <= path.bitIndex) {
-/*  429 */         if (!current.isEmpty() && compareKeys(key, current.key)) {
+/*  429 */         if (!current.isEmpty() && compareKeys(key, (K)current.key)) {
 /*  430 */           return removeEntry(current);
 /*      */         }
 /*  432 */         return null;
@@ -903,11 +903,11 @@
 /*      */     }
 /*      */     
 /*  905 */     TrieEntry<K, V> found = getNearestEntryForKey(key, lengthInBits);
-/*  906 */     if (compareKeys(key, found.key)) {
+/*  906 */     if (compareKeys(key, (K)found.key)) {
 /*  907 */       return nextEntry(found);
 /*      */     }
 /*      */     
-/*  910 */     int bitIndex = bitIndex(key, found.key);
+/*  910 */     int bitIndex = bitIndex(key, (K)found.key);
 /*  911 */     if (KeyAnalyzer.isValidBitIndex(bitIndex)) {
 /*  912 */       TrieEntry<K, V> added = new TrieEntry<>(key, null, bitIndex);
 /*  913 */       addEntry(added, lengthInBits);
@@ -965,11 +965,11 @@
 /*      */     }
 /*      */     
 /*  967 */     TrieEntry<K, V> found = getNearestEntryForKey(key, lengthInBits);
-/*  968 */     if (compareKeys(key, found.key)) {
+/*  968 */     if (compareKeys(key, (K)found.key)) {
 /*  969 */       return found;
 /*      */     }
 /*      */     
-/*  972 */     int bitIndex = bitIndex(key, found.key);
+/*  972 */     int bitIndex = bitIndex(key, (K)found.key);
 /*  973 */     if (KeyAnalyzer.isValidBitIndex(bitIndex)) {
 /*  974 */       TrieEntry<K, V> added = new TrieEntry<>(key, null, bitIndex);
 /*  975 */       addEntry(added, lengthInBits);
@@ -1020,11 +1020,11 @@
 /*      */     }
 /*      */     
 /* 1022 */     TrieEntry<K, V> found = getNearestEntryForKey(key, lengthInBits);
-/* 1023 */     if (compareKeys(key, found.key)) {
+/* 1023 */     if (compareKeys(key, (K)found.key)) {
 /* 1024 */       return previousEntry(found);
 /*      */     }
 /*      */     
-/* 1027 */     int bitIndex = bitIndex(key, found.key);
+/* 1027 */     int bitIndex = bitIndex(key, (K)found.key);
 /* 1028 */     if (KeyAnalyzer.isValidBitIndex(bitIndex)) {
 /* 1029 */       TrieEntry<K, V> added = new TrieEntry<>(key, null, bitIndex);
 /* 1030 */       addEntry(added, lengthInBits);
@@ -1061,11 +1061,11 @@
 /*      */     }
 /*      */     
 /* 1063 */     TrieEntry<K, V> found = getNearestEntryForKey(key, lengthInBits);
-/* 1064 */     if (compareKeys(key, found.key)) {
+/* 1064 */     if (compareKeys(key, (K)found.key)) {
 /* 1065 */       return found;
 /*      */     }
 /*      */     
-/* 1068 */     int bitIndex = bitIndex(key, found.key);
+/* 1068 */     int bitIndex = bitIndex(key, (K)found.key);
 /* 1069 */     if (KeyAnalyzer.isValidBitIndex(bitIndex)) {
 /* 1070 */       TrieEntry<K, V> added = new TrieEntry<>(key, null, bitIndex);
 /* 1071 */       addEntry(added, lengthInBits);
@@ -1130,7 +1130,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/* 1133 */     if (isBitSet(prefix, endIndexInBits - 1, endIndexInBits) != isBitSet(entry.key, lengthInBits - 1, lengthInBits(entry.key))) {
+/* 1133 */     if (isBitSet(prefix, endIndexInBits - 1, endIndexInBits) != isBitSet((K)entry.key, lengthInBits - 1, lengthInBits((K)entry.key))) {
 /* 1134 */       return null;
 /*      */     }
 /*      */     

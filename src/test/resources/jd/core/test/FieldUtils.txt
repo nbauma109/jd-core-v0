@@ -295,7 +295,7 @@
 /*     */   {
 /* 296 */     Validate.notNull(field, "field");
 /* 297 */     Validate.isTrue(Modifier.isStatic(field.getModifiers()), "The field '%s' is not static", field.getName());
-/* 298 */     return readField(field, null, forceAccess);
+/* 298 */     return readField(field, (Object)null, forceAccess);
 /*     */   }
 /*     */   
 /*     */ 
@@ -550,7 +550,7 @@
 /* 550 */     Validate.notNull(field, "field");
 /* 551 */     Validate.isTrue(Modifier.isStatic(field.getModifiers()), "The field %s.%s is not static", field.getDeclaringClass().getName(), field
 /* 552 */       .getName());
-/* 553 */     writeField(field, null, value, forceAccess);
+/* 553 */     writeField(field, (Object)null, value, forceAccess);
 /*     */   }
 /*     */   
 /*     */ 
@@ -641,7 +641,7 @@
 /* 641 */     Field field = getDeclaredField(cls, fieldName, forceAccess);
 /* 642 */     Validate.notNull(field, "Cannot locate declared field %s.%s", cls.getName(), fieldName);
 /*     */     
-/* 644 */     writeField(field, null, value, false);
+/* 644 */     writeField(field, (Object)null, value, false);
 /*     */   }
 /*     */   
 /*     */ 

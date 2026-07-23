@@ -13,6 +13,6 @@ public class ArrayCreationTest extends AbstractTestCase {
     @Test
     public void test() throws IOException {
         String output = decompile("jd/core/test/ArrayCreation");
-        assertEquals(IOUtils.toString(getClass().getResource("ArrayCreation.txt"), StandardCharsets.UTF_8), output);
+        assertEquals(IOUtils.toString(expectedResource("ArrayCreation.txt"), StandardCharsets.UTF_8), output);
     }
 }

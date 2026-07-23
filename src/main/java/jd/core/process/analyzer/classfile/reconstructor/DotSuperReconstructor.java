@@ -26,6 +26,7 @@ import jd.core.model.classfile.ConstantPool;
 import jd.core.model.instruction.bytecode.instruction.DupLoad;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.Invokespecial;
+import jd.core.model.instruction.bytecode.instruction.Invokestatic;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
 import jd.core.model.instruction.bytecode.instruction.Pop;
 import jd.core.process.analyzer.classfile.visitor.SearchInstructionByTypeVisitor;
@@ -46,13 +47,21 @@ public final class DotSuperReconstructor
             Instruction instruction = list.get(i);
             if (instruction instanceof Pop pop) {
                 Instruction objectref = pop.getObjectref();
-                if (objectref instanceof Invokevirtual iv) {
+                if (objectref instanceof Invokevirtual || objectref instanceof Invokestatic) {
                     ConstantPool cp = classFile.getConstantPool();
-                    ConstantCP cmr = cp.getConstantMethodref(iv.getIndex());
+                    int methodIndex = objectref instanceof Invokevirtual iv
+                            ? iv.getIndex() : ((Invokestatic)objectref).getIndex();
+                    ConstantCP cmr = cp.getConstantMethodref(methodIndex);
                     ConstantNameAndType cnat = cp.getConstantNameAndType(cmr.getNameAndTypeIndex());
+                    String owner = cp.getConstantClassName(cmr.getClassIndex());
                     String methodName = cp.getConstantUtf8(cnat.getNameIndex());
                     String methodDesc = cp.getConstantUtf8(cnat.getSignatureIndex());
-                    if ("getClass".equals(methodName) && "()Ljava/lang/Class;".equals(methodDesc)) {
+                    boolean nullCheck = "getClass".equals(methodName)
+                            && "()Ljava/lang/Class;".equals(methodDesc)
+                            || "java/util/Objects".equals(owner)
+                            && "requireNonNull".equals(methodName)
+                            && "(Ljava/lang/Object;)Ljava/lang/Object;".equals(methodDesc);
+                    if (nullCheck) {
                         Invokespecial is = visitor.visit(list.get(i+1));
                         if (is != null
                             && !is.getArgs().isEmpty()

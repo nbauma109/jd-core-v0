@@ -13,6 +13,6 @@ public class ForEachWithLambdaMethodTest extends AbstractTestCase {
     @Test
     public void test() throws IOException {
         String output = decompile("jd/core/test/ForEachWithLambdaMethod");
-        assertEquals(IOUtils.toString(getClass().getResource("ForEachWithLambdaMethod.txt"), StandardCharsets.UTF_8), output);
+        assertEquals(IOUtils.toString(expectedResource("ForEachWithLambdaMethod.txt"), StandardCharsets.UTF_8), output);
     }
 }

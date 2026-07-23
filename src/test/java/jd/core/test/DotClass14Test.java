@@ -30,8 +30,4 @@ public class DotClass14Test extends AbstractTestCase {
         }
     }
 
-    @Override
-    protected boolean recompile() {
-        return false;
-    }
 }

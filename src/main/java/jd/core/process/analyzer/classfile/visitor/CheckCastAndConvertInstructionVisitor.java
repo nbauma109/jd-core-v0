@@ -18,6 +18,7 @@ package jd.core.process.analyzer.classfile.visitor;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantFieldref;
+import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.Signature;
 import org.jd.core.v1.model.javasyntax.type.BaseType;
@@ -57,11 +58,13 @@ import jd.core.model.instruction.bytecode.instruction.InitArrayInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeInstruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
+import jd.core.model.instruction.bytecode.instruction.Ldc;
 import jd.core.model.instruction.bytecode.instruction.MultiANewArray;
 import jd.core.model.instruction.bytecode.instruction.NewArray;
 import jd.core.model.instruction.bytecode.instruction.PutField;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.Switch;
+import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.UnaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
 import jd.core.model.instruction.bytecode.instruction.attribute.ValuerefAttribute;
@@ -129,6 +132,12 @@ public final class CheckCastAndConvertInstructionVisitor
                 visit(classFile, method, boi.getValue1());
                 visit(classFile, method, boi.getValue2());
             }
+            break;
+        case ByteCodeConstants.TERNARYOP:
+            TernaryOperator ternary = (TernaryOperator) instruction;
+            visit(classFile, method, ternary.getTest());
+            visit(classFile, method, ternary.getValue1());
+            visit(classFile, method, ternary.getValue2());
             break;
         case Const.CHECKCAST:
             {
@@ -340,6 +349,13 @@ public final class CheckCastAndConvertInstructionVisitor
             LocalVariables localVariables, ClassFile classFile,
             ValuerefAttribute valuerefAttribute, int descriptorIndex) {
         Instruction valueref = valuerefAttribute.getValueref();
+        if (valueref instanceof TernaryOperator ternaryOperator) {
+            ternaryOperator.setValue1(addOrUpdateInstructionCast(
+                    localVariables, classFile, ternaryOperator.getValue1(), descriptorIndex));
+            ternaryOperator.setValue2(addOrUpdateInstructionCast(
+                    localVariables, classFile, ternaryOperator.getValue2(), descriptorIndex));
+            return;
+        }
         String expressionSignature = valueref.getReturnedSignature(classFile, localVariables);
         String signature = classFile.getConstantPool().getConstantUtf8(descriptorIndex);
         TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
@@ -361,12 +377,23 @@ public final class CheckCastAndConvertInstructionVisitor
                         Const.CHECKCAST, valuerefAttribute.getOffset(),
                         valuerefAttribute.getLineNumber(), descriptorIndex, valueref));
             }
-            if (receiverType.isObjectType() && expressionType != null && expressionType.isObjectType()
-                && typeMaker.isRawTypeAssignable((ObjectType) receiverType, (ObjectType) expressionType)) {
+            if (receiverType.isObjectType() && expressionType != null && expressionType.isObjectType()) {
                 ObjectType otLeft = (ObjectType) receiverType;
                 ObjectType otRight = (ObjectType) expressionType;
                 BaseTypeArgument typeArgsLeft = otLeft.getTypeArguments();
                 BaseTypeArgument typeArgsRight = otRight.getTypeArguments();
+                if (typeArgsLeft instanceof ObjectType
+                        && typeArgsRight instanceof GenericType
+                        && hasClassLiteralArgument(classFile, valueref)) {
+                    int rawDescriptorIndex = classFile.getConstantPool().addConstantUtf8(
+                            receiverType.getDescriptor());
+                    valuerefAttribute.setValueref(new CheckCast(
+                            Const.CHECKCAST, valuerefAttribute.getOffset(),
+                            valuerefAttribute.getLineNumber(), rawDescriptorIndex, valueref));
+                }
+                if (!typeMaker.isRawTypeAssignable(otLeft, otRight)) {
+                    return;
+                }
                 if (typeArgsLeft instanceof ObjectType && typeArgsRight instanceof WildcardTypeArgument
                  || typeArgsLeft instanceof GenericType
                      && (typeArgsRight instanceof WildcardExtendsTypeArgument
@@ -392,4 +419,35 @@ public final class CheckCastAndConvertInstructionVisitor
             }
         }
     }
+
+    private static boolean hasClassLiteralArgument(ClassFile classFile, Instruction instruction)
+    {
+        if (!(instruction instanceof InvokeInstruction invocation)) {
+            return false;
+        }
+        for (Instruction argument : invocation.getArgs()) {
+            if (argument instanceof Ldc ldc
+                    && classFile.getConstantPool().get(ldc.getIndex()) instanceof ConstantClass) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static Instruction addOrUpdateInstructionCast(
+            LocalVariables localVariables, ClassFile classFile,
+            Instruction instruction, int descriptorIndex)
+    {
+        ValuerefAttribute attribute = new ValuerefAttribute() {
+            private Instruction value = instruction;
+
+            @Override public Instruction getValueref() { return value; }
+            @Override public void setValueref(Instruction value) { this.value = value; }
+            @Override public int getOffset() { return instruction.getOffset(); }
+            @Override public int getLineNumber() { return instruction.getLineNumber(); }
+        };
+        addOrUpdateCast(localVariables, classFile, attribute, descriptorIndex);
+        return attribute.getValueref();
+    }
+
 }

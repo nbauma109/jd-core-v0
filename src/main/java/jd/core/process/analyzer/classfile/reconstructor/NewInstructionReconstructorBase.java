@@ -18,6 +18,7 @@ package jd.core.process.analyzer.classfile.reconstructor;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantCP;
+import org.apache.bcel.classfile.ConstantNameAndType;
 
 import java.util.List;
 
@@ -32,6 +33,7 @@ import jd.core.model.instruction.bytecode.instruction.CheckCast;
 import jd.core.model.instruction.bytecode.instruction.IndexInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNew;
+import jd.core.util.SignatureUtil;
 import jd.core.util.UtilConstants;
 
 public class NewInstructionReconstructorBase
@@ -67,7 +69,7 @@ public class NewInstructionReconstructorBase
                 if (index != UtilConstants.INVALID_INDEX)
                 {
                     innerField.setAnonymousClassConstructorParameterIndex(UtilConstants.INVALID_INDEX);
-                    Instruction arg = searchInstructionInArgs(invokeNew.getArgs(), index);
+                    Instruction arg = searchInstructionInArgs(constants, invokeNew, index);
                     if (arg != null)
                     {
                         if (arg.getOpcode() == Const.CHECKCAST) {
@@ -104,11 +106,31 @@ public class NewInstructionReconstructorBase
         }
     }
 
-    private static Instruction searchInstructionInArgs(List<Instruction> args, int index) {
-        return args.stream()
-                .filter(IndexInstruction.class::isInstance)
-                .filter(ii -> ((IndexInstruction) ii).getIndex() == index)
-                .findFirst()
-                .orElse(null);
+    private static Instruction searchInstructionInArgs(
+            ConstantPool constants, InvokeNew invokeNew, int localSlotIndex) {
+        ConstantCP methodRef = constants.getConstantMethodref(invokeNew.getIndex());
+        ConstantNameAndType nameAndType =
+                constants.getConstantNameAndType(methodRef.getNameAndTypeIndex());
+        String descriptor = constants.getConstantUtf8(nameAndType.getSignatureIndex());
+        List<String> parameterSignatures = SignatureUtil.getParameterSignatures(descriptor);
+
+        int slot = 0;
+        int parameterIndex = 0;
+        while (parameterIndex < parameterSignatures.size() && slot < localSlotIndex) {
+            String signature = parameterSignatures.get(parameterIndex++);
+            slot += "J".equals(signature) || "D".equals(signature) ? 2 : 1;
+        }
+        if (slot != localSlotIndex) {
+            return null;
+        }
+
+        List<Instruction> args = invokeNew.getArgs();
+        int removedParameterCount = parameterSignatures.size() - args.size();
+        int trailingParameterCount = removedParameterCount > 0
+                && descriptor.endsWith("$1;)V") ? 1 : 0;
+        parameterIndex -= removedParameterCount - trailingParameterCount;
+        return parameterIndex >= 0 && parameterIndex < args.size()
+                ? args.get(parameterIndex)
+                : null;
     }
 }

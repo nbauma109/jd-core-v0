@@ -20,8 +20,4 @@ public class SwitchInCatchTest extends AbstractTestCase {
         assertEquals(IOUtils.toString(getClass().getResource("SwitchInCatch2.txt"), StandardCharsets.UTF_8), output);
     }
     
-    @Override
-    protected boolean recompile() {
-        return false;
-    }
 }

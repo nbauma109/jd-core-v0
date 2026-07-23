@@ -21,8 +21,4 @@ public class TimeZoneDisplayKeyTest extends AbstractTestCase {
     	}
     }
 
-    @Override
-    protected boolean recompile() {
-        return false;
-    }
 }

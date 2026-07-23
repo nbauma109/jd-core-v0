@@ -13,6 +13,6 @@ public class InnerClassMadnessTest extends AbstractTestCase {
     @Test
     public void test() throws IOException {
         String output = decompile("jd/core/test/InnerClassMadness");
-        assertEquals(IOUtils.toString(getClass().getResource("InnerClassMadness.txt"), StandardCharsets.UTF_8), output);
+        assertEquals(IOUtils.toString(expectedResource("InnerClassMadness.txt"), StandardCharsets.UTF_8), output);
     }
 }
