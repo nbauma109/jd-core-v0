@@ -108,6 +108,7 @@ import jd.core.model.instruction.fast.instruction.FastInstruction;
 import jd.core.model.instruction.fast.instruction.FastSwitch;
 import jd.core.model.reference.ReferenceMap;
 import jd.core.printer.InstructionPrinter;
+import jd.core.process.deserializer.ClassFileDeserializer;
 import jd.core.process.layouter.visitor.MinLineNumberVisitor;
 import jd.core.process.writer.ConstantValueWriter;
 import jd.core.process.writer.SignatureWriter;
@@ -1527,7 +1528,12 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
             }
         }
 
-        return writeArgs(in.getLineNumber(), firstIndex, length, in.getArgs(), varArgs);
+        int parameterOffset = prefixInstruction != null && !inferredPrefix ? 1 : 0;
+        return writeArgs(
+                in.getLineNumber(), firstIndex, length, in.getArgs(), varArgs,
+                new MethodReference(
+                        internalClassName, constructorName, constructorDescriptor,
+                        parameterOffset, false));
     }
 
     private static int skipInferredPrefix(
@@ -2265,6 +2271,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
             int lineNumber, Instruction argument, int parameterIndex,
             MethodReference methodReference)
     {
+        parameterIndex += methodReference.parameterOffset();
         String descriptor = methodReference.descriptor();
         boolean castWritten = false;
         if (argument.getOpcode() == Const.ACONST_NULL
@@ -2278,7 +2285,8 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
             this.printer.print(lineNumber, ')');
             castWritten = true;
         }
-        else if (requiresWildcardErasureCast(
+        else if (methodReference.allowWildcardErasureCast()
+                && requiresWildcardErasureCast(
                 argument, methodReference.methodName(), descriptor, parameterIndex))
         {
             List<String> parameterSignatures = SignatureUtil.getParameterSignatures(descriptor);
@@ -2348,24 +2356,45 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
             MethodReference methodReference, int parameterIndex)
     {
         String descriptor = methodReference.descriptor();
-        if (descriptor != null && descriptor.indexOf('<') >= 0) {
-            return false;
-        }
-        if (!this.classFile.getThisClassName().equals(methodReference.internalClassName())) {
+        if (descriptor == null || descriptor.indexOf('<') >= 0) {
             return false;
         }
         List<String> parameters = SignatureUtil.getParameterSignatures(descriptor);
         if (parameterIndex >= parameters.size()) {
             return false;
         }
-        for (Method method : this.classFile.getMethods())
+        ClassFile owner = this.classFile;
+        if (!owner.getThisClassName().equals(methodReference.internalClassName())) {
+            owner = ClassFileDeserializer.deserialize(
+                    this.loader, methodReference.internalClassName());
+        }
+        return owner != null && hasAmbiguousOverload(
+                owner, methodReference.methodName(), descriptor,
+                parameters, parameterIndex);
+    }
+
+    private static boolean hasAmbiguousOverload(
+            ClassFile owner, String methodName, String descriptor,
+            List<String> parameters, int parameterIndex)
+    {
+        ConstantPool ownerConstants = owner.getConstantPool();
+        for (Method method : owner.getMethods())
         {
-            String candidateDescriptor = method.getDescriptor(constants);
-            if (methodReference.methodName().equals(method.getName(constants))
+            String candidateDescriptor = method.getDescriptor(ownerConstants);
+            if (methodName.equals(method.getName(ownerConstants))
                     && !descriptor.equals(candidateDescriptor)
                     && hasAmbiguousParameter(
                             parameters, candidateDescriptor, parameterIndex)) {
                 return true;
+            }
+        }
+        if (!"<init>".equals(methodName)) {
+            for (ClassFile inheritedOwner : owner.getSuperClassAndInterfaces().values()) {
+                if (inheritedOwner != null && hasAmbiguousOverload(
+                        inheritedOwner, methodName, descriptor,
+                        parameters, parameterIndex)) {
+                    return true;
+                }
             }
         }
         return false;
@@ -2383,7 +2412,14 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
     }
 
     private record MethodReference(
-            String internalClassName, String methodName, String descriptor) {}
+            String internalClassName, String methodName, String descriptor,
+            int parameterOffset, boolean allowWildcardErasureCast)
+    {
+        private MethodReference(
+                String internalClassName, String methodName, String descriptor) {
+            this(internalClassName, methodName, descriptor, 0, true);
+        }
+    }
 
     private static boolean isReferenceSignature(String signature)
     {
