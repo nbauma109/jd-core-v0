@@ -1421,7 +1421,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
             int separator = internalClassName.lastIndexOf('$');
             List<String> parameters = SignatureUtil.getParameterSignatures(constructorDescriptor);
             if (separator != -1 && !parameters.isEmpty()
-                    && !(firstArgument instanceof ALoad aLoad && aLoad.getIndex() == 0)
+                    && (!(firstArgument instanceof ALoad aLoad) || (aLoad.getIndex() != 0))
                     && ("L" + internalClassName.substring(0, separator) + ";")
                             .equals(parameters.get(0))) {
                 prefixInstruction = firstArgument;
@@ -2274,20 +2274,10 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         parameterIndex += methodReference.parameterOffset();
         String descriptor = methodReference.descriptor();
         boolean castWritten = false;
-        if (argument.getOpcode() == Const.ACONST_NULL
-                && requiresNullCast(methodReference, parameterIndex))
-        {
-            List<String> parameterSignatures = SignatureUtil.getParameterSignatures(descriptor);
-            this.printer.print(lineNumber, '(');
-            SignatureWriter.writeSignature(
-                    this.loader, this.printer, this.referenceMap, this.classFile,
-                    parameterSignatures.get(parameterIndex));
-            this.printer.print(lineNumber, ')');
-            castWritten = true;
-        }
-        else if (methodReference.allowWildcardErasureCast()
+        if ((argument.getOpcode() == Const.ACONST_NULL
+                && requiresNullCast(methodReference, parameterIndex)) || (methodReference.allowWildcardErasureCast()
                 && requiresWildcardErasureCast(
-                argument, methodReference.methodName(), descriptor, parameterIndex))
+                argument, methodReference.methodName(), descriptor, parameterIndex)))
         {
             List<String> parameterSignatures = SignatureUtil.getParameterSignatures(descriptor);
             this.printer.print(lineNumber, '(');
@@ -2296,8 +2286,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                     parameterSignatures.get(parameterIndex));
             this.printer.print(lineNumber, ')');
             castWritten = true;
-        }
-        else if (requiresGenericParameterCast(argument, descriptor, parameterIndex))
+        } else if (requiresGenericParameterCast(argument, descriptor, parameterIndex))
         {
             List<String> parameterSignatures = SignatureUtil.getParameterSignatures(descriptor);
             this.printer.print(lineNumber, '(');

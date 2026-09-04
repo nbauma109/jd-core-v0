@@ -531,71 +531,68 @@ public final class SignatureWriter
             // a nested class decompiled on its own is declared with its '$' name.
             return classFile.getClassName();
         }
-        else
+        // La classe n'est pas la classe courante ou l'une de ses classes
+        // internes
+        int index = internalName.lastIndexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR);
+        int lastIndexOfDollar = internalName.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR);
+
+        if (index != -1)
         {
-            // La classe n'est pas la classe courante ou l'une de ses classes
-            // internes
-            int index = internalName.lastIndexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR);
-            int lastIndexOfDollar = internalName.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR);
+            String internalPackageName = internalName.substring(0, index);
 
-            if (index != -1)
+            if (classFile.getInternalPackageName().equals(internalPackageName))
             {
-                String internalPackageName = internalName.substring(0, index);
-
-                if (classFile.getInternalPackageName().equals(internalPackageName))
+                // Classe appartenant au même package que la classe courante
+                if (classFile.getInnerClassFile(internalName) != null)
                 {
-                    // Classe appartenant au même package que la classe courante
-                    if (classFile.getInnerClassFile(internalName) != null)
-                    {
-                        // Dans le cas d'une classe interne, on retire le nom
-                        // de la classe externe
-                        internalName = internalName.substring(classFile.getThisClassName().length() + 1);
-                    }
-                    else
-                    {
-                        // Le nom est celui d'une classe appartenant au package
-                        // de la classe courante
-                        internalName = internalName.substring(index + 1);
-                    }
-                } else if (referenceMap.contains(internalName))
-                {
-                    // Si le nom interne fait parti de la liste des "import"
-                    if (lastIndexOfDollar != -1) {
-                        internalName = internalName.substring(lastIndexOfDollar + 1);
-                    } else {
-                        internalName = internalName.substring(index + 1);
-                    }
+                    // Dans le cas d'une classe interne, on retire le nom
+                    // de la classe externe
+                    internalName = internalName.substring(classFile.getThisClassName().length() + 1);
                 }
-                else if ("java/lang".equals(internalPackageName))
+                else
                 {
-                    // Si c'est une classe du package "java.lang"
-                    String internalClassName =
-                        internalName.substring(index + 1);
-
-                    String currentPackageNamePlusInternalClassName =
-                        classFile.getInternalPackageName() +
-                        StringConstants.INTERNAL_PACKAGE_SEPARATOR +
-                        internalClassName +
-                        StringConstants.CLASS_FILE_SUFFIX;
-
-                    if (loader.canLoad(currentPackageNamePlusInternalClassName)) {
-                        // Une class du package local contient une classe qui
-                        // porte le même nom que la classe du package "java.lang".
-                        // On conserve le nom du package.
-                        internalName = internalName.replace(StringConstants.INTERNAL_PACKAGE_SEPARATOR,
-                            StringConstants.PACKAGE_SEPARATOR);
-                    } else {
-                        internalName = internalClassName;
-                    }
-                } else if (lastIndexOfDollar != -1) {
-                    internalName = internalName.substring(index+1)
-                                               .replace(StringConstants.INTERNAL_INNER_SEPARATOR,
-                                                        StringConstants.PACKAGE_SEPARATOR);
+                    // Le nom est celui d'une classe appartenant au package
+                    // de la classe courante
+                    internalName = internalName.substring(index + 1);
+                }
+            } else if (referenceMap.contains(internalName))
+            {
+                // Si le nom interne fait parti de la liste des "import"
+                if (lastIndexOfDollar != -1) {
+                    internalName = internalName.substring(lastIndexOfDollar + 1);
                 } else {
-                    // Sinon, on conserve le nom du package
-                    internalName = internalName.replace(StringConstants.INTERNAL_PACKAGE_SEPARATOR,
-                            StringConstants.PACKAGE_SEPARATOR);
+                    internalName = internalName.substring(index + 1);
                 }
+            }
+            else if ("java/lang".equals(internalPackageName))
+            {
+                // Si c'est une classe du package "java.lang"
+                String internalClassName =
+                    internalName.substring(index + 1);
+
+                String currentPackageNamePlusInternalClassName =
+                    classFile.getInternalPackageName() +
+                    StringConstants.INTERNAL_PACKAGE_SEPARATOR +
+                    internalClassName +
+                    StringConstants.CLASS_FILE_SUFFIX;
+
+                if (loader.canLoad(currentPackageNamePlusInternalClassName)) {
+                    // Une class du package local contient une classe qui
+                    // porte le même nom que la classe du package "java.lang".
+                    // On conserve le nom du package.
+                    internalName = internalName.replace(StringConstants.INTERNAL_PACKAGE_SEPARATOR,
+                        StringConstants.PACKAGE_SEPARATOR);
+                } else {
+                    internalName = internalClassName;
+                }
+            } else if (lastIndexOfDollar != -1) {
+                internalName = internalName.substring(index+1)
+                                           .replace(StringConstants.INTERNAL_INNER_SEPARATOR,
+                                                    StringConstants.PACKAGE_SEPARATOR);
+            } else {
+                // Sinon, on conserve le nom du package
+                internalName = internalName.replace(StringConstants.INTERNAL_PACKAGE_SEPARATOR,
+                        StringConstants.PACKAGE_SEPARATOR);
             }
         }
 
