@@ -111,6 +111,20 @@ public class SealedImportCollisionTest extends AbstractTestCase {
     }
 
     @Test
+    public void testSamePackagePermittedTypeDoesNotShadowTypeParameter() throws Exception {
+        Path sourceRoot = Files.createTempDirectory(Path.of("target"), "sealed-same-package-src-");
+        Path classes = Files.createTempDirectory(Path.of("target"), "sealed-same-package-classes-");
+        Path sealed = writeSource(sourceRoot, "a/Root.java",
+            "package a; public sealed class Root<Leaf> permits a.Leaf {}\n");
+        Path permitted = writeSource(sourceRoot, "a/Leaf.java",
+            "package a; public final class Leaf extends Root<java.lang.String> {}\n");
+
+        String output = decompile("a/Root", compile(classes, sealed, permitted), "17");
+        assertTrue(output, output.replaceAll("\\s+", " ").contains(
+            "sealed class Root<Leaf> permits a.Leaf"));
+    }
+
+    @Test
     public void testDefaultPackagePermittedTypeDoesNotShadowJavaLang() throws Exception {
         Path sourceRoot = Files.createTempDirectory(Path.of("target"), "sealed-default-string-src-");
         Path classes = Files.createTempDirectory(Path.of("target"), "sealed-default-string-classes-");

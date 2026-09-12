@@ -30,12 +30,14 @@ public class ReferenceMap
     private final Map<String, Reference> references;
     private final Map<String, String> simpleNameToInternalName;
     private final Set<String> javaLangReferences;
+    private final Set<String> typeParameterNames;
 
     public ReferenceMap()
     {
         this.references = new HashMap<>();
         this.simpleNameToInternalName = new HashMap<>();
         this.javaLangReferences = new HashSet<>();
+        this.typeParameterNames = new HashSet<>();
     }
 
     public void addJavaLangReference(String internalName) {
@@ -44,6 +46,14 @@ public class ReferenceMap
 
     public Set<String> getJavaLangReferences() {
         return this.javaLangReferences;
+    }
+
+    public void addTypeParameterNames(Set<String> names) {
+        this.typeParameterNames.addAll(names);
+    }
+
+    public boolean isTypeParameterName(String name) {
+        return this.typeParameterNames.contains(name);
     }
 
     public void add(String internalName)

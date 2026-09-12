@@ -546,7 +546,13 @@ public final class SignatureWriter
                 if (classFile.getInternalPackageName().equals(internalPackageName))
                 {
                     // Classe appartenant au même package que la classe courante
-                    if (classFile.getInnerClassFile(internalName) != null)
+                    String simpleName = internalName.substring(
+                        Math.max(index, lastIndexOfDollar) + 1);
+                    if (referenceMap.isTypeParameterName(simpleName)) {
+                        internalName = internalName.replace(
+                            StringConstants.INTERNAL_PACKAGE_SEPARATOR,
+                            StringConstants.PACKAGE_SEPARATOR);
+                    } else if (classFile.getInnerClassFile(internalName) != null)
                     {
                         // Dans le cas d'une classe interne, on retire le nom
                         // de la classe externe

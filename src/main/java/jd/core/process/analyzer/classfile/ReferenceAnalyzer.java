@@ -141,6 +141,7 @@ public final class ReferenceAnalyzer
         Set<String> typeParameterNames = new HashSet<>();
         List<String> headerNames = new ArrayList<>();
         collectHeaderNames(classFile, permittedSimpleNames, typeParameterNames, headerNames);
+        referenceMap.addTypeParameterNames(typeParameterNames);
         if (permittedSimpleNames.isEmpty()) {
             return;
         }
