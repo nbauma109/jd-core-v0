@@ -576,7 +576,9 @@ public final class SignatureWriter
                             StringConstants.INTERNAL_PACKAGE_SEPARATOR) +
                         internalClassName + StringConstants.CLASS_FILE_SUFFIX;
 
-                    if (loader.canLoad(currentPackageNamePlusInternalClassName)) {
+                    if (referenceMap.isTypeParameterName(internalClassName)
+                            || referenceMap.isPermittedSimpleName(internalClassName)
+                            || loader.canLoad(currentPackageNamePlusInternalClassName)) {
                         // Une class du package local contient une classe qui
                         // porte le même nom que la classe du package "java.lang".
                         // On conserve le nom du package.

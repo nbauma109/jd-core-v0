@@ -142,6 +142,7 @@ public final class ReferenceAnalyzer
         List<String> headerNames = new ArrayList<>();
         collectHeaderNames(classFile, permittedSimpleNames, typeParameterNames, headerNames);
         referenceMap.addTypeParameterNames(typeParameterNames);
+        referenceMap.addPermittedSimpleNames(permittedSimpleNames);
         if (permittedSimpleNames.isEmpty()) {
             return;
         }
@@ -195,10 +196,23 @@ public final class ReferenceAnalyzer
     private static void collectTypeParameterNames(ClassFile classFile, Set<String> typeParameterNames)
     {
         Signature attribute = classFile.getAttributeSignature();
-        if (attribute == null) {
-            return;
+        if (attribute != null) {
+            collectTypeParameterNames(
+                classFile.getConstantPool().getConstantUtf8(attribute.getSignatureIndex()),
+                typeParameterNames);
         }
-        String signature = classFile.getConstantPool().getConstantUtf8(attribute.getSignatureIndex());
+        for (Method method : classFile.getMethods()) {
+            Signature methodSignature = method.getAttributeSignature();
+            if (methodSignature != null) {
+                collectTypeParameterNames(
+                    classFile.getConstantPool().getConstantUtf8(methodSignature.getSignatureIndex()),
+                    typeParameterNames);
+            }
+        }
+    }
+
+    private static void collectTypeParameterNames(String signature, Set<String> typeParameterNames)
+    {
         if (signature.isEmpty() || signature.charAt(0) != '<') {
             return;
         }

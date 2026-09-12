@@ -138,6 +138,65 @@ public class SealedImportCollisionTest extends AbstractTestCase {
         assertTrue(output, output.contains("java.lang.String text()"));
     }
 
+    @Test
+    public void testMethodTypeParameterDoesNotShadowPermittedType() throws Exception {
+        Path sourceRoot = Files.createTempDirectory(Path.of("target"), "sealed-method-parameter-src-");
+        Path classes = Files.createTempDirectory(Path.of("target"), "sealed-method-parameter-classes-");
+        Path module = writeSource(sourceRoot, "module-info.java", "module sample.sealedtypes {}\n");
+        Path sealed = writeSource(sourceRoot, "a/Base.java",
+            "package a; public sealed class Base permits p.Leaf { "
+                + "public <Leaf> void use(p.Leaf value) {} }\n");
+        Path permitted = writeSource(sourceRoot, "p/Leaf.java",
+            "package p; public final class Leaf extends a.Base {}\n");
+
+        String output = decompile("a/Base", compile(classes, module, sealed, permitted), "17");
+        assertTrue(output, !output.contains("import p.Leaf;"));
+        assertTrue(output, output.contains("permits p.Leaf"));
+        assertTrue(output, output.contains("<Leaf> void use(p.Leaf"));
+    }
+
+    @Test
+    public void testTypeParameterDoesNotShadowJavaLang() throws Exception {
+        Path sourceRoot = Files.createTempDirectory(Path.of("target"), "sealed-type-parameter-lang-src-");
+        Path classes = Files.createTempDirectory(Path.of("target"), "sealed-type-parameter-lang-classes-");
+        Path module = writeSource(sourceRoot, "module-info.java", "module sample.sealedtypes {}\n");
+        Path sealed = writeSource(sourceRoot, "a/Base.java",
+            "package a; public sealed class Base<String> permits p.Leaf { "
+                + "public java.lang.String text() { return null; } }\n");
+        Path permitted = writeSource(sourceRoot, "p/Leaf.java",
+            "package p; public final class Leaf extends a.Base<java.lang.String> {}\n");
+
+        String output = decompile("a/Base", compile(classes, module, sealed, permitted), "17");
+        assertTrue(output, output.contains("java.lang.String text()"));
+    }
+
+    @Test
+    public void testKnownPermittedTypeShadowsJavaLangWithSparseLoader() throws Exception {
+        Path sourceRoot = Files.createTempDirectory(Path.of("target"), "sealed-sparse-loader-src-");
+        Path classes = Files.createTempDirectory(Path.of("target"), "sealed-sparse-loader-classes-");
+        Path sealed = writeSource(sourceRoot, "a/Base.java",
+            "package a; public sealed class Base permits a.String { "
+                + "public java.lang.String text() { return null; } }\n");
+        Path permitted = writeSource(sourceRoot, "a/String.java",
+            "package a; public final class String extends Base {}\n");
+        Loader fullLoader = compile(classes, sealed, permitted);
+        Loader sparseLoader = new Loader() {
+            @Override
+            public boolean canLoad(String internalName) {
+                return "a/Base.class".equals(internalName);
+            }
+
+            @Override
+            public byte[] load(String internalName) throws IOException {
+                return fullLoader.load(internalName);
+            }
+        };
+
+        String output = decompile("a/Base", sparseLoader, "17");
+        assertTrue(output, output.contains("permits String"));
+        assertTrue(output, output.contains("java.lang.String text()"));
+    }
+
     private static Loader compile(Path classes, Path... sources) throws IOException {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         assertNotNull(compiler);
