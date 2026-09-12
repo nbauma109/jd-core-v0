@@ -50,6 +50,7 @@ import jd.core.model.classfile.Method;
 import jd.core.model.reference.Reference;
 import jd.core.model.reference.ReferenceMap;
 import jd.core.process.analyzer.classfile.visitor.ReferenceVisitor;
+import jd.core.util.SignatureUtil;
 
 public final class ReferenceAnalyzer
 {
@@ -137,8 +138,9 @@ public final class ReferenceAnalyzer
             ReferenceMap referenceMap, ClassFile classFile)
     {
         Set<String> permittedSimpleNames = new HashSet<>();
+        Set<String> typeParameterNames = new HashSet<>();
         List<String> headerNames = new ArrayList<>();
-        collectHeaderNames(classFile, permittedSimpleNames, headerNames);
+        collectHeaderNames(classFile, permittedSimpleNames, typeParameterNames, headerNames);
         if (permittedSimpleNames.isEmpty()) {
             return;
         }
@@ -157,16 +159,18 @@ public final class ReferenceAnalyzer
         for (Reference reference : new ArrayList<>(referenceMap.values())) {
             String simpleName = getImportSimpleName(reference.getInternalName());
             Set<String> names = namesBySimpleName.get(simpleName);
-            if (names != null && names.size() > 1) {
+            if (typeParameterNames.contains(simpleName) || names != null && names.size() > 1) {
                 referenceMap.remove(reference.getInternalName());
             }
         }
     }
 
     private static void collectHeaderNames(ClassFile classFile,
-            Set<String> permittedSimpleNames, List<String> headerNames)
+            Set<String> permittedSimpleNames, Set<String> typeParameterNames,
+            List<String> headerNames)
     {
         headerNames.add(classFile.getThisClassName());
+        collectTypeParameterNames(classFile, typeParameterNames);
         if (classFile.getSuperClassName() != null) {
             headerNames.add(classFile.getSuperClassName());
         }
@@ -182,7 +186,35 @@ public final class ReferenceAnalyzer
         }
         if (classFile.getInnerClassFiles() != null) {
             for (ClassFile innerClassFile : classFile.getInnerClassFiles()) {
-                collectHeaderNames(innerClassFile, permittedSimpleNames, headerNames);
+                collectHeaderNames(innerClassFile, permittedSimpleNames, typeParameterNames, headerNames);
+            }
+        }
+    }
+
+    private static void collectTypeParameterNames(ClassFile classFile, Set<String> typeParameterNames)
+    {
+        Signature attribute = classFile.getAttributeSignature();
+        if (attribute == null) {
+            return;
+        }
+        String signature = classFile.getConstantPool().getConstantUtf8(attribute.getSignatureIndex());
+        if (signature.isEmpty() || signature.charAt(0) != '<') {
+            return;
+        }
+        char[] characters = signature.toCharArray();
+        int index = 1;
+        while (index < characters.length && characters[index] != '>') {
+            int colon = signature.indexOf(':', index);
+            if (colon == -1) {
+                break;
+            }
+            typeParameterNames.add(signature.substring(index, colon));
+            index = colon + 1;
+            if (characters[index] != ':') {
+                index = SignatureUtil.skipSignature(characters, characters.length, index);
+            }
+            while (index < characters.length && characters[index] == ':') {
+                index = SignatureUtil.skipSignature(characters, characters.length, index + 1);
             }
         }
     }

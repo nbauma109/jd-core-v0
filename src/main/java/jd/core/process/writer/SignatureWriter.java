@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2007-2019 Emmanuel Dupuy GPLv3
+ * Copyright (C) 2026 Nicolas Baumann
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -557,26 +558,17 @@ public final class SignatureWriter
                         // de la classe courante
                         internalName = internalName.substring(index + 1);
                     }
-                } else if (referenceMap.contains(internalName))
-                {
-                    // Si le nom interne fait parti de la liste des "import"
-                    if (lastIndexOfDollar != -1) {
-                        internalName = internalName.substring(lastIndexOfDollar + 1);
-                    } else {
-                        internalName = internalName.substring(index + 1);
-                    }
-                }
-                else if ("java/lang".equals(internalPackageName))
+                } else if ("java/lang".equals(internalPackageName))
                 {
                     // Si c'est une classe du package "java.lang"
                     String internalClassName =
                         internalName.substring(index + 1);
 
+                    String currentPackageName = classFile.getInternalPackageName();
                     String currentPackageNamePlusInternalClassName =
-                        classFile.getInternalPackageName() +
-                        StringConstants.INTERNAL_PACKAGE_SEPARATOR +
-                        internalClassName +
-                        StringConstants.CLASS_FILE_SUFFIX;
+                        (currentPackageName.isEmpty() ? "" : currentPackageName +
+                            StringConstants.INTERNAL_PACKAGE_SEPARATOR) +
+                        internalClassName + StringConstants.CLASS_FILE_SUFFIX;
 
                     if (loader.canLoad(currentPackageNamePlusInternalClassName)) {
                         // Une class du package local contient une classe qui
@@ -586,6 +578,14 @@ public final class SignatureWriter
                             StringConstants.PACKAGE_SEPARATOR);
                     } else {
                         internalName = internalClassName;
+                    }
+                } else if (referenceMap.contains(internalName))
+                {
+                    // Si le nom interne fait parti de la liste des "import"
+                    if (lastIndexOfDollar != -1) {
+                        internalName = internalName.substring(lastIndexOfDollar + 1);
+                    } else {
+                        internalName = internalName.substring(index + 1);
                     }
                 } else if (lastIndexOfDollar != -1) {
                     internalName = internalName.substring(index+1)

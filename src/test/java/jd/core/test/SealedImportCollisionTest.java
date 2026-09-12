@@ -94,6 +94,36 @@ public class SealedImportCollisionTest extends AbstractTestCase {
         assertTrue(leafOutput, leafOutput.contains("extends GenericShape<String>"));
     }
 
+    @Test
+    public void testPermittedTypeDoesNotShadowTypeParameter() throws Exception {
+        Path sourceRoot = Files.createTempDirectory(Path.of("target"), "sealed-type-parameter-src-");
+        Path classes = Files.createTempDirectory(Path.of("target"), "sealed-type-parameter-classes-");
+        Path module = writeSource(sourceRoot, "module-info.java", "module sample.sealedtypes {}\n");
+        Path sealed = writeSource(sourceRoot, "a/Base.java",
+            "package a; public sealed class Base<Leaf> permits p.Leaf {}\n");
+        Path permitted = writeSource(sourceRoot, "p/Leaf.java",
+            "package p; public final class Leaf extends a.Base<java.lang.String> {}\n");
+
+        String output = decompile("a/Base", compile(classes, module, sealed, permitted), "17");
+        assertTrue(output, output.replaceAll("\\s+", " ").contains(
+            "sealed class Base<Leaf> permits p.Leaf"));
+        assertTrue(output, !output.contains("import p.Leaf;"));
+    }
+
+    @Test
+    public void testDefaultPackagePermittedTypeDoesNotShadowJavaLang() throws Exception {
+        Path sourceRoot = Files.createTempDirectory(Path.of("target"), "sealed-default-string-src-");
+        Path classes = Files.createTempDirectory(Path.of("target"), "sealed-default-string-classes-");
+        Path source = writeSource(sourceRoot, "TextShape.java",
+            "public sealed class TextShape permits String { "
+                + "public java.lang.String text() { return null; } } "
+                + "final class String extends TextShape {}\n");
+
+        String output = decompile("TextShape", compile(classes, source), "17");
+        assertTrue(output, output.contains("permits String"));
+        assertTrue(output, output.contains("java.lang.String text()"));
+    }
+
     private static Loader compile(Path classes, Path... sources) throws IOException {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         assertNotNull(compiler);
