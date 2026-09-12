@@ -34,7 +34,12 @@ import org.apache.bcel.classfile.PermittedSubclasses;
 import org.apache.bcel.classfile.Signature;
 import org.jd.core.v1.util.StringConstants;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
@@ -42,9 +47,9 @@ import jd.core.model.classfile.Field;
 import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.classfile.Method;
+import jd.core.model.reference.Reference;
 import jd.core.model.reference.ReferenceMap;
 import jd.core.process.analyzer.classfile.visitor.ReferenceVisitor;
-import jd.core.util.SignatureUtil;
 
 public final class ReferenceAnalyzer
 {
@@ -55,6 +60,7 @@ public final class ReferenceAnalyzer
         ReferenceMap referenceMap, ClassFile classFile)
     {
         collectReferences(referenceMap, classFile);
+        removePermittedSubclassImportClashes(referenceMap, classFile);
     }
 
     private static void collectReferences(
@@ -123,9 +129,75 @@ public final class ReferenceAnalyzer
         PermittedSubclasses permittedSubclasses = classFile.getAttributePermittedSubclasses();
         for (int classIndex : permittedSubclasses.getClasses()) {
             String className = classFile.getConstantPool().getConstantClassName(classIndex);
-            SignatureAnalyzer.analyzeSimpleSignature(referenceMap,
-                SignatureUtil.createTypeName(className));
+            referenceMap.add(className);
         }
+    }
+
+    private static void removePermittedSubclassImportClashes(
+            ReferenceMap referenceMap, ClassFile classFile)
+    {
+        Set<String> permittedSimpleNames = new HashSet<>();
+        List<String> headerNames = new ArrayList<>();
+        collectHeaderNames(classFile, permittedSimpleNames, headerNames);
+        if (permittedSimpleNames.isEmpty()) {
+            return;
+        }
+
+        Map<String, Set<String>> namesBySimpleName = new HashMap<>();
+        for (String name : headerNames) {
+            recordImportName(name, permittedSimpleNames, namesBySimpleName);
+        }
+        for (Reference reference : referenceMap.values()) {
+            recordImportName(reference.getInternalName(), permittedSimpleNames, namesBySimpleName);
+        }
+
+        for (Reference reference : new ArrayList<>(referenceMap.values())) {
+            String simpleName = getImportSimpleName(reference.getInternalName());
+            Set<String> names = namesBySimpleName.get(simpleName);
+            if (names != null && names.size() > 1) {
+                referenceMap.remove(reference.getInternalName());
+            }
+        }
+    }
+
+    private static void collectHeaderNames(ClassFile classFile,
+            Set<String> permittedSimpleNames, List<String> headerNames)
+    {
+        headerNames.add(classFile.getThisClassName());
+        if (classFile.getSuperClassName() != null) {
+            headerNames.add(classFile.getSuperClassName());
+        }
+        for (int interfaceIndex : classFile.getInterfaces()) {
+            headerNames.add(classFile.getConstantPool().getConstantClassName(interfaceIndex));
+        }
+        if (classFile.isSealed()) {
+            for (int classIndex : classFile.getAttributePermittedSubclasses().getClasses()) {
+                String className = classFile.getConstantPool().getConstantClassName(classIndex);
+                headerNames.add(className);
+                permittedSimpleNames.add(getImportSimpleName(className));
+            }
+        }
+        if (classFile.getInnerClassFiles() != null) {
+            for (ClassFile innerClassFile : classFile.getInnerClassFiles()) {
+                collectHeaderNames(innerClassFile, permittedSimpleNames, headerNames);
+            }
+        }
+    }
+
+    private static void recordImportName(String internalName, Set<String> permittedSimpleNames,
+            Map<String, Set<String>> namesBySimpleName)
+    {
+        String simpleName = getImportSimpleName(internalName);
+        if (permittedSimpleNames.contains(simpleName)) {
+            namesBySimpleName.computeIfAbsent(simpleName, unused -> new HashSet<>())
+                .add(internalName);
+        }
+    }
+
+    private static String getImportSimpleName(String internalName)
+    {
+        int separator = Math.max(internalName.lastIndexOf('/'), internalName.lastIndexOf('$'));
+        return internalName.substring(separator + 1);
     }
 
     private static String getSimpleName(String internalName) {

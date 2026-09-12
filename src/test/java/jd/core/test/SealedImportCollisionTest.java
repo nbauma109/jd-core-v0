@@ -24,19 +24,22 @@ public class SealedImportCollisionTest extends AbstractTestCase {
         Path module = writeSource(sourceRoot, "module-info.java", "module sample.sealedtypes {}\n");
         Path parent = writeSource(sourceRoot, "base/Foo.java", "package base; public class Foo {}\n");
         Path sealed = writeSource(sourceRoot, "a/Shape.java",
-            "package a; public sealed class Shape extends base.Foo permits b.Shape, c.Shape, impl.Foo {}\n");
+            "package a; public sealed class Shape extends base.Foo permits b.Shape, c.Shape, impl.Foo { "
+                + "public d.Shape make() { return new d.Shape(); } }\n");
         Path first = writeSource(sourceRoot, "b/Shape.java",
             "package b; public final class Shape extends a.Shape {}\n");
         Path second = writeSource(sourceRoot, "c/Shape.java",
             "package c; public final class Shape extends a.Shape {}\n");
         Path third = writeSource(sourceRoot, "impl/Foo.java",
             "package impl; public final class Foo extends a.Shape {}\n");
+        Path unrelated = writeSource(sourceRoot, "d/Shape.java",
+            "package d; public class Shape {}\n");
 
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         assertNotNull(compiler);
         assertEquals(0, compiler.run(null, null, null, "--release", "17", "-d", classes.toString(),
             module.toString(), parent.toString(), sealed.toString(), first.toString(),
-            second.toString(), third.toString()));
+            second.toString(), third.toString(), unrelated.toString()));
 
         Map<String, byte[]> classFiles = new HashMap<>();
         try (Stream<Path> paths = Files.walk(classes)) {
@@ -62,7 +65,9 @@ public class SealedImportCollisionTest extends AbstractTestCase {
         assertTrue(output, output.replaceAll("\\s+", " ").contains(
             "sealed class Shape extends base.Foo permits b.Shape, c.Shape, impl.Foo"));
         assertTrue(output, !output.contains("import b.Shape;") && !output.contains("import c.Shape;")
-            && !output.contains("import impl.Foo;") && !output.contains("import base.Foo;"));
+            && !output.contains("import d.Shape;") && !output.contains("import impl.Foo;")
+            && !output.contains("import base.Foo;"));
+        assertTrue(output, output.contains("d.Shape make()"));
     }
 
     private static Path writeSource(Path root, String name, String source) throws IOException {

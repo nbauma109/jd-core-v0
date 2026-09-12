@@ -44,6 +44,12 @@ public class SealedClassesTest extends AbstractTestCase {
         assertFalse(output, output.contains("permits"));
     }
 
+    @Test
+    public void testSealedClassInDefaultPackage() throws Exception {
+        String output = decompile("DefaultShape", "17");
+        assertContainsHeader(output, "sealed class DefaultShape permits DefaultLeaf");
+    }
+
     private static void assertContainsHeader(String output, String header) {
         assertTrue(output, output.replaceAll("\\s+", " ").contains(header));
     }
