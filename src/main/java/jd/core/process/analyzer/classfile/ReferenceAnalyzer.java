@@ -29,6 +29,7 @@ import org.apache.bcel.classfile.ElementValuePair;
 import org.apache.bcel.classfile.EnumElementValue;
 import org.apache.bcel.classfile.ParameterAnnotationEntry;
 import org.apache.bcel.classfile.ParameterAnnotations;
+import org.apache.bcel.classfile.PermittedSubclasses;
 import org.apache.bcel.classfile.Signature;
 import org.jd.core.v1.util.StringConstants;
 
@@ -84,6 +85,14 @@ public final class ReferenceAnalyzer
             String signature =
                 classFile.getConstantPool().getConstantUtf8(as.getSignatureIndex());
             SignatureAnalyzer.analyzeClassSignature(referenceMap, signature);
+        }
+
+        PermittedSubclasses permittedSubclasses = classFile.getAttributePermittedSubclasses();
+        if (permittedSubclasses != null) {
+            for (int classIndex : permittedSubclasses.getClasses()) {
+                String className = classFile.getConstantPool().getConstantClassName(classIndex);
+                referenceMap.add(className);
+            }
         }
 
         // Class annotations

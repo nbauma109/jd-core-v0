@@ -22,6 +22,7 @@ import org.apache.bcel.classfile.BootstrapMethods;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.InnerClasses;
 import org.apache.bcel.classfile.MethodParameters;
+import org.apache.bcel.classfile.PermittedSubclasses;
 import org.apache.bcel.classfile.Record;
 import org.apache.bcel.classfile.Signature;
 import org.jd.core.v1.api.loader.Loader;
@@ -287,6 +288,31 @@ public class ClassFile extends Base
             }
         }
         return null;
+    }
+
+    public PermittedSubclasses getAttributePermittedSubclasses()
+    {
+        for (Attribute attribute : this.getAttributes()) {
+            if (attribute instanceof PermittedSubclasses permittedSubclasses) {
+                return permittedSubclasses;
+            }
+        }
+        return null;
+    }
+
+    public boolean isNonSealed()
+    {
+        if (getAttributePermittedSubclasses() != null ||
+            (getAccessFlags() & (Const.ACC_FINAL | Const.ACC_ENUM)) != 0 || isRecord()) {
+            return false;
+        }
+
+        for (ClassFile parent : superClassAndInterfaces.values()) {
+            if (parent != null && parent.getAttributePermittedSubclasses() != null) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean isAnonymousClass()

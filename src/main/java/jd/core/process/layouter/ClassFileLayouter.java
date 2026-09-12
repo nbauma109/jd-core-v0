@@ -63,6 +63,7 @@ import jd.core.model.layout.block.MethodBodySingleLineBlockEndLayoutBlock;
 import jd.core.model.layout.block.MethodNameLayoutBlock;
 import jd.core.model.layout.block.MethodStaticLayoutBlock;
 import jd.core.model.layout.block.PackageLayoutBlock;
+import jd.core.model.layout.block.PermitsSubclassesLayoutBlock;
 import jd.core.model.layout.block.SeparatorLayoutBlock;
 import jd.core.model.layout.block.SubListLayoutBlock;
 import jd.core.model.layout.block.ThrowsLayoutBlock;
@@ -295,6 +296,11 @@ public final class ClassFileLayouter {
             displayExtendsOrImplementsFlag =
                 SignatureLayouter.createLayoutBlocksForClassSignature(
                     classFile, signature, layoutBlockList);
+        }
+
+        if (classFile.getAttributePermittedSubclasses() != null) {
+            layoutBlockList.add(new PermitsSubclassesLayoutBlock(classFile));
+            displayExtendsOrImplementsFlag = true;
         }
 
         return displayExtendsOrImplementsFlag;
@@ -1752,6 +1758,7 @@ public final class ClassFileLayouter {
 
                 if ((lb.getTag() == LayoutBlockConstants.IMPLEMENTS_INTERFACES
                         || lb.getTag() == LayoutBlockConstants.GENERIC_IMPLEMENTS_INTERFACES
+                        || lb.getTag() == LayoutBlockConstants.PERMITS_SUBCLASSES
                         || lb.getTag() == LayoutBlockConstants.THROWS) && lb.getLineCount() > 0)                {
                     lb.setLineCount(lb.getLineCount() - 1);
                     delta--;
@@ -2144,7 +2151,8 @@ public final class ClassFileLayouter {
                 if ((lb.getTag() == LayoutBlockConstants.IMPLEMENTS_INTERFACES
                         || lb.getTag() == LayoutBlockConstants.EXTENDS_SUPER_INTERFACES
                         || lb.getTag() == LayoutBlockConstants.GENERIC_IMPLEMENTS_INTERFACES
-                        || lb.getTag() == LayoutBlockConstants.GENERIC_EXTENDS_SUPER_INTERFACES)
+                        || lb.getTag() == LayoutBlockConstants.GENERIC_EXTENDS_SUPER_INTERFACES
+                        || lb.getTag() == LayoutBlockConstants.PERMITS_SUBCLASSES)
                         && lb.getLineCount() < lb.getMaximalLineCount())                {
                     lb.setLineCount(lb.getLineCount() + 1);
                     delta--;
