@@ -44,6 +44,7 @@ import jd.core.model.classfile.LocalVariables;
 import jd.core.model.classfile.Method;
 import jd.core.model.reference.ReferenceMap;
 import jd.core.process.analyzer.classfile.visitor.ReferenceVisitor;
+import jd.core.util.SignatureUtil;
 
 public final class ReferenceAnalyzer
 {
@@ -88,13 +89,7 @@ public final class ReferenceAnalyzer
             SignatureAnalyzer.analyzeClassSignature(referenceMap, signature);
         }
 
-        PermittedSubclasses permittedSubclasses = classFile.getAttributePermittedSubclasses();
-        if (permittedSubclasses != null) {
-            for (int classIndex : permittedSubclasses.getClasses()) {
-                String className = classFile.getConstantPool().getConstantClassName(classIndex);
-                referenceMap.add(className);
-            }
-        }
+        countPermittedSubclassReferences(referenceMap, classFile);
 
         // Class annotations
         countReferencesInAttributes(
@@ -116,6 +111,21 @@ public final class ReferenceAnalyzer
 
         // Methods
         countReferencesInMethods(referenceMap, visitor, classFile);
+    }
+
+    private static void countPermittedSubclassReferences(
+            ReferenceMap referenceMap, ClassFile classFile)
+    {
+        if (!classFile.isSealed()) {
+            return;
+        }
+
+        PermittedSubclasses permittedSubclasses = classFile.getAttributePermittedSubclasses();
+        for (int classIndex : permittedSubclasses.getClasses()) {
+            String className = classFile.getConstantPool().getConstantClassName(classIndex);
+            SignatureAnalyzer.analyzeSimpleSignature(referenceMap,
+                SignatureUtil.createTypeName(className));
+        }
     }
 
     private static String getSimpleName(String internalName) {

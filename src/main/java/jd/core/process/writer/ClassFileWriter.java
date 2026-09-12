@@ -455,6 +455,7 @@ public final class ClassFileWriter
                     || lb.getTag() == LayoutBlockConstants.EXTENDS_SUPER_TYPE
                     || lb.getTag() == LayoutBlockConstants.EXTENDS_SUPER_INTERFACES
                     || lb.getTag() == LayoutBlockConstants.IMPLEMENTS_INTERFACES
+                    || lb.getTag() == LayoutBlockConstants.PERMITS_SUBCLASSES
                     || lb.getTag() == LayoutBlockConstants.GENERIC_EXTENDS_SUPER_TYPE
                     || lb.getTag() == LayoutBlockConstants.GENERIC_EXTENDS_SUPER_INTERFACES
                     || lb.getTag() == LayoutBlockConstants.GENERIC_IMPLEMENTS_INTERFACES
@@ -888,7 +889,7 @@ public final class ClassFileWriter
             writeAccessEnum(classFile.getAccessFlags());
         }
 
-        if (classFile.getAttributePermittedSubclasses() != null) {
+        if (classFile.isSealed()) {
             this.printer.printKeyword("sealed");
             this.printer.print(' ');
         } else if (classFile.isNonSealed()) {

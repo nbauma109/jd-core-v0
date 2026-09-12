@@ -301,6 +301,14 @@ public class ClassFile extends Base
         return null;
     }
 
+    public boolean isSealed()
+    {
+        // Enums with constant-specific bodies are implicitly sealed in bytecode,
+        // but Java source cannot declare them sealed or list their subclasses.
+        return (getAccessFlags() & Const.ACC_ENUM) == 0 &&
+            getAttributePermittedSubclasses() != null;
+    }
+
     public boolean isNonSealed()
     {
         if (getAttributePermittedSubclasses() != null ||

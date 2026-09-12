@@ -299,7 +299,7 @@ public final class ClassFileLayouter {
                     classFile, signature, layoutBlockList);
         }
 
-        if (classFile.getAttributePermittedSubclasses() != null) {
+        if (classFile.isSealed()) {
             layoutBlockList.add(new PermitsSubclassesLayoutBlock(classFile));
             displayExtendsOrImplementsFlag = true;
         }
