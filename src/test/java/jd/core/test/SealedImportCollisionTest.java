@@ -8,7 +8,9 @@ import javax.tools.ToolProvider;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
@@ -35,31 +37,7 @@ public class SealedImportCollisionTest extends AbstractTestCase {
         Path unrelated = writeSource(sourceRoot, "d/Shape.java",
             "package d; public class Shape {}\n");
 
-        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-        assertNotNull(compiler);
-        assertEquals(0, compiler.run(null, null, null, "--release", "17", "-d", classes.toString(),
-            module.toString(), parent.toString(), sealed.toString(), first.toString(),
-            second.toString(), third.toString(), unrelated.toString()));
-
-        Map<String, byte[]> classFiles = new HashMap<>();
-        try (Stream<Path> paths = Files.walk(classes)) {
-            for (Path path : paths.filter(Files::isRegularFile).toList()) {
-                classFiles.put(classes.relativize(path).toString().replace('\\', '/'),
-                    Files.readAllBytes(path));
-            }
-        }
-
-        Loader loader = new Loader() {
-            @Override
-            public boolean canLoad(String internalName) {
-                return classFiles.containsKey(internalName);
-            }
-
-            @Override
-            public byte[] load(String internalName) throws IOException {
-                return classFiles.get(internalName);
-            }
-        };
+        Loader loader = compile(classes, module, parent, sealed, first, second, third, unrelated);
 
         String output = decompile("a/Shape", loader, "17");
         assertTrue(output, output.replaceAll("\\s+", " ").contains(
@@ -70,6 +48,49 @@ public class SealedImportCollisionTest extends AbstractTestCase {
         assertTrue(output, output.contains("d.Shape make()"));
     }
 
+    @Test
+    public void testDefaultPackagePermittedClass() throws Exception {
+        Path sourceRoot = Files.createTempDirectory(Path.of("target"), "sealed-default-src-");
+        Path classes = Files.createTempDirectory(Path.of("target"), "sealed-default-classes-");
+        Path source = writeSource(sourceRoot, "DefaultShape.java",
+            "public sealed class DefaultShape permits DefaultLeaf {} "
+                + "final class DefaultLeaf extends DefaultShape {}\n");
+
+        String output = decompile("DefaultShape", compile(classes, source), "17");
+        assertTrue(output, output.replaceAll("\\s+", " ").contains(
+            "sealed class DefaultShape permits DefaultLeaf"));
+    }
+
+    private static Loader compile(Path classes, Path... sources) throws IOException {
+        JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
+        assertNotNull(compiler);
+        List<String> arguments = new ArrayList<>(List.of("--release", "17", "-d", classes.toString()));
+        for (Path source : sources) {
+            arguments.add(source.toString());
+        }
+        assertEquals(0, compiler.run(null, null, null, arguments.toArray(String[]::new)));
+
+        Map<String, byte[]> classFiles = new HashMap<>();
+        try (Stream<Path> paths = Files.walk(classes)) {
+            for (Path path : paths.filter(Files::isRegularFile).toList()) {
+                classFiles.put(classes.relativize(path).toString().replace('\\', '/'),
+                    Files.readAllBytes(path));
+            }
+        }
+
+        return new Loader() {
+            @Override
+            public boolean canLoad(String internalName) {
+                return classFiles.containsKey(internalName);
+            }
+
+            @Override
+            public byte[] load(String internalName) throws IOException {
+                return classFiles.get(internalName);
+            }
+        };
+    }
+
     private static Path writeSource(Path root, String name, String source) throws IOException {
         Path path = root.resolve(name);
         Files.createDirectories(path.getParent());
@@ -78,7 +99,7 @@ public class SealedImportCollisionTest extends AbstractTestCase {
 
     @Override
     protected boolean recompile() {
-        // This fixture is a named module; AbstractTestCase recompiles on the classpath.
+        // AbstractTestCase recompiles on the classpath, without these generated types.
         return false;
     }
 }
