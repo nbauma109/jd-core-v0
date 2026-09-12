@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2007-2019 Emmanuel Dupuy GPLv3
+ * Copyright (C) 2026 Nicolas Baumann
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -29,10 +30,16 @@ import org.apache.bcel.classfile.ElementValuePair;
 import org.apache.bcel.classfile.EnumElementValue;
 import org.apache.bcel.classfile.ParameterAnnotationEntry;
 import org.apache.bcel.classfile.ParameterAnnotations;
+import org.apache.bcel.classfile.PermittedSubclasses;
 import org.apache.bcel.classfile.Signature;
 import org.jd.core.v1.util.StringConstants;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
@@ -40,8 +47,10 @@ import jd.core.model.classfile.Field;
 import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.classfile.Method;
+import jd.core.model.reference.Reference;
 import jd.core.model.reference.ReferenceMap;
 import jd.core.process.analyzer.classfile.visitor.ReferenceVisitor;
+import jd.core.util.SignatureUtil;
 
 public final class ReferenceAnalyzer
 {
@@ -52,6 +61,7 @@ public final class ReferenceAnalyzer
         ReferenceMap referenceMap, ClassFile classFile)
     {
         collectReferences(referenceMap, classFile);
+        removePermittedSubclassImportClashes(referenceMap, classFile);
     }
 
     private static void collectReferences(
@@ -86,6 +96,8 @@ public final class ReferenceAnalyzer
             SignatureAnalyzer.analyzeClassSignature(referenceMap, signature);
         }
 
+        countPermittedSubclassReferences(referenceMap, classFile);
+
         // Class annotations
         countReferencesInAttributes(
             referenceMap, classFile.getConstantPool(), classFile.getAttributes());
@@ -106,6 +118,136 @@ public final class ReferenceAnalyzer
 
         // Methods
         countReferencesInMethods(referenceMap, visitor, classFile);
+    }
+
+    private static void countPermittedSubclassReferences(
+            ReferenceMap referenceMap, ClassFile classFile)
+    {
+        if (!classFile.isSealed()) {
+            return;
+        }
+
+        PermittedSubclasses permittedSubclasses = classFile.getAttributePermittedSubclasses();
+        for (int classIndex : permittedSubclasses.getClasses()) {
+            String className = classFile.getConstantPool().getConstantClassName(classIndex);
+            referenceMap.add(className);
+        }
+    }
+
+    private static void removePermittedSubclassImportClashes(
+            ReferenceMap referenceMap, ClassFile classFile)
+    {
+        Set<String> permittedSimpleNames = new HashSet<>();
+        Set<String> typeParameterNames = new HashSet<>();
+        List<String> headerNames = new ArrayList<>();
+        collectHeaderNames(classFile, permittedSimpleNames, typeParameterNames, headerNames);
+        referenceMap.addTypeParameterNames(typeParameterNames);
+        referenceMap.addPermittedSimpleNames(permittedSimpleNames);
+        if (permittedSimpleNames.isEmpty()) {
+            return;
+        }
+
+        Map<String, Set<String>> namesBySimpleName = new HashMap<>();
+        for (String name : headerNames) {
+            recordImportName(name, permittedSimpleNames, namesBySimpleName);
+        }
+        for (String name : referenceMap.getJavaLangReferences()) {
+            recordImportName(name, permittedSimpleNames, namesBySimpleName);
+        }
+        for (Reference reference : referenceMap.values()) {
+            recordImportName(reference.getInternalName(), permittedSimpleNames, namesBySimpleName);
+        }
+
+        for (Reference reference : new ArrayList<>(referenceMap.values())) {
+            String simpleName = getImportSimpleName(reference.getInternalName());
+            Set<String> names = namesBySimpleName.get(simpleName);
+            if (typeParameterNames.contains(simpleName) || names != null && names.size() > 1) {
+                referenceMap.remove(reference.getInternalName());
+            }
+        }
+    }
+
+    private static void collectHeaderNames(ClassFile classFile,
+            Set<String> permittedSimpleNames, Set<String> typeParameterNames,
+            List<String> headerNames)
+    {
+        headerNames.add(classFile.getThisClassName());
+        collectTypeParameterNames(classFile, typeParameterNames);
+        if (classFile.getSuperClassName() != null) {
+            headerNames.add(classFile.getSuperClassName());
+        }
+        for (int interfaceIndex : classFile.getInterfaces()) {
+            headerNames.add(classFile.getConstantPool().getConstantClassName(interfaceIndex));
+        }
+        if (classFile.isSealed()) {
+            for (int classIndex : classFile.getAttributePermittedSubclasses().getClasses()) {
+                String className = classFile.getConstantPool().getConstantClassName(classIndex);
+                headerNames.add(className);
+                permittedSimpleNames.add(getImportSimpleName(className));
+            }
+        }
+        if (classFile.getInnerClassFiles() != null) {
+            for (ClassFile innerClassFile : classFile.getInnerClassFiles()) {
+                collectHeaderNames(innerClassFile, permittedSimpleNames, typeParameterNames, headerNames);
+            }
+        }
+    }
+
+    private static void collectTypeParameterNames(ClassFile classFile, Set<String> typeParameterNames)
+    {
+        Signature attribute = classFile.getAttributeSignature();
+        if (attribute != null) {
+            collectTypeParameterNames(
+                classFile.getConstantPool().getConstantUtf8(attribute.getSignatureIndex()),
+                typeParameterNames);
+        }
+        for (Method method : classFile.getMethods()) {
+            Signature methodSignature = method.getAttributeSignature();
+            if (methodSignature != null) {
+                collectTypeParameterNames(
+                    classFile.getConstantPool().getConstantUtf8(methodSignature.getSignatureIndex()),
+                    typeParameterNames);
+            }
+        }
+    }
+
+    private static void collectTypeParameterNames(String signature, Set<String> typeParameterNames)
+    {
+        if (signature.isEmpty() || signature.charAt(0) != '<') {
+            return;
+        }
+        char[] characters = signature.toCharArray();
+        int index = 1;
+        while (index < characters.length && characters[index] != '>') {
+            int colon = signature.indexOf(':', index);
+            if (colon == -1) {
+                break;
+            }
+            typeParameterNames.add(signature.substring(index, colon));
+            index = colon + 1;
+            if (characters[index] != ':') {
+                index = SignatureUtil.skipSignature(characters, characters.length, index);
+            }
+            while (index < characters.length && characters[index] == ':') {
+                index = SignatureUtil.skipSignature(characters, characters.length, index + 1);
+            }
+        }
+    }
+
+    private static void recordImportName(String internalName, Set<String> permittedSimpleNames,
+            Map<String, Set<String>> namesBySimpleName)
+    {
+        String simpleName = getImportSimpleName(internalName);
+        if (permittedSimpleNames.contains(simpleName)) {
+            namesBySimpleName.computeIfAbsent(simpleName, unused -> new HashSet<>())
+                .add(internalName);
+        }
+    }
+
+    private static String getImportSimpleName(String internalName)
+    {
+        int separator = Math.max(internalName.lastIndexOf('/'), internalName.lastIndexOf('$'));
+        return internalName.substring(separator + 1);
     }
 
     private static String getSimpleName(String internalName) {

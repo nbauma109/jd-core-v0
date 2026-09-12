@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright (C) 2007-2019 Emmanuel Dupuy GPLv3
+ * Copyright (C) 2026 Nicolas Baumann
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -180,7 +181,9 @@ public final class SignatureAnalyzer
 
                 if (classFlag) {
                     String internalName = CharArrayUtil.substring(caSignature, beginIndex, index);
-                    String internalPackageName = internalName.substring(0, internalName.lastIndexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR));
+                    int packageSeparator = internalName.lastIndexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR);
+                    String internalPackageName = packageSeparator == -1 ? "" :
+                        internalName.substring(0, packageSeparator);
                     if (!StringConstants.INTERNAL_JAVA_LANG_PACKAGE_NAME.equals(internalPackageName))
                     {
                         String importedInternalName = referenceMap.getSimpleNameClashWith(internalName);
@@ -189,6 +192,8 @@ public final class SignatureAnalyzer
                         } else {
                             referenceMap.remove(importedInternalName);
                         }
+                    } else {
+                        referenceMap.addJavaLangReference(internalName);
                     }
                 }
 

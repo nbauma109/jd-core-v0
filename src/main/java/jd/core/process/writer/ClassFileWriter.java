@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2007-2019 Emmanuel Dupuy GPLv3
+ * Copyright (C) 2026 Nicolas Baumann
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,6 +22,7 @@ import org.apache.bcel.classfile.AnnotationEntry;
 import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ElementValue;
+import org.apache.bcel.classfile.PermittedSubclasses;
 import org.apache.bcel.classfile.Signature;
 import org.jd.core.v1.api.loader.Loader;
 import org.jd.core.v1.model.javasyntax.type.Type;
@@ -80,6 +82,7 @@ import jd.core.model.layout.block.MethodNameLayoutBlock;
 import jd.core.model.layout.block.MethodStaticLayoutBlock;
 import jd.core.model.layout.block.OffsetLayoutBlock;
 import jd.core.model.layout.block.PackageLayoutBlock;
+import jd.core.model.layout.block.PermitsSubclassesLayoutBlock;
 import jd.core.model.layout.block.ThrowsLayoutBlock;
 import jd.core.model.layout.block.TypeNameLayoutBlock;
 import jd.core.model.reference.Reference;
@@ -247,6 +250,9 @@ public final class ClassFileWriter
                 break;
             case LayoutBlockConstants.IMPLEMENTS_INTERFACES:
                 writeImplementsInterfaces((ImplementsInterfacesLayoutBlock)lb);
+                break;
+            case LayoutBlockConstants.PERMITS_SUBCLASSES:
+                writePermitsSubclasses((PermitsSubclassesLayoutBlock)lb);
                 break;
             case LayoutBlockConstants.GENERIC_TYPE_NAME:
                 writeGenericType((GenericTypeNameLayoutBlock)lb);
@@ -449,6 +455,7 @@ public final class ClassFileWriter
                     || lb.getTag() == LayoutBlockConstants.EXTENDS_SUPER_TYPE
                     || lb.getTag() == LayoutBlockConstants.EXTENDS_SUPER_INTERFACES
                     || lb.getTag() == LayoutBlockConstants.IMPLEMENTS_INTERFACES
+                    || lb.getTag() == LayoutBlockConstants.PERMITS_SUBCLASSES
                     || lb.getTag() == LayoutBlockConstants.GENERIC_EXTENDS_SUPER_TYPE
                     || lb.getTag() == LayoutBlockConstants.GENERIC_EXTENDS_SUPER_INTERFACES
                     || lb.getTag() == LayoutBlockConstants.GENERIC_IMPLEMENTS_INTERFACES
@@ -882,6 +889,14 @@ public final class ClassFileWriter
             writeAccessEnum(classFile.getAccessFlags());
         }
 
+        if (classFile.isSealed()) {
+            this.printer.printKeyword("sealed");
+            this.printer.print(' ');
+        } else if (classFile.isNonSealed()) {
+            this.printer.printKeyword("non-sealed");
+            this.printer.print(' ');
+        }
+
         if (classFile.isRecord())
         {
             this.printer.printKeyword("record");
@@ -1045,6 +1060,37 @@ public final class ClassFileWriter
         ImplementsInterfacesLayoutBlock iilb)
     {
         writeInterfaces(iilb, iilb.getClassFile(), false);
+    }
+
+    private void writePermitsSubclasses(PermitsSubclassesLayoutBlock pslb)
+    {
+        this.printer.debugStartOfLayoutBlock();
+
+        if (pslb.getLineCount() > 0) {
+            endOfLine();
+            this.printer.indent();
+            this.printer.startOfLine(searchFirstLineNumber());
+            this.printer.desindent();
+        } else {
+            this.printer.print(' ');
+        }
+
+        ClassFile classFile = pslb.getClassFile();
+        PermittedSubclasses permittedSubclasses = classFile.getAttributePermittedSubclasses();
+        this.printer.printKeyword("permits");
+        this.printer.print(' ');
+
+        int[] classes = permittedSubclasses.getClasses();
+        for (int i = 0; i < classes.length; i++) {
+            if (i > 0) {
+                this.printer.print(", ");
+            }
+            String className = classFile.getConstantPool().getConstantClassName(classes[i]);
+            SignatureWriter.writeSignature(this.loader, this.printer, this.referenceMap,
+                classFile, SignatureUtil.createTypeName(className));
+        }
+
+        this.printer.debugEndOfLayoutBlock();
     }
 
     private void writeInterfaces(

@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright (C) 2007-2019 Emmanuel Dupuy GPLv3
+ * Copyright (C) 2026 Nicolas Baumann
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,17 +21,49 @@ import org.jd.core.v1.util.StringConstants;
 
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class ReferenceMap
 {
     private final Map<String, Reference> references;
     private final Map<String, String> simpleNameToInternalName;
+    private final Set<String> javaLangReferences;
+    private final Set<String> typeParameterNames;
+    private final Set<String> permittedSimpleNames;
 
     public ReferenceMap()
     {
         this.references = new HashMap<>();
         this.simpleNameToInternalName = new HashMap<>();
+        this.javaLangReferences = new HashSet<>();
+        this.typeParameterNames = new HashSet<>();
+        this.permittedSimpleNames = new HashSet<>();
+    }
+
+    public void addJavaLangReference(String internalName) {
+        this.javaLangReferences.add(internalName);
+    }
+
+    public Set<String> getJavaLangReferences() {
+        return this.javaLangReferences;
+    }
+
+    public void addTypeParameterNames(Set<String> names) {
+        this.typeParameterNames.addAll(names);
+    }
+
+    public boolean isTypeParameterName(String name) {
+        return this.typeParameterNames.contains(name);
+    }
+
+    public void addPermittedSimpleNames(Set<String> names) {
+        this.permittedSimpleNames.addAll(names);
+    }
+
+    public boolean isPermittedSimpleName(String name) {
+        return this.permittedSimpleNames.contains(name);
     }
 
     public void add(String internalName)

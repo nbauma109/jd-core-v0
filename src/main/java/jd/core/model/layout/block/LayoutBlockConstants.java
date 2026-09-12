@@ -1,5 +1,6 @@
 /*******************************************************************************
  * Copyright (C) 2007-2019 Emmanuel Dupuy GPLv3
+ * Copyright (C) 2026 Nicolas Baumann
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -132,6 +133,7 @@ public final class LayoutBlockConstants
     public static final byte FRAGMENT_COMA_SPACE                          = 85;
     public static final byte FRAGMENT_ARROW                               = 86;
     public static final byte FRAGMENT_TRY_WITH_RESOURCES                  = 87;
+    public static final byte PERMITS_SUBCLASSES                           = 88;
 
     public static final int UNLIMITED_LINE_COUNT = Integer.MAX_VALUE;
 }
