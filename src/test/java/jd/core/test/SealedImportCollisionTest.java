@@ -61,6 +61,39 @@ public class SealedImportCollisionTest extends AbstractTestCase {
             "sealed class DefaultShape permits DefaultLeaf"));
     }
 
+    @Test
+    public void testPermittedTypeDoesNotShadowJavaLang() throws Exception {
+        Path sourceRoot = Files.createTempDirectory(Path.of("target"), "sealed-java-lang-src-");
+        Path classes = Files.createTempDirectory(Path.of("target"), "sealed-java-lang-classes-");
+        Path module = writeSource(sourceRoot, "module-info.java", "module sample.sealedtypes {}\n");
+        Path sealed = writeSource(sourceRoot, "a/TextShape.java",
+            "package a; public sealed class TextShape permits other.String { "
+                + "public java.lang.String text() { return \"text\"; } }\n");
+        Path permitted = writeSource(sourceRoot, "other/String.java",
+            "package other; public final class String extends a.TextShape {}\n");
+
+        String output = decompile("a/TextShape", compile(classes, module, sealed, permitted), "17");
+        assertTrue(output, output.contains("permits other.String"));
+        assertTrue(output, !output.contains("import other.String;"));
+        assertTrue(output, output.contains("String text()"));
+    }
+
+    @Test
+    public void testDefaultPackageGenericSealedClass() throws Exception {
+        Path sourceRoot = Files.createTempDirectory(Path.of("target"), "sealed-default-generic-src-");
+        Path classes = Files.createTempDirectory(Path.of("target"), "sealed-default-generic-classes-");
+        Path source = writeSource(sourceRoot, "GenericShape.java",
+            "public sealed class GenericShape<T> permits GenericLeaf {} "
+                + "final class GenericLeaf extends GenericShape<String> {}\n");
+
+        Loader loader = compile(classes, source);
+        String baseOutput = decompile("GenericShape", loader, "17");
+        String leafOutput = decompile("GenericLeaf", loader, "17");
+        assertTrue(baseOutput, baseOutput.replaceAll("\\s+", " ").contains(
+            "sealed class GenericShape<T> permits GenericLeaf"));
+        assertTrue(leafOutput, leafOutput.contains("extends GenericShape<String>"));
+    }
+
     private static Loader compile(Path classes, Path... sources) throws IOException {
         JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
         assertNotNull(compiler);

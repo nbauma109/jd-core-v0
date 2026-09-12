@@ -192,6 +192,8 @@ public final class SignatureAnalyzer
                         } else {
                             referenceMap.remove(importedInternalName);
                         }
+                    } else {
+                        referenceMap.addJavaLangReference(internalName);
                     }
                 }
 

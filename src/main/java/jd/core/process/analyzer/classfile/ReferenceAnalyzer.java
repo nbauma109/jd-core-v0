@@ -147,6 +147,9 @@ public final class ReferenceAnalyzer
         for (String name : headerNames) {
             recordImportName(name, permittedSimpleNames, namesBySimpleName);
         }
+        for (String name : referenceMap.getJavaLangReferences()) {
+            recordImportName(name, permittedSimpleNames, namesBySimpleName);
+        }
         for (Reference reference : referenceMap.values()) {
             recordImportName(reference.getInternalName(), permittedSimpleNames, namesBySimpleName);
         }
