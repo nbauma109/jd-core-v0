@@ -1,0 +1,32 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ public class OverloadResolution
+/*    */ {
+/*    */   public static String test(float x)
+/*    */   {
+/*  9 */     return "float";
+/*    */   }
+/*    */   
+/*    */   public static String test(double x) {
+/* 13 */     return "double";
+/*    */   }
+/*    */   
+/*    */ 
+/*    */   public void testOverloadResolution()
+/*    */   {
+/* 19 */     String result = test(0.2F);
+/*    */     
+/*    */ 
+/* 22 */     double d = 0.20000000298023224D;
+/*    */   }
+/*    */   
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */   public void demonstrateDoubleConstant()
+/*    */   {
+/* 30 */     String result = test(0.20000000298023224D);
+/*    */   }
+/*    */ }
