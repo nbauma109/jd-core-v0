@@ -39,7 +39,7 @@ public class SwitchEnumTest extends AbstractTestCase {
         try (InputStream in = getClass().getResourceAsStream("/switch-enum-jdk21.0.9.jar")) {
             ZipLoader loader = new ZipLoader(in);
             String output = decompile("jd/core/test/SwitchEnum", loader);
-            assertEquals(IOUtils.toString(getClass().getResource("SwitchEnum.txt"), StandardCharsets.UTF_8), output);
+            assertEquals(IOUtils.toString(getClass().getResource("SwitchEnumJDK21.txt"), StandardCharsets.UTF_8), output);
         }
     }
 
@@ -58,7 +58,7 @@ public class SwitchEnumTest extends AbstractTestCase {
         try (InputStream in = getClass().getResourceAsStream("/switch-enum-inner-class-jdk21.0.9.jar")) {
             ZipLoader loader = new ZipLoader(in);
             String output = decompile("jd/core/test/SwitchEnumInnerClass", loader);
-            assertEquals(IOUtils.toString(getClass().getResource("SwitchEnumInnerClass.txt"), StandardCharsets.UTF_8), output);
+            assertEquals(IOUtils.toString(getClass().getResource("SwitchEnumInnerClassJDK21.txt"), StandardCharsets.UTF_8), output);
         }
     }
 }

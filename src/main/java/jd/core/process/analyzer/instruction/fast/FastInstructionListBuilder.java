@@ -16,8 +16,6 @@
  */
 package jd.core.process.analyzer.instruction.fast;
 
-import jd.core.util.DirectEnumSwitch;
-
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
@@ -4373,9 +4371,6 @@ public final class FastInstructionListBuilder {
 
     private static int analyzeSwitchType(ClassFile classFile, Instruction i)
     {
-        if (i instanceof Invokevirtual iv && DirectEnumSwitch.enumName(classFile, iv) != null) {
-            return FastConstants.SWITCH_ENUM;
-        }
         if (i.getOpcode() == ByteCodeConstants.ARRAYLOAD)
         {
             // switch(1.$SwitchMap$basic$data$TestEnum$enum1[e.ordinal()]) ?

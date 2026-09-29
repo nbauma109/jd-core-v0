@@ -16,8 +16,6 @@
  */
 package jd.core.process.writer.visitor;
 
-import jd.core.util.DirectEnumSwitch;
-
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.Constant;
 import org.apache.bcel.classfile.ConstantCP;
@@ -3132,10 +3130,6 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
             return iv.getObjectref();
         }
 
-        if (test instanceof Invokevirtual iv && DirectEnumSwitch.enumName(this.classFile, iv) != null) {
-            return iv.getObjectref();
-        }
-
         return test;
     }
 
@@ -3311,14 +3305,6 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
 
     private void writeSwitchExpressionEnumCase(FastSwitch.Pair pair, SwitchEnumInfo switchEnumInfo)
     {
-        if (switchEnumInfo != null && switchEnumInfo.switchMap == null) {
-            String value = DirectEnumSwitch.constantName(this.classFile, switchEnumInfo.internalEnumName, pair.getKey());
-            if (value != null) {
-                this.printer.printStaticField(switchEnumInfo.internalEnumName, value,
-                    SignatureUtil.createTypeName(switchEnumInfo.internalEnumName), this.classFile.getThisClassName());
-                return;
-            }
-        }
         if (switchEnumInfo == null || switchEnumInfo.switchMap == null)
         {
             this.printer.startOfError();
@@ -3354,10 +3340,6 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
 
     private SwitchEnumInfo resolveSwitchEnumInfo(FastSwitch fs)
     {
-        if (fs.getTest() instanceof Invokevirtual iv) {
-            String enumName = DirectEnumSwitch.enumName(this.classFile, iv);
-            return enumName == null ? null : new SwitchEnumInfo(this.classFile.getConstantPool(), enumName, null);
-        }
         if (fs.getTest().getOpcode() != ByteCodeConstants.ARRAYLOAD) {
             return null;
         }
