@@ -1,0 +1,15 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public abstract class OuterIncGetField
+/*    */ {
+/*    */   private int size;
+/*    */   
+/*    */   static class BagIterator {
+/*    */     private OuterIncGetField parent;
+/*    */     
+/*    */     public int remove() {
+/* 11 */       this.parent.size--;
+/* 12 */       return this.parent.size;
+/*    */     }
+/*    */   }
+/*    */ }
