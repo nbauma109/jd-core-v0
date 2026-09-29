@@ -16,6 +16,8 @@
  */
 package jd.core.process.layouter;
 
+import jd.core.util.DirectEnumSwitch;
+
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
@@ -668,7 +670,11 @@ public class JavaSourceLayouter
                     preferences, layoutBlockList, classFile, method, iv.getObjectref());
         }
 
-        Objects.requireNonNull(switchMapKey, "Null switchMapKey");
+        if (test instanceof Invokevirtual iv && DirectEnumSwitch.enumName(classFile, iv) != null) {
+            createBlockForInstruction(preferences, layoutBlockList, classFile, method, iv.getObjectref());
+        } else {
+            Objects.requireNonNull(switchMapKey, "Null switchMapKey");
+        }
 
         layoutBlockList.add(new FragmentLayoutBlock(
                 LayoutBlockConstants.FRAGMENT_RIGHT_ROUND_BRACKET));

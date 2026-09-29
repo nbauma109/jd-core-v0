@@ -17,6 +17,8 @@
  */
 package jd.core.process.writer;
 
+import jd.core.util.DirectEnumSwitch;
+
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.AnnotationEntry;
 import org.apache.bcel.classfile.Constant;
@@ -2261,6 +2263,11 @@ public final class ClassFileWriter
     {
         addSpaceIfNeeded();
 
+        if (celb.getSwitchMapKey() == null) {
+            writeDirectEnumCase(celb);
+            return;
+        }
+
         ClassFile classFile = celb.getClassFile();
         ConstantPool constants = classFile.getConstantPool();
         List<Integer> switchMap =
@@ -2391,6 +2398,43 @@ public final class ClassFileWriter
                 {
                     j--;
                 }
+            }
+        }
+    }
+
+    private void writeDirectEnumCase(CaseEnumLayoutBlock block) {
+        ClassFile classFile = block.getClassFile();
+        Invokevirtual invocation = (Invokevirtual) block.getFs().getTest();
+        String enumName = DirectEnumSwitch.enumName(classFile, invocation);
+        String descriptor = SignatureUtil.createTypeName(enumName);
+        FastSwitch.Pair[] pairs = block.getFs().getPairs();
+        int lineCount = block.getLineCount() + 1;
+        int caseCount = block.getLastIndex() - block.getFirstIndex() + 1;
+        int caseByLine = caseCount / lineCount;
+        int middleLineCount = caseCount - caseByLine * lineCount;
+        int middleIndex = block.getFirstIndex() + middleLineCount * (caseByLine + 1);
+        int remaining = caseByLine + 1;
+        for (int i = block.getFirstIndex(); i <= block.getLastIndex(); i++) {
+            FastSwitch.Pair pair = pairs[i];
+            if (pair.isDefault()) {
+                this.printer.printKeyword(DEFAULT);
+            } else {
+                this.printer.printKeyword("case");
+                this.printer.print(' ');
+                String name = DirectEnumSwitch.constantName(classFile, enumName, pair.getKey());
+                if (name == null) {
+                    this.printer.startOfError();
+                    this.printer.print("???");
+                    this.printer.endOfError();
+                } else {
+                    this.printer.printStaticField(enumName, name, descriptor, classFile.getThisClassName());
+                }
+            }
+            this.printer.print(": ");
+            if (--remaining == 0 && i < block.getLastIndex()) {
+                endOfLine();
+                this.printer.startOfLine(Printer.UNKNOWN_LINE_NUMBER);
+                remaining = i + 1 < middleIndex ? caseByLine + 1 : caseByLine;
             }
         }
     }

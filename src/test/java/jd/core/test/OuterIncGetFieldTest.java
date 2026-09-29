@@ -20,4 +20,13 @@ public class OuterIncGetFieldTest extends AbstractTestCase {
             assertEquals(IOUtils.toString(getClass().getResource("OuterIncGetField.txt"), StandardCharsets.UTF_8), output);
         }
     }
+
+    @Test
+    public void testJDK21() throws Exception {
+        try (InputStream in = getClass().getResourceAsStream("/outer-inc-getfield-jdk21.0.9.jar")) {
+            ZipLoader loader = new ZipLoader(in);
+            String output = decompile("jd/core/test/OuterIncGetField", loader);
+            assertEquals(IOUtils.toString(getClass().getResource("OuterIncGetFieldJDK21.txt"), StandardCharsets.UTF_8), output);
+        }
+    }
 }

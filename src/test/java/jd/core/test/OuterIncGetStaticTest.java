@@ -20,4 +20,13 @@ public class OuterIncGetStaticTest extends AbstractTestCase {
             assertEquals(IOUtils.toString(getClass().getResource("OuterIncGetStatic.txt"), StandardCharsets.UTF_8), output);
         }
     }
+
+    @Test
+    public void testJDK21() throws Exception {
+        try (InputStream in = getClass().getResourceAsStream("/outer-inc-getstatic-jdk21.0.9.jar")) {
+            ZipLoader loader = new ZipLoader(in);
+            String output = decompile("jd/core/test/OuterIncGetStatic", loader);
+            assertEquals(IOUtils.toString(getClass().getResource("OuterIncGetStaticJDK21.txt"), StandardCharsets.UTF_8), output);
+        }
+    }
 }
