@@ -18,6 +18,7 @@
 /* 18 */       return a.compareTo(b); })
 /* 19 */       .forEach(o ->  {
 /* 20 */         System.out.print("printing");
-/* 21 */         System.out.print(o); });
+/* 21 */         System.out.print(o);
+/*    */       });
 /*    */   }
 /*    */ }

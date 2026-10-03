@@ -25,7 +25,6 @@ import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.IncInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
-import jd.core.model.instruction.bytecode.instruction.PutStatic;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
 import jd.core.model.instruction.fast.FastConstants;
@@ -45,8 +44,6 @@ public final class MinLineNumberVisitor
             FastDeclaration declaration = (FastDeclaration) instruction;
             return declaration.getInstruction() == null ? instruction.getLineNumber()
                     : earlierKnownLine(instruction, visit(declaration.getInstruction()));
-        case Const.PUTSTATIC:
-            return earlierKnownLine(instruction, visit(((PutStatic) instruction).getValueref()));
         case ByteCodeConstants.STORE,
              Const.ASTORE,
              Const.ISTORE:

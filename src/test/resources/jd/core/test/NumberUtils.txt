@@ -1620,7 +1620,7 @@
 /* 1620 */         if (i == sz) {
 /* 1621 */           return false;
 /*      */         }
-/*      */         for (; 
+/* 1624 */         for (; 
 /* 1624 */             i < chars.length; i++) {
 /* 1625 */           if ((chars[i] < '0' || chars[i] > '9') && (chars[i] < 'a' || chars[i] > 'f') && (chars[i] < 'A' || chars[i] > 'F'))
 /*      */           {

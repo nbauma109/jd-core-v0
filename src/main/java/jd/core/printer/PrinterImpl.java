@@ -26,14 +26,14 @@ public class PrinterImpl extends PlainTextPrinter {
 
     // Manage line number and misalignment
     private int textAreaLineNumber = 1;
-    private int suppressedLineNumberCount;
+    private int misalignedLineNumberCount;
     private boolean lineNumbersDisplayed;
 
     @Override
     public void start(int maxLineNumber, int majorVersion, int minorVersion) {
         super.start(maxLineNumber, majorVersion, minorVersion);
         lineNumbersDisplayed = showLineNumbers && maxLineNumber > 0;
-        suppressedLineNumberCount = 0;
+        misalignedLineNumberCount = 0;
 
         if (maxLineNumber != 0) {
             result.setMaxLineNumber(maxLineNumber);
@@ -42,21 +42,13 @@ public class PrinterImpl extends PlainTextPrinter {
 
     @Override
     public void startOfLine(int sourceLineNumber) {
-        // Some class files contain line numbers that cannot be placed at their
-        // original position (for example, code from an inner class inside a
-        // much later anonymous class body). Never display a misleading number.
-        int displayedLineNumber = realignmentLineNumber
+        if (lineNumbersDisplayed && realignmentLineNumber
                 && sourceLineNumber != Printer.UNKNOWN_LINE_NUMBER
-                && sourceLineNumber != textAreaLineNumber
-                ? Printer.UNKNOWN_LINE_NUMBER : sourceLineNumber;
-        if (lineNumbersDisplayed && displayedLineNumber != sourceLineNumber) {
-            suppressedLineNumberCount++;
+                && sourceLineNumber != textAreaLineNumber) {
+            misalignedLineNumberCount++;
         }
-        super.startOfLine(displayedLineNumber);
-        if (displayedLineNumber != sourceLineNumber) {
-            setPreviousLineNumber(sourceLineNumber);
-        }
-        result.putLineNumber(textAreaLineNumber, displayedLineNumber);
+        super.startOfLine(sourceLineNumber);
+        result.putLineNumber(textAreaLineNumber, sourceLineNumber);
     }
 
     @Override
@@ -180,7 +172,7 @@ public class PrinterImpl extends PlainTextPrinter {
         return result;
     }
 
-    public int getSuppressedLineNumberCount() {
-        return suppressedLineNumberCount;
+    public int getMisalignedLineNumberCount() {
+        return misalignedLineNumberCount;
     }
 }

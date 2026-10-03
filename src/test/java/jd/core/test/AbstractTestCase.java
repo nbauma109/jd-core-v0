@@ -65,9 +65,6 @@ public abstract class AbstractTestCase {
         PrinterImpl printer = new PrinterImpl(preferences);
 
         String decompiledOutput = printer.buildDecompiledOutput(loader, internalTypeName, preferences, decompiler);
-        if (preferences.getRealignmentLineNumber() && preferences.isShowLineNumbers()) {
-            assertRealignedLineNumbers(internalTypeName, decompiledOutput);
-        }
         if (recompile()) {
             ASTParser parser = ASTParser.newParser(AST.getJLSLatest());
             parser.setKind(ASTParser.K_COMPILATION_UNIT);

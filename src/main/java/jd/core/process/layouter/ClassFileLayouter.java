@@ -357,6 +357,16 @@ public final class ClassFileLayouter {
         return maxLineNumber;
     }
 
+    /** The body of the lambda is written between braces, the closing one on its own line. */
+    public static boolean hasBlockBody(LambdaInstruction lambdaInstruction)
+    {
+        Method method = lambdaInstruction.getMethod();
+        List<Instruction> list = method.getFastNodes();
+
+        return method.getCode() != null && !method.containsError() && list != null
+                && (list.size() != 1 || list.get(0) instanceof AThrow);
+    }
+
     public static int createBlocksForBodyOfLambda(
         Preferences preferences,
         LambdaInstruction lambdaInstruction,
@@ -1605,7 +1615,7 @@ public final class ClassFileLayouter {
                     MaxLineNumberVisitor.visit(instruction.getInstruction(), nextFirst));
             lb.setInstructionLineSpan(last);
         } else {
-            lb.setLastLineNumber(Math.max(lb.getFirstLineNumber(), nextFirst));
+            lb.setInstructionLineSpan(Math.max(lb.getFirstLineNumber(), nextFirst));
         }
     }
 
@@ -1643,7 +1653,7 @@ public final class ClassFileLayouter {
 
             score[i] = bestScore;
             predecessor[i] = bestBlock;
-            tracker.record(i, rank, bestScore);
+            tracker.update(i, rank, bestScore);
         }
 
         // Best end: highest score, then lowest line number, then earliest
@@ -1705,7 +1715,7 @@ public final class ClassFileLayouter {
             return bestBlock;
         }
 
-        void record(int block, int rank, int score)
+        void update(int block, int rank, int score)
         {
             if (equalBlock[rank] == -1 || score >= equalScore[rank])
             {

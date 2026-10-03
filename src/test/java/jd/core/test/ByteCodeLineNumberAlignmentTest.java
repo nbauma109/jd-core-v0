@@ -87,7 +87,7 @@ public class ByteCodeLineNumberAlignmentTest {
 
         AbstractTestCase.assertRealignedLineNumbers("ByteCodeAlignment", output);
         assertTrue(output, output.contains("/* 20 */     return 42;"));
-        assertEquals(output, 0, printer.getSuppressedLineNumberCount());
+        assertEquals(output, 0, printer.getMisalignedLineNumberCount());
         for (int offset = 0; offset < 200; offset++) {
             assertTrue("Missing bytecode offset " + offset + "\n" + output,
                     java.util.regex.Pattern.compile("(?<![0-9])" + offset + ": nop").matcher(output).find());

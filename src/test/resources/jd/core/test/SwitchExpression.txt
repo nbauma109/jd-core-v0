@@ -27,37 +27,36 @@
 /*    */     };
 /*    */   }
 /*    */   
-/*    */ 
 /*    */   public String yieldSwitch(int i)
 /*    */   {
-/*    */     System.out.println("start yieldSwitch");
-/*    */     String s = switch (i) {
+/* 32 */     System.out.println("start yieldSwitch");
+/* 33 */     String s = switch (i) {
 /*    */       case 0 -> {
-/*    */         System.out.println("yieldSwitch case 0");
-/*    */         yield "0";
+/* 35 */         System.out.println("yieldSwitch case 0");
+/* 36 */         yield "0";
 /*    */       }
 /*    */       case 1 -> {
-/*    */         System.out.println("yieldSwitch case 1");
-/*    */         yield "1";
+/* 39 */         System.out.println("yieldSwitch case 1");
+/* 40 */         yield "1";
 /*    */       }
 /*    */       case 2 -> {
-/*    */         System.out.println("yieldSwitch case 2");
-/*    */         yield "2";
+/* 43 */         System.out.println("yieldSwitch case 2");
+/* 44 */         yield "2";
 /*    */       }
 /*    */       case 3 -> {
-/*    */         System.out.println("yieldSwitch case 3");
-/*    */         yield "3";
+/* 47 */         System.out.println("yieldSwitch case 3");
+/* 48 */         yield "3";
 /*    */       }
-/*    */       default -> throw new IllegalArgumentException();
+/* 50 */       default -> throw new IllegalArgumentException();
 /*    */     };
-/*    */     return String.format("return from yield switch: %s", s);
+/* 52 */     return String.format("return from yield switch: %s", s);
 /*    */   }
 /*    */   
 /*    */   boolean enumSwitch(DayOfWeek dayOfWeek) {
-/*    */     System.out.println("start enumSwitch");
-/*    */     return switch (dayOfWeek) {
-/*    */       case MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY -> true;
-/*    */       case SATURDAY, SUNDAY -> false;
+/* 56 */     System.out.println("start enumSwitch");
+/* 57 */     return switch (dayOfWeek) {
+/* 58 */       case MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY -> true;
+/* 59 */       case SATURDAY, SUNDAY -> false;
 /*    */     };
 /*    */   }
 /*    */ }

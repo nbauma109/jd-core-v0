@@ -667,12 +667,12 @@
 /*  667 */         int acc = ic.getInnerAccessFlags();
 /*  668 */         acc &= 0xF9E0;
 /*      */         
-/*  670 */         if (acc != 0)
-/*  671 */           Pass2Verifier.this.addMessage("Unknown access flag for inner class '" + Pass2Verifier.tostring(ic) + "' set (InnerClasses attribute '" + Pass2Verifier.tostring(innerClasses) + "')."); });
+/*  670 */         if (acc != 0) {
+/*  671 */           Pass2Verifier.this.addMessage("Unknown access flag for inner class '" + Pass2Verifier.tostring(ic) + "' set (InnerClasses attribute '" + Pass2Verifier.tostring(innerClasses) + "').");
+/*      */         }
+/*      */       });
 /*      */     }
 /*      */     
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 

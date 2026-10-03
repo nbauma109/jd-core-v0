@@ -348,11 +348,11 @@
 /*  348 */           if ((a instanceof LineNumberTable)) {
 /*  349 */             ((LineNumberTable)a).forEach(l ->  {
 /*  350 */               InstructionHandle ih = this.il.findHandle(l.getStartPC());
-/*  351 */               if (ih != null)
-/*  352 */                 addLineNumber(ih, l.getLineNumber()); });
-/*      */ 
-/*      */           }
-/*  355 */           else if ((a instanceof LocalVariableTable)) {
+/*  351 */               if (ih != null) {
+/*  352 */                 addLineNumber(ih, l.getLineNumber());
+/*      */               }
+/*      */             });
+/*  355 */           } else if ((a instanceof LocalVariableTable)) {
 /*  356 */             updateLocalVariableTable((LocalVariableTable)a);
 /*  357 */           } else if ((a instanceof LocalVariableTypeTable)) {
 /*  358 */             this.localVariableTypeTable = (LocalVariableTypeTable)a.copy(cp.getConstantPool());

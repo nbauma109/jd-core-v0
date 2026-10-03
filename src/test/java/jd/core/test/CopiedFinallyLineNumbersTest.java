@@ -22,6 +22,6 @@ public class CopiedFinallyLineNumbersTest {
 
         AbstractTestCase.assertRealignedLineNumbers("CopiedFinallyLineNumbers", output);
         assertTrue(output, output.contains("/* 32 */     return 42;"));
-        assertEquals(output, 0, printer.getSuppressedLineNumberCount());
+        assertEquals(output, 0, printer.getMisalignedLineNumberCount());
     }
 }

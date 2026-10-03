@@ -25,6 +25,6 @@ public class LineNumberAlignmentTest extends AbstractTestCase {
         // The last method is the one which used to be shifted by the copies of
         // the "finally" blocks, the enum initializer and the lambda call.
         assertTrue(output, output.contains("return 42;"));
-        assertEquals(output, 0, printer.getSuppressedLineNumberCount());
+        assertEquals(output, 0, printer.getMisalignedLineNumberCount());
     }
 }

@@ -29,7 +29,7 @@ public class RemainingLineNumberAlignmentTest {
         String output = printer.buildDecompiledOutput(new ClassPathLoader(),
                 "jd/core/test/" + name, preferences, new DecompilerImpl());
         AbstractTestCase.assertRealignedLineNumbers(name, output);
-        assertEquals(output, 0, printer.getSuppressedLineNumberCount());
+        assertEquals(output, 0, printer.getMisalignedLineNumberCount());
         return output;
     }
 

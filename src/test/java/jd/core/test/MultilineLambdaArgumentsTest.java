@@ -36,6 +36,6 @@ public class MultilineLambdaArgumentsTest {
         assertTrue(output, lines[37].startsWith("/* 38 */") && lines[37].contains("firstLength"));
         assertTrue(output, lines[38].startsWith("/* 39 */") && lines[38].contains("secondLength"));
         assertTrue(output, lines[39].startsWith("/* 40 */") && lines[39].contains("return firstLength"));
-        assertEquals(output, 0, printer.getSuppressedLineNumberCount());
+        assertEquals(output, 0, printer.getMisalignedLineNumberCount());
     }
 }

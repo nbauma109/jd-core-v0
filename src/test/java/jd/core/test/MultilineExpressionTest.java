@@ -7,7 +7,7 @@ import static org.junit.Assert.assertTrue;
 public class MultilineExpressionTest extends AbstractTestCase {
     @Test
     public void preservesExpressionLines() throws Exception {
-        String output = decompile("jd/core/test/MultilineExpression");
+        String output = decompile("jd/core/test/MultilineExpression").replace(System.lineSeparator(), "\n");
         assertTrue(output, output.contains("/* 10 */     return new Builder()\n")
                 && output.contains("/* 11 */       .append(first)\n")
                 && output.contains("/* 12 */       .append(second)\n")

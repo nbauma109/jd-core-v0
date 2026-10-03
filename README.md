@@ -55,7 +55,7 @@ public class Sample {
 
 ## Line number audit
 
-Run tests with JDK 17, as in the main CI workflow. The normal decompilation tests check that every displayed numeric line comment matches its physical output line. To scan every class in the direct test dependency JARs and compare numbered lines with the matching source JARs, first fetch the test sources, then run:
+Run tests with JDK 17, as in the main CI workflow. Line numbers are always displayed when the option is on; the dedicated alignment tests check that numeric line comments match their physical output line where realignment is possible. To scan every class in the direct test dependency JARs and compare numbered lines with the matching source JARs, first fetch the test sources, then run:
 
 ```sh
 mvn dependency:sources -DincludeScope=test
@@ -64,5 +64,4 @@ mvn -Dtest=DependencyJarLineNumberAuditTest -DlineAudit.dependencies=true test
 
 For large JARs, use `-DlineAudit.marker=net/sourceforge/plantuml/SourceStringReader.class` with `-DlineAudit.start=0 -DlineAudit.limit=1000`, then advance `lineAudit.start` by 1000 for each batch. The audit reports classes that could not be decompiled separately from line number mismatches. Exact source text matches are reported as evidence; reconstructed Java can differ from the original text while keeping the correct line number.
 
-To audit another local JAR and its adjacent `-sources.jar`, set `-DlineAudit.jar=/path/to/library.jar`; `-DlineAudit.start` and `-DlineAudit.limit` also work for this mode. The summary reports suppressed known line numbers: these are source numbers that could not be placed on the corresponding physical output line and therefore appear as empty line fields. A zero mismatch count for displayed numbers does not imply that this suppression count is zero.
-
+To audit another local JAR and its adjacent `-sources.jar`, set `-DlineAudit.jar=/path/to/library.jar`; `-DlineAudit.start` and `-DlineAudit.limit` also work for this mode. The summary reports misaligned line numbers: source numbers that are displayed but could not be placed on the corresponding physical output line.

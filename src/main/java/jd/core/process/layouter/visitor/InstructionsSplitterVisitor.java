@@ -143,6 +143,13 @@ public class InstructionsSplitterVisitor extends BaseInstructionSplitterVisitor
     protected void visit(Instruction parent, Instruction instruction)
     {
         if (instruction instanceof LambdaInstruction) {
+            // The rest of the expression following a closing brace starts on the line of this lambda
+            if (this.firstLineNumber == Instruction.UNKNOWN_LINE_NUMBER
+                    && this.maxLineNumber != Instruction.UNKNOWN_LINE_NUMBER
+                    && instruction.getLineNumber() != Instruction.UNKNOWN_LINE_NUMBER) {
+                instruction.setLineNumber(Math.max(instruction.getLineNumber(), this.maxLineNumber));
+                this.firstLineNumber = instruction.getLineNumber();
+            }
             super.visit(parent, instruction);
             return;
         }
@@ -201,7 +208,9 @@ public class InstructionsSplitterVisitor extends BaseInstructionSplitterVisitor
                 ClassFileLayouter.createBlocksForBodyOfLambda(
                         this.preferences, in, this.layoutBlockList);
 
-        this.firstLineNumber = this.maxLineNumber;
+        // After a closing brace, the rest of the expression has no line of its own
+        this.firstLineNumber = ClassFileLayouter.hasBlockBody(in)
+                ? Instruction.UNKNOWN_LINE_NUMBER : this.maxLineNumber;
         this.prefixLineNumber = this.maxLineNumber;
         this.index1 = this.index2;
         this.offset1 = in.getOffset();

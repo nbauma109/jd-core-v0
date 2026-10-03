@@ -473,21 +473,21 @@
 /*     */     public BinaryOperator<List<O>> combiner() {
 /* 474 */       return (left, right) ->  {
 /* 475 */         left.addAll(right);
-/* 476 */         return left; };
+/* 476 */         return left;
+/*     */       };
 /*     */     }
 /*     */     
 /*     */     @Override
-/*     */     public Function<List<O>, O[]> finisher()
-/*     */     {
+/*     */     public Function<List<O>, O[]> finisher() {
 /* 482 */       return list -> 
 /*     */       {
 /* 484 */         O[] array = (O[])java.lang.reflect.Array.newInstance(this.elementType, list.size());
-/* 485 */         return list.toArray(array); };
+/* 485 */         return list.toArray(array);
+/*     */       };
 /*     */     }
 /*     */     
 /*     */     @Override
-/*     */     public Set<Characteristics> characteristics()
-/*     */     {
+/*     */     public Set<Characteristics> characteristics() {
 /* 491 */       return characteristics;
 /*     */     }
 /*     */   }

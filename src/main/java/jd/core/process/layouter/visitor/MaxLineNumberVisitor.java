@@ -230,7 +230,13 @@ public final class MaxLineNumberVisitor
                 maxLineNumber = Math.max(maxLineNumber, computeMaxLineNumber(pair.getInstructions(), upperBound, maxLineNumber));
             }
         }
-        return maxLineNumber;
+        // The closing brace of a switch expression is written on its own line
+        return pairsPrinted(fs) ? maxLineNumber + 1 : maxLineNumber;
+    }
+
+    private static boolean pairsPrinted(FastSwitch fs)
+    {
+        return fs.getPairs() != null && fs.getPairs().length > 0;
     }
 
     private static int computeMaxLineNumber(List<Instruction> instructions, int upperBound, int initial) {

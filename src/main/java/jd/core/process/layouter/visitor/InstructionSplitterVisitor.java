@@ -145,10 +145,12 @@ public class InstructionSplitterVisitor extends BaseInstructionSplitterVisitor
         this.offset1 = in.getOffset();
 
         // Add blocks for lambda
-        this.firstLineNumber = ClassFileLayouter.createBlocksForBodyOfLambda(this.preferences, in, this.layoutBlockList);
-        if (this.firstLineNumber == Instruction.UNKNOWN_LINE_NUMBER) {
-            this.firstLineNumber = in.getLineNumber();
+        int bodyLineNumber = ClassFileLayouter.createBlocksForBodyOfLambda(this.preferences, in, this.layoutBlockList);
+        if (bodyLineNumber == Instruction.UNKNOWN_LINE_NUMBER) {
+            bodyLineNumber = in.getLineNumber();
         }
-        this.prefixLineNumber = this.firstLineNumber;
+        // After a closing brace, the rest of the expression starts on the line of its call
+        this.firstLineNumber = ClassFileLayouter.hasBlockBody(in) ? parent.getLineNumber() : bodyLineNumber;
+        this.prefixLineNumber = bodyLineNumber;
     }
 }

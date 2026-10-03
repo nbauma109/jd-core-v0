@@ -820,7 +820,7 @@
 /*  820 */           last = end;
 /*      */         }
 /*      */       }
-/*      */       for (; 
+/*  824 */       for (; 
 /*  824 */           idx < last; idx++) {
 /*  825 */         char c = source.charAt(idx);
 /*  826 */         if (!Character.isDigit(c)) {
