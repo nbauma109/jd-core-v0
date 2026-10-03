@@ -11,16 +11,16 @@
 /* 11 */   void add(int x) { i += x; }
 /*    */   
 /*    */   int a;
+/*    */   
+/* 15 */   void add(byte x) { 
+/* 16 */       i = i + x; }
+/*    */   
 /*    */   int b;
 /*    */   int c;
-/* 16 */   void add(byte x) { i = i + x; }
+/* 20 */   void add(short x) { i = j + x; }
 /*    */   
-/*    */   void add(short x)
+/*    */   void add(int x, int y)
 /*    */   {
-/* 20 */     i = j + x;
-/*    */   }
-/*    */   
-/*    */   void add(int x, int y) {
 /* 24 */     i = y + x;
 /*    */   }
 /*    */   

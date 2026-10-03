@@ -276,13 +276,13 @@
 /*     */           }
 /* 277 */           if (innerClassAttributeRefersToMe) {
 /* 278 */             this.isNested = true;
-/* 279 */             if (innerClass.getInnerNameIndex() == 0) {
-/* 280 */               this.isAnonymous = true;
-/*     */             }
-/*     */           }
-/*     */         });
+/* 279 */             if (innerClass.getInnerNameIndex() == 0)
+/* 280 */               this.isAnonymous = true; } });
 /*     */       }
 /*     */     }
+/*     */     
+/*     */ 
+/*     */ 
 /* 286 */     this.computedNestedTypeStatus = true;
 /*     */   }
 /*     */   

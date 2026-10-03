@@ -995,8 +995,8 @@
 /*  995 */         swapPosition(nextGreater(deletedNode, dataElement), deletedNode, dataElement);
 /*      */       }
 /*      */       
-/*      */ 
-/*  999 */       Node<K, V> replacement = deletedNode.getLeft(dataElement) != null ? deletedNode.getLeft(dataElement) : deletedNode.getRight(dataElement);
+/*  998 */       Node<K, V> replacement = deletedNode.getLeft(dataElement) != null ? deletedNode
+/*  999 */         .getLeft(dataElement) : deletedNode.getRight(dataElement);
 /*      */       
 /* 1001 */       if (replacement != null) {
 /* 1002 */         replacement.setParent(deletedNode.getParent(dataElement), dataElement);

@@ -86,8 +86,8 @@
 /*     */     }
 /*  87 */     boolean bothDirection = arg.get("ARROW_BOTHDRESSING", 0) != null;
 /*     */     
-/*     */ 
-/*  90 */     ArrowConfiguration config = bothDirection ? ArrowConfiguration.withDirectionBoth() : ArrowConfiguration.withDirectionNormal();
+/*  89 */     ArrowConfiguration config = bothDirection ? ArrowConfiguration.withDirectionBoth() : 
+/*  90 */       ArrowConfiguration.withDirectionNormal();
 /*  91 */     if (dotted) {
 /*  92 */       config = config.withBody(ArrowBody.DOTTED);
 /*     */     }
@@ -132,8 +132,8 @@
 /*     */       }
 /*     */     }
 /*     */     
-/*     */ 
-/* 136 */     MessageExo msg = new MessageExo(diagram.getSkinParam().getCurrentStyleBuilder(), p, messageExoType, labels, config, diagram.getNextMessageNumber(), isShortArrow(arg));
+/* 135 */     MessageExo msg = new MessageExo(diagram.getSkinParam().getCurrentStyleBuilder(), p, messageExoType, labels, config, diagram
+/* 136 */       .getNextMessageNumber(), isShortArrow(arg));
 /* 137 */     if (arg.get("URL", 0) != null) {
 /* 138 */       UrlBuilder urlBuilder = new UrlBuilder(diagram.getSkinParam().getValue("topurl"), UrlMode.STRICT);
 /* 139 */       Url urlLink = urlBuilder.getUrl(arg.get("URL", 0));

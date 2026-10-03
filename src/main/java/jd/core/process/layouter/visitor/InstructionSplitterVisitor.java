@@ -117,8 +117,12 @@ public class InstructionSplitterVisitor extends BaseInstructionSplitterVisitor
     @Override
     public void visitAnonymousLambda(Instruction parent, LambdaInstruction in)
     {
+        int prefixLastLineNumber = lambdaPrefixLineNumber(parent, in);
+        if (this.instruction == in && this.offset1 == 0) {
+            this.firstLineNumber = prefixLastLineNumber;
+        }
         // Add a new part of instruction
-        int lastLineNumber = MaxLineNumberVisitor.visit(in);
+        int lastLineNumber = prefixLastLineNumber;
         int preferedLineNumber;
 
         if (this.firstLineNumber != Instruction.UNKNOWN_LINE_NUMBER &&
@@ -138,10 +142,13 @@ public class InstructionSplitterVisitor extends BaseInstructionSplitterVisitor
                 this.classFile, this.method, this.instruction,
                 this.offset1, in.getOffset()));
 
-        this.firstLineNumber = parent.getLineNumber();
         this.offset1 = in.getOffset();
 
         // Add blocks for lambda
-        ClassFileLayouter.createBlocksForBodyOfLambda(this.preferences, in, this.layoutBlockList);
+        this.firstLineNumber = ClassFileLayouter.createBlocksForBodyOfLambda(this.preferences, in, this.layoutBlockList);
+        if (this.firstLineNumber == Instruction.UNKNOWN_LINE_NUMBER) {
+            this.firstLineNumber = in.getLineNumber();
+        }
+        this.prefixLineNumber = this.firstLineNumber;
     }
 }

@@ -1976,6 +1976,8 @@ public final class ClassFileWriter
         addSpaceIfNeeded();
 
         this.instructionPrinter.init(ilb.getFirstLineNumber());
+        this.instructionPrinter.setIgnoreLineNumbers(ilb.isLineNumbersDiscarded());
+        this.instructionPrinter.setLastLineNumber(ilb.getInstructionLineNumberLimit());
         this.visitor.init(ilb.getClassFile(), ilb.getMethod(), ilb.getFirstOffset(), ilb.getLastOffset());
         this.instructionPrinter.startOfInstruction();
         this.visitor.visit(ilb.getInstruction());
@@ -1992,6 +1994,8 @@ public final class ClassFileWriter
         addSpaceIfNeeded();
 
         this.instructionPrinter.init(ilb.getFirstLineNumber());
+        this.instructionPrinter.setIgnoreLineNumbers(ilb.isLineNumbersDiscarded());
+        this.instructionPrinter.setLastLineNumber(ilb.getInstructionLineNumberLimit());
         this.visitor.init(
             ilb.getClassFile(), ilb.getMethod(), ilb.getFirstOffset(), ilb.getLastOffset());
 
@@ -2032,6 +2036,18 @@ public final class ClassFileWriter
         this.printer.debugEndOfInstructionBlockLayoutBlock();
     }
 
+    private boolean hasFollowingSourceLines()
+    {
+        for (int i = this.index; i < this.layoutBlockList.size(); i++) {
+            LayoutBlock block = this.layoutBlockList.get(i);
+            if (block.getTag() != LayoutBlockConstants.BYTE_CODE
+                    && block.getFirstLineNumber() != Instruction.UNKNOWN_LINE_NUMBER) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void writeByteCode(ByteCodeLayoutBlock bclb)
     {
 //        this.printer.debugStartOfStatementsBlockLayoutBlock();
@@ -2043,9 +2059,13 @@ public final class ClassFileWriter
 //        this.printer.debugEndOfStatementsBlockLayoutBlock(
 //            bclb.minimalLineCount, bclb.lineCount, bclb.maximalLineCount);
 
-        ByteCodeWriter.write(
-            this.loader, this.printer, this.referenceMap,
-            bclb.getClassFile(), bclb.getMethod());
+        if (bclb.getFirstLineNumber() != Instruction.UNKNOWN_LINE_NUMBER && hasFollowingSourceLines()) {
+            ByteCodeWriter.write(this.loader, this.printer, this.referenceMap,
+                    bclb.getClassFile(), bclb.getMethod(), bclb.getLineCount());
+        } else {
+            ByteCodeWriter.write(this.loader, this.printer, this.referenceMap,
+                    bclb.getClassFile(), bclb.getMethod());
+        }
     }
 
     private void writeDeclaration(DeclareLayoutBlock dlb)

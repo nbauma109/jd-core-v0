@@ -26,6 +26,7 @@ import org.jd.core.v1.service.converter.classfiletojavasyntax.util.ExceptionUtil
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -56,6 +57,8 @@ import jd.core.model.layout.block.InnerTypeBodyBlockStartLayoutBlock;
 import jd.core.model.layout.block.LambdaArrowLayoutBlock;
 import jd.core.model.layout.block.LambdaMethodLayoutBlock;
 import jd.core.model.layout.block.LayoutBlock;
+import jd.core.model.layout.block.InstructionsLayoutBlock;
+import jd.core.model.layout.block.InstructionLayoutBlock;
 import jd.core.model.layout.block.LayoutBlockConstants;
 import jd.core.model.layout.block.MarkerLayoutBlock;
 import jd.core.model.layout.block.MethodBodyBlockEndLayoutBlock;
@@ -98,6 +101,7 @@ public final class ClassFileLayouter {
         if (maxLineNumber != Instruction.UNKNOWN_LINE_NUMBER &&
             preferences.getRealignmentLineNumber())
         {
+            discardOutOfOrderLineNumbers(layoutBlockList);
             layoutBlocks(layoutBlockList);
         }
 
@@ -754,7 +758,7 @@ public final class ClassFileLayouter {
                         new MethodBodyBlockStartLayoutBlock();
                     subLayoutBlockList.add(mbbslb);
                     subLayoutBlockList.add(
-                        new ByteCodeLayoutBlock(classFile, method));
+                        new ByteCodeLayoutBlock(classFile, method, preferences.getRealignmentLineNumber()));
                     MethodBodyBlockEndLayoutBlock mbbelb =
                         new MethodBodyBlockEndLayoutBlock();
                     subLayoutBlockList.add(mbbelb);
@@ -800,7 +804,7 @@ public final class ClassFileLayouter {
                             }
 
                             subLayoutBlockList.add(
-                                new ByteCodeLayoutBlock(classFile, method));
+                                new ByteCodeLayoutBlock(classFile, method, preferences.getRealignmentLineNumber()));
                         }
                     }
 
@@ -833,6 +837,11 @@ public final class ClassFileLayouter {
                     }
                 } // if (method.containsError()) else
             } // if (nullCodeFlag == false)
+
+            if (firstLineNumber == Instruction.UNKNOWN_LINE_NUMBER && preferences.getRealignmentLineNumber()) {
+                firstLineNumber = searchFirstLineNumber(subLayoutBlockList, 0, subLayoutBlockList.size());
+                lastLineNumber = searchLastLineNumber(subLayoutBlockList, 0, subLayoutBlockList.size());
+            }
 
             mmelb = new MarkerLayoutBlock(
                 LayoutBlockConstants.METHOD_MARKER_END, classFile);
@@ -1511,6 +1520,179 @@ public final class ClassFileLayouter {
         // DEBUG // System.err.println("LayoutBlocks: Temps: " + (time1-time0) + "ms");
     }
 
+    /*
+     * Some statements carry a line number which does not belong to the place
+     * where they are written: code copied by the compiler (inlined "finally"
+     * or "try-with-resources" close calls, loop conditions...) keeps the line
+     * of its origin. Honouring such a number makes the layout insert blank
+     * lines to reach it, which shifts every following statement. Keep the
+     * longest chain of blocks whose line numbers never go backward and forget
+     * the line numbers of the other blocks.
+     */
+    private static void discardOutOfOrderLineNumbers(List<LayoutBlock> layoutBlockList)
+    {
+        int size = layoutBlockList.size();
+        int[] blockIndexes = new int[size];
+        int count = 0;
+        boolean sorted = true;
+        int previous = 0;
+
+        for (int i=0; i<size; i++)
+        {
+            LayoutBlock lb = layoutBlockList.get(i);
+            int first = lb.getFirstLineNumber();
+
+            if (first != Instruction.UNKNOWN_LINE_NUMBER)
+            {
+                if (first < previous) {
+                    sorted = false;
+                }
+                previous = Math.max(previous, lb.getLastLineNumber());
+                blockIndexes[count++] = i;
+            }
+        }
+
+        if (sorted) {
+            return;
+        }
+
+        // Chain of blocks with non decreasing first line numbers holding the
+        // most distinct line numbers: repeating a line number brings nothing
+        // (the copies of a "finally" block all carry the same number), so
+        // that a chain following the real code wins against one going through
+        // a repeated forward jump.
+        int[] values = new int[count];
+
+        for (int i=0; i<count; i++) {
+            values[i] = layoutBlockList.get(blockIndexes[i]).getFirstLineNumber();
+        }
+
+        int[] sortedValues = values.clone();
+
+        Arrays.sort(sortedValues);
+
+        int distinct = 0;
+
+        for (int i=0; i<count; i++)
+        {
+            if (i == 0 || sortedValues[i] != sortedValues[i-1]) {
+                sortedValues[distinct++] = sortedValues[i];
+            }
+        }
+
+        // Fenwick tree of the best chain (score, ending block) per rank of value
+        int[] treeScore = new int[distinct+1];
+        int[] treeBlock = new int[distinct+1];
+        int[] equalScore = new int[distinct+1];
+        int[] equalBlock = new int[distinct+1];
+        int[] score = new int[count];
+        int[] predecessor = new int[count];
+
+        Arrays.fill(treeBlock, -1);
+        Arrays.fill(equalBlock, -1);
+
+        for (int i=0; i<count; i++)
+        {
+            int rank = Arrays.binarySearch(sortedValues, 0, distinct, values[i]) + 1;
+            int bestScore = 0;
+            int bestBlock = -1;
+
+            // Best chain ending strictly below this value
+            for (int k=rank-1; k>0; k-=k&-k)
+            {
+                if (treeBlock[k] != -1 && treeScore[k] > bestScore) {
+                    bestScore = treeScore[k];
+                    bestBlock = treeBlock[k];
+                }
+            }
+
+            bestScore++;
+
+            // Best chain ending on the same value
+            if (equalBlock[rank] != -1 && equalScore[rank] >= bestScore)
+            {
+                bestScore = equalScore[rank];
+                bestBlock = equalBlock[rank];
+            }
+
+            score[i] = bestScore;
+            predecessor[i] = bestBlock;
+
+            if (equalBlock[rank] == -1 || bestScore >= equalScore[rank])
+            {
+                equalScore[rank] = bestScore;
+                equalBlock[rank] = i;
+            }
+
+            for (int k=rank; k<=distinct; k+=k&-k)
+            {
+                if (treeBlock[k] == -1 || bestScore >= treeScore[k]) {
+                    treeScore[k] = bestScore;
+                    treeBlock[k] = i;
+                }
+            }
+        }
+
+        // Best end: highest score, then lowest line number, then earliest
+        int end = 0;
+
+        for (int i=1; i<count; i++)
+        {
+            if (score[i] > score[end] || (score[i] == score[end] && values[i] < values[end])) {
+                end = i;
+            }
+        }
+
+        boolean[] kept = new boolean[count];
+
+        for (int i=end; i>=0; i=predecessor[i]) {
+            kept[i] = true;
+        }
+
+        // A kept block must not end after the beginning of the next kept one
+        int nextFirst = Integer.MAX_VALUE;
+
+        for (int i=count-1; i>=0; i--)
+        {
+            if (kept[i])
+            {
+                LayoutBlock lb = layoutBlockList.get(blockIndexes[i]);
+
+                if (lb.getLastLineNumber() > nextFirst) {
+                    if (lb instanceof InstructionsLayoutBlock instructions
+                            && instructions.getFirstOffset() == 0
+                            && instructions.getLastOffset() == instructions.getInstructions()
+                                    .get(instructions.getLastIndex()).getOffset()) {
+                        int last = lb.getFirstLineNumber();
+                        for (int j = instructions.getFirstIndex(); j <= instructions.getLastIndex(); j++) {
+                            last = Math.max(last, MaxLineNumberVisitor.visit(instructions.getInstructions().get(j), nextFirst));
+                        }
+                        lb.setInstructionLineSpan(last);
+                    } else if (lb instanceof InstructionLayoutBlock instruction
+                            && instruction.getFirstOffset() == 0
+                            && instruction.getLastOffset() == instruction.getInstruction().getLastOffset()) {
+                        int last = Math.max(lb.getFirstLineNumber(),
+                                MaxLineNumberVisitor.visit(instruction.getInstruction(), nextFirst));
+                        lb.setInstructionLineSpan(last);
+                    } else {
+                        lb.setLastLineNumber(Math.max(lb.getFirstLineNumber(), nextFirst));
+                    }
+                }
+                nextFirst = lb.getFirstLineNumber();
+            }
+        }
+
+        for (int i=0; i<count; i++)
+        {
+            if (!kept[i])
+            {
+                LayoutBlock lb = layoutBlockList.get(blockIndexes[i]);
+
+                lb.discardLineNumbers();
+            }
+        }
+    }
+
     private static void createSections(
         List<LayoutBlock> layoutBlockList,
         List<LayoutSection> layoutSectionList)
@@ -1528,7 +1710,8 @@ public final class ClassFileLayouter {
         {
             lb = layoutBlockList.get(blockIndex);
 
-            if (lb.getTag() == LayoutBlockConstants.BYTE_CODE)
+            if (lb.getTag() == LayoutBlockConstants.BYTE_CODE
+                    && lb.getFirstLineNumber() == Instruction.UNKNOWN_LINE_NUMBER)
             {
                 containsError = true;
             }
@@ -3558,7 +3741,7 @@ public final class ClassFileLayouter {
                     new MethodBodyBlockStartLayoutBlock();
                 subLayoutBlockList.add(mbbslb);
                 subLayoutBlockList.add(
-                    new ByteCodeLayoutBlock(classFile, method));
+                    new ByteCodeLayoutBlock(classFile, method, preferences.getRealignmentLineNumber()));
                 MethodBodyBlockEndLayoutBlock mbbelb =
                     new MethodBodyBlockEndLayoutBlock();
                 subLayoutBlockList.add(mbbelb);
@@ -3609,7 +3792,7 @@ public final class ClassFileLayouter {
                         }
 
                         subLayoutBlockList.add(
-                            new ByteCodeLayoutBlock(classFile, method));
+                            new ByteCodeLayoutBlock(classFile, method, preferences.getRealignmentLineNumber()));
                     }
                 }
 

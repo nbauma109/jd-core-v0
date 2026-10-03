@@ -54,12 +54,20 @@ public final class MaxLineNumberVisitor
 
     public static int visit(Instruction instruction)
     {
-        int maxLineNumber = instruction.getLineNumber();
+        return visit(instruction, Integer.MAX_VALUE);
+    }
+
+    /** Find the last source line within a block's retained source range. */
+    public static int visit(Instruction instruction, int upperBound)
+    {
+        int instructionLineNumber = instruction.getLineNumber() <= upperBound
+                ? instruction.getLineNumber() : Instruction.UNKNOWN_LINE_NUMBER;
+        int maxLineNumber = instructionLineNumber;
 
         switch (instruction.getOpcode())
         {
         case ByteCodeConstants.ARRAYLOAD:
-            maxLineNumber = visit(((ArrayLoadInstruction)instruction).getIndexref());
+            maxLineNumber = visit(((ArrayLoadInstruction)instruction).getIndexref(), upperBound);
             break;
         case ByteCodeConstants.ARRAYSTORE,
              ByteCodeConstants.STORE,
@@ -69,24 +77,24 @@ public final class MaxLineNumberVisitor
              Const.ISTORE,
              Const.PUTFIELD,
              Const.PUTSTATIC:
-            maxLineNumber = visit(((ValuerefAttribute)instruction).getValueref());
+            maxLineNumber = visit(((ValuerefAttribute)instruction).getValueref(), upperBound);
             break;
         case ByteCodeConstants.ASSERT:
             {
                 AssertInstruction ai = (AssertInstruction)instruction;
-                maxLineNumber = visit(ai.getMsg() == null ? ai.getTest() : ai.getMsg());
+                maxLineNumber = visit(ai.getMsg() == null ? ai.getTest() : ai.getMsg(), upperBound);
             }
             break;
         case Const.ATHROW:
-            maxLineNumber = visit(((AThrow)instruction).getValue());
+            maxLineNumber = visit(((AThrow)instruction).getValue(), upperBound);
             break;
         case ByteCodeConstants.UNARYOP:
-            maxLineNumber = visit(((UnaryOperatorInstruction)instruction).getValue());
+            maxLineNumber = visit(((UnaryOperatorInstruction)instruction).getValue(), upperBound);
             break;
         case ByteCodeConstants.BINARYOP,
              ByteCodeConstants.ASSIGNMENT:
                 BinaryOperatorInstruction boi = (BinaryOperatorInstruction)instruction;
-                maxLineNumber = Math.max(visit(boi.getValue1()), visit(boi.getValue2()));
+                maxLineNumber = Math.max(visit(boi.getValue1(), upperBound), visit(boi.getValue2(), upperBound));
             break;
         case ByteCodeConstants.DUPSTORE,
              ByteCodeConstants.TERNARYOPSTORE,
@@ -96,33 +104,33 @@ public final class MaxLineNumberVisitor
              Const.MONITOREXIT,
              Const.POP,
              Const.GETFIELD:
-            maxLineNumber = visit(((ObjectrefAttribute)instruction).getObjectref());
+            maxLineNumber = visit(((ObjectrefAttribute)instruction).getObjectref(), upperBound);
             break;
         case ByteCodeConstants.CONVERT,
              ByteCodeConstants.IMPLICITCONVERT:
-            maxLineNumber = visit(((ConvertInstruction)instruction).getValue());
+            maxLineNumber = visit(((ConvertInstruction)instruction).getValue(), upperBound);
             break;
         case FastConstants.DECLARE:
             {
                 FastDeclaration fd = (FastDeclaration)instruction;
                 if (fd.getInstruction() != null) {
-                    maxLineNumber = visit(fd.getInstruction());
+                    maxLineNumber = visit(fd.getInstruction(), upperBound);
                 }
             }
             break;
         case ByteCodeConstants.IFCMP:
             IfCmp ifCmp = (IfCmp)instruction;
-            maxLineNumber = Math.max(visit(ifCmp.getValue1()), visit(ifCmp.getValue2()));
+            maxLineNumber = Math.max(visit(ifCmp.getValue1(), upperBound), visit(ifCmp.getValue2(), upperBound));
             break;
         case ByteCodeConstants.IF,
              ByteCodeConstants.IFXNULL:
-            maxLineNumber = visit(((IfInstruction)instruction).getValue());
+            maxLineNumber = visit(((IfInstruction)instruction).getValue(), upperBound);
             break;
         case ByteCodeConstants.COMPLEXIF:
             {
                 List<Instruction> branchList =
                     ((ComplexConditionalBranchInstruction)instruction).getInstructions();
-                maxLineNumber = visit(branchList.get(branchList.size()-1));
+                maxLineNumber = visit(branchList.get(branchList.size()-1), upperBound);
             }
             break;
         case Const.INVOKEINTERFACE,
@@ -131,21 +139,14 @@ public final class MaxLineNumberVisitor
              Const.INVOKESTATIC:
             {
                 List<Instruction> list = ((InvokeInstruction)instruction).getArgs();
-                int length = list.size();
-
-                if (length == 0)
-                {
-                    if (instruction instanceof InvokeNoStaticInstruction insi) {
-                        maxLineNumber = visit(insi.getObjectref());
-                    } else {
-                        maxLineNumber = instruction.getLineNumber();
-                    }
+                // The receiver can itself be a multiline call chain. Include it
+                // even when this invocation has arguments of its own.
+                if (instruction instanceof InvokeNoStaticInstruction insi) {
+                    maxLineNumber = Math.max(maxLineNumber, visit(insi.getObjectref(), upperBound));
                 }
-                else
-                {
-                    // Correction pour un tres curieux bug : les numéros de
-                    // ligne des parametres ne sont pas toujours en ordre croissant
-                    maxLineNumber = computeMaxLineNumber(list);
+                if (!list.isEmpty()) {
+                    // Argument line numbers are not always in ascending order.
+                    maxLineNumber = Math.max(maxLineNumber, computeMaxLineNumber(list, upperBound));
                 }
             }
             break;
@@ -155,35 +156,35 @@ public final class MaxLineNumberVisitor
                 List<Instruction> list = ((InvokeNew)instruction).getArgs();
                 if (list.isEmpty())
                 {
-                    maxLineNumber = instruction.getLineNumber();
+                    maxLineNumber = instructionLineNumber;
                 }
                 else
                 {
-                    maxLineNumber = computeMaxLineNumber(list);
+                    maxLineNumber = computeMaxLineNumber(list, upperBound);
                 }
             }
             break;
         case Const.LOOKUPSWITCH, Const.TABLESWITCH:
-            maxLineNumber = visit(((Switch)instruction).getKey());
+            maxLineNumber = visit(((Switch)instruction).getKey(), upperBound);
             break;
         case Const.MULTIANEWARRAY:
             {
                 List<Instruction> dimensions = ((MultiANewArray)instruction).getDimensions();
                 if (!dimensions.isEmpty()) {
-                    maxLineNumber = visit(dimensions.get(dimensions.size()-1));
+                    maxLineNumber = visit(dimensions.get(dimensions.size()-1), upperBound);
                 }
             }
             break;
         case Const.NEWARRAY:
-            maxLineNumber = visit(((NewArray)instruction).getDimension());
+            maxLineNumber = visit(((NewArray)instruction).getDimension(), upperBound);
             break;
         case Const.ANEWARRAY:
-            maxLineNumber = visit(((ANewArray)instruction).getDimension());
+            maxLineNumber = visit(((ANewArray)instruction).getDimension(), upperBound);
             break;
         case ByteCodeConstants.PREINC,
              ByteCodeConstants.POSTINC:
             IncInstruction ii = (IncInstruction)instruction;
-            maxLineNumber = visit(ii.getValue());
+            maxLineNumber = visit(ii.getValue(), upperBound);
             break;
         case ByteCodeConstants.INITARRAY,
              ByteCodeConstants.NEWANDINITARRAY:
@@ -191,19 +192,19 @@ public final class MaxLineNumberVisitor
                 InitArrayInstruction iai = (InitArrayInstruction)instruction;
                 int length = iai.getValues().size();
                 if (length > 0) {
-                    maxLineNumber = visit(iai.getValues().get(length-1));
+                    maxLineNumber = visit(iai.getValues().get(length-1), upperBound);
                 }
             }
             break;
         case ByteCodeConstants.TERNARYOP:
-            maxLineNumber = visit(((TernaryOperator)instruction).getValue2());
+            maxLineNumber = visit(((TernaryOperator)instruction).getValue2(), upperBound);
             break;
         case FastConstants.SWITCH,
              FastConstants.SWITCH_ENUM,
              FastConstants.SWITCH_STRING:
             {
                 FastSwitch fs = (FastSwitch)instruction;
-                maxLineNumber = visit(fs.getTest());
+                maxLineNumber = visit(fs.getTest(), upperBound);
                 for (FastSwitch.Pair pair : fs.getPairs())
                 {
                     if (pair.getInstructions() == null) {
@@ -211,7 +212,7 @@ public final class MaxLineNumberVisitor
                     }
                     for (Instruction i : pair.getInstructions())
                     {
-                        int candidate = visit(i);
+                        int candidate = visit(i, upperBound);
                         if (maxLineNumber < candidate) {
                             maxLineNumber = candidate;
                         }
@@ -223,7 +224,7 @@ public final class MaxLineNumberVisitor
 //        case FastConstants.SYNCHRONIZED:
 //            List<Instruction> instructions = ((FastSynchronized)instruction).getInstructions();
 //            if (instructions != null && !instructions.isEmpty()) {
-//                maxLineNumber = visit(instructions.get(instructions.size() - 1));
+//                maxLineNumber = visit(instructions.get(instructions.size() - 1), upperBound);
 //            }
 //            break;
         }
@@ -231,19 +232,19 @@ public final class MaxLineNumberVisitor
         // Autre curieux bug : les constantes finales passees en parametres
         // peuvent avoir un numéro de ligne plus petit que le numéro de ligne
         // de l'instruction INVOKE*
-        if (maxLineNumber < instruction.getLineNumber())
+        if (maxLineNumber < instructionLineNumber)
         {
-            return instruction.getLineNumber();
+            return instructionLineNumber;
         }
         return maxLineNumber;
     }
 
-    private static int computeMaxLineNumber(List<Instruction> instructions) {
-        int maxLineNumber = visit(instructions.get(0));
+    private static int computeMaxLineNumber(List<Instruction> instructions, int upperBound) {
+        int maxLineNumber = visit(instructions.get(0), upperBound);
 
         for (Instruction instruction : instructions)
         {
-            int lineNumber = visit(instruction);
+            int lineNumber = visit(instruction, upperBound);
             if (maxLineNumber < lineNumber) {
                 maxLineNumber = lineNumber;
             }

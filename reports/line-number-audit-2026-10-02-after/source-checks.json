@@ -1,0 +1,152 @@
+{
+  "method": "Manually selected affected source lines: require the same snippet in original and decompiled text at the exact source row, and a numeric comment matching that row. This is targeted evidence, not whole-source equivalence.",
+  "classes": [
+    {
+      "jar": "ecj",
+      "version": "3.44.0",
+      "source_jar_sha256": "814801cd7b05dd19047c6a263c65f983fe32f014be6e92b6dbf0048f10c25e36",
+      "source_member": "org/eclipse/jdt/internal/compiler/ClassFile.java",
+      "confirmed": [
+        {
+          "source_line": 525,
+          "physical_output_line": 525,
+          "printed_number": 525,
+          "shared_snippet": "completeRuntimeTypeAnnotations("
+        },
+        {
+          "source_line": 526,
+          "physical_output_line": 526,
+          "printed_number": 526,
+          "shared_snippet": "null"
+        },
+        {
+          "source_line": 527,
+          "physical_output_line": 527,
+          "printed_number": 527,
+          "shared_snippet": "node ->"
+        },
+        {
+          "source_line": 528,
+          "physical_output_line": 528,
+          "printed_number": 528,
+          "shared_snippet": "() ->"
+        },
+        {
+          "source_line": 3680,
+          "physical_output_line": 3680,
+          "printed_number": 3680,
+          "shared_snippet": ".map("
+        },
+        {
+          "source_line": 3681,
+          "physical_output_line": 3681,
+          "printed_number": 3681,
+          "shared_snippet": ".reduce("
+        },
+        {
+          "source_line": 3682,
+          "physical_output_line": 3682,
+          "printed_number": 3682,
+          "shared_snippet": ".orElse("
+        }
+      ],
+      "suppressed_known_numbers_for_output": 0
+    },
+    {
+      "jar": "commons-io",
+      "version": "2.21.0",
+      "source_jar_sha256": "5fd4d4493dd1eee5c6f314159dbac7fda1988a4ab037feacbeb2ecb3033c43b4",
+      "source_member": "org/apache/commons/io/FileUtils.java",
+      "confirmed": [
+        {
+          "source_line": 2304,
+          "physical_output_line": 2304,
+          "printed_number": 2304,
+          "shared_snippet": "AccumulatorPathVisitor.builder()"
+        },
+        {
+          "source_line": 2305,
+          "physical_output_line": 2305,
+          "printed_number": 2305,
+          "shared_snippet": ".setPathCounters("
+        },
+        {
+          "source_line": 2306,
+          "physical_output_line": 2306,
+          "printed_number": 2306,
+          "shared_snippet": ".setFileFilter("
+        },
+        {
+          "source_line": 2307,
+          "physical_output_line": 2307,
+          "printed_number": 2307,
+          "shared_snippet": ".setDirectoryFilter("
+        },
+        {
+          "source_line": 2308,
+          "physical_output_line": 2308,
+          "printed_number": 2308,
+          "shared_snippet": ".setVisitFileFailedFunction("
+        },
+        {
+          "source_line": 2309,
+          "physical_output_line": 2309,
+          "printed_number": 2309,
+          "shared_snippet": ".get()"
+        },
+        {
+          "source_line": 2311,
+          "physical_output_line": 2311,
+          "printed_number": 2311,
+          "shared_snippet": "optionSet = new HashSet<>();"
+        },
+        {
+          "source_line": 2315,
+          "physical_output_line": 2315,
+          "printed_number": 2315,
+          "shared_snippet": "Files.walkFileTree("
+        },
+        {
+          "source_line": 2316,
+          "physical_output_line": 2316,
+          "printed_number": 2316,
+          "shared_snippet": "return visitor;"
+        }
+      ],
+      "suppressed_known_numbers_for_output": 0
+    },
+    {
+      "jar": "commons-codec",
+      "version": "1.19.0",
+      "source_jar_sha256": "b0462142585d45fc15bc8091b7b02f1e3a85c83595068659548c82cac9cdc7a2",
+      "source_member": "org/apache/commons/codec/language/bm/Rule.java",
+      "confirmed": [
+        {
+          "source_line": 91,
+          "physical_output_line": 91,
+          "printed_number": 91,
+          "shared_snippet": "COMPARATOR = (o1, o2) ->"
+        },
+        {
+          "source_line": 92,
+          "physical_output_line": 92,
+          "printed_number": 92,
+          "shared_snippet": "o1Length = o1.phonemeText.length();"
+        },
+        {
+          "source_line": 93,
+          "physical_output_line": 93,
+          "printed_number": 93,
+          "shared_snippet": "o2Length = o2.phonemeText.length();"
+        },
+        {
+          "source_line": 98,
+          "physical_output_line": 98,
+          "printed_number": 98,
+          "shared_snippet": "o1.phonemeText.charAt(i)"
+        }
+      ],
+      "suppressed_known_numbers_for_output": 0
+    }
+  ]
+}

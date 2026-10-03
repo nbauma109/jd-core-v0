@@ -210,16 +210,16 @@
 /*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="poly_init", key="a11xv6duihbr3d6gkgo2ye2j5", definition="static void poly_init(node_t * n)")
 /*  211 */   public static void poly_init(Globals zz, ST_Agnode_s n) { SmetanaDebug.ENTERING("a11xv6duihbr3d6gkgo2ye2j5", "poly_init");
 /*      */     try {
-/*  213 */       ST_pointf dimen = new ST_pointf();ST_pointf min_bb = new ST_pointf();ST_pointf bb = new ST_pointf();
+/*  213 */       ST_pointf dimen = new ST_pointf(); ST_pointf min_bb = new ST_pointf(); ST_pointf bb = new ST_pointf();
 /*  214 */       ST_point imagesize = new ST_point();
-/*  215 */       ST_pointf P = new ST_pointf();ST_pointf Q = new ST_pointf();ST_pointf R = new ST_pointf();
+/*  215 */       ST_pointf P = new ST_pointf(); ST_pointf Q = new ST_pointf(); ST_pointf R = new ST_pointf();
 /*  216 */       CArray<ST_pointf> vertices = null;
 /*      */       
 /*      */ 
 /*      */ 
 /*      */ 
-/*  221 */       double xmax = 0.0D;double ymax = 0.0D;
-/*  222 */       double width = 0.0D;double height = 0.0D;
+/*  221 */       double xmax = 0.0D; double ymax = 0.0D;
+/*  222 */       double width = 0.0D; double height = 0.0D;
 /*      */       
 /*      */ 
 /*  225 */       ST_polygon_t poly = new ST_polygon_t();
@@ -498,7 +498,7 @@
 /*  498 */           double gdistortion = distortion * Macro.SQRT2 / Math.cos(sectorangle / 2.0D);
 /*  499 */           double gskew = skew / 2.0D;
 /*  500 */           double angle = (sectorangle - 3.141592653589793D) / 2.0D;
-/*  501 */           double sinx = Math.sin(angle);double cosx = Math.cos(angle);
+/*  501 */           double sinx = Math.sin(angle); double cosx = Math.cos(angle);
 /*  502 */           R.x = 0.5D * cosx;
 /*  503 */           R.y = 0.5D * sinx;
 /*  504 */           xmax = ymax = 0.0D;
@@ -510,7 +510,7 @@
 /*      */           {
 /*      */ 
 /*  512 */             angle += sectorangle;
-/*  513 */             sinx = Math.sin(angle);cosx = Math.cos(angle);
+/*  513 */             sinx = Math.sin(angle); cosx = Math.cos(angle);
 /*  514 */             R.x += sidelength * cosx;
 /*  515 */             R.y += sidelength * sinx;
 /*      */             
@@ -522,7 +522,7 @@
 /*      */ 
 /*      */ 
 /*  524 */             double alpha = Macro.RADIANS(orientation) + Math.atan2(P.y, P.x);
-/*  525 */             sinx = Math.sin(alpha);cosx = Math.cos(alpha);
+/*  525 */             sinx = Math.sin(alpha); cosx = Math.cos(alpha);
 /*  526 */             P.x = P.y = Macro.hypot(P.x, P.y);
 /*  527 */             P.x *= cosx;
 /*  528 */             P.y *= sinx;
@@ -670,7 +670,7 @@
 /*      */     
 /*      */     try
 /*      */     {
-/*  673 */       ST_pointf P = new ST_pointf();ST_pointf Q = new ST_pointf();ST_pointf R = new ST_pointf();
+/*  673 */       ST_pointf P = new ST_pointf(); ST_pointf Q = new ST_pointf(); ST_pointf R = new ST_pointf();
 /*  674 */       ST_boxf bp = inside_context.s_bp;
 /*  675 */       ST_Agnode_s n = inside_context.s_n;
 /*  676 */       P.___(geom__c.ccwrotatepf(p, 90 * Macro.GD_rankdir(obj__c.agraphof(n))));
@@ -681,7 +681,7 @@
 /*  681 */         return Macro.INSIDE(P, bbox); }
 /*      */       double n_width;
 /*  683 */       if (n != zz.lastn) {
-/*  684 */         n_width = 0.0D;double n_height = 0.0D;
+/*  684 */         n_width = 0.0D; double n_height = 0.0D;
 /*  685 */         zz.poly = (ST_polygon_t)Macro.ND_shape_info(n);
 /*  686 */         zz.vertex = zz.poly.vertices;
 /*  687 */         zz.sides = zz.poly.sides;
@@ -932,7 +932,7 @@
 /*      */   public static boolean compassPort(ST_Agnode_s n, ST_boxf bp, ST_port pp, CString compass, int sides, ST_inside_t ictxt)
 /*      */   {
 /*  934 */     ST_boxf b = new ST_boxf();
-/*  935 */     ST_pointf p = new ST_pointf();ST_pointf ctr = new ST_pointf();
+/*  935 */     ST_pointf p = new ST_pointf(); ST_pointf ctr = new ST_pointf();
 /*  936 */     int rv = 0;
 /*  937 */     double theta = 0.0D;
 /*  938 */     boolean constrain = false;
@@ -1441,7 +1441,7 @@
 /*      */     try
 /*      */     {
 /* 1443 */       ST_field_t rv = new ST_field_t();
-/* 1444 */       CString psp = null;CString hspsp = null;
+/* 1444 */       CString psp = null; CString hspsp = null;
 /* 1445 */       CString tmpport = null;
 /*      */       
 /*      */ 
@@ -1523,7 +1523,7 @@
 /* 1523 */               tmpport = null;
 /*      */             }
 /* 1525 */             if ((mode & 0x5) == 0) {
-/* 1526 */               mode |= 0x1;tsp.setCharAt(0, ' ');tsp = tsp.plus_(1); }
+/* 1526 */               mode |= 0x1; tsp.setCharAt(0, ' '); tsp = tsp.plus_(1); }
 /* 1527 */             if ((mode & 0x1) != 0) {
 /* 1528 */               if (tsp.comparePointer(text.plus_(1)) > 0 && 
 /* 1529 */                 tsp.plus_(-1).comparePointer(hstsp) != 0 && tsp.charAt(-1) == ' ')
@@ -1618,7 +1618,7 @@
 /*      */ 
 /*      */     try
 /*      */     {
-/* 1621 */       ST_pointf d = new ST_pointf();ST_pointf d0 = new ST_pointf();
+/* 1621 */       ST_pointf d = new ST_pointf(); ST_pointf d0 = new ST_pointf();
 /* 1622 */       ST_pointf dimen = new ST_pointf();
 /* 1623 */       if (f.lp != null) {
 /* 1624 */         dimen.___(f.lp.dimen);
@@ -1782,7 +1782,7 @@
 /* 1782 */   public static void record_init(Globals zz, ST_Agnode_s n) { SmetanaDebug.ENTERING("h2lcuthzwljbcjwdeidw1jiv", "record_init");
 /*      */     try
 /*      */     {
-/* 1785 */       ST_pointf ul = new ST_pointf();ST_pointf sz = new ST_pointf();
+/* 1785 */       ST_pointf ul = new ST_pointf(); ST_pointf sz = new ST_pointf();
 /*      */       
 /*      */ 
 /*      */ 
@@ -1948,7 +1948,7 @@
 /*      */   
 /*      */   @Unused
 /*      */   @Original(version="2.38.0", path="lib/common/shapes.c", name="record_path", key="3p54k8x2kyueort8kj41qvkty", definition="static int record_path(node_t * n, port * prt, int side, boxf rv[], \t\t       int *kptr)")
-/* 1951 */   public static int record_path(ST_Agnode_s n, ST_port prt, int side, ST_boxf rv, int[] kptr) { int ls = 0;int rs = 0;
+/* 1951 */   public static int record_path(ST_Agnode_s n, ST_port prt, int side, ST_boxf rv, int[] kptr) { int ls = 0; int rs = 0;
 /* 1952 */     ST_pointf p = new ST_pointf();
 /*      */     
 /* 1954 */     if (!prt.defined)

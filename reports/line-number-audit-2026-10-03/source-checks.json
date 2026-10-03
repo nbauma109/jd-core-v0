@@ -1,0 +1,77 @@
+{
+  "method": "Manually selected repaired statements checked at their exact original source row; shared snippets and printed numbers must match that physical row. Targeted evidence, not whole-source equivalence.",
+  "classes": [
+    {
+      "jar": "ecj",
+      "version": "3.44.0",
+      "source_jar_sha256": "814801cd7b05dd19047c6a263c65f983fe32f014be6e92b6dbf0048f10c25e36",
+      "source_member": "org/eclipse/jdt/internal/compiler/lookup/Scope.java",
+      "confirmed": [
+        {
+          "source_line": 1163,
+          "physical_output_line": 1163,
+          "printed_number": 1163,
+          "shared_snippet": "current.parent"
+        },
+        {
+          "source_line": 1166,
+          "physical_output_line": 1166,
+          "printed_number": 1166,
+          "shared_snippet": "MethodScope"
+        },
+        {
+          "source_line": 1168,
+          "physical_output_line": 1168,
+          "printed_number": 1168,
+          "shared_snippet": "ClassScope"
+        },
+        {
+          "source_line": 1170,
+          "physical_output_line": 1170,
+          "printed_number": 1170,
+          "shared_snippet": "ModuleScope"
+        },
+        {
+          "source_line": 1172,
+          "physical_output_line": 1172,
+          "printed_number": 1172,
+          "shared_snippet": "CompilationUnitScope"
+        },
+        {
+          "source_line": 1175,
+          "physical_output_line": 1175,
+          "printed_number": 1175,
+          "shared_snippet": "return null;"
+        }
+      ],
+      "suppressed_known_numbers_for_output": 0
+    },
+    {
+      "jar": "org.eclipse.jdt.core",
+      "version": "3.36.0",
+      "source_jar_sha256": "d33493dbc6fc30ebe825be4c309bb040d5830e6fe0c48446df7a9a81becbaef3",
+      "source_member": "org/eclipse/jdt/internal/core/JavaModelManager.java",
+      "confirmed": [
+        {
+          "source_line": 1266,
+          "physical_output_line": 1266,
+          "printed_number": 1266,
+          "shared_snippet": "this.secondaryTypes != null"
+        },
+        {
+          "source_line": 1277,
+          "physical_output_line": 1277,
+          "printed_number": 1277,
+          "shared_snippet": "this.cache = new"
+        },
+        {
+          "source_line": 1290,
+          "physical_output_line": 1290,
+          "printed_number": 1290,
+          "shared_snippet": "secondaryTypes == null"
+        }
+      ],
+      "suppressed_known_numbers_for_output": 0
+    }
+  ]
+}

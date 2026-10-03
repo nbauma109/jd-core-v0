@@ -98,21 +98,21 @@
 /*     */     public BinaryOperator<List<O>> combiner() {
 /*  99 */       return (left, right) ->  {
 /* 100 */         left.addAll(right);
-/* 101 */         return left;
-/*     */       };
+/* 101 */         return left; };
 /*     */     }
 /*     */     
 /*     */     @Override
-/*     */     public Function<List<O>, O[]> finisher() {
+/*     */     public Function<List<O>, O[]> finisher()
+/*     */     {
 /* 107 */       return list -> 
 /*     */       {
 /* 109 */         O[] array = (O[])java.lang.reflect.Array.newInstance(this.elementType, list.size());
-/* 110 */         return list.toArray(array);
-/*     */       };
+/* 110 */         return list.toArray(array); };
 /*     */     }
 /*     */     
 /*     */     @Override
-/*     */     public Supplier<List<O>> supplier() {
+/*     */     public Supplier<List<O>> supplier()
+/*     */     {
 /* 116 */       return ArrayList::new;
 /*     */     }
 /*     */   }

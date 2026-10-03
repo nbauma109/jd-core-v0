@@ -72,13 +72,16 @@ public class InstructionsSplitterVisitor extends BaseInstructionSplitterVisitor
             // Add last part of instruction
             int lastLineNumber = Instruction.UNKNOWN_LINE_NUMBER;
 
+            // The instructions are printed on the lines of their own line
+            // numbers: the block ends on the greatest of them, not on the
+            // one of the last instruction (for example the static
+            // initializer of an enum, ended by "$VALUES = ...").
             for (int j=index2; j>=index1; j--)
             {
                 Instruction instruction = list.get(j);
                 if (instruction.getLineNumber() != Instruction.UNKNOWN_LINE_NUMBER)
                 {
-                    lastLineNumber = MaxLineNumberVisitor.visit(instruction);
-                    break;
+                    lastLineNumber = Math.max(lastLineNumber, MaxLineNumberVisitor.visit(instruction));
                 }
             }
             if (lastOffset == 0) {
@@ -139,6 +142,10 @@ public class InstructionsSplitterVisitor extends BaseInstructionSplitterVisitor
     @Override
     protected void visit(Instruction parent, Instruction instruction)
     {
+        if (instruction instanceof LambdaInstruction) {
+            super.visit(parent, instruction);
+            return;
+        }
         if (instruction.getLineNumber() == Instruction.UNKNOWN_LINE_NUMBER)
         {
             instruction.setLineNumber(this.maxLineNumber);
@@ -184,15 +191,18 @@ public class InstructionsSplitterVisitor extends BaseInstructionSplitterVisitor
     public void visitAnonymousLambda(
             Instruction parent, LambdaInstruction in)
     {
+        int prefixLastLineNumber = lambdaPrefixLineNumber(parent, in);
         // Add a new part of instruction
-        addInstructionsLayoutBlock(in.getLineNumber(), in.getOffset());
+        addInstructionsLayoutBlock(prefixLastLineNumber == Instruction.UNKNOWN_LINE_NUMBER
+                ? this.firstLineNumber : prefixLastLineNumber, in.getOffset());
 
         // Add blocks for lambda method body
         this.maxLineNumber =
                 ClassFileLayouter.createBlocksForBodyOfLambda(
                         this.preferences, in, this.layoutBlockList);
 
-        this.firstLineNumber = Instruction.UNKNOWN_LINE_NUMBER;
+        this.firstLineNumber = this.maxLineNumber;
+        this.prefixLineNumber = this.maxLineNumber;
         this.index1 = this.index2;
         this.offset1 = in.getOffset();
     }

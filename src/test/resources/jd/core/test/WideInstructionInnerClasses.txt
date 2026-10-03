@@ -1,7 +1,142 @@
 /*     */ package jd.core.test;
 /*     */ 
+/*     */ 
+/*     */ 
 /*     */ public class WideInstructionInnerClasses
 /*     */ {
+/*     */   class ILOAD
+/*     */   {
+/*     */     public static void largeIncrement(int i)
+/*     */     {
+/*  11 */       i += 1000;
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public static int largeVarIndex()
+/*     */     {
+/*  29 */       int i = 42; int k57 = 0;
+/*     */       
+/*  31 */       return k57;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   class FLOAD {
+/*     */     public static void largeIncrement(float i) {
+/*  37 */       i += 1000.0F;
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public static float largeVarIndex()
+/*     */     {
+/*  55 */       float f1 = 42.0F; float k57 = 0.0F;
+/*     */       
+/*  57 */       return k57;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   class DLOAD {
+/*     */     public static void largeIncrement(double i) {
+/*  63 */       i += 1000.0D;
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public static double largeVarIndex()
+/*     */     {
+/*  81 */       double d1 = 42.0D; double k57 = 0.0D;
+/*     */       
+/*  83 */       return k57;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   class LLOAD {
+/*     */     public static void largeIncrement(long i) {
+/*  89 */       i += 1000L;
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public static long largeVarIndex()
+/*     */     {
+/* 107 */       long l1 = 42L; long k57 = 0L;
+/*     */       
+/* 109 */       return k57;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   class ALOAD {
+/* 114 */     public static void largeIncrement(Long i) { i = Long.valueOf(i.longValue() + 1000L); }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public static Long largeVarIndex()
+/*     */     {
+/* 132 */       Long localLong1 = Long.valueOf(42L); Long k57 = null;
+/*     */       
+/* 134 */       return k57;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
 /*     */   /* Error */
 /*     */   public static void methodWithLargeJump(int i)
 /*     */   {
@@ -12640,135 +12775,4 @@
 /*     */   }
 /*     */   
 /*     */   static void x() {}
-/*     */   
-/*     */   class ILOAD
-/*     */   {
-/*     */     public static void largeIncrement(int i)
-/*     */     {
-/*  11 */       i += 1000;
-/*     */     }
-/*     */     
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */     public static int largeVarIndex()
-/*     */     {
-/*  29 */       int i = 42; int k57 = 0;
-/*     */       
-/*  31 */       return k57;
-/*     */     }
-/*     */   }
-/*     */   
-/*     */   class FLOAD {
-/*     */     public static void largeIncrement(float i) {
-/*  37 */       i += 1000.0F;
-/*     */     }
-/*     */     
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */     public static float largeVarIndex()
-/*     */     {
-/*  55 */       float f1 = 42.0F; float k57 = 0.0F;
-/*     */       
-/*  57 */       return k57;
-/*     */     }
-/*     */   }
-/*     */   
-/*     */   class DLOAD {
-/*     */     public static void largeIncrement(double i) {
-/*  63 */       i += 1000.0D;
-/*     */     }
-/*     */     
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */     public static double largeVarIndex()
-/*     */     {
-/*  81 */       double d1 = 42.0D; double k57 = 0.0D;
-/*     */       
-/*  83 */       return k57;
-/*     */     }
-/*     */   }
-/*     */   
-/*     */   class LLOAD {
-/*     */     public static void largeIncrement(long i) {
-/*  89 */       i += 1000L;
-/*     */     }
-/*     */     
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */     public static long largeVarIndex()
-/*     */     {
-/* 107 */       long l1 = 42L; long k57 = 0L;
-/*     */       
-/* 109 */       return k57;
-/*     */     }
-/*     */   }
-/*     */   
-/*     */   class ALOAD {
-/* 114 */     public static void largeIncrement(Long i) { i = Long.valueOf(i.longValue() + 1000L); }
-/*     */     
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */     public static Long largeVarIndex()
-/*     */     {
-/* 132 */       Long localLong1 = Long.valueOf(42L); Long k57 = null;
-/*     */       
-/* 134 */       return k57;
-/*     */     }
-/*     */   }
 /*     */ }

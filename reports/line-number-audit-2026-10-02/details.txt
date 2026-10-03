@@ -1,0 +1,170 @@
+commons-lang3 3.20.0
+
+
+commons-io 2.21.0
+
+
+commons-collections4 4.4
+BYTECODE	org/apache/commons/collections4/bidimap/TreeBidiMap$Node.class
+
+commons-codec 1.19.0
+
+
+commons-compress 1.28.0
+BYTECODE	org/apache/commons/compress/compressors/lz4/BlockLZ4CompressorOutputStream.class
+BYTECODE	org/apache/commons/compress/compressors/snappy/SnappyCompressorOutputStream.class
+
+jsoup 1.16.2
+BYTECODE	org/jsoup/parser/HtmlTreeBuilderState$13.class
+BYTECODE	org/jsoup/parser/HtmlTreeBuilderState$16.class
+BYTECODE	org/jsoup/parser/HtmlTreeBuilderState$12.class
+BYTECODE	org/jsoup/parser/HtmlTreeBuilderState$7.class
+BYTECODE	org/jsoup/parser/HtmlTreeBuilderState$18.class
+BYTECODE	org/jsoup/parser/HtmlTreeBuilderState$24.class
+BYTECODE	org/jsoup/parser/HtmlTreeBuilderState$4.class
+
+ecj 3.44.0
+BYTECODE	org/eclipse/jdt/internal/compiler/ClassFile.class
+BYTECODE	org/eclipse/jdt/internal/compiler/ast/OperatorExpression.class
+BYTECODE	org/eclipse/jdt/internal/compiler/ast/SwitchExpression.class
+BYTECODE	org/eclipse/jdt/internal/compiler/ast/SwitchExpression$Results.class
+BYTECODE	org/eclipse/jdt/internal/compiler/ast/SwitchStatement$TNode.class
+BYTECODE	org/eclipse/jdt/internal/compiler/ast/SwitchStatement$RNode.class
+BYTECODE	org/eclipse/jdt/internal/compiler/ast/SwitchStatement$PatternNode.class
+BYTECODE	org/eclipse/jdt/internal/compiler/ast/SwitchStatement.class
+BYTECODE	org/eclipse/jdt/internal/compiler/codegen/CodeStream.class
+BYTECODE	org/eclipse/jdt/internal/compiler/flow/UnconditionalFlowInfo.class
+BYTECODE	org/eclipse/jdt/internal/compiler/impl/CompilerOptions.class
+BYTECODE	org/eclipse/jdt/internal/compiler/lookup/BinaryTypeBinding.class
+BYTECODE	org/eclipse/jdt/internal/compiler/lookup/BlockScope.class
+BYTECODE	org/eclipse/jdt/internal/compiler/lookup/ClassScope.class
+BYTECODE	org/eclipse/jdt/internal/compiler/parser/AbstractCommentParser.class
+BYTECODE	org/eclipse/jdt/internal/compiler/parser/Parser.class
+BYTECODE	org/eclipse/jdt/internal/compiler/parser/RecoveredAnnotation.class
+BYTECODE	org/eclipse/jdt/internal/compiler/parser/RecoveredLocalVariable.class
+BYTECODE	org/eclipse/jdt/internal/compiler/parser/RecoveredStatement.class
+BYTECODE	org/eclipse/jdt/internal/compiler/parser/Scanner.class
+BYTECODE	org/eclipse/jdt/internal/compiler/parser/Scanner$VanguardParser.class
+BYTECODE	org/eclipse/jdt/internal/compiler/tool/EclipseCompilerImpl.class
+BYTECODE	org/eclipse/jdt/internal/compiler/tool/EclipseFileManager.class
+BYTECODE	org/eclipse/jdt/internal/compiler/util/CtSym.class
+BYTECODE	org/eclipse/jdt/internal/compiler/util/HashtableOfInt.class
+BYTECODE	org/eclipse/jdt/internal/compiler/util/HashtableOfIntValues.class
+BYTECODE	org/eclipse/jdt/internal/compiler/util/HashtableOfInteger.class
+BYTECODE	org/eclipse/jdt/internal/compiler/util/HashtableOfLong.class
+BYTECODE	org/eclipse/jdt/internal/compiler/util/HashtableOfModule.class
+BYTECODE	org/eclipse/jdt/internal/compiler/util/HashtableOfObject.class
+BYTECODE	org/eclipse/jdt/internal/compiler/util/HashtableOfObjectToInt.class
+BYTECODE	org/eclipse/jdt/internal/compiler/util/HashtableOfType.class
+BYTECODE	org/eclipse/jdt/internal/compiler/util/ObjectVector.class
+BYTECODE	org/eclipse/jdt/internal/compiler/util/SimpleLookupTable.class
+BYTECODE	org/eclipse/jdt/internal/compiler/util/SimpleSet.class
+BYTECODE	org/eclipse/jdt/internal/compiler/util/SimpleSetOfCharArray.class
+
+guava 12.0
+BYTECODE	com/google/common/collect/Cut$BelowValue.class
+BYTECODE	com/google/common/collect/Cut$AboveValue.class
+ERROR	com/google/common/collect/LinkedListMultimap$ValueForKeyIterator.class	java.lang.ArrayIndexOutOfBoundsException: Index 1 out of bounds for length 1
+ERROR	com/google/common/collect/LinkedListMultimap.class	java.lang.ArrayIndexOutOfBoundsException: Index 1 out of bounds for length 1
+
+gson 2.13.2
+BYTECODE	com/google/gson/internal/bind/TypeAdapters$2.class
+
+jackson-databind 2.15.3
+BYTECODE	com/fasterxml/jackson/databind/ObjectMapper$DefaultTypeResolverBuilder.class
+BYTECODE	com/fasterxml/jackson/databind/deser/std/DateDeserializers$DateBasedDeserializer.class
+BYTECODE	com/fasterxml/jackson/databind/deser/std/NumberDeserializers$CharacterDeserializer.class
+BYTECODE	com/fasterxml/jackson/databind/introspect/VisibilityChecker$Std.class
+BYTECODE	com/fasterxml/jackson/databind/ser/std/NumberSerializers$Base.class
+BYTECODE	com/fasterxml/jackson/databind/util/TokenBuffer$Parser.class
+
+log4j-core 2.20.0
+BYTECODE	org/apache/logging/log4j/core/tools/picocli/CommandLine$Help$TextTable.class
+
+slf4j-api 2.0.17
+
+
+junit 4.13.2
+
+
+asm 9.9
+
+
+plantuml 1.2023.12
+
+
+org.eclipse.jdt.core 3.36.0
+ERROR	org/eclipse/jdt/internal/codeassist/InternalExtendedCompletionContext.class	java.lang.ArrayIndexOutOfBoundsException: Index 323 out of bounds for length 323
+BYTECODE	org/eclipse/jdt/internal/codeassist/select/SelectionParser.class
+ERROR	org/eclipse/jdt/internal/codeassist/InternalCompletionProposal.class	java.lang.ArrayIndexOutOfBoundsException: Index 323 out of bounds for length 323
+ERROR	org/eclipse/jdt/internal/codeassist/CompletionRequestorWrapper.class	java.lang.ArrayIndexOutOfBoundsException: Index 323 out of bounds for length 323
+BYTECODE	org/eclipse/jdt/internal/codeassist/CompletionEngine.class
+BYTECODE	org/eclipse/jdt/internal/codeassist/SelectionEngine.class
+BYTECODE	org/eclipse/jdt/internal/core/builder/JavaBuilder.class
+BYTECODE	org/eclipse/jdt/internal/core/builder/BatchImageBuilder.class
+BYTECODE	org/eclipse/jdt/internal/core/builder/StringSet.class
+BYTECODE	org/eclipse/jdt/internal/core/builder/QualifiedNameSet.class
+BYTECODE	org/eclipse/jdt/internal/core/builder/NameSet.class
+BYTECODE	org/eclipse/jdt/internal/core/builder/IncrementalImageBuilder.class
+BYTECODE	org/eclipse/jdt/internal/core/search/matching/PatternLocator.class
+BYTECODE	org/eclipse/jdt/internal/core/search/matching/MatchLocator.class
+ERROR	org/eclipse/jdt/internal/core/search/matching/ClassFileMatchLocator.class	java.lang.ArrayIndexOutOfBoundsException
+BYTECODE	org/eclipse/jdt/internal/core/search/indexing/SourceIndexerRequestor.class
+ERROR	org/eclipse/jdt/internal/core/search/indexing/BinaryIndexer.class	java.lang.ArrayIndexOutOfBoundsException: Index 323 out of bounds for length 323
+BYTECODE	org/eclipse/jdt/internal/core/search/MethodNameMatchRequestorWrapper.class
+BYTECODE	org/eclipse/jdt/internal/core/search/PatternSearchJob.class
+BYTECODE	org/eclipse/jdt/internal/core/search/BasicSearchEngine.class
+ERROR	org/eclipse/jdt/internal/core/util/DefaultBytecodeVisitor.class	java.lang.ArrayIndexOutOfBoundsException
+BYTECODE	org/eclipse/jdt/internal/core/util/KeyToSignature.class
+ERROR	org/eclipse/jdt/internal/core/util/Disassembler.class	java.lang.ArrayIndexOutOfBoundsException
+BYTECODE	org/eclipse/jdt/internal/core/util/Util.class
+BYTECODE	org/eclipse/jdt/internal/core/util/JavaElementFinder.class
+BYTECODE	org/eclipse/jdt/internal/core/util/BindingKeyResolver.class
+ERROR	org/eclipse/jdt/internal/core/BinaryRecordComponent.class	java.lang.ArrayIndexOutOfBoundsException
+BYTECODE	org/eclipse/jdt/internal/core/dom/rewrite/imports/ImportName.class
+BYTECODE	org/eclipse/jdt/internal/core/dom/rewrite/RewriteEventStore.class
+BYTECODE	org/eclipse/jdt/internal/core/dom/SourceRangeVerifier.class
+ERROR	org/eclipse/jdt/internal/core/SourceMapper.class	java.lang.ArrayIndexOutOfBoundsException
+ERROR	org/eclipse/jdt/internal/core/SourceMapper$LocalVariableElementKey.class	java.lang.ArrayIndexOutOfBoundsException
+BYTECODE	org/eclipse/jdt/internal/core/hierarchy/IndexBasedHierarchyBuilder.class
+ERROR	org/eclipse/jdt/internal/core/hierarchy/HierarchyBinaryType.class	java.lang.ArrayIndexOutOfBoundsException
+ERROR	org/eclipse/jdt/internal/core/LambdaFactory.class	java.lang.ArrayIndexOutOfBoundsException: Index 323 out of bounds for length 323
+BYTECODE	org/eclipse/jdt/internal/core/SourceFieldElementInfo.class
+BYTECODE	org/eclipse/jdt/internal/core/SetContainerOperation.class
+ERROR	org/eclipse/jdt/internal/core/SourceField.class	java.lang.ArrayIndexOutOfBoundsException
+ERROR	org/eclipse/jdt/internal/core/BinaryField.class	java.lang.ArrayIndexOutOfBoundsException
+BYTECODE	org/eclipse/jdt/internal/core/index/DiskIndex.class
+BYTECODE	org/eclipse/jdt/internal/core/ModulePathContainerInitializer.class
+BYTECODE	org/eclipse/jdt/internal/core/BinaryType.class
+BYTECODE	org/eclipse/jdt/internal/core/Member.class
+ERROR	org/eclipse/jdt/internal/core/SourceType.class	java.lang.ArrayIndexOutOfBoundsException
+ERROR	org/eclipse/jdt/internal/core/NamedMember.class	java.lang.ArrayIndexOutOfBoundsException
+BYTECODE	org/eclipse/jdt/internal/core/JavaProject.class
+BYTECODE	org/eclipse/jdt/internal/core/JavaModelManager.class
+BYTECODE	org/eclipse/jdt/internal/core/UserLibraryClasspathContainerInitializer.class
+BYTECODE	org/eclipse/jdt/internal/core/UserLibraryClasspathContainer.class
+ERROR	org/eclipse/jdt/internal/core/BinaryMethod.class	java.lang.ArrayIndexOutOfBoundsException
+BYTECODE	org/eclipse/jdt/internal/core/JavadocContents.class
+BYTECODE	org/eclipse/jdt/internal/core/SelectionRequestor.class
+ERROR	org/eclipse/jdt/internal/core/TypeParameter.class	java.lang.ArrayIndexOutOfBoundsException
+ERROR	org/eclipse/jdt/internal/core/LocalVariable.class	java.lang.ArrayIndexOutOfBoundsException
+BYTECODE	org/eclipse/jdt/internal/core/SetVariablesOperation.class
+ERROR	org/eclipse/jdt/internal/core/CompilationUnitStructureRequestor.class	java.lang.ArrayIndexOutOfBoundsException
+BYTECODE	org/eclipse/jdt/internal/core/ClassFileInfo.class
+BYTECODE	org/eclipse/jdt/internal/core/Buffer.class
+BYTECODE	org/eclipse/jdt/internal/core/LambdaMethod.class
+ERROR	org/eclipse/jdt/internal/core/SourceMethod.class	java.lang.ArrayIndexOutOfBoundsException
+BYTECODE	org/eclipse/jdt/internal/core/UserLibrary.class
+BYTECODE	org/eclipse/jdt/internal/eval/CodeSnippetToCuMapper.class
+BYTECODE	org/eclipse/jdt/internal/eval/CodeSnippetToCuMapper$1.class
+BYTECODE	org/eclipse/jdt/internal/formatter/DefaultCodeFormatterOptions.class
+BYTECODE	org/eclipse/jdt/internal/compiler/DocumentElementParser.class
+BYTECODE	org/eclipse/jdt/internal/compiler/parser/SourceTypeConverter.class
+BYTECODE	org/eclipse/jdt/core/dom/rewrite/ImportRewrite.class
+BYTECODE	org/eclipse/jdt/core/search/SearchPattern.class
+BYTECODE	org/eclipse/jdt/core/util/ExternalAnnotationUtil.class
+ERROR	org/eclipse/jdt/core/BindingKey.class	java.lang.ArrayIndexOutOfBoundsException: Index 323 out of bounds for length 323
+BYTECODE	org/eclipse/jdt/core/JavaCore.class
+ERROR	org/eclipse/jdt/core/Signature.class	java.lang.ArrayIndexOutOfBoundsException
+BYTECODE	org/eclipse/jdt/core/CorrectionEngine.class
+BYTECODE	org/eclipse/jdt/core/CorrectionEngine$1.class

@@ -25,6 +25,8 @@ public class InstructionPrinter implements Printer
     private boolean newInstruction;
     private boolean multiLineInstruction;
     private boolean active;
+    private boolean ignoreLineNumbers;
+    private int lastLineNumber = Integer.MAX_VALUE;
     private final List<Boolean> states;
 
     /*
@@ -56,6 +58,20 @@ public class InstructionPrinter implements Printer
         this.newInstruction = false;
         this.multiLineInstruction = false;
         this.active = false;
+        this.ignoreLineNumbers = false;
+        this.lastLineNumber = Integer.MAX_VALUE;
+    }
+
+    /** Print without any line number driven new line (line numbers out of place). */
+    public void setIgnoreLineNumbers(boolean ignoreLineNumbers)
+    {
+        this.ignoreLineNumbers = ignoreLineNumbers;
+    }
+
+    public void setLastLineNumber(int lastLineNumber)
+    {
+        this.lastLineNumber = lastLineNumber == UNKNOWN_LINE_NUMBER
+                ? Integer.MAX_VALUE : lastLineNumber;
     }
 
     public void startOfInstruction()
@@ -65,6 +81,10 @@ public class InstructionPrinter implements Printer
 
     public void addNewLinesAndPrefix(int lineNumber)
     {
+        if (this.ignoreLineNumbers || lineNumber > this.lastLineNumber) {
+            lineNumber = UNKNOWN_LINE_NUMBER;
+        }
+
         if (!this.active)
         {
             // Instruction non commencée, en cours d'affichage. Restoration de
@@ -120,6 +140,11 @@ public class InstructionPrinter implements Printer
             this.printer.startOfLine(lineNumber);
 
             setPreviousLineNumber(lineNumber);
+        }
+
+        else if (this.newInstruction)
+        {
+            this.printer.print(' ');
         }
 
         this.newInstruction = false;

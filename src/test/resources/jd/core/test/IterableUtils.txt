@@ -357,12 +357,12 @@
 /*      */   public static <E> Iterable<E> reversedIterable(Iterable<E> iterable)
 /*      */   {
 /*  359 */     checkNotNull(iterable);
-/*  360 */     return new FluentIterable<E>()
-/*      */     {
+/*  360 */     return new FluentIterable<E>() {
 /*      */       @Override
-/*      */       public Iterator<E> iterator()
-/*      */       {
-/*  365 */         List<E> list = (iterable instanceof List) ? (List)iterable : IteratorUtils.toList(iterable.iterator());
+/*      */       public Iterator<E> iterator() {
+/*  363 */         List<E> list = (iterable instanceof List) ? (List)iterable : 
+/*      */         
+/*  365 */           IteratorUtils.toList(iterable.iterator());
 /*  366 */         return new ReverseListIterator<>(list);
 /*      */       }
 /*      */     };

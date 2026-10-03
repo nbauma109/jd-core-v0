@@ -30,34 +30,34 @@
 /*    */ 
 /*    */   public String yieldSwitch(int i)
 /*    */   {
-/* 32 */     System.out.println("start yieldSwitch");
-/* 33 */     String s = switch (i) {
+/*    */     System.out.println("start yieldSwitch");
+/*    */     String s = switch (i) {
 /*    */       case 0 -> {
-/* 35 */         System.out.println("yieldSwitch case 0");
-/* 36 */         yield "0";
+/*    */         System.out.println("yieldSwitch case 0");
+/*    */         yield "0";
 /*    */       }
 /*    */       case 1 -> {
-/* 39 */         System.out.println("yieldSwitch case 1");
-/* 40 */         yield "1";
+/*    */         System.out.println("yieldSwitch case 1");
+/*    */         yield "1";
 /*    */       }
 /*    */       case 2 -> {
-/* 43 */         System.out.println("yieldSwitch case 2");
-/* 44 */         yield "2";
+/*    */         System.out.println("yieldSwitch case 2");
+/*    */         yield "2";
 /*    */       }
 /*    */       case 3 -> {
-/* 47 */         System.out.println("yieldSwitch case 3");
-/* 48 */         yield "3";
+/*    */         System.out.println("yieldSwitch case 3");
+/*    */         yield "3";
 /*    */       }
-/* 50 */       default -> throw new IllegalArgumentException();
+/*    */       default -> throw new IllegalArgumentException();
 /*    */     };
-/* 52 */     return String.format("return from yield switch: %s", s);
+/*    */     return String.format("return from yield switch: %s", s);
 /*    */   }
 /*    */   
 /*    */   boolean enumSwitch(DayOfWeek dayOfWeek) {
-/* 56 */     System.out.println("start enumSwitch");
-/* 57 */     return switch (dayOfWeek) {
-/* 58 */       case MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY -> true;
-/* 59 */       case SATURDAY, SUNDAY -> false;
+/*    */     System.out.println("start enumSwitch");
+/*    */     return switch (dayOfWeek) {
+/*    */       case MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY -> true;
+/*    */       case SATURDAY, SUNDAY -> false;
 /*    */     };
 /*    */   }
 /*    */ }

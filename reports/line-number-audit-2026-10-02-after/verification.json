@@ -1,0 +1,29 @@
+{
+  "jdk": "Temurin 17.0.20.1",
+  "javac": {
+    "tests": 310,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1,
+    "command": "mvn -o -q test",
+    "exit_code": 0
+  },
+  "ecj": {
+    "tests": 310,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 1,
+    "command": "mvn -o -q -Pecj test",
+    "exit_code": 0,
+    "fresh_compilation": true
+  },
+  "targeted_original_source_checks": {
+    "classes": 3,
+    "lines": 20,
+    "failures": 0
+  },
+  "snapshot_review": {
+    "javac_final_updates": "19 snapshots retain exactly the same Java tokens; numeric comments checked against physical lines.",
+    "ecj_assignment": "Equivalent AST after sorting method/type declarations independently of fields, preserving field and initializer execution order; numeric comments checked."
+  }
+}

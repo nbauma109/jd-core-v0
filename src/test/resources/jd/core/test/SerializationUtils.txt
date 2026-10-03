@@ -138,8 +138,8 @@
 /* 138 */     byte[] objectData = serialize(object);
 /* 139 */     ByteArrayInputStream bais = new ByteArrayInputStream(objectData);
 /*     */     
-/*     */ 
-/* 142 */     try (ClassLoaderAwareObjectInputStream in = new ClassLoaderAwareObjectInputStream(bais, object.getClass().getClassLoader()))
+/* 141 */     try (ClassLoaderAwareObjectInputStream in = new ClassLoaderAwareObjectInputStream(bais, object
+/* 142 */       .getClass().getClassLoader()))
 /*     */     {
 /*     */ 
 /*     */ 
