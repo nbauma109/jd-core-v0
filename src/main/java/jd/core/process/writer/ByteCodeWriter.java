@@ -36,6 +36,8 @@ import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.reference.ReferenceMap;
 import jd.core.printer.Printer;
+import jd.core.printer.PlainTextPrinter;
+import jd.core.preferences.Preferences;
 import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
 
 public final class ByteCodeWriter
@@ -48,6 +50,40 @@ public final class ByteCodeWriter
     private static final String START_OF_COMMENT = "//   ";
     private static final String CORRUPTED_CONSTANT_POOL =
             "Corrupted_Constant_Pool";
+
+    /** Keep all disassembly records within the failed method's source span. */
+    public static void write(
+            Loader loader, Printer printer, ReferenceMap referenceMap,
+            ClassFile classFile, Method method, int lineCount)
+    {
+        Preferences preferences = new Preferences();
+        preferences.setShowLineNumbers(false);
+        PlainTextPrinter buffer = new PlainTextPrinter();
+        buffer.setPreferences(preferences);
+        buffer.start(0, 0, 0);
+        buffer.startOfLine(Printer.UNKNOWN_LINE_NUMBER);
+        write(loader, buffer, referenceMap, classFile, method);
+        String[] records = buffer.toString().split("\\r\\n|\\n|\\r", -1);
+        int rows = lineCount + 1;
+        printer.startOfComment();
+        int index = 0;
+        for (int row = 0; row < rows; row++) {
+            if (row > 0) {
+                printer.endOfLine();
+                printer.startOfLine(Printer.UNKNOWN_LINE_NUMBER);
+            }
+            int end = (int) ((long) (row + 1) * records.length / rows);
+            if (index < end) {
+                printer.print(records[index++]);
+                while (index < end) {
+                    printer.print(" | ");
+                    String line = records[index++].stripLeading();
+                    printer.print(line.startsWith("//") ? line.substring(2).stripLeading() : line);
+                }
+            }
+        }
+        printer.endOfComment();
+    }
 
     public static void write(
             Loader loader, Printer printer, ReferenceMap referenceMap,

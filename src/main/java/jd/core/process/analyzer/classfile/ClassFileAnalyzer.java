@@ -25,6 +25,7 @@ import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.Record;
+import org.apache.bcel.classfile.Signature;
 import org.apache.bcel.classfile.RecordComponentInfo;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.ExceptionUtil;
 import org.jd.core.v1.util.StringConstants;
@@ -783,6 +784,9 @@ public final class ClassFileAnalyzer
             List<AnnotationEntry> annotationEntries = new ArrayList<>();
             for (Attribute attribute : recordComponentInfo.getAttributes())
             {
+                if (attribute instanceof Signature genericSignature) {
+                    signature = cp.getConstantUtf8(genericSignature.getSignatureIndex());
+                }
                 if (attribute.getTag() == Const.ATTR_RUNTIME_VISIBLE_ANNOTATIONS
                  || attribute.getTag() == Const.ATTR_RUNTIME_INVISIBLE_ANNOTATIONS)
                 {

@@ -405,7 +405,7 @@
 /*  405 */       return true;
 /*      */     }
 /*      */     
-/*  408 */     try (InputStream input1 = Files.newInputStream(file1.toPath());InputStream input2 = Files.newInputStream(file2.toPath());) {
+/*  408 */     try (InputStream input1 = Files.newInputStream(file1.toPath()); InputStream input2 = Files.newInputStream(file2.toPath());) {
 /*  409 */       return IOUtils.contentEquals(input1, input2);
 /*      */     }
 /*      */     
@@ -2963,11 +2963,11 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
 /*      */   public static Stream<File> streamFiles(File directory, boolean recursive, String... extensions)
 /*      */     throws IOException
 /*      */   {
-/* 2970 */     IOFileFilter filter = extensions == null ? FileFileFilter.INSTANCE : FileFileFilter.INSTANCE.and(new SuffixFileFilter(toSuffixes(extensions)));
+/* 2969 */     IOFileFilter filter = extensions == null ? FileFileFilter.INSTANCE : FileFileFilter.INSTANCE
+/* 2970 */       .and(new SuffixFileFilter(toSuffixes(extensions)));
 /* 2971 */     return PathUtils.walk(directory.toPath(), filter, toMaxDepth(recursive), false, FileVisitOption.FOLLOW_LINKS)
 /* 2972 */       .map(Path::toFile);
 /*      */   }

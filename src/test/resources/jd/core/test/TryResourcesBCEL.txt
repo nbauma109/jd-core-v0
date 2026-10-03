@@ -54,7 +54,7 @@
 /*    */       
 /* 55 */       ByteArrayOutputStream rvaBytes = new ByteArrayOutputStream();
 /* 56 */       ByteArrayOutputStream riaBytes = new ByteArrayOutputStream();
-/* 57 */       try (DataOutputStream rvaDos = new DataOutputStream(rvaBytes);DataOutputStream riaDos = new DataOutputStream(riaBytes);)
+/* 57 */       try (DataOutputStream rvaDos = new DataOutputStream(rvaBytes); DataOutputStream riaDos = new DataOutputStream(riaBytes);)
 /*    */       {
 /* 59 */         rvaDos.writeShort(countVisible);
 /* 60 */         riaDos.writeShort(countInvisible);

@@ -27,7 +27,6 @@
 /*    */     };
 /*    */   }
 /*    */   
-/*    */ 
 /*    */   public String yieldSwitch(int i)
 /*    */   {
 /* 32 */     System.out.println("start yieldSwitch");

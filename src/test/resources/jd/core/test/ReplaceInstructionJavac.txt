@@ -118,14 +118,14 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
 /*     */   List<FileImageData> splitPng(TitledDiagram diagram, SuggestedFile pngFile, ImageData imageData, FileFormatOption fileFormatOption)
 /*     */     throws IOException
 /*     */   {
-/* 128 */     List<SFile> files = new PngSplitter(fileFormatOption.getColorMapper(), pngFile, diagram.getSplitPagesHorizontal(), diagram.getSplitPagesVertical(), fileFormatOption.isWithMetadata() ? diagram.getMetadata() : null, diagram.getSkinParam().getDpi(), (diagram instanceof GanttDiagram) ? new SplitParam(HColors.BLACK, null, 5) : diagram.getSkinParam().getSplitParam()).getFiles();
+/* 124 */     List<SFile> files = new PngSplitter(fileFormatOption.getColorMapper(), pngFile, diagram
+/* 125 */       .getSplitPagesHorizontal(), diagram.getSplitPagesVertical(), 
+/* 126 */       fileFormatOption.isWithMetadata() ? diagram.getMetadata() : null, diagram.getSkinParam().getDpi(), 
+/* 127 */       (diagram instanceof GanttDiagram) ? new SplitParam(HColors.BLACK, null, 5) : 
+/* 128 */       diagram.getSkinParam().getSplitParam()).getFiles();
 /*     */     
 /* 130 */     List<FileImageData> result = new ArrayList<>();
 /* 131 */     for (SFile f : files) {

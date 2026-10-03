@@ -10,17 +10,7 @@
 /* 10 */     A a = t.new A();
 /* 11 */     InnerClassMadness.A.B b = a.new B(a);
 /* 12 */     InnerClassMadness.A.D d = a.new D(a, b);
-/*    */     
-/*    */ 
-/*    */ 
-/*    */ 
-/*    */ 
-/*    */ 
-/*    */ 
-/*    */ 
-/*    */ 
-/*    */ 
-/* 23 */     InnerClassMadness.A.D d2 = new Object() {
+/* 13 */     InnerClassMadness.A.D d2 = new Object() {
 /*    */       class Inner {
 /*    */         InnerClassMadness.A.D getD() {
 /* 16 */           InnerClassMadness t = new InnerClassMadness();

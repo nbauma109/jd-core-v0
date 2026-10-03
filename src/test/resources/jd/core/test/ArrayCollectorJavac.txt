@@ -47,6 +47,6 @@
 /*    */   }
 /*    */   
 /*    */   Consumer<O> accumulator(List<O> l) {
-/* 50 */     Objects.requireNonNull(l);return l::add;
+/* 50 */     Objects.requireNonNull(l); return l::add;
 /*    */   }
 /*    */ }

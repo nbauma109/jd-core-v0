@@ -16,6 +16,7 @@ public class SwitchExpressionTest extends AbstractTestCase {
         try (InputStream in = getClass().getResourceAsStream("/switch-expression-enum-jdk21.0.8.jar")) {
             ZipLoader loader = new ZipLoader(in);
             String output = decompile("jd/core/test/SwitchExpression", loader, "17");
+            assertRealignedLineNumbers("jd/core/test/SwitchExpression", output);
             assertEquals(IOUtils.toString(getClass().getResource("SwitchExpression.txt"), StandardCharsets.UTF_8), output);
         }
     }
@@ -25,6 +26,7 @@ public class SwitchExpressionTest extends AbstractTestCase {
         try (InputStream in = getClass().getResourceAsStream("/switch-expression-enum-ecj21.0.8.jar")) {
             ZipLoader loader = new ZipLoader(in);
             String output = decompile("jd/core/test/SwitchExpression", loader, "17");
+            assertRealignedLineNumbers("jd/core/test/SwitchExpression", output);
             assertEquals(IOUtils.toString(getClass().getResource("SwitchExpression.txt"), StandardCharsets.UTF_8), output);
         }
     }

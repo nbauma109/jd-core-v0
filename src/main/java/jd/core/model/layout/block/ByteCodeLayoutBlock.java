@@ -16,6 +16,8 @@
  ******************************************************************************/
 package jd.core.model.layout.block;
 
+import org.apache.bcel.classfile.LineNumber;
+
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
@@ -27,12 +29,31 @@ public class ByteCodeLayoutBlock extends LayoutBlock
 
     public ByteCodeLayoutBlock(ClassFile classFile, Method method)
     {
+        this(classFile, method, false);
+    }
+
+    public ByteCodeLayoutBlock(ClassFile classFile, Method method, boolean realignment)
+    {
         super(
             LayoutBlockConstants.BYTE_CODE,
             Instruction.UNKNOWN_LINE_NUMBER, Instruction.UNKNOWN_LINE_NUMBER,
             0, 0, 0);
         this.classFile = classFile;
         this.method = method;
+        if (realignment && method.getLineNumbers() != null && method.getLineNumbers().length > 0) {
+            int first = Integer.MAX_VALUE;
+            int last = Instruction.UNKNOWN_LINE_NUMBER;
+            for (LineNumber line : method.getLineNumbers()) {
+                if (line.getLineNumber() > 0) {
+                    first = Math.min(first, line.getLineNumber());
+                    last = Math.max(last, line.getLineNumber());
+                }
+            }
+            if (last != Instruction.UNKNOWN_LINE_NUMBER) {
+                setFirstLineNumber(first);
+                setInstructionLineSpan(last);
+            }
+        }
     }
 
     public ClassFile getClassFile() {

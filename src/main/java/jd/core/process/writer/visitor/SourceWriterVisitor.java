@@ -865,7 +865,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         int nextOffset = this.previousOffset + 1;
         if (this.firstOffset <= this.previousOffset &&
             nextOffset <= this.lastOffset || alwaysWithParenthesis) {
-            this.printer.print(child.getLineNumber(), '(');
+            this.printer.print(MinLineNumberVisitor.visit(child), '(');
         }
         int lineNumber = visit(child);
         nextOffset = this.previousOffset + 1;
@@ -1078,7 +1078,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         int nextOffset = this.previousOffset + 1;
         if (this.firstOffset <= this.previousOffset &&
             nextOffset <= this.lastOffset) {
-            this.printer.print(child.getLineNumber(), '(');
+            this.printer.print(MinLineNumberVisitor.visit(child), '(');
         }
         int lineNumber = writeBinaryOperatorParameterInHexaOrBoolean(child);
         nextOffset = this.previousOffset + 1;
@@ -1798,7 +1798,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                 cnat.getNameIndex(), cnat.getSignatureIndex(),
                 (GetStatic)insi.getObjectref());
 
-            int lineNumber = insi.getObjectref().getLineNumber();
+            int lineNumber = MinLineNumberVisitor.visit(insi.getObjectref());
 
             if (!displayPrefix)
             {
@@ -2681,7 +2681,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         if (this.firstOffset <= this.previousOffset &&
             nextOffset <= this.lastOffset)
         {
-            int lineNumber = storeInstruction.getLineNumber();
+            int lineNumber = MinLineNumberVisitor.visit(storeInstruction);
 
             LocalVariable lv =
                 this.localVariables.getLocalVariableWithIndexAndOffset(
@@ -2821,7 +2821,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
 
     private int writeDeclaration(FastDeclaration fd)
     {
-        int lineNumber = fd.getLineNumber();
+        int lineNumber = MinLineNumberVisitor.visit(fd);
 
         LocalVariable lv =
             localVariables.getLocalVariableWithIndexAndOffset(

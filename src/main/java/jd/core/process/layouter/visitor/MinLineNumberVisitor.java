@@ -24,10 +24,12 @@ import jd.core.model.instruction.bytecode.instruction.AssignmentInstruction;
 import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.IncInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
+import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
 import jd.core.model.instruction.fast.FastConstants;
 import jd.core.model.instruction.fast.instruction.FastSwitch;
+import jd.core.model.instruction.fast.instruction.FastDeclaration;
 
 public final class MinLineNumberVisitor
 {
@@ -38,14 +40,22 @@ public final class MinLineNumberVisitor
     {
         switch (instruction.getOpcode())
         {
+        case FastConstants.DECLARE:
+            FastDeclaration declaration = (FastDeclaration) instruction;
+            return declaration.getInstruction() == null ? instruction.getLineNumber()
+                    : earlierKnownLine(instruction, visit(declaration.getInstruction()));
+        case ByteCodeConstants.STORE,
+             Const.ASTORE,
+             Const.ISTORE:
+            return earlierKnownLine(instruction, visit(((StoreInstruction) instruction).getValueref()));
         case ByteCodeConstants.ARRAYLOAD,
              ByteCodeConstants.ARRAYSTORE,
              Const.AASTORE:
-            return visit(((ArrayInstruction)instruction).getArrayref());
+            return knownLineOrChild(instruction, visit(((ArrayInstruction)instruction).getArrayref()));
         case ByteCodeConstants.ASSIGNMENT:
-            return visit(((AssignmentInstruction)instruction).getValue1());
+            return knownLineOrChild(instruction, visit(((AssignmentInstruction)instruction).getValue1()));
         case ByteCodeConstants.BINARYOP:
-            return visit(((BinaryOperatorInstruction)instruction).getValue1());
+            return knownLineOrChild(instruction, visit(((BinaryOperatorInstruction)instruction).getValue1()));
         case ByteCodeConstants.PREINC:
             {
                 IncInstruction ii = (IncInstruction)instruction;
@@ -55,7 +65,7 @@ public final class MinLineNumberVisitor
                     // Operator '++' or '--'
                     return instruction.getLineNumber();
                 }
-                return visit(ii.getValue());
+                return knownLineOrChild(instruction, visit(ii.getValue()));
             }
         case ByteCodeConstants.POSTINC:
             {
@@ -64,7 +74,7 @@ public final class MinLineNumberVisitor
                 if (ii.isSingleStep())
                 {
                     // Operator '++' or '--'
-                    return visit(ii.getValue());
+                    return knownLineOrChild(instruction, visit(ii.getValue()));
                 }
                 return instruction.getLineNumber();
             }
@@ -75,9 +85,9 @@ public final class MinLineNumberVisitor
              Const.INVOKESPECIAL,
              Const.POP,
              Const.PUTFIELD:
-            return visit(((ObjectrefAttribute)instruction).getObjectref());
+            return knownLineOrChild(instruction, visit(((ObjectrefAttribute)instruction).getObjectref()));
         case ByteCodeConstants.TERNARYOP:
-            return visit(((TernaryOperator)instruction).getTest());
+            return knownLineOrChild(instruction, visit(((TernaryOperator)instruction).getTest()));
         case FastConstants.SWITCH,
              FastConstants.SWITCH_ENUM,
              FastConstants.SWITCH_STRING:
@@ -97,10 +107,25 @@ public final class MinLineNumberVisitor
                         }
                     }
                 }
-                return min;
+                return knownLineOrChild(instruction, min);
             }
         }
 
         return instruction.getLineNumber();
+    }
+
+    private static int earlierKnownLine(Instruction instruction, int childLineNumber) {
+        int lineNumber = instruction.getLineNumber();
+        if (lineNumber == Instruction.UNKNOWN_LINE_NUMBER) {
+            return childLineNumber;
+        }
+        return childLineNumber == Instruction.UNKNOWN_LINE_NUMBER ? lineNumber : Math.min(lineNumber, childLineNumber);
+    }
+
+    private static int knownLineOrChild(Instruction instruction, int childLineNumber) {
+        // Synthetic receivers and targets can lack a line table entry even
+        // when the enclosing expression has a valid source line.
+        return childLineNumber == Instruction.UNKNOWN_LINE_NUMBER
+                ? instruction.getLineNumber() : childLineNumber;
     }
 }

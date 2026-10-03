@@ -18,6 +18,8 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.junit.Assert.fail;
 
@@ -28,6 +30,7 @@ import jd.core.process.DecompilerImpl;
 public abstract class AbstractTestCase {
 
     private static final String DEFAULT_JDK_VERSION = JavaCore.VERSION_1_8;
+    private static final Pattern SOURCE_LINE_PREFIX = Pattern.compile("^/\\*\\s*(\\d+)\\s*\\*/");
 
     protected URL expectedResource(String name) {
         return expectedResource(getClass(), name);
@@ -102,6 +105,24 @@ public abstract class AbstractTestCase {
             }
         }
         return decompiledOutput;
+    }
+
+    static void assertRealignedLineNumbers(String internalTypeName, String output) {
+        StringBuilder mismatches = new StringBuilder();
+        // Java source lines are delimited by CR/LF. \R also treats literal
+        // Unicode line separators inside character constants as new lines.
+        String[] lines = output.split("\\r\\n|\\n|\\r", -1);
+        for (int index = 0; index < lines.length; index++) {
+            Matcher match = SOURCE_LINE_PREFIX.matcher(lines[index]);
+            if (match.find() && Integer.parseInt(match.group(1)) != index + 1
+                    && mismatches.length() < 1000) {
+                mismatches.append("\nphysical line ").append(index + 1)
+                        .append(" has source line ").append(match.group(1));
+            }
+        }
+        if (!mismatches.isEmpty()) {
+            fail(internalTypeName + " has misaligned line numbers:" + mismatches);
+        }
     }
 
     private static String[] classpathEntries(Loader loader) throws IOException {

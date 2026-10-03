@@ -28,7 +28,8 @@ public class ExtendsSuperTypeLayoutBlock extends LayoutBlock
         this(
             LayoutBlockConstants.EXTENDS_SUPER_TYPE,
             Instruction.UNKNOWN_LINE_NUMBER, Instruction.UNKNOWN_LINE_NUMBER,
-            0, 1, 1, classFile);
+            // Record components are printed inline by the superclass writer.
+            0, classFile.isRecord() ? 0 : 1, classFile.isRecord() ? 0 : 1, classFile);
     }
 
     protected ExtendsSuperTypeLayoutBlock(

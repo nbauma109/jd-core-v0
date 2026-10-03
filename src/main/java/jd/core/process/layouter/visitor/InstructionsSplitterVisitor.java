@@ -72,13 +72,16 @@ public class InstructionsSplitterVisitor extends BaseInstructionSplitterVisitor
             // Add last part of instruction
             int lastLineNumber = Instruction.UNKNOWN_LINE_NUMBER;
 
+            // The instructions are printed on the lines of their own line
+            // numbers: the block ends on the greatest of them, not on the
+            // one of the last instruction (for example the static
+            // initializer of an enum, ended by "$VALUES = ...").
             for (int j=index2; j>=index1; j--)
             {
                 Instruction instruction = list.get(j);
                 if (instruction.getLineNumber() != Instruction.UNKNOWN_LINE_NUMBER)
                 {
-                    lastLineNumber = MaxLineNumberVisitor.visit(instruction);
-                    break;
+                    lastLineNumber = Math.max(lastLineNumber, MaxLineNumberVisitor.visit(instruction));
                 }
             }
             if (lastOffset == 0) {
@@ -139,6 +142,17 @@ public class InstructionsSplitterVisitor extends BaseInstructionSplitterVisitor
     @Override
     protected void visit(Instruction parent, Instruction instruction)
     {
+        if (instruction instanceof LambdaInstruction) {
+            // The rest of the expression following a closing brace starts on the line of this lambda
+            if (this.firstLineNumber == Instruction.UNKNOWN_LINE_NUMBER
+                    && this.maxLineNumber != Instruction.UNKNOWN_LINE_NUMBER
+                    && instruction.getLineNumber() != Instruction.UNKNOWN_LINE_NUMBER) {
+                instruction.setLineNumber(Math.max(instruction.getLineNumber(), this.maxLineNumber));
+                this.firstLineNumber = instruction.getLineNumber();
+            }
+            super.visit(parent, instruction);
+            return;
+        }
         if (instruction.getLineNumber() == Instruction.UNKNOWN_LINE_NUMBER)
         {
             instruction.setLineNumber(this.maxLineNumber);
@@ -184,15 +198,20 @@ public class InstructionsSplitterVisitor extends BaseInstructionSplitterVisitor
     public void visitAnonymousLambda(
             Instruction parent, LambdaInstruction in)
     {
+        int prefixLastLineNumber = lambdaPrefixLineNumber(parent, in);
         // Add a new part of instruction
-        addInstructionsLayoutBlock(in.getLineNumber(), in.getOffset());
+        addInstructionsLayoutBlock(prefixLastLineNumber == Instruction.UNKNOWN_LINE_NUMBER
+                ? this.firstLineNumber : prefixLastLineNumber, in.getOffset());
 
         // Add blocks for lambda method body
         this.maxLineNumber =
                 ClassFileLayouter.createBlocksForBodyOfLambda(
                         this.preferences, in, this.layoutBlockList);
 
-        this.firstLineNumber = Instruction.UNKNOWN_LINE_NUMBER;
+        // After a closing brace, the rest of the expression has no line of its own
+        this.firstLineNumber = ClassFileLayouter.hasBlockBody(in)
+                ? Instruction.UNKNOWN_LINE_NUMBER : this.maxLineNumber;
+        this.prefixLineNumber = this.maxLineNumber;
         this.index1 = this.index2;
         this.offset1 = in.getOffset();
     }

@@ -26,10 +26,10 @@
 /* 26 */     Validate.notEmpty(methodName, "methodName");
 /*    */     
 /* 28 */     MethodBean methodBean = new MethodBean(methodName);
-/* 29 */     Objects.requireNonNull(methodBean);List<Method> methods = (List)Arrays.stream(cls.getDeclaredMethods()).filter(methodBean::matchName).collect(Collectors.toList());
+/* 29 */     Objects.requireNonNull(methodBean); List<Method> methods = (List)Arrays.stream(cls.getDeclaredMethods()).filter(methodBean::matchName).collect(Collectors.toList());
 /*    */     
 /* 31 */     Objects.requireNonNull(methodBean);
-/* 32 */     Objects.requireNonNull(methods);ClassUtils.getAllSuperclasses(cls).stream().map(Class::getDeclaredMethods).flatMap(Arrays::stream).filter(methodBean::matchName).forEach(methods::add);
+/* 32 */     Objects.requireNonNull(methods); ClassUtils.getAllSuperclasses(cls).stream().map(Class::getDeclaredMethods).flatMap(Arrays::stream).filter(methodBean::matchName).forEach(methods::add);
 /*    */     
 /* 34 */     for (Method method : methods) {
 /* 35 */       if (Arrays.deepEquals(method.getParameterTypes(), parameterTypes)) {

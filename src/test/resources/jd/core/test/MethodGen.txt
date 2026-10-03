@@ -312,8 +312,8 @@
 /*      */   {
 /*  313 */     this(method.getAccessFlags(), Type.getReturnType(method.getSignature()), Type.getArgumentTypes(method.getSignature()), null, method
 /*      */     
-/*  315 */       .getName(), className, 
-/*  316 */       (method.getAccessFlags() & 0x500) == 0 ? new InstructionList(getByteCodes(method)) : null, cp);
+/*  315 */       .getName(), className, (method
+/*  316 */       .getAccessFlags() & 0x500) == 0 ? new InstructionList(getByteCodes(method)) : null, cp);
 /*  317 */     Attribute[] attributes = method.getAttributes();
 /*  318 */     for (Attribute attribute : attributes) {
 /*  319 */       Attribute a = attribute;
@@ -840,10 +840,10 @@
 /*  840 */           removeAttribute(a);
 /*      */         }
 /*      */       }
+/*  843 */       code = new Code(cp.addUtf8("Code"), 8 + byteCode.length + 2 + excLen + 2 + attrsLen, this.maxStack, this.maxLocals, byteCode, cExc, codeAttrs, cp
 /*      */       
 /*      */ 
-/*      */ 
-/*  846 */       code = new Code(cp.addUtf8("Code"), 8 + byteCode.length + 2 + excLen + 2 + attrsLen, this.maxStack, this.maxLocals, byteCode, cExc, codeAttrs, cp.getConstantPool());
+/*  846 */         .getConstantPool());
 /*  847 */       addAttribute(code);
 /*      */     }
 /*  849 */     Attribute[] annotations = addRuntimeAnnotationsAsAttribute(cp);

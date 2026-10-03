@@ -120,9 +120,9 @@
 /*     */ 
 /* 121 */     StringBounder stringBounder = ug.getStringBounder();
 /*     */     
-/* 123 */     if (showHead)
-/*     */     {
-/* 125 */       double y1 = topStartingY - this.head.getPreferredHeight(stringBounder) - this.line.getPreferredHeight(stringBounder) / 2.0D;
+/* 123 */     if (showHead) {
+/* 124 */       double y1 = topStartingY - this.head.getPreferredHeight(stringBounder) - this.line
+/* 125 */         .getPreferredHeight(stringBounder) / 2.0D;
 /* 126 */       this.head.drawU(ug.apply(new UTranslate(getMinX(), y1)), new Area(new XDimension2D(this.head
 /* 127 */         .getPreferredWidth(stringBounder), this.head.getPreferredHeight(stringBounder))), new SimpleContext2D(false));
 /*     */     }

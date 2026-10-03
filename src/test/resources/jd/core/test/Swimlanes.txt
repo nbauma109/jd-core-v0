@@ -307,8 +307,8 @@
 /* 307 */       HColor back = swimlane.getColors().getColor(ColorType.BACK);
 /* 308 */       if (back != null && !back.isTransparent()) {
 /* 309 */         LaneDivider divider2 = (LaneDivider)this.dividers.get(i + 1);
-/*     */         
-/* 311 */         UGraphic background = ug.apply(back.bg()).apply(back).apply(UTranslate.dx(xpos - divider1.getX2()));
+/* 310 */         UGraphic background = ug.apply(back.bg()).apply(back)
+/* 311 */           .apply(UTranslate.dx(xpos - divider1.getX2()));
 /* 312 */         double width = swimlane.getActualWidth() + divider1.getX2() + divider2.getX1();
 /* 313 */         double height = dimensionFull.getHeight() + titleHeightTranslate.getDy();
 /* 314 */         background.draw(URectangle.build(width, height).ignoreForCompressionOnX().ignoreForCompressionOnY());
@@ -336,8 +336,8 @@
 /* 336 */     if (color != null) {
 /* 337 */       double titleHeight = getTitlesHeight(ug.getStringBounder());
 /* 338 */       double fullWidth = ((Swimlane)swimlanesSpecial().get(swimlanesSpecial().size() - 1)).getTranslate().getDx() - 10.0D - 1.0D;
-/*     */       
-/* 340 */       URectangle back = URectangle.build(fullWidth, titleHeight).ignoreForCompressionOnX().ignoreForCompressionOnY();
+/* 339 */       URectangle back = URectangle.build(fullWidth, titleHeight).ignoreForCompressionOnX()
+/* 340 */         .ignoreForCompressionOnY();
 /* 341 */       ug.apply(UTranslate.dx(5.0D)).apply(color.bg()).apply(color).draw(back);
 /*     */     }
 /*     */   }
@@ -355,8 +355,8 @@
 /* 355 */     StringBounder stringBounder = ug.getStringBounder();
 /* 356 */     for (Swimlane swimlane : swimlanes()) {
 /* 357 */       LimitFinder limitFinder = LimitFinder.create(stringBounder, false);
-/*     */       
-/* 359 */       UGraphicInterceptorOneSwimlane interceptor = new UGraphicInterceptorOneSwimlane(new UGraphicForSnake(limitFinder), swimlane, swimlanes());
+/* 358 */       UGraphicInterceptorOneSwimlane interceptor = new UGraphicInterceptorOneSwimlane(new UGraphicForSnake(limitFinder), swimlane, 
+/* 359 */         swimlanes());
 /* 360 */       full.drawU(interceptor);
 /* 361 */       interceptor.flushUg();
 /* 362 */       MinMax minMax = limitFinder.getMinMax();
@@ -390,12 +390,12 @@
 /* 390 */       Swimlane swimlane = (Swimlane)swimlanesSpecial().get(i);
 /* 391 */       double x1 = getHalfMissingSpace(stringBounder, i, min);
 /* 392 */       double x2 = getHalfMissingSpace(stringBounder, i + 1, min);
-/*     */       
-/* 394 */       LaneDivider laneDivider = new LaneDivider(this.skinParam, x1, x2, dimensionFull.getHeight() + titleHeightTranslate.getDy());
+/* 393 */       LaneDivider laneDivider = new LaneDivider(this.skinParam, x1, x2, dimensionFull
+/* 394 */         .getHeight() + titleHeightTranslate.getDy());
 /* 395 */       this.dividers.add(laneDivider);
 /*     */       
-/*     */ 
-/* 398 */       double xx = xpos + laneDivider.getWidth() - swimlane.getMinMax().getMinX() + (swimlane.getActualWidth() - getWidthWithoutTitle(swimlane)) / 2.0D;
+/* 397 */       double xx = xpos + laneDivider.getWidth() - swimlane.getMinMax().getMinX() + (swimlane
+/* 398 */         .getActualWidth() - getWidthWithoutTitle(swimlane)) / 2.0D;
 /* 399 */       swimlane.setTranslate(UTranslate.dx(xx));
 /*     */       
 /* 401 */       xpos += swimlane.getActualWidth() + laneDivider.getWidth();

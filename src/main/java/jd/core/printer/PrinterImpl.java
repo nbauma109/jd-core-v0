@@ -16,18 +16,24 @@ public class PrinterImpl extends PlainTextPrinter {
     private final Map<String, ReferenceData> referencesCache = new HashMap<>();
     private final DecompilationResult result = new DecompilationResult();
     private final boolean realignmentLineNumber;
+    private final boolean showLineNumbers;
 
     public PrinterImpl(Preferences preferences) {
         setPreferences(preferences);
         this.realignmentLineNumber = preferences.getRealignmentLineNumber();
+        this.showLineNumbers = preferences.isShowLineNumbers();
     }
 
     // Manage line number and misalignment
     private int textAreaLineNumber = 1;
+    private int misalignedLineNumberCount;
+    private boolean lineNumbersDisplayed;
 
     @Override
     public void start(int maxLineNumber, int majorVersion, int minorVersion) {
         super.start(maxLineNumber, majorVersion, minorVersion);
+        lineNumbersDisplayed = showLineNumbers && maxLineNumber > 0;
+        misalignedLineNumberCount = 0;
 
         if (maxLineNumber != 0) {
             result.setMaxLineNumber(maxLineNumber);
@@ -36,6 +42,11 @@ public class PrinterImpl extends PlainTextPrinter {
 
     @Override
     public void startOfLine(int sourceLineNumber) {
+        if (lineNumbersDisplayed && realignmentLineNumber
+                && sourceLineNumber != Printer.UNKNOWN_LINE_NUMBER
+                && sourceLineNumber != textAreaLineNumber) {
+            misalignedLineNumberCount++;
+        }
         super.startOfLine(sourceLineNumber);
         result.putLineNumber(textAreaLineNumber, sourceLineNumber);
     }
@@ -159,5 +170,9 @@ public class PrinterImpl extends PlainTextPrinter {
 
     public DecompilationResult getResult() {
         return result;
+    }
+
+    public int getMisalignedLineNumberCount() {
+        return misalignedLineNumberCount;
     }
 }

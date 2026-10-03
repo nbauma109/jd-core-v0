@@ -21,7 +21,7 @@
 /*    */   List<String> readFile(Path path)
 /*    */   {
 /* 23 */     List<String> lines = new ArrayList<>();
-/* 24 */     try (BufferedReader br = java.nio.file.Files.newBufferedReader(path, java.nio.charset.StandardCharsets.UTF_8);Scanner sc = new Scanner(br);) {
+/* 24 */     try (BufferedReader br = java.nio.file.Files.newBufferedReader(path, java.nio.charset.StandardCharsets.UTF_8); Scanner sc = new Scanner(br);) {
 /* 25 */       while (sc.hasNextLine()) {
 /* 26 */         lines.add(sc.nextLine());
 /*    */       }

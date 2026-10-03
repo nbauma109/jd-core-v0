@@ -65,6 +65,7 @@ import jd.core.model.instruction.fast.instruction.FastSwitch;
 public abstract class BaseInstructionSplitterVisitor
 {
     protected ClassFile classFile;
+    protected int prefixLineNumber;
     private ConstantPool constants;
 
     protected BaseInstructionSplitterVisitor() {}
@@ -72,6 +73,7 @@ public abstract class BaseInstructionSplitterVisitor
     public void start(ClassFile classFile)
     {
         this.classFile = classFile;
+        this.prefixLineNumber = Instruction.UNKNOWN_LINE_NUMBER;
         this.constants = Optional.ofNullable(classFile).map(ClassFile::getConstantPool).orElse(null);
     }
 
@@ -80,8 +82,39 @@ public abstract class BaseInstructionSplitterVisitor
         visit(null, instruction);
     }
 
+    /** Separate the call prefix from the lambda's own source range. */
+    protected int lambdaPrefixLineNumber(Instruction parent, LambdaInstruction lambda)
+    {
+        if (prefixLineNumber == Instruction.UNKNOWN_LINE_NUMBER) {
+            // A field initializer can consist entirely of a lambda, with
+            // no call prefix to visit before its source line.
+            prefixLineNumber = lambda.getLineNumber();
+        }
+        if (lambda.getInstructions().size() == 1 && parent instanceof InvokeInstruction) {
+            int bodyLine = MinLineNumberVisitor.visit(lambda.getInstructions().get(0));
+            // The invoke bytecode may be attributed to the closing parenthesis,
+            // after the lambda argument. Its opening belongs before the body.
+            if (bodyLine != Instruction.UNKNOWN_LINE_NUMBER && parent.getLineNumber() > bodyLine) {
+                parent.setLineNumber(bodyLine);
+                this.prefixLineNumber = Math.min(this.prefixLineNumber, bodyLine);
+            }
+        }
+        if (lambda.getLineNumber() < prefixLineNumber) {
+            lambda.setLineNumber(prefixLineNumber);
+        }
+        return prefixLineNumber;
+    }
+
     protected void visit(Instruction parent, Instruction instruction)
     {
+        // The lambda itself belongs to the following body block. Its line
+        // must not extend the part of the expression printed before it.
+        if (!(instruction instanceof LambdaInstruction)
+                && !(instruction instanceof InvokeNoStaticInstruction)
+                && !(instruction instanceof BinaryOperatorInstruction)
+                && !(instruction instanceof GetField)) {
+            prefixLineNumber = Math.max(prefixLineNumber, MinLineNumberVisitor.visit(instruction));
+        }
         switch (instruction.getOpcode())
         {
         case Const.ARRAYLENGTH:
@@ -121,6 +154,7 @@ public abstract class BaseInstructionSplitterVisitor
                 BinaryOperatorInstruction boi =
                     (BinaryOperatorInstruction)instruction;
                 visit(instruction, boi.getValue1());
+                prefixLineNumber = Math.max(prefixLineNumber, instruction.getLineNumber());
                 visit(instruction, boi.getValue2());
             }
             break;
@@ -147,6 +181,7 @@ public abstract class BaseInstructionSplitterVisitor
             break;
         case Const.GETFIELD:
             visit(instruction, ((GetField)instruction).getObjectref());
+            prefixLineNumber = Math.max(prefixLineNumber, instruction.getLineNumber());
             break;
         case ByteCodeConstants.IF,
              ByteCodeConstants.IFXNULL:
@@ -229,6 +264,7 @@ public abstract class BaseInstructionSplitterVisitor
             // intended fall through
         case Const.INVOKESTATIC:
             {
+                prefixLineNumber = Math.max(prefixLineNumber, instruction.getLineNumber());
                 List<Instruction> args = ((InvokeInstruction)instruction).getArgs();
                 for (Instruction i : args) {
                     visit(instruction, i);

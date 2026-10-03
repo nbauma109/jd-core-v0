@@ -423,9 +423,9 @@
 /* 423 */           if (this.solutions >= this.smax) {
 /* 424 */             result = result.concat("More than " + this.solutions + " solutions ( bad sudoku!! ), rating " + 100L * this.tnodes / this.solutions + ", time " + this.x1 + " ms");
 /*     */           }
-/* 426 */           else if (this.solutions == 1L)
-/*     */           {
-/* 428 */             result = result.concat(this.solutions + " solution, rating " + 100L * this.tnodes + ", time " + this.x1 + " ms");
+/* 426 */           else if (this.solutions == 1L) {
+/* 427 */             result = result
+/* 428 */               .concat(this.solutions + " solution, rating " + 100L * this.tnodes + ", time " + this.x1 + " ms");
 /* 429 */           } else if (this.solutions == 0L) {
 /* 430 */             result = result.concat("0 solutions, no rating possible, time " + this.x1 + " ms");
 /*     */           } else {

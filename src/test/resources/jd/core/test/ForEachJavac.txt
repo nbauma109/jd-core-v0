@@ -20,7 +20,7 @@
 /*    */   }
 /*    */   
 /*    */   void forEachWithMethodReference(ForEach f, List<String> elements) {
-/* 23 */     java.util.Objects.requireNonNull(f);elements.forEach(f::print);
+/* 23 */     java.util.Objects.requireNonNull(f); elements.forEach(f::print);
 /*    */   }
 /*    */   
 /*    */   void forEachWithAnonymousClass(List<String> elements) {

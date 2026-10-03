@@ -32,11 +32,13 @@ public class LayoutBlock {
     private int firstLineNumber;
     private int lastLineNumber;
 
-    private final int minimalLineCount;
-    private final int maximalLineCount;
+    private int minimalLineCount;
+    private int maximalLineCount;
     private int preferedLineCount;
 
     private int lineCount;
+    private boolean lineNumbersDiscarded;
+    private boolean instructionLineSpanLimited;
 
     private int index;
     private LayoutSection section;
@@ -92,6 +94,40 @@ public class LayoutBlock {
 
     public void setLastLineNumber(int lastLineNumber) {
         this.lastLineNumber = lastLineNumber;
+    }
+
+    /** The line numbers of this block do not belong to its place: they must not drive the layout. */
+    public boolean isLineNumbersDiscarded() {
+        return lineNumbersDiscarded;
+    }
+
+    /**
+     * Forget the line numbers: the block is then printed on as many lines as
+     * it needs, whatever the numbers of its instructions.
+     */
+    public void discardLineNumbers() {
+        this.firstLineNumber = 0;
+        this.lastLineNumber = 0;
+        this.lineNumbersDiscarded = true;
+        this.minimalLineCount = 0;
+        this.maximalLineCount = 0;
+        this.setPreferedLineCount(0);
+        this.setLineCount(0);
+    }
+
+    /** Set the fixed source span used by the instruction or bytecode writer. */
+    public void setInstructionLineSpan(int lastLineNumber) {
+        this.lastLineNumber = lastLineNumber;
+        this.instructionLineSpanLimited = true;
+        int span = lastLineNumber - firstLineNumber;
+        this.minimalLineCount = span;
+        this.maximalLineCount = span;
+        this.setPreferedLineCount(span);
+        this.setLineCount(span);
+    }
+
+    public int getInstructionLineNumberLimit() {
+        return instructionLineSpanLimited ? lastLineNumber : 0;
     }
 
     public byte getTag() {
