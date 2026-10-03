@@ -1544,9 +1544,7 @@ public final class ClassFileLayouter {
 
             if (first != Instruction.UNKNOWN_LINE_NUMBER)
             {
-                if (first < previous) {
-                    sorted = false;
-                }
+                sorted &= first >= previous;
                 previous = Math.max(previous, lb.getLastLineNumber());
                 blockIndexes[count++] = i;
             }
@@ -1556,81 +1554,96 @@ public final class ClassFileLayouter {
             return;
         }
 
-        // Chain of blocks with non decreasing first line numbers holding the
-        // most distinct line numbers: repeating a line number brings nothing
-        // (the copies of a "finally" block all carry the same number), so
-        // that a chain following the real code wins against one going through
-        // a repeated forward jump.
         int[] values = new int[count];
 
         for (int i=0; i<count; i++) {
             values[i] = layoutBlockList.get(blockIndexes[i]).getFirstLineNumber();
         }
 
-        int[] sortedValues = values.clone();
+        boolean[] kept = findLongestChain(values);
 
-        Arrays.sort(sortedValues);
+        // A kept block must not end after the beginning of the next kept one
+        int nextFirst = Integer.MAX_VALUE;
 
-        int distinct = 0;
-
-        for (int i=0; i<count; i++)
+        for (int i=count-1; i>=0; i--)
         {
-            if (i == 0 || sortedValues[i] != sortedValues[i-1]) {
-                sortedValues[distinct++] = sortedValues[i];
+            if (kept[i])
+            {
+                LayoutBlock lb = layoutBlockList.get(blockIndexes[i]);
+
+                if (lb.getLastLineNumber() > nextFirst) {
+                    truncateLineNumbers(lb, nextFirst);
+                }
+                nextFirst = lb.getFirstLineNumber();
             }
         }
 
-        // Fenwick tree of the best chain (score, ending block) per rank of value
-        int[] treeScore = new int[distinct+1];
-        int[] treeBlock = new int[distinct+1];
-        int[] equalScore = new int[distinct+1];
-        int[] equalBlock = new int[distinct+1];
+        for (int i=0; i<count; i++)
+        {
+            if (!kept[i])
+            {
+                layoutBlockList.get(blockIndexes[i]).discardLineNumbers();
+            }
+        }
+    }
+
+    private static void truncateLineNumbers(LayoutBlock lb, int nextFirst)
+    {
+        if (lb instanceof InstructionsLayoutBlock instructions
+                && instructions.getFirstOffset() == 0
+                && instructions.getLastOffset() == instructions.getInstructions()
+                        .get(instructions.getLastIndex()).getOffset()) {
+            int last = lb.getFirstLineNumber();
+            for (int j = instructions.getFirstIndex(); j <= instructions.getLastIndex(); j++) {
+                last = Math.max(last, MaxLineNumberVisitor.visit(instructions.getInstructions().get(j), nextFirst));
+            }
+            lb.setInstructionLineSpan(last);
+        } else if (lb instanceof InstructionLayoutBlock instruction
+                && instruction.getFirstOffset() == 0
+                && instruction.getLastOffset() == instruction.getInstruction().getLastOffset()) {
+            int last = Math.max(lb.getFirstLineNumber(),
+                    MaxLineNumberVisitor.visit(instruction.getInstruction(), nextFirst));
+            lb.setInstructionLineSpan(last);
+        } else {
+            lb.setLastLineNumber(Math.max(lb.getFirstLineNumber(), nextFirst));
+        }
+    }
+
+    /*
+     * Chain of blocks with non decreasing first line numbers holding the
+     * most distinct line numbers: repeating a line number brings nothing
+     * (the copies of a "finally" block all carry the same number), so
+     * that a chain following the real code wins against one going through
+     * a repeated forward jump.
+     */
+    private static boolean[] findLongestChain(int[] values)
+    {
+        int count = values.length;
+        int[] sortedValues = distinctSortedValues(values);
+        int distinct = sortedValues.length;
+        ChainTracker tracker = new ChainTracker(distinct);
         int[] score = new int[count];
         int[] predecessor = new int[count];
 
-        Arrays.fill(treeBlock, -1);
-        Arrays.fill(equalBlock, -1);
-
         for (int i=0; i<count; i++)
         {
-            int rank = Arrays.binarySearch(sortedValues, 0, distinct, values[i]) + 1;
-            int bestScore = 0;
-            int bestBlock = -1;
-
+            int rank = Arrays.binarySearch(sortedValues, values[i]) + 1;
             // Best chain ending strictly below this value
-            for (int k=rank-1; k>0; k-=k&-k)
-            {
-                if (treeBlock[k] != -1 && treeScore[k] > bestScore) {
-                    bestScore = treeScore[k];
-                    bestBlock = treeBlock[k];
-                }
-            }
-
-            bestScore++;
+            int bestBlock = tracker.bestBelow(rank);
+            int bestScore = bestBlock == -1 ? 1 : score[bestBlock] + 1;
 
             // Best chain ending on the same value
-            if (equalBlock[rank] != -1 && equalScore[rank] >= bestScore)
+            int sameBlock = tracker.equalBlock[rank];
+
+            if (sameBlock != -1 && score[sameBlock] >= bestScore)
             {
-                bestScore = equalScore[rank];
-                bestBlock = equalBlock[rank];
+                bestScore = score[sameBlock];
+                bestBlock = sameBlock;
             }
 
             score[i] = bestScore;
             predecessor[i] = bestBlock;
-
-            if (equalBlock[rank] == -1 || bestScore >= equalScore[rank])
-            {
-                equalScore[rank] = bestScore;
-                equalBlock[rank] = i;
-            }
-
-            for (int k=rank; k<=distinct; k+=k&-k)
-            {
-                if (treeBlock[k] == -1 || bestScore >= treeScore[k]) {
-                    treeScore[k] = bestScore;
-                    treeBlock[k] = i;
-                }
-            }
+            tracker.record(i, rank, bestScore);
         }
 
         // Best end: highest score, then lowest line number, then earliest
@@ -1649,46 +1662,63 @@ public final class ClassFileLayouter {
             kept[i] = true;
         }
 
-        // A kept block must not end after the beginning of the next kept one
-        int nextFirst = Integer.MAX_VALUE;
+        return kept;
+    }
 
-        for (int i=count-1; i>=0; i--)
+    private static int[] distinctSortedValues(int[] values)
+    {
+        return Arrays.stream(values).distinct().sorted().toArray();
+    }
+
+    /** Fenwick tree of the best chain (score, ending block) per rank of value */
+    private static final class ChainTracker
+    {
+        private final int distinct;
+        private final int[] treeScore;
+        private final int[] treeBlock;
+        private final int[] equalScore;
+        private final int[] equalBlock;
+
+        ChainTracker(int distinct)
         {
-            if (kept[i])
-            {
-                LayoutBlock lb = layoutBlockList.get(blockIndexes[i]);
-
-                if (lb.getLastLineNumber() > nextFirst) {
-                    if (lb instanceof InstructionsLayoutBlock instructions
-                            && instructions.getFirstOffset() == 0
-                            && instructions.getLastOffset() == instructions.getInstructions()
-                                    .get(instructions.getLastIndex()).getOffset()) {
-                        int last = lb.getFirstLineNumber();
-                        for (int j = instructions.getFirstIndex(); j <= instructions.getLastIndex(); j++) {
-                            last = Math.max(last, MaxLineNumberVisitor.visit(instructions.getInstructions().get(j), nextFirst));
-                        }
-                        lb.setInstructionLineSpan(last);
-                    } else if (lb instanceof InstructionLayoutBlock instruction
-                            && instruction.getFirstOffset() == 0
-                            && instruction.getLastOffset() == instruction.getInstruction().getLastOffset()) {
-                        int last = Math.max(lb.getFirstLineNumber(),
-                                MaxLineNumberVisitor.visit(instruction.getInstruction(), nextFirst));
-                        lb.setInstructionLineSpan(last);
-                    } else {
-                        lb.setLastLineNumber(Math.max(lb.getFirstLineNumber(), nextFirst));
-                    }
-                }
-                nextFirst = lb.getFirstLineNumber();
-            }
+            this.distinct = distinct;
+            treeScore = new int[distinct+1];
+            treeBlock = new int[distinct+1];
+            equalScore = new int[distinct+1];
+            equalBlock = new int[distinct+1];
+            Arrays.fill(treeBlock, -1);
+            Arrays.fill(equalBlock, -1);
         }
 
-        for (int i=0; i<count; i++)
+        int bestBelow(int rank)
         {
-            if (!kept[i])
-            {
-                LayoutBlock lb = layoutBlockList.get(blockIndexes[i]);
+            int bestScore = 0;
+            int bestBlock = -1;
 
-                lb.discardLineNumbers();
+            for (int k=rank-1; k>0; k-=k&-k)
+            {
+                if (treeBlock[k] != -1 && treeScore[k] > bestScore) {
+                    bestScore = treeScore[k];
+                    bestBlock = treeBlock[k];
+                }
+            }
+            return bestBlock;
+        }
+
+        void record(int block, int rank, int score)
+        {
+            if (equalBlock[rank] == -1 || score >= equalScore[rank])
+            {
+                equalScore[rank] = score;
+                equalBlock[rank] = block;
+            }
+
+            for (int k=rank; k<=distinct; k+=k&-k)
+            {
+                if (treeBlock[k] == -1 || score >= treeScore[k]) {
+                    treeScore[k] = score;
+                    treeBlock[k] = block;
+                }
             }
         }
     }

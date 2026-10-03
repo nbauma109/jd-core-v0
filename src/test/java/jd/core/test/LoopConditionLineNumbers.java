@@ -1,6 +1,6 @@
 package jd.core.test;
 
-public class LoopConditionLineNumbers {
+@SuppressWarnings("java:S131") public class LoopConditionLineNumbers {
     LoopConditionLineNumbers parent;
     int kind;
 

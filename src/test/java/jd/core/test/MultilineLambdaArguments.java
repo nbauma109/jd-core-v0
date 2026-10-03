@@ -3,7 +3,7 @@ package jd.core.test;
 import java.util.function.IntPredicate;
 import java.util.function.IntSupplier;
 
-public class MultilineLambdaArguments {
+@SuppressWarnings("java:S1488") public class MultilineLambdaArguments {
     static int consume(int value, IntPredicate test, IntSupplier supplier) {
         return test.test(value) ? supplier.getAsInt() : 0;
     }

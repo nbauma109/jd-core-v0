@@ -2,7 +2,7 @@ package jd.core.test;
 
 public class MultilineExpression {
     static class Builder {
-        Builder append(String value) { return this; }
+        @SuppressWarnings("java:S1172") Builder append(String value) { return this; }
         String finish() { return ""; }
     }
 

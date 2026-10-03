@@ -16,7 +16,7 @@ public class GenericRecordLineNumbers {
     }
 
     private record VisibleConstructorCache(List<String> values) {
-        public VisibleConstructorCache {
+        @SuppressWarnings("java:S1186") public VisibleConstructorCache {
         }
     }
 

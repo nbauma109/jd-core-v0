@@ -77,8 +77,8 @@ public final class ByteCodeWriter
                 printer.print(records[index++]);
                 while (index < end) {
                     printer.print(" | ");
-                    String record = records[index++].stripLeading();
-                    printer.print(record.startsWith("//") ? record.substring(2).stripLeading() : record);
+                    String line = records[index++].stripLeading();
+                    printer.print(line.startsWith("//") ? line.substring(2).stripLeading() : line);
                 }
             }
         }

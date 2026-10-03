@@ -137,31 +137,13 @@ public final class MaxLineNumberVisitor
              Const.INVOKESPECIAL,
              Const.INVOKEVIRTUAL,
              Const.INVOKESTATIC:
-            {
-                List<Instruction> list = ((InvokeInstruction)instruction).getArgs();
-                // The receiver can itself be a multiline call chain. Include it
-                // even when this invocation has arguments of its own.
-                if (instruction instanceof InvokeNoStaticInstruction insi) {
-                    maxLineNumber = Math.max(maxLineNumber, visit(insi.getObjectref(), upperBound));
-                }
-                if (!list.isEmpty()) {
-                    // Argument line numbers are not always in ascending order.
-                    maxLineNumber = Math.max(maxLineNumber, computeMaxLineNumber(list, upperBound));
-                }
-            }
+            maxLineNumber = visitInvoke((InvokeInstruction)instruction, maxLineNumber, upperBound);
             break;
         case ByteCodeConstants.INVOKENEW,
              FastConstants.ENUMVALUE:
             {
                 List<Instruction> list = ((InvokeNew)instruction).getArgs();
-                if (list.isEmpty())
-                {
-                    maxLineNumber = instructionLineNumber;
-                }
-                else
-                {
-                    maxLineNumber = computeMaxLineNumber(list, upperBound);
-                }
+                maxLineNumber = list.isEmpty() ? instructionLineNumber : computeMaxLineNumber(list, upperBound);
             }
             break;
         case Const.LOOKUPSWITCH, Const.TABLESWITCH:
@@ -202,23 +184,7 @@ public final class MaxLineNumberVisitor
         case FastConstants.SWITCH,
              FastConstants.SWITCH_ENUM,
              FastConstants.SWITCH_STRING:
-            {
-                FastSwitch fs = (FastSwitch)instruction;
-                maxLineNumber = visit(fs.getTest(), upperBound);
-                for (FastSwitch.Pair pair : fs.getPairs())
-                {
-                    if (pair.getInstructions() == null) {
-                        continue;
-                    }
-                    for (Instruction i : pair.getInstructions())
-                    {
-                        int candidate = visit(i, upperBound);
-                        if (maxLineNumber < candidate) {
-                            maxLineNumber = candidate;
-                        }
-                    }
-                }
-            }
+            maxLineNumber = visitFastSwitch((FastSwitch)instruction, upperBound);
             break;
 //        TODO check whether this necessary
 //        case FastConstants.SYNCHRONIZED:
@@ -235,6 +201,43 @@ public final class MaxLineNumberVisitor
         if (maxLineNumber < instructionLineNumber)
         {
             return instructionLineNumber;
+        }
+        return maxLineNumber;
+    }
+
+    private static int visitInvoke(InvokeInstruction invoke, int maxLineNumber, int upperBound)
+    {
+        List<Instruction> list = invoke.getArgs();
+        int result = maxLineNumber;
+        // The receiver can itself be a multiline call chain. Include it
+        // even when this invocation has arguments of its own.
+        if (invoke instanceof InvokeNoStaticInstruction insi) {
+            result = Math.max(result, visit(insi.getObjectref(), upperBound));
+        }
+        if (!list.isEmpty()) {
+            // Argument line numbers are not always in ascending order.
+            result = Math.max(result, computeMaxLineNumber(list, upperBound));
+        }
+        return result;
+    }
+
+    private static int visitFastSwitch(FastSwitch fs, int upperBound)
+    {
+        int maxLineNumber = visit(fs.getTest(), upperBound);
+        for (FastSwitch.Pair pair : fs.getPairs())
+        {
+            if (pair.getInstructions() != null) {
+                maxLineNumber = Math.max(maxLineNumber, computeMaxLineNumber(pair.getInstructions(), upperBound, maxLineNumber));
+            }
+        }
+        return maxLineNumber;
+    }
+
+    private static int computeMaxLineNumber(List<Instruction> instructions, int upperBound, int initial) {
+        int maxLineNumber = initial;
+        for (Instruction instruction : instructions)
+        {
+            maxLineNumber = Math.max(maxLineNumber, visit(instruction, upperBound));
         }
         return maxLineNumber;
     }

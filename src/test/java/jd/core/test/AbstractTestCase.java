@@ -117,11 +117,10 @@ public abstract class AbstractTestCase {
         String[] lines = output.split("\\r\\n|\\n|\\r", -1);
         for (int index = 0; index < lines.length; index++) {
             Matcher match = SOURCE_LINE_PREFIX.matcher(lines[index]);
-            if (match.find() && Integer.parseInt(match.group(1)) != index + 1) {
-                if (mismatches.length() < 1000) {
-                    mismatches.append("\nphysical line ").append(index + 1)
-                            .append(" has source line ").append(match.group(1));
-                }
+            if (match.find() && Integer.parseInt(match.group(1)) != index + 1
+                    && mismatches.length() < 1000) {
+                mismatches.append("\nphysical line ").append(index + 1)
+                        .append(" has source line ").append(match.group(1));
             }
         }
         if (!mismatches.isEmpty()) {

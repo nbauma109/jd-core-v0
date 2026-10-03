@@ -30,7 +30,7 @@ import static org.junit.Assert.assertTrue;
 
 public class ByteCodeLineNumberAlignmentTest {
     @Test
-    public void oversizedDisassemblyKeepsAllInstructionsAndFollowingMethodAligned() throws Exception {
+    public void oversizedDisassemblyKeepsAllInstructionsAndFollowingMethodAligned() {
         ClassGen generated = new ClassGen("ByteCodeAlignment", "java.lang.Object",
                 "ByteCodeAlignment.java", Const.ACC_PUBLIC | Const.ACC_SUPER, null);
         var constants = generated.getConstantPool();
