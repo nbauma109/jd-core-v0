@@ -52,8 +52,8 @@ public class DecompilerImpl implements Decompiler
         if (decompile(preferences, loader, printer, internalClassPath, new ClassFileLayouter.FieldPlacement(false), true)) {
             return;
         }
-        PrinterImpl probe = new PrinterImpl(preferences);
-        PrinterImpl movedProbe = new PrinterImpl(preferences);
+        PrinterImpl probe = new PrinterImpl(preferences, true);
+        PrinterImpl movedProbe = new PrinterImpl(preferences, true);
         decompile(preferences, loader, probe, internalClassPath, new ClassFileLayouter.FieldPlacement(false), false);
         decompile(preferences, loader, movedProbe, internalClassPath, new ClassFileLayouter.FieldPlacement(true), false);
         boolean moved = movedProbe.getMisalignedLineNumberCount() < probe.getMisalignedLineNumberCount();

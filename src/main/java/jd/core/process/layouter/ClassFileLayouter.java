@@ -1136,8 +1136,10 @@ public final class ClassFileLayouter {
         if (realignment)
         {
             int firstKnownLineNumber = Math.min(
-                searchMinimalFirstLineNumber(sortedMethodBlockList),
-                searchMinimalFirstLineNumber(sortedInnerClassBlockList));
+                Math.min(
+                    searchMinimalFirstLineNumber(sortedMethodBlockList),
+                    searchMinimalFirstLineNumber(sortedInnerClassBlockList)),
+                searchMinimalFirstLineNumber(sortedFieldBlockList));
             moveFieldsWithoutLineNumberToTheEnd(
                 layoutBlockList, sortedFieldBlockList, trailingFieldBlockList, firstKnownLineNumber);
         }
