@@ -2,41 +2,41 @@
 /*     */ 
 /*     */ import java.util.Random;
 /*     */ 
-/*     */ class dlx_solver { static final int M = 8;
-/*     */   static final int M2 = 64;
-/*     */   static final int M4 = 4096;
-/*     */   int max;
-/*     */   int _try_;
-/*     */   int min;
-/*     */   int clues;
-/*     */   int gu;
-/*     */   int tries;
-/*     */   long nodes;
-/*     */   long tnodes;
-/*     */   long solutions;
-/*     */   long vmax;
-/*     */   long smax;
-/*     */   long time0;
-/*     */   long time1;
-/*     */   long t1;
-/*     */   long x1;
-/*     */   double xx;
-/*     */   double yy;
-/*     */   int q;
-/*     */   int a;
-/*     */   int p;
-/*     */   int i;
-/*     */   int i1;
-/*     */   int j;
-/*     */   int k;
-/*     */   int l;
-/*     */   int r;
-/*     */   int r1;
-/*     */   int c; int c1; int c2; int n; int N2; int N4; int m; int m0; int m1; int x; int y; int s; static final int M6 = 10; static final int M7 = 11; static final int RESTART = 12;
-/*  36 */   long MWC() { return this.random.nextLong(); }
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ class dlx_solver
+/*     */ {
+/*     */   long MWC()
+/*     */   {
+/*  36 */     return this.random.nextLong();
+/*     */   }
 /*     */   
-/*     */   static final int M22 = 13;
-/*  39 */   static final int M3 = 14; static final int M44 = 15; static final int NEXT_TRY = 16; static final int END = 30; private final Random random; int[][] A0 = new int[73][73]; int[][] A = new int[73][73]; int[] Rows = new int[16393]; int[] Cols = new int[262153]; int[][] Row = new int[16393][73];
+/*  39 */   int[][] A0 = new int[73][73]; int[][] A = new int[73][73]; int[] Rows = new int[16393]; int[] Cols = new int[262153]; int[][] Row = new int[16393][73];
 /*     */   
 /*  41 */   int[][] Col = new int[262153][5]; int[] Ur = new int[262153]; int[] Uc = new int[16393]; int[] V = new int[262153];
 /*     */   
@@ -556,4 +556,56 @@
 /*     */   {
 /* 557 */     this.random = random;
 /*     */   }
+/*     */   
+/*     */   static final int M = 8;
+/*     */   static final int M2 = 64;
+/*     */   static final int M4 = 4096;
+/*     */   int max;
+/*     */   int _try_;
+/*     */   int min;
+/*     */   int clues;
+/*     */   int gu;
+/*     */   int tries;
+/*     */   long nodes;
+/*     */   long tnodes;
+/*     */   long solutions;
+/*     */   long vmax;
+/*     */   long smax;
+/*     */   long time0;
+/*     */   long time1;
+/*     */   long t1;
+/*     */   long x1;
+/*     */   double xx;
+/*     */   double yy;
+/*     */   int q;
+/*     */   int a;
+/*     */   int p;
+/*     */   int i;
+/*     */   int i1;
+/*     */   int j;
+/*     */   int k;
+/*     */   int l;
+/*     */   int r;
+/*     */   int r1;
+/*     */   int c;
+/*     */   int c1;
+/*     */   int c2;
+/*     */   int n;
+/*     */   int N2;
+/*     */   int N4;
+/*     */   int m;
+/*     */   int m0;
+/*     */   int m1;
+/*     */   int x;
+/*     */   int y;
+/*     */   int s;
+/*     */   static final int M6 = 10;
+/*     */   static final int M7 = 11;
+/*     */   static final int RESTART = 12;
+/*     */   static final int M22 = 13;
+/*     */   static final int M3 = 14;
+/*     */   static final int M44 = 15;
+/*     */   static final int NEXT_TRY = 16;
+/*     */   static final int END = 30;
+/*     */   private final Random random;
 /*     */ }

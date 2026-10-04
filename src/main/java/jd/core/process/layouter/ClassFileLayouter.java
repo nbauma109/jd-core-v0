@@ -380,7 +380,7 @@ public final class ClassFileLayouter {
 
         return mergeBlocks(
             layoutBlockList, sortedFieldBlockList,
-            sortedMethodBlockList, sortedInnerClassBlockList);
+            sortedMethodBlockList, sortedInnerClassBlockList, false);
     }
 
     private static int createBlocksForBody(
@@ -399,7 +399,8 @@ public final class ClassFileLayouter {
 
         return mergeBlocks(
                 layoutBlockList, sortedFieldBlockList,
-                sortedMethodBlockList, sortedInnerClassBlockList);
+                sortedMethodBlockList, sortedInnerClassBlockList,
+                preferences.getRealignmentLineNumber());
     }
 
     private static void createBlockForEnumValues(
@@ -1073,7 +1074,8 @@ public final class ClassFileLayouter {
         List<LayoutBlock> layoutBlockList,
         List<SubListLayoutBlock> sortedFieldBlockList,
         List<SubListLayoutBlock> sortedMethodBlockList,
-        List<SubListLayoutBlock> sortedInnerClassBlockList)
+        List<SubListLayoutBlock> sortedInnerClassBlockList,
+        boolean realignment)
     {
         int maxLineNumber = Instruction.UNKNOWN_LINE_NUMBER;
 
@@ -1086,6 +1088,16 @@ public final class ClassFileLayouter {
             searchMinimalLineNumber(sortedMethodBlockList);
         int minLineNumberInnerClass =
             searchMinimalLineNumber(sortedInnerClassBlockList);
+
+        List<SubListLayoutBlock> trailingFieldBlockList = new ArrayList<>();
+        if (realignment)
+        {
+            moveFieldsWithoutLineNumberToTheEnd(
+                layoutBlockList, sortedFieldBlockList, trailingFieldBlockList,
+                Math.min(
+                    minLineNumberMethod == Instruction.UNKNOWN_LINE_NUMBER ? Integer.MAX_VALUE : minLineNumberMethod,
+                    minLineNumberInnerClass == Instruction.UNKNOWN_LINE_NUMBER ? Integer.MAX_VALUE : minLineNumberInnerClass));
+        }
 
         // Fusion des jeux de cartes
         // 1) Champs
@@ -1171,8 +1183,51 @@ public final class ClassFileLayouter {
                 searchMinimalLineNumber(sortedInnerClassBlockList);
         }
 
-        return mergeBlockList(
+        maxLineNumber = mergeBlockList(
             layoutBlockList, sortedInnerClassBlockList, maxLineNumber);
+
+        return mergeFieldBlockList(
+            layoutBlockList, trailingFieldBlockList, maxLineNumber);
+    }
+
+    /**
+     * The fields whose source line is unknown (no initializer, constants) cannot be put back where they were: when
+     * they would push the first member whose line is known below its line, they are put after the other members.
+     */
+    private static void moveFieldsWithoutLineNumberToTheEnd(
+        List<LayoutBlock> layoutBlockList,
+        List<SubListLayoutBlock> sortedFieldBlockList,
+        List<SubListLayoutBlock> trailingFieldBlockList,
+        int firstKnownLineNumber)
+    {
+        if (firstKnownLineNumber == Integer.MAX_VALUE) {
+            return;
+        }
+
+        // The lines which cannot be removed before the members: the package, the imports and the type
+        // (the brace and the declaration of a member are on the line of what they hold)
+        int lineCount = 0;
+        for (LayoutBlock lb : layoutBlockList) {
+            if (lb instanceof PackageLayoutBlock) {
+                lineCount++;
+            } else if (lb instanceof ImportsLayoutBlock) {
+                lineCount += lb.getMaximalLineCount() + 1;
+            } else if (lb instanceof TypeNameLayoutBlock) {
+                lineCount++;
+            }
+        }
+        List<SubListLayoutBlock> withoutLineNumber = new ArrayList<>();
+        for (SubListLayoutBlock fieldBlock : sortedFieldBlockList) {
+            if (fieldBlock.getLastLineNumber() == Instruction.UNKNOWN_LINE_NUMBER) {
+                withoutLineNumber.add(fieldBlock);
+                lineCount++;
+            }
+        }
+
+        if (lineCount > firstKnownLineNumber) {
+            sortedFieldBlockList.removeAll(withoutLineNumber);
+            trailingFieldBlockList.addAll(withoutLineNumber);
+        }
     }
 
     private static int exclusiveMergeMethodOrInnerClassBlockList(
