@@ -82,6 +82,7 @@ import jd.core.process.layouter.visitor.InstructionSplitterVisitor;
 import jd.core.process.layouter.visitor.MaxLineNumberVisitor;
 import jd.core.util.ClassFileUtil;
 import jd.core.util.TypeNameUtil;
+import org.jd.core.v1.util.BestChainTracker;
 
 public final class ClassFileLayouter {
     private ClassFileLayouter() {
@@ -1631,7 +1632,7 @@ public final class ClassFileLayouter {
         int count = values.length;
         int[] sortedValues = distinctSortedValues(values);
         int distinct = sortedValues.length;
-        ChainTracker tracker = new ChainTracker(distinct);
+        BestChainTracker tracker = new BestChainTracker(distinct, true);
         int[] score = new int[count];
         int[] predecessor = new int[count];
 
@@ -1643,7 +1644,7 @@ public final class ClassFileLayouter {
             int bestScore = bestBlock == -1 ? 1 : score[bestBlock] + 1;
 
             // Best chain ending on the same value
-            int sameBlock = tracker.equalBlock[rank];
+            int sameBlock = tracker.bestAt(rank);
 
             if (sameBlock != -1 && score[sameBlock] >= bestScore)
             {
@@ -1678,59 +1679,6 @@ public final class ClassFileLayouter {
     private static int[] distinctSortedValues(int[] values)
     {
         return Arrays.stream(values).distinct().sorted().toArray();
-    }
-
-    /** Fenwick tree of the best chain (score, ending block) per rank of value */
-    private static final class ChainTracker
-    {
-        private final int distinct;
-        private final int[] treeScore;
-        private final int[] treeBlock;
-        private final int[] equalScore;
-        private final int[] equalBlock;
-
-        ChainTracker(int distinct)
-        {
-            this.distinct = distinct;
-            treeScore = new int[distinct+1];
-            treeBlock = new int[distinct+1];
-            equalScore = new int[distinct+1];
-            equalBlock = new int[distinct+1];
-            Arrays.fill(treeBlock, -1);
-            Arrays.fill(equalBlock, -1);
-        }
-
-        int bestBelow(int rank)
-        {
-            int bestScore = 0;
-            int bestBlock = -1;
-
-            for (int k=rank-1; k>0; k-=k&-k)
-            {
-                if (treeBlock[k] != -1 && treeScore[k] > bestScore) {
-                    bestScore = treeScore[k];
-                    bestBlock = treeBlock[k];
-                }
-            }
-            return bestBlock;
-        }
-
-        void update(int block, int rank, int score)
-        {
-            if (equalBlock[rank] == -1 || score >= equalScore[rank])
-            {
-                equalScore[rank] = score;
-                equalBlock[rank] = block;
-            }
-
-            for (int k=rank; k<=distinct; k+=k&-k)
-            {
-                if (treeBlock[k] == -1 || score >= treeScore[k]) {
-                    treeScore[k] = score;
-                    treeBlock[k] = block;
-                }
-            }
-        }
     }
 
     private static void createSections(
