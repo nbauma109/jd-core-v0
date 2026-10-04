@@ -1569,7 +1569,6 @@ public final class ClassFileLayouter {
         return maxLineNumber;
     }
 
-    /** La liste est classee en ordre inverse. */
     /** @return the smallest first line number of the blocks, Integer.MAX_VALUE if none is known */
     private static int searchMinimalFirstLineNumber(List<? extends LayoutBlock> list)
     {
@@ -1585,6 +1584,7 @@ public final class ClassFileLayouter {
         return minimum;
     }
 
+    /** La liste est classee en ordre inverse. */
     private static int searchMinimalLineNumber(List<? extends LayoutBlock> list)
     {
         int index = list.size();
