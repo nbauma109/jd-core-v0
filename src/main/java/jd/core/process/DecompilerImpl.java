@@ -29,6 +29,7 @@ import jd.core.model.reference.ReferenceMap;
 import jd.core.preferences.Preferences;
 import jd.core.printer.Printer;
 import jd.core.printer.PrinterImpl;
+import jd.core.printer.PrinterImpl;
 import jd.core.process.analyzer.classfile.ClassFileAnalyzer;
 import jd.core.process.analyzer.classfile.ReferenceAnalyzer;
 import jd.core.process.deserializer.ClassFileDeserializer;
@@ -44,27 +45,31 @@ public class DecompilerImpl implements Decompiler
         throws IOException
     {
         if (!preferences.getRealignmentLineNumber()) {
-            decompile(preferences, loader, printer, internalClassPath, null, false);
+            layout(preferences, loader, internalClassPath, null).write(loader, printer);
             return;
         }
 
         // The constants without line number are put after the members only if it aligns more line numbers
-        if (decompile(preferences, loader, printer, internalClassPath, new ClassFileLayouter.FieldPlacement(false), true)) {
+        Layout natural = layout(preferences, loader, internalClassPath, new ClassFileLayouter.FieldPlacement(false));
+        if (!natural.placement.isMovable()) {
+            natural.write(loader, printer);
             return;
         }
-        PrinterImpl probe = new PrinterImpl(preferences, true);
+
+        // (the analysis changes the model of the class: each placement is laid out from its own copy)
+        Layout moved = layout(preferences, loader, internalClassPath, new ClassFileLayouter.FieldPlacement(true));
+        PrinterImpl naturalProbe = new PrinterImpl(preferences, true);
         PrinterImpl movedProbe = new PrinterImpl(preferences, true);
-        decompile(preferences, loader, probe, internalClassPath, new ClassFileLayouter.FieldPlacement(false), false);
-        decompile(preferences, loader, movedProbe, internalClassPath, new ClassFileLayouter.FieldPlacement(true), false);
-        boolean moved = movedProbe.getMisalignedLineNumberCount() < probe.getMisalignedLineNumberCount();
-        decompile(preferences, loader, printer, internalClassPath, new ClassFileLayouter.FieldPlacement(moved), false);
+        natural.write(loader, naturalProbe);
+        moved.write(loader, movedProbe);
+        // (writing consumes the blocks: the chosen placement is laid out again for the printer)
+        boolean keepMoved = movedProbe.getMisalignedLineNumberCount() < naturalProbe.getMisalignedLineNumberCount();
+        layout(preferences, loader, internalClassPath, new ClassFileLayouter.FieldPlacement(keepMoved)).write(loader, printer);
     }
 
-    /** @return false, without writing, if the constants could be moved and {@code writeOnlyIfNotMovable} */
-    private static boolean decompile(
-            Preferences preferences, Loader loader,
-            Printer printer, String internalClassPath,
-            ClassFileLayouter.FieldPlacement placement, boolean writeOnlyIfNotMovable)
+    private static Layout layout(
+            Preferences preferences, Loader loader, String internalClassPath,
+            ClassFileLayouter.FieldPlacement placement)
         throws IOException
     {
 //long time0 = System.currentTimeMillis();
@@ -93,18 +98,20 @@ public class DecompilerImpl implements Decompiler
 
 //System.out.println("layoutBlockList.size = " + layoutBlockList.size());
 
-        if (writeOnlyIfNotMovable && placement != null && placement.isMovable()) {
-            return false;
+        return new Layout(placement, referenceMap, classFile, maxLineNumber, layoutBlockList);
+    }
+
+    private record Layout(
+            ClassFileLayouter.FieldPlacement placement, ReferenceMap referenceMap, ClassFile classFile,
+            int maxLineNumber, List<LayoutBlock> layoutBlockList)
+    {
+        void write(Loader loader, Printer printer)
+        {
+            // 5) Ecriture du code source
+            ClassFileWriter.write(
+                loader, printer, referenceMap, maxLineNumber,
+                classFile.getMajorVersion(), classFile.getMinorVersion(),
+                layoutBlockList);
         }
-
-        // 5) Ecriture du code source
-        ClassFileWriter.write(
-            loader, printer, referenceMap, maxLineNumber,
-            classFile.getMajorVersion(), classFile.getMinorVersion(),
-            layoutBlockList);
-
-//long time1 = System.currentTimeMillis();
-//System.out.println("time = " + (time1-time0) + " ms");
-        return true;
     }
 }
