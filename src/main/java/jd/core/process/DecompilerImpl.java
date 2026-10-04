@@ -28,8 +28,6 @@ import jd.core.model.layout.block.LayoutBlock;
 import jd.core.model.reference.ReferenceMap;
 import jd.core.preferences.Preferences;
 import jd.core.printer.Printer;
-import jd.core.printer.PrinterImpl;
-import jd.core.printer.PrinterImpl;
 import jd.core.process.analyzer.classfile.ClassFileAnalyzer;
 import jd.core.process.analyzer.classfile.ReferenceAnalyzer;
 import jd.core.process.deserializer.ClassFileDeserializer;
@@ -44,36 +42,6 @@ public class DecompilerImpl implements Decompiler
             Printer printer, String internalClassPath)
         throws IOException
     {
-        if (!preferences.getRealignmentLineNumber()) {
-            layout(preferences, loader, internalClassPath, null).write(loader, printer);
-            return;
-        }
-
-        // The constants without line number are put after the members only if it aligns more line numbers
-        Layout natural = layout(preferences, loader, internalClassPath, new ClassFileLayouter.FieldPlacement(false));
-        if (!natural.placement.isMovable()) {
-            natural.write(loader, printer);
-            return;
-        }
-
-        // (the analysis changes the model of the class: each placement is laid out from its own copy)
-        Layout moved = layout(preferences, loader, internalClassPath, new ClassFileLayouter.FieldPlacement(true));
-        PrinterImpl naturalProbe = new PrinterImpl(preferences, true);
-        PrinterImpl movedProbe = new PrinterImpl(preferences, true);
-        natural.write(loader, naturalProbe);
-        moved.write(loader, movedProbe);
-        // (writing consumes the blocks: the chosen placement is laid out again for the printer)
-        boolean keepMoved = movedProbe.getMisalignedLineNumberCount() < naturalProbe.getMisalignedLineNumberCount();
-        layout(preferences, loader, internalClassPath, new ClassFileLayouter.FieldPlacement(keepMoved)).write(loader, printer);
-    }
-
-    private static Layout layout(
-            Preferences preferences, Loader loader, String internalClassPath,
-            ClassFileLayouter.FieldPlacement placement)
-        throws IOException
-    {
-//long time0 = System.currentTimeMillis();
-
         // 1) Deserialisation
         ClassFile classFile =
             ClassFileDeserializer.deserialize(loader, internalClassPath);
@@ -92,26 +60,32 @@ public class DecompilerImpl implements Decompiler
 
         // 4) Mise en page du code source
         List<LayoutBlock> layoutBlockList = new ArrayList<>(1024);
-        int maxLineNumber = placement == null
-            ? ClassFileLayouter.layout(preferences, referenceMap, classFile, layoutBlockList)
-            : ClassFileLayouter.layout(preferences, referenceMap, classFile, layoutBlockList, placement);
+        int maxLineNumber;
 
-//System.out.println("layoutBlockList.size = " + layoutBlockList.size());
+        if (preferences.getRealignmentLineNumber()) {
+            // The constants without line number go after the members if that makes the layout fit the source lines better
+            ClassFileLayouter.FieldPlacement natural = new ClassFileLayouter.FieldPlacement(false);
+            maxLineNumber = ClassFileLayouter.layout(preferences, referenceMap, classFile, layoutBlockList, natural);
 
-        return new Layout(placement, referenceMap, classFile, maxLineNumber, layoutBlockList);
-    }
+            if (natural.isMovable() && natural.getMisfit() > 0) {
+                List<LayoutBlock> movedLayoutBlockList = new ArrayList<>(1024);
+                ClassFileLayouter.FieldPlacement moved = new ClassFileLayouter.FieldPlacement(true);
+                int movedMaxLineNumber = ClassFileLayouter.layout(preferences, referenceMap, classFile, movedLayoutBlockList, moved);
 
-    private record Layout(
-            ClassFileLayouter.FieldPlacement placement, ReferenceMap referenceMap, ClassFile classFile,
-            int maxLineNumber, List<LayoutBlock> layoutBlockList)
-    {
-        void write(Loader loader, Printer printer)
-        {
-            // 5) Ecriture du code source
-            ClassFileWriter.write(
-                loader, printer, referenceMap, maxLineNumber,
-                classFile.getMajorVersion(), classFile.getMinorVersion(),
-                layoutBlockList);
+                if (moved.getMisfit() < natural.getMisfit()) {
+                    layoutBlockList = movedLayoutBlockList;
+                    maxLineNumber = movedMaxLineNumber;
+                }
+            }
+        } else {
+            maxLineNumber = ClassFileLayouter.layout(
+                preferences, referenceMap, classFile, layoutBlockList);
         }
+
+        // 5) Ecriture du code source
+        ClassFileWriter.write(
+            loader, printer, referenceMap, maxLineNumber,
+            classFile.getMajorVersion(), classFile.getMinorVersion(),
+            layoutBlockList);
     }
 }

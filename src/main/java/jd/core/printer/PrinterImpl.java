@@ -19,14 +19,9 @@ public class PrinterImpl extends PlainTextPrinter {
     private final boolean showLineNumbers;
 
     public PrinterImpl(Preferences preferences) {
-        this(preferences, false);
-    }
-
-    /** @param measuringAlignment true to count the misaligned line numbers even if the line numbers are not displayed */
-    public PrinterImpl(Preferences preferences, boolean measuringAlignment) {
         setPreferences(preferences);
         this.realignmentLineNumber = preferences.getRealignmentLineNumber();
-        this.showLineNumbers = measuringAlignment || preferences.isShowLineNumbers();
+        this.showLineNumbers = preferences.isShowLineNumbers();
     }
 
     // Manage line number and misalignment

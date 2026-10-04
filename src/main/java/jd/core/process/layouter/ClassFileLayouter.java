@@ -96,6 +96,7 @@ public final class ClassFileLayouter {
     {
         private final boolean moved;
         private boolean movable;
+        private int misfit;
 
         public FieldPlacement(boolean moved) {
             this.moved = moved;
@@ -103,6 +104,11 @@ public final class ClassFileLayouter {
 
         public boolean isMovable() {
             return movable;
+        }
+
+        /** @return the number of lines by which the layout exceeds the source lines (0 if it is aligned) */
+        public int getMisfit() {
+            return misfit;
         }
     }
 
@@ -1648,6 +1654,11 @@ public final class ClassFileLayouter {
 
         // DEBUG // System.err.println("LayoutBlocks: Nbr de boucles: " + (20-layoutCount));
 
+        FieldPlacement placement = FIELD_PLACEMENT.get();
+        if (placement != null) {
+            placement.misfit = measureMisfit(layoutBlockList, layoutSectionList);
+        }
+
         // DEBUG // long time1 = System.currentTimeMillis();
         // DEBUG // System.err.println("LayoutBlocks: Temps: " + (time1-time0) + "ms");
     }
@@ -1905,6 +1916,27 @@ public final class ClassFileLayouter {
                 }
             }
         }
+    }
+
+    /** @return the number of lines by which the sections, which cannot be compacted any more, exceed the source lines they span */
+    private static int measureMisfit(
+        List<LayoutBlock> layoutBlockList,
+        List<LayoutSection> layoutSectionList)
+    {
+        int misfit = 0;
+
+        for (int sectionIndex=0; sectionIndex<layoutSectionList.size()-1; sectionIndex++)
+        {
+            LayoutSection section = layoutSectionList.get(sectionIndex);
+            int excess = getLineCount(
+                layoutBlockList, section.getFirstBlockIndex(), section.getLastBlockIndex())
+                - section.getOriginalLineCount();
+
+            if (excess > 0) {
+                misfit += excess;
+            }
+        }
+        return misfit;
     }
 
     private static void layoutSections(
