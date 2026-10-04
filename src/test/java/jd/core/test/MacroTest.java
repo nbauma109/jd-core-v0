@@ -11,6 +11,7 @@ public class MacroTest extends AbstractTestCase {
     @Test
     public void test() throws Exception {
         String output = decompile("smetana/core/Macro");
+        assertRealignedLineNumbers("smetana/core/Macro", output);
         assertEquals(IOUtils.toString(getClass().getResource("Macro.txt"), StandardCharsets.UTF_8), output);
     }
 }

@@ -42,8 +42,6 @@ public class DecompilerImpl implements Decompiler
             Printer printer, String internalClassPath)
         throws IOException
     {
-//long time0 = System.currentTimeMillis();
-
         // 1) Deserialisation
         ClassFile classFile =
             ClassFileDeserializer.deserialize(loader, internalClassPath);
@@ -62,18 +60,32 @@ public class DecompilerImpl implements Decompiler
 
         // 4) Mise en page du code source
         List<LayoutBlock> layoutBlockList = new ArrayList<>(1024);
-        int maxLineNumber =    ClassFileLayouter.layout(
-                preferences, referenceMap, classFile, layoutBlockList);
+        int maxLineNumber;
 
-//System.out.println("layoutBlockList.size = " + layoutBlockList.size());
+        if (preferences.getRealignmentLineNumber()) {
+            // The constants without line number go after the members if that makes the layout fit the source lines better
+            ClassFileLayouter.FieldPlacement natural = new ClassFileLayouter.FieldPlacement(false);
+            maxLineNumber = ClassFileLayouter.layout(preferences, referenceMap, classFile, layoutBlockList, natural);
+
+            if (natural.isMovable() && natural.getMisfit() > 0) {
+                List<LayoutBlock> movedLayoutBlockList = new ArrayList<>(1024);
+                ClassFileLayouter.FieldPlacement moved = new ClassFileLayouter.FieldPlacement(true);
+                int movedMaxLineNumber = ClassFileLayouter.layout(preferences, referenceMap, classFile, movedLayoutBlockList, moved);
+
+                if (moved.getMisfit() < natural.getMisfit()) {
+                    layoutBlockList = movedLayoutBlockList;
+                    maxLineNumber = movedMaxLineNumber;
+                }
+            }
+        } else {
+            maxLineNumber = ClassFileLayouter.layout(
+                preferences, referenceMap, classFile, layoutBlockList);
+        }
 
         // 5) Ecriture du code source
         ClassFileWriter.write(
             loader, printer, referenceMap, maxLineNumber,
             classFile.getMajorVersion(), classFile.getMinorVersion(),
             layoutBlockList);
-
-//long time1 = System.currentTimeMillis();
-//System.out.println("time = " + (time1-time0) + " ms");
     }
 }

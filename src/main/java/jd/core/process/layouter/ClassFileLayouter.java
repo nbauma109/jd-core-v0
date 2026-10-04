@@ -51,6 +51,7 @@ import jd.core.model.layout.block.ExtendsSuperTypeLayoutBlock;
 import jd.core.model.layout.block.FieldNameLayoutBlock;
 import jd.core.model.layout.block.FragmentLayoutBlock;
 import jd.core.model.layout.block.ImplementsInterfacesLayoutBlock;
+import jd.core.model.layout.block.ConstantFieldLayoutBlock;
 import jd.core.model.layout.block.ImportsLayoutBlock;
 import jd.core.model.layout.block.InnerTypeBodyBlockEndLayoutBlock;
 import jd.core.model.layout.block.InnerTypeBodyBlockStartLayoutBlock;
@@ -82,11 +83,53 @@ import jd.core.process.layouter.visitor.InstructionSplitterVisitor;
 import jd.core.process.layouter.visitor.MaxLineNumberVisitor;
 import jd.core.util.ClassFileUtil;
 import jd.core.util.TypeNameUtil;
+import org.jd.core.v1.util.BestChainTracker;
 
 public final class ClassFileLayouter {
     private ClassFileLayouter() {
     }
-        public static int layout(
+    /**
+     * Where the constants without line number go when realigning: after the members ({@code moved}) or in the natural
+     * order. {@code movable} tells, once laid out, whether moving them may change the result.
+     */
+    public static final class FieldPlacement
+    {
+        private final boolean moved;
+        private boolean movable;
+        private int misfit;
+
+        public FieldPlacement(boolean moved) {
+            this.moved = moved;
+        }
+
+        public boolean isMovable() {
+            return movable;
+        }
+
+        /** @return the number of lines by which the layout exceeds the source lines (0 if it is aligned) */
+        public int getMisfit() {
+            return misfit;
+        }
+    }
+
+    private static final ThreadLocal<FieldPlacement> FIELD_PLACEMENT = new ThreadLocal<>();
+
+    public static int layout(
+        Preferences preferences,
+        ReferenceMap referenceMap,
+        ClassFile classFile,
+        List<LayoutBlock> layoutBlockList,
+        FieldPlacement placement)
+    {
+        FIELD_PLACEMENT.set(placement);
+        try {
+            return layout(preferences, referenceMap, classFile, layoutBlockList);
+        } finally {
+            FIELD_PLACEMENT.remove();
+        }
+    }
+
+    public static int layout(
         Preferences preferences,
         ReferenceMap referenceMap,
         ClassFile classFile,
@@ -379,7 +422,7 @@ public final class ClassFileLayouter {
 
         return mergeBlocks(
             layoutBlockList, sortedFieldBlockList,
-            sortedMethodBlockList, sortedInnerClassBlockList);
+            sortedMethodBlockList, sortedInnerClassBlockList, false);
     }
 
     private static int createBlocksForBody(
@@ -398,7 +441,8 @@ public final class ClassFileLayouter {
 
         return mergeBlocks(
                 layoutBlockList, sortedFieldBlockList,
-                sortedMethodBlockList, sortedInnerClassBlockList);
+                sortedMethodBlockList, sortedInnerClassBlockList,
+                preferences.getRealignmentLineNumber());
     }
 
     private static void createBlockForEnumValues(
@@ -589,10 +633,17 @@ public final class ClassFileLayouter {
             fmelb.setOther(fmslb);
             subLayoutBlockList.add(fmelb);
 
-            sortedFieldBlockList.add(new SubListLayoutBlock(
-                LayoutBlockConstants.SUBLIST_FIELD,
-                subLayoutBlockList, firstLineNumber,
-                lastLineNumber, preferedLineNumber));
+            boolean constant = (field.getAccessFlags() & (Const.ACC_STATIC|Const.ACC_FINAL)) == (Const.ACC_STATIC|Const.ACC_FINAL)
+                && field.getConstantValue(classFile.getConstantPool()) != null;
+            sortedFieldBlockList.add(constant
+                ? new ConstantFieldLayoutBlock(
+                    LayoutBlockConstants.SUBLIST_FIELD,
+                    subLayoutBlockList, firstLineNumber,
+                    lastLineNumber, preferedLineNumber)
+                : new SubListLayoutBlock(
+                    LayoutBlockConstants.SUBLIST_FIELD,
+                    subLayoutBlockList, firstLineNumber,
+                    lastLineNumber, preferedLineNumber));
         }
         return sortBlocks(sortedFieldBlockList, true);
     }
@@ -1072,7 +1123,8 @@ public final class ClassFileLayouter {
         List<LayoutBlock> layoutBlockList,
         List<SubListLayoutBlock> sortedFieldBlockList,
         List<SubListLayoutBlock> sortedMethodBlockList,
-        List<SubListLayoutBlock> sortedInnerClassBlockList)
+        List<SubListLayoutBlock> sortedInnerClassBlockList,
+        boolean realignment)
     {
         int maxLineNumber = Instruction.UNKNOWN_LINE_NUMBER;
 
@@ -1085,6 +1137,18 @@ public final class ClassFileLayouter {
             searchMinimalLineNumber(sortedMethodBlockList);
         int minLineNumberInnerClass =
             searchMinimalLineNumber(sortedInnerClassBlockList);
+
+        List<SubListLayoutBlock> trailingFieldBlockList = new ArrayList<>();
+        if (realignment)
+        {
+            int firstKnownLineNumber = Math.min(
+                Math.min(
+                    searchMinimalFirstLineNumber(sortedMethodBlockList),
+                    searchMinimalFirstLineNumber(sortedInnerClassBlockList)),
+                searchMinimalFirstLineNumber(sortedFieldBlockList));
+            moveFieldsWithoutLineNumberToTheEnd(
+                layoutBlockList, sortedFieldBlockList, trailingFieldBlockList, firstKnownLineNumber);
+        }
 
         // Fusion des jeux de cartes
         // 1) Champs
@@ -1170,8 +1234,57 @@ public final class ClassFileLayouter {
                 searchMinimalLineNumber(sortedInnerClassBlockList);
         }
 
-        return mergeBlockList(
+        maxLineNumber = mergeBlockList(
             layoutBlockList, sortedInnerClassBlockList, maxLineNumber);
+
+        return mergeFieldBlockList(
+            layoutBlockList, trailingFieldBlockList, maxLineNumber);
+    }
+
+    /**
+     * The fields whose source line is unknown (no initializer, constants) cannot be put back where they were: when
+     * they would push the first member whose line is known below its line, they are put after the other members.
+     */
+    private static void moveFieldsWithoutLineNumberToTheEnd(
+        List<LayoutBlock> layoutBlockList,
+        List<SubListLayoutBlock> sortedFieldBlockList,
+        List<SubListLayoutBlock> trailingFieldBlockList,
+        int firstKnownLineNumber)
+    {
+        if (firstKnownLineNumber == Integer.MAX_VALUE) {
+            return;
+        }
+
+        // The lines which cannot be removed before the members: the package, the imports and the type
+        // (the brace and the declaration of a member are on the line of what they hold)
+        int lineCount = 0;
+        for (LayoutBlock lb : layoutBlockList) {
+            if (lb instanceof PackageLayoutBlock) {
+                lineCount++;
+            } else if (lb instanceof ImportsLayoutBlock) {
+                lineCount += lb.getMaximalLineCount() + 1;
+            } else if (lb instanceof TypeNameLayoutBlock) {
+                lineCount++;
+            }
+        }
+        List<SubListLayoutBlock> withoutLineNumber = new ArrayList<>();
+        for (SubListLayoutBlock fieldBlock : sortedFieldBlockList) {
+            // (an initializer may use another field: only the constants, which are inlined, can be moved)
+            lineCount++;
+            if (fieldBlock instanceof ConstantFieldLayoutBlock && fieldBlock.getLastLineNumber() == Instruction.UNKNOWN_LINE_NUMBER) {
+                withoutLineNumber.add(fieldBlock);
+            }
+        }
+
+        FieldPlacement placement = FIELD_PLACEMENT.get();
+
+        if (placement != null && lineCount > firstKnownLineNumber && !withoutLineNumber.isEmpty()) {
+            placement.movable = true;
+            if (placement.moved) {
+                sortedFieldBlockList.removeAll(withoutLineNumber);
+                trailingFieldBlockList.addAll(withoutLineNumber);
+            }
+        }
     }
 
     private static int exclusiveMergeMethodOrInnerClassBlockList(
@@ -1457,6 +1570,21 @@ public final class ClassFileLayouter {
     }
 
     /** La liste est classee en ordre inverse. */
+    /** @return the smallest first line number of the blocks, Integer.MAX_VALUE if none is known */
+    private static int searchMinimalFirstLineNumber(List<? extends LayoutBlock> list)
+    {
+        int minimum = Integer.MAX_VALUE;
+
+        for (LayoutBlock lb : list)
+        {
+            int lineNumber = lb.getFirstLineNumber();
+            if (lineNumber != Instruction.UNKNOWN_LINE_NUMBER && lineNumber < minimum) {
+                minimum = lineNumber;
+            }
+        }
+        return minimum;
+    }
+
     private static int searchMinimalLineNumber(List<? extends LayoutBlock> list)
     {
         int index = list.size();
@@ -1525,6 +1653,11 @@ public final class ClassFileLayouter {
         while (layoutCount-- > 0);
 
         // DEBUG // System.err.println("LayoutBlocks: Nbr de boucles: " + (20-layoutCount));
+
+        FieldPlacement placement = FIELD_PLACEMENT.get();
+        if (placement != null) {
+            placement.misfit = measureMisfit(layoutBlockList, layoutSectionList);
+        }
 
         // DEBUG // long time1 = System.currentTimeMillis();
         // DEBUG // System.err.println("LayoutBlocks: Temps: " + (time1-time0) + "ms");
@@ -1631,7 +1764,7 @@ public final class ClassFileLayouter {
         int count = values.length;
         int[] sortedValues = distinctSortedValues(values);
         int distinct = sortedValues.length;
-        ChainTracker tracker = new ChainTracker(distinct);
+        BestChainTracker tracker = new BestChainTracker(distinct, true);
         int[] score = new int[count];
         int[] predecessor = new int[count];
 
@@ -1643,7 +1776,7 @@ public final class ClassFileLayouter {
             int bestScore = bestBlock == -1 ? 1 : score[bestBlock] + 1;
 
             // Best chain ending on the same value
-            int sameBlock = tracker.equalBlock[rank];
+            int sameBlock = tracker.bestAt(rank);
 
             if (sameBlock != -1 && score[sameBlock] >= bestScore)
             {
@@ -1678,59 +1811,6 @@ public final class ClassFileLayouter {
     private static int[] distinctSortedValues(int[] values)
     {
         return Arrays.stream(values).distinct().sorted().toArray();
-    }
-
-    /** Fenwick tree of the best chain (score, ending block) per rank of value */
-    private static final class ChainTracker
-    {
-        private final int distinct;
-        private final int[] treeScore;
-        private final int[] treeBlock;
-        private final int[] equalScore;
-        private final int[] equalBlock;
-
-        ChainTracker(int distinct)
-        {
-            this.distinct = distinct;
-            treeScore = new int[distinct+1];
-            treeBlock = new int[distinct+1];
-            equalScore = new int[distinct+1];
-            equalBlock = new int[distinct+1];
-            Arrays.fill(treeBlock, -1);
-            Arrays.fill(equalBlock, -1);
-        }
-
-        int bestBelow(int rank)
-        {
-            int bestScore = 0;
-            int bestBlock = -1;
-
-            for (int k=rank-1; k>0; k-=k&-k)
-            {
-                if (treeBlock[k] != -1 && treeScore[k] > bestScore) {
-                    bestScore = treeScore[k];
-                    bestBlock = treeBlock[k];
-                }
-            }
-            return bestBlock;
-        }
-
-        void update(int block, int rank, int score)
-        {
-            if (equalBlock[rank] == -1 || score >= equalScore[rank])
-            {
-                equalScore[rank] = score;
-                equalBlock[rank] = block;
-            }
-
-            for (int k=rank; k<=distinct; k+=k&-k)
-            {
-                if (treeBlock[k] == -1 || score >= treeScore[k]) {
-                    treeScore[k] = score;
-                    treeBlock[k] = block;
-                }
-            }
-        }
     }
 
     private static void createSections(
@@ -1836,6 +1916,27 @@ public final class ClassFileLayouter {
                 }
             }
         }
+    }
+
+    /** @return the number of lines by which the sections, which cannot be compacted any more, exceed the source lines they span */
+    private static int measureMisfit(
+        List<LayoutBlock> layoutBlockList,
+        List<LayoutSection> layoutSectionList)
+    {
+        int misfit = 0;
+
+        for (int sectionIndex=0; sectionIndex<layoutSectionList.size()-1; sectionIndex++)
+        {
+            LayoutSection section = layoutSectionList.get(sectionIndex);
+            int excess = getLineCount(
+                layoutBlockList, section.getFirstBlockIndex(), section.getLastBlockIndex())
+                - section.getOriginalLineCount();
+
+            if (excess > 0) {
+                misfit += excess;
+            }
+        }
+        return misfit;
     }
 
     private static void layoutSections(
