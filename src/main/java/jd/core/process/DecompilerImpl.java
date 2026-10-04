@@ -28,6 +28,7 @@ import jd.core.model.layout.block.LayoutBlock;
 import jd.core.model.reference.ReferenceMap;
 import jd.core.preferences.Preferences;
 import jd.core.printer.Printer;
+import jd.core.printer.PrinterImpl;
 import jd.core.process.analyzer.classfile.ClassFileAnalyzer;
 import jd.core.process.analyzer.classfile.ReferenceAnalyzer;
 import jd.core.process.deserializer.ClassFileDeserializer;
@@ -40,6 +41,30 @@ public class DecompilerImpl implements Decompiler
     public synchronized void decompile(
             Preferences preferences, Loader loader,
             Printer printer, String internalClassPath)
+        throws IOException
+    {
+        if (!preferences.getRealignmentLineNumber()) {
+            decompile(preferences, loader, printer, internalClassPath, null, false);
+            return;
+        }
+
+        // The constants without line number are put after the members only if it aligns more line numbers
+        if (decompile(preferences, loader, printer, internalClassPath, new ClassFileLayouter.FieldPlacement(false), true)) {
+            return;
+        }
+        PrinterImpl probe = new PrinterImpl(preferences);
+        PrinterImpl movedProbe = new PrinterImpl(preferences);
+        decompile(preferences, loader, probe, internalClassPath, new ClassFileLayouter.FieldPlacement(false), false);
+        decompile(preferences, loader, movedProbe, internalClassPath, new ClassFileLayouter.FieldPlacement(true), false);
+        boolean moved = movedProbe.getMisalignedLineNumberCount() < probe.getMisalignedLineNumberCount();
+        decompile(preferences, loader, printer, internalClassPath, new ClassFileLayouter.FieldPlacement(moved), false);
+    }
+
+    /** @return false, without writing, if the constants could be moved and {@code writeOnlyIfNotMovable} */
+    private static boolean decompile(
+            Preferences preferences, Loader loader,
+            Printer printer, String internalClassPath,
+            ClassFileLayouter.FieldPlacement placement, boolean writeOnlyIfNotMovable)
         throws IOException
     {
 //long time0 = System.currentTimeMillis();
@@ -62,10 +87,15 @@ public class DecompilerImpl implements Decompiler
 
         // 4) Mise en page du code source
         List<LayoutBlock> layoutBlockList = new ArrayList<>(1024);
-        int maxLineNumber =    ClassFileLayouter.layout(
-                preferences, referenceMap, classFile, layoutBlockList);
+        int maxLineNumber = placement == null
+            ? ClassFileLayouter.layout(preferences, referenceMap, classFile, layoutBlockList)
+            : ClassFileLayouter.layout(preferences, referenceMap, classFile, layoutBlockList, placement);
 
 //System.out.println("layoutBlockList.size = " + layoutBlockList.size());
+
+        if (writeOnlyIfNotMovable && placement != null && placement.isMovable()) {
+            return false;
+        }
 
         // 5) Ecriture du code source
         ClassFileWriter.write(
@@ -75,5 +105,6 @@ public class DecompilerImpl implements Decompiler
 
 //long time1 = System.currentTimeMillis();
 //System.out.println("time = " + (time1-time0) + " ms");
+        return true;
     }
 }
