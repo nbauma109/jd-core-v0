@@ -95,7 +95,9 @@ public final class ConstantValueWriter
                 }
                 else
                 {
-                    // TODO Conversion de la valeur en constante ?
+                    // Always emit double constants with D suffix to preserve overload resolution
+                    // Emitting as float literal (F suffix) would change which overload is called:
+                    // bytecode m((double)0.2F) calls m(double), but decompiled m(0.2F) calls m(float)
                     String value = String.valueOf(d);
                     if (value.indexOf('.') == -1) {
                         value += ".0";
