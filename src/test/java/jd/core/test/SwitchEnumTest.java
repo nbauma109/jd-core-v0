@@ -14,14 +14,14 @@ public class SwitchEnumTest extends AbstractTestCase {
     public void testSwitchEnum() throws Exception {
         String internalClassName = "jd/core/test/SwitchEnum";
         String output = decompile(internalClassName);
-        assertEquals(IOUtils.toString(getClass().getResource("SwitchEnum.txt"), StandardCharsets.UTF_8), output);
+        assertEquals(IOUtils.toString(getClass().getResource(compiledFixtureSnapshot("SwitchEnum")), StandardCharsets.UTF_8), output);
     }
 
     @Test
     public void testEnumSwitch() throws Exception {
         String internalClassName = "jd/core/test/EnumSwitch";
         String output = decompile(internalClassName);
-        assertEquals(IOUtils.toString(getClass().getResource("EnumSwitch.txt"), StandardCharsets.UTF_8), output);
+        assertEquals(IOUtils.toString(getClass().getResource(compiledFixtureSnapshot("EnumSwitch")), StandardCharsets.UTF_8), output);
     }
 
     @Test
@@ -60,5 +60,10 @@ public class SwitchEnumTest extends AbstractTestCase {
             String output = decompile("jd/core/test/SwitchEnumInnerClass", loader);
             assertEquals(IOUtils.toString(getClass().getResource("SwitchEnumInnerClassJDK21.txt"), StandardCharsets.UTF_8), output);
         }
+    }
+    private static String compiledFixtureSnapshot(String name) {
+        boolean directOrdinalSwitch = "javac".equals(System.getProperty("test.compiler", "javac"))
+                && Runtime.version().feature() >= 21;
+        return name + (directOrdinalSwitch ? "JDK21.txt" : ".txt");
     }
 }
