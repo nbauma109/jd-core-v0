@@ -120,6 +120,7 @@ import jd.core.process.analyzer.instruction.fast.reconstructor.InitArrayInstruct
 import jd.core.process.analyzer.instruction.fast.reconstructor.RemoveDupConstantsAttributes;
 import jd.core.process.analyzer.instruction.fast.reconstructor.SwitchExpressionReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.StructuredAssertReconstructor;
+import jd.core.process.analyzer.instruction.fast.reconstructor.EmptyEnumSwitchReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.TernaryOpInReturnReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.TernaryOpReconstructor;
 import jd.core.process.analyzer.instruction.fast.visitor.CheckLocalVariableUsedVisitor;
@@ -207,6 +208,7 @@ public final class FastInstructionListBuilder {
         removeUnreachableReturnAfterInfiniteLoop(list);
         SwitchExpressionReconstructor.reconstruct(classFile, method, list);
         new StructuredAssertReconstructor(classFile).visit(list);
+        EmptyEnumSwitchReconstructor.visit(classFile, list);
 
         // Add labels
         if (!offsetLabelSet.isEmpty()) {

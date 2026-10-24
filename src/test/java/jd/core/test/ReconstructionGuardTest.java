@@ -35,6 +35,7 @@ import jd.core.model.instruction.bytecode.instruction.InvokeNew;
 import jd.core.model.instruction.fast.FastConstants;
 import jd.core.model.instruction.fast.instruction.FastTestList;
 import jd.core.process.analyzer.instruction.fast.reconstructor.StructuredAssertReconstructor;
+import jd.core.process.analyzer.instruction.fast.reconstructor.EmptyEnumSwitchReconstructor;
 import jd.core.process.analyzer.instruction.bytecode.reconstructor.AssertInstructionReconstructor;
 import jd.core.model.instruction.bytecode.instruction.ComplexConditionalBranchInstruction;
 
@@ -43,6 +44,15 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
+
+import jd.core.process.analyzer.classfile.AccessorAnalyzer;
+import jd.core.model.classfile.accessor.PutStaticAccessor;
+import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
+import jd.core.model.instruction.bytecode.instruction.ConvertInstruction;
+import jd.core.model.instruction.bytecode.instruction.DupStore;
+import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
+import jd.core.model.instruction.bytecode.instruction.PutStatic;
+import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
 
 /** Check recognizer boundaries: ordinary conditionals must retain their meaning. */
 public class ReconstructionGuardTest {
@@ -198,7 +208,53 @@ public class ReconstructionGuardTest {
         method.setLocalVariables(new LocalVariables());
         method.setInstructions(new ArrayList<>(List.of(discard, new Return(Const.RETURN, 4, 1))));
         ClassFileAnalyzer.analyzeSingleMethod(null, owner, null, method);
+        EmptyEnumSwitchReconstructor.visit(owner, method.getInstructions());
+        assertSame(discard, method.getInstructions().get(0));
         assertSame(value, discard.getObjectref());
+    }
+
+    @Test
+    public void staticAccessorsRequireMatchingExpressionsAndDuplicateValues() {
+        for (int variant = 0; variant < 12; variant++) {
+            ClassFile owner = owner("test/AssignmentOwner");
+            int field = fieldReference(owner, "value", "I");
+            Instruction parameter = new LoadInstruction(ByteCodeConstants.LOAD, 1, 1,
+                    variant == 1 || variant == 7 ? 1 : 0, "I");
+            Instruction value = parameter;
+            if (variant >= 3 && variant <= 8) {
+                Instruction left = variant == 5 ? new IConst(ByteCodeConstants.ICONST, 0, 1, 10)
+                        : new GetStatic(Const.GETSTATIC, 0, 1,
+                                variant == 4 ? fieldReference(owner, "other", "I") : field);
+                Instruction right = variant == 8
+                        ? new ConvertInstruction(ByteCodeConstants.CONVERT, 1, 1, parameter, "J") : parameter;
+                value = new BinaryOperatorInstruction(ByteCodeConstants.BINARYOP, 2, 1, 4, "I",
+                        variant == 6 ? "==" : "+", left, right);
+            } else if (variant == 2) {
+                value = new IConst(ByteCodeConstants.ICONST, 1, 1, 17);
+            }
+            DupStore duplicate = new DupStore(ByteCodeConstants.DUPSTORE, 3, 1, value);
+            DupStore other = new DupStore(ByteCodeConstants.DUPSTORE, 3, 1, value);
+            Instruction returned = variant == 9 ? parameter : duplicate.getDupLoad2();
+            Instruction ending = variant == 11 ? new Return(Const.RETURN, 5, 1)
+                    : new ReturnInstruction(ByteCodeConstants.XRETURN, 5, 1, returned, "I");
+            List<Instruction> code = new ArrayList<>(List.of(duplicate,
+                    new PutStatic(Const.PUTSTATIC, 4, 1, field,
+                            variant == 10 ? other.getDupLoad1() : duplicate.getDupLoad1()), ending));
+            ConstantPool constants = owner.getConstantPool();
+            Method method = new Method(new org.apache.bcel.classfile.Method(Const.ACC_STATIC | Const.ACC_SYNTHETIC,
+                    constants.addConstantUtf8("access$000"), constants.addConstantUtf8("(I)I"),
+                    new org.apache.bcel.classfile.Attribute[0],
+                    new org.apache.bcel.classfile.ConstantPool(new org.apache.bcel.classfile.Constant[1])));
+            method.setInstructions(code);
+            AccessorAnalyzer.analyze(owner, method);
+            var accessor = owner.getAccessor("access$000", "(I)I");
+            if (variant == 0 || variant == 3 || variant == 8) {
+                assertTrue(accessor instanceof PutStaticAccessor);
+                assertEquals(variant == 0 ? "=" : "+=", ((PutStaticAccessor) accessor).operator());
+            } else {
+                assertNull("Unrecognized assignment variant " + variant, accessor);
+            }
+        }
     }
 
     private static int fieldReference(ClassFile owner, String name, String descriptor) {

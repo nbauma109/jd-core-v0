@@ -31,6 +31,7 @@ import jd.core.model.instruction.bytecode.instruction.AThrow;
 import jd.core.model.instruction.bytecode.instruction.AssertInstruction;
 import jd.core.model.instruction.bytecode.instruction.ComplexConditionalBranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.GetStatic;
+import jd.core.model.instruction.bytecode.instruction.Goto;
 import jd.core.model.instruction.bytecode.instruction.IConst;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
@@ -137,8 +138,14 @@ public final class AssertInstructionReconstructor
                 if1.getOffset(), if1.getLineNumber(), 0);
                 falseConst.setSignature("Z");
                 list.set(index, new AssertInstruction(
-                    ByteCodeConstants.ASSERT, athrow.getOffset(),
+                    ByteCodeConstants.ASSERT, if1.getJumpOffset() <= if1.getOffset()
+                            ? athrow.getOffset() - 1 : athrow.getOffset(),
                     if1.getLineNumber(), falseConst, msg));
+                if (if1.getJumpOffset() <= if1.getOffset()) {
+                    // The guard also carries the loop back edge when assertions are disabled.
+                    list.add(index + 1, new Goto(Const.GOTO, athrow.getOffset(), if1.getLineNumber(),
+                            if1.getJumpOffset() - athrow.getOffset()));
+                }
             }
         }
     }

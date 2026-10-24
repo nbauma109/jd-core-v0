@@ -418,6 +418,77 @@ public class SyntheticReconstructionTest {
                 """, 17);
     }
 
+    @Test
+    public void compoundStaticAccessorsPreserveTheOperationAndStoredValue() throws Exception {
+        for (String declaration : List.of("int", "byte", "long")) {
+            assertRoundTrip("""
+                    public class SyntheticOuter {
+                        private static %s value = 10;
+                        public java.util.function.IntSupplier reader(int captured) {
+                            return new java.util.function.IntSupplier() {
+                                public int getAsInt() {
+                                    int assigned = (int) (value += captured);
+                                    return assigned + (int) value - 17;
+                                }
+                            };
+                        }
+                    }
+                    """.formatted(declaration), 17);
+        }
+    }
+
+    @Test
+    public void emptyEnumSwitchInitializesEnumBeforeRejectingNull() throws Exception {
+        assertRoundTrip("""
+                public class SyntheticOuter {
+                    private static int initialized;
+                    private enum Kind { A; static { initialized++; } }
+                    public java.util.function.IntSupplier reader(int captured) {
+                        return () -> {
+                            Kind kind = null;
+                            try { switch (kind) { } }
+                            catch (NullPointerException expected) { }
+                            return initialized + 16;
+                        };
+                    }
+                }
+                """, 17, "17");
+    }
+
+    @Test
+    public void terminalFalseAssertionRetainsInfiniteLoop() throws Exception {
+        Path original = compile("""
+                public class SyntheticOuter {
+                    public static void run() { for (;;) { assert false; } }
+                    public static void main(String[] args) {
+                        System.out.println("running");
+                        try { run(); }
+                        catch (AssertionError expected) { return; }
+                        throw new IllegalStateException("loop returned");
+                    }
+                }
+                """, "8");
+        Path rebuilt = compile(decompile(original), "8");
+        for (Path directory : List.of(original, rebuilt)) {
+            for (boolean enabled : List.of(true, false)) {
+                Path output = Files.createTempFile(Path.of("target"), "assertion-loop-", ".log");
+                Process process = new ProcessBuilder(Path.of(System.getProperty("java.home"), "bin", "java").toString(),
+                        enabled ? "-ea" : "-da", "-cp", directory.toString(), "SyntheticOuter")
+                        .redirectErrorStream(true).redirectOutput(output.toFile()).start();
+                try {
+                    boolean finished = process.waitFor(enabled ? 10 : 1, java.util.concurrent.TimeUnit.SECONDS);
+                    assertEquals("Assertions enabled: " + enabled, enabled, finished);
+                    if (enabled) {
+                        assertEquals(0, process.exitValue());
+                    }
+                } finally {
+                    process.destroyForcibly().waitFor();
+                }
+                assertTrue(Files.readString(output).contains("running"));
+            }
+        }
+    }
+
     private static void assertRoundTrip(String source, int expected) throws Exception {
         assertRoundTrip(source, expected, "8");
     }
@@ -435,6 +506,19 @@ public class SyntheticReconstructionTest {
     }
 
     private static void assertRoundTrip(Path original, int expected, String release) throws Exception {
+        String output = decompile(original);
+        assertFalse(output, output.contains("this$"));
+        assertFalse(output, output.contains("access$"));
+        assertFalse(output, output.contains("val$"));
+        assertFalse(output, output.contains("$SwitchMap$"));
+        assertFalse(output, output.contains("$assertionsDisabled"));
+        Path rebuilt = compile(output, release);
+        assertEquals(expected, evaluate(original, true));
+        assertEquals(expected, evaluate(rebuilt, true));
+        assertEquals(evaluate(original, false), evaluate(rebuilt, false));
+    }
+
+    private static String decompile(Path original) throws IOException {
         Loader loader = new Loader() {
             private final Loader fallback = new ClassPathLoader();
 
@@ -451,17 +535,8 @@ public class SyntheticReconstructionTest {
         };
         Preferences preferences = new Preferences();
         preferences.setShowLineNumbers(false);
-        String output = new PrinterImpl(preferences).buildDecompiledOutput(
+        return new PrinterImpl(preferences).buildDecompiledOutput(
                 loader, "SyntheticOuter", preferences, new DecompilerImpl());
-        assertFalse(output, output.contains("this$"));
-        assertFalse(output, output.contains("access$"));
-        assertFalse(output, output.contains("val$"));
-        assertFalse(output, output.contains("$SwitchMap$"));
-        assertFalse(output, output.contains("$assertionsDisabled"));
-        Path rebuilt = compile(output, release);
-        assertEquals(expected, evaluate(original, true));
-        assertEquals(expected, evaluate(rebuilt, true));
-        assertEquals(evaluate(original, false), evaluate(rebuilt, false));
     }
 
     private static Path compile(String source, String release) throws IOException {

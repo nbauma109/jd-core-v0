@@ -45,7 +45,6 @@ import jd.core.model.classfile.RecordComponent;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.ALoad;
 import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
-import jd.core.model.instruction.bytecode.instruction.ArrayLoadInstruction;
 import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.GetStatic;
 import jd.core.model.instruction.bytecode.instruction.IConst;
@@ -928,7 +927,7 @@ public final class ClassFileAnalyzer
         DotClass14Reconstructor.reconstruct(
                 referenceMap, classFile, method, list);
         // Remove unused pop instruction
-        removeUnusedPopInstruction(classFile, list);
+        removeUnusedPopInstruction(list);
         // Transformation des tests sur des types 'long' et 'double'
         transformTestOnLongOrDouble(list);
         // Set constant type of "String.indexOf(...)" methods
@@ -1286,7 +1285,7 @@ public final class ClassFileAnalyzer
         new ReplaceStringBuxxxerVisitor(classFile, localVariables).visit(list);
     }
 
-    private static void removeUnusedPopInstruction(ClassFile classFile, List<Instruction> list)
+    private static void removeUnusedPopInstruction(List<Instruction> list)
     {
         int index = list.size();
 
@@ -1294,10 +1293,6 @@ public final class ClassFileAnalyzer
         while (index-- > 0)
         {
             instruction = list.get(index);
-            if (instruction instanceof Pop pop) {
-                simplifyEmptyEnumSwitch(classFile, pop);
-            }
-
             if (instruction.getOpcode() == Const.POP &&
                       (((Pop)instruction).getObjectref().getOpcode() == Const.GETFIELD
                     || ((Pop)instruction).getObjectref().getOpcode() == Const.GETSTATIC
@@ -1307,25 +1302,6 @@ public final class ClassFileAnalyzer
                     || ((Pop)instruction).getObjectref().getOpcode() == ByteCodeConstants.LOAD)) {
                 list.remove(index);
             }
-        }
-    }
-
-    private static void simplifyEmptyEnumSwitch(ClassFile classFile, Pop pop) {
-        if (!(pop.getObjectref() instanceof ArrayLoadInstruction load)
-                || !(load.getArrayref() instanceof GetStatic table)
-                || !(load.getIndexref() instanceof Invokevirtual ordinal) || !ordinal.getArgs().isEmpty()) {
-            return;
-        }
-        ConstantPool constants = classFile.getConstantPool();
-        ConstantFieldref field = constants.getConstantFieldref(table.getIndex());
-        ConstantNameAndType fieldName = constants.getConstantNameAndType(field.getNameAndTypeIndex());
-        ConstantCP method = constants.getConstantMethodref(ordinal.getIndex());
-        ConstantNameAndType methodName = constants.getConstantNameAndType(method.getNameAndTypeIndex());
-        if (classFile.getSwitchMapOwner(constants.getConstantUtf8(fieldName.getNameIndex())) != null
-                && "ordinal".equals(constants.getConstantUtf8(methodName.getNameIndex()))
-                && "()I".equals(constants.getConstantUtf8(methodName.getSignatureIndex()))) {
-            // An empty enum switch still evaluates its selector and rejects null.
-            pop.setObjectref(ordinal);
         }
     }
 

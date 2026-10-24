@@ -27,6 +27,9 @@ import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.accessor.Accessor;
 import jd.core.model.classfile.accessor.AccessorConstants;
 import jd.core.model.classfile.accessor.PutStaticAccessor;
+import jd.core.model.instruction.bytecode.ByteCodeConstants;
+import jd.core.model.instruction.bytecode.instruction.AssignmentInstruction;
+import jd.core.model.instruction.bytecode.instruction.GetStatic;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.Invokestatic;
 import jd.core.model.instruction.bytecode.instruction.PutStatic;
@@ -104,6 +107,10 @@ public class OuterPutStaticVisitor extends OuterGetStaticVisitor
 
         Instruction valueref = is.getArgs().remove(0);
 
+        if (!"=".equals(psa.operator())) {
+            return new AssignmentInstruction(ByteCodeConstants.ASSIGNMENT, i.getOffset(), i.getLineNumber(),
+                    14, psa.operator(), new GetStatic(Const.GETSTATIC, i.getOffset(), i.getLineNumber(), cfrIndex), valueref);
+        }
         return new PutStatic(
             Const.PUTSTATIC, i.getOffset(), i.getLineNumber(),
             cfrIndex, valueref);

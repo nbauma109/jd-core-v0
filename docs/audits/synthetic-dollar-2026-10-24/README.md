@@ -67,6 +67,8 @@ convention as the manifest. The output directory must be new for each run.
   captured reference, including one of the enclosing class's own type.
 - Primitive static assignment accessors retain a duplicated return value. Resolve
   these `access$…` calls to assignments, with assignment precedence under casts.
+  Inspect the duplicated expression to distinguish plain assignments from compound
+  updates, preserving both the returned value and the stored field value.
 - Captured fields may be referenced across multiple enclosing anonymous classes.
   Look up the field in the class that owns the reference.
 - Older javac constructors can initialize unflagged captured fields after `super()`.
@@ -76,8 +78,8 @@ convention as the manifest. The output directory must be new for each run.
   immediate outer class. Prepare synthetic maps before consumers and use the
   owning constant pool for enum case labels.
 
-- Empty enum switches still evaluate the selector and reject null. Preserve the
-  ordinal call instead of emitting a bare synthetic array access.
+- Empty enum switches initialize their switch table before evaluating the selector
+  and rejecting null. Reconstruct an empty switch to preserve enum initialization.
 - Public ECJ interface switch-table helpers also need their case maps parsed.
 - Constructor lambdas can capture the enclosing instance as a synthetic parameter;
   bind that parameter to the lexical enclosing instance. Lambdas capturing explicit
@@ -88,6 +90,7 @@ convention as the manifest. The output directory must be new for each run.
 - Assertions with boolean equality, assertions at the end of catch blocks, and
   assertions using an enclosing class's flag require additional reconstruction.
   Regression checks execute generated classes with assertions enabled and disabled.
+  Terminal assertions whose guard is also a loop back edge must retain the loop.
 
 Regression tests compile fixtures for Java 8 and Java 17, decompile them, compile
 the generated source again, and execute both versions. A bytecode fixture also
