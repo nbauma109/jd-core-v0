@@ -24,7 +24,6 @@ import org.apache.bcel.classfile.ConstantNameAndType;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
@@ -667,8 +666,19 @@ public class JavaSourceLayouter
             createBlockForInstruction(
                     preferences, layoutBlockList, classFile, method, iv.getObjectref());
         }
+        else if (test.getOpcode() == Const.INVOKEVIRTUAL)
+        {
+            // javac >= 21 no longer emits a synthetic $SwitchMap$... table:
+            // it switches on enumValue.ordinal() directly.
+            Invokevirtual iv = (Invokevirtual)test;
 
-        Objects.requireNonNull(switchMapKey, "Null switchMapKey");
+            createBlockForInstruction(
+                    preferences, layoutBlockList, classFile, method, iv.getObjectref());
+        }
+        else
+        {
+            throw new IllegalStateException();
+        }
 
         layoutBlockList.add(new FragmentLayoutBlock(
                 LayoutBlockConstants.FRAGMENT_RIGHT_ROUND_BRACKET));

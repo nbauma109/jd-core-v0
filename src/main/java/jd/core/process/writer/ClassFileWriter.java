@@ -33,9 +33,11 @@ import org.jd.core.v1.util.StringConstants;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -2275,21 +2277,79 @@ public final class ClassFileWriter
         }
     }
 
+    private record EnumSwitchNames(String internalEnumName, Map<Integer, String> namesByKey)
+    {
+        String nameForKey(int key)
+        {
+            return namesByKey.get(key);
+        }
+    }
+
+    private static EnumSwitchNames resolveEnumSwitchNames(ClassFile classFile, CaseEnumLayoutBlock celb)
+    {
+        Instruction test = celb.getFs().getTest();
+
+        if (test instanceof ArrayLoadInstruction ali && ali.getIndexref() instanceof Invokevirtual iv)
+        {
+            // javac < 21 / ECJ: switch(1.$SwitchMap$...[enumValue.ordinal()]).
+            ConstantPool constants = classFile.getConstantPool();
+            ConstantCP cmr = constants.getConstantMethodref(iv.getIndex());
+            String internalEnumName = constants.getConstantClassName(cmr.getClassIndex());
+
+            ClassFile switchMapOwner = classFile.getSwitchMapOwner(celb.getSwitchMapKey());
+            List<Integer> switchMap = switchMapOwner.getSwitchMaps().get(celb.getSwitchMapKey());
+            ConstantPool ownerConstants = switchMapOwner.getConstantPool();
+
+            Map<Integer, String> namesByKey = new HashMap<>();
+            for (int i = 0; i < switchMap.size(); i++)
+            {
+                Integer valueIndex = switchMap.get(i);
+                if (valueIndex != null && valueIndex > 0)
+                {
+                    namesByKey.put(i + 1, ownerConstants.getConstantUtf8(valueIndex));
+                }
+            }
+
+            return new EnumSwitchNames(internalEnumName, namesByKey);
+        }
+
+        if (test instanceof Invokevirtual iv)
+        {
+            // javac >= 21: switch(enumValue.ordinal()) directly, no switch-map table.
+            ConstantPool constants = classFile.getConstantPool();
+            ConstantCP cmr = constants.getConstantMethodref(iv.getIndex());
+            String internalEnumName = constants.getConstantClassName(cmr.getClassIndex());
+
+            Map<Integer, String> namesByKey = new HashMap<>();
+            ClassFile enumClassFile = classFile.resolveClassFile(internalEnumName);
+
+            if (enumClassFile != null)
+            {
+                ConstantPool enumConstants = enumClassFile.getConstantPool();
+                int ordinal = 0;
+                for (Field field : enumClassFile.getFields())
+                {
+                    if ((field.getAccessFlags() & Const.ACC_ENUM) != 0)
+                    {
+                        namesByKey.put(ordinal, enumConstants.getConstantUtf8(field.getNameIndex()));
+                        ordinal++;
+                    }
+                }
+            }
+
+            return new EnumSwitchNames(internalEnumName, namesByKey);
+        }
+
+        throw new IllegalStateException();
+    }
+
     private void writeCaseEnum(CaseEnumLayoutBlock celb)
     {
         addSpaceIfNeeded();
 
         ClassFile classFile = celb.getClassFile();
-        ConstantPool constants = classFile.getConstantPool();
-        ClassFile switchMapOwner = classFile.getSwitchMapOwner(celb.getSwitchMapKey());
-        List<Integer> switchMap = switchMapOwner.getSwitchMaps().get(celb.getSwitchMapKey());
-        ArrayLoadInstruction ali = (ArrayLoadInstruction)celb.getFs().getTest();
-        Invokevirtual iv = (Invokevirtual)ali.getIndexref();
-        ConstantCP cmr = constants.getConstantMethodref(iv.getIndex());
-        String internalEnumName =
-            constants.getConstantClassName(cmr.getClassIndex());
-
-        constants = switchMapOwner.getConstantPool();
+        EnumSwitchNames enumSwitchNames = resolveEnumSwitchNames(classFile, celb);
+        String internalEnumName = enumSwitchNames.internalEnumName();
 
         String enumDescriptor = SignatureUtil.createTypeName(internalEnumName);
 
@@ -2319,25 +2379,18 @@ public final class ClassFileWriter
                 this.printer.debugStartOfInstructionBlockLayoutBlock();
                 int key = pair.getKey();
 
-                if (0 < key && key <= switchMap.size())
-                {
-                    Integer valueIndex = switchMap.get(key - 1);
-                    if (valueIndex == null || valueIndex <= 0) {
-                        this.printer.startOfError();
-                        this.printer.print("???");
-                        this.printer.endOfError();
-                    } else {
-                        String value = constants.getConstantUtf8(valueIndex);
-                        this.printer.printStaticField(
-                            internalEnumName, value,
-                            enumDescriptor, classFile.getThisClassName());
-                    }
-                }
-                else
+                String value = enumSwitchNames.nameForKey(key);
+                if (value == null)
                 {
                     this.printer.startOfError();
                     this.printer.print("???");
                     this.printer.endOfError();
+                }
+                else
+                {
+                    this.printer.printStaticField(
+                        internalEnumName, value,
+                        enumDescriptor, classFile.getThisClassName());
                 }
                 this.printer.debugEndOfInstructionBlockLayoutBlock();
             }
@@ -2377,18 +2430,18 @@ public final class ClassFileWriter
                 this.printer.debugStartOfInstructionBlockLayoutBlock();
                 int key = pair.getKey();
 
-                if (0 < key && key <= switchMap.size())
-                {
-                    String value = constants.getConstantUtf8(switchMap.get(key-1));
-                    this.printer.printStaticField(
-                        internalEnumName, value,
-                        enumDescriptor, classFile.getThisClassName());
-                }
-                else
+                String value = enumSwitchNames.nameForKey(key);
+                if (value == null)
                 {
                     this.printer.startOfError();
                     this.printer.print("???");
                     this.printer.endOfError();
+                }
+                else
+                {
+                    this.printer.printStaticField(
+                        internalEnumName, value,
+                        enumDescriptor, classFile.getThisClassName());
                 }
                 this.printer.debugEndOfInstructionBlockLayoutBlock();
             }

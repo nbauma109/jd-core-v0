@@ -410,6 +410,38 @@ public class ClassFile extends Base
         return null;
     }
 
+    /**
+     * Looks up a class, anywhere in the type hierarchy being decompiled
+     * (outer classes and their nested classes), by its internal name.
+     */
+    public ClassFile resolveClassFile(String internalClassName)
+    {
+        ClassFile root = this;
+        while (root.getOuterClass() != null) {
+            root = root.getOuterClass();
+        }
+
+        return findClassFile(root, internalClassName);
+    }
+
+    private static ClassFile findClassFile(ClassFile owner, String internalClassName)
+    {
+        if (owner.thisClassName.equals(internalClassName)) {
+            return owner;
+        }
+
+        if (owner.innerClassFiles != null) {
+            for (ClassFile child : owner.innerClassFiles) {
+                ClassFile result = findClassFile(child, internalClassName);
+                if (result != null) {
+                    return result;
+                }
+            }
+        }
+
+        return null;
+    }
+
     public Field getField(int fieldNameIndex, int fieldDescriptorIndex)
     {
         for (Field field : fields)

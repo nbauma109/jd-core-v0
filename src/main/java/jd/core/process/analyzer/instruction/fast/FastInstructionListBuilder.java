@@ -43,6 +43,7 @@ import static org.jd.core.v1.util.StringConstants.INTERNAL_OBJECT_SIGNATURE;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
+import jd.core.model.classfile.Field;
 import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.classfile.Method;
@@ -4349,7 +4350,7 @@ public final class FastInstructionListBuilder {
         }
 
         // SWITCH or SWITCH_ENUM ?
-        int switchOpcode = analyzeSwitchType(classFile, ls.getKey());
+        int switchOpcode = analyzeSwitchType(classFile, ls.getKey(), pairs);
 
         // SWITCH or Eclipse SWITCH_STRING ?
         if (classFile.getMajorVersion() >= 51 && switchOpcode == FastConstants.SWITCH
@@ -4373,7 +4374,7 @@ public final class FastInstructionListBuilder {
                 ls.getLineNumber(), ls.getKey(), pairs, pairLength);
     }
 
-    private static int analyzeSwitchType(ClassFile classFile, Instruction i)
+    private static int analyzeSwitchType(ClassFile classFile, Instruction i, FastSwitch.Pair[] pairs)
     {
         if (i.getOpcode() == ByteCodeConstants.ARRAYLOAD)
         {
@@ -4434,8 +4435,56 @@ public final class FastInstructionListBuilder {
                 }
             }
         }
+        else if (i.getOpcode() == Const.INVOKEVIRTUAL)
+        {
+            // switch(enumValue.ordinal()) ? javac >= 21 no longer emits the
+            // synthetic $SwitchMap$... table, it switches on ordinal() directly.
+            if (isEnumOrdinalCall(classFile, (Invokevirtual) i, pairs)) {
+                return FastConstants.SWITCH_ENUM;
+            }
+        }
 
         return FastConstants.SWITCH;
+    }
+
+    private static boolean isEnumOrdinalCall(ClassFile classFile, Invokevirtual iv, FastSwitch.Pair[] pairs)
+    {
+        if (!iv.getArgs().isEmpty()) {
+            return false;
+        }
+
+        ConstantPool constants = classFile.getConstantPool();
+        ConstantCP cmr = constants.getConstantMethodref(iv.getIndex());
+        ConstantNameAndType cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
+
+        if (!StringConstants.ORDINAL_METHOD_NAME.equals(constants.getConstantUtf8(cnat.getNameIndex()))) {
+            return false;
+        }
+
+        String internalEnumName = constants.getConstantClassName(cmr.getClassIndex());
+        ClassFile enumClassFile = classFile.resolveClassFile(internalEnumName);
+
+        if (enumClassFile == null || (enumClassFile.getAccessFlags() & Const.ACC_ENUM) == 0) {
+            return false;
+        }
+
+        int enumConstantCount = 0;
+        for (Field field : enumClassFile.getFields()) {
+            if ((field.getAccessFlags() & Const.ACC_ENUM) != 0) {
+                enumConstantCount++;
+            }
+        }
+
+        // A compiler-generated enum switch can only ever test valid ordinals.
+        // If a case label falls outside that range, this is a handwritten
+        // switch on '.ordinal()' and must stay a plain int switch.
+        for (FastSwitch.Pair pair : pairs) {
+            if (!pair.isDefault() && (pair.getKey() < 0 || pair.getKey() >= enumConstantCount)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /*
@@ -4469,7 +4518,7 @@ public final class FastInstructionListBuilder {
         }
 
         // SWITCH or Eclipse SWITCH_ENUM ?
-        int switchOpcode = analyzeSwitchType(classFile, ts.getKey());
+        int switchOpcode = analyzeSwitchType(classFile, ts.getKey(), pairs);
 
         // SWITCH or Eclipse SWITCH_STRING ?
         if (classFile.getMajorVersion() >= 51 && switchOpcode == FastConstants.SWITCH
