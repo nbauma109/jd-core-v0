@@ -26,6 +26,7 @@ import java.util.List;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
+import jd.core.model.classfile.Field;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.AThrow;
 import jd.core.model.instruction.bytecode.instruction.AssertInstruction;
@@ -101,15 +102,7 @@ public final class AssertInstructionReconstructor
             ConstantPool constants = classFile.getConstantPool();
             ConstantFieldref cfr = constants.getConstantFieldref(gs.getIndex());
 
-            if (findAssertionOwner(classFile, constants.getConstantClassName(cfr.getClassIndex())) == null) {
-                continue;
-            }
-
-            ConstantNameAndType cnat =
-                constants.getConstantNameAndType(cfr.getNameAndTypeIndex());
-            String fieldName = constants.getConstantUtf8(cnat.getNameIndex());
-
-            if (! "$assertionsDisabled".equals(fieldName)) {
+            if (!isAssertionField(classFile, cfr)) {
                 continue;
             }
 
@@ -149,6 +142,29 @@ public final class AssertInstructionReconstructor
             }
         }
     }
+    public static boolean isAssertionField(ClassFile classFile, ConstantFieldref reference) {
+        ConstantPool constants = classFile.getConstantPool();
+        ConstantNameAndType name = constants.getConstantNameAndType(reference.getNameAndTypeIndex());
+        ClassFile owner = findAssertionOwner(classFile, constants.getConstantClassName(reference.getClassIndex()));
+        Field field = owner == null ? null : owner.getField("$assertionsDisabled", "Z");
+        return "$assertionsDisabled".equals(constants.getConstantUtf8(name.getNameIndex()))
+                && "Z".equals(constants.getConstantUtf8(name.getSignatureIndex()))
+                && field != null && (field.getAccessFlags() & Const.ACC_STATIC) != 0 && isSynthetic(field);
+    }
+
+    private static boolean isSynthetic(Field field) {
+        if ((field.getAccessFlags() & Const.ACC_SYNTHETIC) != 0) {
+            return true;
+        }
+        // Before Java 5, compilers marked synthetic fields with an attribute.
+        for (var attribute : field.getAttributes()) {
+            if (attribute.getTag() == Const.ATTR_SYNTHETIC) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public static ClassFile findAssertionOwner(ClassFile classFile, String name) {
         for (ClassFile owner = classFile; owner != null; owner = owner.getOuterClass()) {
             if (owner.getThisClassName().equals(name)) {

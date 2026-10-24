@@ -489,6 +489,62 @@ public class SyntheticReconstructionTest {
         }
     }
 
+    @Test
+    public void userDeclaredAssertionFlagRetainsControlFlow() throws Exception {
+        Path original = compile("""
+                public class SyntheticOuter {
+                    public static boolean $assertionsDisabled;
+                    public static void run() {
+                        do { } while ($assertionsDisabled);
+                        throw new AssertionError();
+                    }
+                    public java.util.function.IntSupplier reader(int captured) {
+                        return () -> {
+                            try { run(); }
+                            catch (AssertionError expected) { return 17; }
+                            return 99;
+                        };
+                    }
+                }
+                """, "8");
+        String output = decompile(original);
+        assertTrue(output, output.contains("$assertionsDisabled"));
+        assertFalse(output, output.contains("assert false"));
+        Path rebuilt = compile(output, "8");
+        for (boolean enabled : List.of(true, false)) {
+            assertEquals(17, evaluate(original, enabled));
+            assertEquals(17, evaluate(rebuilt, enabled));
+        }
+    }
+
+    @Test
+    public void legacySyntheticAssertionAttributeIsRecognized() throws Exception {
+        Path original = compile("""
+                public class SyntheticOuter {
+                    public java.util.function.IntSupplier reader(int captured) {
+                        assert captured >= 0;
+                        return new java.util.function.IntSupplier() {
+                            public int getAsInt() { return 17; }
+                        };
+                    }
+                }
+                """, "8");
+        Path file = original.resolve("SyntheticOuter.class");
+        ClassGen generated = new ClassGen(new ClassParser(file.toString()).parse());
+        for (var field : generated.getFields()) {
+            if ("$assertionsDisabled".equals(field.getName())) {
+                var legacy = new org.apache.bcel.generic.FieldGen(field, generated.getConstantPool());
+                legacy.setAccessFlags(field.getAccessFlags() & ~Const.ACC_SYNTHETIC);
+                legacy.addAttribute(new org.apache.bcel.classfile.Synthetic(
+                        generated.getConstantPool().addUtf8("Synthetic"), 0, new byte[0],
+                        generated.getConstantPool().getConstantPool()));
+                generated.replaceField(field, legacy.getField());
+            }
+        }
+        generated.getJavaClass().dump(file.toString());
+        assertRoundTrip(original, 17, "8");
+    }
+
     private static void assertRoundTrip(String source, int expected) throws Exception {
         assertRoundTrip(source, expected, "8");
     }

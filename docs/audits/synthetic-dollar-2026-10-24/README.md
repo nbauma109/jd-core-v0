@@ -91,6 +91,8 @@ convention as the manifest. The output directory must be new for each run.
   assertions using an enclosing class's flag require additional reconstruction.
   Regression checks execute generated classes with assertions enabled and disabled.
   Terminal assertions whose guard is also a loop back edge must retain the loop.
+  Recognize only compiler-marked synthetic static boolean flags, including the
+  pre-Java-5 Synthetic attribute; preserve user-declared fields with the same name.
 
 Regression tests compile fixtures for Java 8 and Java 17, decompile them, compile
 the generated source again, and execute both versions. A bytecode fixture also

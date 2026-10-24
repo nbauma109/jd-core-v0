@@ -5,11 +5,9 @@ import java.util.List;
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
-import org.apache.bcel.classfile.ConstantNameAndType;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
-import jd.core.model.classfile.Field;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.AThrow;
 import jd.core.model.instruction.bytecode.instruction.AssertInstruction;
@@ -76,13 +74,7 @@ public final class StructuredAssertReconstructor {
         }
         ConstantPool constants = classFile.getConstantPool();
         ConstantFieldref reference = constants.getConstantFieldref(disabled.getIndex());
-        ConstantNameAndType name = constants.getConstantNameAndType(reference.getNameAndTypeIndex());
-        ClassFile owner = AssertInstructionReconstructor.findAssertionOwner(classFile,
-                constants.getConstantClassName(reference.getClassIndex()));
-        Field field = owner == null ? null : owner.getField("$assertionsDisabled", "Z");
-        return "$assertionsDisabled".equals(constants.getConstantUtf8(name.getNameIndex()))
-                && "Z".equals(constants.getConstantUtf8(name.getSignatureIndex()))
-                && field != null && (field.getAccessFlags() & Const.ACC_SYNTHETIC) != 0;
+        return AssertInstructionReconstructor.isAssertionField(classFile, reference);
     }
 
     private static AssertInstruction createAssertion(Instruction instruction, Instruction condition, InvokeNew error) {

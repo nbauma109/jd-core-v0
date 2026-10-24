@@ -289,6 +289,23 @@ public class ReconstructionGuardTest {
         assertSame(foreign, code.get(0));
     }
 
+    @Test
+    public void assertionGuardsRequireSyntheticStaticBooleanFields() {
+        for (int flags : new int[] { 0, Const.ACC_STATIC, Const.ACC_SYNTHETIC }) {
+            ClassFile owner = owner("test/AssertionOwner");
+            owner.getField("$assertionsDisabled", "Z").setAccessFlags(flags);
+            IfInstruction condition = condition(owner, owner.getThisClassName(), "$assertionsDisabled");
+            condition.setCmp(ByteCodeConstants.CMP_NE);
+            List<Instruction> code = new ArrayList<>(List.of(condition,
+                    throwing(owner, "java/lang/AssertionError", List.of())));
+            AssertInstructionReconstructor.reconstruct(owner, code);
+            assertSame(condition, code.get(0));
+            assertEquals(2, code.size());
+            assertUnchanged(owner, guard(owner, owner.getThisClassName(), "$assertionsDisabled",
+                    List.of(throwing(owner, "java/lang/AssertionError", List.of()))));
+        }
+    }
+
     private static void assertUnchanged(ClassFile owner, FastTestList guard) {
         List<Instruction> code = new ArrayList<>(List.of(guard));
         new StructuredAssertReconstructor(owner).visit(code);
