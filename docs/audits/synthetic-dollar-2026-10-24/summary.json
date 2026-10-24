@@ -1,0 +1,16 @@
+{
+  "baselineCommit": "b22b9a03a99de980998e59f4191593a52b109c8e",
+  "auditJavaVersion": "25.0.2",
+  "jars": 361,
+  "classFilesInventoried": 65923,
+  "topLevelClassesInventoried": 41146,
+  "baselineClassAttempts": 5211,
+  "baselineCompletedJars": 348,
+  "baselineTimeoutJars": 13,
+  "findingClasses": 127,
+  "findingJars": 54,
+  "verification": {
+    "cleared": 121,
+    "cleared_with_bytecode_fallback": 6
+  }
+}

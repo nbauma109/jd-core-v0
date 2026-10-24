@@ -45,6 +45,7 @@ import jd.core.model.classfile.RecordComponent;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.ALoad;
 import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
+import jd.core.model.instruction.bytecode.instruction.ArrayLoadInstruction;
 import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.GetStatic;
 import jd.core.model.instruction.bytecode.instruction.IConst;
@@ -78,6 +79,7 @@ import jd.core.process.analyzer.classfile.reconstructor.PostIncReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.PreIncReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.SimpleNewInstructionReconstructor;
 import jd.core.process.analyzer.classfile.visitor.CheckCastAndConvertInstructionVisitor;
+import jd.core.process.analyzer.classfile.visitor.ReplaceOuterReferenceVisitor;
 import jd.core.process.analyzer.classfile.visitor.ReplaceStringBuxxxerVisitor;
 import jd.core.process.analyzer.classfile.visitor.SetConstantTypeInStringIndexOfMethodsVisitor;
 import jd.core.process.analyzer.instruction.bytecode.InstructionListBuilder;
@@ -137,7 +139,11 @@ public final class ClassFileAnalyzer
             Map<String, ClassFile> innerClassesMap,
             ClassFile classFile)
     {
-        if ((classFile.getAccessFlags() & Const.ACC_SYNTHETIC) == 0)
+        if ((classFile.getAccessFlags() & Const.ACC_SYNTHETIC) != 0) {
+            // All switch maps must be available before analyzing nested consumers.
+            analyzeSyntheticClass(classFile);
+        }
+        else
         {
             // L'analyse preliminaire permet d'identifier l'attribut de chaque
             // classe interne non statique portant la reference vers la classe
@@ -162,11 +168,7 @@ public final class ClassFileAnalyzer
             Map<String, ClassFile> innerClassesMap,
             ClassFile classFile)
     {
-        if ((classFile.getAccessFlags() & Const.ACC_SYNTHETIC) != 0)
-        {
-            analyzeSyntheticClass(classFile);
-        }
-        else
+        if ((classFile.getAccessFlags() & Const.ACC_SYNTHETIC) == 0)
         {
             // Analyse des classes internes avant l'analyse de la classe pour
             // afficher correctement des classes anonymes.
@@ -832,7 +834,7 @@ public final class ClassFileAnalyzer
             outerThisFieldrefIndex = searchOuterThisFieldrefIndex(
                     classFile, method, list, outerThisFieldrefIndex);
         }
-        else if ((method.getAccessFlags() & (Const.ACC_PUBLIC|Const.ACC_PROTECTED|Const.ACC_PRIVATE|Const.ACC_STATIC|Const.ACC_SYNTHETIC))
+        else if ((method.getAccessFlags() & (Const.ACC_STATIC|Const.ACC_SYNTHETIC))
                 == (Const.ACC_STATIC|Const.ACC_SYNTHETIC) &&
                 hasAEclipseSwitchTableMethodName(classFile, method))
         {
@@ -904,6 +906,10 @@ public final class ClassFileAnalyzer
     public static void analyzeSingleMethod(ReferenceMap referenceMap, ClassFile classFile, OuterReferenceReconstructor outerReferenceReconstructor, final Method method) {
         List<Instruction> list = method.getInstructions();
 
+        if (method.getEnclosingInstanceParameterIndex() >= 0) {
+            new ReplaceOuterReferenceVisitor(Const.ALOAD, method.getEnclosingInstanceParameterIndex(),
+                    OuterReferenceReconstructor.createOuterThisInstructionIndex(classFile)).visit(list);
+        }
         // Reconstruct access to outer fields and methods
         if (outerReferenceReconstructor != null) {
             outerReferenceReconstructor.reconstruct(method, list);
@@ -922,7 +928,7 @@ public final class ClassFileAnalyzer
         DotClass14Reconstructor.reconstruct(
                 referenceMap, classFile, method, list);
         // Remove unused pop instruction
-        removeUnusedPopInstruction(list);
+        removeUnusedPopInstruction(classFile, list);
         // Transformation des tests sur des types 'long' et 'double'
         transformTestOnLongOrDouble(list);
         // Set constant type of "String.indexOf(...)" methods
@@ -996,9 +1002,10 @@ public final class ClassFileAnalyzer
         }
 
         // Is parameters counter greater than 0 ?
-        String methodSignature = constants.getConstantUtf8(method.getSignatureIndex());
+        // Generic signatures can omit the synthetic enclosing-instance parameter.
+        String methodDescriptor = constants.getConstantUtf8(method.getDescriptorIndex());
 
-        if (methodSignature.charAt(1) == ')') {
+        if (methodDescriptor.charAt(1) == ')') {
             return 0;
         }
 
@@ -1015,7 +1022,7 @@ public final class ClassFileAnalyzer
                         pf.getValueref().getOpcode() == Const.ALOAD &&
                         ((ALoad)pf.getObjectref()).getIndex() == 0 &&
                         ((ALoad)pf.getValueref()).getIndex() == 1 && (outerThisFieldrefIndex == 0 ||
-                        pf.getIndex() == outerThisFieldrefIndex)) {
+                        pf.getIndex() == outerThisFieldrefIndex) && isEnclosingInstanceField(classFile, pf)) {
                     return pf.getIndex();
                 }
             }
@@ -1038,6 +1045,16 @@ public final class ClassFileAnalyzer
 
         // Instruction 'PutField' not found
         return 0;
+    }
+
+    private static boolean isEnclosingInstanceField(ClassFile classFile, PutField putField) {
+        ConstantPool constants = classFile.getConstantPool();
+        ConstantFieldref fieldref = constants.getConstantFieldref(putField.getIndex());
+        ConstantNameAndType nameAndType = constants.getConstantNameAndType(fieldref.getNameAndTypeIndex());
+        String fieldName = constants.getConstantUtf8(nameAndType.getNameIndex());
+        String fieldDescriptor = constants.getConstantUtf8(nameAndType.getSignatureIndex());
+        return !fieldName.startsWith("val$")
+                && fieldDescriptor.equals(classFile.getOuterClass().getInternalClassName());
     }
 
     /** Traitement des references externes des classes internes. */
@@ -1119,6 +1136,7 @@ public final class ClassFileAnalyzer
         if (method.getNameIndex() == constants.getInstanceConstructorIndex())
         {
             List<Instruction> list = method.getFastNodes();
+            analyzeCapturedFields(classFile, list);
 
             Instruction instruction;
             while (!list.isEmpty())
@@ -1190,42 +1208,50 @@ public final class ClassFileAnalyzer
                         }
                     }
                 }
-                else if (instruction.getOpcode() == Const.PUTFIELD)
-                {
-                    PutField pf = (PutField)instruction;
-
-                    if (pf.getValueref().getOpcode() == ByteCodeConstants.LOAD
-                     || pf.getValueref().getOpcode() == Const.ALOAD
-                     || pf.getValueref().getOpcode() == Const.ILOAD) {
-                        IndexInstruction ii = (IndexInstruction)pf.getValueref();
-                        // Rappel sur l'ordre des parametres passes aux constructeurs:
-                        //  <init>(outer this, p1, p2, ..., outer local var1, ...)
-                        // Rappel sur l'organisation des variables locales:
-                        //  0: this
-                        //  1: outer this
-                        //  2: p1
-                        //  ...
-                        if (ii.getIndex() > 1)
-                        {
-                            // Stockage de la position du parametre du
-                            // constructeur initialisant le champs
-                            ConstantFieldref cfr = constants.getConstantFieldref(pf.getIndex());
-                            ConstantNameAndType cnat =
-                                    constants.getConstantNameAndType(cfr.getNameAndTypeIndex());
-                            Field field =
-                                    classFile.getField(cnat.getNameIndex(), cnat.getSignatureIndex());
-                            field.setAnonymousClassConstructorParameterIndex(ii.getIndex() - 1);
-                            // Ensure this field is a synthetic field.
-                            field.setAccessFlags(field.getAccessFlags() | Const.ACC_SYNTHETIC);
-                        }
-                    }
-                }
 
                 // Retrait des instructions precedents l'appel au constructeur
                 // de la classe mere.
                 list.remove(0);
             }
         }
+    }
+
+    private static void analyzeCapturedFields(ClassFile classFile, List<Instruction> instructions) {
+        ConstantPool constants = classFile.getConstantPool();
+        for (Instruction instruction : instructions) {
+            if (!(instruction instanceof PutField putField)
+                    || !(putField.getObjectref() instanceof ALoad receiver) || receiver.getIndex() != 0) {
+                continue;
+            }
+            Instruction value = putField.getValueref();
+            if (value.getOpcode() != ByteCodeConstants.LOAD && value.getOpcode() != Const.ALOAD
+                    && value.getOpcode() != Const.ILOAD) {
+                continue;
+            }
+            int slot = ((IndexInstruction) value).getIndex();
+            ConstantFieldref fieldref = constants.getConstantFieldref(putField.getIndex());
+            if (slot == 0 || fieldref.getClassIndex() != classFile.getThisClassIndex()) {
+                continue;
+            }
+            ConstantNameAndType nameAndType = constants.getConstantNameAndType(fieldref.getNameAndTypeIndex());
+            Field field = classFile.getField(nameAndType.getNameIndex(), nameAndType.getSignatureIndex());
+            if (field != null && isCapturedField(classFile, field)) {
+                field.setAnonymousClassConstructorParameterIndex(slot - 1);
+                field.setAccessFlags(field.getAccessFlags() | Const.ACC_SYNTHETIC);
+            }
+        }
+    }
+
+    private static boolean isCapturedField(ClassFile classFile, Field field) {
+        if ((field.getAccessFlags() & Const.ACC_SYNTHETIC) != 0) {
+            return true;
+        }
+        // Before Java 5, captured fields could lack the synthetic access flag and
+        // their constructor stores could follow the superclass constructor call.
+        return classFile.getMajorVersion() < Const.MAJOR_1_5
+                && classFile.getInternalAnonymousClassName() != null
+                && (field.getAccessFlags() & Const.ACC_FINAL) != 0
+                && classFile.getConstantPool().getConstantUtf8(field.getNameIndex()).startsWith("val$");
     }
 
     private static void removeLastReturnInstruction(Method method)
@@ -1257,7 +1283,7 @@ public final class ClassFileAnalyzer
         new ReplaceStringBuxxxerVisitor(classFile, localVariables).visit(list);
     }
 
-    private static void removeUnusedPopInstruction(List<Instruction> list)
+    private static void removeUnusedPopInstruction(ClassFile classFile, List<Instruction> list)
     {
         int index = list.size();
 
@@ -1265,6 +1291,9 @@ public final class ClassFileAnalyzer
         while (index-- > 0)
         {
             instruction = list.get(index);
+            if (instruction instanceof Pop pop) {
+                simplifyEmptyEnumSwitch(classFile, pop);
+            }
 
             if (instruction.getOpcode() == Const.POP &&
                       (((Pop)instruction).getObjectref().getOpcode() == Const.GETFIELD
@@ -1275,6 +1304,25 @@ public final class ClassFileAnalyzer
                     || ((Pop)instruction).getObjectref().getOpcode() == ByteCodeConstants.LOAD)) {
                 list.remove(index);
             }
+        }
+    }
+
+    private static void simplifyEmptyEnumSwitch(ClassFile classFile, Pop pop) {
+        if (!(pop.getObjectref() instanceof ArrayLoadInstruction load)
+                || !(load.getArrayref() instanceof GetStatic table)
+                || !(load.getIndexref() instanceof Invokevirtual ordinal) || !ordinal.getArgs().isEmpty()) {
+            return;
+        }
+        ConstantPool constants = classFile.getConstantPool();
+        ConstantFieldref field = constants.getConstantFieldref(table.getIndex());
+        ConstantNameAndType fieldName = constants.getConstantNameAndType(field.getNameAndTypeIndex());
+        ConstantCP method = constants.getConstantMethodref(ordinal.getIndex());
+        ConstantNameAndType methodName = constants.getConstantNameAndType(method.getNameAndTypeIndex());
+        if (classFile.getSwitchMapOwner(constants.getConstantUtf8(fieldName.getNameIndex())) != null
+                && "ordinal".equals(constants.getConstantUtf8(methodName.getNameIndex()))
+                && "()I".equals(constants.getConstantUtf8(methodName.getSignatureIndex()))) {
+            // An empty enum switch still evaluates its selector and rejects null.
+            pop.setObjectref(ordinal);
         }
     }
 

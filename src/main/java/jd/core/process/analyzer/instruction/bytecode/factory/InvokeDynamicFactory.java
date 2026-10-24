@@ -46,6 +46,7 @@ import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.instruction.ArrayReference;
+import jd.core.model.instruction.bytecode.instruction.ALoad;
 import jd.core.model.instruction.bytecode.instruction.ConstructorReference;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
@@ -155,6 +156,7 @@ public class InvokeDynamicFactory implements InstructionFactory
         }
 
         if (lambdaMethod != null && lambdaMethod.isLambda(constants)) {
+            bindEnclosingInstanceParameter(classFile, method, lambdaMethod, indyParameters);
             ClassFileAnalyzer.preAnalyzeSingleMethod(classFile, classFile.getVariableNameGenerator(), -1, lambdaMethod);
             ClassFileAnalyzer.analyzeSingleMethod(null, classFile, null, lambdaMethod);
             LocalVariables localVariables = lambdaMethod.getLocalVariables();
@@ -186,6 +188,23 @@ public class InvokeDynamicFactory implements InstructionFactory
         stack.push(new MethodReference(opcode, offset, lineNumber, indyParameters, typeName, name1, descriptor1));
 
         return Const.getNoOfOperands(opcode);
+    }
+
+    private static void bindEnclosingInstanceParameter(ClassFile classFile, Method enclosingMethod,
+            Method lambdaMethod, List<Instruction> arguments) {
+        ConstantPool constants = classFile.getConstantPool();
+        if (arguments == null || arguments.isEmpty() || !(arguments.get(0) instanceof ALoad load)
+                || load.getIndex() != 1 || !classFile.isAInnerClass() || classFile.isStatic()
+                || classFile.getInternalAnonymousClassName() != null
+                || enclosingMethod.getNameIndex() != constants.getInstanceConstructorIndex()
+                || (lambdaMethod.getAccessFlags() & Const.ACC_STATIC) == 0) {
+            return;
+        }
+        String enclosingParameter = "(" + classFile.getOuterClass().getInternalClassName();
+        if (constants.getConstantUtf8(enclosingMethod.getDescriptorIndex()).startsWith(enclosingParameter)
+                && constants.getConstantUtf8(lambdaMethod.getDescriptorIndex()).startsWith(enclosingParameter)) {
+            lambdaMethod.setEnclosingInstanceParameterIndex(0);
+        }
     }
 
     private static List<Instruction> extractParametersFromStack(Deque<Instruction> stack, BaseType parameterTypes) {

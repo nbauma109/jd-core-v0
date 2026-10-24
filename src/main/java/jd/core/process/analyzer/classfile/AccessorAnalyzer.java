@@ -165,16 +165,22 @@ public final class AccessorAnalyzer
         ClassFile classFile, Method method)
     {
         List<Instruction> list = method.getInstructions();
-        if (list.size() != 2) {
+        int putIndex;
+        if (list.size() == 2) {
+            putIndex = 0;
+        } else if (list.size() == 3 && list.get(0).getOpcode() == ByteCodeConstants.DUPSTORE) {
+            // Primitive assignments retain a duplicated value for the accessor's return.
+            putIndex = 1;
+        } else {
             return false;
         }
 
-        if (list.get(1).getOpcode() != ByteCodeConstants.XRETURN
-         && list.get(1).getOpcode() != Const.RETURN) {
+        if (list.get(putIndex + 1).getOpcode() != ByteCodeConstants.XRETURN
+         && list.get(putIndex + 1).getOpcode() != Const.RETURN) {
             return false;
         }
 
-        Instruction instruction = list.get(0);
+        Instruction instruction = list.get(putIndex);
         if (instruction.getOpcode() != Const.PUTSTATIC) {
             return false;
         }

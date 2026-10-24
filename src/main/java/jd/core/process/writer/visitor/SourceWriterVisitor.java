@@ -1416,7 +1416,9 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         Instruction prefixInstruction = in.getPrefix();
         boolean inferredPrefix = false;
         if (prefixInstruction == null && innerClassFile != null
-                && !innerClassFile.isStatic() && !in.getArgs().isEmpty()) {
+                && !innerClassFile.isStatic() && !in.getArgs().isEmpty()
+                && (innerClassFile.getInternalAnonymousClassName() == null
+                    || innerClassFile.getOuterThisField() != null)) {
             Instruction firstArgument = in.getArgs().get(0);
             int separator = internalClassName.lastIndexOf('$');
             List<String> parameters = SignatureUtil.getParameterSignatures(constructorDescriptor);
@@ -1643,16 +1645,17 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         Field field =
             this.classFile.getField(cnat.getNameIndex(), cnat.getSignatureIndex());
         Instruction objectref = getField.getObjectref();
-        ClassFile outerClass = classFile.getOuterClass();
-        if (field == null && objectref instanceof GetStatic gs && outerClass != null)
+        if (field == null && objectref.getOpcode() == ByteCodeConstants.OUTERTHIS)
         {
-            String returnedSignature = gs.getReturnedSignature(classFile, localVariables);
-            String internalName = SignatureUtil.getInternalName(returnedSignature);
-            String outerClassName = outerClass.getThisClassName();
-            if (outerClassName.equals(internalName)) {
-                String fieldName = constants.getConstantUtf8(cnat.getNameIndex());
-                String fieldSignature = constants.getConstantUtf8(cnat.getSignatureIndex());
-                field = outerClass.getField(fieldName, fieldSignature);
+            String ownerName = constants.getConstantClassName(cfr.getClassIndex());
+            for (ClassFile outerClass = classFile.getOuterClass(); outerClass != null;
+                    outerClass = outerClass.getOuterClass()) {
+                if (outerClass.getThisClassName().equals(ownerName)) {
+                    String fieldName = constants.getConstantUtf8(cnat.getNameIndex());
+                    String fieldSignature = constants.getConstantUtf8(cnat.getSignatureIndex());
+                    field = outerClass.getField(fieldName, fieldSignature);
+                    break;
+                }
             }
         }
         if (field != null &&
@@ -3362,15 +3365,12 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         ConstantCP cmr = cp.getConstantMethodref(iv.getIndex());
         String internalEnumName = cp.getConstantClassName(cmr.getClassIndex());
 
-        List<Integer> switchMap = this.classFile.getSwitchMaps().get(switchMapKey);
-        ConstantPool mapConstants = cp;
-        if (switchMap == null && this.classFile.getOuterClass() != null)
-        {
-            mapConstants = this.classFile.getOuterClass().getConstantPool();
-            switchMap = this.classFile.getOuterClass().getSwitchMaps().get(switchMapKey);
+        ClassFile switchMapOwner = this.classFile.getSwitchMapOwner(switchMapKey);
+        if (switchMapOwner == null) {
+            return null;
         }
-
-        return new SwitchEnumInfo(mapConstants, internalEnumName, switchMap);
+        return new SwitchEnumInfo(switchMapOwner.getConstantPool(), internalEnumName,
+                switchMapOwner.getSwitchMaps().get(switchMapKey));
     }
 
     private static SwitchCaseData toSwitchCaseData(FastSwitch.Pair pair)

@@ -327,13 +327,13 @@ public class StaticTools
     TimeLog = paramString; Log("TIMESTART", TimeLog); startT1 = System.currentTimeMillis();
   }
   
-  public static void showToastMessage(Activity paramActivity, final String paramString, final int paramInt)
+  public static void showToastMessage(final Activity paramActivity, final String paramString, final int paramInt)
   {
     paramActivity.runOnUiThread(new Runnable()
     {
       public void run()
       {
-        Toast.makeText(StaticTools.this, paramString, paramInt).show();
+        Toast.makeText(paramActivity, paramString, paramInt).show();
       }
     });
   }

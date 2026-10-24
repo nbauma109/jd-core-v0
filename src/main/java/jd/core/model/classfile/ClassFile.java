@@ -525,6 +525,16 @@ public class ClassFile extends Base
         return this.switchMaps;
     }
 
+    public ClassFile getSwitchMapOwner(String name)
+    {
+        for (ClassFile owner = this; owner != null; owner = owner.getOuterClass()) {
+            if (owner.getSwitchMaps().containsKey(name)) {
+                return owner;
+            }
+        }
+        return null;
+    }
+
     public Loader getLoader() {
         return loader;
     }

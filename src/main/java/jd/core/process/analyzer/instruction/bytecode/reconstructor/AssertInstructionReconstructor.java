@@ -51,7 +51,7 @@ public final class AssertInstructionReconstructor
     public static void reconstruct(ClassFile classFile, List<Instruction> list)
     {
         int index = list.size();
-        if (index-- == 0) {
+        if (index == 0) {
             return;
         }
 
@@ -74,7 +74,7 @@ public final class AssertInstructionReconstructor
                 // ComplexConditionalBranchInstruction trouve
                 cbl = (ComplexConditionalBranchInstruction) instruction;
                 int jumpOffset = cbl.getJumpOffset();
-                int lastOffset = list.get(index+1).getOffset();
+                int lastOffset = index + 1 < list.size() ? list.get(index + 1).getOffset() : Integer.MAX_VALUE;
 
                 if (athrow.getOffset() >= jumpOffset || jumpOffset > lastOffset) {
                     continue;
@@ -100,7 +100,7 @@ public final class AssertInstructionReconstructor
             ConstantPool constants = classFile.getConstantPool();
             ConstantFieldref cfr = constants.getConstantFieldref(gs.getIndex());
 
-            if (cfr.getClassIndex() != classFile.getThisClassIndex()) {
+            if (findAssertionOwner(classFile, constants.getConstantClassName(cfr.getClassIndex())) == null) {
                 continue;
             }
 
@@ -142,4 +142,13 @@ public final class AssertInstructionReconstructor
             }
         }
     }
+    public static ClassFile findAssertionOwner(ClassFile classFile, String name) {
+        for (ClassFile owner = classFile; owner != null; owner = owner.getOuterClass()) {
+            if (owner.getThisClassName().equals(name)) {
+                return owner;
+            }
+        }
+        return null;
+    }
+
 }

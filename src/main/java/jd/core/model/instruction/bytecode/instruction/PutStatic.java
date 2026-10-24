@@ -30,6 +30,13 @@ public class PutStatic extends GetStatic implements ValuerefAttribute
     }
 
     @Override
+    public int getPriority()
+    {
+        // A field store used as an expression has assignment precedence.
+        return 14;
+    }
+
+    @Override
     public Instruction getValueref() {
         return valueref;
     }
