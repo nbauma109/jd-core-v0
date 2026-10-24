@@ -42,8 +42,9 @@ import jd.core.model.instruction.bytecode.instruction.Instruction;
 
 public class Method extends Base implements SignatureInfo
 {
-    private FieldOrMethod fieldOrMethod;
+    private final FieldOrMethod fieldOrMethod;
     private boolean containsError;
+    private int enclosingInstanceParameterIndex = -1;
     private int[] exceptionIndexes; // NO_UCD (use final)
     private byte[] code; // NO_UCD (use final)
     private LineNumber[] lineNumbers; // NO_UCD (use final)
@@ -60,6 +61,14 @@ public class Method extends Base implements SignatureInfo
      * classes anonymes.
      */
     private int superConstructorParameterCount;
+
+    public int getEnclosingInstanceParameterIndex() {
+        return enclosingInstanceParameterIndex;
+    }
+
+    public void setEnclosingInstanceParameterIndex(int index) {
+        enclosingInstanceParameterIndex = index;
+    }
 
     public Method(FieldOrMethod fieldOrMethod)
     {

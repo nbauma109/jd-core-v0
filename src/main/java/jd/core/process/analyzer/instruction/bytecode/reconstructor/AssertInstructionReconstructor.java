@@ -26,11 +26,13 @@ import java.util.List;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
+import jd.core.model.classfile.Field;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.AThrow;
 import jd.core.model.instruction.bytecode.instruction.AssertInstruction;
 import jd.core.model.instruction.bytecode.instruction.ComplexConditionalBranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.GetStatic;
+import jd.core.model.instruction.bytecode.instruction.Goto;
 import jd.core.model.instruction.bytecode.instruction.IConst;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
@@ -51,7 +53,7 @@ public final class AssertInstructionReconstructor
     public static void reconstruct(ClassFile classFile, List<Instruction> list)
     {
         int index = list.size();
-        if (index-- == 0) {
+        if (index == 0) {
             return;
         }
 
@@ -74,7 +76,7 @@ public final class AssertInstructionReconstructor
                 // ComplexConditionalBranchInstruction trouve
                 cbl = (ComplexConditionalBranchInstruction) instruction;
                 int jumpOffset = cbl.getJumpOffset();
-                int lastOffset = list.get(index+1).getOffset();
+                int lastOffset = index + 1 < list.size() ? list.get(index + 1).getOffset() : Integer.MAX_VALUE;
 
                 if (athrow.getOffset() >= jumpOffset || jumpOffset > lastOffset) {
                     continue;
@@ -100,15 +102,7 @@ public final class AssertInstructionReconstructor
             ConstantPool constants = classFile.getConstantPool();
             ConstantFieldref cfr = constants.getConstantFieldref(gs.getIndex());
 
-            if (cfr.getClassIndex() != classFile.getThisClassIndex()) {
-                continue;
-            }
-
-            ConstantNameAndType cnat =
-                constants.getConstantNameAndType(cfr.getNameAndTypeIndex());
-            String fieldName = constants.getConstantUtf8(cnat.getNameIndex());
-
-            if (! "$assertionsDisabled".equals(fieldName)) {
+            if (!isAssertionField(classFile, cfr)) {
                 continue;
             }
 
@@ -137,9 +131,47 @@ public final class AssertInstructionReconstructor
                 if1.getOffset(), if1.getLineNumber(), 0);
                 falseConst.setSignature("Z");
                 list.set(index, new AssertInstruction(
-                    ByteCodeConstants.ASSERT, athrow.getOffset(),
+                    ByteCodeConstants.ASSERT, if1.getJumpOffset() <= if1.getOffset()
+                            ? athrow.getOffset() - 1 : athrow.getOffset(),
                     if1.getLineNumber(), falseConst, msg));
+                if (if1.getJumpOffset() <= if1.getOffset()) {
+                    // The guard also carries the loop back edge when assertions are disabled.
+                    list.add(index + 1, new Goto(Const.GOTO, athrow.getOffset(), if1.getLineNumber(),
+                            if1.getJumpOffset() - athrow.getOffset()));
+                }
             }
         }
     }
+    public static boolean isAssertionField(ClassFile classFile, ConstantFieldref reference) {
+        ConstantPool constants = classFile.getConstantPool();
+        ConstantNameAndType name = constants.getConstantNameAndType(reference.getNameAndTypeIndex());
+        ClassFile owner = findAssertionOwner(classFile, constants.getConstantClassName(reference.getClassIndex()));
+        Field field = owner == null ? null : owner.getField("$assertionsDisabled", "Z");
+        return "$assertionsDisabled".equals(constants.getConstantUtf8(name.getNameIndex()))
+                && "Z".equals(constants.getConstantUtf8(name.getSignatureIndex()))
+                && field != null && (field.getAccessFlags() & Const.ACC_STATIC) != 0 && isSynthetic(field);
+    }
+
+    private static boolean isSynthetic(Field field) {
+        if ((field.getAccessFlags() & Const.ACC_SYNTHETIC) != 0) {
+            return true;
+        }
+        // Before Java 5, compilers marked synthetic fields with an attribute.
+        for (var attribute : field.getAttributes()) {
+            if (attribute.getTag() == Const.ATTR_SYNTHETIC) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static ClassFile findAssertionOwner(ClassFile classFile, String name) {
+        for (ClassFile owner = classFile; owner != null; owner = owner.getOuterClass()) {
+            if (owner.getThisClassName().equals(name)) {
+                return owner;
+            }
+        }
+        return null;
+    }
+
 }

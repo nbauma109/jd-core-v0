@@ -119,6 +119,8 @@ import jd.core.process.analyzer.instruction.fast.reconstructor.IfGotoToIfReconst
 import jd.core.process.analyzer.instruction.fast.reconstructor.InitArrayInstructionReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.RemoveDupConstantsAttributes;
 import jd.core.process.analyzer.instruction.fast.reconstructor.SwitchExpressionReconstructor;
+import jd.core.process.analyzer.instruction.fast.reconstructor.StructuredAssertReconstructor;
+import jd.core.process.analyzer.instruction.fast.reconstructor.EmptyEnumSwitchReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.TernaryOpInReturnReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.TernaryOpReconstructor;
 import jd.core.process.analyzer.instruction.fast.visitor.CheckLocalVariableUsedVisitor;
@@ -205,6 +207,8 @@ public final class FastInstructionListBuilder {
         initializeImmediatelyReturnedDeclarations(classFile.getConstantPool(), list);
         removeUnreachableReturnAfterInfiniteLoop(list);
         SwitchExpressionReconstructor.reconstruct(classFile, method, list);
+        new StructuredAssertReconstructor(classFile).visit(list);
+        EmptyEnumSwitchReconstructor.visit(classFile, list);
 
         // Add labels
         if (!offsetLabelSet.isEmpty()) {
@@ -2703,7 +2707,7 @@ public final class FastInstructionListBuilder {
                  || instruction.getOpcode() == FastConstants.SYNCHRONIZED) {
                     BranchInstruction bi = (BranchInstruction) instruction;
                     int offset = bi.getJumpOffset();
-                    int lastBodyOffset = !subList.isEmpty() ? subList.get(0).getOffset() : bi.getOffset();
+                    int lastBodyOffset = subList.isEmpty() ? bi.getOffset() : subList.get(0).getOffset();
 
                     if (lastBodyOffset < offset && offset <= test.getOffset()) {
                         jumpInstructionBeforeLoop = bi;
@@ -4387,8 +4391,7 @@ public final class FastInstructionListBuilder {
                     ConstantFieldref cfr = constants.getConstantFieldref(gs.getIndex());
                     ConstantNameAndType cnat = constants.getConstantNameAndType(cfr.getNameAndTypeIndex());
                     String cnatName = constants.getConstantUtf8(cnat.getNameIndex());
-                    if (classFile.getSwitchMaps().containsKey(cnatName)
-                     || classFile.getOuterClass().getSwitchMaps().containsKey(cnatName)) {
+                    if (classFile.getSwitchMapOwner(cnatName) != null) {
                         Invokevirtual iv = (Invokevirtual) ali.getIndexref();
 
                         if (iv.getArgs().isEmpty()) {

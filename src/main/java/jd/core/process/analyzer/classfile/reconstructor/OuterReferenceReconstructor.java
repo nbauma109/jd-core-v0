@@ -95,7 +95,7 @@ public class OuterReferenceReconstructor
         Method method, List<Instruction> list)
     {
         // Inner no static class file
-        if (classFile.getOuterThisField() != null)
+        if (classFile.getOuterThisField() != null || hasUnstoredEnclosingParameter(method))
         {
             // Replace outer reference parameter of constructors
             ConstantPool constants = classFile.getConstantPool();
@@ -120,9 +120,18 @@ public class OuterReferenceReconstructor
         this.outerMethodVisitor.visit(list);
     }
 
+    private boolean hasUnstoredEnclosingParameter(Method method) {
+        ConstantPool constants = classFile.getConstantPool();
+        return classFile.isAInnerClass() && !classFile.isStatic()
+                && classFile.getInternalAnonymousClassName() == null
+                && method.getNameIndex() == constants.getInstanceConstructorIndex()
+                && constants.getConstantUtf8(method.getDescriptorIndex()).startsWith(
+                        "(" + classFile.getOuterClass().getInternalClassName());
+    }
+
     // Creation d'une nouvelle constante de type 'Fieldref', dans le
     // pool, permettant l'affichage de 'OuterClass.this.'
-    private static int createOuterThisInstructionIndex(ClassFile classFile)
+    public static int createOuterThisInstructionIndex(ClassFile classFile)
     {
         if (classFile.getOuterClass() == null) {
             return 0;

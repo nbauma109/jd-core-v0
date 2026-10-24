@@ -34,9 +34,11 @@ import jd.core.model.instruction.bytecode.instruction.ILoad;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.Invokespecial;
 import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
+import jd.core.model.instruction.bytecode.instruction.LambdaInstruction;
 import jd.core.model.instruction.bytecode.instruction.PutField;
 import jd.core.process.analyzer.classfile.visitor.CompareInstructionVisitor;
 import jd.core.process.analyzer.classfile.visitor.SearchInstructionByTypeVisitor;
+import jd.core.util.SignatureUtil;
 
 public final class InitInstanceFieldsReconstructor
 {
@@ -109,7 +111,9 @@ public final class InitInstanceFieldsReconstructor
 
                     SearchInstructionByTypeVisitor<LoadInstruction> visitor = new SearchInstructionByTypeVisitor<>(
                             LoadInstruction.class, i -> i.getOpcode() != Const.ALOAD || i.getIndex() != 0);
-                    if (visitor.visit(putField.getValueref()) != null) {
+                    SearchInstructionByTypeVisitor<LambdaInstruction> captures = new SearchInstructionByTypeVisitor<>(
+                            LambdaInstruction.class, InitInstanceFieldsReconstructor::hasCapturedParameters);
+                    if (visitor.visit(putField.getValueref()) != null || captures.visit(putField.getValueref()) != null) {
                         break;
                     }
 
@@ -369,4 +373,13 @@ public final class InitInstanceFieldsReconstructor
 
         return -1;
     }
+
+    private static boolean hasCapturedParameters(LambdaInstruction lambda) {
+        Method method = lambda.getMethod();
+        String descriptor = lambda.getClassFile().getConstantPool().getConstantUtf8(method.getDescriptorIndex());
+        int captured = SignatureUtil.getParameterSignatureCount(descriptor) - lambda.getParameterNames().size();
+        int lexicalEnclosingInstance = method.getEnclosingInstanceParameterIndex() >= 0 ? 1 : 0;
+        return captured > lexicalEnclosingInstance;
+    }
+
 }

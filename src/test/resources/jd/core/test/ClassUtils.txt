@@ -1490,7 +1490,7 @@
 /*      */   public static Iterable<Class<?>> hierarchy(Class<?> type, Interfaces interfacesBehavior)
 /*      */   {
 /* 1492 */     Iterable<Class<?>> classes = () ->  {
-/* 1493 */       MutableObject<Class<?>> next = new MutableObject<>(type);
+/* 1493 */       final MutableObject<Class<?>> next = new MutableObject<>(type);
 /* 1494 */       return new Iterator<Class<?>>()
 /*      */       {
 /*      */         @Override
@@ -1517,7 +1517,7 @@
 /*      */     }
 /* 1518 */     return () ->  {
 /* 1519 */       final Set<Class<?>> seenInterfaces = new HashSet<>();
-/* 1520 */       Iterator<Class<?>> wrapped = classes.iterator();
+/* 1520 */       final Iterator<Class<?>> wrapped = classes.iterator();
 /*      */       
 /* 1522 */       return new Iterator<Class<?>>() {
 /* 1523 */         Iterator interfaces = Collections.emptySet().iterator();

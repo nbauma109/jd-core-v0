@@ -165,7 +165,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   public static <E> Iterable<E> chainedIterable(Iterable<? extends E>... iterables)
+/*      */   public static <E> Iterable<E> chainedIterable(final Iterable<? extends E>... iterables)
 /*      */   {
 /*  170 */     checkNotNull(iterables);
 /*  171 */     return new FluentIterable<E>() {
@@ -200,7 +200,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   public static <E> Iterable<E> collatedIterable(Iterable<? extends E> a, final Iterable<? extends E> b)
+/*      */   public static <E> Iterable<E> collatedIterable(final Iterable<? extends E> a, final Iterable<? extends E> b)
 /*      */   {
 /*  205 */     checkNotNull(new Iterable[] { a, b });
 /*  206 */     return new FluentIterable<E>() {
@@ -228,7 +228,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   public static <E> Iterable<E> collatedIterable(Comparator<? super E> comparator, final Iterable<? extends E> a, final Iterable<? extends E> b)
+/*      */   public static <E> Iterable<E> collatedIterable(final Comparator<? super E> comparator, final Iterable<? extends E> a, final Iterable<? extends E> b)
 /*      */   {
 /*  233 */     checkNotNull(new Iterable[] { a, b });
 /*  234 */     return new FluentIterable<E>() {
@@ -255,7 +255,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   public static <E> Iterable<E> filteredIterable(Iterable<E> iterable, final Predicate<? super E> predicate)
+/*      */   public static <E> Iterable<E> filteredIterable(final Iterable<E> iterable, final Predicate<? super E> predicate)
 /*      */   {
 /*  260 */     checkNotNull(iterable);
 /*  261 */     if (predicate == null) {
@@ -285,7 +285,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   public static <E> Iterable<E> boundedIterable(Iterable<E> iterable, final long maxSize)
+/*      */   public static <E> Iterable<E> boundedIterable(final Iterable<E> iterable, final long maxSize)
 /*      */   {
 /*  290 */     checkNotNull(iterable);
 /*  291 */     if (maxSize < 0L) {
@@ -317,7 +317,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   public static <E> Iterable<E> loopingIterable(Iterable<E> iterable)
+/*      */   public static <E> Iterable<E> loopingIterable(final Iterable<E> iterable)
 /*      */   {
 /*  322 */     checkNotNull(iterable);
 /*  323 */     return new FluentIterable<E>() {
@@ -354,7 +354,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   public static <E> Iterable<E> reversedIterable(Iterable<E> iterable)
+/*      */   public static <E> Iterable<E> reversedIterable(final Iterable<E> iterable)
 /*      */   {
 /*  359 */     checkNotNull(iterable);
 /*  360 */     return new FluentIterable<E>() {
@@ -383,7 +383,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   public static <E> Iterable<E> skippingIterable(Iterable<E> iterable, final long elementsToSkip)
+/*      */   public static <E> Iterable<E> skippingIterable(final Iterable<E> iterable, final long elementsToSkip)
 /*      */   {
 /*  388 */     checkNotNull(iterable);
 /*  389 */     if (elementsToSkip < 0L) {
@@ -415,7 +415,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   public static <I, O> Iterable<O> transformedIterable(Iterable<I> iterable, final Transformer<? super I, ? extends O> transformer)
+/*      */   public static <I, O> Iterable<O> transformedIterable(final Iterable<I> iterable, final Transformer<? super I, ? extends O> transformer)
 /*      */   {
 /*  420 */     checkNotNull(iterable);
 /*  421 */     if (transformer == null) {
@@ -443,7 +443,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   public static <E> Iterable<E> uniqueIterable(Iterable<E> iterable)
+/*      */   public static <E> Iterable<E> uniqueIterable(final Iterable<E> iterable)
 /*      */   {
 /*  448 */     checkNotNull(iterable);
 /*  449 */     return new FluentIterable<E>() {
@@ -511,7 +511,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   public static <E> Iterable<E> zippingIterable(Iterable<? extends E> a, final Iterable<? extends E> b)
+/*      */   public static <E> Iterable<E> zippingIterable(final Iterable<? extends E> a, final Iterable<? extends E> b)
 /*      */   {
 /*  516 */     checkNotNull(a);
 /*  517 */     checkNotNull(b);
@@ -539,7 +539,7 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   public static <E> Iterable<E> zippingIterable(final Iterable<? extends E> first, Iterable<? extends E>... others)
+/*      */   public static <E> Iterable<E> zippingIterable(final Iterable<? extends E> first, final Iterable<? extends E>... others)
 /*      */   {
 /*  544 */     checkNotNull(first);
 /*  545 */     checkNotNull(others);

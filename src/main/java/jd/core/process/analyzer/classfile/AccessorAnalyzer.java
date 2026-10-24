@@ -35,6 +35,10 @@ import jd.core.model.classfile.accessor.PutFieldAccessor;
 import jd.core.model.classfile.accessor.PutStaticAccessor;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.ALoad;
+import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
+import jd.core.model.instruction.bytecode.instruction.ConvertInstruction;
+import jd.core.model.instruction.bytecode.instruction.DupLoad;
+import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
 import jd.core.model.instruction.bytecode.instruction.GetField;
 import jd.core.model.instruction.bytecode.instruction.GetStatic;
 import jd.core.model.instruction.bytecode.instruction.IncInstruction;
@@ -165,16 +169,22 @@ public final class AccessorAnalyzer
         ClassFile classFile, Method method)
     {
         List<Instruction> list = method.getInstructions();
-        if (list.size() != 2) {
+        int putIndex;
+        if (list.size() == 2) {
+            putIndex = 0;
+        } else if (list.size() == 3 && list.get(0).getOpcode() == ByteCodeConstants.DUPSTORE) {
+            // Primitive assignments retain a duplicated value for the accessor's return.
+            putIndex = 1;
+        } else {
             return false;
         }
 
-        if (list.get(1).getOpcode() != ByteCodeConstants.XRETURN
-         && list.get(1).getOpcode() != Const.RETURN) {
+        if (list.get(putIndex + 1).getOpcode() != ByteCodeConstants.XRETURN
+         && list.get(putIndex + 1).getOpcode() != Const.RETURN) {
             return false;
         }
 
-        Instruction instruction = list.get(0);
+        Instruction instruction = list.get(putIndex);
         if (instruction.getOpcode() != Const.PUTSTATIC) {
             return false;
         }
@@ -204,13 +214,53 @@ public final class AccessorAnalyzer
         String fieldDescriptor = constants.getConstantUtf8(cnat.getSignatureIndex());
         String fieldName = constants.getConstantUtf8(cnat.getNameIndex());
 
+        Instruction value = ((PutStatic) instruction).getValueref();
+        if (value instanceof DupLoad duplicate) {
+            if (putIndex != 1 || duplicate.getDupStore() != list.get(0)
+                    || !(list.get(putIndex + 1) instanceof ReturnInstruction returned)
+                    || !(returned.getValueref() instanceof DupLoad result)
+                    || result.getDupStore() != duplicate.getDupStore()) {
+                return false;
+            }
+            value = duplicate.getDupStore().getObjectref();
+        }
+        String operator = staticAssignmentOperator(value, ((PutStatic) instruction).getIndex());
+        if (operator == null) {
+            return false;
+        }
+
         // Trouve ! Ajout de l'accesseur.
         classFile.addAccessor(methodName, methodDescriptor,
             new PutStaticAccessor(
                 AccessorConstants.ACCESSOR_PUTSTATIC,
-                classFile.getThisClassName(), fieldName, fieldDescriptor));
+                classFile.getThisClassName(), fieldName, fieldDescriptor, operator));
 
         return true;
+    }
+
+    private static String staticAssignmentOperator(Instruction value, int fieldIndex) {
+        if (value instanceof LoadInstruction parameter && parameter.getIndex() == 0) {
+            return "=";
+        }
+        if (value instanceof ConvertInstruction conversion) {
+            value = conversion.getValue();
+        }
+        if (value instanceof BinaryOperatorInstruction binary
+                && binary.getValue1() instanceof GetStatic field && field.getIndex() == fieldIndex
+                && isFirstParameter(binary.getValue2())) {
+            return switch (binary.getOperator()) {
+                case "+", "-", "*", "/", "%", "<<", ">>", ">>>", "&", "|", "^" -> binary.getOperator() + "=";
+                default -> null;
+            };
+        }
+        return null;
+    }
+
+    private static boolean isFirstParameter(Instruction value) {
+        if (value instanceof ConvertInstruction conversion) {
+            value = conversion.getValue();
+        }
+        return value instanceof LoadInstruction parameter && parameter.getIndex() == 0;
     }
 
     /* Recherche des accesseurs de champs:

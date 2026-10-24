@@ -284,7 +284,7 @@ public final class SwitchExpressionReconstructor {
         return -1;
     }
 
-    private static List<List<Instruction>> getBlocks(Instruction instruction) {
+    static List<List<Instruction>> getBlocks(Instruction instruction) {
         if (instruction instanceof FastTest2Lists fastTest2Lists) {
             List<List<Instruction>> blocks = new java.util.ArrayList<>(2);
             addBlock(blocks, fastTest2Lists.getInstructions());

@@ -16,6 +16,9 @@
  ******************************************************************************/
 package jd.core.model.classfile.accessor;
 
-public record PutStaticAccessor(byte tag, String className, String fieldName, String fieldDescriptor) implements Accessor
+public record PutStaticAccessor(byte tag, String className, String fieldName, String fieldDescriptor, String operator) implements Accessor
 {
+    public PutStaticAccessor(byte tag, String className, String fieldName, String fieldDescriptor) {
+        this(tag, className, fieldName, fieldDescriptor, "=");
+    }
 }

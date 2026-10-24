@@ -32,7 +32,6 @@ import org.jd.core.v1.util.StringConstants;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -603,7 +602,7 @@ public final class ClassFileWriter
 
                 if (delta > 0)
                 {
-                    Collections.sort(references, Comparator.comparing(Reference::getCounter).reversed());
+                    references.sort(Comparator.comparing(Reference::getCounter).reversed());
 
                     int idx = references.size();
 
@@ -619,8 +618,7 @@ public final class ClassFileWriter
                 // Affichage
                 if (!references.isEmpty())
                 {
-                    Collections.sort(
-                        references, Comparator.comparing(Reference::getInternalName));
+                    references.sort(Comparator.comparing(Reference::getInternalName));
 
                     this.printer.debugStartOfLayoutBlock();
                     this.printer.startOfImportStatements();
@@ -2283,18 +2281,15 @@ public final class ClassFileWriter
 
         ClassFile classFile = celb.getClassFile();
         ConstantPool constants = classFile.getConstantPool();
-        List<Integer> switchMap =
-            classFile.getSwitchMaps().get(celb.getSwitchMapKey());
+        ClassFile switchMapOwner = classFile.getSwitchMapOwner(celb.getSwitchMapKey());
+        List<Integer> switchMap = switchMapOwner.getSwitchMaps().get(celb.getSwitchMapKey());
         ArrayLoadInstruction ali = (ArrayLoadInstruction)celb.getFs().getTest();
         Invokevirtual iv = (Invokevirtual)ali.getIndexref();
         ConstantCP cmr = constants.getConstantMethodref(iv.getIndex());
         String internalEnumName =
             constants.getConstantClassName(cmr.getClassIndex());
 
-        if (switchMap == null) {
-            constants = classFile.getOuterClass().getConstantPool();
-            switchMap = classFile.getOuterClass().getSwitchMaps().get(celb.getSwitchMapKey());
-        }
+        constants = switchMapOwner.getConstantPool();
 
         String enumDescriptor = SignatureUtil.createTypeName(internalEnumName);
 
