@@ -2705,7 +2705,7 @@ public final class FastInstructionListBuilder {
                  || instruction.getOpcode() == FastConstants.SYNCHRONIZED) {
                     BranchInstruction bi = (BranchInstruction) instruction;
                     int offset = bi.getJumpOffset();
-                    int lastBodyOffset = !subList.isEmpty() ? subList.get(0).getOffset() : bi.getOffset();
+                    int lastBodyOffset = subList.isEmpty() ? bi.getOffset() : subList.get(0).getOffset();
 
                     if (lastBodyOffset < offset && offset <= test.getOffset()) {
                         jumpInstructionBeforeLoop = bi;

@@ -135,7 +135,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
     private int firstOffset;
     private int lastOffset;
     private int previousOffset;
-    private TypeMaker typeMaker;
+    private final TypeMaker typeMaker;
 
     public SourceWriterVisitor(
         Loader loader,

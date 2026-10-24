@@ -1217,28 +1217,31 @@ public final class ClassFileAnalyzer
     }
 
     private static void analyzeCapturedFields(ClassFile classFile, List<Instruction> instructions) {
-        ConstantPool constants = classFile.getConstantPool();
         for (Instruction instruction : instructions) {
-            if (!(instruction instanceof PutField putField)
-                    || !(putField.getObjectref() instanceof ALoad receiver) || receiver.getIndex() != 0) {
-                continue;
+            if (instruction instanceof PutField putField
+                    && putField.getObjectref() instanceof ALoad receiver && receiver.getIndex() == 0) {
+                analyzeCapturedField(classFile, putField);
             }
-            Instruction value = putField.getValueref();
-            if (value.getOpcode() != ByteCodeConstants.LOAD && value.getOpcode() != Const.ALOAD
-                    && value.getOpcode() != Const.ILOAD) {
-                continue;
-            }
-            int slot = ((IndexInstruction) value).getIndex();
-            ConstantFieldref fieldref = constants.getConstantFieldref(putField.getIndex());
-            if (slot == 0 || fieldref.getClassIndex() != classFile.getThisClassIndex()) {
-                continue;
-            }
-            ConstantNameAndType nameAndType = constants.getConstantNameAndType(fieldref.getNameAndTypeIndex());
-            Field field = classFile.getField(nameAndType.getNameIndex(), nameAndType.getSignatureIndex());
-            if (field != null && isCapturedField(classFile, field)) {
-                field.setAnonymousClassConstructorParameterIndex(slot - 1);
-                field.setAccessFlags(field.getAccessFlags() | Const.ACC_SYNTHETIC);
-            }
+        }
+    }
+
+    private static void analyzeCapturedField(ClassFile classFile, PutField putField) {
+        Instruction value = putField.getValueref();
+        if (value.getOpcode() != ByteCodeConstants.LOAD && value.getOpcode() != Const.ALOAD
+                && value.getOpcode() != Const.ILOAD) {
+            return;
+        }
+        ConstantPool constants = classFile.getConstantPool();
+        int slot = ((IndexInstruction) value).getIndex();
+        ConstantFieldref fieldref = constants.getConstantFieldref(putField.getIndex());
+        if (slot == 0 || fieldref.getClassIndex() != classFile.getThisClassIndex()) {
+            return;
+        }
+        ConstantNameAndType nameAndType = constants.getConstantNameAndType(fieldref.getNameAndTypeIndex());
+        Field field = classFile.getField(nameAndType.getNameIndex(), nameAndType.getSignatureIndex());
+        if (field != null && isCapturedField(classFile, field)) {
+            field.setAnonymousClassConstructorParameterIndex(slot - 1);
+            field.setAccessFlags(field.getAccessFlags() | Const.ACC_SYNTHETIC);
         }
     }
 

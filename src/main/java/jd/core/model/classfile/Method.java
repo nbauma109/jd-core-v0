@@ -42,7 +42,7 @@ import jd.core.model.instruction.bytecode.instruction.Instruction;
 
 public class Method extends Base implements SignatureInfo
 {
-    private FieldOrMethod fieldOrMethod;
+    private final FieldOrMethod fieldOrMethod;
     private boolean containsError;
     private int enclosingInstanceParameterIndex = -1;
     private int[] exceptionIndexes; // NO_UCD (use final)

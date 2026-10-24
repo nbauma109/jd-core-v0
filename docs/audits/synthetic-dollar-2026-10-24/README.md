@@ -80,7 +80,9 @@ convention as the manifest. The output directory must be new for each run.
   ordinal call instead of emitting a bare synthetic array access.
 - Public ECJ interface switch-table helpers also need their case maps parsed.
 - Constructor lambdas can capture the enclosing instance as a synthetic parameter;
-  bind that parameter to the lexical enclosing instance.
+  bind that parameter to the lexical enclosing instance. Lambdas capturing explicit
+  constructor parameters must remain in the constructor rather than becoming field
+  initializers with out-of-scope variable references.
 - Newer compilers can omit unused enclosing-instance fields in inner subclasses.
   Their constructor parameter still represents the lexical enclosing instance.
 - Assertions with boolean equality, assertions at the end of catch blocks, and

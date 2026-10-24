@@ -362,6 +362,62 @@ public class SyntheticReconstructionTest {
         assertRoundTrip(original, 17, "8");
     }
 
+    @Test
+    public void superConstructorLambdaCapturesEnclosingInstanceDirectly() throws Exception {
+        assertRoundTrip("""
+                public class SyntheticOuter {
+                    private int value = 10;
+                    private static class Base {
+                        final java.util.function.IntSupplier supplier;
+                        Base(java.util.function.IntSupplier supplier) { this.supplier = supplier; }
+                    }
+                    private class Metrics extends Base {
+                        Metrics() { super(() -> SyntheticOuter.this.value + 7); }
+                    }
+                    public java.util.function.IntSupplier reader(int captured) { return new Metrics().supplier; }
+                }
+                """, 17);
+    }
+
+    @Test
+    public void staticConstructorLambdaKeepsItsExplicitObjectCapture() throws Exception {
+        assertRoundTrip("""
+                public class SyntheticOuter {
+                    private int value = 10;
+                    private static class Box {
+                        final java.util.function.IntSupplier supplier;
+                        Box(SyntheticOuter other) { supplier = () -> other.value + 7; }
+                    }
+                    public java.util.function.IntSupplier reader(int captured) { return new Box(this).supplier; }
+                }
+                """, 17);
+    }
+
+    @Test
+    public void instanceMethodLambdaKeepsItsExplicitObjectCapture() throws Exception {
+        assertRoundTrip("""
+                public class SyntheticOuter {
+                    private int value = 10;
+                    private class Box {
+                        java.util.function.IntSupplier make(SyntheticOuter other) { return () -> other.value + 7; }
+                    }
+                    public java.util.function.IntSupplier reader(int captured) { return new Box().make(this); }
+                }
+                """, 17);
+    }
+
+    @Test
+    public void ordinaryConstructorFieldAssignmentsRemainVisible() throws Exception {
+        assertRoundTrip("""
+                public class SyntheticOuter {
+                    private int value;
+                    public SyntheticOuter() { this(9); }
+                    private SyntheticOuter(int number) { this.value = number + 1; }
+                    public java.util.function.IntSupplier reader(int captured) { return () -> value + 7; }
+                }
+                """, 17);
+    }
+
     private static void assertRoundTrip(String source, int expected) throws Exception {
         assertRoundTrip(source, expected, "8");
     }
