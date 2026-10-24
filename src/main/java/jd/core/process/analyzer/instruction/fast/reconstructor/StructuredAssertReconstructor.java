@@ -2,7 +2,6 @@ package jd.core.process.analyzer.instruction.fast.reconstructor;
 
 import java.util.List;
 
-import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantFieldref;
 
