@@ -77,8 +77,7 @@ public final class PatternMatchingReconstructor {
                 LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(store.getIndex(), store.getOffset());
                 if (lv != null) {
                     instanceOf.setPatternVariable(lv);
-                    lv.setDeclarationFlag(true);
-                    lv.setPatternBinding(true);
+                    markBinding(classFile, localVariables, lv);
                     list.remove(i + 1);
                 }
             }
@@ -91,7 +90,7 @@ public final class PatternMatchingReconstructor {
     private static boolean reconstructRecordPattern(ClassFile classFile, LocalVariables localVariables,
             List<Instruction> list, int ifIndex, InstanceOf instanceOf) {
         if (!(instanceOf.getObjectref() instanceof ALoad tested) || ifIndex + 2 >= list.size()
-                || !(list.get(ifIndex + 1) instanceof AStore record) || !(record.getValueref() instanceof ALoad source)
+                || !(list.get(ifIndex + 1) instanceof AStore record) || !(unwrapCast(record.getValueref()) instanceof ALoad source)
                 || source.getIndex() != tested.getIndex()) {
             return false;
         }
@@ -103,8 +102,7 @@ public final class PatternMatchingReconstructor {
         }
         list.subList(ifIndex + 1, end).clear();
         for (LocalVariable lv : bindings) {
-            lv.setDeclarationFlag(true);
-            lv.setPatternBinding(true);
+            markBinding(classFile, localVariables, lv);
         }
         instanceOf.setRecordPatternVariables(bindings);
         return true;
@@ -178,6 +176,28 @@ public final class PatternMatchingReconstructor {
             }
         }
         method.setCodeExceptions(remaining.toArray(new CodeException[0]));
+    }
+
+    private static Instruction unwrapCast(Instruction instruction) {
+        return instruction instanceof CheckCast cast ? cast.getObjectref() : instruction;
+    }
+
+    /**
+     * Declares a variable by its pattern. The debug information of a variable that stays in scope
+     * after the statement binding it has one range for each part of the code using it, which are
+     * all the same variable for the source code.
+     */
+    static void markBinding(ClassFile classFile, LocalVariables localVariables, LocalVariable binding) {
+        ConstantPool cp = classFile.getConstantPool();
+        String name = cp.getConstantUtf8(binding.getNameIndex());
+        for (int i = 0; i < localVariables.size(); i++) {
+            LocalVariable lv = localVariables.getLocalVariableAt(i);
+            if (lv == binding || lv.getIndex() == binding.getIndex() && lv.getSignatureIndex() == binding.getSignatureIndex()
+                    && name.equals(cp.getConstantUtf8(lv.getNameIndex()))) {
+                lv.setDeclarationFlag(true);
+                lv.setPatternBinding(true);
+            }
+        }
     }
 
     private static boolean isBinding(InstanceOf instanceOf, AStore store) {

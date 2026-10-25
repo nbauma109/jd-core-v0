@@ -74,7 +74,7 @@ public class StaticTools
     str = "N/A";
     try
     {
-      Calendar localCalendar = Calendar.getInstance(); localCalendar.setTimeInMillis(Long.parseLong(paramString)); int i = localCalendar.get(5); int j = localCalendar.get(2); paramString = new java/lang/StringBuilder; paramString.<init>(); paramString = i + "/" + (j + 1);
+      Calendar localCalendar = Calendar.getInstance(); localCalendar.setTimeInMillis(Long.parseLong(paramString)); int i = localCalendar.get(5); int j = localCalendar.get(2); paramString = new java/lang/StringBuilder; paramString.<init>(); paramString = paramString.append(i).append("/").append(j + 1).toString();
     }
     catch (Exception paramString)
     {

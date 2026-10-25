@@ -588,7 +588,8 @@ public class JavaSourceLayouter
 
             // Don't write default case on last position with empty
             // instructions list.
-            if (pair.isDefault() && last && (instructions == null || instructions.isEmpty() || instructions.size() == 1 &&
+            if (pair.isDefault() && last && fs.getPatternSelector() == null
+                    && (instructions == null || instructions.isEmpty() || instructions.size() == 1 &&
                     instructions.get(0).getOpcode() == FastConstants.GOTO_BREAK)) {
                 break;
             }

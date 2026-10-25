@@ -30,6 +30,8 @@ import jd.core.model.instruction.bytecode.instruction.Goto;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNew;
 import jd.core.model.instruction.bytecode.instruction.LookupSwitch;
+import jd.core.model.instruction.bytecode.instruction.Switch;
+import jd.core.model.instruction.bytecode.instruction.TableSwitch;
 import jd.core.model.instruction.bytecode.instruction.CheckCast;
 import jd.core.model.instruction.bytecode.instruction.IConst;
 import jd.core.model.instruction.bytecode.instruction.IndexInstruction;
@@ -70,7 +72,7 @@ public final class PatternSwitchReconstructor {
             return;
         }
         for (int s = 0; s < list.size(); s++) {
-            if (list.get(s) instanceof LookupSwitch lookup && lookup.getKey() instanceof PatternSwitchSelector selector) {
+            if (list.get(s) instanceof Switch lookup && lookup.getKey() instanceof PatternSwitchSelector selector) {
                 removeRestarts(list, lookup, selector);
                 reconstructRecordCases(classFile, localVariables, list, lookup, selector);
                 if (!selector.getRecordComponents().isEmpty()) {
@@ -80,7 +82,7 @@ public final class PatternSwitchReconstructor {
         }
     }
 
-    private static void removeRestarts(List<Instruction> list, LookupSwitch lookup, PatternSwitchSelector selector) {
+    private static void removeRestarts(List<Instruction> list, Switch lookup, PatternSwitchSelector selector) {
         int restartVariable = selector.getRestartIndexVariable();
         for (int r = list.size() - 2; r > 0; r--) {
             if (!(list.get(r) instanceof StoreInstruction store) || store.getIndex() != restartVariable
@@ -120,27 +122,31 @@ public final class PatternSwitchReconstructor {
         }
     }
 
+    private static int keyAt(Switch sw, int index) {
+        return sw instanceof LookupSwitch lookup ? lookup.getKey(index) : ((TableSwitch) sw).getLow() + index;
+    }
+
     private static boolean isConstantTest(Instruction instruction) {
         return instruction instanceof IfInstruction test && test.getValue() instanceof IConst;
     }
 
     /** Key of the case whose code contains the given offset. */
-    private static int keyOfCase(LookupSwitch lookup, int offset) {
+    private static int keyOfCase(Switch lookup, int offset) {
         int bestKey = -1;
         int bestStart = -1;
-        for (int i = 0; i < lookup.getKeys().length; i++) {
+        for (int i = 0; i < lookup.getOffsets().length; i++) {
             int start = lookup.getOffset() + lookup.getOffset(i);
             if (start <= offset && start > bestStart) {
                 bestStart = start;
-                bestKey = lookup.getKey(i);
+                bestKey = keyAt(lookup, i);
             }
         }
         return bestKey;
     }
 
     private static void reconstructRecordCases(ClassFile classFile, LocalVariables localVariables, List<Instruction> list,
-            LookupSwitch lookup, PatternSwitchSelector selector) {
-        for (int i = 0; i < lookup.getKeys().length; i++) {
+            Switch lookup, PatternSwitchSelector selector) {
+        for (int i = 0; i < lookup.getOffsets().length; i++) {
             int caseStart = lookup.getOffset() + lookup.getOffset(i);
             int first = 0;
             while (first < list.size() && list.get(first).getOffset() < caseStart) {
@@ -159,10 +165,9 @@ public final class PatternSwitchReconstructor {
             }
             list.subList(first, end).clear();
             for (LocalVariable component : components) {
-                component.setDeclarationFlag(true);
-                component.setPatternBinding(true);
+                PatternMatchingReconstructor.markBinding(classFile, localVariables, component);
             }
-            selector.getRecordComponents().put(lookup.getKey(i), components);
+            selector.getRecordComponents().put(keyAt(lookup, i), components);
         }
     }
 
@@ -192,7 +197,7 @@ public final class PatternSwitchReconstructor {
     private static void process(ClassFile classFile, LocalVariables localVariables, List<Instruction> fastList,
             FastSwitch fs, PatternSwitchSelector selector) {
         fs.setPatternSelector(selector);
-        removeMatchExceptionDefault(classFile, fs);
+        boolean exhaustive = removeMatchExceptionDefault(classFile, fs);
         for (FastSwitch.Pair pair : fs.getPairs()) {
             List<Instruction> instructions = pair.getInstructions();
             if (pair.isDefault() || instructions == null || instructions.isEmpty()) {
@@ -201,8 +206,7 @@ public final class PatternSwitchReconstructor {
             LocalVariable binding = bindingOf(localVariables, instructions.get(0), selector);
             if (binding != null) {
                 instructions.remove(0);
-                binding.setDeclarationFlag(true);
-                binding.setPatternBinding(true);
+                PatternMatchingReconstructor.markBinding(classFile, localVariables, binding);
                 selector.getBindings().put(pair.getKey(), binding);
             }
         }
@@ -212,10 +216,41 @@ public final class PatternSwitchReconstructor {
         // The variable holding the index to restart from is only needed by guards
         removeIf(fastList, instruction -> isConstantStore(instruction, selector.getRestartIndexVariable()), localVariables, selector);
         foldSelectorVariable(classFile, fastList, fs, selector);
+        if (!exhaustive && isStatement(fastList, fs)) {
+            addEmptyDefault(fs);
+        }
+    }
+
+    private static boolean isStatement(List<Instruction> fastList, FastSwitch fs) {
+        boolean[] found = new boolean[1];
+        forEachList(fastList, list -> found[0] |= list.contains(fs));
+        return found[0];
+    }
+
+    /**
+     * A switch statement on patterns must be exhaustive. The default case is kept even if its code
+     * was left after the switch.
+     */
+    private static void addEmptyDefault(FastSwitch fs) {
+        FastSwitch.Pair[] pairs = fs.getPairs();
+        for (FastSwitch.Pair pair : pairs) {
+            if (pair.isDefault()) {
+                if (pair.getInstructions() == null) {
+                    pair.setInstructions(new ArrayList<>());
+                }
+                return;
+            }
+        }
+        FastSwitch.Pair[] extended = java.util.Arrays.copyOf(pairs, pairs.length + 1);
+        FastSwitch.Pair last = pairs[pairs.length - 1];
+        FastSwitch.Pair empty = new FastSwitch.Pair(true, 0, last.getOffset() + 1);
+        empty.setInstructions(new ArrayList<>());
+        extended[pairs.length] = empty;
+        fs.setPairs(extended);
     }
 
     /** An exhaustive switch gets a default case throwing MatchException, which source code does not have. */
-    private static void removeMatchExceptionDefault(ClassFile classFile, FastSwitch fs) {
+    private static boolean removeMatchExceptionDefault(ClassFile classFile, FastSwitch fs) {
         ConstantPool cp = classFile.getConstantPool();
         FastSwitch.Pair[] pairs = fs.getPairs();
         for (int i = 0; i < pairs.length; i++) {
@@ -227,9 +262,10 @@ public final class PatternSwitchReconstructor {
                 System.arraycopy(pairs, 0, remaining, 0, i);
                 System.arraycopy(pairs, i + 1, remaining, i, pairs.length - i - 1);
                 fs.setPairs(remaining);
-                return;
+                return true;
             }
         }
+        return false;
     }
 
     private static LocalVariable bindingOf(LocalVariables localVariables, Instruction first, PatternSwitchSelector selector) {
