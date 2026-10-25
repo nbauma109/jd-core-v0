@@ -90,7 +90,8 @@ public final class PatternSwitchReconstructor {
         for (int r = list.size() - 2; r > 0; r--) {
             if (!(list.get(r) instanceof StoreInstruction store) || store.getIndex() != restartVariable
                     || !(store.getValueref() instanceof IConst)
-                    || !(list.get(r + 1) instanceof Goto jump) || jump.getJumpOffset() > lookup.getOffset()) {
+                    || !(list.get(r + 1) instanceof Goto jump) || jump.getJumpOffset() != selector.getOffset()
+                    || store.getOffset() < lookup.getOffset()) {
                 continue;
             }
             int blockStart = list.get(r - 1).getOffset();
