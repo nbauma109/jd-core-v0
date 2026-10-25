@@ -344,7 +344,28 @@ public class ClassFile extends Base
         String simpleName = this.thisClassName.substring(
                 this.thisClassName.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR) + 1);
         return !simpleName.equals(TypeNameUtil.localTypeSimpleName(simpleName))
-                && ((getAccessFlags() & (Const.ACC_ENUM | Const.ACC_INTERFACE)) != 0 || isRecord());
+                && ((getAccessFlags() & (Const.ACC_ENUM | Const.ACC_INTERFACE)) != 0 || isRecord())
+                && isUniqueLocalTypeName(simpleName);
+    }
+
+    /** Local types of different methods can share a name: only one of them can become a member. */
+    private boolean isUniqueLocalTypeName(String simpleName)
+    {
+        if (this.loader == null) {
+            return true;
+        }
+        String plainName = TypeNameUtil.localTypeSimpleName(simpleName);
+        String prefix = this.thisClassName.substring(
+                0, this.thisClassName.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR) + 1);
+        for (int i = 1; i < 10; i++)
+        {
+            String other = prefix + i + plainName;
+            if (!other.equals(this.thisClassName)
+                    && (this.loader.canLoad(other) || this.loader.canLoad(other + StringConstants.CLASS_FILE_SUFFIX))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public boolean isAInnerClass()

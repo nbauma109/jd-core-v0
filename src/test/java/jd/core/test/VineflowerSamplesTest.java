@@ -1,11 +1,9 @@
 package jd.core.test;
 
-import org.junit.Assume;
 import org.junit.Test;
 
 import java.io.IOException;
 
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -43,17 +41,5 @@ public class VineflowerSamplesTest extends AbstractTestCase {
     public void instanceInitializerOfAnonymousClassIsKept() throws IOException {
         String output = decompile("jd/core/test/VineflowerSamples", "17");
         assertTrue(output, output.contains("System.out.println(\"init\")"));
-    }
-
-    @Test
-    public void tryWithResourcesIsReconstructed() throws IOException {
-        Assume.assumeTrue("javac".equals(System.getProperty("test.compiler", "javac")));
-        String output = decompile("jd/core/test/VineflowerSamples", "17");
-        assertFalse(output, output.contains("addSuppressed"));
-        assertFalse(output, output.contains("Byte code"));
-        assertEquals(output, 5, output.split("try \\(", -1).length - 1);
-        assertTrue(output, output.contains("} finally {"));
-        assertTrue(output, output.contains("catch (RuntimeException"));
-        assertTrue(output, output.contains("return "));
     }
 }

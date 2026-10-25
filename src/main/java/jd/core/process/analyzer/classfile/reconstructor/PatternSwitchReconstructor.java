@@ -100,7 +100,7 @@ public final class PatternSwitchReconstructor {
                         && branch.getJumpOffset() <= store.getOffset()) {
                     if (!isConstantTest(candidate)) {
                         ComparisonInstructionAnalyzer.inverseComparison(candidate);
-                        selector.getGuards().put(keyOfCase(lookup, candidate.getOffset()), candidate);
+                        addGuard(selector, keyOfCase(lookup, candidate.getOffset()), candidate);
                     }
                     list.remove(i);
                     r--;
@@ -109,7 +109,7 @@ public final class PatternSwitchReconstructor {
             // A condition jumping over the restart block is the 'when' clause of the case
             if (r > 0 && list.get(r - 1) instanceof ConditionalBranchInstruction guard
                     && guard.getJumpOffset() > blockEnd && !isConstantTest(guard)) {
-                selector.getGuards().put(keyOfCase(lookup, guard.getOffset()), guard);
+                addGuard(selector, keyOfCase(lookup, guard.getOffset()), guard);
                 list.remove(r - 1);
                 r--;
             }
@@ -124,6 +124,13 @@ public final class PatternSwitchReconstructor {
 
     private static int keyAt(Switch sw, int index) {
         return sw instanceof LookupSwitch lookup ? lookup.getKey(index) : ((TableSwitch) sw).getLow() + index;
+    }
+
+    private static void addGuard(PatternSwitchSelector selector, int key, Instruction guard) {
+        if (selector.getGuards().putIfAbsent(key, guard) != null) {
+            // A guard made of several conditions would lose some of them: leave the method as byte code
+            throw new IllegalStateException("Composite guard of a pattern switch");
+        }
     }
 
     private static boolean isConstantTest(Instruction instruction) {

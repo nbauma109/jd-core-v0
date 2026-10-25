@@ -117,6 +117,9 @@ public final class PatternMatchingReconstructor {
     static int collectComponents(ClassFile classFile, LocalVariables localVariables, List<Instruction> list,
             int start, int recordVariable, String recordName, List<LocalVariable> bindings) {
         ConstantPool cp = classFile.getConstantPool();
+        if (!isRecord(classFile, recordName)) {
+            return -1;
+        }
         int end = start;
         while (end < list.size() && list.get(end) instanceof StoreInstruction component
                 && component.getValueref() instanceof InvokeNoStaticInstruction accessor
@@ -149,6 +152,36 @@ public final class PatternMatchingReconstructor {
     }
 
     /** Removes the handler throwing MatchException that javac generates around record patterns. */
+    private static ClassFile findClass(ClassFile candidate, String internalName) {
+        if (candidate.getThisClassName().equals(internalName)) {
+            return candidate;
+        }
+        if (candidate.getInnerClassFiles() != null) {
+            for (ClassFile inner : candidate.getInnerClassFiles()) {
+                ClassFile found = findClass(inner, internalName);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static boolean isRecord(ClassFile classFile, String internalName) {
+        ClassFile root = classFile;
+        while (root.getOuterClass() != null) {
+            root = root.getOuterClass();
+        }
+        ClassFile known = findClass(root, internalName);
+        if (known != null) {
+            return known.isRecord();
+        }
+        var typeTypes = new org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker(classFile.getLoader())
+                .makeTypeTypes(internalName);
+        return typeTypes != null && typeTypes.getSuperType() != null
+                && "java/lang/Record".equals(typeTypes.getSuperType().getInternalName());
+    }
+
     static void removeMatchExceptionHandlers(ClassFile classFile, Method method, List<Instruction> list) {
         CodeException[] exceptions = method.getCodeExceptions();
         if (exceptions == null) {
