@@ -64,7 +64,7 @@ public final class ClassFileDeserializer
         for (int interfaceIndex : classFile.getInterfaces()) {
             String interfaceName = classFile.getConstantPool().getConstantClassName(interfaceIndex);
             if (loader.canLoad(interfaceName)) {
-                ClassFile interfass = deserialize(loader, interfaceName);
+                ClassFile interfass = deserialize(loader, interfaceName, true);
                 classFile.getSuperClassAndInterfaces().put(interfaceName, interfass);
             }
         }
