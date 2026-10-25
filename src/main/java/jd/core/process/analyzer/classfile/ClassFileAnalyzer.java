@@ -77,6 +77,7 @@ import jd.core.process.analyzer.classfile.reconstructor.OuterReferenceReconstruc
 import jd.core.process.analyzer.classfile.reconstructor.PostIncReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.PreIncReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.PatternMatchingReconstructor;
+import jd.core.process.analyzer.classfile.reconstructor.PatternSwitchReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.SimpleNewInstructionReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.TryWithResourcesReconstructor;
 import jd.core.process.analyzer.classfile.visitor.CheckCastAndConvertInstructionVisitor;
@@ -963,6 +964,9 @@ public final class ClassFileAnalyzer
         if (classFile.getMajorVersion() >= Const.MAJOR_16) {
             PatternMatchingReconstructor.reconstruct(classFile, method, fastList);
         }
+        if (classFile.getMajorVersion() >= Const.MAJOR_21) {
+            PatternSwitchReconstructor.reconstructCases(classFile, method, fastList);
+        }
 
         // DEBUG //
         //ConstantPool debugConstants = classFile.getConstantPool();
@@ -973,10 +977,12 @@ public final class ClassFileAnalyzer
 
         // Ajout des déclarations des variables locales temporaires
         DupLocalVariableAnalyzer.declare(classFile, method, fastList);
+        PatternSwitchReconstructor.reconstruct(classFile, method, fastList);
         if (!method.getTryResources().isEmpty() && !TryWithResourcesReconstructor.wrap(method, fastList)) {
             method.setContainsError(true);
         }
     }
+
 
     public static void postAnalyzeSingleMethod(ClassFile classFile, final Method method) {
         try

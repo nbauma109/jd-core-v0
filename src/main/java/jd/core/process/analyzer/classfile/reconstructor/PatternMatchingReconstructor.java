@@ -95,14 +95,35 @@ public final class PatternMatchingReconstructor {
                 || source.getIndex() != tested.getIndex()) {
             return false;
         }
-        ConstantPool cp = classFile.getConstantPool();
-        String recordName = cp.getConstantClassName(instanceOf.getIndex());
         List<LocalVariable> bindings = new ArrayList<>();
-        int end = ifIndex + 2;
+        int end = collectComponents(classFile, localVariables, list, ifIndex + 2, record.getIndex(),
+                classFile.getConstantPool().getConstantClassName(instanceOf.getIndex()), bindings);
+        if (end < 0) {
+            return false;
+        }
+        list.subList(ifIndex + 1, end).clear();
+        for (LocalVariable lv : bindings) {
+            lv.setDeclarationFlag(true);
+            lv.setPatternBinding(true);
+        }
+        instanceOf.setRecordPatternVariables(bindings);
+        return true;
+    }
+
+    /**
+     * Collects the bindings of the components of a record pattern, starting at {@code start}:
+     * {@code c1 = r.a(); t1 = c1; [goto END if true]; x = c1; c2 = r.b(); ...}.
+     *
+     * @return index of the first instruction after the components, or -1 if there are none
+     */
+    static int collectComponents(ClassFile classFile, LocalVariables localVariables, List<Instruction> list,
+            int start, int recordVariable, String recordName, List<LocalVariable> bindings) {
+        ConstantPool cp = classFile.getConstantPool();
+        int end = start;
         while (end < list.size() && list.get(end) instanceof StoreInstruction component
                 && component.getValueref() instanceof InvokeNoStaticInstruction accessor
                 && accessor.getArgs().isEmpty()
-                && accessor.getObjectref() instanceof ALoad owner && owner.getIndex() == record.getIndex()
+                && accessor.getObjectref() instanceof ALoad owner && owner.getIndex() == recordVariable
                 && recordName.equals(cp.getConstantClassName(cp.getConstantMethodref(accessor.getIndex()).getClassIndex()))) {
             int next = end + 1;
             StoreInstruction binding = null;
@@ -117,29 +138,20 @@ public final class PatternMatchingReconstructor {
                 next++;
             }
             if (binding == null) {
-                return false;
+                return -1;
             }
             LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(binding.getIndex(), binding.getOffset());
             if (lv == null) {
-                return false;
+                return -1;
             }
             bindings.add(lv);
             end = next;
         }
-        if (bindings.isEmpty()) {
-            return false;
-        }
-        list.subList(ifIndex + 1, end).clear();
-        for (LocalVariable lv : bindings) {
-            lv.setDeclarationFlag(true);
-            lv.setPatternBinding(true);
-        }
-        instanceOf.setRecordPatternVariables(bindings);
-        return true;
+        return bindings.isEmpty() ? -1 : end;
     }
 
     /** Removes the handler throwing MatchException that javac generates around record patterns. */
-    private static void removeMatchExceptionHandlers(ClassFile classFile, Method method, List<Instruction> list) {
+    static void removeMatchExceptionHandlers(ClassFile classFile, Method method, List<Instruction> list) {
         CodeException[] exceptions = method.getCodeExceptions();
         if (exceptions == null) {
             return;

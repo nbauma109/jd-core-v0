@@ -114,6 +114,7 @@ import jd.core.process.layouter.visitor.MinLineNumberVisitor;
 import jd.core.process.writer.ConstantValueWriter;
 import jd.core.process.writer.EnumSwitchNameResolver;
 import jd.core.process.writer.EnumSwitchNameResolver.EnumSwitchNames;
+import jd.core.process.writer.PatternSwitchLabelWriter;
 import jd.core.process.writer.SignatureWriter;
 import jd.core.process.writer.SourceWriteable;
 import jd.core.util.SignatureUtil;
@@ -1600,22 +1601,8 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
 
     private void writeRecordPattern(int lineNumber, List<LocalVariable> components)
     {
-        ConstantPool constants = this.classFile.getConstantPool();
-        this.printer.print('(');
-        boolean first = true;
-        for (LocalVariable component : components)
-        {
-            if (!first) {
-                this.printer.print(", ");
-            }
-            first = false;
-            SignatureWriter.writeSignature(
-                this.loader, this.printer, this.referenceMap,
-                this.classFile, component.getSignature(constants));
-            this.printer.print(' ');
-            this.printer.print(lineNumber, constants.getConstantUtf8(component.getNameIndex()));
-        }
-        this.printer.print(')');
+        PatternSwitchLabelWriter.writeComponents(
+            this.loader, this.printer, this.referenceMap, this.classFile, components);
     }
 
     private static boolean declaresOwnMembers(ClassFile anonymousClassFile)
@@ -3356,6 +3343,13 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                 this.classFile, cv);
             break;
         default:
+            if (fs.getPatternSelector() != null)
+            {
+                PatternSwitchLabelWriter.write(
+                    this.loader, this.printer, this.referenceMap, this.classFile,
+                    fs.getPatternSelector(), pair.getKey(), guard -> visit(guard));
+                break;
+            }
             String signature = fs.getTest().getReturnedSignature(
                 this.classFile, this.localVariables);
             char type = signature == null ? 'X' : signature.charAt(0);

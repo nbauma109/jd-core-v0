@@ -51,6 +51,8 @@ import jd.core.model.instruction.bytecode.instruction.ConstructorReference;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
 import jd.core.model.instruction.bytecode.instruction.LambdaInstruction;
+import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
+import jd.core.model.instruction.bytecode.instruction.PatternSwitchSelector;
 import jd.core.model.instruction.bytecode.instruction.MethodReference;
 import jd.core.model.instruction.bytecode.instruction.StaticMethodReference;
 import jd.core.process.analyzer.classfile.ClassFileAnalyzer;
@@ -122,6 +124,14 @@ public class InvokeDynamicFactory implements InstructionFactory
             } finally {
                 StringConcatenationUtil.exit();
             }
+            return Const.getNoOfOperands(opcode);
+        }
+
+        if (("typeSwitch".equals(indyMethodName) || "enumSwitch".equals(indyMethodName))
+                && indyParameters != null && indyParameters.size() == 2 && indyParameters.get(0) instanceof ALoad selector) {
+            // Switch on patterns: the arguments of the bootstrap method are the labels
+            int restartIndexVariable = indyParameters.get(1) instanceof LoadInstruction restart ? restart.getIndex() : -1;
+            stack.push(new PatternSwitchSelector(selector, bootstrapArguments, "enumSwitch".equals(indyMethodName), restartIndexVariable));
             return Const.getNoOfOperands(opcode);
         }
 
