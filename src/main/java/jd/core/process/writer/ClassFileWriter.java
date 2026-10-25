@@ -2305,7 +2305,6 @@ public final class ClassFileWriter
 
         String enumDescriptor = SignatureUtil.createTypeName(internalEnumName);
 
-        FastSwitch.Pair[] pairs = celb.getFs().getPairs();
         int lineCount = celb.getLineCount() + 1;
         int lastIndex = celb.getLastIndex();
         int caseCount = lastIndex - celb.getFirstIndex() + 1;
@@ -2314,18 +2313,21 @@ public final class ClassFileWriter
         int middleLineCount = caseCount - caseByLine*lineCount;
         int middleIndex = celb.getFirstIndex() + middleLineCount*(caseByLine + 1);
         writeCaseEnumRange(
-            pairs, celb.getFirstIndex(), middleIndex, lastIndex, lineCount,
-            caseByLine + 1, enumSwitchNames, enumDescriptor, classFile);
+            celb, enumSwitchNames, enumDescriptor,
+            celb.getFirstIndex(), middleIndex, caseByLine + 1);
         writeCaseEnumRange(
-            pairs, middleIndex, lastIndex + 1, lastIndex, lineCount,
-            caseByLine, enumSwitchNames, enumDescriptor, classFile);
+            celb, enumSwitchNames, enumDescriptor,
+            middleIndex, lastIndex + 1, caseByLine);
     }
 
     private void writeCaseEnumRange(
-        FastSwitch.Pair[] pairs, int from, int to, int lastIndex, int lineCount,
-        int casesPerLine, EnumSwitchNameResolver.EnumSwitchNames enumSwitchNames,
-        String enumDescriptor, ClassFile classFile)
+        CaseEnumLayoutBlock celb, EnumSwitchNameResolver.EnumSwitchNames enumSwitchNames,
+        String enumDescriptor, int from, int to, int casesPerLine)
     {
+        FastSwitch.Pair[] pairs = celb.getFs().getPairs();
+        ClassFile classFile = celb.getClassFile();
+        int lastIndex = celb.getLastIndex();
+        int lineCount = celb.getLineCount() + 1;
         int j = casesPerLine;
 
         for (int i=from; i<to; i++)

@@ -81,7 +81,7 @@ public final class EnumSwitchNameResolver
         for (int i = 0; i < switchMap.size(); i++)
         {
             Integer valueIndex = switchMap.get(i);
-            if (valueIndex != null && valueIndex > 0)
+            if (valueIndex > 0)
             {
                 namesByKey.put(i + 1, ownerConstants.getConstantUtf8(valueIndex));
             }
@@ -95,18 +95,14 @@ public final class EnumSwitchNameResolver
     {
         Map<Integer, String> namesByKey = new HashMap<>();
         ClassFile enumClassFile = classFile.resolveClassFile(internalEnumName);
-
-        if (enumClassFile != null)
+        ConstantPool enumConstants = enumClassFile.getConstantPool();
+        int ordinal = 0;
+        for (Field field : enumClassFile.getFields())
         {
-            ConstantPool enumConstants = enumClassFile.getConstantPool();
-            int ordinal = 0;
-            for (Field field : enumClassFile.getFields())
+            if ((field.getAccessFlags() & Const.ACC_ENUM) != 0)
             {
-                if ((field.getAccessFlags() & Const.ACC_ENUM) != 0)
-                {
-                    namesByKey.put(ordinal, enumConstants.getConstantUtf8(field.getNameIndex()));
-                    ordinal++;
-                }
+                namesByKey.put(ordinal, enumConstants.getConstantUtf8(field.getNameIndex()));
+                ordinal++;
             }
         }
 
