@@ -188,7 +188,7 @@
 /*  188 */       if (!this.strategy.isNumber() || !lt.hasNext()) {
 /*  189 */         return 0;
 /*      */       }
-/*  191 */       FastDateParser.Strategy nextStrategy = ((StrategyAndWidth)lt.next()).strategy;
+/*  191 */       FastDateParser.Strategy nextStrategy = lt.next().strategy;
 /*  192 */       lt.previous();
 /*  193 */       return nextStrategy.isNumber() ? this.width : 0;
 /*      */     }
@@ -426,7 +426,7 @@
 /*      */   {
 /*  427 */     ListIterator<StrategyAndWidth> lt = this.patterns.listIterator();
 /*  428 */     while (lt.hasNext()) {
-/*  429 */       StrategyAndWidth strategyAndWidth = (StrategyAndWidth)lt.next();
+/*  429 */       StrategyAndWidth strategyAndWidth = lt.next();
 /*  430 */       int maxWidth = strategyAndWidth.getMaxWidth(lt);
 /*  431 */       if (!strategyAndWidth.strategy.parse(this, calendar, source, pos, maxWidth)) {
 /*  432 */         return false;
@@ -656,11 +656,11 @@
 /*      */   private Strategy getLocaleSpecificStrategy(int field, Calendar definingCalendar)
 /*      */   {
 /*  658 */     ConcurrentMap<Locale, Strategy> cache = getCache(field);
-/*  659 */     Strategy strategy = (Strategy)cache.get(this.locale);
+/*  659 */     Strategy strategy = cache.get(this.locale);
 /*  660 */     if (strategy == null) {
 /*  661 */       strategy = field == 15 ? new TimeZoneStrategy(this.locale) : new CaseInsensitiveTextStrategy(field, definingCalendar, this.locale);
 /*      */       
-/*  663 */       Strategy inCache = (Strategy)cache.putIfAbsent(this.locale, strategy);
+/*  663 */       Strategy inCache = cache.putIfAbsent(this.locale, strategy);
 /*  664 */       if (inCache != null) {
 /*  665 */         return inCache;
 /*      */       }
@@ -754,10 +754,10 @@
 /*      */     void setCalendar(FastDateParser parser, Calendar calendar, String value)
 /*      */     {
 /*  756 */       String lowerCase = value.toLowerCase(this.locale);
-/*  757 */       Integer iVal = (Integer)this.lKeyValues.get(lowerCase);
+/*  757 */       Integer iVal = this.lKeyValues.get(lowerCase);
 /*  758 */       if (iVal == null)
 /*      */       {
-/*  760 */         iVal = (Integer)this.lKeyValues.get(lowerCase + '.');
+/*  760 */         iVal = this.lKeyValues.get(lowerCase + '.');
 /*      */       }
 /*  762 */       calendar.set(this.field, iVal.intValue());
 /*      */     }

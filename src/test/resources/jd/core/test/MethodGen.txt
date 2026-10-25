@@ -65,7 +65,7 @@
 /*      */     
 /*      */     public MethodGen.BranchTarget pop() {
 /*   67 */       if (!this.branchTargets.empty()) {
-/*   68 */         return (MethodGen.BranchTarget)this.branchTargets.pop();
+/*   68 */         return this.branchTargets.pop();
 /*      */       }
 /*   70 */       return null;
 /*      */     }
@@ -687,7 +687,7 @@
 /*      */   {
 /*  688 */     int size = this.exceptionList.size();
 /*  689 */     CodeException[] cExc = new CodeException[size];
-/*  690 */     Arrays.setAll(cExc,  i -> ((CodeExceptionGen)this.exceptionList.get(i)).getCodeException(super.getConstantPool()));
+/*  690 */     Arrays.setAll(cExc,  i -> this.exceptionList.get(i).getCodeException(super.getConstantPool()));
 /*  691 */     return cExc;
 /*      */   }
 /*      */   
@@ -711,7 +711,7 @@
 /*      */   {
 /*  712 */     int size = this.throwsList.size();
 /*  713 */     int[] ex = new int[size];
-/*  714 */     Arrays.setAll(ex,  i -> cp.addClass((String)this.throwsList.get(i)));
+/*  714 */     Arrays.setAll(ex,  i -> cp.addClass(this.throwsList.get(i)));
 /*  715 */     return new ExceptionTable(cp.addUtf8("Exceptions"), 2 + 2 * size, ex, cp.getConstantPool());
 /*      */   }
 /*      */   
@@ -732,7 +732,7 @@
 /*      */   {
 /*  733 */     int size = this.lineNumberList.size();
 /*  734 */     LineNumber[] ln = new LineNumber[size];
-/*  735 */     Arrays.setAll(ln,  i -> ((LineNumberGen)this.lineNumberList.get(i)).getLineNumber());
+/*  735 */     Arrays.setAll(ln,  i -> this.lineNumberList.get(i).getLineNumber());
 /*  736 */     return new LineNumberTable(cp.addUtf8("LineNumberTable"), 2 + ln.length * 4, ln, cp.getConstantPool());
 /*      */   }
 /*      */   

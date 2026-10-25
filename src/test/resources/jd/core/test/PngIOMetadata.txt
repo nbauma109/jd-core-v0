@@ -71,7 +71,7 @@
 /*     */   private static void writeInternal(RenderedImage image, OutputStream os, String metadata, int dpi, String debugData)
 /*     */     throws IOException
 /*     */   {
-/*  74 */     ImageWriter writer = (ImageWriter)ImageIO.getImageWritersByFormatName("png").next();
+/*  74 */     ImageWriter writer = ImageIO.getImageWritersByFormatName("png").next();
 /*  75 */     ImageWriteParam writeParam = writer.getDefaultWriteParam();
 /*     */     
 /*  77 */     ImageTypeSpecifier typeSpecifier = ImageTypeSpecifier.createFromBufferedImageType(1);
@@ -173,7 +173,7 @@
 /*     */   private static ImageWriter getImageWriter() {
 /* 174 */     Iterator<ImageWriter> iterator = SImageIO.getImageWritersBySuffix("png");
 /* 175 */     for (Iterator<ImageWriter> it = SImageIO.getImageWritersBySuffix("png"); it.hasNext();) {
-/* 176 */       ImageWriter imagewriter = (ImageWriter)iterator.next();
+/* 176 */       ImageWriter imagewriter = iterator.next();
 /* 177 */       Log.debug("PngIOMetadata countImageWriter = " + it.next());
 /* 178 */       if (imagewriter.getClass().getName().equals("com.sun.imageio.plugins.png.PNGImageWriter")) {
 /* 179 */         Log.debug("PngIOMetadata Found sun PNGImageWriter");
@@ -182,6 +182,6 @@
 /*     */     }
 /*     */     
 /* 184 */     Log.debug("Using first one");
-/* 185 */     return (ImageWriter)SImageIO.getImageWritersBySuffix("png").next();
+/* 185 */     return SImageIO.getImageWritersBySuffix("png").next();
 /*     */   }
 /*     */ }

@@ -52,7 +52,7 @@
 /*     */   @Override
 /*     */   public boolean isOpen()
 /*     */   {
-/*  55 */     return isOpen((State)this.state.get());
+/*  55 */     return isOpen(this.state.get());
 /*     */   }
 /*     */   
 /*     */ 

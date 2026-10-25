@@ -97,12 +97,12 @@
 /*     */   
 /*     */   private boolean oneLoop() {
 /*  99 */     for (int i = this.all.size() - 2; i >= 0; i--) {
-/* 100 */       Segment seg1 = (Segment)this.all.get(i);
-/* 101 */       Segment seg2 = (Segment)this.all.get(i + 1);
+/* 100 */       Segment seg1 = this.all.get(i);
+/* 101 */       Segment seg2 = this.all.get(i + 1);
 /* 102 */       double overlap = seg1.overlap(seg2);
 /* 103 */       if (overlap > 0.0D) {
 /* 104 */         for (int k = i + 1; k < this.all.size(); k++)
-/* 105 */           ((Segment)this.all.get(k)).push(overlap);
+/* 105 */           this.all.get(k).push(overlap);
 /* 106 */         return true;
 /*     */       }
 /*     */     }

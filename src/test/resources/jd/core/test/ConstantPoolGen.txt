@@ -548,7 +548,7 @@
 /*     */   }
 /*     */   
 /*     */   private int computeIfAbsent(Map<String, Integer> map, String key, int value) {
-/* 551 */     return ((Integer)map.computeIfAbsent(key, k -> Integer.valueOf(value))).intValue();
+/* 551 */     return map.computeIfAbsent(key, k -> Integer.valueOf(value)).intValue();
 /*     */   }
 /*     */   
 /*     */ 
@@ -574,7 +574,7 @@
 /*     */   }
 /*     */   
 /*     */   private int getIndex(Map<String, Integer> map, String key) {
-/* 577 */     return toIndex((Integer)map.get(key));
+/* 577 */     return toIndex(map.get(key));
 /*     */   }
 /*     */   
 /*     */ 

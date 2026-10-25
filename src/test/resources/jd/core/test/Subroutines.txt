@@ -550,7 +550,7 @@
 /*     */ 
 /*     */   public Subroutine getSubroutine(InstructionHandle leader)
 /*     */   {
-/* 553 */     Subroutine ret = (Subroutine)this.subroutines.get(leader);
+/* 553 */     Subroutine ret = this.subroutines.get(leader);
 /*     */     
 /* 555 */     if (ret == null) {
 /* 556 */       throw new AssertionViolatedException("Subroutine requested for an InstructionHandle that is not a leader of a subroutine.");

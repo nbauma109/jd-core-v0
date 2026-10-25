@@ -117,7 +117,7 @@
 /*     */   @Override
 /*     */   public int getCount(Object object)
 /*     */   {
-/* 120 */     MutableInteger count = (MutableInteger)this.map.get(object);
+/* 120 */     MutableInteger count = this.map.get(object);
 /* 121 */     if (count != null) {
 /* 122 */       return count.value;
 /*     */     }
@@ -186,8 +186,8 @@
 /* 186 */         throw new ConcurrentModificationException();
 /*     */       }
 /* 188 */       if (this.itemCount == 0) {
-/* 189 */         this.current = (Map.Entry)this.entryIterator.next();
-/* 190 */         this.itemCount = ((AbstractMapMultiSet.MutableInteger)this.current.getValue()).value;
+/* 189 */         this.current = this.entryIterator.next();
+/* 190 */         this.itemCount = this.current.getValue().value;
 /*     */       }
 /* 192 */       this.canRemove = true;
 /* 193 */       this.itemCount--;
@@ -203,7 +203,7 @@
 /* 203 */       if (!this.canRemove) {
 /* 204 */         throw new IllegalStateException();
 /*     */       }
-/* 206 */       AbstractMapMultiSet.MutableInteger mut = (AbstractMapMultiSet.MutableInteger)this.current.getValue();
+/* 206 */       AbstractMapMultiSet.MutableInteger mut = this.current.getValue();
 /* 207 */       if (mut.value > 1) {
 /* 208 */         mut.value--;
 /*     */       } else {
@@ -221,7 +221,7 @@
 /* 221 */       throw new IllegalArgumentException("Occurrences must not be negative.");
 /*     */     }
 /*     */     
-/* 224 */     MutableInteger mut = (MutableInteger)this.map.get(object);
+/* 224 */     MutableInteger mut = this.map.get(object);
 /* 225 */     int oldCount = mut != null ? mut.value : 0;
 /*     */     
 /* 227 */     if (occurrences > 0) {
@@ -253,7 +253,7 @@
 /* 253 */       throw new IllegalArgumentException("Occurrences must not be negative.");
 /*     */     }
 /*     */     
-/* 256 */     MutableInteger mut = (MutableInteger)this.map.get(object);
+/* 256 */     MutableInteger mut = this.map.get(object);
 /* 257 */     if (mut == null) {
 /* 258 */       return 0;
 /*     */     }
@@ -397,7 +397,7 @@
 /*     */     
 /*     */     @Override
 /*     */     public MultiSet.Entry<E> next() {
-/* 400 */       this.last = new AbstractMapMultiSet.MultiSetEntry<>((Map.Entry)this.decorated.next());
+/* 400 */       this.last = new AbstractMapMultiSet.MultiSetEntry<>(this.decorated.next());
 /* 401 */       this.canRemove = true;
 /* 402 */       return this.last;
 /*     */     }
@@ -435,7 +435,7 @@
 /*     */     
 /*     */     @Override
 /*     */     public int getCount() {
-/* 438 */       return ((AbstractMapMultiSet.MutableInteger)this.parentEntry.getValue()).value;
+/* 438 */       return this.parentEntry.getValue().value;
 /*     */     }
 /*     */   }
 /*     */   

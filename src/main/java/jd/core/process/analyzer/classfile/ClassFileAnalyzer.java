@@ -82,7 +82,9 @@ import jd.core.process.analyzer.classfile.reconstructor.SimpleNewInstructionReco
 import jd.core.process.analyzer.classfile.reconstructor.TryWithResourcesReconstructor;
 import jd.core.process.analyzer.classfile.visitor.CheckCastAndConvertInstructionVisitor;
 import jd.core.process.analyzer.classfile.visitor.ReplaceOuterReferenceVisitor;
+import jd.core.process.analyzer.classfile.visitor.AddWildcardCastVisitor;
 import jd.core.process.analyzer.classfile.visitor.ReplaceBooleanTernaryVisitor;
+import jd.core.process.analyzer.classfile.visitor.ReplaceRedundantCastVisitor;
 import jd.core.process.analyzer.classfile.visitor.ReplaceStringBuxxxerVisitor;
 import jd.core.process.analyzer.classfile.visitor.SetConstantTypeInStringIndexOfMethodsVisitor;
 import jd.core.process.analyzer.instruction.bytecode.InstructionListBuilder;
@@ -980,6 +982,8 @@ public final class ClassFileAnalyzer
         DupLocalVariableAnalyzer.declare(classFile, method, fastList);
         PatternSwitchReconstructor.reconstruct(classFile, method, fastList);
         new ReplaceBooleanTernaryVisitor(classFile, method.getLocalVariables()).visit(fastList);
+        new ReplaceRedundantCastVisitor(classFile, method.getLocalVariables()).visit(fastList);
+        new AddWildcardCastVisitor(classFile, method).visit(fastList);
         if (!method.getTryResources().isEmpty() && !TryWithResourcesReconstructor.wrap(method, fastList)) {
             method.setContainsError(true);
         }

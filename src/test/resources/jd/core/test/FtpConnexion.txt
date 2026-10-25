@@ -113,7 +113,7 @@
 /* 113 */     if (fileName.startsWith("/")) {
 /* 114 */       throw new IllegalArgumentException();
 /*     */     }
-/* 116 */     String data = (String)this.incoming.get(fileName);
+/* 116 */     String data = this.incoming.get(fileName);
 /* 117 */     if (data != null) {
 /* 118 */       return data.getBytes();
 /*     */     }
@@ -128,7 +128,7 @@
 /* 128 */     if (fileName.startsWith("/")) {
 /* 129 */       throw new IllegalArgumentException();
 /*     */     }
-/* 131 */     String data = (String)this.incoming.get(fileName);
+/* 131 */     String data = this.incoming.get(fileName);
 /* 132 */     if (data != null) {
 /* 133 */       return data.length();
 /*     */     }
@@ -146,14 +146,14 @@
 /* 146 */     String pngFileName = getFutureFileName(fileName);
 /* 147 */     boolean done = false;
 /*     */     try {
-/* 149 */       SourceStringReader sourceStringReader = new SourceStringReader((String)this.incoming.get(fileName));
+/* 149 */       SourceStringReader sourceStringReader = new SourceStringReader(this.incoming.get(fileName));
 /* 150 */       ByteArrayOutputStream baos = new ByteArrayOutputStream();
 /* 151 */       FileFormat format = getFileFormat();
 /* 152 */       FileFormatOption fileFormatOption = new FileFormatOption(format);
 /* 153 */       DiagramDescription desc = sourceStringReader.generateDiagramDescription(fileFormatOption);
 /* 154 */       List<BlockUml> blocks = sourceStringReader.getBlocks();
 /* 155 */       if (blocks.size() > 0) {
-/* 156 */         ((BlockUml)blocks.get(0)).getDiagram().exportDiagram(baos, 0, fileFormatOption);
+/* 156 */         blocks.get(0).getDiagram().exportDiagram(baos, 0, fileFormatOption);
 /*     */       }
 /* 158 */       String errorFileName = pngFileName.substring(0, pngFileName.length() - 4) + ".err";
 /* 159 */       synchronized (this) {

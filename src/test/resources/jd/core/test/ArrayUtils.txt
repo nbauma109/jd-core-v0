@@ -6040,7 +6040,7 @@
 /* 6040 */     BitSet toRemove = new BitSet();
 /* 6041 */     for (int i = 0; i < array.length; i++) {
 /* 6042 */       boolean key = array[i];
-/* 6043 */       MutableInt count = (MutableInt)occurrences.get(Boolean.valueOf(key));
+/* 6043 */       MutableInt count = occurrences.get(Boolean.valueOf(key));
 /* 6044 */       if (count != null) {
 /* 6045 */         if (count.decrementAndGet() == 0) {
 /* 6046 */           occurrences.remove(Boolean.valueOf(key));
@@ -6095,7 +6095,7 @@
 /* 6095 */     BitSet toRemove = new BitSet();
 /* 6096 */     for (int i = 0; i < array.length; i++) {
 /* 6097 */       byte key = array[i];
-/* 6098 */       MutableInt count = (MutableInt)occurrences.get(Byte.valueOf(key));
+/* 6098 */       MutableInt count = occurrences.get(Byte.valueOf(key));
 /* 6099 */       if (count != null) {
 /* 6100 */         if (count.decrementAndGet() == 0) {
 /* 6101 */           occurrences.remove(Byte.valueOf(key));
@@ -6150,7 +6150,7 @@
 /* 6150 */     BitSet toRemove = new BitSet();
 /* 6151 */     for (int i = 0; i < array.length; i++) {
 /* 6152 */       char key = array[i];
-/* 6153 */       MutableInt count = (MutableInt)occurrences.get(Character.valueOf(key));
+/* 6153 */       MutableInt count = occurrences.get(Character.valueOf(key));
 /* 6154 */       if (count != null) {
 /* 6155 */         if (count.decrementAndGet() == 0) {
 /* 6156 */           occurrences.remove(Character.valueOf(key));
@@ -6205,7 +6205,7 @@
 /* 6205 */     BitSet toRemove = new BitSet();
 /* 6206 */     for (int i = 0; i < array.length; i++) {
 /* 6207 */       double key = array[i];
-/* 6208 */       MutableInt count = (MutableInt)occurrences.get(Double.valueOf(key));
+/* 6208 */       MutableInt count = occurrences.get(Double.valueOf(key));
 /* 6209 */       if (count != null) {
 /* 6210 */         if (count.decrementAndGet() == 0) {
 /* 6211 */           occurrences.remove(Double.valueOf(key));
@@ -6260,7 +6260,7 @@
 /* 6260 */     BitSet toRemove = new BitSet();
 /* 6261 */     for (int i = 0; i < array.length; i++) {
 /* 6262 */       float key = array[i];
-/* 6263 */       MutableInt count = (MutableInt)occurrences.get(Float.valueOf(key));
+/* 6263 */       MutableInt count = occurrences.get(Float.valueOf(key));
 /* 6264 */       if (count != null) {
 /* 6265 */         if (count.decrementAndGet() == 0) {
 /* 6266 */           occurrences.remove(Float.valueOf(key));
@@ -6315,7 +6315,7 @@
 /* 6315 */     BitSet toRemove = new BitSet();
 /* 6316 */     for (int i = 0; i < array.length; i++) {
 /* 6317 */       int key = array[i];
-/* 6318 */       MutableInt count = (MutableInt)occurrences.get(Integer.valueOf(key));
+/* 6318 */       MutableInt count = occurrences.get(Integer.valueOf(key));
 /* 6319 */       if (count != null) {
 /* 6320 */         if (count.decrementAndGet() == 0) {
 /* 6321 */           occurrences.remove(Integer.valueOf(key));
@@ -6370,7 +6370,7 @@
 /* 6370 */     BitSet toRemove = new BitSet();
 /* 6371 */     for (int i = 0; i < array.length; i++) {
 /* 6372 */       long key = array[i];
-/* 6373 */       MutableInt count = (MutableInt)occurrences.get(Long.valueOf(key));
+/* 6373 */       MutableInt count = occurrences.get(Long.valueOf(key));
 /* 6374 */       if (count != null) {
 /* 6375 */         if (count.decrementAndGet() == 0) {
 /* 6376 */           occurrences.remove(Long.valueOf(key));
@@ -6425,7 +6425,7 @@
 /* 6425 */     BitSet toRemove = new BitSet();
 /* 6426 */     for (int i = 0; i < array.length; i++) {
 /* 6427 */       short key = array[i];
-/* 6428 */       MutableInt count = (MutableInt)occurrences.get(Short.valueOf(key));
+/* 6428 */       MutableInt count = occurrences.get(Short.valueOf(key));
 /* 6429 */       if (count != null) {
 /* 6430 */         if (count.decrementAndGet() == 0) {
 /* 6431 */           occurrences.remove(Short.valueOf(key));
@@ -6481,7 +6481,7 @@
 /* 6481 */     BitSet toRemove = new BitSet();
 /* 6482 */     for (int i = 0; i < array.length; i++) {
 /* 6483 */       T key = array[i];
-/* 6484 */       MutableInt count = (MutableInt)occurrences.get(key);
+/* 6484 */       MutableInt count = occurrences.get(key);
 /* 6485 */       if (count != null) {
 /* 6486 */         if (count.decrementAndGet() == 0) {
 /* 6487 */           occurrences.remove(key);

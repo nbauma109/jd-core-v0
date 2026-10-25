@@ -91,7 +91,7 @@
 /*  91 */       throw new NullPointerException("The predicate and closure map must not be null");
 /*     */     }
 /*     */     
-/*  94 */     Closure<? super E> defaultClosure = (Closure)predicatesAndClosures.remove(null);
+/*  94 */     Closure<? super E> defaultClosure = predicatesAndClosures.remove(null);
 /*  95 */     int size = predicatesAndClosures.size();
 /*  96 */     if (size == 0) {
 /*  97 */       return defaultClosure == null ? NOPClosure.nopClosure() : (Closure<E>)defaultClosure;

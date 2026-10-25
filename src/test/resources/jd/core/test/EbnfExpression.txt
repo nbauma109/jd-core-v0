@@ -136,8 +136,8 @@
 /*     */     }
 /*     */     try {
 /* 138 */       Iterator<Token> iterator = this.tokens.iterator();
-/* 139 */       Token name = (Token)iterator.next();
-/* 140 */       Token definition = (Token)iterator.next();
+/* 139 */       Token name = iterator.next();
+/* 140 */       Token definition = iterator.next();
 /* 141 */       if (definition.getSymbol() != Symbol.DEFINITION) {
 /* 142 */         return EbnfEngine.syntaxError(fc, skinParam);
 /*     */       }
@@ -184,7 +184,7 @@
 /*     */   private TextBlock getMainDrawing(ISkinParam skinParam, Iterator<Token> it) {
 /* 185 */     EbnfEngine engine = new EbnfEngine(skinParam);
 /* 186 */     while (it.hasNext()) {
-/* 187 */       Token element = (Token)it.next();
+/* 187 */       Token element = it.next();
 /* 188 */       if (element.getSymbol() == Symbol.TERMINAL_STRING1 || element.getSymbol() == Symbol.TERMINAL_STRING2 || 
 /* 189 */         element.getSymbol() == Symbol.LITTERAL || element.getSymbol() == Symbol.SPECIAL_SEQUENCE) {
 /* 190 */         engine.push(element);

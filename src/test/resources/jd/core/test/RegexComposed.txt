@@ -62,7 +62,7 @@
 /*  62 */   private final AtomicReference<Pattern2> fullCached = new AtomicReference<>();
 /*     */   
 /*     */   private Pattern2 getPattern2() {
-/*  65 */     Pattern2 result = (Pattern2)this.fullCached.get();
+/*  65 */     Pattern2 result = this.fullCached.get();
 /*  66 */     if (result == null) {
 /*  67 */       String fullSlow = getFullSlow();
 /*  68 */       result = MyPattern.cmpile(fullSlow);

@@ -299,7 +299,7 @@
 /*     */     public ConcurrentException getException(String name)
 /*     */     {
 /* 301 */       checkName(name);
-/* 302 */       return (ConcurrentException)this.exceptions.get(name);
+/* 302 */       return this.exceptions.get(name);
 /*     */     }
 /*     */     
 /*     */ 
@@ -333,7 +333,7 @@
 /*     */ 
 /*     */     private BackgroundInitializer<?> checkName(String name)
 /*     */     {
-/* 336 */       BackgroundInitializer<?> init = (BackgroundInitializer)this.initializers.get(name);
+/* 336 */       BackgroundInitializer<?> init = this.initializers.get(name);
 /* 337 */       if (init == null) {
 /* 338 */         throw new NoSuchElementException("No child initializer with name " + name);
 /*     */       }

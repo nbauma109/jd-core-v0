@@ -434,7 +434,7 @@
 /*     */     {
 /* 435 */       if (get(0).type != type)
 /* 436 */         throw new Error("Expected " + type + ".");
-/* 437 */       return (Jasic.Token)this.tokens.get(this.position++);
+/* 437 */       return this.tokens.get(this.position++);
 /*     */     }
 /*     */     
 /*     */ 
@@ -458,7 +458,7 @@
 /*     */ 
 /*     */     private Jasic.Token last(int offset)
 /*     */     {
-/* 461 */       return (Jasic.Token)this.tokens.get(this.position - offset);
+/* 461 */       return this.tokens.get(this.position - offset);
 /*     */     }
 /*     */     
 /*     */ 
@@ -472,7 +472,7 @@
 /* 472 */       if (this.position + offset >= this.tokens.size()) {
 /* 473 */         return new Jasic.Token("", Jasic.TokenType.EOF);
 /*     */       }
-/* 475 */       return (Jasic.Token)this.tokens.get(this.position + offset);
+/* 475 */       return this.tokens.get(this.position + offset);
 /*     */     }
 /*     */   }
 /*     */   
@@ -815,7 +815,7 @@
 /* 815 */     while (this.currentStatement < statements.size()) {
 /* 816 */       int thisStatement = this.currentStatement;
 /* 817 */       this.currentStatement++;
-/* 818 */       ((Statement)statements.get(thisStatement)).execute();
+/* 818 */       statements.get(thisStatement).execute();
 /*     */     }
 /*     */   }
 /*     */   

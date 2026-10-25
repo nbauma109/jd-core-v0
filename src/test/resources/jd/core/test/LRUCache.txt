@@ -22,7 +22,7 @@
 /*    */   }
 /*    */   
 /*    */   public int get(int key) {
-/* 25 */     return ((Integer)this.map.getOrDefault(Integer.valueOf(key), Integer.valueOf(-1))).intValue();
+/* 25 */     return this.map.getOrDefault(Integer.valueOf(key), Integer.valueOf(-1)).intValue();
 /*    */   }
 /*    */   
 /*    */   public void set(int key, int value) {
