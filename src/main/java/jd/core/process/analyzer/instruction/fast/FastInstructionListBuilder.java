@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2007-2019 Emmanuel Dupuy GPLv3
+ * Copyright (C) 2026 Nicolas Baumann (GitHub: nbauma109), with Claude Sonnet 5 (claude-sonnet-5) and Claude Sonnet 5.5 (claude-sonnet-5-5)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,7 +19,6 @@ package jd.core.process.analyzer.instruction.fast;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantCP;
-import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -43,6 +43,7 @@ import static org.jd.core.v1.util.StringConstants.INTERNAL_OBJECT_SIGNATURE;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
+import jd.core.model.classfile.Field;
 import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.classfile.Method;
@@ -61,7 +62,6 @@ import jd.core.model.instruction.bytecode.instruction.ConditionalBranchInstructi
 import jd.core.model.instruction.bytecode.instruction.DupStore;
 import jd.core.model.instruction.bytecode.instruction.DConst;
 import jd.core.model.instruction.bytecode.instruction.ExceptionLoad;
-import jd.core.model.instruction.bytecode.instruction.GetStatic;
 import jd.core.model.instruction.bytecode.instruction.Goto;
 import jd.core.model.instruction.bytecode.instruction.FConst;
 import jd.core.model.instruction.bytecode.instruction.IConst;
@@ -119,6 +119,7 @@ import jd.core.process.analyzer.instruction.fast.reconstructor.IfGotoToIfReconst
 import jd.core.process.analyzer.instruction.fast.reconstructor.InitArrayInstructionReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.RemoveDupConstantsAttributes;
 import jd.core.process.analyzer.instruction.fast.reconstructor.SwitchExpressionReconstructor;
+import jd.core.process.writer.EnumSwitchNameResolver;
 import jd.core.process.analyzer.instruction.fast.reconstructor.StructuredAssertReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.EmptyEnumSwitchReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.TernaryOpInReturnReconstructor;
@@ -4349,7 +4350,7 @@ public final class FastInstructionListBuilder {
         }
 
         // SWITCH or SWITCH_ENUM ?
-        int switchOpcode = analyzeSwitchType(classFile, ls.getKey());
+        int switchOpcode = analyzeSwitchType(classFile, ls.getKey(), pairs);
 
         // SWITCH or Eclipse SWITCH_STRING ?
         if (classFile.getMajorVersion() >= 51 && switchOpcode == FastConstants.SWITCH
@@ -4373,69 +4374,94 @@ public final class FastInstructionListBuilder {
                 ls.getLineNumber(), ls.getKey(), pairs, pairLength);
     }
 
-    private static int analyzeSwitchType(ClassFile classFile, Instruction i)
+    private static int analyzeSwitchType(ClassFile classFile, Instruction i, FastSwitch.Pair[] pairs)
     {
-        if (i.getOpcode() == ByteCodeConstants.ARRAYLOAD)
+        // switch(1.$SwitchMap$basic$data$TestEnum$enum1[e.ordinal()]) ?
+        // switch(1.$SwitchMap$basic$data$TestEnum$enum1[request.getOperationType().ordinal()]) ?
+        if (i.getOpcode() == ByteCodeConstants.ARRAYLOAD && isSwitchMapArrayLoad(classFile, (ArrayLoadInstruction)i))
         {
-            // switch(1.$SwitchMap$basic$data$TestEnum$enum1[e.ordinal()]) ?
-            // switch(1.$SwitchMap$basic$data$TestEnum$enum1[request.getOperationType().ordinal()]) ?
-            ArrayLoadInstruction ali = (ArrayLoadInstruction)i;
+            return FastConstants.SWITCH_ENUM;
+        }
 
-            if (ali.getIndexref().getOpcode() == Const.INVOKEVIRTUAL)
-            {
-                if (ali.getArrayref().getOpcode() == Const.GETSTATIC)
-                {
-                    GetStatic gs = (GetStatic) ali.getArrayref();
-
-                    ConstantPool constants = classFile.getConstantPool();
-                    ConstantFieldref cfr = constants.getConstantFieldref(gs.getIndex());
-                    ConstantNameAndType cnat = constants.getConstantNameAndType(cfr.getNameAndTypeIndex());
-                    String cnatName = constants.getConstantUtf8(cnat.getNameIndex());
-                    if (classFile.getSwitchMapOwner(cnatName) != null) {
-                        Invokevirtual iv = (Invokevirtual) ali.getIndexref();
-
-                        if (iv.getArgs().isEmpty()) {
-                            ConstantCP cmr = constants.getConstantMethodref(iv.getIndex());
-                            cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
-
-                            if (StringConstants.ORDINAL_METHOD_NAME.equals(constants.getConstantUtf8(cnat.getNameIndex()))) {
-                                // SWITCH_ENUM found
-                                return FastConstants.SWITCH_ENUM;
-                            }
-                        }
-                    }
-                }
-                else if (ali.getArrayref().getOpcode() == Const.INVOKESTATIC)
-                {
-                    Invokestatic is = (Invokestatic) ali.getArrayref();
-
-                    if (is.getArgs().isEmpty()) {
-                        ConstantPool constants = classFile.getConstantPool();
-                        ConstantCP cmr = constants.getConstantMethodref(is.getIndex());
-
-                        if (cmr.getClassIndex() == classFile.getThisClassIndex()) {
-                            ConstantNameAndType cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
-                            String cnatName = constants.getConstantUtf8(cnat.getNameIndex());
-                            if (classFile.getSwitchMaps().containsKey(cnatName)) {
-                                Invokevirtual iv = (Invokevirtual) ali.getIndexref();
-
-                                if (iv.getArgs().isEmpty()) {
-                                    cmr = constants.getConstantMethodref(iv.getIndex());
-                                    cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
-
-                                    if (StringConstants.ORDINAL_METHOD_NAME.equals(constants.getConstantUtf8(cnat.getNameIndex()))) {
-                                        // Eclipse SWITCH_ENUM found
-                                        return FastConstants.SWITCH_ENUM;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        // JDK 21+ javac no longer emits a synthetic switch-map table for enum
+        // switches; it switches directly on the ordinal value instead.
+        if (i.getOpcode() == Const.INVOKEVIRTUAL && isEnumOrdinalCall(classFile, (Invokevirtual) i, pairs))
+        {
+            return FastConstants.SWITCH_ENUM;
         }
 
         return FastConstants.SWITCH;
+    }
+
+    private static boolean isSwitchMapArrayLoad(ClassFile classFile, ArrayLoadInstruction ali)
+    {
+        if (!(ali.getIndexref() instanceof Invokevirtual iv) || !isOrdinalCallWithoutArgs(classFile, iv)) {
+            return false;
+        }
+
+        String switchMapKey = EnumSwitchNameResolver.switchMapKey(classFile, ali);
+        if (switchMapKey == null) {
+            return false;
+        }
+
+        if (ali.getArrayref() instanceof Invokestatic is)
+        {
+            // Eclipse: the table is built by a static method of the class itself.
+            ConstantCP cmr = classFile.getConstantPool().getConstantMethodref(is.getIndex());
+            return is.getArgs().isEmpty()
+                    && cmr.getClassIndex() == classFile.getThisClassIndex()
+                    && classFile.getSwitchMaps().containsKey(switchMapKey);
+        }
+
+        return classFile.getSwitchMapOwner(switchMapKey) != null;
+    }
+
+    private static boolean isOrdinalCallWithoutArgs(ClassFile classFile, Invokevirtual iv)
+    {
+        if (!iv.getArgs().isEmpty()) {
+            return false;
+        }
+
+        ConstantPool constants = classFile.getConstantPool();
+        ConstantCP cmr = constants.getConstantMethodref(iv.getIndex());
+        ConstantNameAndType cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
+
+        return StringConstants.ORDINAL_METHOD_NAME.equals(constants.getConstantUtf8(cnat.getNameIndex()));
+    }
+
+    private static boolean isEnumOrdinalCall(ClassFile classFile, Invokevirtual iv, FastSwitch.Pair[] pairs)
+    {
+        if (!isOrdinalCallWithoutArgs(classFile, iv)) {
+            return false;
+        }
+
+        ConstantPool constants = classFile.getConstantPool();
+        ConstantCP cmr = constants.getConstantMethodref(iv.getIndex());
+
+        String internalEnumName = constants.getConstantClassName(cmr.getClassIndex());
+        ClassFile enumClassFile = classFile.resolveClassFile(internalEnumName);
+
+        if (enumClassFile == null || (enumClassFile.getAccessFlags() & Const.ACC_ENUM) == 0) {
+            return false;
+        }
+
+        int enumConstantCount = 0;
+        for (Field field : enumClassFile.getFields()) {
+            if ((field.getAccessFlags() & Const.ACC_ENUM) != 0) {
+                enumConstantCount++;
+            }
+        }
+
+        // A compiler-generated enum switch can only ever test valid ordinals.
+        // If a case label falls outside that range, this is a handwritten
+        // switch on '.ordinal()' and must stay a plain int switch.
+        for (FastSwitch.Pair pair : pairs) {
+            if (!pair.isDefault() && (pair.getKey() < 0 || pair.getKey() >= enumConstantCount)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /*
@@ -4469,7 +4495,7 @@ public final class FastInstructionListBuilder {
         }
 
         // SWITCH or Eclipse SWITCH_ENUM ?
-        int switchOpcode = analyzeSwitchType(classFile, ts.getKey());
+        int switchOpcode = analyzeSwitchType(classFile, ts.getKey(), pairs);
 
         // SWITCH or Eclipse SWITCH_STRING ?
         if (classFile.getMajorVersion() >= 51 && switchOpcode == FastConstants.SWITCH

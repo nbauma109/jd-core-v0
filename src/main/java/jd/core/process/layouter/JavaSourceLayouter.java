@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2007-2019 Emmanuel Dupuy GPLv3
+ * Copyright (C) 2026 Nicolas Baumann (GitHub: nbauma109), with Claude Sonnet 5 (claude-sonnet-5) and Claude Sonnet 5.5 (claude-sonnet-5-5)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,24 +18,17 @@
 package jd.core.process.layouter;
 
 import org.apache.bcel.Const;
-import org.apache.bcel.classfile.ConstantCP;
-import org.apache.bcel.classfile.ConstantFieldref;
-import org.apache.bcel.classfile.ConstantNameAndType;
 
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 
 import jd.core.model.classfile.ClassFile;
-import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.ArrayLoadInstruction;
 import jd.core.model.instruction.bytecode.instruction.BranchInstruction;
-import jd.core.model.instruction.bytecode.instruction.GetStatic;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
-import jd.core.model.instruction.bytecode.instruction.Invokestatic;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
 import jd.core.model.instruction.fast.FastConstants;
 import jd.core.model.instruction.fast.instruction.FastDeclaration;
@@ -71,6 +65,7 @@ import jd.core.preferences.Preferences;
 import jd.core.process.layouter.visitor.InstructionSplitterVisitor;
 import jd.core.process.layouter.visitor.InstructionsSplitterVisitor;
 import jd.core.process.layouter.visitor.MaxLineNumberVisitor;
+import jd.core.process.writer.EnumSwitchNameResolver;
 
 public class JavaSourceLayouter
 {
@@ -628,47 +623,37 @@ public class JavaSourceLayouter
 
         Instruction test = fs.getTest();
 
-        ConstantPool constants = classFile.getConstantPool();
         String switchMapKey = null;
 
         if (test.getOpcode() == ByteCodeConstants.ARRAYLOAD)
         {
             ArrayLoadInstruction ali = (ArrayLoadInstruction)test;
-            ConstantNameAndType cnat;
 
-            if (ali.getArrayref().getOpcode() == Const.INVOKESTATIC)
-            {
-                // Dans le cas des instructions Switch+Enum d'Eclipse, la clé de la map
-                // est l'indexe du nom de la méthode
-                // "static int[] $SWITCH_TABLE$basic$data$TestEnum$enum1()".
-                Invokestatic is = (Invokestatic)ali.getArrayref();
-                ConstantCP cmr = constants.getConstantMethodref(is.getIndex());
-                cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
-            }
-            else if (ali.getArrayref().getOpcode() == Const.GETSTATIC)
-            {
-                // Dans le cas des instructions Switch+Enum des autres compilateurs,
-                // la clé de la map est l'indexe du nom de la classe interne
-                // "static class 1" contenant le tableau de correspondance
-                // "$SwitchMap$basic$data$TestEnum$enum1".
-                GetStatic gs = (GetStatic)ali.getArrayref();
-                ConstantFieldref cfr = constants.getConstantFieldref(gs.getIndex());
-                cnat = constants.getConstantNameAndType(cfr.getNameAndTypeIndex());
-            }
-            else
-            {
+            // Eclipse: key is the name of the "$SWITCH_TABLE$..." method;
+            // other compilers: key is the name of the "$SwitchMap$..." field.
+            switchMapKey = EnumSwitchNameResolver.switchMapKey(classFile, ali);
+            if (switchMapKey == null) {
                 throw new IllegalStateException();
             }
-
-            switchMapKey = constants.getConstantUtf8(cnat.getNameIndex());
 
             Invokevirtual iv = (Invokevirtual)ali.getIndexref();
 
             createBlockForInstruction(
                     preferences, layoutBlockList, classFile, method, iv.getObjectref());
         }
+        else if (test.getOpcode() == Const.INVOKEVIRTUAL)
+        {
+            // javac >= 21 no longer emits a synthetic $SwitchMap$... table:
+            // it switches on enumValue.ordinal() directly.
+            Invokevirtual iv = (Invokevirtual)test;
 
-        Objects.requireNonNull(switchMapKey, "Null switchMapKey");
+            createBlockForInstruction(
+                    preferences, layoutBlockList, classFile, method, iv.getObjectref());
+        }
+        else
+        {
+            throw new IllegalStateException();
+        }
 
         layoutBlockList.add(new FragmentLayoutBlock(
                 LayoutBlockConstants.FRAGMENT_RIGHT_ROUND_BRACKET));

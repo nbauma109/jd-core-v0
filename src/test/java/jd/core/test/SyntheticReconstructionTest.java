@@ -438,8 +438,8 @@ public class SyntheticReconstructionTest {
     }
 
     @Test
-    public void emptyEnumSwitchInitializesEnumBeforeRejectingNull() throws Exception {
-        assertRoundTrip("""
+    public void emptyEnumSwitchPreservesEnumInitialization() throws Exception {
+        Path original = compile("""
                 public class SyntheticOuter {
                     private static int initialized;
                     private enum Kind { A; static { initialized++; } }
@@ -452,7 +452,9 @@ public class SyntheticReconstructionTest {
                         };
                     }
                 }
-                """, 17, "17");
+                """, "17");
+        // javac may omit the switch table when the enum is in the same compilation unit.
+        assertRoundTrip(original, evaluate(original, true), "17");
     }
 
     @Test

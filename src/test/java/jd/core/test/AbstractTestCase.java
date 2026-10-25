@@ -72,7 +72,12 @@ public abstract class AbstractTestCase {
             parser.setResolveBindings(true);
             parser.setBindingsRecovery(true);
             parser.setStatementsRecovery(true);
-            parser.setEnvironment(classpathEntries(loader), null, null, true);
+            String apiClasspath = JdkApiClasspath.forRelease(jdkVersion);
+            List<String> classpath = new ArrayList<>(List.of(classpathEntries(loader)));
+            if (apiClasspath != null) {
+                classpath.add(0, apiClasspath);
+            }
+            parser.setEnvironment(classpath.toArray(String[]::new), null, null, apiClasspath == null);
             parser.setUnitName(internalTypeName + ".java");
     
             Map<String, String> options = JavaCore.getOptions();

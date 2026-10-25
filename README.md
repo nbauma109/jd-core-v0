@@ -54,7 +54,7 @@ public class Sample {
 
 ## Line number audit
 
-Run tests with JDK 17, as in the main CI workflow. Line numbers are always displayed when the option is on; the dedicated alignment tests check that numeric line comments match their physical output line where realignment is possible. To scan every class in the direct test dependency JARs and compare numbered lines with the matching source JARs, first fetch the test sources, then run:
+CI runs the test suite on JDK 17, 21, and 25 with both javac and ECJ, targeting Java 17 bytecode. Source validation uses the API signatures for each fixture's requested Java release, independently of the JDK running the tests. Line numbers are always displayed when the option is on; the dedicated alignment tests check that numeric line comments match their physical output line where realignment is possible. To scan every class in the direct test dependency JARs and compare numbered lines with the matching source JARs, first fetch the test sources, then run:
 
 ```sh
 mvn dependency:sources -DincludeScope=test

@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2007-2019 Emmanuel Dupuy GPLv3
- * Copyright (C) 2026 Nicolas Baumann
+ * Copyright (C) 2026 Nicolas Baumann (GitHub: nbauma109), with Claude Sonnet 5 (claude-sonnet-5) and Claude Sonnet 5.5 (claude-sonnet-5-5)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,6 @@ package jd.core.process.writer;
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.AnnotationEntry;
 import org.apache.bcel.classfile.Constant;
-import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ElementValue;
 import org.apache.bcel.classfile.PermittedSubclasses;
 import org.apache.bcel.classfile.Signature;
@@ -2275,25 +2274,37 @@ public final class ClassFileWriter
         }
     }
 
+    private static EnumSwitchNameResolver.EnumSwitchNames resolveEnumSwitchNames(ClassFile classFile, CaseEnumLayoutBlock celb)
+    {
+        Instruction test = celb.getFs().getTest();
+
+        if (test instanceof ArrayLoadInstruction ali && ali.getIndexref() instanceof Invokevirtual iv)
+        {
+            // Pre-JDK 21 javac, and ECJ: a compiler-generated switch-map table lookup.
+            String internalEnumName = EnumSwitchNameResolver.internalEnumName(classFile, iv);
+            return EnumSwitchNameResolver.fromSwitchMap(classFile, celb.getSwitchMapKey(), internalEnumName);
+        }
+
+        if (test instanceof Invokevirtual iv)
+        {
+            // JDK 21+ javac: switches directly on the ordinal value, no switch-map table.
+            String internalEnumName = EnumSwitchNameResolver.internalEnumName(classFile, iv);
+            return EnumSwitchNameResolver.fromOrdinal(classFile, internalEnumName);
+        }
+
+        throw new IllegalStateException();
+    }
+
     private void writeCaseEnum(CaseEnumLayoutBlock celb)
     {
         addSpaceIfNeeded();
 
         ClassFile classFile = celb.getClassFile();
-        ConstantPool constants = classFile.getConstantPool();
-        ClassFile switchMapOwner = classFile.getSwitchMapOwner(celb.getSwitchMapKey());
-        List<Integer> switchMap = switchMapOwner.getSwitchMaps().get(celb.getSwitchMapKey());
-        ArrayLoadInstruction ali = (ArrayLoadInstruction)celb.getFs().getTest();
-        Invokevirtual iv = (Invokevirtual)ali.getIndexref();
-        ConstantCP cmr = constants.getConstantMethodref(iv.getIndex());
-        String internalEnumName =
-            constants.getConstantClassName(cmr.getClassIndex());
-
-        constants = switchMapOwner.getConstantPool();
+        EnumSwitchNameResolver.EnumSwitchNames enumSwitchNames = resolveEnumSwitchNames(classFile, celb);
+        String internalEnumName = enumSwitchNames.internalEnumName();
 
         String enumDescriptor = SignatureUtil.createTypeName(internalEnumName);
 
-        FastSwitch.Pair[] pairs = celb.getFs().getPairs();
         int lineCount = celb.getLineCount() + 1;
         int lastIndex = celb.getLastIndex();
         int caseCount = lastIndex - celb.getFirstIndex() + 1;
@@ -2301,9 +2312,25 @@ public final class ClassFileWriter
         int caseByLine = caseCount / lineCount;
         int middleLineCount = caseCount - caseByLine*lineCount;
         int middleIndex = celb.getFirstIndex() + middleLineCount*(caseByLine + 1);
-        int j = caseByLine + 1;
+        writeCaseEnumRange(
+            celb, enumSwitchNames, enumDescriptor,
+            celb.getFirstIndex(), middleIndex, caseByLine + 1);
+        writeCaseEnumRange(
+            celb, enumSwitchNames, enumDescriptor,
+            middleIndex, lastIndex + 1, caseByLine);
+    }
 
-        for (int i=celb.getFirstIndex(); i<middleIndex; i++)
+    private void writeCaseEnumRange(
+        CaseEnumLayoutBlock celb, EnumSwitchNameResolver.EnumSwitchNames enumSwitchNames,
+        String enumDescriptor, int from, int to, int casesPerLine)
+    {
+        FastSwitch.Pair[] pairs = celb.getFs().getPairs();
+        ClassFile classFile = celb.getClassFile();
+        int lastIndex = celb.getLastIndex();
+        int lineCount = celb.getLineCount() + 1;
+        int j = casesPerLine;
+
+        for (int i=from; i<to; i++)
         {
             FastSwitch.Pair pair = pairs[i];
 
@@ -2317,79 +2344,19 @@ public final class ClassFileWriter
                 this.printer.print(' ');
 
                 this.printer.debugStartOfInstructionBlockLayoutBlock();
-                int key = pair.getKey();
-
-                if (0 < key && key <= switchMap.size())
-                {
-                    Integer valueIndex = switchMap.get(key - 1);
-                    if (valueIndex == null || valueIndex <= 0) {
-                        this.printer.startOfError();
-                        this.printer.print("???");
-                        this.printer.endOfError();
-                    } else {
-                        String value = constants.getConstantUtf8(valueIndex);
-                        this.printer.printStaticField(
-                            internalEnumName, value,
-                            enumDescriptor, classFile.getThisClassName());
-                    }
-                }
-                else
+                String value = enumSwitchNames.nameForKey(pair.getKey());
+                if (value == null)
                 {
                     this.printer.startOfError();
                     this.printer.print("???");
                     this.printer.endOfError();
                 }
-                this.printer.debugEndOfInstructionBlockLayoutBlock();
-            }
-            this.printer.print(": ");
-
-            if (lineCount > 0)
-            {
-                if (j == 1 && i < lastIndex)
-                {
-                    endOfLine();
-                    this.printer.startOfLine(Printer.UNKNOWN_LINE_NUMBER);
-                    j = caseByLine + 1;
-                }
                 else
                 {
-                    j--;
-                }
-            }
-        }
-
-        j = caseByLine;
-
-        FastSwitch.Pair pair;
-        for (int i=middleIndex; i<=lastIndex; i++)
-        {
-            pair = pairs[i];
-
-            if (pair.isDefault())
-            {
-                this.printer.printKeyword(DEFAULT);
-            }
-            else
-            {
-                this.printer.printKeyword("case");
-                this.printer.print(' ');
-
-                this.printer.debugStartOfInstructionBlockLayoutBlock();
-                int key = pair.getKey();
-
-                if (0 < key && key <= switchMap.size())
-                {
-                    String value = constants.getConstantUtf8(switchMap.get(key-1));
                     this.printer.printStaticField(
-                        internalEnumName, value,
+                        enumSwitchNames.internalEnumName(), value,
                         enumDescriptor, classFile.getThisClassName());
                 }
-                else
-                {
-                    this.printer.startOfError();
-                    this.printer.print("???");
-                    this.printer.endOfError();
-                }
                 this.printer.debugEndOfInstructionBlockLayoutBlock();
             }
             this.printer.print(": ");
@@ -2400,7 +2367,7 @@ public final class ClassFileWriter
                 {
                     endOfLine();
                     this.printer.startOfLine(Printer.UNKNOWN_LINE_NUMBER);
-                    j = caseByLine;
+                    j = casesPerLine;
                 }
                 else
                 {

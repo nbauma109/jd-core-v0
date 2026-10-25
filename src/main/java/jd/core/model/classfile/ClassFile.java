@@ -1,6 +1,6 @@
 /**
  * Copyright (C) 2007-2019 Emmanuel Dupuy GPLv3
- * Copyright (C) 2026 Nicolas Baumann
+ * Copyright (C) 2026 Nicolas Baumann (GitHub: nbauma109), with Claude Sonnet 5 (claude-sonnet-5)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -403,6 +403,38 @@ public class ClassFile extends Base
             for (ClassFile innerClassFile : innerClassFiles) {
                 if (innerClassFile.thisClassName.equals(internalClassName)) {
                     return innerClassFile;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Looks up a class, anywhere in the type hierarchy being decompiled
+     * (outer classes and their nested classes), by its internal name.
+     */
+    public ClassFile resolveClassFile(String internalClassName)
+    {
+        ClassFile root = this;
+        while (root.getOuterClass() != null) {
+            root = root.getOuterClass();
+        }
+
+        return findClassFile(root, internalClassName);
+    }
+
+    private static ClassFile findClassFile(ClassFile owner, String internalClassName)
+    {
+        if (owner.thisClassName.equals(internalClassName)) {
+            return owner;
+        }
+
+        if (owner.innerClassFiles != null) {
+            for (ClassFile child : owner.innerClassFiles) {
+                ClassFile result = findClassFile(child, internalClassName);
+                if (result != null) {
+                    return result;
                 }
             }
         }

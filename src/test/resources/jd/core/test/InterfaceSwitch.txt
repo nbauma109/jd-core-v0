@@ -1,0 +1,12 @@
+/*    */ package jd.core.test.syntheticcases;
+/*    */ 
+/*    */ public interface InterfaceSwitch {
+/*  4 */   public static enum Kind { FIRST, SECOND;
+/*    */   }
+/*    */   
+/*  7 */   default int choose(Kind kind) { switch (kind) {
+/*  8 */     case FIRST:  return 17;
+/*  9 */     case SECOND:  return 23; }
+/* 10 */     return 0;
+/*    */   }
+/*    */ }

@@ -257,11 +257,23 @@ public class Method extends Base implements SignatureInfo
             String name = getName(cp);
             String descriptor = getDescriptor(cp);
             Method overridenMethod = classFile.findMethodInSuperClassAndInterfaces(name, descriptor);
-            if (overridenMethod != null) {
+            if (overridenMethod != null && canOverride(overridenMethod)) {
                 return true;
             }
         }
         return false;
+    }
+
+    private boolean canOverride(Method inherited) {
+        int inheritedFlags = inherited.getAccessFlags();
+        if ((inheritedFlags & (Const.ACC_PRIVATE | Const.ACC_STATIC | Const.ACC_FINAL)) != 0) {
+            return false;
+        }
+        if ((inheritedFlags & Const.ACC_PUBLIC) != 0) {
+            return (getAccessFlags() & Const.ACC_PUBLIC) != 0;
+        }
+        return (inheritedFlags & Const.ACC_PROTECTED) == 0
+                || (getAccessFlags() & (Const.ACC_PUBLIC | Const.ACC_PROTECTED)) != 0;
     }
 
     public boolean isLambda(ConstantPool constants) {

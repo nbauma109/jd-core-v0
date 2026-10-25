@@ -1,5 +1,6 @@
 /**
  * Copyright (C) 2007-2019 Emmanuel Dupuy GPLv3
+ * Copyright (C) 2026 Nicolas Baumann (GitHub: nbauma109), with Claude Sonnet 5 (claude-sonnet-5) and Claude Sonnet 5.5 (claude-sonnet-5-5)
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -111,6 +112,8 @@ import jd.core.printer.InstructionPrinter;
 import jd.core.process.deserializer.ClassFileDeserializer;
 import jd.core.process.layouter.visitor.MinLineNumberVisitor;
 import jd.core.process.writer.ConstantValueWriter;
+import jd.core.process.writer.EnumSwitchNameResolver;
+import jd.core.process.writer.EnumSwitchNameResolver.EnumSwitchNames;
 import jd.core.process.writer.SignatureWriter;
 import jd.core.process.writer.SourceWriteable;
 import jd.core.util.SignatureUtil;
@@ -3018,12 +3021,12 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
             return lineNumber;
         }
 
-        SwitchEnumInfo switchEnumInfo = null;
+        EnumSwitchNames switchEnumInfo = null;
         if (fs.getOpcode() == FastConstants.SWITCH_ENUM) {
             switchEnumInfo = resolveSwitchEnumInfo(fs);
         }
 
-        List<SwitchCaseGroup> groups = collectSwitchExpressionGroups(fs, switchEnumInfo);
+        List<SwitchCaseGroup> groups = collectSwitchExpressionGroups(fs);
         if (groups.isEmpty()) {
             this.printer.print('}');
             return lineNumber;
@@ -3121,11 +3124,14 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         if (test instanceof ArrayLoadInstruction ali && ali.getIndexref() instanceof Invokevirtual iv) {
             return iv.getObjectref();
         }
+        if (test instanceof Invokevirtual iv) {
+            return iv.getObjectref();
+        }
 
         return test;
     }
 
-    private List<SwitchCaseGroup> collectSwitchExpressionGroups(FastSwitch fs, SwitchEnumInfo switchEnumInfo)
+    private List<SwitchCaseGroup> collectSwitchExpressionGroups(FastSwitch fs)
     {
         FastSwitch.Pair[] pairs = fs.getPairs();
         List<SwitchCaseGroup> groups = new java.util.ArrayList<>();
@@ -3144,22 +3150,31 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                 continue;
             }
 
-            if (!groups.isEmpty()) {
-                SwitchCaseGroup last = groups.get(groups.size() - 1);
-                if (!last.isDefault() && last.data().pair().getOffset() == pair.getOffset()) {
-                    last.labels().add(pair);
-                    SwitchCaseData preferred = selectPreferredSwitchCaseData(last.data(), data);
-                    if (preferred != last.data()) {
-                        groups.set(groups.size() - 1, new SwitchCaseGroup(last.labels(), preferred));
-                    }
-                    continue;
-                }
+            if (!mergeIntoPreviousGroup(groups, pair, data)) {
+                groups.add(new SwitchCaseGroup(new java.util.ArrayList<>(List.of(pair)), data));
             }
-
-            groups.add(new SwitchCaseGroup(new java.util.ArrayList<>(List.of(pair)), data));
         }
 
         return groups;
+    }
+
+    private static boolean mergeIntoPreviousGroup(List<SwitchCaseGroup> groups, FastSwitch.Pair pair, SwitchCaseData data)
+    {
+        if (groups.isEmpty()) {
+            return false;
+        }
+
+        SwitchCaseGroup last = groups.get(groups.size() - 1);
+        if (last.isDefault() || last.data().pair().getOffset() != pair.getOffset()) {
+            return false;
+        }
+
+        last.labels().add(pair);
+        SwitchCaseData preferred = selectPreferredSwitchCaseData(last.data(), data);
+        if (preferred != last.data()) {
+            groups.set(groups.size() - 1, new SwitchCaseGroup(last.labels(), preferred));
+        }
+        return true;
     }
 
     private static SwitchCaseData selectPreferredSwitchCaseData(SwitchCaseData current, SwitchCaseData candidate)
@@ -3227,7 +3242,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         this.printer.startOfLine(Instruction.UNKNOWN_LINE_NUMBER);
     }
 
-    private void writeSwitchExpressionCaseLabel(FastSwitch fs, List<FastSwitch.Pair> labels, int lineNumber, SwitchEnumInfo switchEnumInfo)
+    private void writeSwitchExpressionCaseLabel(FastSwitch fs, List<FastSwitch.Pair> labels, int lineNumber, EnumSwitchNames switchEnumInfo)
     {
         if (labels.isEmpty()) {
             return;
@@ -3263,7 +3278,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         }
     }
 
-    private void writeSwitchExpressionCaseValue(FastSwitch fs, FastSwitch.Pair pair, SwitchEnumInfo switchEnumInfo)
+    private void writeSwitchExpressionCaseValue(FastSwitch fs, FastSwitch.Pair pair, EnumSwitchNames switchEnumInfo)
     {
         switch (fs.getOpcode())
         {
@@ -3295,9 +3310,11 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         }
     }
 
-    private void writeSwitchExpressionEnumCase(FastSwitch.Pair pair, SwitchEnumInfo switchEnumInfo)
+    private void writeSwitchExpressionEnumCase(FastSwitch.Pair pair, EnumSwitchNames switchEnumInfo)
     {
-        if (switchEnumInfo == null || switchEnumInfo.switchMap == null)
+        String value = switchEnumInfo.nameForKey(pair.getKey());
+
+        if (value == null)
         {
             this.printer.startOfError();
             this.printer.print("???");
@@ -3305,72 +3322,29 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
             return;
         }
 
-        int key = pair.getKey();
-        if (0 < key && key <= switchEnumInfo.switchMap.size())
-        {
-            Integer valueIndex = switchEnumInfo.switchMap.get(key - 1);
-            if (valueIndex == null || valueIndex <= 0) {
-                this.printer.startOfError();
-                this.printer.print("???");
-                this.printer.endOfError();
-                return;
-            }
-
-            String value = switchEnumInfo.constants.getConstantUtf8(valueIndex);
-            String enumDescriptor = SignatureUtil.createTypeName(switchEnumInfo.internalEnumName);
-            this.printer.printStaticField(
-                switchEnumInfo.internalEnumName, value,
-                enumDescriptor, this.classFile.getThisClassName());
-        }
-        else
-        {
-            this.printer.startOfError();
-            this.printer.print("???");
-            this.printer.endOfError();
-        }
+        String enumDescriptor = SignatureUtil.createTypeName(switchEnumInfo.internalEnumName());
+        this.printer.printStaticField(
+            switchEnumInfo.internalEnumName(), value,
+            enumDescriptor, this.classFile.getThisClassName());
     }
 
-    private SwitchEnumInfo resolveSwitchEnumInfo(FastSwitch fs)
+    private EnumSwitchNames resolveSwitchEnumInfo(FastSwitch fs)
     {
-        if (fs.getTest().getOpcode() != ByteCodeConstants.ARRAYLOAD) {
-            return null;
-        }
+        Instruction test = fs.getTest();
+        ClassFile owner = this.classFile;
 
-        ArrayLoadInstruction ali = (ArrayLoadInstruction)fs.getTest();
-        ConstantPool cp = this.classFile.getConstantPool();
-        ConstantNameAndType cnat;
-
-        if (ali.getArrayref().getOpcode() == Const.INVOKESTATIC)
+        if (test instanceof ArrayLoadInstruction ali)
         {
-            Invokestatic is = (Invokestatic)ali.getArrayref();
-            ConstantCP cmr = cp.getConstantMethodref(is.getIndex());
-            cnat = cp.getConstantNameAndType(cmr.getNameAndTypeIndex());
-        }
-        else if (ali.getArrayref().getOpcode() == Const.GETSTATIC)
-        {
-            GetStatic gs = (GetStatic)ali.getArrayref();
-            ConstantFieldref cfr = cp.getConstantFieldref(gs.getIndex());
-            cnat = cp.getConstantNameAndType(cfr.getNameAndTypeIndex());
-        }
-        else
-        {
-            return null;
+            // Pre-JDK 21 javac, and ECJ: a compiler-generated switch-map table lookup.
+            Invokevirtual iv = (Invokevirtual)ali.getIndexref();
+            return EnumSwitchNameResolver.fromSwitchMap(
+                owner, EnumSwitchNameResolver.switchMapKey(owner, ali),
+                EnumSwitchNameResolver.internalEnumName(owner, iv));
         }
 
-        String switchMapKey = cp.getConstantUtf8(cnat.getNameIndex());
-
-        if (!(ali.getIndexref() instanceof Invokevirtual iv)) {
-            return null;
-        }
-        ConstantCP cmr = cp.getConstantMethodref(iv.getIndex());
-        String internalEnumName = cp.getConstantClassName(cmr.getClassIndex());
-
-        ClassFile switchMapOwner = this.classFile.getSwitchMapOwner(switchMapKey);
-        if (switchMapOwner == null) {
-            return null;
-        }
-        return new SwitchEnumInfo(switchMapOwner.getConstantPool(), internalEnumName,
-                switchMapOwner.getSwitchMaps().get(switchMapKey));
+        // JDK 21+ javac: switches directly on the ordinal value, no switch-map table.
+        return EnumSwitchNameResolver.fromOrdinal(
+            owner, EnumSwitchNameResolver.internalEnumName(owner, (Invokevirtual)test));
     }
 
     private static SwitchCaseData toSwitchCaseData(FastSwitch.Pair pair)
@@ -3427,8 +3401,6 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
             return labels.size() == 1 && labels.get(0).isDefault();
         }
     }
-
-    private record SwitchEnumInfo(ConstantPool constants, String internalEnumName, List<Integer> switchMap) {}
 
     @Override
     public void visit(TypeArguments arguments) {
