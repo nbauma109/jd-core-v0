@@ -17,13 +17,13 @@ import java.util.Collections;
 import static org.junit.Assert.assertEquals;
 
 public class ReorderedEnumFieldsSwitchTest extends AbstractTestCase {
-    private static final String DIGIT = "jd/core/test/SwitchEnumInnerClass$DataElement";
+    private static final String DATA_ELEMENT = "jd/core/test/SwitchEnumInnerClass$DataElement";
 
     @Test
     public void caseLabelsFollowOrdinalsWhenFieldTableIsReordered() throws IOException {
         Loader classPathLoader = new ClassPathLoader();
-        byte[] original = classPathLoader.load(DIGIT);
-        JavaClass digit = new ClassParser(new ByteArrayInputStream(original), DIGIT + ".class").parse();
+        byte[] original = classPathLoader.load(DATA_ELEMENT);
+        JavaClass digit = new ClassParser(new ByteArrayInputStream(original), DATA_ELEMENT + ".class").parse();
         Field[] fields = digit.getFields();
         int first = -1;
         int second = -1;
@@ -48,7 +48,7 @@ public class ReorderedEnumFieldsSwitchTest extends AbstractTestCase {
 
             @Override
             public byte[] load(String name) throws IOException {
-                return name.startsWith(DIGIT + ".") ? reordered : classPathLoader.load(name);
+                return name.startsWith(DATA_ELEMENT + ".") ? reordered : classPathLoader.load(name);
             }
         };
 
