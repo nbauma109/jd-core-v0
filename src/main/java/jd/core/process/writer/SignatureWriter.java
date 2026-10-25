@@ -33,6 +33,7 @@ import jd.core.model.reference.ReferenceMap;
 import jd.core.printer.Printer;
 import jd.core.util.CharArrayUtil;
 import jd.core.util.SignatureUtil;
+import jd.core.util.TypeNameUtil;
 
 public final class SignatureWriter
 {
@@ -604,7 +605,8 @@ public final class SignatureWriter
             }
         }
 
-        return internalName.replace(StringConstants.INTERNAL_INNER_SEPARATOR, StringConstants.INNER_SEPARATOR);
+        return TypeNameUtil.localTypeQualifiedName(
+                internalName.replace(StringConstants.INTERNAL_INNER_SEPARATOR, StringConstants.INNER_SEPARATOR));
     }
 
     public static String internalClassNameToShortClassName(

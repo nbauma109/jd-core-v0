@@ -554,6 +554,13 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                     SignatureWriter.writeSignature(
                         this.loader, this.printer, this.referenceMap,
                         this.classFile, signature);
+
+                    if (instanceOf.getPatternVariable() != null)
+                    {
+                        this.printer.print(' ');
+                        this.printer.print(lineNumber,
+                            constants.getConstantUtf8(instanceOf.getPatternVariable().getNameIndex()));
+                    }
                 }
             }
             break;

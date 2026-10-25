@@ -34,6 +34,8 @@ import org.jd.core.v1.model.javasyntax.type.Type;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
 import org.jd.core.v1.util.StringConstants;
 
+import jd.core.util.TypeNameUtil;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -192,8 +194,8 @@ public class ClassFile extends Base
                 this.thisClassName.substring(index + 1);
         }
         String outerClassName = this.outerClass.getThisClassName();
-        return this.thisClassName.substring(
-            outerClassName.length() + 1);
+        return TypeNameUtil.localTypeSimpleName(this.thisClassName.substring(
+            outerClassName.length() + 1));
     }
 
     public String getThisClassName()
@@ -329,7 +331,20 @@ public class ClassFile extends Base
         int index = this.thisClassName.lastIndexOf(
                 StringConstants.INTERNAL_INNER_SEPARATOR);
 
-        return index != -1 && index+1 < this.thisClassName.length() && Character.isDigit(this.thisClassName.charAt(index+1));
+        return index != -1 && index+1 < this.thisClassName.length() && Character.isDigit(this.thisClassName.charAt(index+1))
+                && !isLocalNamedStaticType();
+    }
+
+    /**
+     * A local enum, record or interface is implicitly static and cannot capture
+     * anything: it is written as a member type, with the name it was given.
+     */
+    private boolean isLocalNamedStaticType()
+    {
+        String simpleName = this.thisClassName.substring(
+                this.thisClassName.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR) + 1);
+        return !simpleName.equals(TypeNameUtil.localTypeSimpleName(simpleName))
+                && ((getAccessFlags() & (Const.ACC_ENUM | Const.ACC_INTERFACE)) != 0 || isRecord());
     }
 
     public boolean isAInnerClass()

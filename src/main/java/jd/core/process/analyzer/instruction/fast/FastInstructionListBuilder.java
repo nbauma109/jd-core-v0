@@ -478,7 +478,7 @@ public final class FastInstructionListBuilder {
         LocalVariable lv;
         for (int i = indexOfFirstLocalVariable; i < nbrOfLocalVariables; ++i) {
             lv = localVariables.getLocalVariableAt(i);
-            lv.setDeclarationFlag(lv.isExceptionOrReturnAddress() ? DECLARED : NOT_DECLARED);
+            lv.setDeclarationFlag(lv.isExceptionOrReturnAddress() || lv.isPatternBinding() ? DECLARED : NOT_DECLARED);
         }
     }
 

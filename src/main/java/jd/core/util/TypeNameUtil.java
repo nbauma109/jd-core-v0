@@ -30,6 +30,36 @@ public final class TypeNameUtil
     private TypeNameUtil() {
     }
 
+    /**
+     * Name of a local type as written in the source: the compiler prefixes it
+     * with a number ({@code Outer$1Local}), which is not part of the name.
+     * Anonymous classes ({@code Outer$1}) are left unchanged.
+     */
+    public static String localTypeSimpleName(String name)
+    {
+        int start = 0;
+        while (start < name.length() && Character.isDigit(name.charAt(start))) {
+            start++;
+        }
+        return start == 0 || start == name.length() ? name : name.substring(start);
+    }
+
+    /** Removes the number prefix of every local type found in a dotted type name. */
+    public static String localTypeQualifiedName(String qualifiedName)
+    {
+        if (qualifiedName.indexOf('.') == -1) {
+            return localTypeSimpleName(qualifiedName);
+        }
+        StringBuilder result = new StringBuilder(qualifiedName.length());
+        for (String part : qualifiedName.split("\\.", -1)) {
+            if (result.length() > 0) {
+                result.append('.');
+            }
+            result.append(localTypeSimpleName(part));
+        }
+        return result.toString();
+    }
+
     public static String internalTypeNameToInternalPackageName(String path)
     {
         int index = path.lastIndexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR);

@@ -76,6 +76,7 @@ import jd.core.process.analyzer.classfile.reconstructor.NewInstructionReconstruc
 import jd.core.process.analyzer.classfile.reconstructor.OuterReferenceReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.PostIncReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.PreIncReconstructor;
+import jd.core.process.analyzer.classfile.reconstructor.PatternMatchingReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.SimpleNewInstructionReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.TryWithResourcesReconstructor;
 import jd.core.process.analyzer.classfile.visitor.CheckCastAndConvertInstructionVisitor;
@@ -958,6 +959,9 @@ public final class ClassFileAnalyzer
         method.setFastNodes(fastList);
         if (classFile.getMajorVersion() >= Const.MAJOR_11) {
             TryWithResourcesReconstructor.reconstruct(classFile, method, fastList);
+        }
+        if (classFile.getMajorVersion() >= Const.MAJOR_16) {
+            PatternMatchingReconstructor.reconstruct(method, fastList);
         }
 
         // DEBUG //
