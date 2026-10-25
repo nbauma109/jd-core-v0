@@ -16,6 +16,8 @@
  ******************************************************************************/
 package jd.core.model.instruction.bytecode.instruction;
 
+import java.util.List;
+
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
@@ -25,6 +27,7 @@ public class InstanceOf extends IndexInstruction implements ObjectrefAttribute
 {
     private Instruction objectref;
     private LocalVariable patternVariable;
+    private List<LocalVariable> recordPatternVariables;
 
     public InstanceOf(
         int opcode, int offset, int lineNumber,
@@ -64,5 +67,14 @@ public class InstanceOf extends IndexInstruction implements ObjectrefAttribute
 
     public void setPatternVariable(LocalVariable patternVariable) {
         this.patternVariable = patternVariable;
+    }
+
+    /** Variables bound by the components of a record pattern, or null. */
+    public List<LocalVariable> getRecordPatternVariables() {
+        return recordPatternVariables;
+    }
+
+    public void setRecordPatternVariables(List<LocalVariable> recordPatternVariables) {
+        this.recordPatternVariables = recordPatternVariables;
     }
 }

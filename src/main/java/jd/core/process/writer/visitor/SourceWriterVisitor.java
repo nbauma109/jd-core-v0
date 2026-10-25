@@ -555,6 +555,11 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                         this.loader, this.printer, this.referenceMap,
                         this.classFile, signature);
 
+                    if (instanceOf.getRecordPatternVariables() != null)
+                    {
+                        writeRecordPattern(lineNumber, instanceOf.getRecordPatternVariables());
+                    }
+
                     if (instanceOf.getPatternVariable() != null)
                     {
                         this.printer.print(' ');
@@ -1591,6 +1596,26 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
             }
         }
         return null;
+    }
+
+    private void writeRecordPattern(int lineNumber, List<LocalVariable> components)
+    {
+        ConstantPool constants = this.classFile.getConstantPool();
+        this.printer.print('(');
+        boolean first = true;
+        for (LocalVariable component : components)
+        {
+            if (!first) {
+                this.printer.print(", ");
+            }
+            first = false;
+            SignatureWriter.writeSignature(
+                this.loader, this.printer, this.referenceMap,
+                this.classFile, component.getSignature(constants));
+            this.printer.print(' ');
+            this.printer.print(lineNumber, constants.getConstantUtf8(component.getNameIndex()));
+        }
+        this.printer.print(')');
     }
 
     private static boolean declaresOwnMembers(ClassFile anonymousClassFile)

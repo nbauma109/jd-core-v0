@@ -14,15 +14,28 @@
  ******************************************************************************/
 package jd.core.process.analyzer.classfile.reconstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.bcel.classfile.CodeException;
+
+import jd.core.model.classfile.ClassFile;
+import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.instruction.ALoad;
 import jd.core.model.instruction.bytecode.instruction.AStore;
 import jd.core.model.instruction.bytecode.instruction.CheckCast;
+import jd.core.model.instruction.bytecode.instruction.AThrow;
+import jd.core.model.instruction.bytecode.instruction.ExceptionLoad;
+import jd.core.model.instruction.bytecode.instruction.Goto;
+import jd.core.model.instruction.bytecode.instruction.IConst;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
+import jd.core.model.instruction.bytecode.instruction.InvokeNew;
+import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
+import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
+import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.InstanceOf;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 
@@ -42,10 +55,20 @@ public final class PatternMatchingReconstructor {
     private PatternMatchingReconstructor() {
     }
 
-    public static void reconstruct(Method method, List<Instruction> list) {
+    public static void reconstruct(ClassFile classFile, Method method, List<Instruction> list) {
         LocalVariables localVariables = method.getLocalVariables();
         if (localVariables == null) {
             return;
+        }
+        boolean recordPattern = false;
+        for (int i = list.size() - 2; i >= 0; i--) {
+            if (list.get(i) instanceof IfInstruction test && test.getValue() instanceof InstanceOf instanceOf
+                    && instanceOf.getPatternVariable() == null && instanceOf.getRecordPatternVariables() == null) {
+                recordPattern |= reconstructRecordPattern(classFile, localVariables, list, i, instanceOf);
+            }
+        }
+        if (recordPattern) {
+            removeMatchExceptionHandlers(classFile, method, list);
         }
         for (int i = list.size() - 2; i >= 0; i--) {
             if (list.get(i) instanceof IfInstruction test && test.getValue() instanceof InstanceOf instanceOf
@@ -60,6 +83,89 @@ public final class PatternMatchingReconstructor {
                 }
             }
         }
+    }
+
+    /**
+     * if (o instanceof R) goto END; r = o; c1 = r.a(); t1 = c1; goto END if true; x = c1; ...
+     */
+    private static boolean reconstructRecordPattern(ClassFile classFile, LocalVariables localVariables,
+            List<Instruction> list, int ifIndex, InstanceOf instanceOf) {
+        if (!(instanceOf.getObjectref() instanceof ALoad tested) || ifIndex + 2 >= list.size()
+                || !(list.get(ifIndex + 1) instanceof AStore record) || !(record.getValueref() instanceof ALoad source)
+                || source.getIndex() != tested.getIndex()) {
+            return false;
+        }
+        ConstantPool cp = classFile.getConstantPool();
+        String recordName = cp.getConstantClassName(instanceOf.getIndex());
+        List<LocalVariable> bindings = new ArrayList<>();
+        int end = ifIndex + 2;
+        while (end < list.size() && list.get(end) instanceof StoreInstruction component
+                && component.getValueref() instanceof InvokeNoStaticInstruction accessor
+                && accessor.getArgs().isEmpty()
+                && accessor.getObjectref() instanceof ALoad owner && owner.getIndex() == record.getIndex()
+                && recordName.equals(cp.getConstantClassName(cp.getConstantMethodref(accessor.getIndex()).getClassIndex()))) {
+            int next = end + 1;
+            StoreInstruction binding = null;
+            while (next < list.size()) {
+                Instruction instruction = list.get(next);
+                if (instruction instanceof StoreInstruction copy && copy.getValueref() instanceof LoadInstruction load
+                        && load.getIndex() == component.getIndex()) {
+                    binding = copy;
+                } else if (!(instruction instanceof IfInstruction check && check.getValue() instanceof IConst)) {
+                    break;
+                }
+                next++;
+            }
+            if (binding == null) {
+                return false;
+            }
+            LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(binding.getIndex(), binding.getOffset());
+            if (lv == null) {
+                return false;
+            }
+            bindings.add(lv);
+            end = next;
+        }
+        if (bindings.isEmpty()) {
+            return false;
+        }
+        list.subList(ifIndex + 1, end).clear();
+        for (LocalVariable lv : bindings) {
+            lv.setDeclarationFlag(true);
+            lv.setPatternBinding(true);
+        }
+        instanceOf.setRecordPatternVariables(bindings);
+        return true;
+    }
+
+    /** Removes the handler throwing MatchException that javac generates around record patterns. */
+    private static void removeMatchExceptionHandlers(ClassFile classFile, Method method, List<Instruction> list) {
+        CodeException[] exceptions = method.getCodeExceptions();
+        if (exceptions == null) {
+            return;
+        }
+        ConstantPool cp = classFile.getConstantPool();
+        List<CodeException> remaining = new ArrayList<>(List.of(exceptions));
+        for (CodeException exception : exceptions) {
+            int handler = -1;
+            for (int i = 0; i < list.size() - 1; i++) {
+                if (list.get(i).getOffset() == exception.getHandlerPC()) {
+                    handler = i;
+                    break;
+                }
+            }
+            if (handler > 0 && list.get(handler) instanceof AStore store && store.getValueref() instanceof ExceptionLoad
+                    && list.get(handler + 1) instanceof AThrow thrown && thrown.getValueref() instanceof InvokeNew created
+                    && "java/lang/MatchException".equals(cp.getConstantClassName(cp.getConstantMethodref(created.getIndex()).getClassIndex()))) {
+                remaining.removeIf(candidate -> candidate.getHandlerPC() == exception.getHandlerPC());
+                int from = handler;
+                if (list.get(handler - 1) instanceof Goto jump && jump.getJumpOffset() > thrown.getOffset()) {
+                    from--;
+                }
+                list.subList(from, handler + 2).clear();
+            }
+        }
+        method.setCodeExceptions(remaining.toArray(new CodeException[0]));
     }
 
     private static boolean isBinding(InstanceOf instanceOf, AStore store) {

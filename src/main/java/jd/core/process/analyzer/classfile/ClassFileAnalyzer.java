@@ -961,7 +961,7 @@ public final class ClassFileAnalyzer
             TryWithResourcesReconstructor.reconstruct(classFile, method, fastList);
         }
         if (classFile.getMajorVersion() >= Const.MAJOR_16) {
-            PatternMatchingReconstructor.reconstruct(method, fastList);
+            PatternMatchingReconstructor.reconstruct(classFile, method, fastList);
         }
 
         // DEBUG //
