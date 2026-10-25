@@ -61,6 +61,7 @@ public class ReplaceStringBuxxxerVisitor extends AbstractReplaceInstructionVisit
         return match(instruction);
     }
 
+    @SuppressWarnings("java:S3776")
     @Override
     protected Instruction match(Instruction i)
     {

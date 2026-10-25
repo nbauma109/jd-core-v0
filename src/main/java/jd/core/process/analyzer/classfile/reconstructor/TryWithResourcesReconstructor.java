@@ -60,6 +60,8 @@ import jd.core.model.instruction.fast.instruction.FastTry.FastCatch;
  * table before the structure of the method is rebuilt, then
  * {@link #wrap(Method, List)} puts the body under a resource-only {@link FastTry}.
  */
+// Linear matching of a fixed bytecode shape
+@SuppressWarnings("java:S3776")
 public final class TryWithResourcesReconstructor {
 
     private static final String THROWABLE = "java/lang/Throwable";

@@ -69,9 +69,12 @@ public class ReplaceBooleanTernaryVisitor extends AbstractReplaceInstructionVisi
     private boolean isBooleanAssignment(Instruction parent)
     {
         Instruction target = parent instanceof AssignmentInstruction assignment ? assignment.getValue1() : parent;
-        LocalVariable lv = target instanceof StoreInstruction store ? localVariables.getLocalVariableForStoreInstruction(store)
-            : target instanceof LoadInstruction load
-                ? localVariables.getLocalVariableWithIndexAndOffset(load.getIndex(), load.getOffset()) : null;
+        LocalVariable lv = null;
+        if (target instanceof StoreInstruction store) {
+            lv = localVariables.getLocalVariableForStoreInstruction(store);
+        } else if (target instanceof LoadInstruction load) {
+            lv = localVariables.getLocalVariableWithIndexAndOffset(load.getIndex(), load.getOffset());
+        }
         return lv != null && lv.getSignatureIndex() > 0
             && "Z".equals(classFile.getConstantPool().getConstantUtf8(lv.getSignatureIndex()));
     }

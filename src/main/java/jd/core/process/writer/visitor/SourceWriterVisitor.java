@@ -558,7 +558,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
 
                     if (instanceOf.getRecordPatternVariables() != null)
                     {
-                        writeRecordPattern(lineNumber, instanceOf.getRecordPatternVariables());
+                        writeRecordPattern(instanceOf.getRecordPatternVariables());
                     }
 
                     if (instanceOf.getPatternVariable() != null)
@@ -1599,7 +1599,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         return null;
     }
 
-    private void writeRecordPattern(int lineNumber, List<LocalVariable> components)
+    private void writeRecordPattern(List<LocalVariable> components)
     {
         PatternSwitchLabelWriter.writeComponents(
             this.loader, this.printer, this.referenceMap, this.classFile, components);

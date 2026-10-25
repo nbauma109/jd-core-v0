@@ -50,6 +50,8 @@ import jd.core.model.instruction.bytecode.instruction.Instruction;
  * conditions around it can be combined again, and the variable is attached to the
  * 'instanceof' operator.
  */
+// Linear matching of a fixed bytecode shape
+@SuppressWarnings("java:S3776")
 public final class PatternMatchingReconstructor {
 
     private PatternMatchingReconstructor() {
@@ -90,12 +92,12 @@ public final class PatternMatchingReconstructor {
     private static boolean reconstructRecordPattern(ClassFile classFile, LocalVariables localVariables,
             List<Instruction> list, int ifIndex, InstanceOf instanceOf) {
         if (!(instanceOf.getObjectref() instanceof ALoad tested) || ifIndex + 2 >= list.size()
-                || !(list.get(ifIndex + 1) instanceof AStore record) || !(unwrapCast(record.getValueref()) instanceof ALoad source)
+                || !(list.get(ifIndex + 1) instanceof AStore recordStore) || !(unwrapCast(recordStore.getValueref()) instanceof ALoad source)
                 || source.getIndex() != tested.getIndex()) {
             return false;
         }
         List<LocalVariable> bindings = new ArrayList<>();
-        int end = collectComponents(classFile, localVariables, list, ifIndex + 2, record.getIndex(),
+        int end = collectComponents(classFile, localVariables, list, ifIndex + 2, recordStore.getIndex(),
                 classFile.getConstantPool().getConstantClassName(instanceOf.getIndex()), bindings);
         if (end < 0) {
             return false;

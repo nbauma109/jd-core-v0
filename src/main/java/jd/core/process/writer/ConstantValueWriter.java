@@ -81,12 +81,6 @@ public final class ConstantValueWriter
                         loader, printer, referenceMap, classFile,
                         StringConstants.JAVA_LANG_DOUBLE, StringConstants.MAX_VALUE, "D");
                 }
-                /* else if (Double.compare(d, Double.MIN_NORMAL) == 0)
-                {
-                    Write(
-                        loader, printer, referenceMap, classFile,
-                        StringConstants.JAVA_LANG_DOUBLE, "MIN_NORMAL", "D");
-                } */
                 else if (Double.compare(d, Double.MIN_VALUE) == 0)
                 {
                     write(

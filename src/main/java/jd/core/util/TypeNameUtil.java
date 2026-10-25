@@ -52,7 +52,7 @@ public final class TypeNameUtil
         }
         StringBuilder result = new StringBuilder(qualifiedName.length());
         for (String part : qualifiedName.split("\\.", -1)) {
-            if (result.length() > 0) {
+            if (!result.isEmpty()) {
                 result.append('.');
             }
             result.append(localTypeSimpleName(part));

@@ -151,7 +151,7 @@ public class Java21ConstructsTest {
     @Test
     public void behaviorIsPreserved() throws Exception {
         Assume.assumeTrue(Runtime.version().feature() >= 21);
-        Path original = compile(SOURCE, "Constructs", null);
+        Path original = compile(SOURCE, "Constructs");
         String decompiled = decompile(original);
 
         assertFalse(decompiled, decompiled.contains("Byte code"));
@@ -163,7 +163,7 @@ public class Java21ConstructsTest {
         assertTrue(decompiled, decompiled.contains(" when "));
         assertTrue(decompiled, decompiled.contains("try ("));
 
-        Path rebuilt = compile(decompiled, "Constructs", original);
+        Path rebuilt = compile(decompiled, "Constructs");
         try (URLClassLoader first = new URLClassLoader(new java.net.URL[] { original.toUri().toURL() }, null);
                 URLClassLoader second = new URLClassLoader(new java.net.URL[] { rebuilt.toUri().toURL() }, null)) {
             for (Object argument : new Object[] { "ab", "abcdef", "", 1, 7, 2.5, null }) {
@@ -234,7 +234,7 @@ public class Java21ConstructsTest {
                 loader, "Constructs", preferences, new DecompilerImpl());
     }
 
-    private static Path compile(String source, String name, Path classpath) throws IOException {
+    private static Path compile(String source, String name) throws IOException {
         Path directory = Files.createTempDirectory(Path.of("target"), "constructs-");
         var compiler = ToolProvider.getSystemJavaCompiler();
         var diagnostics = new DiagnosticCollector<JavaFileObject>();

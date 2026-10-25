@@ -56,6 +56,8 @@ import jd.core.process.analyzer.instruction.fast.visitor.CheckLocalVariableUsedV
  * switch is the index of the first matching label, computed by the {@code typeSwitch}
  * bootstrap method; each case binds its pattern variable with a cast of the selector.
  */
+// Linear matching of a fixed bytecode shape
+@SuppressWarnings({"java:S3776", "java:S127", "java:S135"})
 public final class PatternSwitchReconstructor {
 
     private PatternSwitchReconstructor() {
@@ -159,14 +161,14 @@ public final class PatternSwitchReconstructor {
             while (first < list.size() && list.get(first).getOffset() < caseStart) {
                 first++;
             }
-            if (first + 1 >= list.size() || !(list.get(first) instanceof StoreInstruction record)
-                    || !(record.getValueref() instanceof CheckCast cast) || !(cast.getObjectref() instanceof ALoad source)
+            if (first + 1 >= list.size() || !(list.get(first) instanceof StoreInstruction recordStore)
+                    || !(recordStore.getValueref() instanceof CheckCast cast) || !(cast.getObjectref() instanceof ALoad source)
                     || source.getIndex() != selector.getIndex()) {
                 continue;
             }
             List<LocalVariable> components = new ArrayList<>();
             int end = PatternMatchingReconstructor.collectComponents(classFile, localVariables, list, first + 1,
-                    record.getIndex(), classFile.getConstantPool().getConstantClassName(cast.getIndex()), components);
+                    recordStore.getIndex(), classFile.getConstantPool().getConstantClassName(cast.getIndex()), components);
             if (end < 0) {
                 continue;
             }
@@ -219,9 +221,9 @@ public final class PatternSwitchReconstructor {
         }
         // Declarations of the bound variables are part of the patterns
         removeIf(fastList, instruction -> instruction instanceof FastDeclaration declaration
-                && declaration.getInstruction() == null && declaration.getLv().isPatternBinding(), localVariables, selector);
+                && declaration.getInstruction() == null && declaration.getLv().isPatternBinding());
         // The variable holding the index to restart from is only needed by guards
-        removeIf(fastList, instruction -> isConstantStore(instruction, selector.getRestartIndexVariable()), localVariables, selector);
+        removeIf(fastList, instruction -> isConstantStore(instruction, selector.getRestartIndexVariable()));
         foldSelectorVariable(classFile, fastList, fs, selector);
         if (!exhaustive && isStatement(fastList, fs)) {
             addEmptyDefault(fs);
@@ -291,8 +293,7 @@ public final class PatternSwitchReconstructor {
                 && s.getValueref() instanceof IConst;
     }
 
-    private static void removeIf(List<Instruction> fastList, java.util.function.Predicate<Instruction> predicate,
-            LocalVariables localVariables, PatternSwitchSelector selector) {
+    private static void removeIf(List<Instruction> fastList, java.util.function.Predicate<Instruction> predicate) {
         forEachList(fastList, list -> list.removeIf(predicate));
     }
 
@@ -311,7 +312,7 @@ public final class PatternSwitchReconstructor {
             Instruction previous = list.get(switchIndex - 1);
             Instruction store = previous instanceof FastDeclaration declaration ? declaration.getInstruction() : previous;
             if (!(store instanceof StoreInstruction assignment) || assignment.getIndex() != selector.getIndex()
-                    || isUsedElsewhere(fastList, selector, assignment)) {
+                    || isUsedElsewhere(fastList, selector)) {
                 return;
             }
             int from = switchIndex - 1;
@@ -324,7 +325,7 @@ public final class PatternSwitchReconstructor {
         });
     }
 
-    private static boolean isUsedElsewhere(List<Instruction> fastList, PatternSwitchSelector selector, StoreInstruction assignment) {
+    private static boolean isUsedElsewhere(List<Instruction> fastList, PatternSwitchSelector selector) {
         java.util.function.Predicate<IndexInstruction> uses = instruction ->
                 instruction.getIndex() == selector.getIndex() && instruction instanceof LoadInstruction
                         && !(instruction instanceof StoreInstruction) && instruction != selector;
