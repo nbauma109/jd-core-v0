@@ -12,7 +12,7 @@ public class VineflowerSamplesTest extends AbstractTestCase {
     @Test
     public void floatConstantWidenedToDoubleKeepsFloatLiteral() throws IOException {
         String output = decompile("jd/core/test/VineflowerSamples", "17");
-        assertTrue(output, output.contains("0.2F"));
+        assertTrue(output, output.contains("(double) 0.2F"));
         assertFalse(output, output.contains("0.20000000298023224"));
     }
 

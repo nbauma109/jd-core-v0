@@ -4,8 +4,22 @@ package jd.core.test;
 public class VineflowerSamples {
 
     public double widenedFloatConstant() {
-        double x = 0.2F;
-        return x;
+        return 0.2F;
+    }
+
+    public String widenedFloatConstantArgument() {
+        return String.valueOf(0.2F + 0.0);
+    }
+
+    public int localClassWithField() {
+        var counter = new Object() {
+            int count;
+
+            int next() {
+                return ++count;
+            }
+        };
+        return counter.next();
     }
 
     public void namelessLocalClass() {

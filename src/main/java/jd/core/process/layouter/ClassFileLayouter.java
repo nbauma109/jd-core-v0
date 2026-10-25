@@ -662,11 +662,9 @@ public final class ClassFileLayouter {
      *  -  StatementsBlockEndLayoutBlock ?
      *  - MethodBlockEndLayoutBlock
      */
-    /**
-     * The constructor of an anonymous class cannot be written, but the
-     * statements left once the super constructor call has been removed
-     * come from an instance initializer block that must not be lost.
-     */
+    // The constructor of an anonymous class cannot be written, but the
+    // statements left once the super constructor call has been removed
+    // come from an instance initializer block that must not be lost.
     private static boolean hasInstanceInitializerCode(ClassFile classFile, Method method)
     {
         ConstantPool constants = classFile.getConstantPool();
