@@ -92,8 +92,8 @@ public final class ConstantValueWriter
                     float widened = (float) d;
                     String value = String.valueOf(d);
                     if (widened == d && !String.valueOf(widened).equals(value)) {
-                        // Constant of type float widened to double by the compiler;
-                        // the cast keeps the type of the expression a double
+                        // The compiler widened a float constant: print it as a float,
+                        // with a cast so that the expression stays of type double
                         printer.print("(double) ");
                         printer.printNumeric(String.valueOf(widened) + 'F');
                         break;

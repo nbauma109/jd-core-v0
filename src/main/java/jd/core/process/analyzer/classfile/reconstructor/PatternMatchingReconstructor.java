@@ -218,11 +218,6 @@ public final class PatternMatchingReconstructor {
         return instruction instanceof CheckCast cast ? cast.getObjectref() : instruction;
     }
 
-    /**
-     * Declares a variable by its pattern. The debug information of a variable that stays in scope
-     * after the statement binding it has one range for each part of the code using it, which are
-     * all the same variable for the source code.
-     */
     /** A range of the same variable starts after a jump, not after the store of a new variable. */
     private static boolean isDeclaredByStore(byte[] code, LocalVariable lv) {
         int start = lv.getStartPc();
@@ -235,6 +230,11 @@ public final class PatternMatchingReconstructor {
         return shortStore || longStore;
     }
 
+    /**
+     * Declares a variable by its pattern. The debug information of a variable that stays in scope
+     * after the statement binding it has one range for each part of the code using it, which are
+     * all the same variable for the source code.
+     */
     static void markBinding(ClassFile classFile, Method method, LocalVariable binding) {
         LocalVariables localVariables = method.getLocalVariables();
         ConstantPool cp = classFile.getConstantPool();
