@@ -237,8 +237,21 @@ public final class TryWithResourcesReconstructor {
         boolean complete = true;
         for (int[] resource : resources) {
             complete &= wrap(method.getLocalVariables(), fastList, resource);
+            removeHoistedDeclarations(fastList, resource[0]);
         }
         return complete;
+    }
+
+    /** The resource is declared by the statement: a declaration hoisted before it would declare it twice. */
+    private static void removeHoistedDeclarations(List<Instruction> list, int variableIndex) {
+        list.removeIf(instruction -> instruction instanceof FastDeclaration declaration
+                && declaration.getInstruction() == null && declaration.getLv().getIndex() == variableIndex
+                && declaration.getLv().hasDeclarationFlag());
+        for (Instruction instruction : new ArrayList<>(list)) {
+            for (List<Instruction> nested : nestedLists(instruction)) {
+                removeHoistedDeclarations(nested, variableIndex);
+            }
+        }
     }
 
     private static boolean wrap(LocalVariables localVariables, List<Instruction> list, int[] resource) {
@@ -280,7 +293,7 @@ public final class TryWithResourcesReconstructor {
             return null;
         }
         if (instruction instanceof FastDeclaration declaration) {
-            return declaration;
+            return declaration.getInstruction() == null ? null : declaration;
         }
         if (instruction instanceof AStore store && store.getIndex() == resource[0] && localVariables != null) {
             LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(store.getIndex(), store.getOffset());

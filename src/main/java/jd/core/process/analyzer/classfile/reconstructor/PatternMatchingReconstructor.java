@@ -77,7 +77,8 @@ public final class PatternMatchingReconstructor {
         for (int i = list.size() - 2; i >= 0; i--) {
             if (list.get(i) instanceof IfInstruction test && test.getValue() instanceof InstanceOf instanceOf
                     && test.getCmp() == ByteCodeConstants.CMP_EQ && instanceOf.getPatternVariable() == null
-                    && list.get(i + 1) instanceof AStore store && isBinding(instanceOf, store)) {
+                    && list.get(i + 1) instanceof AStore store && isBinding(instanceOf, store)
+                    && !readsRecordComponents(classFile, list, i + 2, store.getIndex())) {
                 LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(store.getIndex(), store.getOffset());
                 if (lv != null) {
                     instanceOf.setPatternVariable(lv);
@@ -248,6 +249,18 @@ public final class PatternMatchingReconstructor {
                 lv.setPatternBinding(true);
             }
         }
+    }
+
+    /** A nested record pattern reads the components of the cast value: it is not a plain type pattern. */
+    private static boolean readsRecordComponents(ClassFile classFile, List<Instruction> list, int index, int variable) {
+        if (index >= list.size() || !(list.get(index) instanceof StoreInstruction component)
+                || !(component.getValueref() instanceof InvokeNoStaticInstruction accessor)
+                || !accessor.getArgs().isEmpty() || !(accessor.getObjectref() instanceof ALoad owner)
+                || owner.getIndex() != variable) {
+            return false;
+        }
+        ConstantPool cp = classFile.getConstantPool();
+        return isRecord(classFile, cp.getConstantClassName(cp.getConstantMethodref(accessor.getIndex()).getClassIndex()));
     }
 
     private static boolean isBinding(InstanceOf instanceOf, AStore store) {
