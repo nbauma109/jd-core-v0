@@ -18,7 +18,6 @@ package jd.core.process.analyzer.instruction.fast;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantCP;
-import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.Validate;
@@ -62,7 +61,6 @@ import jd.core.model.instruction.bytecode.instruction.ConditionalBranchInstructi
 import jd.core.model.instruction.bytecode.instruction.DupStore;
 import jd.core.model.instruction.bytecode.instruction.DConst;
 import jd.core.model.instruction.bytecode.instruction.ExceptionLoad;
-import jd.core.model.instruction.bytecode.instruction.GetStatic;
 import jd.core.model.instruction.bytecode.instruction.Goto;
 import jd.core.model.instruction.bytecode.instruction.FConst;
 import jd.core.model.instruction.bytecode.instruction.IConst;
@@ -120,6 +118,7 @@ import jd.core.process.analyzer.instruction.fast.reconstructor.IfGotoToIfReconst
 import jd.core.process.analyzer.instruction.fast.reconstructor.InitArrayInstructionReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.RemoveDupConstantsAttributes;
 import jd.core.process.analyzer.instruction.fast.reconstructor.SwitchExpressionReconstructor;
+import jd.core.process.writer.EnumSwitchNameResolver;
 import jd.core.process.analyzer.instruction.fast.reconstructor.StructuredAssertReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.EmptyEnumSwitchReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.TernaryOpInReturnReconstructor;
@@ -4395,64 +4394,28 @@ public final class FastInstructionListBuilder {
 
     private static boolean isSwitchMapArrayLoad(ClassFile classFile, ArrayLoadInstruction ali)
     {
-        if (ali.getIndexref().getOpcode() != Const.INVOKEVIRTUAL) {
+        if (!(ali.getIndexref() instanceof Invokevirtual iv) || !isOrdinalCallWithoutArgs(classFile, iv)) {
             return false;
         }
 
-        if (ali.getArrayref().getOpcode() == Const.GETSTATIC)
-        {
-            GetStatic gs = (GetStatic) ali.getArrayref();
-
-            ConstantPool constants = classFile.getConstantPool();
-            ConstantFieldref cfr = constants.getConstantFieldref(gs.getIndex());
-            ConstantNameAndType cnat = constants.getConstantNameAndType(cfr.getNameAndTypeIndex());
-            String cnatName = constants.getConstantUtf8(cnat.getNameIndex());
-            if (classFile.getSwitchMapOwner(cnatName) == null) {
-                return false;
-            }
-
-            Invokevirtual iv = (Invokevirtual) ali.getIndexref();
-            if (!iv.getArgs().isEmpty()) {
-                return false;
-            }
-
-            ConstantCP cmr = constants.getConstantMethodref(iv.getIndex());
-            cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
-
-            // SWITCH_ENUM found
-            return StringConstants.ORDINAL_METHOD_NAME.equals(constants.getConstantUtf8(cnat.getNameIndex()));
+        String switchMapKey = EnumSwitchNameResolver.switchMapKey(classFile, ali);
+        if (switchMapKey == null) {
+            return false;
         }
 
-        if (ali.getArrayref().getOpcode() == Const.INVOKESTATIC)
+        if (ali.getArrayref() instanceof Invokestatic is)
         {
-            Invokestatic is = (Invokestatic) ali.getArrayref();
-
-            if (is.getArgs().isEmpty()) {
-                ConstantPool constants = classFile.getConstantPool();
-                ConstantCP cmr = constants.getConstantMethodref(is.getIndex());
-
-                if (cmr.getClassIndex() == classFile.getThisClassIndex()) {
-                    ConstantNameAndType cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
-                    String cnatName = constants.getConstantUtf8(cnat.getNameIndex());
-                    if (classFile.getSwitchMaps().containsKey(cnatName)) {
-                        Invokevirtual iv = (Invokevirtual) ali.getIndexref();
-
-                        if (iv.getArgs().isEmpty()) {
-                            cmr = constants.getConstantMethodref(iv.getIndex());
-                            cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
-
-                            // Eclipse SWITCH_ENUM found
-                            return StringConstants.ORDINAL_METHOD_NAME.equals(constants.getConstantUtf8(cnat.getNameIndex()));
-                        }
-                    }
-                }
-            }
+            // Eclipse: the table is built by a static method of the class itself.
+            ConstantCP cmr = classFile.getConstantPool().getConstantMethodref(is.getIndex());
+            return is.getArgs().isEmpty()
+                    && cmr.getClassIndex() == classFile.getThisClassIndex()
+                    && classFile.getSwitchMaps().containsKey(switchMapKey);
         }
 
-        return false;
+        return classFile.getSwitchMapOwner(switchMapKey) != null;
     }
 
-    private static boolean isEnumOrdinalCall(ClassFile classFile, Invokevirtual iv, FastSwitch.Pair[] pairs)
+    private static boolean isOrdinalCallWithoutArgs(ClassFile classFile, Invokevirtual iv)
     {
         if (!iv.getArgs().isEmpty()) {
             return false;
@@ -4462,9 +4425,17 @@ public final class FastInstructionListBuilder {
         ConstantCP cmr = constants.getConstantMethodref(iv.getIndex());
         ConstantNameAndType cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
 
-        if (!StringConstants.ORDINAL_METHOD_NAME.equals(constants.getConstantUtf8(cnat.getNameIndex()))) {
+        return StringConstants.ORDINAL_METHOD_NAME.equals(constants.getConstantUtf8(cnat.getNameIndex()));
+    }
+
+    private static boolean isEnumOrdinalCall(ClassFile classFile, Invokevirtual iv, FastSwitch.Pair[] pairs)
+    {
+        if (!isOrdinalCallWithoutArgs(classFile, iv)) {
             return false;
         }
+
+        ConstantPool constants = classFile.getConstantPool();
+        ConstantCP cmr = constants.getConstantMethodref(iv.getIndex());
 
         String internalEnumName = constants.getConstantClassName(cmr.getClassIndex());
         ClassFile enumClassFile = classFile.resolveClassFile(internalEnumName);

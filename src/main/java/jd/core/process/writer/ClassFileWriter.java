@@ -2313,9 +2313,22 @@ public final class ClassFileWriter
         int caseByLine = caseCount / lineCount;
         int middleLineCount = caseCount - caseByLine*lineCount;
         int middleIndex = celb.getFirstIndex() + middleLineCount*(caseByLine + 1);
-        int j = caseByLine + 1;
+        writeCaseEnumRange(
+            pairs, celb.getFirstIndex(), middleIndex, lastIndex, lineCount,
+            caseByLine + 1, enumSwitchNames, enumDescriptor, classFile);
+        writeCaseEnumRange(
+            pairs, middleIndex, lastIndex + 1, lastIndex, lineCount,
+            caseByLine, enumSwitchNames, enumDescriptor, classFile);
+    }
 
-        for (int i=celb.getFirstIndex(); i<middleIndex; i++)
+    private void writeCaseEnumRange(
+        FastSwitch.Pair[] pairs, int from, int to, int lastIndex, int lineCount,
+        int casesPerLine, EnumSwitchNameResolver.EnumSwitchNames enumSwitchNames,
+        String enumDescriptor, ClassFile classFile)
+    {
+        int j = casesPerLine;
+
+        for (int i=from; i<to; i++)
         {
             FastSwitch.Pair pair = pairs[i];
 
@@ -2329,9 +2342,7 @@ public final class ClassFileWriter
                 this.printer.print(' ');
 
                 this.printer.debugStartOfInstructionBlockLayoutBlock();
-                int key = pair.getKey();
-
-                String value = enumSwitchNames.nameForKey(key);
+                String value = enumSwitchNames.nameForKey(pair.getKey());
                 if (value == null)
                 {
                     this.printer.startOfError();
@@ -2341,7 +2352,7 @@ public final class ClassFileWriter
                 else
                 {
                     this.printer.printStaticField(
-                        internalEnumName, value,
+                        enumSwitchNames.internalEnumName(), value,
                         enumDescriptor, classFile.getThisClassName());
                 }
                 this.printer.debugEndOfInstructionBlockLayoutBlock();
@@ -2354,58 +2365,7 @@ public final class ClassFileWriter
                 {
                     endOfLine();
                     this.printer.startOfLine(Printer.UNKNOWN_LINE_NUMBER);
-                    j = caseByLine + 1;
-                }
-                else
-                {
-                    j--;
-                }
-            }
-        }
-
-        j = caseByLine;
-
-        FastSwitch.Pair pair;
-        for (int i=middleIndex; i<=lastIndex; i++)
-        {
-            pair = pairs[i];
-
-            if (pair.isDefault())
-            {
-                this.printer.printKeyword(DEFAULT);
-            }
-            else
-            {
-                this.printer.printKeyword("case");
-                this.printer.print(' ');
-
-                this.printer.debugStartOfInstructionBlockLayoutBlock();
-                int key = pair.getKey();
-
-                String value = enumSwitchNames.nameForKey(key);
-                if (value == null)
-                {
-                    this.printer.startOfError();
-                    this.printer.print("???");
-                    this.printer.endOfError();
-                }
-                else
-                {
-                    this.printer.printStaticField(
-                        internalEnumName, value,
-                        enumDescriptor, classFile.getThisClassName());
-                }
-                this.printer.debugEndOfInstructionBlockLayoutBlock();
-            }
-            this.printer.print(": ");
-
-            if (lineCount > 0)
-            {
-                if (j == 1 && i < lastIndex)
-                {
-                    endOfLine();
-                    this.printer.startOfLine(Printer.UNKNOWN_LINE_NUMBER);
-                    j = caseByLine;
+                    j = casesPerLine;
                 }
                 else
                 {
