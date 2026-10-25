@@ -22,7 +22,13 @@ public class StaticTools
   public static int NOT_FOUND_LONGITUDE = 200;
   private static final String TAG = "FUELPRICES";
   private static String TimeLog = "";
-  private static final HashMap<Character, Character> accents = new HashMap<Character, Character>() {};
+  private static final HashMap<Character, Character> accents = new HashMap<Character, Character>()
+  {
+    
+    {
+      put(Character.valueOf('Ά'), Character.valueOf('Α')); put(Character.valueOf('Έ'), Character.valueOf('Ε')); put(Character.valueOf('Ό'), Character.valueOf('Ο')); put(Character.valueOf('Ύ'), Character.valueOf('Υ')); put(Character.valueOf('Ί'), Character.valueOf('Ι')); put(Character.valueOf('Ώ'), Character.valueOf('Ω')); put(Character.valueOf('Ή'), Character.valueOf('Η'));
+    }
+  };
   private static String bestProvider;
   private static DatabaseSG databasesg;
   private static GPSReceiver gpsReceiver;

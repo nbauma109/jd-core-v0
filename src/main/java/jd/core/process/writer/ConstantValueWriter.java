@@ -96,7 +96,13 @@ public final class ConstantValueWriter
                 else
                 {
                     // TODO Conversion de la valeur en constante ?
+                    float widened = (float) d;
                     String value = String.valueOf(d);
+                    if (widened == d && !String.valueOf(widened).equals(value)) {
+                        // Constant of type float that was widened to double by the compiler
+                        printer.printNumeric(String.valueOf(widened) + 'F');
+                        break;
+                    }
                     if (value.indexOf('.') == -1) {
                         value += ".0";
                     }

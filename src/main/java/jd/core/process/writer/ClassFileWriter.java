@@ -1807,6 +1807,9 @@ public final class ClassFileWriter
 
     private void writeMethodStatic(MethodStaticLayoutBlock mslb)
     {
+        if (mslb.isInstanceInitializer()) {
+            return;
+        }
         this.printer.printStaticConstructorDeclaration(
             mslb.getClassFile().getThisClassName(), STATIC);
     }

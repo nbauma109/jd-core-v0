@@ -1586,7 +1586,29 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         return null;
     }
 
+    private static boolean declaresOwnMembers(ClassFile anonymousClassFile)
+    {
+        for (Field field : anonymousClassFile.getFields()) {
+            if ((field.getAccessFlags() & Const.ACC_SYNTHETIC) == 0) {
+                return true;
+            }
+        }
+        ConstantPool constants = anonymousClassFile.getConstantPool();
+        for (Method method : anonymousClassFile.getMethods()) {
+            if ((method.getAccessFlags() & (Const.ACC_SYNTHETIC | Const.ACC_BRIDGE)) == 0
+                    && method.getNameIndex() != constants.getInstanceConstructorIndex()
+                    && method.getNameIndex() != constants.getClassConstructorIndex()
+                    && !method.isOverride(anonymousClassFile)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static BaseTypeArgument searchTypeArguments(TypeTypes newInvokeType) {
+        if (newInvokeType == null) {
+            return null;
+        }
         ObjectType superType = newInvokeType.getSuperType();
         if (superType != null && superType.getTypeArguments() != null) {
             return superType.getTypeArguments();
@@ -2863,11 +2885,21 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                 if (innerClassFile != null &&
                     innerClassFile.getInternalAnonymousClassName() != null)
                 {
-                    String internalAnonymousClassSignature =
-                            SignatureUtil.createTypeName(innerClassFile.getInternalAnonymousClassName());
-                    SignatureWriter.writeSignature(
-                        this.loader, this.printer, this.referenceMap,
-                        this.classFile, internalAnonymousClassSignature);
+                    if (this.classFile.getMajorVersion() >= Const.MAJOR_10
+                            && declaresOwnMembers(innerClassFile))
+                    {
+                        // Members not inherited can only be reached through
+                        // a variable typed with the anonymous class: 'var'.
+                        this.printer.printKeyword("var");
+                    }
+                    else
+                    {
+                        String internalAnonymousClassSignature =
+                                SignatureUtil.createTypeName(innerClassFile.getInternalAnonymousClassName());
+                        SignatureWriter.writeSignature(
+                            this.loader, this.printer, this.referenceMap,
+                            this.classFile, internalAnonymousClassSignature);
+                    }
                 }
                 else
                 {
