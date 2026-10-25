@@ -30,6 +30,7 @@ import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.Field;
 import jd.core.model.instruction.bytecode.instruction.ArrayLoadInstruction;
 import jd.core.model.instruction.bytecode.instruction.GetStatic;
+import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.Invokestatic;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
 
@@ -106,19 +107,36 @@ public final class EnumSwitchNameResolver
         return new EnumSwitchNames(internalEnumName, namesByKey);
     }
 
-    /** JDK 21+ javac: switches directly on the ordinal value, so names come from the enum's own field order. */
+    /** JDK 21+ javac: switches directly on the ordinal value, so names come from the enum's own values order. */
     public static EnumSwitchNames fromOrdinal(ClassFile classFile, String internalEnumName)
     {
         Map<Integer, String> namesByKey = new HashMap<>();
         ClassFile enumClassFile = classFile.resolveClassFile(internalEnumName);
         ConstantPool enumConstants = enumClassFile.getConstantPool();
-        int ordinal = 0;
-        for (Field field : enumClassFile.getFields())
+        List<Instruction> values = enumClassFile.getEnumValues();
+
+        if (values == null)
         {
-            if ((field.getAccessFlags() & Const.ACC_ENUM) != 0)
+            // Values array not recognized: fall back to the declaration order of the enum fields.
+            int ordinal = 0;
+            for (Field field : enumClassFile.getFields())
             {
-                namesByKey.put(ordinal, enumConstants.getConstantUtf8(field.getNameIndex()));
-                ordinal++;
+                if ((field.getAccessFlags() & Const.ACC_ENUM) != 0)
+                {
+                    namesByKey.put(ordinal, enumConstants.getConstantUtf8(field.getNameIndex()));
+                    ordinal++;
+                }
+            }
+        }
+        else
+        {
+            // The ordinal is the position in the values array, not in the field table.
+            for (int ordinal = 0; ordinal < values.size(); ordinal++)
+            {
+                GetStatic constant = (GetStatic)values.get(ordinal);
+                ConstantFieldref cfr = enumConstants.getConstantFieldref(constant.getIndex());
+                ConstantNameAndType cnat = enumConstants.getConstantNameAndType(cfr.getNameAndTypeIndex());
+                namesByKey.put(ordinal, enumConstants.getConstantUtf8(cnat.getNameIndex()));
             }
         }
 
