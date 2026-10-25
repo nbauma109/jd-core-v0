@@ -99,7 +99,7 @@ public class GotoFactory implements InstructionFactory
             }
 
             if (ByteCodeUtil.isIfInstruction(previousInstruction.getOpcode(), false)
-                && !skipsBackwardJump(code, (BranchInstruction) previousInstruction))
+                && !(inPatternSwitch(list) && skipsBackwardJump(code, (BranchInstruction) previousInstruction)))
             {
                 // Gestion de l'operateur ternaire
                 final int ternaryOp2ndValueOffset =
@@ -115,6 +115,17 @@ public class GotoFactory implements InstructionFactory
                 return;
             }
         }
+    }
+
+    private static boolean inPatternSwitch(List<Instruction> list)
+    {
+        for (Instruction instruction : list)
+        {
+            if (instruction instanceof Switch sw && sw.getKey() instanceof PatternSwitchSelector) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

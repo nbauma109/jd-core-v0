@@ -128,6 +128,7 @@ public class InvokeDynamicFactory implements InstructionFactory
         }
 
         if (("typeSwitch".equals(indyMethodName) || "enumSwitch".equals(indyMethodName))
+                && hasSupportedLabels(constants, bootstrapArguments)
                 && indyParameters != null && indyParameters.size() == 2 && indyParameters.get(0) instanceof ALoad selector) {
             // Switch on patterns: the arguments of the bootstrap method are the labels
             int restartIndexVariable = indyParameters.get(1) instanceof LoadInstruction restart ? restart.getIndex() : -1;
@@ -198,6 +199,19 @@ public class InvokeDynamicFactory implements InstructionFactory
         stack.push(new MethodReference(opcode, offset, lineNumber, indyParameters, typeName, name1, descriptor1));
 
         return Const.getNoOfOperands(opcode);
+    }
+
+    /** Labels that are classes, strings or integers; qualified enum constants are dynamic constants. */
+    private static boolean hasSupportedLabels(ConstantPool constants, int[] labels)
+    {
+        for (int label : labels)
+        {
+            int tag = constants.get(label).getTag();
+            if (tag != Const.CONSTANT_Class && tag != Const.CONSTANT_String && tag != Const.CONSTANT_Integer) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static void bindEnclosingInstanceParameter(ClassFile classFile, Method enclosingMethod,

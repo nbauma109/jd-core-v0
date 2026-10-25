@@ -157,8 +157,10 @@ public final class TryWithResourcesReconstructor {
                 }
             }
         }
-        exceptions.remove(guarded);
-        exceptions.remove(cleanup);
+        // Every exit of the body is protected by its own range, all sharing the cleanup handlers
+        final int guardedHandler = guarded.getHandlerPC();
+        final int cleanupHandler = cleanup.getHandlerPC();
+        exceptions.removeIf(e -> e.getHandlerPC() == guardedHandler || e.getHandlerPC() == cleanupHandler);
         method.getTryResources().add(new int[] {resourceIndex, declarationOffset, guarded.getHandlerPC()});
         return true;
     }
