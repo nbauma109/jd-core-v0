@@ -82,6 +82,7 @@ import jd.core.process.analyzer.classfile.reconstructor.SimpleNewInstructionReco
 import jd.core.process.analyzer.classfile.reconstructor.TryWithResourcesReconstructor;
 import jd.core.process.analyzer.classfile.visitor.CheckCastAndConvertInstructionVisitor;
 import jd.core.process.analyzer.classfile.visitor.ReplaceOuterReferenceVisitor;
+import jd.core.process.analyzer.classfile.visitor.ReplaceBooleanTernaryVisitor;
 import jd.core.process.analyzer.classfile.visitor.ReplaceStringBuxxxerVisitor;
 import jd.core.process.analyzer.classfile.visitor.SetConstantTypeInStringIndexOfMethodsVisitor;
 import jd.core.process.analyzer.instruction.bytecode.InstructionListBuilder;
@@ -978,6 +979,7 @@ public final class ClassFileAnalyzer
         // Ajout des déclarations des variables locales temporaires
         DupLocalVariableAnalyzer.declare(classFile, method, fastList);
         PatternSwitchReconstructor.reconstruct(classFile, method, fastList);
+        new ReplaceBooleanTernaryVisitor(classFile, method.getLocalVariables()).visit(fastList);
         if (!method.getTryResources().isEmpty() && !TryWithResourcesReconstructor.wrap(method, fastList)) {
             method.setContainsError(true);
         }
@@ -1300,6 +1302,7 @@ public final class ClassFileAnalyzer
             ClassFile classFile, LocalVariables localVariables, List<Instruction> list)
     {
         new ReplaceStringBuxxxerVisitor(classFile, localVariables).visit(list);
+        new ReplaceBooleanTernaryVisitor(classFile, localVariables).visit(list);
     }
 
     private static void removeUnusedPopInstruction(List<Instruction> list)

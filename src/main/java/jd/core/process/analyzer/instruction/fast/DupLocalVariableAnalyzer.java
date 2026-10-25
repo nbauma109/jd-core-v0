@@ -66,6 +66,7 @@ public final class DupLocalVariableAnalyzer
             case FastConstants.WHILE,
                  FastConstants.DO_WHILE,
                  FastConstants.INFINITE_LOOP,
+                 FastConstants.BLOCK,
                  FastConstants.FOR,
                  FastConstants.FOREACH,
                  FastConstants.IF_SIMPLE,

@@ -244,7 +244,8 @@ public final class CheckLocalVariableUsedVisitor
                 return test != null && visit(predicate, test)
                     || instructions != null && visit(predicate, instructions);
             }
-        case FastConstants.INFINITE_LOOP:
+        case FastConstants.INFINITE_LOOP,
+             FastConstants.BLOCK:
             {
                 List<Instruction> instructions =
                         ((FastList)instruction).getInstructions();

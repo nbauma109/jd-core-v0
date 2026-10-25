@@ -382,6 +382,9 @@ public final class ClassFileWriter
             case LayoutBlockConstants.FRAGMENT_INFINITE_LOOP:
                 writeInfiniteLoop();
                 break;
+            case LayoutBlockConstants.FRAGMENT_BLOCK:
+                // The braces of the block are written with its content
+                break;
             case LayoutBlockConstants.FRAGMENT_TRY:
                 writeTry();
                 break;

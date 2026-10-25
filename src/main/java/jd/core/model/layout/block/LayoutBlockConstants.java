@@ -133,6 +133,7 @@ public final class LayoutBlockConstants
     public static final byte FRAGMENT_COMA_SPACE                          = 85;
     public static final byte FRAGMENT_ARROW                               = 86;
     public static final byte FRAGMENT_TRY_WITH_RESOURCES                  = 87;
+    public static final byte FRAGMENT_BLOCK                               = 89;
     public static final byte PERMITS_SUBCLASSES                           = 88;
 
     public static final int UNLIMITED_LINE_COUNT = Integer.MAX_VALUE;

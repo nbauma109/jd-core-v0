@@ -48,6 +48,8 @@ import jd.core.model.instruction.bytecode.instruction.attribute.ValuerefAttribut
 import jd.core.model.instruction.fast.FastConstants;
 import jd.core.model.instruction.fast.instruction.FastDeclaration;
 import jd.core.model.instruction.fast.instruction.FastFor;
+import jd.core.model.instruction.fast.instruction.FastInstruction;
+import jd.core.model.instruction.fast.instruction.FastLabel;
 import jd.core.model.instruction.fast.instruction.FastList;
 import jd.core.model.instruction.fast.instruction.FastSwitch;
 import jd.core.model.instruction.fast.instruction.FastSynchronized;
@@ -464,7 +466,8 @@ public abstract class AbstractReplaceInstructionVisitor<T>
                 }
             }
             // intended fall through
-        case FastConstants.INFINITE_LOOP:
+        case FastConstants.INFINITE_LOOP,
+             FastConstants.BLOCK:
             {
                 List<Instruction> instructions =
                         ((FastList)instruction).getInstructions();
@@ -487,7 +490,9 @@ public abstract class AbstractReplaceInstructionVisitor<T>
 
                 FastSwitch.Pair[] pairs = fs.getPairs();
                 for (int i=pairs.length-1; i>=0 && this.oldInstruction == null; --i) {
-                    visit(fs, pairs[i].getInstructions());
+                    if (pairs[i].getInstructions() != null) {
+                        visit(fs, pairs[i].getInstructions());
+                    }
                 }
             }
             break;
@@ -565,6 +570,27 @@ public abstract class AbstractReplaceInstructionVisitor<T>
              Const.INVOKEDYNAMIC,
              ByteCodeConstants.EXCEPTIONLOAD,
              ByteCodeConstants.RETURNADDRESSLOAD:
+            break;
+        case FastConstants.LABEL:
+            {
+                FastLabel label = (FastLabel) instruction;
+                if (label.getInstruction() != null) {
+                    visit(label.getInstruction());
+                }
+            }
+            break;
+        case FastConstants.GOTO_CONTINUE,
+             FastConstants.GOTO_BREAK,
+             FastConstants.GOTO_LABELED_BREAK,
+             FastConstants.IF_CONTINUE,
+             FastConstants.IF_BREAK,
+             FastConstants.IF_LABELED_BREAK:
+            {
+                Instruction jump = ((FastInstruction) instruction).getInstruction();
+                if (jump != null) {
+                    visit(jump);
+                }
+            }
             break;
         default:
             System.err.println(
