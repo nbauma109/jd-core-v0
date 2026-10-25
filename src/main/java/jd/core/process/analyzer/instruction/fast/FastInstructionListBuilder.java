@@ -4376,75 +4376,80 @@ public final class FastInstructionListBuilder {
 
     private static int analyzeSwitchType(ClassFile classFile, Instruction i, FastSwitch.Pair[] pairs)
     {
-        if (i.getOpcode() == ByteCodeConstants.ARRAYLOAD)
+        // switch(1.$SwitchMap$basic$data$TestEnum$enum1[e.ordinal()]) ?
+        // switch(1.$SwitchMap$basic$data$TestEnum$enum1[request.getOperationType().ordinal()]) ?
+        if (i.getOpcode() == ByteCodeConstants.ARRAYLOAD && isSwitchMapArrayLoad(classFile, (ArrayLoadInstruction)i))
         {
-            // switch(1.$SwitchMap$basic$data$TestEnum$enum1[e.ordinal()]) ?
-            // switch(1.$SwitchMap$basic$data$TestEnum$enum1[request.getOperationType().ordinal()]) ?
-            ArrayLoadInstruction ali = (ArrayLoadInstruction)i;
-
-            if (ali.getIndexref().getOpcode() == Const.INVOKEVIRTUAL)
-            {
-                if (ali.getArrayref().getOpcode() == Const.GETSTATIC)
-                {
-                    GetStatic gs = (GetStatic) ali.getArrayref();
-
-                    ConstantPool constants = classFile.getConstantPool();
-                    ConstantFieldref cfr = constants.getConstantFieldref(gs.getIndex());
-                    ConstantNameAndType cnat = constants.getConstantNameAndType(cfr.getNameAndTypeIndex());
-                    String cnatName = constants.getConstantUtf8(cnat.getNameIndex());
-                    if (classFile.getSwitchMapOwner(cnatName) != null) {
-                        Invokevirtual iv = (Invokevirtual) ali.getIndexref();
-
-                        if (iv.getArgs().isEmpty()) {
-                            ConstantCP cmr = constants.getConstantMethodref(iv.getIndex());
-                            cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
-
-                            if (StringConstants.ORDINAL_METHOD_NAME.equals(constants.getConstantUtf8(cnat.getNameIndex()))) {
-                                // SWITCH_ENUM found
-                                return FastConstants.SWITCH_ENUM;
-                            }
-                        }
-                    }
-                }
-                else if (ali.getArrayref().getOpcode() == Const.INVOKESTATIC)
-                {
-                    Invokestatic is = (Invokestatic) ali.getArrayref();
-
-                    if (is.getArgs().isEmpty()) {
-                        ConstantPool constants = classFile.getConstantPool();
-                        ConstantCP cmr = constants.getConstantMethodref(is.getIndex());
-
-                        if (cmr.getClassIndex() == classFile.getThisClassIndex()) {
-                            ConstantNameAndType cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
-                            String cnatName = constants.getConstantUtf8(cnat.getNameIndex());
-                            if (classFile.getSwitchMaps().containsKey(cnatName)) {
-                                Invokevirtual iv = (Invokevirtual) ali.getIndexref();
-
-                                if (iv.getArgs().isEmpty()) {
-                                    cmr = constants.getConstantMethodref(iv.getIndex());
-                                    cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
-
-                                    if (StringConstants.ORDINAL_METHOD_NAME.equals(constants.getConstantUtf8(cnat.getNameIndex()))) {
-                                        // Eclipse SWITCH_ENUM found
-                                        return FastConstants.SWITCH_ENUM;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+            return FastConstants.SWITCH_ENUM;
         }
-        else if (i.getOpcode() == Const.INVOKEVIRTUAL)
+
+        // JDK 21+ javac no longer emits a synthetic switch-map table for enum
+        // switches; it switches directly on the ordinal value instead.
+        if (i.getOpcode() == Const.INVOKEVIRTUAL && isEnumOrdinalCall(classFile, (Invokevirtual) i, pairs))
         {
-            // switch(enumValue.ordinal()) ? javac >= 21 no longer emits the
-            // synthetic $SwitchMap$... table, it switches on ordinal() directly.
-            if (isEnumOrdinalCall(classFile, (Invokevirtual) i, pairs)) {
-                return FastConstants.SWITCH_ENUM;
-            }
+            return FastConstants.SWITCH_ENUM;
         }
 
         return FastConstants.SWITCH;
+    }
+
+    private static boolean isSwitchMapArrayLoad(ClassFile classFile, ArrayLoadInstruction ali)
+    {
+        if (ali.getIndexref().getOpcode() != Const.INVOKEVIRTUAL) {
+            return false;
+        }
+
+        if (ali.getArrayref().getOpcode() == Const.GETSTATIC)
+        {
+            GetStatic gs = (GetStatic) ali.getArrayref();
+
+            ConstantPool constants = classFile.getConstantPool();
+            ConstantFieldref cfr = constants.getConstantFieldref(gs.getIndex());
+            ConstantNameAndType cnat = constants.getConstantNameAndType(cfr.getNameAndTypeIndex());
+            String cnatName = constants.getConstantUtf8(cnat.getNameIndex());
+            if (classFile.getSwitchMapOwner(cnatName) == null) {
+                return false;
+            }
+
+            Invokevirtual iv = (Invokevirtual) ali.getIndexref();
+            if (!iv.getArgs().isEmpty()) {
+                return false;
+            }
+
+            ConstantCP cmr = constants.getConstantMethodref(iv.getIndex());
+            cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
+
+            // SWITCH_ENUM found
+            return StringConstants.ORDINAL_METHOD_NAME.equals(constants.getConstantUtf8(cnat.getNameIndex()));
+        }
+
+        if (ali.getArrayref().getOpcode() == Const.INVOKESTATIC)
+        {
+            Invokestatic is = (Invokestatic) ali.getArrayref();
+
+            if (is.getArgs().isEmpty()) {
+                ConstantPool constants = classFile.getConstantPool();
+                ConstantCP cmr = constants.getConstantMethodref(is.getIndex());
+
+                if (cmr.getClassIndex() == classFile.getThisClassIndex()) {
+                    ConstantNameAndType cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
+                    String cnatName = constants.getConstantUtf8(cnat.getNameIndex());
+                    if (classFile.getSwitchMaps().containsKey(cnatName)) {
+                        Invokevirtual iv = (Invokevirtual) ali.getIndexref();
+
+                        if (iv.getArgs().isEmpty()) {
+                            cmr = constants.getConstantMethodref(iv.getIndex());
+                            cnat = constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
+
+                            // Eclipse SWITCH_ENUM found
+                            return StringConstants.ORDINAL_METHOD_NAME.equals(constants.getConstantUtf8(cnat.getNameIndex()));
+                        }
+                    }
+                }
+            }
+        }
+
+        return false;
     }
 
     private static boolean isEnumOrdinalCall(ClassFile classFile, Invokevirtual iv, FastSwitch.Pair[] pairs)

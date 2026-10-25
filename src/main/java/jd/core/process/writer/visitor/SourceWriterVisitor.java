@@ -45,10 +45,8 @@ import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker.Typ
 import org.jd.core.v1.util.StringConstants;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -113,6 +111,8 @@ import jd.core.printer.InstructionPrinter;
 import jd.core.process.deserializer.ClassFileDeserializer;
 import jd.core.process.layouter.visitor.MinLineNumberVisitor;
 import jd.core.process.writer.ConstantValueWriter;
+import jd.core.process.writer.EnumSwitchNameResolver;
+import jd.core.process.writer.EnumSwitchNameResolver.EnumSwitchNames;
 import jd.core.process.writer.SignatureWriter;
 import jd.core.process.writer.SourceWriteable;
 import jd.core.util.SignatureUtil;
@@ -3020,7 +3020,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
             return lineNumber;
         }
 
-        SwitchEnumInfo switchEnumInfo = null;
+        EnumSwitchNames switchEnumInfo = null;
         if (fs.getOpcode() == FastConstants.SWITCH_ENUM) {
             switchEnumInfo = resolveSwitchEnumInfo(fs);
         }
@@ -3130,7 +3130,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         return test;
     }
 
-    private List<SwitchCaseGroup> collectSwitchExpressionGroups(FastSwitch fs, SwitchEnumInfo switchEnumInfo)
+    private List<SwitchCaseGroup> collectSwitchExpressionGroups(FastSwitch fs, EnumSwitchNames switchEnumInfo)
     {
         FastSwitch.Pair[] pairs = fs.getPairs();
         List<SwitchCaseGroup> groups = new java.util.ArrayList<>();
@@ -3232,7 +3232,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         this.printer.startOfLine(Instruction.UNKNOWN_LINE_NUMBER);
     }
 
-    private void writeSwitchExpressionCaseLabel(FastSwitch fs, List<FastSwitch.Pair> labels, int lineNumber, SwitchEnumInfo switchEnumInfo)
+    private void writeSwitchExpressionCaseLabel(FastSwitch fs, List<FastSwitch.Pair> labels, int lineNumber, EnumSwitchNames switchEnumInfo)
     {
         if (labels.isEmpty()) {
             return;
@@ -3268,7 +3268,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         }
     }
 
-    private void writeSwitchExpressionCaseValue(FastSwitch fs, FastSwitch.Pair pair, SwitchEnumInfo switchEnumInfo)
+    private void writeSwitchExpressionCaseValue(FastSwitch fs, FastSwitch.Pair pair, EnumSwitchNames switchEnumInfo)
     {
         switch (fs.getOpcode())
         {
@@ -3300,7 +3300,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         }
     }
 
-    private void writeSwitchExpressionEnumCase(FastSwitch.Pair pair, SwitchEnumInfo switchEnumInfo)
+    private void writeSwitchExpressionEnumCase(FastSwitch.Pair pair, EnumSwitchNames switchEnumInfo)
     {
         String value = switchEnumInfo == null ? null : switchEnumInfo.nameForKey(pair.getKey());
 
@@ -3318,90 +3318,44 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
             enumDescriptor, this.classFile.getThisClassName());
     }
 
-    private SwitchEnumInfo resolveSwitchEnumInfo(FastSwitch fs)
+    private EnumSwitchNames resolveSwitchEnumInfo(FastSwitch fs)
     {
         Instruction test = fs.getTest();
-        ConstantPool cp = this.classFile.getConstantPool();
 
-        if (test.getOpcode() == ByteCodeConstants.ARRAYLOAD)
+        if (test instanceof ArrayLoadInstruction ali)
         {
-            // javac < 21 / ECJ: switch(1.$SwitchMap$...[enumValue.ordinal()]).
-            ArrayLoadInstruction ali = (ArrayLoadInstruction)test;
-            ConstantNameAndType cnat;
-
-            if (ali.getArrayref().getOpcode() == Const.INVOKESTATIC)
-            {
-                Invokestatic is = (Invokestatic)ali.getArrayref();
-                ConstantCP cmr = cp.getConstantMethodref(is.getIndex());
-                cnat = cp.getConstantNameAndType(cmr.getNameAndTypeIndex());
-            }
-            else if (ali.getArrayref().getOpcode() == Const.GETSTATIC)
-            {
-                GetStatic gs = (GetStatic)ali.getArrayref();
-                ConstantFieldref cfr = cp.getConstantFieldref(gs.getIndex());
-                cnat = cp.getConstantNameAndType(cfr.getNameAndTypeIndex());
-            }
-            else
-            {
-                return null;
-            }
-
-            String switchMapKey = cp.getConstantUtf8(cnat.getNameIndex());
-
-            if (!(ali.getIndexref() instanceof Invokevirtual iv)) {
-                return null;
-            }
-            ConstantCP cmr = cp.getConstantMethodref(iv.getIndex());
-            String internalEnumName = cp.getConstantClassName(cmr.getClassIndex());
-
-            ClassFile switchMapOwner = this.classFile.getSwitchMapOwner(switchMapKey);
-            if (switchMapOwner == null) {
-                return null;
-            }
-
-            List<Integer> switchMap = switchMapOwner.getSwitchMaps().get(switchMapKey);
-            ConstantPool ownerConstants = switchMapOwner.getConstantPool();
-
-            Map<Integer, String> namesByKey = new HashMap<>();
-            for (int i = 0; i < switchMap.size(); i++)
-            {
-                Integer valueIndex = switchMap.get(i);
-                if (valueIndex != null && valueIndex > 0)
-                {
-                    namesByKey.put(i + 1, ownerConstants.getConstantUtf8(valueIndex));
-                }
-            }
-
-            return new SwitchEnumInfo(internalEnumName, namesByKey);
+            // Pre-JDK 21 javac, and ECJ: a compiler-generated switch-map table lookup.
+            return resolveSwitchEnumInfoFromSwitchMap(ali);
         }
 
         if (test instanceof Invokevirtual iv)
         {
-            // javac >= 21: switch(enumValue.ordinal()) directly, no switch-map table.
-            ConstantCP cmr = cp.getConstantMethodref(iv.getIndex());
-            String internalEnumName = cp.getConstantClassName(cmr.getClassIndex());
-
-            Map<Integer, String> namesByKey = new HashMap<>();
-            ClassFile enumClassFile = this.classFile.resolveClassFile(internalEnumName);
-
-            if (enumClassFile != null)
-            {
-                ConstantPool enumConstants = enumClassFile.getConstantPool();
-                int ordinal = 0;
-                for (Field field : enumClassFile.getFields())
-                {
-                    if ((field.getAccessFlags() & Const.ACC_ENUM) != 0)
-                    {
-                        namesByKey.put(ordinal, enumConstants.getConstantUtf8(field.getNameIndex()));
-                        ordinal++;
-                    }
-                }
-            }
-
-            return new SwitchEnumInfo(internalEnumName, namesByKey);
+            // JDK 21+ javac: switches directly on the ordinal value, no switch-map table.
+            return resolveSwitchEnumInfoFromOrdinal(iv);
         }
 
         return null;
+    }
+
+    private EnumSwitchNames resolveSwitchEnumInfoFromSwitchMap(ArrayLoadInstruction ali)
+    {
+        String switchMapKey = EnumSwitchNameResolver.switchMapKey(this.classFile, ali);
+        if (switchMapKey == null || this.classFile.getSwitchMapOwner(switchMapKey) == null) {
+            return null;
+        }
+
+        if (!(ali.getIndexref() instanceof Invokevirtual iv)) {
+            return null;
+        }
+
+        String internalEnumName = EnumSwitchNameResolver.internalEnumName(this.classFile, iv);
+        return EnumSwitchNameResolver.fromSwitchMap(this.classFile, switchMapKey, internalEnumName);
+    }
+
+    private EnumSwitchNames resolveSwitchEnumInfoFromOrdinal(Invokevirtual iv)
+    {
+        String internalEnumName = EnumSwitchNameResolver.internalEnumName(this.classFile, iv);
+        return EnumSwitchNameResolver.fromOrdinal(this.classFile, internalEnumName);
     }
 
     private static SwitchCaseData toSwitchCaseData(FastSwitch.Pair pair)
@@ -3456,14 +3410,6 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
 
         private boolean isDefault() {
             return labels.size() == 1 && labels.get(0).isDefault();
-        }
-    }
-
-    private record SwitchEnumInfo(String internalEnumName, Map<Integer, String> namesByKey)
-    {
-        String nameForKey(int key)
-        {
-            return namesByKey.get(key);
         }
     }
 

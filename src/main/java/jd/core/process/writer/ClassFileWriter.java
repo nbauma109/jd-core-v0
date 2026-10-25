@@ -20,7 +20,6 @@ package jd.core.process.writer;
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.AnnotationEntry;
 import org.apache.bcel.classfile.Constant;
-import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ElementValue;
 import org.apache.bcel.classfile.PermittedSubclasses;
 import org.apache.bcel.classfile.Signature;
@@ -33,11 +32,9 @@ import org.jd.core.v1.util.StringConstants;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -2277,67 +2274,22 @@ public final class ClassFileWriter
         }
     }
 
-    private record EnumSwitchNames(String internalEnumName, Map<Integer, String> namesByKey)
-    {
-        String nameForKey(int key)
-        {
-            return namesByKey.get(key);
-        }
-    }
-
-    private static EnumSwitchNames resolveEnumSwitchNames(ClassFile classFile, CaseEnumLayoutBlock celb)
+    private static EnumSwitchNameResolver.EnumSwitchNames resolveEnumSwitchNames(ClassFile classFile, CaseEnumLayoutBlock celb)
     {
         Instruction test = celb.getFs().getTest();
 
         if (test instanceof ArrayLoadInstruction ali && ali.getIndexref() instanceof Invokevirtual iv)
         {
-            // javac < 21 / ECJ: switch(1.$SwitchMap$...[enumValue.ordinal()]).
-            ConstantPool constants = classFile.getConstantPool();
-            ConstantCP cmr = constants.getConstantMethodref(iv.getIndex());
-            String internalEnumName = constants.getConstantClassName(cmr.getClassIndex());
-
-            ClassFile switchMapOwner = classFile.getSwitchMapOwner(celb.getSwitchMapKey());
-            List<Integer> switchMap = switchMapOwner.getSwitchMaps().get(celb.getSwitchMapKey());
-            ConstantPool ownerConstants = switchMapOwner.getConstantPool();
-
-            Map<Integer, String> namesByKey = new HashMap<>();
-            for (int i = 0; i < switchMap.size(); i++)
-            {
-                Integer valueIndex = switchMap.get(i);
-                if (valueIndex != null && valueIndex > 0)
-                {
-                    namesByKey.put(i + 1, ownerConstants.getConstantUtf8(valueIndex));
-                }
-            }
-
-            return new EnumSwitchNames(internalEnumName, namesByKey);
+            // Pre-JDK 21 javac, and ECJ: a compiler-generated switch-map table lookup.
+            String internalEnumName = EnumSwitchNameResolver.internalEnumName(classFile, iv);
+            return EnumSwitchNameResolver.fromSwitchMap(classFile, celb.getSwitchMapKey(), internalEnumName);
         }
 
         if (test instanceof Invokevirtual iv)
         {
-            // javac >= 21: switch(enumValue.ordinal()) directly, no switch-map table.
-            ConstantPool constants = classFile.getConstantPool();
-            ConstantCP cmr = constants.getConstantMethodref(iv.getIndex());
-            String internalEnumName = constants.getConstantClassName(cmr.getClassIndex());
-
-            Map<Integer, String> namesByKey = new HashMap<>();
-            ClassFile enumClassFile = classFile.resolveClassFile(internalEnumName);
-
-            if (enumClassFile != null)
-            {
-                ConstantPool enumConstants = enumClassFile.getConstantPool();
-                int ordinal = 0;
-                for (Field field : enumClassFile.getFields())
-                {
-                    if ((field.getAccessFlags() & Const.ACC_ENUM) != 0)
-                    {
-                        namesByKey.put(ordinal, enumConstants.getConstantUtf8(field.getNameIndex()));
-                        ordinal++;
-                    }
-                }
-            }
-
-            return new EnumSwitchNames(internalEnumName, namesByKey);
+            // JDK 21+ javac: switches directly on the ordinal value, no switch-map table.
+            String internalEnumName = EnumSwitchNameResolver.internalEnumName(classFile, iv);
+            return EnumSwitchNameResolver.fromOrdinal(classFile, internalEnumName);
         }
 
         throw new IllegalStateException();
@@ -2348,7 +2300,7 @@ public final class ClassFileWriter
         addSpaceIfNeeded();
 
         ClassFile classFile = celb.getClassFile();
-        EnumSwitchNames enumSwitchNames = resolveEnumSwitchNames(classFile, celb);
+        EnumSwitchNameResolver.EnumSwitchNames enumSwitchNames = resolveEnumSwitchNames(classFile, celb);
         String internalEnumName = enumSwitchNames.internalEnumName();
 
         String enumDescriptor = SignatureUtil.createTypeName(internalEnumName);
