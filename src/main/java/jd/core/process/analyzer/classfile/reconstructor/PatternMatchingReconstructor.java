@@ -25,6 +25,7 @@ import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.classfile.Method;
+import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.ALoad;
 import jd.core.model.instruction.bytecode.instruction.AStore;
 import jd.core.model.instruction.bytecode.instruction.CheckCast;
@@ -75,7 +76,7 @@ public final class PatternMatchingReconstructor {
         }
         for (int i = list.size() - 2; i >= 0; i--) {
             if (list.get(i) instanceof IfInstruction test && test.getValue() instanceof InstanceOf instanceOf
-                    && instanceOf.getPatternVariable() == null
+                    && test.getCmp() == ByteCodeConstants.CMP_EQ && instanceOf.getPatternVariable() == null
                     && list.get(i + 1) instanceof AStore store && isBinding(instanceOf, store)) {
                 LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(store.getIndex(), store.getOffset());
                 if (lv != null) {

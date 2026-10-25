@@ -24,6 +24,7 @@ import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.instruction.ALoad;
+import jd.core.model.instruction.bytecode.instruction.AConstNull;
 import jd.core.model.instruction.bytecode.instruction.AThrow;
 import jd.core.model.instruction.bytecode.instruction.ConditionalBranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.Goto;
@@ -223,11 +224,24 @@ public final class PatternSwitchReconstructor {
         removeIf(fastList, instruction -> instruction instanceof FastDeclaration declaration
                 && declaration.getInstruction() == null && declaration.getLv().isPatternBinding());
         // The variable holding the index to restart from is only needed by guards
-        removeIf(fastList, instruction -> isConstantStore(instruction, selector.getRestartIndexVariable()));
+        removeRestartInitialization(fastList, fs, selector.getRestartIndexVariable());
         foldSelectorVariable(classFile, fastList, fs, selector);
         if (!exhaustive && isStatement(fastList, fs)) {
             addEmptyDefault(fs);
         }
+    }
+
+    /** Only the initialization of the synthetic variable, just before the switch, is removed. */
+    private static void removeRestartInitialization(List<Instruction> fastList, FastSwitch fs, int restartVariable) {
+        forEachList(fastList, list -> {
+            int switchIndex = indexOfStatementContaining(list, fs);
+            for (int i = Math.max(0, switchIndex - 2); i < switchIndex; i++) {
+                if (isConstantStore(list.get(i), restartVariable)) {
+                    list.remove(i);
+                    return;
+                }
+            }
+        });
     }
 
     private static boolean isStatement(List<Instruction> fastList, FastSwitch fs) {
@@ -266,6 +280,7 @@ public final class PatternSwitchReconstructor {
             List<Instruction> instructions = pairs[i].getInstructions();
             if (pairs[i].isDefault() && instructions != null && instructions.size() == 1
                     && instructions.get(0) instanceof AThrow thrown && thrown.getValueref() instanceof InvokeNew created
+                    && created.getArgs().stream().allMatch(AConstNull.class::isInstance)
                     && "java/lang/MatchException".equals(cp.getConstantClassName(cp.getConstantMethodref(created.getIndex()).getClassIndex()))) {
                 FastSwitch.Pair[] remaining = new FastSwitch.Pair[pairs.length - 1];
                 System.arraycopy(pairs, 0, remaining, 0, i);
