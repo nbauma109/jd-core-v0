@@ -61,4 +61,40 @@ public class VineflowerSamples {
             }
         };
     }
+
+    public void tryWithResources(java.io.File file) throws java.io.FileNotFoundException {
+        try (java.util.Scanner scanner = new java.util.Scanner(file)) {
+            scanner.next();
+        }
+    }
+
+    public void tryWithResourcesAndFinally(java.io.File file) throws java.io.FileNotFoundException {
+        try (java.util.Scanner scanner = new java.util.Scanner(file)) {
+            scanner.next();
+        } finally {
+            System.out.println("Hello");
+        }
+    }
+
+    public void tryWithResourcesAndCatch(java.io.File first, java.io.File second) throws java.io.FileNotFoundException {
+        try (java.util.Scanner scanner1 = new java.util.Scanner(first);
+                java.util.Scanner scanner2 = new java.util.Scanner(second)) {
+            scanner1.next();
+            scanner2.next();
+        } catch (RuntimeException e) {
+            System.out.println("Caught");
+        }
+    }
+
+    public String tryWithResourcesAndReturn(String name) throws java.io.IOException {
+        try (java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.FileReader(name))) {
+            return reader.readLine();
+        }
+    }
+
+    public void tryWithExistingResource(AutoCloseable closeable) throws Exception {
+        try (closeable) {
+            System.out.println("x");
+        }
+    }
 }
