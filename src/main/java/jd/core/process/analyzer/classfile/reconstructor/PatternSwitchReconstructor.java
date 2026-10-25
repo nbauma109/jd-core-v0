@@ -76,7 +76,7 @@ public final class PatternSwitchReconstructor {
         for (int s = 0; s < list.size(); s++) {
             if (list.get(s) instanceof Switch lookup && lookup.getKey() instanceof PatternSwitchSelector selector) {
                 removeRestarts(list, lookup, selector);
-                reconstructRecordCases(classFile, localVariables, list, lookup, selector);
+                reconstructRecordCases(classFile, method, localVariables, list, lookup, selector);
                 if (!selector.getRecordComponents().isEmpty()) {
                     PatternMatchingReconstructor.removeMatchExceptionHandlers(classFile, method, list);
                 }
@@ -153,7 +153,7 @@ public final class PatternSwitchReconstructor {
         return bestKey;
     }
 
-    private static void reconstructRecordCases(ClassFile classFile, LocalVariables localVariables, List<Instruction> list,
+    private static void reconstructRecordCases(ClassFile classFile, Method method, LocalVariables localVariables, List<Instruction> list,
             Switch lookup, PatternSwitchSelector selector) {
         for (int i = 0; i < lookup.getOffsets().length; i++) {
             int caseStart = lookup.getOffset() + lookup.getOffset(i);
@@ -174,7 +174,7 @@ public final class PatternSwitchReconstructor {
             }
             list.subList(first, end).clear();
             for (LocalVariable component : components) {
-                PatternMatchingReconstructor.markBinding(classFile, localVariables, component);
+                PatternMatchingReconstructor.markBinding(classFile, method, component);
             }
             selector.getRecordComponents().put(keyAt(lookup, i), components);
         }
@@ -187,7 +187,7 @@ public final class PatternSwitchReconstructor {
         }
         FastSwitch fs;
         while ((fs = findUnprocessed(fastList)) != null) {
-            process(classFile, localVariables, fastList, fs, (PatternSwitchSelector) fs.getTest());
+            process(classFile, method, localVariables, fastList, fs, (PatternSwitchSelector) fs.getTest());
         }
     }
 
@@ -203,7 +203,7 @@ public final class PatternSwitchReconstructor {
         return null;
     }
 
-    private static void process(ClassFile classFile, LocalVariables localVariables, List<Instruction> fastList,
+    private static void process(ClassFile classFile, Method method, LocalVariables localVariables, List<Instruction> fastList,
             FastSwitch fs, PatternSwitchSelector selector) {
         fs.setPatternSelector(selector);
         boolean exhaustive = removeMatchExceptionDefault(classFile, fs);
@@ -215,7 +215,7 @@ public final class PatternSwitchReconstructor {
             LocalVariable binding = bindingOf(localVariables, instructions.get(0), selector);
             if (binding != null) {
                 instructions.remove(0);
-                PatternMatchingReconstructor.markBinding(classFile, localVariables, binding);
+                PatternMatchingReconstructor.markBinding(classFile, method, binding);
                 selector.getBindings().put(pair.getKey(), binding);
             }
         }
@@ -316,7 +316,7 @@ public final class PatternSwitchReconstructor {
                 return;
             }
             int from = switchIndex - 1;
-            if (from > 0 && isRequireNonNull(classFile, list.get(from - 1))) {
+            if (from > 0 && isRequireNonNull(classFile, list.get(from - 1), assignment.getValueref())) {
                 from--;
             }
             fs.setTest(assignment.getValueref());
@@ -337,9 +337,11 @@ public final class PatternSwitchReconstructor {
         return false;
     }
 
-    private static boolean isRequireNonNull(ClassFile classFile, Instruction instruction) {
+    private static boolean isRequireNonNull(ClassFile classFile, Instruction instruction, Instruction selected) {
         Instruction call = instruction instanceof Pop pop ? pop.getObjectref() : instruction;
-        if (call instanceof Invokestatic invoke) {
+        if (call instanceof Invokestatic invoke && invoke.getArgs().size() == 1
+                && invoke.getArgs().get(0) instanceof ALoad checked && selected instanceof ALoad assigned
+                && checked.getIndex() == assigned.getIndex()) {
             ConstantPool cp = classFile.getConstantPool();
             var methodref = cp.getConstantMethodref(invoke.getIndex());
             return "java/util/Objects".equals(cp.getConstantClassName(methodref.getClassIndex()))

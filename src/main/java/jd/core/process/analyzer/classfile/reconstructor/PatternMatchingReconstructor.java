@@ -17,6 +17,7 @@ package jd.core.process.analyzer.classfile.reconstructor;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.bcel.Const;
 import org.apache.bcel.classfile.CodeException;
 
 import jd.core.model.classfile.ClassFile;
@@ -66,7 +67,7 @@ public final class PatternMatchingReconstructor {
         for (int i = list.size() - 2; i >= 0; i--) {
             if (list.get(i) instanceof IfInstruction test && test.getValue() instanceof InstanceOf instanceOf
                     && instanceOf.getPatternVariable() == null && instanceOf.getRecordPatternVariables() == null) {
-                recordPattern |= reconstructRecordPattern(classFile, localVariables, list, i, instanceOf);
+                recordPattern |= reconstructRecordPattern(classFile, method, localVariables, list, i, instanceOf);
             }
         }
         if (recordPattern) {
@@ -79,7 +80,7 @@ public final class PatternMatchingReconstructor {
                 LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(store.getIndex(), store.getOffset());
                 if (lv != null) {
                     instanceOf.setPatternVariable(lv);
-                    markBinding(classFile, localVariables, lv);
+                    markBinding(classFile, method, lv);
                     list.remove(i + 1);
                 }
             }
@@ -89,7 +90,7 @@ public final class PatternMatchingReconstructor {
     /**
      * if (o instanceof R) goto END; r = o; c1 = r.a(); t1 = c1; goto END if true; x = c1; ...
      */
-    private static boolean reconstructRecordPattern(ClassFile classFile, LocalVariables localVariables,
+    private static boolean reconstructRecordPattern(ClassFile classFile, Method method, LocalVariables localVariables,
             List<Instruction> list, int ifIndex, InstanceOf instanceOf) {
         if (!(instanceOf.getObjectref() instanceof ALoad tested) || ifIndex + 2 >= list.size()
                 || !(list.get(ifIndex + 1) instanceof AStore recordStore) || !(unwrapCast(recordStore.getValueref()) instanceof ALoad source)
@@ -104,7 +105,7 @@ public final class PatternMatchingReconstructor {
         }
         list.subList(ifIndex + 1, end).clear();
         for (LocalVariable lv : bindings) {
-            markBinding(classFile, localVariables, lv);
+            markBinding(classFile, method, lv);
         }
         instanceOf.setRecordPatternVariables(bindings);
         return true;
@@ -222,13 +223,26 @@ public final class PatternMatchingReconstructor {
      * after the statement binding it has one range for each part of the code using it, which are
      * all the same variable for the source code.
      */
-    static void markBinding(ClassFile classFile, LocalVariables localVariables, LocalVariable binding) {
+    /** A range of the same variable starts after a jump, not after the store of a new variable. */
+    private static boolean isDeclaredByStore(byte[] code, LocalVariable lv) {
+        int start = lv.getStartPc();
+        if (code == null || start < 1 || start > code.length) {
+            return false;
+        }
+        int previous = code[start - 1] & 255;
+        boolean shortStore = previous >= Const.ASTORE_0 && previous <= Const.ASTORE_3 && previous - Const.ASTORE_0 == lv.getIndex();
+        boolean longStore = start >= 2 && (code[start - 2] & 255) == Const.ASTORE && previous == lv.getIndex();
+        return shortStore || longStore;
+    }
+
+    static void markBinding(ClassFile classFile, Method method, LocalVariable binding) {
+        LocalVariables localVariables = method.getLocalVariables();
         ConstantPool cp = classFile.getConstantPool();
         String name = cp.getConstantUtf8(binding.getNameIndex());
         for (int i = 0; i < localVariables.size(); i++) {
             LocalVariable lv = localVariables.getLocalVariableAt(i);
             if (lv == binding || lv.getIndex() == binding.getIndex() && lv.getSignatureIndex() == binding.getSignatureIndex()
-                    && name.equals(cp.getConstantUtf8(lv.getNameIndex()))) {
+                    && name.equals(cp.getConstantUtf8(lv.getNameIndex())) && !isDeclaredByStore(method.getCode(), lv)) {
                 lv.setDeclarationFlag(true);
                 lv.setPatternBinding(true);
             }
