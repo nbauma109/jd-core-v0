@@ -36,12 +36,22 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
     @Test
     public void otherConstructsDecompileWithoutErrors() throws IOException {
         for (String name : new String[] { "s/T1", "s/L1", "s/P1", "s/W1", "s/W2", "s/C13", "s/C14", "s/C15", "s/C17",
-                "s/G1", "s/K1", "s/C11", "s/C04", "s/C09", "s/C12", "s/D1", "s/D2", "More", "Extra", "Third" }) {
+                "s/G1", "s/K1", "s/C11", "s/C04", "s/C09", "s/C12", "s/D1", "s/D2", "More", "Extra", "Third", "Fourth" }) {
             try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
                 String output = decompile(name, new ZipLoader(in));
                 assertFalse(name + "\n" + output, output.contains("Byte code"));
                 assertFalse(name + "\n" + output, output.contains("<failed"));
             }
+        }
+    }
+
+    @Test
+    public void patternWithoutCastAndSlotReuse() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Fourth", new ZipLoader(in));
+            assertFalse(output, output.contains("Byte code"));
+            assertTrue(output, output.matches("(?s).*case Object \\w+ when .*"));
+            assertTrue(output, output.matches("(?s).*int x;.*"));
         }
     }
 }

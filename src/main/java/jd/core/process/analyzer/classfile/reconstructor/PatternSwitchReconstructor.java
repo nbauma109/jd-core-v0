@@ -295,12 +295,17 @@ public final class PatternSwitchReconstructor {
 
     private static LocalVariable bindingOf(LocalVariables localVariables, Instruction first, PatternSwitchSelector selector) {
         Instruction instruction = first instanceof FastDeclaration declaration ? declaration.getInstruction() : first;
-        if (instruction instanceof StoreInstruction store && store.getValueref() instanceof CheckCast cast
-                && cast.getObjectref() instanceof ALoad source && source.getIndex() == selector.getIndex()) {
+        if (instruction instanceof StoreInstruction store && isSelectorCopy(store.getValueref(), selector)) {
             return first instanceof FastDeclaration declaration ? declaration.getLv()
                     : localVariables.getLocalVariableWithIndexAndOffset(store.getIndex(), store.getOffset());
         }
         return null;
+    }
+
+    /** The binding is the selector, cast to the type of the label unless it is already of that type. */
+    private static boolean isSelectorCopy(Instruction value, PatternSwitchSelector selector) {
+        Instruction source = value instanceof CheckCast cast ? cast.getObjectref() : value;
+        return source instanceof ALoad load && load.getIndex() == selector.getIndex();
     }
 
     private static boolean isConstantStore(Instruction instruction, int variableIndex) {

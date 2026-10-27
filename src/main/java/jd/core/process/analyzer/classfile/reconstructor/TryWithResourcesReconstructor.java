@@ -239,21 +239,31 @@ public final class TryWithResourcesReconstructor {
         boolean complete = true;
         for (int[] resource : resources) {
             complete &= wrap(method.getLocalVariables(), fastList, resource);
-            removeHoistedDeclarations(fastList, resource[0]);
+            removeHoistedDeclarations(fastList, method.getLocalVariables() == null ? null
+                    : method.getLocalVariables().getLocalVariableWithIndexAndOffset(resource[0], resource[1]));
         }
         return complete;
     }
 
     /** The resource is declared by the statement: a declaration hoisted before it would declare it twice. */
-    private static void removeHoistedDeclarations(List<Instruction> list, int variableIndex) {
+    private static void removeHoistedDeclarations(List<Instruction> list, LocalVariable resource) {
+        if (resource == null) {
+            return;
+        }
         list.removeIf(instruction -> instruction instanceof FastDeclaration declaration
-                && declaration.getInstruction() == null && declaration.getLv().getIndex() == variableIndex
-                && declaration.getLv().hasDeclarationFlag());
+                && declaration.getInstruction() == null && sameVariable(declaration.getLv(), resource));
         for (Instruction instruction : new ArrayList<>(list)) {
             for (List<Instruction> nested : nestedLists(instruction)) {
-                removeHoistedDeclarations(nested, variableIndex);
+                removeHoistedDeclarations(nested, resource);
             }
         }
+    }
+
+    /** Another variable may reuse the slot of the resource: it has another name or type. */
+    private static boolean sameVariable(LocalVariable declared, LocalVariable resource) {
+        return declared == resource || declared.getIndex() == resource.getIndex()
+                && declared.getNameIndex() == resource.getNameIndex()
+                && declared.getSignatureIndex() == resource.getSignatureIndex();
     }
 
     private static boolean wrap(LocalVariables localVariables, List<Instruction> list, int[] resource) {
