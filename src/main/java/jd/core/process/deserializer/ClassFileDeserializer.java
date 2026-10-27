@@ -78,9 +78,9 @@ public final class ClassFileDeserializer
             return classFile;
         }
 
-        String internalClassPathPrefix =
-            internalClassPath.substring(
-                0, internalClassPath.length() - StringConstants.CLASS_FILE_SUFFIX.length());
+        String internalClassPathPrefix = internalClassPath.endsWith(StringConstants.CLASS_FILE_SUFFIX)
+            ? internalClassPath.substring(0, internalClassPath.length() - StringConstants.CLASS_FILE_SUFFIX.length())
+            : internalClassPath;
         String innerInternalClassNamePrefix =
             internalClassPathPrefix + StringConstants.INTERNAL_INNER_SEPARATOR;
         ConstantPool constants = classFile.getConstantPool();

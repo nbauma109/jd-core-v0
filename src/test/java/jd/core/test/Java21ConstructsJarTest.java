@@ -91,4 +91,14 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output, output.contains("localPair"));
         }
     }
+
+    @Test
+    public void castsAndSelectorsAreOnlyRemovedWhenSafe() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Ninth", new ZipLoader(in));
+            assertTrue(output, output.contains("((String)c.get()).length()"));
+            assertTrue(output, output.contains("unused = sideEffect();"));
+            assertTrue(output, output.contains("switch (o)"));
+        }
+    }
 }

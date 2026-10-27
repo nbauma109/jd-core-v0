@@ -90,6 +90,10 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
             return false;
         }
 
+        if (declaresTypeParameter(methodTypes, returned.getName())) {
+            return false;
+        }
+
         String receiverSignature = invoke.getObjectref().getReturnedSignature(classFile, localVariables);
         if (receiverSignature == null || receiverSignature.indexOf('<') == -1) {
             return false;
@@ -104,6 +108,20 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
         TypeArgument argument = typeArgument(owner, returned.getName(), receiverType.getTypeArguments());
         return argument instanceof ObjectType argumentType && argumentType.getDimension() == 0
             && argumentType.getInternalName().equals(constants.getConstantClassName(cast.getIndex()));
+    }
+
+    /** A type parameter of the method hides the one of the class with the same name. */
+    private static boolean declaresTypeParameter(MethodTypes methodTypes, String name)
+    {
+        BaseTypeParameter parameters = methodTypes.getTypeParameters();
+        if (parameters != null) {
+            for (TypeParameter parameter : parameters) {
+                if (parameter.getIdentifier().equals(name)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     private TypeArgument typeArgument(String owner, String typeParameterName, BaseTypeArgument arguments)

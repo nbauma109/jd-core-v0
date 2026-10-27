@@ -357,6 +357,11 @@ public class ClassFile extends Base
         String plainName = TypeNameUtil.localTypeSimpleName(simpleName);
         String prefix = this.thisClassName.substring(
                 0, this.thisClassName.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR) + 1);
+        String member = prefix + plainName;
+        if (this.loader.canLoad(member) || this.loader.canLoad(member + StringConstants.CLASS_FILE_SUFFIX)) {
+            // A member type already has this name
+            return false;
+        }
         for (int i = 1; i < 10; i++)
         {
             String other = prefix + i + plainName;

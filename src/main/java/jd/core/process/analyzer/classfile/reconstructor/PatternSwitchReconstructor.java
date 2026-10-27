@@ -42,6 +42,7 @@ import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
 import jd.core.model.instruction.bytecode.instruction.PatternSwitchSelector;
 import jd.core.model.instruction.bytecode.instruction.Pop;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
+import jd.core.model.instruction.bytecode.instruction.attribute.ValuerefAttribute;
 import jd.core.model.instruction.fast.instruction.FastDeclaration;
 import jd.core.model.instruction.fast.instruction.FastList;
 import jd.core.model.instruction.fast.instruction.FastSwitch;
@@ -386,7 +387,7 @@ public final class PatternSwitchReconstructor {
         List<Boolean> folded = new ArrayList<>();
         forEachList(fastList, list -> {
             int switchIndex = indexOfStatementContaining(list, fs);
-            if (switchIndex < 1 || !folded.isEmpty()) {
+            if (switchIndex < 1 || !folded.isEmpty() || !isDirectUse(list.get(switchIndex), fs)) {
                 return;
             }
             Instruction previous = list.get(switchIndex - 1);
@@ -403,6 +404,12 @@ public final class PatternSwitchReconstructor {
             list.subList(from, switchIndex).clear();
             folded.add(Boolean.TRUE);
         });
+    }
+
+    /** The statement is the switch itself or assigns/returns it, not a control flow statement around it. */
+    private static boolean isDirectUse(Instruction statement, FastSwitch fs) {
+        Instruction instruction = statement instanceof FastDeclaration declaration ? declaration.getInstruction() : statement;
+        return instruction == fs || instruction instanceof ValuerefAttribute valueref && valueref.getValueref() == fs;
     }
 
     private static boolean isUsedElsewhere(List<Instruction> fastList, PatternSwitchSelector selector) {
