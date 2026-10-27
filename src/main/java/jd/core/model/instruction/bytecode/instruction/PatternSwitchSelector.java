@@ -34,6 +34,7 @@ public class PatternSwitchSelector extends ALoad
     private final Map<Integer, List<LocalVariable>> recordComponents = new HashMap<>();
     private final Map<Integer, Instruction> guards = new HashMap<>();
     private final Map<Integer, Integer> bodyOffsets = new HashMap<>();
+    private final Map<Integer, Integer> extraLabels = new HashMap<>();
 
     /**
      * @param labels constant pool indexes of the labels, in the order of the keys
@@ -50,6 +51,10 @@ public class PatternSwitchSelector extends ALoad
     /** Constant pool index of the label of the given key, or -1 (case null or out of range). */
     public int getLabelConstantIndex(int key)
     {
+        Integer extra = extraLabels.get(key);
+        if (extra != null) {
+            return extra;
+        }
         return key >= 0 && key < labels.length ? labels[key] : -1;
     }
 
@@ -88,5 +93,18 @@ public class PatternSwitchSelector extends ALoad
     public Map<Integer, Integer> getBodyOffsets()
     {
         return bodyOffsets;
+    }
+
+    /**
+     * Adds the label of a case that the compiler made the default one because its pattern matches
+     * everything left.
+     *
+     * @return the key of the new label
+     */
+    public int addLabel(int classConstantIndex)
+    {
+        int key = labels.length + extraLabels.size();
+        extraLabels.put(key, classConstantIndex);
+        return key;
     }
 }

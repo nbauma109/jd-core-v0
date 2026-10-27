@@ -56,6 +56,7 @@ import jd.core.model.instruction.bytecode.instruction.PatternSwitchSelector;
 import jd.core.model.instruction.bytecode.instruction.MethodReference;
 import jd.core.model.instruction.bytecode.instruction.StaticMethodReference;
 import jd.core.process.analyzer.classfile.ClassFileAnalyzer;
+import jd.core.process.writer.PatternSwitchLabelWriter;
 import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
 import jd.core.process.analyzer.util.StringConcatenationUtil;
 
@@ -128,7 +129,7 @@ public class InvokeDynamicFactory implements InstructionFactory
         }
 
         if (("typeSwitch".equals(indyMethodName) || "enumSwitch".equals(indyMethodName))
-                && hasSupportedLabels(constants, bootstrapArguments)
+                && hasSupportedLabels(classFile, bootstrapArguments)
                 && indyParameters != null && indyParameters.size() == 2 && indyParameters.get(0) instanceof ALoad selector) {
             // Switch on patterns: the arguments of the bootstrap method are the labels
             int restartIndexVariable = indyParameters.get(1) instanceof LoadInstruction restart ? restart.getIndex() : -1;
@@ -202,12 +203,15 @@ public class InvokeDynamicFactory implements InstructionFactory
     }
 
     /** Labels that are classes, strings or integers; qualified enum constants are dynamic constants. */
-    private static boolean hasSupportedLabels(ConstantPool constants, int[] labels)
+    private static boolean hasSupportedLabels(ClassFile classFile, int[] labels)
     {
+        ConstantPool constants = classFile.getConstantPool();
         for (int label : labels)
         {
             int tag = constants.get(label).getTag();
-            if (tag != Const.CONSTANT_Class && tag != Const.CONSTANT_String && tag != Const.CONSTANT_Integer) {
+            boolean enumConstant = tag == Const.CONSTANT_Dynamic
+                && PatternSwitchLabelWriter.decodeEnumConstant(classFile, label) != null;
+            if (tag != Const.CONSTANT_Class && tag != Const.CONSTANT_String && tag != Const.CONSTANT_Integer && !enumConstant) {
                 return false;
             }
         }

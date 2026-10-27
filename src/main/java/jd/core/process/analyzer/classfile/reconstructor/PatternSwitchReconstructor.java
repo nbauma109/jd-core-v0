@@ -79,10 +79,28 @@ public final class PatternSwitchReconstructor {
                 removeRestarts(list, lookup, selector);
                 reconstructRecordCases(classFile, method, localVariables, list, lookup, selector);
                 if (!selector.getRecordComponents().isEmpty()) {
+                    if (containsPatternSwitchInside(list, lookup)) {
+                        // The compiler merges the cases starting with the same record pattern into a nested switch
+                        throw new IllegalStateException("Nested patterns of a pattern switch");
+                    }
                     PatternMatchingReconstructor.removeMatchExceptionHandlers(classFile, method, list);
                 }
             }
         }
+    }
+
+    private static boolean containsPatternSwitchInside(List<Instruction> list, Switch outer) {
+        int end = outer.getOffset();
+        for (int offset : outer.getOffsets()) {
+            end = Math.max(end, outer.getOffset() + offset);
+        }
+        for (Instruction instruction : list) {
+            if (instruction != outer && instruction instanceof Switch inner && inner.getKey() instanceof PatternSwitchSelector
+                    && inner.getOffset() > outer.getOffset() && inner.getOffset() <= end + 1) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static void removeRestarts(List<Instruction> list, Switch lookup, PatternSwitchSelector selector) {
@@ -209,6 +227,8 @@ public final class PatternSwitchReconstructor {
             FastSwitch fs, PatternSwitchSelector selector) {
         fs.setPatternSelector(selector);
         boolean exhaustive = removeMatchExceptionDefault(classFile, fs);
+        moveTrailingCode(fastList, fs);
+        labelTotalPattern(fs, selector);
         for (FastSwitch.Pair pair : fs.getPairs()) {
             List<Instruction> instructions = pair.getInstructions();
             if (pair.isDefault() || instructions == null || instructions.isEmpty()) {
@@ -241,6 +261,45 @@ public final class PatternSwitchReconstructor {
                     list.remove(i);
                     return;
                 }
+            }
+        });
+    }
+
+    /** The case with a pattern matching everything left is the default of the switch: it gets its label back. */
+    private static void labelTotalPattern(FastSwitch fs, PatternSwitchSelector selector) {
+        FastSwitch.Pair[] pairs = fs.getPairs();
+        for (int i = 0; i < pairs.length; i++) {
+            List<Instruction> instructions = pairs[i].getInstructions();
+            if (!pairs[i].isDefault() || instructions == null || instructions.isEmpty()) {
+                continue;
+            }
+            Instruction first = instructions.get(0) instanceof FastDeclaration declaration
+                    ? declaration.getInstruction() : instructions.get(0);
+            if (first instanceof StoreInstruction store && store.getValueref() instanceof CheckCast cast
+                    && cast.getObjectref() instanceof ALoad load && load.getIndex() == selector.getIndex()) {
+                FastSwitch.Pair labeled = new FastSwitch.Pair(false, selector.addLabel(cast.getIndex()), pairs[i].getOffset());
+                labeled.setInstructions(instructions);
+                pairs[i] = labeled;
+            }
+        }
+    }
+
+    /**
+     * Without a 'break', the code of the last case is not delimited: it follows the switch in the
+     * enclosing list, where nothing else can reach it.
+     */
+    private static void moveTrailingCode(List<Instruction> fastList, FastSwitch fs) {
+        FastSwitch.Pair[] pairs = fs.getPairs();
+        FastSwitch.Pair last = pairs.length == 0 ? null : pairs[pairs.length - 1];
+        if (last == null || last.getInstructions() != null) {
+            return;
+        }
+        forEachList(fastList, list -> {
+            int index = list.indexOf(fs);
+            if (index >= 0 && last.getInstructions() == null) {
+                List<Instruction> trailing = list.subList(index + 1, list.size());
+                last.setInstructions(new ArrayList<>(trailing));
+                trailing.clear();
             }
         });
     }

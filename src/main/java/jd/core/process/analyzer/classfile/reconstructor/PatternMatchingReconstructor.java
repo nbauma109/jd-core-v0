@@ -229,7 +229,11 @@ public final class PatternMatchingReconstructor {
         int previous = code[start - 1] & 255;
         boolean shortStore = previous >= Const.ASTORE_0 && previous <= Const.ASTORE_3 && previous - Const.ASTORE_0 == lv.getIndex();
         boolean longStore = start >= 2 && (code[start - 2] & 255) == Const.ASTORE && previous == lv.getIndex();
-        return shortStore || longStore;
+        // The range of a variable may have been extended to its first store
+        int current = start < code.length ? code[start] & 255 : 0;
+        boolean storeAtStart = current >= Const.ASTORE_0 && current <= Const.ASTORE_3 && current - Const.ASTORE_0 == lv.getIndex()
+                || current == Const.ASTORE && start + 1 < code.length && (code[start + 1] & 255) == lv.getIndex();
+        return shortStore || longStore || storeAtStart;
     }
 
     /**

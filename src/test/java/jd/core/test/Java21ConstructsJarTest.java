@@ -36,7 +36,7 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
     @Test
     public void otherConstructsDecompileWithoutErrors() throws IOException {
         for (String name : new String[] { "s/T1", "s/L1", "s/P1", "s/W1", "s/W2", "s/C13", "s/C14", "s/C15", "s/C17",
-                "s/G1", "s/K1", "s/C11", "s/C04", "s/C09", "s/C12", "s/D1", "s/D2", "More", "Extra", "Third", "Fourth" }) {
+                "s/G1", "s/K1", "s/C11", "s/C04", "s/C09", "s/C12", "s/D1", "s/D2", "More", "Extra", "Third", "Fourth", "Fifth", "Sixth", "Eighth" }) {
             try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
                 String output = decompile(name, new ZipLoader(in));
                 assertFalse(name + "\n" + output, output.contains("Byte code"));
@@ -52,6 +52,43 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output, output.contains("Byte code"));
             assertTrue(output, output.matches("(?s).*case Object \\w+ when .*"));
             assertTrue(output, output.matches("(?s).*int x;.*"));
+        }
+    }
+
+    @Test
+    public void lastCaseOfSealedStatementSwitchStaysInTheSwitch() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Fifth", new ZipLoader(in));
+            assertTrue(output, output.matches("(?s).*case [\\w.]*X x:.*return \"x\" \\+ x\\.c\\(\\);.*"));
+            assertTrue(output, output.matches("(?s).*default:\\s*return \"other\";.*"));
+        }
+    }
+
+    @Test
+    public void enumLabelsAndTotalPatterns() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Sixth", new ZipLoader(in));
+            assertTrue(output, output.matches("(?s).*case [\\w.]*Fifth2\\.P ->.*"));
+            assertTrue(output, output.matches("(?s).*case [\\w.]*Fifth2 x ->.*"));
+            assertTrue(output, output.contains("String s = \"fallback\""));
+        }
+    }
+
+    @Test
+    public void tryWithResourcesInFinally() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Eighth", new ZipLoader(in));
+            assertFalse(output, output.contains("Byte code"));
+        }
+    }
+
+    @Test
+    public void nestedRecordPatternsFallBackToByteCode() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Nin", new ZipLoader(in));
+            // Nested patterns are not reconstructed; the byte code is shown rather than wrong source
+            assertTrue(output, output.contains("Byte code"));
+            assertFalse(output, output.contains("localPair"));
         }
     }
 }

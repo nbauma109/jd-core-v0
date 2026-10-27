@@ -96,9 +96,54 @@ public final class PatternSwitchLabelWriter
         case Const.CONSTANT_Integer:
             printer.printNumeric(String.valueOf(((ConstantInteger) constant).getBytes()));
             break;
+        case Const.CONSTANT_Dynamic:
+            {
+                String[] enumConstant = decodeEnumConstant(classFile, index);
+                if (enumConstant != null)
+                {
+                    SignatureWriter.writeSignature(loader, printer, referenceMap, classFile,
+                        SignatureUtil.createTypeName(enumConstant[0]));
+                    printer.print('.');
+                    printer.print(enumConstant[1]);
+                }
+            }
+            break;
         default:
             ConstantValueWriter.write(loader, printer, referenceMap, classFile, constant);
         }
+    }
+
+    /**
+     * A qualified enum constant used as a label is the dynamic constant
+     * {@code EnumDesc.of(ClassDesc.of("pkg.Type"), "NAME")}.
+     *
+     * @return the internal name of the enum and the name of the constant, or null for any other constant
+     */
+    public static String[] decodeEnumConstant(ClassFile classFile, int index)
+    {
+        ConstantPool constants = classFile.getConstantPool();
+        int[] arguments = bootstrapArguments(classFile, constants.get(index));
+        if (arguments == null || arguments.length != 3) {
+            return null;
+        }
+        int[] classArguments = bootstrapArguments(classFile, constants.get(arguments[1]));
+        if (classArguments == null || classArguments.length == 0
+            || !(constants.get(arguments[2]) instanceof ConstantString name)
+            || !(constants.get(classArguments[classArguments.length - 1]) instanceof ConstantString type)) {
+            return null;
+        }
+        return new String[] {
+            constants.getConstantUtf8(type.getStringIndex()).replace('.', '/'),
+            constants.getConstantUtf8(name.getStringIndex()) };
+    }
+
+    private static int[] bootstrapArguments(ClassFile classFile, Constant constant)
+    {
+        var bootstrapMethods = classFile.getAttributeBootstrapMethods();
+        if (!(constant instanceof org.apache.bcel.classfile.ConstantDynamic dynamic) || bootstrapMethods == null) {
+            return null;
+        }
+        return bootstrapMethods.getBootstrapMethods()[dynamic.getBootstrapMethodAttrIndex()].getBootstrapArguments();
     }
 
     /** Writes the components of a record pattern: {@code (int x, Object o)}. */

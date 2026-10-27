@@ -236,13 +236,23 @@ public final class TryWithResourcesReconstructor {
     public static boolean wrap(Method method, List<Instruction> fastList) {
         List<int[]> resources = new ArrayList<>(method.getTryResources());
         resources.sort(Comparator.comparingInt((int[] resource) -> resource[1]).reversed());
-        boolean complete = true;
+        List<LocalVariable> wrapped = new ArrayList<>();
+        List<LocalVariable> missing = new ArrayList<>();
         for (int[] resource : resources) {
-            complete &= wrap(method.getLocalVariables(), fastList, resource);
-            removeHoistedDeclarations(fastList, method.getLocalVariables() == null ? null
-                    : method.getLocalVariables().getLocalVariableWithIndexAndOffset(resource[0], resource[1]));
+            LocalVariables localVariables = method.getLocalVariables();
+            LocalVariable lv = localVariables == null ? null
+                    : localVariables.getLocalVariableWithIndexAndOffset(resource[0], resource[1]);
+            if (wrap(localVariables, fastList, resource)) {
+                wrapped.add(lv);
+            } else {
+                missing.add(lv);
+            }
+            removeHoistedDeclarations(fastList, lv);
         }
-        return complete;
+        // The code of a 'finally' block is compiled twice: the copy that was dropped has no declaration
+        return missing.stream().allMatch(lv -> lv != null && wrapped.stream().anyMatch(other -> other != null
+                && lv.getNameIndex() == other.getNameIndex() && lv.getSignatureIndex() == other.getSignatureIndex()
+                && lv.getStartPc() != other.getStartPc()));
     }
 
     /** The resource is declared by the statement: a declaration hoisted before it would declare it twice. */
