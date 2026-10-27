@@ -158,8 +158,8 @@ public class Java21ConstructsTest {
         assertFalse(decompiled, decompiled.contains("addSuppressed"));
         assertFalse(decompiled, decompiled.contains("MatchException"));
         assertTrue(decompiled, decompiled.contains("instanceof String"));
-        assertTrue(decompiled, decompiled.matches("(?s).*instanceof [\\w.]*Pair\\(.*"));
-        assertTrue(decompiled, decompiled.matches("(?s).*case [\\w.]*Circle\\(.*"));
+        assertTrue(decompiled, java.util.regex.Pattern.compile("instanceof [\\w.]*Pair\\(").matcher(decompiled).find());
+        assertTrue(decompiled, java.util.regex.Pattern.compile("case [\\w.]*Circle\\(").matcher(decompiled).find());
         assertTrue(decompiled, decompiled.contains(" when "));
         assertTrue(decompiled, decompiled.contains("try ("));
 

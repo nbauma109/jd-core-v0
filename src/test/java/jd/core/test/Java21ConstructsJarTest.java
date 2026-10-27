@@ -25,8 +25,8 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output, output.contains("addSuppressed"));
             assertFalse(output, output.contains("MatchException"));
             assertTrue(output, output.contains("instanceof String s"));
-            assertTrue(output, output.matches("(?s).*instanceof [\\w.]*Pair\\(.*"));
-            assertTrue(output, output.matches("(?s).*case [\\w.]*Circle\\(.*"));
+            assertTrue(output, java.util.regex.Pattern.compile("instanceof [\\w.]*Pair\\(").matcher(output).find());
+            assertTrue(output, java.util.regex.Pattern.compile("case [\\w.]*Circle\\(").matcher(output).find());
             assertTrue(output, output.contains(" when "));
             assertTrue(output, output.contains("case null"));
             assertTrue(output, output.contains("try ("));
@@ -50,8 +50,8 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
         try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
             String output = decompile("Fourth", new ZipLoader(in));
             assertFalse(output, output.contains("Byte code"));
-            assertTrue(output, output.matches("(?s).*case Object \\w+ when .*"));
-            assertTrue(output, output.matches("(?s).*int x;.*"));
+            assertTrue(output, java.util.regex.Pattern.compile("case Object \\w+ when ").matcher(output).find());
+            assertTrue(output, java.util.regex.Pattern.compile("int x;").matcher(output).find());
         }
     }
 
@@ -59,8 +59,9 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
     public void lastCaseOfSealedStatementSwitchStaysInTheSwitch() throws IOException {
         try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
             String output = decompile("Fifth", new ZipLoader(in));
-            assertTrue(output, output.matches("(?s).*case [\\w.]*X x:.*return \"x\" \\+ x\\.c\\(\\);.*"));
-            assertTrue(output, output.matches("(?s).*default:\\s*return \"other\";.*"));
+            String compact = output.replaceAll("\\s+", " ");
+            assertTrue(output, compact.contains("x: return \"x\" + x.c();"));
+            assertTrue(output, compact.contains("default: return \"other\";"));
         }
     }
 
@@ -68,8 +69,8 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
     public void enumLabelsAndTotalPatterns() throws IOException {
         try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
             String output = decompile("Sixth", new ZipLoader(in));
-            assertTrue(output, output.matches("(?s).*case [\\w.]*Fifth2\\.P ->.*"));
-            assertTrue(output, output.matches("(?s).*case [\\w.]*Fifth2 x ->.*"));
+            assertTrue(output, java.util.regex.Pattern.compile("case [\\w.]*Fifth2\\.P ->").matcher(output).find());
+            assertTrue(output, java.util.regex.Pattern.compile("case [\\w.]*Fifth2 x ->").matcher(output).find());
             assertTrue(output, output.contains("String s = \"fallback\""));
         }
     }

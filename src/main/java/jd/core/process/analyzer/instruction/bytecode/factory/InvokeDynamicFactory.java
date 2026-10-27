@@ -210,7 +210,7 @@ public class InvokeDynamicFactory implements InstructionFactory
         {
             int tag = constants.get(label).getTag();
             boolean enumConstant = tag == Const.CONSTANT_Dynamic
-                && PatternSwitchLabelWriter.decodeEnumConstant(classFile, label) != null;
+                && PatternSwitchLabelWriter.decodeEnumConstant(classFile, label).length > 0;
             if (tag != Const.CONSTANT_Class && tag != Const.CONSTANT_String && tag != Const.CONSTANT_Integer && !enumConstant) {
                 return false;
             }

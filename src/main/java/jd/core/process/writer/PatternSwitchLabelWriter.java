@@ -35,6 +35,8 @@ import jd.core.util.SignatureUtil;
 /** Writes the label of a case of a switch on patterns. */
 public final class PatternSwitchLabelWriter
 {
+    private static final String[] NO_CONSTANT = new String[0];
+
     private PatternSwitchLabelWriter() {
     }
 
@@ -99,7 +101,7 @@ public final class PatternSwitchLabelWriter
         case Const.CONSTANT_Dynamic:
             {
                 String[] enumConstant = decodeEnumConstant(classFile, index);
-                if (enumConstant != null)
+                if (enumConstant.length > 0)
                 {
                     SignatureWriter.writeSignature(loader, printer, referenceMap, classFile,
                         SignatureUtil.createTypeName(enumConstant[0]));
@@ -117,20 +119,20 @@ public final class PatternSwitchLabelWriter
      * A qualified enum constant used as a label is the dynamic constant
      * {@code EnumDesc.of(ClassDesc.of("pkg.Type"), "NAME")}.
      *
-     * @return the internal name of the enum and the name of the constant, or null for any other constant
+     * @return the internal name of the enum and the name of the constant, or an empty array for any other constant
      */
     public static String[] decodeEnumConstant(ClassFile classFile, int index)
     {
         ConstantPool constants = classFile.getConstantPool();
         int[] arguments = bootstrapArguments(classFile, constants.get(index));
-        if (arguments == null || arguments.length != 3) {
-            return null;
+        if (arguments.length != 3) {
+            return NO_CONSTANT;
         }
         int[] classArguments = bootstrapArguments(classFile, constants.get(arguments[1]));
-        if (classArguments == null || classArguments.length == 0
+        if (classArguments.length == 0
             || !(constants.get(arguments[2]) instanceof ConstantString name)
             || !(constants.get(classArguments[classArguments.length - 1]) instanceof ConstantString type)) {
-            return null;
+            return NO_CONSTANT;
         }
         return new String[] {
             constants.getConstantUtf8(type.getStringIndex()).replace('.', '/'),
@@ -141,7 +143,7 @@ public final class PatternSwitchLabelWriter
     {
         var bootstrapMethods = classFile.getAttributeBootstrapMethods();
         if (!(constant instanceof org.apache.bcel.classfile.ConstantDynamic dynamic) || bootstrapMethods == null) {
-            return null;
+            return new int[0];
         }
         return bootstrapMethods.getBootstrapMethods()[dynamic.getBootstrapMethodAttrIndex()].getBootstrapArguments();
     }
