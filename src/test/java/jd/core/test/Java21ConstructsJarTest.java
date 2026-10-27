@@ -102,4 +102,12 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("switch (o)"));
         }
     }
+
+    @Test
+    public void codeSharedByTheCasesStaysAfterTheSwitch() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String compact = decompile("Tenth", new ZipLoader(in)).replaceAll("/\\*[^*]*\\*/", "").replaceAll("\\s+", " ");
+            assertTrue(compact, compact.contains("break; default: } sink(\"after\");"));
+        }
+    }
 }

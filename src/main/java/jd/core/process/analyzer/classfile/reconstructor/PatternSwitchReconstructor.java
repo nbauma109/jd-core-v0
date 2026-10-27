@@ -43,7 +43,9 @@ import jd.core.model.instruction.bytecode.instruction.PatternSwitchSelector;
 import jd.core.model.instruction.bytecode.instruction.Pop;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.attribute.ValuerefAttribute;
+import jd.core.model.instruction.fast.FastConstants;
 import jd.core.model.instruction.fast.instruction.FastDeclaration;
+import jd.core.model.instruction.fast.instruction.FastInstruction;
 import jd.core.model.instruction.fast.instruction.FastList;
 import jd.core.model.instruction.fast.instruction.FastSwitch;
 import jd.core.model.instruction.fast.instruction.FastTest2Lists;
@@ -292,7 +294,7 @@ public final class PatternSwitchReconstructor {
     private static void moveTrailingCode(List<Instruction> fastList, FastSwitch fs) {
         FastSwitch.Pair[] pairs = fs.getPairs();
         FastSwitch.Pair last = pairs.length == 0 ? null : pairs[pairs.length - 1];
-        if (last == null || last.getInstructions() != null) {
+        if (last == null || last.getInstructions() != null || hasBreak(pairs)) {
             return;
         }
         forEachList(fastList, list -> {
@@ -303,6 +305,22 @@ public final class PatternSwitchReconstructor {
                 trailing.clear();
             }
         });
+    }
+
+    /** A case leaving the switch shares the code after it with the last case: it does not belong to the last one. */
+    private static boolean hasBreak(FastSwitch.Pair[] pairs) {
+        SearchInstructionByTypeVisitor<FastInstruction> visitor = new SearchInstructionByTypeVisitor<>(FastInstruction.class,
+                jump -> jump.getOpcode() == FastConstants.GOTO_BREAK || jump.getOpcode() == FastConstants.IF_BREAK);
+        for (FastSwitch.Pair pair : pairs) {
+            if (pair.getInstructions() != null) {
+                for (Instruction instruction : pair.getInstructions()) {
+                    if (visitor.visit(instruction) != null) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     private static boolean isStatement(List<Instruction> fastList, FastSwitch fs) {
