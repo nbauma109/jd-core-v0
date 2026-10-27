@@ -221,7 +221,7 @@
 /*     */   public static Throwable getRootCause(Throwable throwable)
 /*     */   {
 /* 223 */     List<Throwable> list = getThrowableList(throwable);
-/* 224 */     return list.isEmpty() ? null : list.get(list.size() - 1);
+/* 224 */     return list.isEmpty() ? null : (Throwable)list.get(list.size() - 1);
 /*     */   }
 /*     */   
 /*     */ 
@@ -690,8 +690,8 @@
 /* 690 */     while (causeFrameIndex >= 0 && wrapperFrameIndex >= 0)
 /*     */     {
 /*     */ 
-/* 693 */       String causeFrame = causeFrames.get(causeFrameIndex);
-/* 694 */       String wrapperFrame = wrapperFrames.get(wrapperFrameIndex);
+/* 693 */       String causeFrame = (String)causeFrames.get(causeFrameIndex);
+/* 694 */       String wrapperFrame = (String)wrapperFrames.get(wrapperFrameIndex);
 /* 695 */       if (causeFrame.equals(wrapperFrame)) {
 /* 696 */         causeFrames.remove(causeFrameIndex);
 /*     */       }

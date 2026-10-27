@@ -533,7 +533,7 @@
 /* 533 */       if (!hasNext()) {
 /* 534 */         throw new NoSuchElementException();
 /*     */       }
-/* 536 */       this.last = this.current.remove(this.current.size() - 1);
+/* 536 */       this.last = (Entry)this.current.remove(this.current.size() - 1);
 /* 537 */       return this.last;
 /*     */     }
 /*     */     

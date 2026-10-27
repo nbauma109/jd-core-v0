@@ -80,7 +80,7 @@ public final class PatternMatchingReconstructor {
                     && list.get(i + 1) instanceof AStore store && isBinding(instanceOf, store)
                     && !readsRecordComponents(classFile, list, i + 2, store.getIndex())) {
                 LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(store.getIndex(), store.getOffset());
-                if (lv != null) {
+                if (lv != null && lv.getStartPc() > 0) {
                     instanceOf.setPatternVariable(lv);
                     markBinding(classFile, method, lv);
                     list.remove(i + 1);

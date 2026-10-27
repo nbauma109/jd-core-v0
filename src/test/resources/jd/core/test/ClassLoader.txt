@@ -133,7 +133,7 @@
 /*     */     
 /*     */ 
 /*     */ 
-/* 136 */     if ((cl = this.classes.get(className)) == null)
+/* 136 */     if ((cl = (Class)this.classes.get(className)) == null)
 /*     */     {
 /*     */ 
 /*     */ 

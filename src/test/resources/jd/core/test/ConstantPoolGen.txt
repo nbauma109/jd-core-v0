@@ -574,7 +574,7 @@
 /*     */   }
 /*     */   
 /*     */   private int getIndex(Map<String, Integer> map, String key) {
-/* 577 */     return toIndex(map.get(key));
+/* 577 */     return toIndex((Integer)map.get(key));
 /*     */   }
 /*     */   
 /*     */ 

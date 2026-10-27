@@ -376,7 +376,7 @@
 /* 376 */     StringBounder stringBounder = ug.getStringBounder();
 /*     */     
 /* 378 */     for (int i = 0; i < swimlanesSpecial().size(); i++) {
-/* 379 */       Swimlane swimlane = swimlanesSpecial().get(i);
+/* 379 */       Swimlane swimlane = (Swimlane)swimlanesSpecial().get(i);
 /* 380 */       double swimlaneActualWidth = MathUtils.max(min, getWidthWithoutTitle(swimlane));
 /* 381 */       swimlane.setWidth(swimlaneActualWidth);
 /*     */     }
@@ -387,7 +387,7 @@
 /* 387 */     this.dividers.clear();
 /* 388 */     double xpos = 0.0D;
 /* 389 */     for (int i = 0; i < swimlanesSpecial().size(); i++) {
-/* 390 */       Swimlane swimlane = swimlanesSpecial().get(i);
+/* 390 */       Swimlane swimlane = (Swimlane)swimlanesSpecial().get(i);
 /* 391 */       double x1 = getHalfMissingSpace(stringBounder, i, min);
 /* 392 */       double x2 = getHalfMissingSpace(stringBounder, i + 1, min);
 /* 393 */       LaneDivider laneDivider = new LaneDivider(this.skinParam, x1, x2, dimensionFull
@@ -407,7 +407,7 @@
 /* 407 */     if (i == 0 || i > swimlanesSpecial().size()) {
 /* 408 */       return 5.0D;
 /*     */     }
-/* 410 */     Swimlane swimlane = swimlanesSpecial().get(i - 1);
+/* 410 */     Swimlane swimlane = (Swimlane)swimlanesSpecial().get(i - 1);
 /* 411 */     double swimlaneActualWidth = Math.max(min, getWidthWithoutTitle(swimlane));
 /* 412 */     double titleWidth = getTitle(swimlane).calculateDimension(stringBounder).getWidth();
 /* 413 */     if (titleWidth <= swimlaneActualWidth) {

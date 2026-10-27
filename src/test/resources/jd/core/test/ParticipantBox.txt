@@ -215,7 +215,7 @@
 /*     */           
 /*     */           @Override
 /*     */           public Segment next() {
-/* 218 */             GraphicalDelayText d = this.it.next();
+/* 218 */             GraphicalDelayText d = (GraphicalDelayText)this.it.next();
 /* 219 */             return new Segment(d.getStartingY(), d.getEndingY(stringBounder));
 /*     */           }
 /*     */           

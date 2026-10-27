@@ -282,7 +282,7 @@
 /*  282 */     int lengthInBits = lengthInBits(key);
 /*  283 */     Reference<Entry<K, V>> reference = new Reference<>();
 /*  284 */     if (!selectR(this.root.left, -1, key, lengthInBits, reference)) {
-/*  285 */       return reference.get();
+/*  285 */       return (Entry)reference.get();
 /*      */     }
 /*  287 */     return null;
 /*      */   }
@@ -2127,7 +2127,7 @@
 /*      */         
 /* 2128 */         Entry<K, V> entry = null;
 /* 2129 */         if (it.hasNext()) {
-/* 2130 */           entry = it.next();
+/* 2130 */           entry = (Entry)it.next();
 /* 2131 */           this.size = 1;
 /*      */         }
 /*      */         
@@ -2141,7 +2141,7 @@
 /*      */         
 /* 2142 */         while (it.hasNext()) {
 /* 2143 */           this.size++;
-/* 2144 */           entry = it.next();
+/* 2144 */           entry = (Entry)it.next();
 /*      */         }
 /*      */         
 /* 2147 */         this.toKey = entry == null ? null : entry.getKey();

@@ -267,7 +267,7 @@
 /*     */ 
 /*     */     protected void lockAcceptUnlock(Supplier<Lock> lockSupplier, FailableConsumer<O, ?> consumer)
 /*     */     {
-/* 270 */       Lock lock = lockSupplier.get();
+/* 270 */       Lock lock = (Lock)lockSupplier.get();
 /* 271 */       lock.lock();
 /*     */       try {
 /* 273 */         consumer.accept(this.object);
@@ -294,7 +294,7 @@
 /*     */ 
 /*     */     protected <T> T lockApplyUnlock(Supplier<Lock> lockSupplier, FailableFunction<O, T, ?> function)
 /*     */     {
-/* 297 */       Lock lock = lockSupplier.get();
+/* 297 */       Lock lock = (Lock)lockSupplier.get();
 /* 298 */       lock.lock();
 /*     */       try {
 /* 300 */         return function.apply(this.object);

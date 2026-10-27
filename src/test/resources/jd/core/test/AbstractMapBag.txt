@@ -111,7 +111,7 @@
 /*     */   @Override
 /*     */   public int getCount(Object object)
 /*     */   {
-/* 114 */     MutableInteger count = this.map.get(object);
+/* 114 */     MutableInteger count = (MutableInteger)this.map.get(object);
 /* 115 */     if (count != null) {
 /* 116 */       return count.value;
 /*     */     }
@@ -212,7 +212,7 @@
 /* 212 */         throw new ConcurrentModificationException();
 /*     */       }
 /* 214 */       if (this.itemCount == 0) {
-/* 215 */         this.current = this.entryIterator.next();
+/* 215 */         this.current = (Entry)this.entryIterator.next();
 /* 216 */         this.itemCount = this.current.getValue().value;
 /*     */       }
 /* 218 */       this.canRemove = true;
@@ -229,7 +229,7 @@
 /* 229 */       if (!this.canRemove) {
 /* 230 */         throw new IllegalStateException();
 /*     */       }
-/* 232 */       AbstractMapBag.MutableInteger mut = this.current.getValue();
+/* 232 */       AbstractMapBag.MutableInteger mut = (AbstractMapBag.MutableInteger)this.current.getValue();
 /* 233 */       if (mut.value > 1) {
 /* 234 */         mut.value--;
 /*     */       } else {
@@ -263,7 +263,7 @@
 /*     */   {
 /* 264 */     this.modCount++;
 /* 265 */     if (nCopies > 0) {
-/* 266 */       MutableInteger mut = this.map.get(object);
+/* 266 */       MutableInteger mut = (MutableInteger)this.map.get(object);
 /* 267 */       this.size += nCopies;
 /* 268 */       if (mut == null) {
 /* 269 */         this.map.put(object, new MutableInteger(nCopies));
@@ -311,7 +311,7 @@
 /*     */   @Override
 /*     */   public boolean remove(Object object)
 /*     */   {
-/* 314 */     MutableInteger mut = this.map.get(object);
+/* 314 */     MutableInteger mut = (MutableInteger)this.map.get(object);
 /* 315 */     if (mut == null) {
 /* 316 */       return false;
 /*     */     }
@@ -330,7 +330,7 @@
 /*     */   @Override
 /*     */   public boolean remove(Object object, int nCopies)
 /*     */   {
-/* 333 */     MutableInteger mut = this.map.get(object);
+/* 333 */     MutableInteger mut = (MutableInteger)this.map.get(object);
 /* 334 */     if (mut == null) {
 /* 335 */       return false;
 /*     */     }

@@ -64,7 +64,7 @@
 /*     */ 
 /*     */   String toString(Object obj, Supplier<String> supplier)
 /*     */   {
-/*  67 */     return obj == null ? supplier == null ? null : supplier.get() : obj.toString();
+/*  67 */     return obj == null ? supplier == null ? null : (String)supplier.get() : obj.toString();
 /*     */   }
 /*     */   
 /*     */ 

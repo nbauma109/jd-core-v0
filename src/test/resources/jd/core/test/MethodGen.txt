@@ -65,7 +65,7 @@
 /*      */     
 /*      */     public MethodGen.BranchTarget pop() {
 /*   67 */       if (!this.branchTargets.empty()) {
-/*   68 */         return this.branchTargets.pop();
+/*   68 */         return (MethodGen.BranchTarget)this.branchTargets.pop();
 /*      */       }
 /*   70 */       return null;
 /*      */     }
@@ -711,7 +711,7 @@
 /*      */   {
 /*  712 */     int size = this.throwsList.size();
 /*  713 */     int[] ex = new int[size];
-/*  714 */     Arrays.setAll(ex,  i -> cp.addClass(this.throwsList.get(i)));
+/*  714 */     Arrays.setAll(ex,  i -> cp.addClass((String)this.throwsList.get(i)));
 /*  715 */     return new ExceptionTable(cp.addUtf8("Exceptions"), 2 + 2 * size, ex, cp.getConstantPool());
 /*      */   }
 /*      */   

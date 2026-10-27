@@ -33,6 +33,7 @@ import jd.core.model.classfile.LocalVariables;
 import jd.core.model.instruction.bytecode.instruction.CheckCast;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
+import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
 import jd.core.process.analyzer.instruction.fast.visitor.AbstractReplaceInstructionVisitor;
 
 /**
@@ -61,7 +62,9 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
     @Override
     protected Instruction match(Instruction parentFound, Instruction instruction)
     {
-        if (localVariables != null && instruction instanceof CheckCast cast
+        // A member of the result is selected: the compiler inserts the cast again. Elsewhere it may be a runtime check.
+        if (localVariables != null && parentFound instanceof ObjectrefAttribute owner && owner.getObjectref() == instruction
+            && instruction instanceof CheckCast cast
             && cast.getObjectref() instanceof InvokeNoStaticInstruction invoke && isRedundant(cast, invoke))
         {
             return invoke;
