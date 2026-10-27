@@ -40,6 +40,7 @@ import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
 import jd.core.model.instruction.fast.FastConstants;
 import jd.core.model.instruction.fast.instruction.FastDeclaration;
+import jd.core.model.instruction.fast.instruction.FastLabel;
 import jd.core.model.instruction.fast.instruction.FastList;
 import jd.core.model.instruction.fast.instruction.FastTry;
 import jd.core.model.instruction.fast.instruction.FastTry.FastCatch;
@@ -328,6 +329,9 @@ public final class TryWithResourcesReconstructor {
 
     private static List<List<Instruction>> nestedLists(Instruction instruction) {
         List<List<Instruction>> lists = new ArrayList<>();
+        if (instruction instanceof FastLabel label && label.getInstruction() != null) {
+            lists.addAll(nestedLists(label.getInstruction()));
+        }
         if (instruction instanceof FastList fastList && fastList.getInstructions() != null) {
             lists.add(fastList.getInstructions());
         }
@@ -355,7 +359,7 @@ public final class TryWithResourcesReconstructor {
 
     private static int minOffset(Instruction instruction) {
         int min = instruction.getOffset();
-        if (instruction instanceof FastList || instruction instanceof FastTry) {
+        if (instruction instanceof FastList || instruction instanceof FastTry || instruction instanceof FastLabel) {
             for (List<Instruction> nested : nestedLists(instruction)) {
                 for (Instruction child : nested) {
                     min = Math.min(min, minOffset(child));

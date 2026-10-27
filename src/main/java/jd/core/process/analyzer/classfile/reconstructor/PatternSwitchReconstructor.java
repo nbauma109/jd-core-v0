@@ -46,6 +46,7 @@ import jd.core.model.instruction.bytecode.instruction.attribute.ValuerefAttribut
 import jd.core.model.instruction.fast.FastConstants;
 import jd.core.model.instruction.fast.instruction.FastDeclaration;
 import jd.core.model.instruction.fast.instruction.FastInstruction;
+import jd.core.model.instruction.fast.instruction.FastLabel;
 import jd.core.model.instruction.fast.instruction.FastList;
 import jd.core.model.instruction.fast.instruction.FastSwitch;
 import jd.core.model.instruction.fast.instruction.FastTest2Lists;
@@ -467,7 +468,9 @@ public final class PatternSwitchReconstructor {
 
     private static void forEachList(List<Instruction> list, Consumer<List<Instruction>> action) {
         action.accept(list);
-        for (Instruction instruction : new ArrayList<>(list)) {
+        for (Instruction labeled : new ArrayList<>(list)) {
+            Instruction instruction = labeled instanceof FastLabel label && label.getInstruction() != null
+                    ? label.getInstruction() : labeled;
             if (instruction instanceof FastList fastList && fastList.getInstructions() != null) {
                 forEachList(fastList.getInstructions(), action);
             }

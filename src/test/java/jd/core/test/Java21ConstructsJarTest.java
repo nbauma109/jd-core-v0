@@ -110,4 +110,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(compact, compact.contains("break; default: } sink(\"after\");"));
         }
     }
+
+    @Test
+    public void tryWithResourcesInsideALabeledStatement() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Eleventh", new ZipLoader(in));
+            assertFalse(output, output.contains("Byte code"));
+            assertTrue(output, output.contains("try ("));
+        }
+    }
 }
