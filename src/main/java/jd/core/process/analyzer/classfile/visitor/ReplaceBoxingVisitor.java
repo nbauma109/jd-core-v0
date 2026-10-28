@@ -23,6 +23,7 @@ import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
+import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeInstruction;
 import jd.core.model.instruction.bytecode.instruction.Invokestatic;
@@ -61,12 +62,18 @@ public class ReplaceBoxingVisitor extends AbstractReplaceInstructionVisitor<Inst
     protected Instruction match(Instruction parentFound, Instruction instruction)
     {
         if (parentFound instanceof InvokeInstruction invoke && instruction instanceof Invokestatic boxing
-            && boxing.getArgs().size() == 1 && isBoxing(boxing) && isReferenceParameter(invoke, boxing)
+            && boxing.getArgs().size() == 1 && isBoxing(boxing) && !isConversion(boxing.getArgs().get(0)) && isReferenceParameter(invoke, boxing)
             && hasSingleCandidate(invoke))
         {
             return boxing.getArgs().get(0);
         }
         return null;
+    }
+
+    /** A widening, {@code Long.valueOf(i)} with an int, would box another class once the call is removed. */
+    private static boolean isConversion(Instruction argument)
+    {
+        return argument.getOpcode() == ByteCodeConstants.IMPLICITCONVERT || argument.getOpcode() == ByteCodeConstants.CONVERT;
     }
 
     private boolean isBoxing(Invokestatic invoke)

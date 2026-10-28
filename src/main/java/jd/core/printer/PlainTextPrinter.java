@@ -147,6 +147,11 @@ public class PlainTextPrinter implements Printer, VersionAware {
     }
 
     @Override
+    public boolean isLineNumbersDisplayed() {
+        return this.maxLineNumber > 0;
+    }
+
+    @Override
     public void start(int maxLineNumber, int majorVersion, int minorVersion) {
         this.majorVersion = majorVersion;
         this.minorVersion = minorVersion;

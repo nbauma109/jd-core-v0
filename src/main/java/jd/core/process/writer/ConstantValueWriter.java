@@ -222,7 +222,7 @@ public final class ConstantValueWriter
             {
                 String s = constants.getConstantUtf8(
                     ((ConstantString)cv).getStringIndex());
-                if (classFile.getMajorVersion() >= Const.MAJOR_15 && isTextBlock(s))
+                if (classFile.getMajorVersion() >= Const.MAJOR_15 && !printer.isLineNumbersDisplayed() && isTextBlock(s))
                 {
                     writeTextBlock(printer, s, classFile.getThisClassName());
                     break;
@@ -255,7 +255,24 @@ public final class ConstantValueWriter
                 lines++;
             }
         }
-        return lines >= 3;
+        // Without a closing delimiter on its own line, the lines must not all start with spaces
+        // that the compiler would remove as incidental whitespace
+        return lines >= 3 && (s.endsWith("\n") || minimalIndentation(s) == 0);
+    }
+
+    private static int minimalIndentation(String s)
+    {
+        int minimum = Integer.MAX_VALUE;
+        for (String line : s.split("\n", -1)) {
+            if (!line.isBlank()) {
+                int indentation = 0;
+                while (line.charAt(indentation) == ' ') {
+                    indentation++;
+                }
+                minimum = Math.min(minimum, indentation);
+            }
+        }
+        return minimum == Integer.MAX_VALUE ? 0 : minimum;
     }
 
     /** Writes a string of several lines as a text block, the closing delimiter on its own line when the text ends with a line feed. */
