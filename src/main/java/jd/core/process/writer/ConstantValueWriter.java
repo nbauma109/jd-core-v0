@@ -257,7 +257,23 @@ public final class ConstantValueWriter
         }
         // Without a closing delimiter on its own line, the lines must not all start with spaces
         // that the compiler would remove as incidental whitespace
-        return lines >= 3 && (s.endsWith("\n") || minimalIndentation(s) == 0);
+        return lines >= 3 && !hasEdgeWhitespace(s) && (s.endsWith("\n") || minimalIndentation(s) == 0);
+    }
+
+    /** Whitespace other than a space or a tab at the edge of a line cannot be escaped: the compiler would strip it. */
+    private static boolean hasEdgeWhitespace(String s)
+    {
+        for (String line : s.split("\n", -1)) {
+            if (!line.isEmpty() && (isUnescapableWhitespace(line.charAt(0)) || isUnescapableWhitespace(line.charAt(line.length() - 1)))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isUnescapableWhitespace(char c)
+    {
+        return Character.isWhitespace(c) && c != ' ' && c != '\t' && c != '\r' && c != '\b' && c != '\f' && c >= ' ';
     }
 
     private static int minimalIndentation(String s)
@@ -315,8 +331,13 @@ public final class ConstantValueWriter
                 sb.append("\\t");
             } else if (c == '\r') {
                 sb.append("\\r");
-            } else if (c == '\b' || c == '\f' || c < ' ') {
-                sb.append(String.format("\\u%04x", (int) c));
+            } else if (c == '\b') {
+                sb.append("\\b");
+            } else if (c == '\f') {
+                sb.append("\\f");
+            } else if (c < ' ') {
+                // An octal escape: a unicode escape would be translated before the whitespace is stripped
+                sb.append("\\0").append((char) ('0' + (c >> 3))).append((char) ('0' + (c & 7)));
             } else if (c == ' ' && i == line.length() - 1) {
                 sb.append("\\s");
             } else {

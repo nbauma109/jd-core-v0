@@ -145,4 +145,15 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("String indentedNewline = \"\"\""));
         }
     }
+
+    @Test
+    public void whitespaceCharactersSurviveTextBlocks() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Thirteenth", new ZipLoader(in));
+            assertTrue(output, output.contains("a\\f\n"));
+            assertTrue(output, output.contains("a\\001\n") && output.contains("b\\034\n"));
+            // Whitespace the compiler would strip cannot be escaped: the string stays a literal
+            assertTrue(output, output.contains("String unicodeSpace = \"a\u2003\\nb"));
+        }
+    }
 }
