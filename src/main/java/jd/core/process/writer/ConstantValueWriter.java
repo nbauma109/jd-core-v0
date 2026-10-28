@@ -245,6 +245,8 @@ public final class ConstantValueWriter
         }
     }
 
+    private static final String TEXT_BLOCK_DELIMITER = "\"\"\"";
+
     private static boolean isTextBlock(String s)
     {
         int lines = 0;
@@ -259,7 +261,7 @@ public final class ConstantValueWriter
     /** Writes a string of several lines as a text block, the closing delimiter on its own line when the text ends with a line feed. */
     private static void writeTextBlock(Printer printer, String s, String scopeInternalName)
     {
-        printer.printString("\"\"\"", scopeInternalName);
+        printer.printString(TEXT_BLOCK_DELIMITER, scopeInternalName);
         String[] lines = s.split("\n", -1);
         boolean endsWithLineFeed = s.endsWith("\n");
         int count = endsWithLineFeed ? lines.length - 1 : lines.length;
@@ -274,11 +276,11 @@ public final class ConstantValueWriter
         {
             printer.endOfLine();
             printer.startOfLine(Printer.UNKNOWN_LINE_NUMBER);
-            printer.printString("\"\"\"", scopeInternalName);
+            printer.printString(TEXT_BLOCK_DELIMITER, scopeInternalName);
         }
         else
         {
-            printer.printString("\"\"\"", scopeInternalName);
+            printer.printString(TEXT_BLOCK_DELIMITER, scopeInternalName);
         }
     }
 
