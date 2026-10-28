@@ -84,6 +84,7 @@ import jd.core.process.analyzer.classfile.visitor.CheckCastAndConvertInstruction
 import jd.core.process.analyzer.classfile.visitor.ReplaceOuterReferenceVisitor;
 import jd.core.process.analyzer.classfile.visitor.AddWildcardCastVisitor;
 import jd.core.process.analyzer.classfile.visitor.ReplaceBooleanTernaryVisitor;
+import jd.core.process.analyzer.classfile.visitor.ReplaceBoxingVisitor;
 import jd.core.process.analyzer.classfile.visitor.ReplaceRedundantCastVisitor;
 import jd.core.process.analyzer.classfile.visitor.ReplaceStringBuxxxerVisitor;
 import jd.core.process.analyzer.classfile.visitor.SetConstantTypeInStringIndexOfMethodsVisitor;
@@ -983,6 +984,7 @@ public final class ClassFileAnalyzer
         PatternSwitchReconstructor.reconstruct(classFile, method, fastList);
         new ReplaceBooleanTernaryVisitor(classFile, method.getLocalVariables()).visit(fastList);
         new ReplaceRedundantCastVisitor(classFile, method.getLocalVariables()).visit(fastList);
+        new ReplaceBoxingVisitor(classFile).visit(fastList);
         new AddWildcardCastVisitor(classFile, method).visit(fastList);
         if (!method.getTryResources().isEmpty() && !TryWithResourcesReconstructor.wrap(method, fastList)) {
             method.setContainsError(true);

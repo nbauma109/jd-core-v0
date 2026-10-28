@@ -119,4 +119,15 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("try ("));
         }
     }
+
+    @Test
+    public void textBlocksAndBoxingOfArguments() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Vf", new ZipLoader(in));
+            assertTrue(output, output.contains("String text = \"\"\""));
+            assertTrue(output, output.contains("I can use \"quotes\" in it."));
+            assertTrue(output, output.contains("map.get(0).orElse(null)"));
+            assertTrue(output, output.contains("x <<= 3;"));
+        }
+    }
 }
