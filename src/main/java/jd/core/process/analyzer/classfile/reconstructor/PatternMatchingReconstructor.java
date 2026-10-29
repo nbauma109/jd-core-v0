@@ -100,8 +100,8 @@ public final class PatternMatchingReconstructor {
             return false;
         }
         List<LocalVariable> bindings = new ArrayList<>();
-        int end = collectComponents(classFile, localVariables, list, ifIndex + 2, recordStore.getIndex(),
-                classFile.getConstantPool().getConstantClassName(instanceOf.getIndex()), bindings, method.getRecordAccessOffsets());
+        int end = collectComponents(classFile, method, list, ifIndex + 2, recordStore.getIndex(),
+                classFile.getConstantPool().getConstantClassName(instanceOf.getIndex()), bindings);
         if (end < 0) {
             return false;
         }
@@ -119,8 +119,9 @@ public final class PatternMatchingReconstructor {
      *
      * @return index of the first instruction after the components, or -1 if there are none
      */
-    static int collectComponents(ClassFile classFile, LocalVariables localVariables, List<Instruction> list,
-            int start, int recordVariable, String recordName, List<LocalVariable> bindings, java.util.Set<Integer> accessorOffsets) {
+    static int collectComponents(ClassFile classFile, Method method, List<Instruction> list,
+            int start, int recordVariable, String recordName, List<LocalVariable> bindings) {
+        LocalVariables localVariables = method.getLocalVariables();
         ConstantPool cp = classFile.getConstantPool();
         if (!isRecord(classFile, recordName)) {
             return -1;
@@ -131,7 +132,7 @@ public final class PatternMatchingReconstructor {
                 && accessor.getArgs().isEmpty()
                 && accessor.getObjectref() instanceof ALoad owner && owner.getIndex() == recordVariable
                 && recordName.equals(cp.getConstantClassName(cp.getConstantMethodref(accessor.getIndex()).getClassIndex()))) {
-            accessorOffsets.add(accessor.getOffset());
+            method.getRecordAccessOffsets().add(accessor.getOffset());
             int next = end + 1;
             StoreInstruction binding = null;
             while (next < list.size()) {

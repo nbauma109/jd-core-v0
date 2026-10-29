@@ -191,8 +191,8 @@ public final class PatternSwitchReconstructor {
                 continue;
             }
             List<LocalVariable> components = new ArrayList<>();
-            int end = PatternMatchingReconstructor.collectComponents(classFile, localVariables, list, first + 1,
-                    recordStore.getIndex(), classFile.getConstantPool().getConstantClassName(cast.getIndex()), components, method.getRecordAccessOffsets());
+            int end = PatternMatchingReconstructor.collectComponents(classFile, method, list, first + 1,
+                    recordStore.getIndex(), classFile.getConstantPool().getConstantClassName(cast.getIndex()), components);
             if (end < 0) {
                 continue;
             }
