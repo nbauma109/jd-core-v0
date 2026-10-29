@@ -30,6 +30,7 @@ import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker.Typ
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariables;
+import jd.core.model.instruction.bytecode.instruction.AConstNull;
 import jd.core.model.instruction.bytecode.instruction.CheckCast;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.GetField;
@@ -66,7 +67,7 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
         // A member of the result is selected: the compiler inserts the cast again. Elsewhere it may be a runtime check.
         if (localVariables != null && (parentFound instanceof InvokeNoStaticInstruction || parentFound instanceof GetField) && ((ObjectrefAttribute) parentFound).getObjectref() == instruction
             && instruction instanceof CheckCast cast
-            && cast.getObjectref() instanceof InvokeNoStaticInstruction invoke && isRedundant(cast, invoke))
+            && cast.getObjectref() instanceof InvokeNoStaticInstruction invoke && isRedundant(parentFound, cast, invoke))
         {
             return invoke;
         }
@@ -78,7 +79,7 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
         return null;
     }
 
-    private boolean isRedundant(CheckCast cast, InvokeNoStaticInstruction invoke)
+    private boolean isRedundant(Instruction parent, CheckCast cast, InvokeNoStaticInstruction invoke)
     {
         ConstantPool constants = classFile.getConstantPool();
         ConstantCP methodref = constants.getConstantMethodref(invoke.getIndex());
@@ -111,7 +112,8 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
 
         TypeArgument argument = typeArgument(owner, returned.getName(), receiverType.getTypeArguments());
         return argument instanceof ObjectType argumentType && argumentType.getDimension() == 0
-            && argumentType.getInternalName().equals(constants.getConstantClassName(cast.getIndex()));
+            && argumentType.getInternalName().equals(constants.getConstantClassName(cast.getIndex()))
+            && (argumentType.getTypeArguments() == null || acceptsAnyArgument(parent));
     }
 
     /** A type parameter of the method hides the one of the class with the same name. */
@@ -126,6 +128,13 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
             }
         }
         return false;
+    }
+
+    /** The raw cast of a parameterized type can be what makes the arguments of the call acceptable: it is kept unless they are null. */
+    private static boolean acceptsAnyArgument(Instruction parent)
+    {
+        return !(parent instanceof InvokeNoStaticInstruction call)
+            || call.getArgs().stream().allMatch(AConstNull.class::isInstance);
     }
 
     private TypeArgument typeArgument(String owner, String typeParameterName, BaseTypeArgument arguments)

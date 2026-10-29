@@ -249,4 +249,14 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(compact, compact.contains("generated(Object o) { Objects"));
         }
     }
+
+    @Test
+    public void boundDirectionAndRawReceiverCasts() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("TwentySecond", new ZipLoader(in));
+            assertTrue(output, output.contains("(List<Integer>)(List<?>)lower()"));
+            assertTrue(output, output.contains("((List)c.get()).add(\"x\")"));
+            assertTrue(output, output.contains("m.get(0).orElse(null)"));
+        }
+    }
 }

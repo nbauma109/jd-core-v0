@@ -140,17 +140,18 @@ public class AddWildcardCastVisitor extends AbstractReplaceInstructionVisitor<In
         if (value.equals(target) || value instanceof WildcardTypeArgument || target instanceof GenericType) {
             return true;
         }
-        Type bound = null;
-        if (value instanceof WildcardExtendsTypeArgument extendsBound) {
-            bound = extendsBound.type();
-        } else if (value instanceof WildcardSuperTypeArgument superBound) {
-            bound = superBound.type();
+        if (target instanceof ObjectType targetType) {
+            // The capture of '? extends B' is a subtype of B, the one of '? super B' a supertype of B
+            if (value instanceof WildcardExtendsTypeArgument extendsBound && extendsBound.type() instanceof ObjectType bound) {
+                return typeMaker.isAssignable(bound, targetType);
+            }
+            if (value instanceof WildcardSuperTypeArgument superBound && superBound.type() instanceof ObjectType bound) {
+                return typeMaker.isAssignable(targetType, bound);
+            }
         }
-        if (bound instanceof GenericType) {
+        if (value instanceof WildcardExtendsTypeArgument extendsBound && extendsBound.type() instanceof GenericType
+            || value instanceof WildcardSuperTypeArgument superBound && superBound.type() instanceof GenericType) {
             return true;
-        }
-        if (bound instanceof ObjectType boundType && target instanceof ObjectType targetType) {
-            return typeMaker.isAssignable(boundType, targetType) || typeMaker.isAssignable(targetType, boundType);
         }
         return false;
     }
