@@ -206,4 +206,16 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(compact, compact.contains("Box(int b)"));
         }
     }
+
+    @Test
+    public void usedComponentTemporariesAndCastsOfInstanceofOperands() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String compact = decompile("Eighteenth", new ZipLoader(in)).replaceAll("\\s+", " ");
+            assertTrue(compact, compact.contains("return a + b;"));
+            assertFalse(compact, compact.contains("Box(int b)"));
+            assertTrue(compact, compact.contains("instanceof Eighteenth.Box(int x)"));
+            assertTrue(compact, compact.contains("(String)xs.get(0) instanceof"));
+            assertTrue(compact, compact.contains("xs.get(0).length()"));
+        }
+    }
 }

@@ -104,7 +104,9 @@ public final class PatternMatchingReconstructor {
         List<LocalVariable> bindings = new ArrayList<>();
         int end = collectComponents(classFile, method, list, ifIndex + 2, recordStore.getIndex(),
                 classFile.getConstantPool().getConstantClassName(instanceOf.getIndex()), bindings);
-        if (end < 0 || isUsedAfter(list, end, recordStore.getIndex(), ((IfInstruction) list.get(ifIndex)).getJumpOffset())) {
+        int bodyEnd = ((IfInstruction) list.get(ifIndex)).getJumpOffset();
+        if (end < 0 || isUsedAfter(list, end, recordStore.getIndex(), bodyEnd)
+                || areTemporariesUsedAfter(list, end, method, bodyEnd)) {
             // The record itself is still needed: keep the ordinary type pattern
             return false;
         }
@@ -131,6 +133,7 @@ public final class PatternMatchingReconstructor {
         }
         List<String> accessedNames = new ArrayList<>();
         List<Integer> accessOffsets = new ArrayList<>();
+        method.getRecordTemporaries().clear();
         int end = start;
         while (end < list.size() && list.get(end) instanceof StoreInstruction component
                 && component.getValueref() instanceof InvokeNoStaticInstruction accessor
@@ -142,10 +145,15 @@ public final class PatternMatchingReconstructor {
                     cp.getConstantMethodref(accessor.getIndex()).getNameAndTypeIndex()).getNameIndex()));
             int next = end + 1;
             StoreInstruction binding = null;
+            method.getRecordTemporaries().add(localVariables.getLocalVariableWithIndexAndOffset(component.getIndex(), component.getOffset()));
             while (next < list.size()) {
                 Instruction instruction = list.get(next);
                 if (instruction instanceof StoreInstruction copy && copy.getValueref() instanceof LoadInstruction load
                         && load.getIndex() == component.getIndex()) {
+                    if (binding != null) {
+                        // An earlier copy is a temporary of the pattern
+                        method.getRecordTemporaries().add(localVariables.getLocalVariableWithIndexAndOffset(binding.getIndex(), binding.getOffset()));
+                    }
                     binding = copy;
                 } else if (!(instruction instanceof IfInstruction check && check.getValue() instanceof IConst)) {
                     break;
@@ -169,6 +177,21 @@ public final class PatternMatchingReconstructor {
         }
         method.getRecordAccessOffsets().addAll(accessOffsets);
         return end;
+    }
+
+    /** Whether the temporaries holding the components are read after the pattern: they are variables of the user then. */
+    static boolean areTemporariesUsedAfter(List<Instruction> list, int from, Method method, int endOffset) {
+        java.util.Set<LocalVariable> temporaries = method.getRecordTemporaries();
+        for (int i = from; i < list.size() && list.get(i).getOffset() < endOffset; i++) {
+            if (CheckLocalVariableUsedVisitor.visit(
+                    instruction -> instruction instanceof LoadInstruction && !(instruction instanceof StoreInstruction)
+                            && temporaries.contains(method.getLocalVariables()
+                                    .getLocalVariableWithIndexAndOffset(instruction.getIndex(), instruction.getOffset())),
+                    list.get(i))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Whether a local variable is read by the instructions from an index on, before an offset. */

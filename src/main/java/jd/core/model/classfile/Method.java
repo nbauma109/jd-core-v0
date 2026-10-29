@@ -52,6 +52,7 @@ public class Method extends Base implements SignatureInfo
     private CodeException[] codeExceptions;
     private final List<int[]> tryResources = new ArrayList<>();
     private final java.util.Set<Integer> recordAccessOffsets = new java.util.HashSet<>();
+    private final java.util.Set<jd.core.model.classfile.LocalVariable> recordTemporaries = new java.util.HashSet<>();
     private ParameterAnnotationEntry[] visibleParameterAnnotations; // NO_UCD (use final)
     private ParameterAnnotationEntry[] invisibleParameterAnnotations; // NO_UCD (use final)
     private ElementValue defaultAnnotationValue; // NO_UCD (use final)
@@ -208,6 +209,12 @@ public class Method extends Base implements SignatureInfo
     public List<int[]> getTryResources()
     {
         return this.tryResources;
+    }
+
+    /** Variables holding the components read by the record pattern being reconstructed. */
+    public java.util.Set<jd.core.model.classfile.LocalVariable> getRecordTemporaries()
+    {
+        return this.recordTemporaries;
     }
 
     /** Offsets of the accessor calls of record patterns, whose protected ranges throw a MatchException. */
