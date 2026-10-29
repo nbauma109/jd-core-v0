@@ -97,7 +97,7 @@ public class AddWildcardCastVisitor extends AbstractReplaceInstructionVisitor<In
         if (!isDirectCastLegal(invoke, targetObject))
         {
             // (List<String>) (List<?>) numbers(): the cast goes through the unbounded wildcard
-            String unbounded = 'L' + targetObject.getInternalName() + '<'
+            String unbounded = "[".repeat(targetObject.getDimension()) + 'L' + targetObject.getInternalName() + '<'
                 + "*".repeat(targetObject.getTypeArguments().typeArgumentSize()) + ">;";
             value = new CheckCast(Const.CHECKCAST, invoke.getOffset(), invoke.getLineNumber(),
                 constants.addConstantUtf8(unbounded), invoke);
@@ -140,8 +140,12 @@ public class AddWildcardCastVisitor extends AbstractReplaceInstructionVisitor<In
         if (value.equals(target) || value instanceof WildcardTypeArgument || target instanceof GenericType) {
             return true;
         }
-        Type bound = value instanceof WildcardExtendsTypeArgument extendsBound ? extendsBound.type()
-            : value instanceof WildcardSuperTypeArgument superBound ? superBound.type() : null;
+        Type bound = null;
+        if (value instanceof WildcardExtendsTypeArgument extendsBound) {
+            bound = extendsBound.type();
+        } else if (value instanceof WildcardSuperTypeArgument superBound) {
+            bound = superBound.type();
+        }
         if (bound instanceof GenericType) {
             return true;
         }

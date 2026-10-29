@@ -147,14 +147,19 @@ public final class TryWithResourcesReconstructor {
         }
         list.subList(handlerIndex, throwIndex + 1).clear();
         // Remove the inlined calls of close() on every exit of the body
+        int lastRemoved = Integer.MAX_VALUE;
         for (int i = list.size() - 1; i > firstBodyIndex - 1; i--) {
             Instruction instruction = list.get(i);
-            if (instruction.getOffset() < guarded.getHandlerPC() && closedResource(cp, instruction) == resourceIndex
+            // A call right before a removed one is written by the user: the generated one is the last
+            if (i != lastRemoved - 1 && instruction.getOffset() < guarded.getHandlerPC()
+                    && closedResource(cp, instruction) == resourceIndex
                     && isExitCleanup(list, i, guarded.getHandlerPC())) {
                 list.remove(i);
+                lastRemoved = i;
                 if (i > 0 && list.get(i - 1) instanceof IfInstruction nullCheck
                         && nullCheck.getValue() instanceof ALoad checked && checked.getIndex() == resourceIndex) {
                     list.remove(i - 1);
+                    lastRemoved = i - 1;
                 }
             }
         }

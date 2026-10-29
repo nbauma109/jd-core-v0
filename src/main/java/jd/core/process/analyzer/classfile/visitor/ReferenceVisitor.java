@@ -339,9 +339,7 @@ public class ReferenceVisitor
             {
                 FastSwitch fs = (FastSwitch)instruction;
                 visit(fs.getTest());
-                if (fs.getPatternSelector() != null) {
-                    fs.getPatternSelector().getReferencedTypes().forEach(this::addReference);
-                }
+                addLabelReferences(fs);
                 Pair[] pairs = fs.getPairs();
                 for (int i=pairs.length-1; i>=0; --i)
                 {
@@ -439,6 +437,14 @@ public class ReferenceVisitor
         if (c instanceof ConstantClass cc)
         {
             addReference(constants.getConstantUtf8(cc.getNameIndex()));
+        }
+    }
+
+    /** The types written by the labels of a switch on patterns. */
+    private void addLabelReferences(FastSwitch fs)
+    {
+        if (fs.getPatternSelector() != null) {
+            fs.getPatternSelector().getReferencedTypes().forEach(this::addReference);
         }
     }
 

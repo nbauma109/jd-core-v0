@@ -175,4 +175,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("case p.Outer.E.A ->") || output.contains("import p.Outer.E;"));
         }
     }
+
+    @Test
+    public void explicitCloseAndArraysOfParameterizedTypes() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Fifteenth", new ZipLoader(in));
+            assertTrue(output, output.replaceAll("\\s+", " ").contains("try (Fifteenth.R r = new Fifteenth.R()) { r.close(); }"));
+            assertTrue(output, output.contains("(List<String>[])(List<?>[])numbers()"));
+        }
+    }
 }
