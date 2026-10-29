@@ -101,7 +101,7 @@ public final class PatternMatchingReconstructor {
         }
         List<LocalVariable> bindings = new ArrayList<>();
         int end = collectComponents(classFile, localVariables, list, ifIndex + 2, recordStore.getIndex(),
-                classFile.getConstantPool().getConstantClassName(instanceOf.getIndex()), bindings);
+                classFile.getConstantPool().getConstantClassName(instanceOf.getIndex()), bindings, method.getRecordAccessOffsets());
         if (end < 0) {
             return false;
         }
@@ -120,7 +120,7 @@ public final class PatternMatchingReconstructor {
      * @return index of the first instruction after the components, or -1 if there are none
      */
     static int collectComponents(ClassFile classFile, LocalVariables localVariables, List<Instruction> list,
-            int start, int recordVariable, String recordName, List<LocalVariable> bindings) {
+            int start, int recordVariable, String recordName, List<LocalVariable> bindings, java.util.Set<Integer> accessorOffsets) {
         ConstantPool cp = classFile.getConstantPool();
         if (!isRecord(classFile, recordName)) {
             return -1;
@@ -131,6 +131,7 @@ public final class PatternMatchingReconstructor {
                 && accessor.getArgs().isEmpty()
                 && accessor.getObjectref() instanceof ALoad owner && owner.getIndex() == recordVariable
                 && recordName.equals(cp.getConstantClassName(cp.getConstantMethodref(accessor.getIndex()).getClassIndex()))) {
+            accessorOffsets.add(accessor.getOffset());
             int next = end + 1;
             StoreInstruction binding = null;
             while (next < list.size()) {
@@ -187,6 +188,17 @@ public final class PatternMatchingReconstructor {
                 && "java/lang/Record".equals(typeTypes.getSuperType().getInternalName());
     }
 
+    /** A handler written by the user may also throw a MatchException: all its ranges must be record accesses. */
+    private static boolean protectsRecordAccess(CodeException[] exceptions, int handlerPC, java.util.Set<Integer> accessOffsets) {
+        for (CodeException candidate : exceptions) {
+            if (candidate.getHandlerPC() == handlerPC
+                    && accessOffsets.stream().noneMatch(offset -> candidate.getStartPC() <= offset && offset < candidate.getEndPC())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     static void removeMatchExceptionHandlers(ClassFile classFile, Method method, List<Instruction> list) {
         CodeException[] exceptions = method.getCodeExceptions();
         if (exceptions == null) {
@@ -205,6 +217,9 @@ public final class PatternMatchingReconstructor {
             if (handler > 0 && list.get(handler) instanceof AStore store && store.getValueref() instanceof ExceptionLoad
                     && list.get(handler + 1) instanceof AThrow thrown && thrown.getValueref() instanceof InvokeNew created
                     && "java/lang/MatchException".equals(cp.getConstantClassName(cp.getConstantMethodref(created.getIndex()).getClassIndex()))) {
+                if (!protectsRecordAccess(exceptions, exception.getHandlerPC(), method.getRecordAccessOffsets())) {
+                    continue;
+                }
                 remaining.removeIf(candidate -> candidate.getHandlerPC() == exception.getHandlerPC());
                 int from = handler;
                 if (list.get(handler - 1) instanceof Goto jump && jump.getJumpOffset() > thrown.getOffset()) {

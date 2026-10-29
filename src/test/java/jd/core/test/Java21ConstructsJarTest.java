@@ -156,4 +156,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("String unicodeSpace = \"a\u2003\\nb"));
         }
     }
+
+    @Test
+    public void userHandlersAndWildcardCastsAreKept() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Fourteenth", new ZipLoader(in));
+            assertTrue(output, output.contains("throw new MatchException(\"user\", e);"));
+            assertTrue(output, output.contains("return make();"));
+        }
+    }
 }

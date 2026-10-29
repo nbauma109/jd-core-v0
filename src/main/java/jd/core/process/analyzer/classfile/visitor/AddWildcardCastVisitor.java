@@ -87,7 +87,8 @@ public class AddWildcardCastVisitor extends AbstractReplaceInstructionVisitor<In
             return null;
         }
         Type targetType = typeMaker.makeFromSignature(target);
-        if (!(targetType instanceof ObjectType targetObject) || targetObject.getTypeArguments() == null) {
+        if (!(targetType instanceof ObjectType targetObject) || targetObject.getTypeArguments() == null
+            || !returnsClass(invoke, targetObject.getInternalName())) {
             return null;
         }
         ConstantPool constants = classFile.getConstantPool();
@@ -101,6 +102,19 @@ public class AddWildcardCastVisitor extends AbstractReplaceInstructionVisitor<In
         var attribute = method.getAttributeSignature();
         String signature = attribute == null ? null : constants.getConstantUtf8(attribute.getSignatureIndex());
         return signature == null ? null : SignatureUtil.getMethodReturnedSignature(signature);
+    }
+
+    /** Only a cast between two parameterizations of the same class is certain to be accepted. */
+    private boolean returnsClass(InvokeInstruction invoke, String internalName)
+    {
+        ConstantPool constants = classFile.getConstantPool();
+        ConstantCP methodref = constants.getConstantMethodref(invoke.getIndex());
+        ConstantNameAndType nameAndType = constants.getConstantNameAndType(methodref.getNameAndTypeIndex());
+        MethodTypes methodTypes = typeMaker.makeMethodTypes(constants.getConstantClassName(methodref.getClassIndex()),
+            constants.getConstantUtf8(nameAndType.getNameIndex()),
+            constants.getConstantUtf8(nameAndType.getSignatureIndex()));
+        return methodTypes != null && methodTypes.getReturnedType() instanceof ObjectType returned
+            && returned.getInternalName().equals(internalName);
     }
 
     private boolean hasWildcards(InvokeInstruction invoke)
