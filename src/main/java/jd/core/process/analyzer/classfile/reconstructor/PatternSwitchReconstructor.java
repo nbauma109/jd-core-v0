@@ -372,7 +372,8 @@ public final class PatternSwitchReconstructor {
         FastSwitch.Pair[] pairs = fs.getPairs();
         for (int i = 0; i < pairs.length; i++) {
             List<Instruction> instructions = pairs[i].getInstructions();
-            if (pairs[i].isDefault() && instructions != null && instructions.size() == 1
+            // The compiler puts the default it adds first; the default of the user, after the patterns, is kept
+            if (i == 0 && pairs[i].isDefault() && instructions != null && instructions.size() == 1
                     && instructions.get(0) instanceof AThrow thrown && thrown.getValueref() instanceof InvokeNew created
                     && created.getArgs().stream().allMatch(AConstNull.class::isInstance)
                     && "java/lang/MatchException".equals(cp.getConstantClassName(cp.getConstantMethodref(created.getIndex()).getClassIndex()))) {

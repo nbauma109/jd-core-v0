@@ -984,7 +984,7 @@ public final class ClassFileAnalyzer
         PatternSwitchReconstructor.reconstruct(classFile, method, fastList);
         new ReplaceBooleanTernaryVisitor(classFile, method.getLocalVariables()).visit(fastList);
         new ReplaceRedundantCastVisitor(classFile, method.getLocalVariables()).visit(fastList);
-        new ReplaceBoxingVisitor(classFile).visit(fastList);
+        new ReplaceBoxingVisitor(classFile, method.getLocalVariables()).visit(fastList);
         new AddWildcardCastVisitor(classFile, method).visit(fastList);
         if (!method.getTryResources().isEmpty() && !TryWithResourcesReconstructor.wrap(method, fastList)) {
             method.setContainsError(true);

@@ -23,6 +23,7 @@ import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
+import jd.core.model.classfile.LocalVariables;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeInstruction;
@@ -40,11 +41,13 @@ public class ReplaceBoxingVisitor extends AbstractReplaceInstructionVisitor<Inst
     private static final Set<String> BOXES = Set.of("java/lang/Integer", "java/lang/Long", "java/lang/Double", "java/lang/Float");
 
     private final ClassFile classFile;
+    private final LocalVariables localVariables;
     private final TypeMaker typeMaker;
 
-    public ReplaceBoxingVisitor(ClassFile classFile)
+    public ReplaceBoxingVisitor(ClassFile classFile, LocalVariables localVariables)
     {
         this.classFile = classFile;
+        this.localVariables = localVariables;
         this.typeMaker = new TypeMaker(classFile.getLoader());
     }
 
@@ -62,12 +65,22 @@ public class ReplaceBoxingVisitor extends AbstractReplaceInstructionVisitor<Inst
     protected Instruction match(Instruction parentFound, Instruction instruction)
     {
         if (parentFound instanceof InvokeInstruction invoke && instruction instanceof Invokestatic boxing
-            && boxing.getArgs().size() == 1 && isBoxing(boxing) && !isConversion(boxing.getArgs().get(0)) && isReferenceParameter(invoke, boxing)
+            && boxing.getArgs().size() == 1 && isBoxing(boxing) && !isConversion(boxing.getArgs().get(0)) && hasBoxedType(boxing) && isReferenceParameter(invoke, boxing)
             && hasSingleCandidate(invoke))
         {
             return boxing.getArgs().get(0);
         }
         return null;
+    }
+
+    /** A byte, short or char argument of Integer.valueOf is widened without any instruction: the types must be the same. */
+    private boolean hasBoxedType(Invokestatic boxing)
+    {
+        ConstantPool constants = classFile.getConstantPool();
+        ConstantCP methodref = constants.getConstantMethodref(boxing.getIndex());
+        String descriptor = constants.getConstantUtf8(constants.getConstantNameAndType(methodref.getNameAndTypeIndex()).getSignatureIndex());
+        String argumentSignature = boxing.getArgs().get(0).getReturnedSignature(classFile, localVariables);
+        return argumentSignature != null && argumentSignature.equals(descriptor.substring(1, 2));
     }
 
     /** A widening, {@code Long.valueOf(i)} with an int, would box another class once the call is removed. */

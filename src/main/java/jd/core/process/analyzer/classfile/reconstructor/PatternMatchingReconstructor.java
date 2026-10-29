@@ -170,7 +170,8 @@ public final class PatternMatchingReconstructor {
             bindings.add(lv);
             end = next;
         }
-        if (bindings.isEmpty() || !accessedNames.equals(componentNames(classFile, recordName))) {
+        if (bindings.isEmpty() || !accessedNames.equals(componentNames(classFile, recordName))
+                || !isWrappedByMatchException(classFile, method, list, accessOffsets)) {
             // A record pattern reads every component, in the order of the declaration
             bindings.clear();
             return -1;
@@ -274,12 +275,42 @@ public final class PatternMatchingReconstructor {
         return true;
     }
 
+    /** Whether the instructions at an index are the handler rethrowing a MatchException that the compiler adds. */
+    private static boolean isMatchExceptionHandler(ClassFile classFile, List<Instruction> list, int index) {
+        ConstantPool cp = classFile.getConstantPool();
+        return index >= 0 && index + 1 < list.size() && list.get(index) instanceof AStore store
+                && store.getValueref() instanceof ExceptionLoad
+                && list.get(index + 1) instanceof AThrow thrown && thrown.getValueref() instanceof InvokeNew created
+                && "java/lang/MatchException".equals(cp.getConstantClassName(cp.getConstantMethodref(created.getIndex()).getClassIndex()));
+    }
+
+    /** Record patterns wrap the exceptions of the accessors: an ordinary call has no such handler around it. */
+    private static boolean isWrappedByMatchException(ClassFile classFile, Method method, List<Instruction> list, List<Integer> accessOffsets) {
+        CodeException[] exceptions = method.getCodeExceptions();
+        if (exceptions == null) {
+            return false;
+        }
+        for (int offset : accessOffsets) {
+            boolean wrapped = false;
+            for (CodeException exception : exceptions) {
+                if (exception.getStartPC() <= offset && offset < exception.getEndPC()) {
+                    for (int i = 0; i < list.size() && !wrapped; i++) {
+                        wrapped = list.get(i).getOffset() == exception.getHandlerPC() && isMatchExceptionHandler(classFile, list, i);
+                    }
+                }
+            }
+            if (!wrapped) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     static void removeMatchExceptionHandlers(ClassFile classFile, Method method, List<Instruction> list) {
         CodeException[] exceptions = method.getCodeExceptions();
         if (exceptions == null) {
             return;
         }
-        ConstantPool cp = classFile.getConstantPool();
         List<CodeException> remaining = new ArrayList<>(List.of(exceptions));
         for (CodeException exception : exceptions) {
             int handler = -1;
@@ -289,9 +320,8 @@ public final class PatternMatchingReconstructor {
                     break;
                 }
             }
-            if (handler > 0 && list.get(handler) instanceof AStore store && store.getValueref() instanceof ExceptionLoad
-                    && list.get(handler + 1) instanceof AThrow thrown && thrown.getValueref() instanceof InvokeNew created
-                    && "java/lang/MatchException".equals(cp.getConstantClassName(cp.getConstantMethodref(created.getIndex()).getClassIndex()))) {
+            if (handler > 0 && isMatchExceptionHandler(classFile, list, handler)
+                    && list.get(handler + 1) instanceof AThrow thrown) {
                 if (!protectsRecordAccess(exceptions, exception.getHandlerPC(), method.getRecordAccessOffsets())) {
                     continue;
                 }

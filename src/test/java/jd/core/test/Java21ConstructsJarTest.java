@@ -218,4 +218,15 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(compact, compact.contains("xs.get(0).length()"));
         }
     }
+
+    @Test
+    public void unwrappedAccessorsUserDefaultsAndNarrowBoxing() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String compact = decompile("Nineteenth", new ZipLoader(in)).replaceAll("\\s+", " ");
+            assertTrue(compact, compact.contains("accept(Integer.valueOf(b)); accept(i);"));
+            assertTrue(compact, compact.contains("default -> throw new MatchException(null, null);"));
+            assertFalse(compact, compact.contains("R(int b)"));
+            assertTrue(compact, compact.contains("case Nineteenth.A a -> 1; case Nineteenth.B b -> 2; }"));
+        }
+    }
 }
