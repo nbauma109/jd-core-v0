@@ -257,7 +257,7 @@ public final class ConstantValueWriter
         }
         // Without a closing delimiter on its own line, the lines must not all start with spaces
         // that the compiler would remove as incidental whitespace
-        return lines >= 3 && !hasEdgeWhitespace(s) && (s.endsWith("\n") || minimalIndentation(s) == 0);
+        return lines >= 3 && !hasEdgeWhitespace(s) && !hasBlankLineWithSpaces(s) && (s.endsWith("\n") || minimalIndentation(s) == 0);
     }
 
     /** Whitespace other than a space or a tab at the edge of a line cannot be escaped: the compiler would strip it. */
@@ -274,6 +274,17 @@ public final class ConstantValueWriter
     private static boolean isUnescapableWhitespace(char c)
     {
         return Character.isWhitespace(c) && c != ' ' && c != '\t' && c != '\r' && c != '\b' && c != '\f' && c >= ' ';
+    }
+
+    /** A line of spaces is emptied by the compiler, and decides nothing about the indentation: keep such strings as literals. */
+    private static boolean hasBlankLineWithSpaces(String s)
+    {
+        for (String line : s.split("\n", -1)) {
+            if (!line.isEmpty() && line.isBlank()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static int minimalIndentation(String s)

@@ -21,6 +21,7 @@ import org.apache.bcel.Const;
 import org.apache.bcel.classfile.CodeException;
 
 import jd.core.model.classfile.ClassFile;
+import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
 import jd.core.process.analyzer.instruction.fast.visitor.CheckLocalVariableUsedVisitor;
 import jd.core.process.deserializer.ClassFileDeserializer;
 import jd.core.model.classfile.ConstantPool;
@@ -82,7 +83,7 @@ public final class PatternMatchingReconstructor {
                     && list.get(i + 1) instanceof AStore store && isBinding(instanceOf, store)
                     && !readsRecordComponents(classFile, list, i + 2, store.getIndex())) {
                 LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(store.getIndex(), store.getOffset());
-                if (lv != null && lv.getStartPc() > 0) {
+                if (lv != null && declaredBy(method, lv, store)) {
                     instanceOf.setPatternVariable(lv);
                     markBinding(classFile, method, lv);
                     list.remove(i + 1);
@@ -164,7 +165,7 @@ public final class PatternMatchingReconstructor {
                 return -1;
             }
             LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(binding.getIndex(), binding.getOffset());
-            if (lv == null) {
+            if (lv == null || !declaredBy(method, lv, binding)) {
                 return -1;
             }
             bindings.add(lv);
@@ -178,6 +179,13 @@ public final class PatternMatchingReconstructor {
         }
         method.getRecordAccessOffsets().addAll(accessOffsets);
         return end;
+    }
+
+    /** Whether the store is the one declaring the variable, not an assignment to a variable that existed before. */
+    static boolean declaredBy(Method method, LocalVariable lv, StoreInstruction store) {
+        byte[] code = method.getCode();
+        int next = code == null ? store.getOffset() : ByteCodeUtil.nextInstructionOffset(code, store.getOffset());
+        return lv.getStartPc() == store.getOffset() || lv.getStartPc() == next;
     }
 
     /** Whether the temporaries holding the components are read after the pattern: they are variables of the user then. */

@@ -229,4 +229,15 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(compact, compact.contains("case Nineteenth.A a -> 1; case Nineteenth.B b -> 2; }"));
         }
     }
+
+    @Test
+    public void existingLocalsAreNotRedeclaredAndBlankTextStaysALiteral() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String compact = decompile("Twentieth", new ZipLoader(in)).replaceAll("\\s+", " ");
+            assertTrue(compact, compact.contains("String s = \"before\"; if ((o instanceof String)) { s = (String)o; }"));
+            assertTrue(compact, compact.contains("if ((o instanceof String s)) { return s; }"));
+            assertTrue(compact, compact.contains("String blanks = \" \\n \\n \\n \";"));
+            assertTrue(compact, compact.contains("String text = \"\"\" a b c d \"\"\";"));
+        }
+    }
 }
