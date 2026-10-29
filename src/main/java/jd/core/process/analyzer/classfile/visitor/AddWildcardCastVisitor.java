@@ -149,11 +149,8 @@ public class AddWildcardCastVisitor extends AbstractReplaceInstructionVisitor<In
                 return typeMaker.isAssignable(targetType, bound);
             }
         }
-        if (value instanceof WildcardExtendsTypeArgument extendsBound && extendsBound.type() instanceof GenericType
-            || value instanceof WildcardSuperTypeArgument superBound && superBound.type() instanceof GenericType) {
-            return true;
-        }
-        return false;
+        return value instanceof WildcardExtendsTypeArgument extendsBound && extendsBound.type() instanceof GenericType
+            || value instanceof WildcardSuperTypeArgument superBound && superBound.type() instanceof GenericType;
     }
 
     private String returnedSignature()
