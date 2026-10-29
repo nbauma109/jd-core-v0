@@ -18,6 +18,7 @@ import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.jd.core.v1.model.javasyntax.type.BaseTypeArgument;
+import org.jd.core.v1.model.javasyntax.type.GenericType;
 import org.jd.core.v1.model.javasyntax.type.ObjectType;
 import org.jd.core.v1.model.javasyntax.type.Type;
 import org.jd.core.v1.model.javasyntax.type.TypeArgument;
@@ -92,8 +93,62 @@ public class AddWildcardCastVisitor extends AbstractReplaceInstructionVisitor<In
             return null;
         }
         ConstantPool constants = classFile.getConstantPool();
+        Instruction value = invoke;
+        if (!isDirectCastLegal(invoke, targetObject))
+        {
+            // (List<String>) (List<?>) numbers(): the cast goes through the unbounded wildcard
+            String unbounded = 'L' + targetObject.getInternalName() + '<'
+                + "*".repeat(targetObject.getTypeArguments().typeArgumentSize()) + ">;";
+            value = new CheckCast(Const.CHECKCAST, invoke.getOffset(), invoke.getLineNumber(),
+                constants.addConstantUtf8(unbounded), invoke);
+        }
         return new CheckCast(Const.CHECKCAST, invoke.getOffset(), invoke.getLineNumber(),
-            constants.addConstantUtf8(target), invoke);
+            constants.addConstantUtf8(target), value);
+    }
+
+    /** A cast between two parameterizations is legal unless some argument of the value can never be the one of the target. */
+    private boolean isDirectCastLegal(InvokeInstruction invoke, ObjectType target)
+    {
+        ConstantPool constants = classFile.getConstantPool();
+        ConstantCP methodref = constants.getConstantMethodref(invoke.getIndex());
+        ConstantNameAndType nameAndType = constants.getConstantNameAndType(methodref.getNameAndTypeIndex());
+        MethodTypes methodTypes = typeMaker.makeMethodTypes(constants.getConstantClassName(methodref.getClassIndex()),
+            constants.getConstantUtf8(nameAndType.getNameIndex()),
+            constants.getConstantUtf8(nameAndType.getSignatureIndex()));
+        if (methodTypes == null || !(methodTypes.getReturnedType() instanceof ObjectType returned)
+            || returned.getTypeArguments() == null
+            || returned.getTypeArguments().typeArgumentSize() != target.getTypeArguments().typeArgumentSize())
+        {
+            return false;
+        }
+        for (int i = 0; i < target.getTypeArguments().typeArgumentSize(); i++)
+        {
+            if (!isCompatible(argumentAt(returned.getTypeArguments(), i), argumentAt(target.getTypeArguments(), i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static TypeArgument argumentAt(BaseTypeArgument arguments, int index)
+    {
+        return arguments.isTypeArgumentList() ? arguments.getTypeArgumentList().get(index) : arguments.getTypeArgumentFirst();
+    }
+
+    private boolean isCompatible(TypeArgument value, TypeArgument target)
+    {
+        if (value.equals(target) || value instanceof WildcardTypeArgument || target instanceof GenericType) {
+            return true;
+        }
+        Type bound = value instanceof WildcardExtendsTypeArgument extendsBound ? extendsBound.type()
+            : value instanceof WildcardSuperTypeArgument superBound ? superBound.type() : null;
+        if (bound instanceof GenericType) {
+            return true;
+        }
+        if (bound instanceof ObjectType boundType && target instanceof ObjectType targetType) {
+            return typeMaker.isAssignable(boundType, targetType) || typeMaker.isAssignable(targetType, boundType);
+        }
+        return false;
     }
 
     private String returnedSignature()

@@ -35,6 +35,7 @@ public class PatternSwitchSelector extends ALoad
     private final Map<Integer, Instruction> guards = new HashMap<>();
     private final Map<Integer, Integer> bodyOffsets = new HashMap<>();
     private final Map<Integer, Integer> extraLabels = new HashMap<>();
+    private final java.util.Set<String> referencedTypes = new java.util.LinkedHashSet<>();
 
     /**
      * @param labels constant pool indexes of the labels, in the order of the keys
@@ -106,5 +107,11 @@ public class PatternSwitchSelector extends ALoad
         int key = labels.length + extraLabels.size();
         extraLabels.put(key, classConstantIndex);
         return key;
+    }
+
+    /** Internal names of the types written by the labels, which must be imported. */
+    public java.util.Set<String> getReferencedTypes()
+    {
+        return referencedTypes;
     }
 }

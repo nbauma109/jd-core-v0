@@ -595,9 +595,16 @@ public final class SignatureWriter
                     internalName = internalName.substring(index + 1);
                 }
             } else if (lastIndexOfDollar != -1) {
-                internalName = internalName.substring(index+1)
-                                           .replace(StringConstants.INTERNAL_INNER_SEPARATOR,
-                                                    StringConstants.PACKAGE_SEPARATOR);
+                int firstIndexOfDollar = internalName.indexOf(StringConstants.INTERNAL_INNER_SEPARATOR, index);
+                if (referenceMap.contains(internalName.substring(0, firstIndexOfDollar))) {
+                    // The outer class is imported
+                    internalName = internalName.substring(index+1)
+                                               .replace(StringConstants.INTERNAL_INNER_SEPARATOR,
+                                                        StringConstants.PACKAGE_SEPARATOR);
+                } else {
+                    internalName = internalName.replace(StringConstants.INTERNAL_PACKAGE_SEPARATOR,
+                            StringConstants.PACKAGE_SEPARATOR);
+                }
             } else {
                 // Sinon, on conserve le nom du package
                 internalName = internalName.replace(StringConstants.INTERNAL_PACKAGE_SEPARATOR,

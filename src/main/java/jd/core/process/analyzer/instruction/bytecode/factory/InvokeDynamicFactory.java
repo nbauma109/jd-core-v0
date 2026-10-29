@@ -133,7 +133,10 @@ public class InvokeDynamicFactory implements InstructionFactory
                 && indyParameters != null && indyParameters.size() == 2 && indyParameters.get(0) instanceof ALoad selector) {
             // Switch on patterns: the arguments of the bootstrap method are the labels
             int restartIndexVariable = indyParameters.get(1) instanceof LoadInstruction restart ? restart.getIndex() : -1;
-            stack.push(new PatternSwitchSelector(selector, bootstrapArguments, "enumSwitch".equals(indyMethodName), restartIndexVariable));
+            PatternSwitchSelector patternSelector = new PatternSwitchSelector(
+                selector, bootstrapArguments, "enumSwitch".equals(indyMethodName), restartIndexVariable);
+            collectLabelTypes(classFile, bootstrapArguments, patternSelector);
+            stack.push(patternSelector);
             return Const.getNoOfOperands(opcode);
         }
 
@@ -203,6 +206,22 @@ public class InvokeDynamicFactory implements InstructionFactory
     }
 
     /** Labels that are classes, strings or integers; qualified enum constants are dynamic constants. */
+    private static void collectLabelTypes(ClassFile classFile, int[] labels, PatternSwitchSelector selector)
+    {
+        ConstantPool constants = classFile.getConstantPool();
+        for (int label : labels)
+        {
+            if (constants.get(label).getTag() == Const.CONSTANT_Class) {
+                selector.getReferencedTypes().add(constants.getConstantClassName(label));
+            } else if (constants.get(label).getTag() == Const.CONSTANT_Dynamic) {
+                String[] enumConstant = PatternSwitchLabelWriter.decodeEnumConstant(classFile, label);
+                if (enumConstant.length > 0) {
+                    selector.getReferencedTypes().add(enumConstant[0]);
+                }
+            }
+        }
+    }
+
     private static boolean hasSupportedLabels(ClassFile classFile, int[] labels)
     {
         ConstantPool constants = classFile.getConstantPool();

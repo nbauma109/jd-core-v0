@@ -339,6 +339,9 @@ public class ReferenceVisitor
             {
                 FastSwitch fs = (FastSwitch)instruction;
                 visit(fs.getTest());
+                if (fs.getPatternSelector() != null) {
+                    fs.getPatternSelector().getReferencedTypes().forEach(this::addReference);
+                }
                 Pair[] pairs = fs.getPairs();
                 for (int i=pairs.length-1; i>=0; --i)
                 {

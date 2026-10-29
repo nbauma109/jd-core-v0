@@ -232,7 +232,7 @@ public final class PatternSwitchReconstructor {
         fs.setPatternSelector(selector);
         boolean exhaustive = removeMatchExceptionDefault(classFile, fs);
         moveTrailingCode(fastList, fs);
-        labelTotalPattern(fs, selector);
+        labelTotalPattern(classFile, fs, selector);
         for (FastSwitch.Pair pair : fs.getPairs()) {
             List<Instruction> instructions = pair.getInstructions();
             if (pair.isDefault() || instructions == null || instructions.isEmpty()) {
@@ -270,7 +270,7 @@ public final class PatternSwitchReconstructor {
     }
 
     /** The case with a pattern matching everything left is the default of the switch: it gets its label back. */
-    private static void labelTotalPattern(FastSwitch fs, PatternSwitchSelector selector) {
+    private static void labelTotalPattern(ClassFile classFile, FastSwitch fs, PatternSwitchSelector selector) {
         FastSwitch.Pair[] pairs = fs.getPairs();
         for (int i = 0; i < pairs.length; i++) {
             List<Instruction> instructions = pairs[i].getInstructions();
@@ -282,6 +282,7 @@ public final class PatternSwitchReconstructor {
             if (first instanceof StoreInstruction store && store.getValueref() instanceof CheckCast cast
                     && cast.getObjectref() instanceof ALoad load && load.getIndex() == selector.getIndex()) {
                 FastSwitch.Pair labeled = new FastSwitch.Pair(false, selector.addLabel(cast.getIndex()), pairs[i].getOffset());
+                selector.getReferencedTypes().add(classFile.getConstantPool().getConstantClassName(cast.getIndex()));
                 labeled.setInstructions(instructions);
                 pairs[i] = labeled;
             }

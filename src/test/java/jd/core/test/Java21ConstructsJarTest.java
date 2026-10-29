@@ -165,4 +165,14 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("return make();"));
         }
     }
+
+    @Test
+    public void wildcardCastsAndQualifiedEnumLabelsOfOtherPackages() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("q/Switcher", new ZipLoader(in));
+            assertTrue(output, output.contains("(List<String>)(List<?>)numbers()"));
+            assertTrue(output, output.contains("(List<Number>)supers()"));
+            assertTrue(output, output.contains("case p.Outer.E.A ->") || output.contains("import p.Outer.E;"));
+        }
+    }
 }
