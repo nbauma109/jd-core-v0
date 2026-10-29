@@ -68,7 +68,7 @@ public final class PatternMatchingReconstructor {
         for (int i = list.size() - 2; i >= 0; i--) {
             if (list.get(i) instanceof IfInstruction test && test.getValue() instanceof InstanceOf instanceOf
                     && instanceOf.getPatternVariable() == null && instanceOf.getRecordPatternVariables() == null) {
-                recordPattern |= reconstructRecordPattern(classFile, method, localVariables, list, i, instanceOf);
+                recordPattern |= reconstructRecordPattern(classFile, method, list, i, instanceOf);
             }
         }
         if (recordPattern) {
@@ -92,7 +92,7 @@ public final class PatternMatchingReconstructor {
     /**
      * if (o instanceof R) goto END; r = o; c1 = r.a(); t1 = c1; goto END if true; x = c1; ...
      */
-    private static boolean reconstructRecordPattern(ClassFile classFile, Method method, LocalVariables localVariables,
+    private static boolean reconstructRecordPattern(ClassFile classFile, Method method,
             List<Instruction> list, int ifIndex, InstanceOf instanceOf) {
         if (!(instanceOf.getObjectref() instanceof ALoad tested) || ifIndex + 2 >= list.size()
                 || !(list.get(ifIndex + 1) instanceof AStore recordStore) || !(unwrapCast(recordStore.getValueref()) instanceof ALoad source)

@@ -81,7 +81,7 @@ public final class PatternSwitchReconstructor {
         for (int s = 0; s < list.size(); s++) {
             if (list.get(s) instanceof Switch lookup && lookup.getKey() instanceof PatternSwitchSelector selector) {
                 removeRestarts(list, lookup, selector);
-                reconstructRecordCases(classFile, method, localVariables, list, lookup, selector);
+                reconstructRecordCases(classFile, method, list, lookup, selector);
                 if (!selector.getRecordComponents().isEmpty()) {
                     if (containsPatternSwitchInside(list, lookup)) {
                         // The compiler merges the cases starting with the same record pattern into a nested switch
@@ -177,7 +177,7 @@ public final class PatternSwitchReconstructor {
         return bestKey;
     }
 
-    private static void reconstructRecordCases(ClassFile classFile, Method method, LocalVariables localVariables, List<Instruction> list,
+    private static void reconstructRecordCases(ClassFile classFile, Method method, List<Instruction> list,
             Switch lookup, PatternSwitchSelector selector) {
         for (int i = 0; i < lookup.getOffsets().length; i++) {
             int caseStart = lookup.getOffset() + lookup.getOffset(i);
