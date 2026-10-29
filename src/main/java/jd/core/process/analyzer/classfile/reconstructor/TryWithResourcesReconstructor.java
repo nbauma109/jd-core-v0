@@ -177,7 +177,8 @@ public final class TryWithResourcesReconstructor {
             return true;
         }
         int next = list.get(index + 1).getOpcode();
-        return next == Const.RETURN || next == ByteCodeConstants.XRETURN || next == Const.GOTO || next == Const.ATHROW;
+        // The generated handler closes before a throw: a close() before it is the user's
+        return next == Const.RETURN || next == ByteCodeConstants.XRETURN || next == Const.GOTO;
     }
 
     private static boolean isThrowable(ConstantPool cp, CodeException exception) {

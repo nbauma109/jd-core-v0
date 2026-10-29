@@ -21,6 +21,7 @@ import org.apache.bcel.Const;
 import org.apache.bcel.classfile.CodeException;
 
 import jd.core.model.classfile.ClassFile;
+import jd.core.process.deserializer.ClassFileDeserializer;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
@@ -126,13 +127,17 @@ public final class PatternMatchingReconstructor {
         if (!isRecord(classFile, recordName)) {
             return -1;
         }
+        List<String> accessedNames = new ArrayList<>();
+        List<Integer> accessOffsets = new ArrayList<>();
         int end = start;
         while (end < list.size() && list.get(end) instanceof StoreInstruction component
                 && component.getValueref() instanceof InvokeNoStaticInstruction accessor
                 && accessor.getArgs().isEmpty()
                 && accessor.getObjectref() instanceof ALoad owner && owner.getIndex() == recordVariable
                 && recordName.equals(cp.getConstantClassName(cp.getConstantMethodref(accessor.getIndex()).getClassIndex()))) {
-            method.getRecordAccessOffsets().add(accessor.getOffset());
+            accessOffsets.add(accessor.getOffset());
+            accessedNames.add(cp.getConstantUtf8(cp.getConstantNameAndType(
+                    cp.getConstantMethodref(accessor.getIndex()).getNameAndTypeIndex()).getNameIndex()));
             int next = end + 1;
             StoreInstruction binding = null;
             while (next < list.size()) {
@@ -155,7 +160,39 @@ public final class PatternMatchingReconstructor {
             bindings.add(lv);
             end = next;
         }
-        return bindings.isEmpty() ? -1 : end;
+        if (bindings.isEmpty() || !accessedNames.equals(componentNames(classFile, recordName))) {
+            // A record pattern reads every component, in the order of the declaration
+            bindings.clear();
+            return -1;
+        }
+        method.getRecordAccessOffsets().addAll(accessOffsets);
+        return end;
+    }
+
+    /** Names of the components of a record: its instance fields, in the order of the declaration. */
+    private static List<String> componentNames(ClassFile classFile, String recordName) {
+        ClassFile root = classFile;
+        while (root.getOuterClass() != null) {
+            root = root.getOuterClass();
+        }
+        ClassFile record = findClass(root, recordName);
+        if (record == null && classFile.getLoader() != null) {
+            record = ClassFileDeserializer.deserialize(classFile.getLoader(), recordName + ".class", true);
+        }
+        List<String> names = new ArrayList<>();
+        if (record != null && record.getRecordComponents() != null) {
+            // The analysis of the record already turned its fields into components
+            for (jd.core.model.classfile.RecordComponent component : record.getRecordComponents()) {
+                names.add(component.name());
+            }
+        } else if (record != null) {
+            for (jd.core.model.classfile.Field field : record.getFields()) {
+                if ((field.getAccessFlags() & Const.ACC_STATIC) == 0) {
+                    names.add(record.getConstantPool().getConstantUtf8(field.getNameIndex()));
+                }
+            }
+        }
+        return names;
     }
 
     /** Removes the handler throwing MatchException that javac generates around record patterns. */
