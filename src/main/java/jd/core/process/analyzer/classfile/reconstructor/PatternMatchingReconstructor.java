@@ -21,6 +21,7 @@ import org.apache.bcel.Const;
 import org.apache.bcel.classfile.CodeException;
 
 import jd.core.model.classfile.ClassFile;
+import jd.core.process.analyzer.instruction.fast.visitor.CheckLocalVariableUsedVisitor;
 import jd.core.process.deserializer.ClassFileDeserializer;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariable;
@@ -103,7 +104,8 @@ public final class PatternMatchingReconstructor {
         List<LocalVariable> bindings = new ArrayList<>();
         int end = collectComponents(classFile, method, list, ifIndex + 2, recordStore.getIndex(),
                 classFile.getConstantPool().getConstantClassName(instanceOf.getIndex()), bindings);
-        if (end < 0) {
+        if (end < 0 || isUsedAfter(list, end, recordStore.getIndex(), ((IfInstruction) list.get(ifIndex)).getJumpOffset())) {
+            // The record itself is still needed: keep the ordinary type pattern
             return false;
         }
         list.subList(ifIndex + 1, end).clear();
@@ -169,26 +171,38 @@ public final class PatternMatchingReconstructor {
         return end;
     }
 
+    /** Whether a local variable is read by the instructions from an index on, before an offset. */
+    static boolean isUsedAfter(List<Instruction> list, int from, int variableIndex, int endOffset) {
+        for (int i = from; i < list.size() && list.get(i).getOffset() < endOffset; i++) {
+            if (CheckLocalVariableUsedVisitor.visit(
+                    instruction -> instruction instanceof LoadInstruction && !(instruction instanceof StoreInstruction)
+                            && instruction.getIndex() == variableIndex, list.get(i))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /** Names of the components of a record: its instance fields, in the order of the declaration. */
     private static List<String> componentNames(ClassFile classFile, String recordName) {
         ClassFile root = classFile;
         while (root.getOuterClass() != null) {
             root = root.getOuterClass();
         }
-        ClassFile record = findClass(root, recordName);
-        if (record == null && classFile.getLoader() != null) {
-            record = ClassFileDeserializer.deserialize(classFile.getLoader(), recordName + ".class", true);
+        ClassFile recordClass = findClass(root, recordName);
+        if (recordClass == null && classFile.getLoader() != null) {
+            recordClass = ClassFileDeserializer.deserialize(classFile.getLoader(), recordName + ".class", true);
         }
         List<String> names = new ArrayList<>();
-        if (record != null && record.getRecordComponents() != null) {
-            // The analysis of the record already turned its fields into components
-            for (jd.core.model.classfile.RecordComponent component : record.getRecordComponents()) {
+        if (recordClass != null && recordClass.getRecordComponents() != null) {
+            // The analysis of the recordClass already turned its fields into components
+            for (jd.core.model.classfile.RecordComponent component : recordClass.getRecordComponents()) {
                 names.add(component.name());
             }
-        } else if (record != null) {
-            for (jd.core.model.classfile.Field field : record.getFields()) {
+        } else if (recordClass != null) {
+            for (jd.core.model.classfile.Field field : recordClass.getFields()) {
                 if ((field.getAccessFlags() & Const.ACC_STATIC) == 0) {
-                    names.add(record.getConstantPool().getConstantUtf8(field.getNameIndex()));
+                    names.add(recordClass.getConstantPool().getConstantUtf8(field.getNameIndex()));
                 }
             }
         }

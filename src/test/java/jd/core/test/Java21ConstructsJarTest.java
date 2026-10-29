@@ -195,4 +195,15 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, compact.contains("r.close(); throw new IllegalStateException();"));
         }
     }
+
+    @Test
+    public void closeInsideALoopAndRecordVariableStillNeeded() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String compact = decompile("Seventeenth", new ZipLoader(in)).replaceAll("\\s+", " ");
+            assertTrue(compact, compact.contains("while (again()) r.close();"));
+            assertTrue(compact, compact.contains("continue;"));
+            assertTrue(compact, compact.contains("return r.x() + b;"));
+            assertFalse(compact, compact.contains("Box(int b)"));
+        }
+    }
 }

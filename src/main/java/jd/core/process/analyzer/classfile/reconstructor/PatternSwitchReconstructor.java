@@ -177,6 +177,18 @@ public final class PatternSwitchReconstructor {
         return bestKey;
     }
 
+    /** Offset where the case following the one starting at the given offset begins. */
+    private static int nextCaseOffset(Switch lookup, int caseStart) {
+        int next = Integer.MAX_VALUE;
+        for (int offset : lookup.getOffsets()) {
+            int start = lookup.getOffset() + offset;
+            if (start > caseStart && start < next) {
+                next = start;
+            }
+        }
+        return next;
+    }
+
     private static void reconstructRecordCases(ClassFile classFile, Method method, List<Instruction> list,
             Switch lookup, PatternSwitchSelector selector) {
         for (int i = 0; i < lookup.getOffsets().length; i++) {
@@ -193,7 +205,7 @@ public final class PatternSwitchReconstructor {
             List<LocalVariable> components = new ArrayList<>();
             int end = PatternMatchingReconstructor.collectComponents(classFile, method, list, first + 1,
                     recordStore.getIndex(), classFile.getConstantPool().getConstantClassName(cast.getIndex()), components);
-            if (end < 0) {
+            if (end < 0 || PatternMatchingReconstructor.isUsedAfter(list, end, recordStore.getIndex(), nextCaseOffset(lookup, caseStart))) {
                 continue;
             }
             list.subList(first, end).clear();
