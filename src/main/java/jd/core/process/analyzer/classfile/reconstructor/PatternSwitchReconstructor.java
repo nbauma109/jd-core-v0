@@ -431,7 +431,7 @@ public final class PatternSwitchReconstructor {
                 return;
             }
             int from = switchIndex - 1;
-            if (from > 0 && isRequireNonNull(classFile, list.get(from - 1), assignment.getValueref())) {
+            if (from > 0 && !acceptsNull(fs) && isRequireNonNull(classFile, list.get(from - 1), assignment.getValueref())) {
                 from--;
             }
             fs.setTest(assignment.getValueref());
@@ -452,6 +452,16 @@ public final class PatternSwitchReconstructor {
                         && !(instruction instanceof StoreInstruction) && instruction != selector;
         for (Instruction instruction : fastList) {
             if (CheckLocalVariableUsedVisitor.visit(uses, instruction)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** With a 'case null' the compiler adds no null check: a call before the switch was written by the user. */
+    private static boolean acceptsNull(FastSwitch fs) {
+        for (FastSwitch.Pair pair : fs.getPairs()) {
+            if (!pair.isDefault() && pair.getKey() == -1) {
                 return true;
             }
         }

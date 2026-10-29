@@ -240,4 +240,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(compact, compact.contains("String text = \"\"\" a b c d \"\"\";"));
         }
     }
+
+    @Test
+    public void explicitNullCheckBeforeASwitchAcceptingNullIsKept() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String compact = decompile("TwentyFirst", new ZipLoader(in)).replaceAll("\\s+", " ");
+            assertTrue(compact, compact.contains("Objects.requireNonNull(o); return switch (o) { case null ->"));
+            assertFalse(compact, compact.contains("generated(Object o) { Objects"));
+        }
+    }
 }
