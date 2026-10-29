@@ -273,6 +273,9 @@ public final class PatternSwitchReconstructor {
     private static void removeRestartInitialization(List<Instruction> fastList, FastSwitch fs, int restartVariable) {
         forEachList(fastList, list -> {
             int switchIndex = indexOfStatementContaining(list, fs);
+            if (switchIndex < 0 || !isDirectUse(list.get(switchIndex), fs)) {
+                return;
+            }
             for (int i = Math.max(0, switchIndex - 2); i < switchIndex; i++) {
                 if (isConstantStore(list.get(i), restartVariable)) {
                     list.remove(i);

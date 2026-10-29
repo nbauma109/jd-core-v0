@@ -83,7 +83,7 @@ public final class PatternMatchingReconstructor {
                     && list.get(i + 1) instanceof AStore store && isBinding(instanceOf, store)
                     && !readsRecordComponents(classFile, list, i + 2, store.getIndex())) {
                 LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(store.getIndex(), store.getOffset());
-                if (lv != null && declaredBy(method, lv, store)) {
+                if (lv != null && declaredBy(method, lv, store) && !isStoredElsewhere(method, list, store, lv)) {
                     instanceOf.setPatternVariable(lv);
                     markBinding(classFile, method, lv);
                     list.remove(i + 1);
@@ -179,6 +179,23 @@ public final class PatternMatchingReconstructor {
         }
         method.getRecordAccessOffsets().addAll(accessOffsets);
         return end;
+    }
+
+    /** A variable also assigned elsewhere is shared by several branches: it is not a pattern variable. */
+    private static boolean isStoredElsewhere(Method method, List<Instruction> list, StoreInstruction store, LocalVariable lv) {
+        LocalVariables localVariables = method.getLocalVariables();
+        for (Instruction instruction : list) {
+            if (CheckLocalVariableUsedVisitor.visit(other -> {
+                if (!(other instanceof StoreInstruction s) || s == store || s.getIndex() != store.getIndex()) {
+                    return false;
+                }
+                LocalVariable stored = localVariables.getLocalVariableWithIndexAndOffset(s.getIndex(), s.getOffset());
+                return stored != null && stored.getNameIndex() == lv.getNameIndex();
+            }, instruction)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** Whether the store is the one declaring the variable, not an assignment to a variable that existed before. */

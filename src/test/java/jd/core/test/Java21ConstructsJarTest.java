@@ -259,4 +259,15 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("m.get(0).orElse(null)"));
         }
     }
+
+    @Test
+    public void restartSlotReuseAndSharedVariable() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("TwentyThird", new ZipLoader(in));
+            assertTrue(output, output.contains("int n = 1;"));
+            assertTrue(output, output.contains("sink(n)"));
+            assertFalse(output, output.contains("instanceof String s"));
+            assertTrue(output, output.contains("return s;"));
+        }
+    }
 }
