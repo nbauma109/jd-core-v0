@@ -32,6 +32,7 @@ import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.ALoad;
 import jd.core.model.instruction.bytecode.instruction.AStore;
+import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.AThrow;
 import jd.core.model.instruction.bytecode.instruction.ExceptionLoad;
 import jd.core.model.instruction.bytecode.instruction.Goto;
@@ -305,6 +306,7 @@ public final class TryWithResourcesReconstructor {
                 declaration.getLv().setDeclarationFlag(true);
                 fastTry.processTryResources();
                 list.add(i, fastTry);
+                restoreLaterDeclaration(localVariables, list.subList(i + 1, list.size()), declaration.getLv());
                 return true;
             }
             for (List<Instruction> nested : nestedLists(instruction)) {
@@ -313,6 +315,36 @@ public final class TryWithResourcesReconstructor {
                     if (instruction instanceof FastTry parent) {
                         parent.processTryResources();
                     }
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Another variable declared after the statement may have the same slot, name and type as the resource: the
+     * analysis took its declaration for an assignment, which was right as long as the resource was in scope.
+     *
+     * @return true once the first use of the variable has been seen
+     */
+    private static boolean restoreLaterDeclaration(LocalVariables localVariables, List<Instruction> list, LocalVariable resource) {
+        for (int i = 0; i < list.size(); i++) {
+            Instruction instruction = list.get(i);
+            if (instruction instanceof FastDeclaration declaration) {
+                if (sameVariable(declaration.getLv(), resource)) {
+                    return true;
+                }
+            } else if (instruction instanceof StoreInstruction store && store.getIndex() == resource.getIndex()) {
+                LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(store.getIndex(), store.getOffset());
+                if (lv != null && sameVariable(lv, resource)) {
+                    lv.setDeclarationFlag(true);
+                    list.set(i, new FastDeclaration(store.getOffset(), store.getLineNumber(), lv, store));
+                    return true;
+                }
+            }
+            for (List<Instruction> nested : nestedLists(instruction)) {
+                if (restoreLaterDeclaration(localVariables, nested, resource)) {
                     return true;
                 }
             }

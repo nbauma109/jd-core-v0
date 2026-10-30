@@ -339,7 +339,7 @@ public class ClassFile extends Base
      * A local enum, record or interface is implicitly static and cannot capture
      * anything: it is written as a member type, with the name it was given.
      */
-    private boolean isLocalNamedStaticType()
+    public boolean isLocalNamedStaticType()
     {
         String simpleName = this.thisClassName.substring(
                 this.thisClassName.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR) + 1);

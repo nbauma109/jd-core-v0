@@ -282,4 +282,15 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(shadowed, shadowed.contains("p.Shadow.E.A.name()"));
         }
     }
+
+    @Test
+    public void castContextsLaterRedeclarationAndShadowedJavaLang() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("TwentyFifth", new ZipLoader(in));
+            assertTrue(output, output.contains("((TwentyFifth.Box)c.get()).get() instanceof Integer"));
+            assertTrue(output, output.contains("try (TwentyFifth.R r = new TwentyFifth.R())"));
+            assertTrue(output, output.contains("    TwentyFifth.R r = new TwentyFifth.R();"));
+            assertTrue(output, output.contains("java.lang.String hello()"));
+        }
+    }
 }

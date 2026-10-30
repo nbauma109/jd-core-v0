@@ -44,7 +44,12 @@ import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.instruction.bytecode.instruction.AConstNull;
+import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.CheckCast;
+import jd.core.model.instruction.bytecode.instruction.IfCmp;
+import jd.core.model.instruction.bytecode.instruction.InstanceOf;
+import jd.core.model.instruction.bytecode.instruction.Switch;
+import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.GetField;
 import jd.core.model.instruction.bytecode.instruction.InvokeInstruction;
@@ -64,6 +69,7 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
     private final TypeMaker typeMaker;
     /** Arguments of the calls met so far: their static type takes part in the choice of an overload. */
     private final Set<Instruction> callArguments = Collections.newSetFromMap(new IdentityHashMap<>());
+    private final Map<Instruction, Instruction> parentOf = new IdentityHashMap<>();
     private final Map<Instruction, InvokeInstruction> callOfArgument = new IdentityHashMap<>();
 
     public ReplaceRedundantCastVisitor(ClassFile classFile, LocalVariables localVariables)
@@ -91,6 +97,7 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
     @Override
     protected Instruction match(Instruction parentFound, Instruction instruction)
     {
+        parentOf.put(instruction, parentFound);
         // A member of the result is selected: the compiler inserts the cast again. Elsewhere it may be a runtime check.
         if (localVariables != null && (parentFound instanceof InvokeNoStaticInstruction || parentFound instanceof GetField) && ((ObjectrefAttribute) parentFound).getObjectref() == instruction
             && instruction instanceof CheckCast cast
@@ -137,7 +144,7 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
             return false;
         }
 
-        if (callArguments.contains(parent) && selectsGenericResult(parent) && callIsOverloaded(parent)) {
+        if (selectsGenericResult(parent) && (callArguments.contains(parent) ? callIsOverloaded(parent) : isTypeSensitive(parentOf.get(parent)))) {
             return false;
         }
 
@@ -145,6 +152,13 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
         return argument instanceof ObjectType argumentType && argumentType.getDimension() == 0
             && argumentType.getInternalName().equals(constants.getConstantClassName(cast.getIndex()))
             && (argumentType.getTypeArguments() == null || acceptsAnyArgument(parent));
+    }
+
+    /** Operators and tests whose operand type must be compatible with the other operand or the tested type. */
+    private static boolean isTypeSensitive(Instruction context)
+    {
+        return context instanceof InstanceOf || context instanceof CheckCast || context instanceof BinaryOperatorInstruction
+            || context instanceof IfCmp || context instanceof TernaryOperator || context instanceof Switch;
     }
 
     /** Whether the call receiving the argument has an overload with as many parameters. */
