@@ -36,6 +36,8 @@ import org.jd.core.v1.model.javasyntax.type.ObjectType;
 import org.jd.core.v1.model.javasyntax.type.Type;
 import org.jd.core.v1.model.javasyntax.type.TypeArgument;
 import org.jd.core.v1.model.javasyntax.type.TypeParameter;
+import org.jd.core.v1.model.javasyntax.type.WildcardExtendsTypeArgument;
+import org.jd.core.v1.model.javasyntax.type.WildcardSuperTypeArgument;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker.MethodTypes;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker.TypeTypes;
@@ -144,7 +146,7 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
             return false;
         }
 
-        if (selectsGenericResult(parent) && (callArguments.contains(parent) ? callIsOverloaded(parent) : isTypeSensitive(parentOf.get(parent)))) {
+        if (selectsGenericResult(parent) && (callArguments.contains(parent) ? callIsOverloaded(parent) : isTypeSensitive(parent, parentOf.get(parent)))) {
             return false;
         }
 
@@ -155,9 +157,11 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
     }
 
     /** Operators and tests whose operand type must be compatible with the other operand or the tested type. */
-    private static boolean isTypeSensitive(Instruction context)
+    private static boolean isTypeSensitive(Instruction selected, Instruction context)
     {
-        return context instanceof InstanceOf || context instanceof CheckCast || context instanceof BinaryOperatorInstruction
+        // A member selected from the value gets its own cast: the runtime check changes
+        return context instanceof ObjectrefAttribute holder && holder.getObjectref() == selected
+            || context instanceof InstanceOf || context instanceof CheckCast || context instanceof BinaryOperatorInstruction
             || context instanceof IfCmp || context instanceof TernaryOperator || context instanceof Switch;
     }
 
@@ -228,8 +232,32 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
             selected = typeMaker.makeFieldType(constants.getConstantClassName(fieldref.getClassIndex()),
                 constants.getConstantUtf8(nameAndType.getNameIndex()), constants.getConstantUtf8(nameAndType.getSignatureIndex()));
         }
-        return selected == null || selected instanceof GenericType
-            || selected instanceof ObjectType object && object.getTypeArguments() != null;
+        return selected == null || dependsOnTypeVariable(selected);
+    }
+
+    private static boolean dependsOnTypeVariable(TypeArgument type)
+    {
+        if (type instanceof GenericType) {
+            return true;
+        }
+        if (type instanceof WildcardExtendsTypeArgument extendsBound) {
+            return dependsOnTypeVariable(extendsBound.type());
+        }
+        if (type instanceof WildcardSuperTypeArgument superBound) {
+            return dependsOnTypeVariable(superBound.type());
+        }
+        if (type instanceof ObjectType object && object.getTypeArguments() != null) {
+            BaseTypeArgument arguments = object.getTypeArguments();
+            if (!arguments.isTypeArgumentList()) {
+                return dependsOnTypeVariable(arguments.getTypeArgumentFirst());
+            }
+            for (TypeArgument argument : arguments.getTypeArgumentList()) {
+                if (dependsOnTypeVariable(argument)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /** A type parameter of the method hides the one of the class with the same name. */

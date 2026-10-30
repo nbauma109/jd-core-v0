@@ -1,5 +1,6 @@
 package jd.core.test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -291,6 +292,16 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("try (TwentyFifth.R r = new TwentyFifth.R())"));
             assertTrue(output, output.contains("    TwentyFifth.R r = new TwentyFifth.R();"));
             assertTrue(output, output.contains("java.lang.String hello()"));
+        }
+    }
+
+    @Test
+    public void siblingRedeclarationsChainedCastsAndGenericBindings() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("TwentySixth", new ZipLoader(in));
+            assertEquals(output, 2, output.split("TwentySixth.R r = new TwentySixth.R\\(\\);", -1).length - 1);
+            assertTrue(output, output.contains("((TwentySixth.Box)c.get()).get().toString()"));
+            assertTrue(output, output.contains("instanceof ArrayList<String> a"));
         }
     }
 }

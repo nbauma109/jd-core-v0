@@ -326,30 +326,27 @@ public final class TryWithResourcesReconstructor {
      * Another variable declared after the statement may have the same slot, name and type as the resource: the
      * analysis took its declaration for an assignment, which was right as long as the resource was in scope.
      *
-     * @return true once the first use of the variable has been seen
+     * Sibling scopes are restored independently of each other.
      */
-    private static boolean restoreLaterDeclaration(LocalVariables localVariables, List<Instruction> list, LocalVariable resource) {
+    private static void restoreLaterDeclaration(LocalVariables localVariables, List<Instruction> list, LocalVariable resource) {
         for (int i = 0; i < list.size(); i++) {
             Instruction instruction = list.get(i);
             if (instruction instanceof FastDeclaration declaration) {
                 if (sameVariable(declaration.getLv(), resource)) {
-                    return true;
+                    return;
                 }
             } else if (instruction instanceof StoreInstruction store && store.getIndex() == resource.getIndex()) {
                 LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(store.getIndex(), store.getOffset());
                 if (lv != null && sameVariable(lv, resource)) {
                     lv.setDeclarationFlag(true);
                     list.set(i, new FastDeclaration(store.getOffset(), store.getLineNumber(), lv, store));
-                    return true;
+                    return;
                 }
             }
             for (List<Instruction> nested : nestedLists(instruction)) {
-                if (restoreLaterDeclaration(localVariables, nested, resource)) {
-                    return true;
-                }
+                restoreLaterDeclaration(localVariables, nested, resource);
             }
         }
-        return false;
     }
 
     /** The declaration of the resource, even if the analysis left it as a plain store. */

@@ -552,6 +552,14 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                         signature = SignatureUtil.createTypeName(signature);
                     }
 
+                    if (instanceOf.getPatternVariable() != null) {
+                        // The pattern declares the variable: it keeps its type arguments
+                        String bound = instanceOf.getPatternVariable().getSignature(constants);
+                        if (bound != null && bound.indexOf('<') != -1 && bound.startsWith(signature.substring(0, signature.length() - 1) + "<")) {
+                            signature = bound;
+                        }
+                    }
+
                     SignatureWriter.writeSignature(
                         this.loader, this.printer, this.referenceMap,
                         this.classFile, signature);
