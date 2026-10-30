@@ -304,4 +304,15 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("instanceof ArrayList<String> a"));
         }
     }
+
+    @Test
+    public void boundedVariableCastsAndGenericSwitchLabels() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("TwentySeventh", new ZipLoader(in));
+            assertTrue(output, output.contains("(List<T>)(List<?>)numbers()"));
+            String labels = decompile("TwentyEighth", new ZipLoader(getClass().getResourceAsStream("/constructs-jdk21.jar")));
+            assertTrue(labels, labels.contains("case java.util.ArrayList<String> a:"));
+            assertTrue(labels, labels.contains("case java.util.LinkedList<String> l:"));
+        }
+    }
 }

@@ -60,8 +60,17 @@ public final class PatternSwitchLabelWriter
             {
                 String internalName = constants.getConstantClassName(index);
                 String signature = internalName.charAt(0) == '[' ? internalName : SignatureUtil.createTypeName(internalName);
-                SignatureWriter.writeSignature(loader, printer, referenceMap, classFile, signature);
                 LocalVariable binding = selector.getBindings().get(key);
+                if (binding != null)
+                {
+                    // The binding keeps its type arguments
+                    String bound = binding.getSignature(constants);
+                    if (bound != null && bound.indexOf('<') != -1 && bound.startsWith(signature.substring(0, signature.length() - 1) + "<"))
+                    {
+                        signature = bound;
+                    }
+                }
+                SignatureWriter.writeSignature(loader, printer, referenceMap, classFile, signature);
                 if (binding != null)
                 {
                     printer.print(' ');

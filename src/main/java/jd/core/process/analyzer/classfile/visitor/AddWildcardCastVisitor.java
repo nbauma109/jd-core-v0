@@ -137,8 +137,13 @@ public class AddWildcardCastVisitor extends AbstractReplaceInstructionVisitor<In
 
     private boolean isCompatible(TypeArgument value, TypeArgument target)
     {
-        if (value.equals(target) || value instanceof WildcardTypeArgument || target instanceof GenericType) {
+        if (value.equals(target) || value instanceof WildcardTypeArgument) {
             return true;
+        }
+        if (target instanceof GenericType) {
+            // The bounds of the variable are unknown: a bounded wildcard of a concrete type needs the cast through '?'
+            return !(value instanceof WildcardExtendsTypeArgument extendsBound && !(extendsBound.type() instanceof GenericType)
+                || value instanceof WildcardSuperTypeArgument superBound && !(superBound.type() instanceof GenericType));
         }
         if (target instanceof ObjectType targetType) {
             // The capture of '? extends B' is a subtype of B, the one of '? super B' a supertype of B
