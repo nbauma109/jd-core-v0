@@ -165,13 +165,19 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
             || context instanceof IfCmp || context instanceof TernaryOperator || context instanceof Switch;
     }
 
-    /** Whether the call receiving the argument has an overload with as many parameters. */
+    /** Whether the call receiving the argument is generic or has an overload with as many parameters. */
     private boolean callIsOverloaded(Instruction argument)
     {
         InvokeInstruction call = callOfArgument.get(argument);
         ConstantPool constants = classFile.getConstantPool();
         ConstantCP methodref = constants.getConstantMethodref(call.getIndex());
         ConstantNameAndType nameAndType = constants.getConstantNameAndType(methodref.getNameAndTypeIndex());
+        MethodTypes called = typeMaker.makeMethodTypes(constants.getConstantClassName(methodref.getClassIndex()),
+            constants.getConstantUtf8(nameAndType.getNameIndex()), constants.getConstantUtf8(nameAndType.getSignatureIndex()));
+        if (called == null || called.getTypeParameters() != null) {
+            // The type arguments of a generic method are inferred from its arguments
+            return true;
+        }
         Set<String> erasures = new HashSet<>();
         collectOverloads(constants.getConstantClassName(methodref.getClassIndex()),
             constants.getConstantUtf8(nameAndType.getNameIndex()), call.getArgs().size(), new HashSet<>(), erasures);

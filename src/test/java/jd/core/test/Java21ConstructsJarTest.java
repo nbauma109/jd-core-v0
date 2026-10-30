@@ -324,4 +324,12 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("(String)o"));
         }
     }
+
+    @Test
+    public void rawCastBeforeGenericMethodArgumentIsKept() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Thirtieth", new ZipLoader(in));
+            assertTrue(output, output.contains("((Thirtieth.Box)c.get()).values()"));
+        }
+    }
 }
