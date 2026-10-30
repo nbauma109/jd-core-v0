@@ -174,7 +174,7 @@ public final class PatternMatchingReconstructor {
             end = next;
         }
         if (bindings.isEmpty() || !accessedNames.equals(componentNames(classFile, recordName))
-                || !isWrappedByMatchException(classFile, method, list, accessOffsets)) {
+                || !isWrappedByMatchException(classFile, method, list, accessOffsets, componentOffsets(list, start, end))) {
             // A record pattern reads every component, in the order of the declaration
             bindings.clear();
             return -1;
@@ -330,8 +330,43 @@ public final class PatternMatchingReconstructor {
                 || "java/lang/Throwable".equals(classFile.getConstantPool().getConstantClassName(exception.getCatchType()));
     }
 
+    private static java.util.Set<Integer> componentOffsets(List<Instruction> list, int from, int to) {
+        java.util.Set<Integer> offsets = new java.util.HashSet<>();
+        for (int i = from; i < to && i < list.size(); i++) {
+            offsets.add(list.get(i).getOffset());
+        }
+        return offsets;
+    }
+
+    /**
+     * An instruction covers the bytes after the previous one up to its own offset, so the call inside a
+     * statement is protected when the range reaches it.
+     */
+    private static boolean protectsOnlyComponents(List<Instruction> list, CodeException exception, java.util.Set<Integer> componentOffsets) {
+        for (int i = 0; i < list.size(); i++) {
+            int offset = list.get(i).getOffset();
+            int previous = i == 0 ? -1 : list.get(i - 1).getOffset();
+            if (!componentOffsets.contains(offset) && previous < exception.getEndPC() - 1 && offset >= exception.getStartPC()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /** The range of a handler of the compiler holds the reads of the components, nothing else. */
+    private static boolean protectsOnly(List<Instruction> list, CodeException exception, java.util.Set<Integer> componentOffsets) {
+        for (Instruction instruction : list) {
+            int offset = instruction.getOffset();
+            if (exception.getStartPC() <= offset && offset < exception.getEndPC() && !componentOffsets.contains(offset)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     /** Record patterns wrap the exceptions of the accessors: an ordinary call has no such handler around it. */
-    private static boolean isWrappedByMatchException(ClassFile classFile, Method method, List<Instruction> list, List<Integer> accessOffsets) {
+    private static boolean isWrappedByMatchException(ClassFile classFile, Method method, List<Instruction> list, List<Integer> accessOffsets,
+            java.util.Set<Integer> componentOffsets) {
         CodeException[] exceptions = method.getCodeExceptions();
         if (exceptions == null) {
             return false;
@@ -339,7 +374,8 @@ public final class PatternMatchingReconstructor {
         for (int offset : accessOffsets) {
             boolean wrapped = false;
             for (CodeException exception : exceptions) {
-                if (exception.getStartPC() <= offset && offset < exception.getEndPC() && catchesThrowable(classFile, exception)) {
+                if (exception.getStartPC() <= offset && offset < exception.getEndPC() && catchesThrowable(classFile, exception)
+                        && protectsOnlyComponents(list, exception, componentOffsets)) {
                     for (int i = 0; i < list.size() && !wrapped; i++) {
                         wrapped = list.get(i).getOffset() == exception.getHandlerPC() && isMatchExceptionHandler(classFile, list, i);
                     }
@@ -368,7 +404,8 @@ public final class PatternMatchingReconstructor {
             }
             if (handler > 0 && isMatchExceptionHandler(classFile, list, handler) && catchesThrowable(classFile, exception)
                     && list.get(handler + 1) instanceof AThrow thrown) {
-                if (!protectsRecordAccess(exceptions, exception.getHandlerPC(), method.getRecordAccessOffsets())) {
+                if (!protectsRecordAccess(exceptions, exception.getHandlerPC(), method.getRecordAccessOffsets())
+                        || !protectsOnly(list, exception, java.util.Set.of())) {
                     continue;
                 }
                 remaining.removeIf(candidate -> candidate.getHandlerPC() == exception.getHandlerPC());

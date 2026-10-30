@@ -358,4 +358,14 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("new p.X()"));
         }
     }
+
+    @Test
+    public void handlersWithWiderRangesAreKept() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("ThirtyFourth", new ZipLoader(in));
+            assertFalse(output, output.contains("instanceof ThirtyFourth.R(int"));
+            assertFalse(output, output.contains("try (ThirtyFourth.Res"));
+            assertTrue(output, output.contains("addSuppressed"));
+        }
+    }
 }
