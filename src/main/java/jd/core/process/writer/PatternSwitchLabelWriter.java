@@ -40,6 +40,17 @@ public final class PatternSwitchLabelWriter
     private PatternSwitchLabelWriter() {
     }
 
+    /** The binding keeps its type arguments when it has the type of the label. */
+    private static String withTypeArguments(ConstantPool constants, LocalVariable binding, String signature)
+    {
+        String bound = binding == null ? null : binding.getSignature(constants);
+        if (bound != null && bound.indexOf('<') != -1 && bound.startsWith(signature.substring(0, signature.length() - 1) + "<"))
+        {
+            return bound;
+        }
+        return signature;
+    }
+
     public static void write(
         Loader loader, Printer printer, ReferenceMap referenceMap, ClassFile classFile,
         PatternSwitchSelector selector, int key, Consumer<Instruction> guardWriter)
@@ -61,15 +72,7 @@ public final class PatternSwitchLabelWriter
                 String internalName = constants.getConstantClassName(index);
                 String signature = internalName.charAt(0) == '[' ? internalName : SignatureUtil.createTypeName(internalName);
                 LocalVariable binding = selector.getBindings().get(key);
-                if (binding != null)
-                {
-                    // The binding keeps its type arguments
-                    String bound = binding.getSignature(constants);
-                    if (bound != null && bound.indexOf('<') != -1 && bound.startsWith(signature.substring(0, signature.length() - 1) + "<"))
-                    {
-                        signature = bound;
-                    }
-                }
+                signature = withTypeArguments(constants, binding, signature);
                 SignatureWriter.writeSignature(loader, printer, referenceMap, classFile, signature);
                 if (binding != null)
                 {
