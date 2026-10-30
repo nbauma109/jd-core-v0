@@ -270,4 +270,16 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("return s;"));
         }
     }
+
+    @Test
+    public void primitiveSlotOverloadAndShadowedLocalType() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("TwentyFourth", new ZipLoader(in));
+            assertTrue(output, output.contains("int x = 7;"));
+            assertTrue(output, output.contains("((TwentyFourth.Box)c.get()).get()"));
+            String shadowed = decompile("p/Shadow", new ZipLoader(getClass().getResourceAsStream("/constructs-jdk21.jar")));
+            assertTrue(shadowed, shadowed.contains("enum E"));
+            assertTrue(shadowed, shadowed.contains("p.Shadow.E.A.name()"));
+        }
+    }
 }

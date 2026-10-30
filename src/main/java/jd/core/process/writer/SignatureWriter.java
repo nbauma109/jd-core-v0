@@ -547,7 +547,7 @@ public final class SignatureWriter
                 // Classe appartenant au même package que la classe courante
                 String simpleName = internalName.substring(
                     Math.max(index, lastIndexOfDollar) + 1);
-                if (referenceMap.isTypeParameterName(simpleName)) {
+                if (referenceMap.isTypeParameterName(TypeNameUtil.localTypeSimpleName(simpleName))) {
                     internalName = internalName.replace(
                         StringConstants.INTERNAL_PACKAGE_SEPARATOR,
                         StringConstants.PACKAGE_SEPARATOR);

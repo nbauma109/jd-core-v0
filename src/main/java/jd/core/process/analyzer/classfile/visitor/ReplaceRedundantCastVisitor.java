@@ -14,8 +14,21 @@
  ******************************************************************************/
 package jd.core.process.analyzer.classfile.visitor;
 
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.Map;
+import java.util.Set;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+
+import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantNameAndType;
+import org.apache.bcel.classfile.JavaClass;
+import org.jd.core.v1.api.loader.Loader;
+import org.jd.core.v1.util.StringConstants;
 import org.jd.core.v1.model.javasyntax.type.BaseTypeArgument;
 import org.jd.core.v1.model.javasyntax.type.BaseTypeParameter;
 import org.jd.core.v1.model.javasyntax.type.GenericType;
@@ -34,6 +47,7 @@ import jd.core.model.instruction.bytecode.instruction.AConstNull;
 import jd.core.model.instruction.bytecode.instruction.CheckCast;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.GetField;
+import jd.core.model.instruction.bytecode.instruction.InvokeInstruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
 import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
 import jd.core.process.analyzer.instruction.fast.visitor.AbstractReplaceInstructionVisitor;
@@ -48,12 +62,25 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
     private final ClassFile classFile;
     private final LocalVariables localVariables;
     private final TypeMaker typeMaker;
+    /** Arguments of the calls met so far: their static type takes part in the choice of an overload. */
+    private final Set<Instruction> callArguments = Collections.newSetFromMap(new IdentityHashMap<>());
+    private final Map<Instruction, InvokeInstruction> callOfArgument = new IdentityHashMap<>();
 
     public ReplaceRedundantCastVisitor(ClassFile classFile, LocalVariables localVariables)
     {
         this.classFile = classFile;
         this.localVariables = localVariables;
         this.typeMaker = new TypeMaker(classFile.getLoader());
+    }
+
+    @Override
+    public void visit(Instruction instruction)
+    {
+        if (instruction instanceof InvokeInstruction call) {
+            callArguments.addAll(call.getArgs());
+            call.getArgs().forEach(argument -> callOfArgument.put(argument, call));
+        }
+        super.visit(instruction);
     }
 
     @Override
@@ -110,10 +137,85 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
             return false;
         }
 
+        if (callArguments.contains(parent) && selectsGenericResult(parent) && callIsOverloaded(parent)) {
+            return false;
+        }
+
         TypeArgument argument = typeArgument(owner, returned.getName(), receiverType.getTypeArguments());
         return argument instanceof ObjectType argumentType && argumentType.getDimension() == 0
             && argumentType.getInternalName().equals(constants.getConstantClassName(cast.getIndex()))
             && (argumentType.getTypeArguments() == null || acceptsAnyArgument(parent));
+    }
+
+    /** Whether the call receiving the argument has an overload with as many parameters. */
+    private boolean callIsOverloaded(Instruction argument)
+    {
+        InvokeInstruction call = callOfArgument.get(argument);
+        ConstantPool constants = classFile.getConstantPool();
+        ConstantCP methodref = constants.getConstantMethodref(call.getIndex());
+        ConstantNameAndType nameAndType = constants.getConstantNameAndType(methodref.getNameAndTypeIndex());
+        Set<String> erasures = new HashSet<>();
+        collectOverloads(constants.getConstantClassName(methodref.getClassIndex()),
+            constants.getConstantUtf8(nameAndType.getNameIndex()), call.getArgs().size(), new HashSet<>(), erasures);
+        return erasures.size() > 1;
+    }
+
+    private void collectOverloads(String owner, String name, int parameters, Set<String> visited, Set<String> erasures)
+    {
+        if (owner == null || !visited.add(owner)) {
+            return;
+        }
+        String entry = owner + StringConstants.CLASS_FILE_SUFFIX;
+        Loader loader = classFile.getLoader();
+        try {
+            if (loader == null || !loader.canLoad(entry)) {
+                return;
+            }
+            JavaClass javaClass = new ClassParser(new ByteArrayInputStream(loader.load(entry)), entry).parse();
+            for (org.apache.bcel.classfile.Method method : javaClass.getMethods()) {
+                if (method.getName().equals(name) && method.getArgumentTypes().length == parameters) {
+                    erasures.add(method.getSignature());
+                }
+            }
+            collectOverloads(toInternalName(javaClass.getSuperclassName()), name, parameters, visited, erasures);
+            for (String implemented : javaClass.getInterfaceNames()) {
+                collectOverloads(toInternalName(implemented), name, parameters, visited, erasures);
+            }
+        } catch (IOException e) {
+            // Unknown: assume the worst
+            erasures.add("?");
+            erasures.add("??");
+        }
+    }
+
+    private static String toInternalName(String className)
+    {
+        return className == null ? null : className.replace('.', '/');
+    }
+
+    /**
+     * The selected member returns a type depending on the receiver: without the raw cast its static type
+     * changes, and with it the overload chosen for the expression around.
+     */
+    private boolean selectsGenericResult(Instruction parent)
+    {
+        ConstantPool constants = classFile.getConstantPool();
+        Type selected;
+        if (parent instanceof InvokeNoStaticInstruction call) {
+            ConstantCP methodref = constants.getConstantMethodref(call.getIndex());
+            ConstantNameAndType nameAndType = constants.getConstantNameAndType(methodref.getNameAndTypeIndex());
+            MethodTypes types = typeMaker.makeMethodTypes(constants.getConstantClassName(methodref.getClassIndex()),
+                constants.getConstantUtf8(nameAndType.getNameIndex()), constants.getConstantUtf8(nameAndType.getSignatureIndex()));
+            selected = types == null ? null : types.getReturnedType();
+        } else {
+            GetField field = (GetField) parent;
+            ConstantCP fieldref = constants.getConstantFieldref(field.getIndex());
+            ConstantNameAndType nameAndType = constants.getConstantNameAndType(fieldref.getNameAndTypeIndex());
+            selected = typeMaker.makeFieldType(constants.getConstantClassName(fieldref.getClassIndex()),
+                constants.getConstantUtf8(nameAndType.getNameIndex()), constants.getConstantUtf8(nameAndType.getSignatureIndex()));
+        }
+        return selected == null || selected instanceof GenericType
+            || selected instanceof ObjectType object && object.getTypeArguments() != null;
     }
 
     /** A type parameter of the method hides the one of the class with the same name. */

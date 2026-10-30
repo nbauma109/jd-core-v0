@@ -365,6 +365,10 @@ public final class PatternMatchingReconstructor {
         return instruction instanceof CheckCast cast ? cast.getObjectref() : instruction;
     }
 
+    private static boolean isStoreOpcode(int opcode) {
+        return opcode >= Const.ISTORE && opcode <= Const.ASTORE;
+    }
+
     /** A range of the same variable starts after a jump, not after the store of a new variable. */
     private static boolean isDeclaredByStore(byte[] code, LocalVariable lv) {
         int start = lv.getStartPc();
@@ -372,12 +376,12 @@ public final class PatternMatchingReconstructor {
             return false;
         }
         int previous = code[start - 1] & 255;
-        boolean shortStore = previous >= Const.ASTORE_0 && previous <= Const.ASTORE_3 && previous - Const.ASTORE_0 == lv.getIndex();
-        boolean longStore = start >= 2 && (code[start - 2] & 255) == Const.ASTORE && previous == lv.getIndex();
+        boolean shortStore = previous >= Const.ISTORE_0 && previous <= Const.ASTORE_3 && (previous - Const.ISTORE_0) % 4 == lv.getIndex();
+        boolean longStore = start >= 2 && isStoreOpcode(code[start - 2] & 255) && previous == lv.getIndex();
         // The range of a variable may have been extended to its first store
         int current = start < code.length ? code[start] & 255 : 0;
-        boolean storeAtStart = current >= Const.ASTORE_0 && current <= Const.ASTORE_3 && current - Const.ASTORE_0 == lv.getIndex()
-                || current == Const.ASTORE && start + 1 < code.length && (code[start + 1] & 255) == lv.getIndex();
+        boolean storeAtStart = current >= Const.ISTORE_0 && current <= Const.ASTORE_3 && (current - Const.ISTORE_0) % 4 == lv.getIndex()
+                || isStoreOpcode(current) && start + 1 < code.length && (code[start + 1] & 255) == lv.getIndex();
         return shortStore || longStore || storeAtStart;
     }
 
