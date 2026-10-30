@@ -81,6 +81,7 @@ public final class PatternMatchingReconstructor {
             if (list.get(i) instanceof IfInstruction test && test.getValue() instanceof InstanceOf instanceOf
                     && test.getCmp() == ByteCodeConstants.CMP_EQ && instanceOf.getPatternVariable() == null
                     && list.get(i + 1) instanceof AStore store && isBinding(instanceOf, store)
+                    && test.getJumpOffset() > store.getOffset()
                     && !readsRecordComponents(classFile, list, i + 2, store.getIndex())) {
                 LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(store.getIndex(), store.getOffset());
                 if (lv != null && declaredBy(method, lv, store) && !isStoredElsewhere(method, list, store, lv)) {

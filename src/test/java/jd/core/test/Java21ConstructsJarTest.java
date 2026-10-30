@@ -315,4 +315,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(labels, labels.contains("case java.util.LinkedList<String> l:"));
         }
     }
+
+    @Test
+    public void unconditionalCastAfterEmptyInstanceofIsNotABinding() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("TwentyNinth", new ZipLoader(in));
+            assertFalse(output, output.contains("instanceof String s"));
+            assertTrue(output, output.contains("(String)o"));
+        }
+    }
 }
