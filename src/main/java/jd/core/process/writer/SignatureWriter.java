@@ -551,6 +551,12 @@ public final class SignatureWriter
                     internalName = internalName.replace(
                         StringConstants.INTERNAL_PACKAGE_SEPARATOR,
                         StringConstants.PACKAGE_SEPARATOR);
+                } else if (referenceMap.isPromotedLocalTypeName(simpleName) && classFile.getInnerClassFile(internalName) == null)
+                {
+                    // A local type written as a member would hide this class
+                    internalName = internalName.replace(
+                        StringConstants.INTERNAL_PACKAGE_SEPARATOR,
+                        StringConstants.PACKAGE_SEPARATOR);
                 } else if (classFile.getInnerClassFile(internalName) != null)
                 {
                     // Dans le cas d'une classe interne, on retire le nom

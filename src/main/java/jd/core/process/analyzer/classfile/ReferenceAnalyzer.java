@@ -159,7 +159,10 @@ public final class ReferenceAnalyzer
         List<String> headerNames = new ArrayList<>();
         collectHeaderNames(classFile, permittedSimpleNames, typeParameterNames, headerNames);
         referenceMap.addTypeParameterNames(typeParameterNames);
-        collectPromotedLocalTypeNames(classFile, permittedSimpleNames);
+        Set<String> promotedNames = new HashSet<>();
+        collectPromotedLocalTypeNames(classFile, promotedNames);
+        referenceMap.addPromotedLocalTypeNames(promotedNames);
+        permittedSimpleNames.addAll(promotedNames);
         referenceMap.addPermittedSimpleNames(permittedSimpleNames);
         if (permittedSimpleNames.isEmpty()) {
             return;

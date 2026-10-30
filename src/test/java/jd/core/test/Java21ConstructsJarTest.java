@@ -349,4 +349,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("\"custom\""));
         }
     }
+
+    @Test
+    public void promotedLocalTypeDoesNotHideSamePackageClass() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("p/ThirtyThird", new ZipLoader(in));
+            assertTrue(output, output.contains("p.X g()"));
+            assertTrue(output, output.contains("new p.X()"));
+        }
+    }
 }
