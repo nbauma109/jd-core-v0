@@ -332,4 +332,12 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("((Thirtieth.Box)c.get()).values()"));
         }
     }
+
+    @Test
+    public void rawCastBeforeParameterizedResultIsKept() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("ThirtyFirst", new ZipLoader(in));
+            assertTrue(output, output.contains("((ThirtyFirst.Box)c.get()).values()"));
+        }
+    }
 }

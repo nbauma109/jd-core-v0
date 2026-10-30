@@ -146,7 +146,9 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
             return false;
         }
 
-        if (selectsGenericResult(parent) && (callArguments.contains(parent) ? callIsOverloaded(parent) : isTypeSensitive(parent, parentOf.get(parent)))) {
+        Type selected = selectedType(parent);
+        if ((selected == null || dependsOnTypeVariable(selected))
+            && (isParameterized(selected) || (callArguments.contains(parent) ? callIsOverloaded(parent) : isTypeSensitive(parent, parentOf.get(parent))))) {
             return false;
         }
 
@@ -221,7 +223,7 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
      * The selected member returns a type depending on the receiver: without the raw cast its static type
      * changes, and with it the overload chosen for the expression around.
      */
-    private boolean selectsGenericResult(Instruction parent)
+    private Type selectedType(Instruction parent)
     {
         ConstantPool constants = classFile.getConstantPool();
         Type selected;
@@ -238,7 +240,13 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
             selected = typeMaker.makeFieldType(constants.getConstantClassName(fieldref.getClassIndex()),
                 constants.getConstantUtf8(nameAndType.getNameIndex()), constants.getConstantUtf8(nameAndType.getSignatureIndex()));
         }
-        return selected == null || dependsOnTypeVariable(selected);
+        return selected;
+    }
+
+    /** A parameterized result must still fit the variable, field or parameter that receives it. */
+    private static boolean isParameterized(Type selected)
+    {
+        return selected == null || selected instanceof ObjectType object && object.getTypeArguments() != null;
     }
 
     private static boolean dependsOnTypeVariable(TypeArgument type)
