@@ -340,4 +340,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("((ThirtyFirst.Box)c.get()).values()"));
         }
     }
+
+    @Test
+    public void userWrittenMatchExceptionHandlerIsKept() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("ThirtySecond", new ZipLoader(in));
+            assertFalse(output, output.contains("instanceof ThirtySecond.R(int"));
+            assertTrue(output, output.contains("\"custom\""));
+        }
+    }
 }

@@ -19,6 +19,7 @@ import java.util.List;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.CodeException;
+import org.apache.bcel.classfile.ConstantCP;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
@@ -307,7 +308,26 @@ public final class PatternMatchingReconstructor {
         return index >= 0 && index + 1 < list.size() && list.get(index) instanceof AStore store
                 && store.getValueref() instanceof ExceptionLoad
                 && list.get(index + 1) instanceof AThrow thrown && thrown.getValueref() instanceof InvokeNew created
-                && "java/lang/MatchException".equals(cp.getConstantClassName(cp.getConstantMethodref(created.getIndex()).getClassIndex()));
+                && "java/lang/MatchException".equals(cp.getConstantClassName(cp.getConstantMethodref(created.getIndex()).getClassIndex()))
+                && wrapsCaught(cp, store, created);
+    }
+
+    /** The compiler throws {@code new MatchException(t.toString(), t)} with the caught exception. */
+    private static boolean wrapsCaught(ConstantPool cp, AStore store, InvokeNew created) {
+        List<Instruction> args = created.getArgs();
+        if (args.size() != 2 || !(args.get(1) instanceof ALoad cause) || cause.getIndex() != store.getIndex()
+                || !(args.get(0) instanceof InvokeNoStaticInstruction message) || !message.getArgs().isEmpty()
+                || !(message.getObjectref() instanceof ALoad described) || described.getIndex() != store.getIndex()) {
+            return false;
+        }
+        ConstantCP methodref = cp.getConstantMethodref(message.getIndex());
+        return "toString".equals(cp.getConstantUtf8(cp.getConstantNameAndType(methodref.getNameAndTypeIndex()).getNameIndex()));
+    }
+
+    /** The handler of the compiler catches every Throwable. */
+    private static boolean catchesThrowable(ClassFile classFile, CodeException exception) {
+        return exception.getCatchType() == 0
+                || "java/lang/Throwable".equals(classFile.getConstantPool().getConstantClassName(exception.getCatchType()));
     }
 
     /** Record patterns wrap the exceptions of the accessors: an ordinary call has no such handler around it. */
@@ -319,7 +339,7 @@ public final class PatternMatchingReconstructor {
         for (int offset : accessOffsets) {
             boolean wrapped = false;
             for (CodeException exception : exceptions) {
-                if (exception.getStartPC() <= offset && offset < exception.getEndPC()) {
+                if (exception.getStartPC() <= offset && offset < exception.getEndPC() && catchesThrowable(classFile, exception)) {
                     for (int i = 0; i < list.size() && !wrapped; i++) {
                         wrapped = list.get(i).getOffset() == exception.getHandlerPC() && isMatchExceptionHandler(classFile, list, i);
                     }
@@ -346,7 +366,7 @@ public final class PatternMatchingReconstructor {
                     break;
                 }
             }
-            if (handler > 0 && isMatchExceptionHandler(classFile, list, handler)
+            if (handler > 0 && isMatchExceptionHandler(classFile, list, handler) && catchesThrowable(classFile, exception)
                     && list.get(handler + 1) instanceof AThrow thrown) {
                 if (!protectsRecordAccess(exceptions, exception.getHandlerPC(), method.getRecordAccessOffsets())) {
                     continue;
