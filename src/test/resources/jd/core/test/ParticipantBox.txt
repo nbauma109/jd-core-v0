@@ -165,8 +165,8 @@
 /* 165 */           startingY = delay.getEndingY(stringBounder) - myDelta;
 /*     */         }
 /*     */       }
-/* 168 */       if (((GraphicalDelayText)this.delays.get(this.delays.size() - 1)).getEndingY(stringBounder) - myDelta > startingY) {
-/* 169 */         startingY = ((GraphicalDelayText)this.delays.get(this.delays.size() - 1)).getEndingY(stringBounder) - myDelta;
+/* 168 */       if (this.delays.get(this.delays.size() - 1).getEndingY(stringBounder) - myDelta > startingY) {
+/* 169 */         startingY = this.delays.get(this.delays.size() - 1).getEndingY(stringBounder) - myDelta;
 /*     */       }
 /*     */     }
 /* 172 */     drawLineIfLowerThan(ug, startingY, endingY, this.line, endingY);

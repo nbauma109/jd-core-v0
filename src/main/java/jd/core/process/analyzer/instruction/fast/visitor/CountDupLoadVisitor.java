@@ -243,7 +243,8 @@ public class CountDupLoadVisitor
                 }
             }
             // intended fall through
-        case FastConstants.INFINITE_LOOP:
+        case FastConstants.INFINITE_LOOP,
+             FastConstants.BLOCK:
             {
                 List<Instruction> instructions =
                     ((FastList)instruction).getInstructions();

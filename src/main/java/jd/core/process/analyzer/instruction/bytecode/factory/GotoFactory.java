@@ -51,7 +51,10 @@ import static org.apache.bcel.Const.WIDE;
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
+import jd.core.model.instruction.bytecode.instruction.BranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.Goto;
+import jd.core.model.instruction.bytecode.instruction.PatternSwitchSelector;
+import jd.core.model.instruction.bytecode.instruction.Switch;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
 import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
@@ -89,7 +92,14 @@ public class GotoFactory implements InstructionFactory
         {
             Instruction previousInstruction = list.get(i);
 
-            if (ByteCodeUtil.isIfInstruction(previousInstruction.getOpcode(), false))
+            if (previousInstruction instanceof Switch sw && sw.getKey() instanceof PatternSwitchSelector)
+            {
+                // The values left on the stack belong to the cases of a switch expression
+                return;
+            }
+
+            if (ByteCodeUtil.isIfInstruction(previousInstruction.getOpcode(), false)
+                && !(inPatternSwitch(list) && skipsBackwardJump(code, (BranchInstruction) previousInstruction)))
             {
                 // Gestion de l'operateur ternaire
                 final int ternaryOp2ndValueOffset =
@@ -105,6 +115,54 @@ public class GotoFactory implements InstructionFactory
                 return;
             }
         }
+    }
+
+    private static boolean inPatternSwitch(List<Instruction> list)
+    {
+        for (Instruction instruction : list)
+        {
+            if (instruction instanceof Switch sw && sw.getKey() instanceof PatternSwitchSelector) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * A condition jumping to a block restarting the matching of a switch on patterns (set the index,
+     * jump back), or jumping over such a block, is not the condition of a ternary operator.
+     */
+    private static boolean skipsBackwardJump(byte[] code, BranchInstruction branch)
+    {
+        return isRestartBlock(code, branch.getJumpOffset())
+            || branch.getBranch() > 0 && isRestartBlock(code, branch.getOffset() + 3);
+    }
+
+    private static boolean isRestartBlock(byte[] code, int start)
+    {
+        int pos = start;
+        for (int i = 0; i < 3 && pos + 2 < code.length; i++)
+        {
+            int opcode = code[pos] & 255;
+            if (opcode == Const.GOTO)
+            {
+                return (short) ((code[pos + 1] & 255) << 8 | code[pos + 2] & 255) < 0;
+            }
+            if (opcode >= Const.ICONST_M1 && opcode <= Const.ICONST_5
+                || opcode >= Const.ISTORE_0 && opcode <= Const.ISTORE_3)
+            {
+                pos += 1;
+            }
+            else if (opcode == Const.BIPUSH || opcode == Const.ISTORE)
+            {
+                pos += 2;
+            }
+            else
+            {
+                return false;
+            }
+        }
+        return false;
     }
 
     private static int search2ndValueOffset(

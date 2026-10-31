@@ -382,6 +382,9 @@ public final class ClassFileWriter
             case LayoutBlockConstants.FRAGMENT_INFINITE_LOOP:
                 writeInfiniteLoop();
                 break;
+            case LayoutBlockConstants.FRAGMENT_BLOCK:
+                // The braces of the block are written with its content
+                break;
             case LayoutBlockConstants.FRAGMENT_TRY:
                 writeTry();
                 break;
@@ -1807,6 +1810,9 @@ public final class ClassFileWriter
 
     private void writeMethodStatic(MethodStaticLayoutBlock mslb)
     {
+        if (mslb.isInstanceInitializer()) {
+            return;
+        }
         this.printer.printStaticConstructorDeclaration(
             mslb.getClassFile().getThisClassName(), STATIC);
     }
@@ -2162,6 +2168,17 @@ public final class ClassFileWriter
         this.printer.print(" (");
     }
 
+    private void writeGuard(CaseLayoutBlock clb, Instruction guard)
+    {
+        this.instructionPrinter.init(guard.getLineNumber());
+        this.instructionPrinter.setIgnoreLineNumbers(true);
+        this.visitor.init(clb.getClassFile(), clb.getMethod(), 0, Integer.MAX_VALUE);
+        this.instructionPrinter.startOfInstruction();
+        this.visitor.visit(guard);
+        this.instructionPrinter.endOfInstruction();
+        this.instructionPrinter.release();
+    }
+
     private void writeCase(CaseLayoutBlock clb)
     {
         addSpaceIfNeeded();
@@ -2194,7 +2211,13 @@ public final class ClassFileWriter
                 this.printer.print(' ');
 
                 this.printer.debugStartOfInstructionBlockLayoutBlock();
-                if (type == 'C')
+                if (clb.getFs().getPatternSelector() != null)
+                {
+                    PatternSwitchLabelWriter.write(
+                        this.loader, this.printer, this.referenceMap, clb.getClassFile(),
+                        clb.getFs().getPatternSelector(), pair.getKey(), guard -> writeGuard(clb, guard));
+                }
+                else if (type == 'C')
                 {
                     String escapedString =
                         StringUtil.escapeCharAndAppendApostrophe(
@@ -2242,7 +2265,13 @@ public final class ClassFileWriter
                 this.printer.print(' ');
 
                 this.printer.debugStartOfInstructionBlockLayoutBlock();
-                if (type == 'C')
+                if (clb.getFs().getPatternSelector() != null)
+                {
+                    PatternSwitchLabelWriter.write(
+                        this.loader, this.printer, this.referenceMap, clb.getClassFile(),
+                        clb.getFs().getPatternSelector(), pair.getKey(), guard -> writeGuard(clb, guard));
+                }
+                else if (type == 'C')
                 {
                     String escapedString =
                         StringUtil.escapeCharAndAppendApostrophe(

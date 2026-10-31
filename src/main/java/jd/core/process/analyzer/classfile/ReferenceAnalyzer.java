@@ -42,6 +42,7 @@ import java.util.Map;
 import java.util.Set;
 
 import jd.core.model.classfile.ClassFile;
+import jd.core.util.TypeNameUtil;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.Field;
 import jd.core.model.classfile.LocalVariable;
@@ -134,6 +135,22 @@ public final class ReferenceAnalyzer
         }
     }
 
+    /** A local type written as a member hides the types of the same simple name, java.lang ones included. */
+    private static void collectPromotedLocalTypeNames(ClassFile classFile, Set<String> names)
+    {
+        List<ClassFile> innerClassFiles = classFile.getInnerClassFiles();
+        if (innerClassFiles == null) {
+            return;
+        }
+        for (ClassFile innerClassFile : innerClassFiles) {
+            if (innerClassFile.isLocalNamedStaticType()) {
+                names.add(TypeNameUtil.localTypeSimpleName(innerClassFile.getThisClassName().substring(
+                    innerClassFile.getThisClassName().lastIndexOf('$') + 1)));
+            }
+            collectPromotedLocalTypeNames(innerClassFile, names);
+        }
+    }
+
     private static void removePermittedSubclassImportClashes(
             ReferenceMap referenceMap, ClassFile classFile)
     {
@@ -142,6 +159,10 @@ public final class ReferenceAnalyzer
         List<String> headerNames = new ArrayList<>();
         collectHeaderNames(classFile, permittedSimpleNames, typeParameterNames, headerNames);
         referenceMap.addTypeParameterNames(typeParameterNames);
+        Set<String> promotedNames = new HashSet<>();
+        collectPromotedLocalTypeNames(classFile, promotedNames);
+        referenceMap.addPromotedLocalTypeNames(promotedNames);
+        permittedSimpleNames.addAll(promotedNames);
         referenceMap.addPermittedSimpleNames(permittedSimpleNames);
         if (permittedSimpleNames.isEmpty()) {
             return;

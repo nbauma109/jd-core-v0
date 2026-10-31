@@ -114,6 +114,7 @@ import jd.core.process.layouter.visitor.MinLineNumberVisitor;
 import jd.core.process.writer.ConstantValueWriter;
 import jd.core.process.writer.EnumSwitchNameResolver;
 import jd.core.process.writer.EnumSwitchNameResolver.EnumSwitchNames;
+import jd.core.process.writer.PatternSwitchLabelWriter;
 import jd.core.process.writer.SignatureWriter;
 import jd.core.process.writer.SourceWriteable;
 import jd.core.util.SignatureUtil;
@@ -551,9 +552,29 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                         signature = SignatureUtil.createTypeName(signature);
                     }
 
+                    if (instanceOf.getPatternVariable() != null) {
+                        // The pattern declares the variable: it keeps its type arguments
+                        String bound = instanceOf.getPatternVariable().getSignature(constants);
+                        if (bound != null && bound.indexOf('<') != -1 && bound.startsWith(signature.substring(0, signature.length() - 1) + "<")) {
+                            signature = bound;
+                        }
+                    }
+
                     SignatureWriter.writeSignature(
                         this.loader, this.printer, this.referenceMap,
                         this.classFile, signature);
+
+                    if (instanceOf.getRecordPatternVariables() != null)
+                    {
+                        writeRecordPattern(instanceOf.getRecordPatternVariables());
+                    }
+
+                    if (instanceOf.getPatternVariable() != null)
+                    {
+                        this.printer.print(' ');
+                        this.printer.print(lineNumber,
+                            constants.getConstantUtf8(instanceOf.getPatternVariable().getNameIndex()));
+                    }
                 }
             }
             break;
@@ -1586,7 +1607,35 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         return null;
     }
 
+    private void writeRecordPattern(List<LocalVariable> components)
+    {
+        PatternSwitchLabelWriter.writeComponents(
+            this.loader, this.printer, this.referenceMap, this.classFile, components);
+    }
+
+    private static boolean declaresOwnMembers(ClassFile anonymousClassFile)
+    {
+        for (Field field : anonymousClassFile.getFields()) {
+            if ((field.getAccessFlags() & Const.ACC_SYNTHETIC) == 0) {
+                return true;
+            }
+        }
+        ConstantPool constants = anonymousClassFile.getConstantPool();
+        for (Method method : anonymousClassFile.getMethods()) {
+            if ((method.getAccessFlags() & (Const.ACC_SYNTHETIC | Const.ACC_BRIDGE)) == 0
+                    && method.getNameIndex() != constants.getInstanceConstructorIndex()
+                    && method.getNameIndex() != constants.getClassConstructorIndex()
+                    && !method.isOverride(anonymousClassFile)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private static BaseTypeArgument searchTypeArguments(TypeTypes newInvokeType) {
+        if (newInvokeType == null) {
+            return null;
+        }
         ObjectType superType = newInvokeType.getSuperType();
         if (superType != null && superType.getTypeArguments() != null) {
             return superType.getTypeArguments();
@@ -2863,11 +2912,21 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                 if (innerClassFile != null &&
                     innerClassFile.getInternalAnonymousClassName() != null)
                 {
-                    String internalAnonymousClassSignature =
-                            SignatureUtil.createTypeName(innerClassFile.getInternalAnonymousClassName());
-                    SignatureWriter.writeSignature(
-                        this.loader, this.printer, this.referenceMap,
-                        this.classFile, internalAnonymousClassSignature);
+                    if (this.classFile.getMajorVersion() >= Const.MAJOR_10
+                            && declaresOwnMembers(innerClassFile))
+                    {
+                        // Members not inherited can only be reached through
+                        // a variable typed with the anonymous class: 'var'.
+                        this.printer.printKeyword("var");
+                    }
+                    else
+                    {
+                        String internalAnonymousClassSignature =
+                                SignatureUtil.createTypeName(innerClassFile.getInternalAnonymousClassName());
+                        SignatureWriter.writeSignature(
+                            this.loader, this.printer, this.referenceMap,
+                            this.classFile, internalAnonymousClassSignature);
+                    }
                 }
                 else
                 {
@@ -3292,6 +3351,13 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                 this.classFile, cv);
             break;
         default:
+            if (fs.getPatternSelector() != null)
+            {
+                PatternSwitchLabelWriter.write(
+                    this.loader, this.printer, this.referenceMap, this.classFile,
+                    fs.getPatternSelector(), pair.getKey(), guard -> visit(guard));
+                break;
+            }
             String signature = fs.getTest().getReturnedSignature(
                 this.classFile, this.localVariables);
             char type = signature == null ? 'X' : signature.charAt(0);

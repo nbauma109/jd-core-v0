@@ -34,6 +34,7 @@ import org.apache.bcel.classfile.ParameterAnnotationEntry;
 import org.apache.bcel.classfile.RuntimeInvisibleParameterAnnotations;
 import org.apache.bcel.classfile.RuntimeVisibleParameterAnnotations;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -49,6 +50,9 @@ public class Method extends Base implements SignatureInfo
     private byte[] code; // NO_UCD (use final)
     private LineNumber[] lineNumbers; // NO_UCD (use final)
     private CodeException[] codeExceptions;
+    private final List<int[]> tryResources = new ArrayList<>();
+    private final java.util.Set<Integer> recordAccessOffsets = new java.util.HashSet<>();
+    private final java.util.Set<jd.core.model.classfile.LocalVariable> recordTemporaries = new java.util.HashSet<>();
     private ParameterAnnotationEntry[] visibleParameterAnnotations; // NO_UCD (use final)
     private ParameterAnnotationEntry[] invisibleParameterAnnotations; // NO_UCD (use final)
     private ElementValue defaultAnnotationValue; // NO_UCD (use final)
@@ -195,6 +199,28 @@ public class Method extends Base implements SignatureInfo
     public LineNumber[] getLineNumbers()
     {
         return lineNumbers;
+    }
+
+    /**
+     * Resources of try-with-resources statements whose cleanup plumbing was removed
+     * before the structure of the method was rebuilt: {variable index, offset of
+     * the declaration, offset where the body of the statement ends}.
+     */
+    public List<int[]> getTryResources()
+    {
+        return this.tryResources;
+    }
+
+    /** Variables holding the components read by the record pattern being reconstructed. */
+    public java.util.Set<jd.core.model.classfile.LocalVariable> getRecordTemporaries()
+    {
+        return this.recordTemporaries;
+    }
+
+    /** Offsets of the accessor calls of record patterns, whose protected ranges throw a MatchException. */
+    public java.util.Set<Integer> getRecordAccessOffsets()
+    {
+        return this.recordAccessOffsets;
     }
 
     public CodeException[] getCodeExceptions()

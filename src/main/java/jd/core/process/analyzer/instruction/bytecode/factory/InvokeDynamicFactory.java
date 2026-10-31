@@ -51,9 +51,12 @@ import jd.core.model.instruction.bytecode.instruction.ConstructorReference;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
 import jd.core.model.instruction.bytecode.instruction.LambdaInstruction;
+import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
+import jd.core.model.instruction.bytecode.instruction.PatternSwitchSelector;
 import jd.core.model.instruction.bytecode.instruction.MethodReference;
 import jd.core.model.instruction.bytecode.instruction.StaticMethodReference;
 import jd.core.process.analyzer.classfile.ClassFileAnalyzer;
+import jd.core.process.writer.PatternSwitchLabelWriter;
 import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
 import jd.core.process.analyzer.util.StringConcatenationUtil;
 
@@ -125,6 +128,18 @@ public class InvokeDynamicFactory implements InstructionFactory
             return Const.getNoOfOperands(opcode);
         }
 
+        if (("typeSwitch".equals(indyMethodName) || "enumSwitch".equals(indyMethodName))
+                && hasSupportedLabels(classFile, bootstrapArguments)
+                && indyParameters != null && indyParameters.size() == 2 && indyParameters.get(0) instanceof ALoad selector) {
+            // Switch on patterns: the arguments of the bootstrap method are the labels
+            int restartIndexVariable = indyParameters.get(1) instanceof LoadInstruction restart ? restart.getIndex() : -1;
+            PatternSwitchSelector patternSelector = new PatternSwitchSelector(
+                selector, bootstrapArguments, "enumSwitch".equals(indyMethodName), restartIndexVariable);
+            collectLabelTypes(classFile, bootstrapArguments, patternSelector);
+            stack.push(patternSelector);
+            return Const.getNoOfOperands(opcode);
+        }
+
         ConstantMethodType cmt0 = constants.getConstantMethodType(bootstrapArguments[0]);
         String descriptor0 = constants.getConstantUtf8(cmt0.getDescriptorIndex());
         TypeMaker.MethodTypes methodTypes0 = typeMaker.makeMethodTypes(classFile.getThisClassName(), null, descriptor0);
@@ -188,6 +203,38 @@ public class InvokeDynamicFactory implements InstructionFactory
         stack.push(new MethodReference(opcode, offset, lineNumber, indyParameters, typeName, name1, descriptor1));
 
         return Const.getNoOfOperands(opcode);
+    }
+
+    /** Labels that are classes, strings or integers; qualified enum constants are dynamic constants. */
+    private static void collectLabelTypes(ClassFile classFile, int[] labels, PatternSwitchSelector selector)
+    {
+        ConstantPool constants = classFile.getConstantPool();
+        for (int label : labels)
+        {
+            if (constants.get(label).getTag() == Const.CONSTANT_Class) {
+                selector.getReferencedTypes().add(constants.getConstantClassName(label));
+            } else if (constants.get(label).getTag() == Const.CONSTANT_Dynamic) {
+                String[] enumConstant = PatternSwitchLabelWriter.decodeEnumConstant(classFile, label);
+                if (enumConstant.length > 0) {
+                    selector.getReferencedTypes().add(enumConstant[0]);
+                }
+            }
+        }
+    }
+
+    private static boolean hasSupportedLabels(ClassFile classFile, int[] labels)
+    {
+        ConstantPool constants = classFile.getConstantPool();
+        for (int label : labels)
+        {
+            int tag = constants.get(label).getTag();
+            boolean enumConstant = tag == Const.CONSTANT_Dynamic
+                && PatternSwitchLabelWriter.decodeEnumConstant(classFile, label).length > 0;
+            if (tag != Const.CONSTANT_Class && tag != Const.CONSTANT_String && tag != Const.CONSTANT_Integer && !enumConstant) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static void bindEnclosingInstanceParameter(ClassFile classFile, Method enclosingMethod,

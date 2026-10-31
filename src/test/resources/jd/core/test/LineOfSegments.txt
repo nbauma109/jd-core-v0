@@ -102,7 +102,7 @@
 /* 102 */       double overlap = seg1.overlap(seg2);
 /* 103 */       if (overlap > 0.0D) {
 /* 104 */         for (int k = i + 1; k < this.all.size(); k++)
-/* 105 */           ((Segment)this.all.get(k)).push(overlap);
+/* 105 */           this.all.get(k).push(overlap);
 /* 106 */         return true;
 /*     */       }
 /*     */     }

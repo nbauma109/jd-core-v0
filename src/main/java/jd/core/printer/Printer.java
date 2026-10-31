@@ -23,6 +23,11 @@ public interface Printer
     void print(byte b);
     void print(char c);
     void print(int i);
+
+    /** Whether each line starts with a line number comment, which cannot be inside a text block. */
+    default boolean isLineNumbersDisplayed() {
+        return false;
+    }
     void print(String s);
 
     void printNumeric(String s);

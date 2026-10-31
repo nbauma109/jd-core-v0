@@ -423,7 +423,7 @@
 /*      */   @Deprecated
 /*      */   public static double[] add(double[] array, int index, double element)
 /*      */   {
-/*  426 */     return (double[])add(array, index, Double.valueOf(element), Double.TYPE);
+/*  426 */     return (double[])add(array, index, element, Double.TYPE);
 /*      */   }
 /*      */   
 /*      */ 
@@ -485,7 +485,7 @@
 /*      */   @Deprecated
 /*      */   public static float[] add(float[] array, int index, float element)
 /*      */   {
-/*  488 */     return (float[])add(array, index, Float.valueOf(element), Float.TYPE);
+/*  488 */     return (float[])add(array, index, element, Float.TYPE);
 /*      */   }
 /*      */   
 /*      */ 
@@ -547,7 +547,7 @@
 /*      */   @Deprecated
 /*      */   public static int[] add(int[] array, int index, int element)
 /*      */   {
-/*  550 */     return (int[])add(array, index, Integer.valueOf(element), Integer.TYPE);
+/*  550 */     return (int[])add(array, index, element, Integer.TYPE);
 /*      */   }
 /*      */   
 /*      */ 
@@ -582,7 +582,7 @@
 /*      */   @Deprecated
 /*      */   public static long[] add(long[] array, int index, long element)
 /*      */   {
-/*  585 */     return (long[])add(array, index, Long.valueOf(element), Long.TYPE);
+/*  585 */     return (long[])add(array, index, element, Long.TYPE);
 /*      */   }
 /*      */   
 /*      */ 
@@ -6205,10 +6205,10 @@
 /* 6205 */     BitSet toRemove = new BitSet();
 /* 6206 */     for (int i = 0; i < array.length; i++) {
 /* 6207 */       double key = array[i];
-/* 6208 */       MutableInt count = (MutableInt)occurrences.get(Double.valueOf(key));
+/* 6208 */       MutableInt count = (MutableInt)occurrences.get(key);
 /* 6209 */       if (count != null) {
 /* 6210 */         if (count.decrementAndGet() == 0) {
-/* 6211 */           occurrences.remove(Double.valueOf(key));
+/* 6211 */           occurrences.remove(key);
 /*      */         }
 /* 6213 */         toRemove.set(i);
 /*      */       }
@@ -6260,10 +6260,10 @@
 /* 6260 */     BitSet toRemove = new BitSet();
 /* 6261 */     for (int i = 0; i < array.length; i++) {
 /* 6262 */       float key = array[i];
-/* 6263 */       MutableInt count = (MutableInt)occurrences.get(Float.valueOf(key));
+/* 6263 */       MutableInt count = (MutableInt)occurrences.get(key);
 /* 6264 */       if (count != null) {
 /* 6265 */         if (count.decrementAndGet() == 0) {
-/* 6266 */           occurrences.remove(Float.valueOf(key));
+/* 6266 */           occurrences.remove(key);
 /*      */         }
 /* 6268 */         toRemove.set(i);
 /*      */       }
@@ -6315,10 +6315,10 @@
 /* 6315 */     BitSet toRemove = new BitSet();
 /* 6316 */     for (int i = 0; i < array.length; i++) {
 /* 6317 */       int key = array[i];
-/* 6318 */       MutableInt count = (MutableInt)occurrences.get(Integer.valueOf(key));
+/* 6318 */       MutableInt count = (MutableInt)occurrences.get(key);
 /* 6319 */       if (count != null) {
 /* 6320 */         if (count.decrementAndGet() == 0) {
-/* 6321 */           occurrences.remove(Integer.valueOf(key));
+/* 6321 */           occurrences.remove(key);
 /*      */         }
 /* 6323 */         toRemove.set(i);
 /*      */       }
@@ -6370,10 +6370,10 @@
 /* 6370 */     BitSet toRemove = new BitSet();
 /* 6371 */     for (int i = 0; i < array.length; i++) {
 /* 6372 */       long key = array[i];
-/* 6373 */       MutableInt count = (MutableInt)occurrences.get(Long.valueOf(key));
+/* 6373 */       MutableInt count = (MutableInt)occurrences.get(key);
 /* 6374 */       if (count != null) {
 /* 6375 */         if (count.decrementAndGet() == 0) {
-/* 6376 */           occurrences.remove(Long.valueOf(key));
+/* 6376 */           occurrences.remove(key);
 /*      */         }
 /* 6378 */         toRemove.set(i);
 /*      */       }

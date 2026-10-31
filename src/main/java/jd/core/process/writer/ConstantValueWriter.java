@@ -81,12 +81,6 @@ public final class ConstantValueWriter
                         loader, printer, referenceMap, classFile,
                         StringConstants.JAVA_LANG_DOUBLE, StringConstants.MAX_VALUE, "D");
                 }
-                /* else if (Double.compare(d, Double.MIN_NORMAL) == 0)
-                {
-                    Write(
-                        loader, printer, referenceMap, classFile,
-                        StringConstants.JAVA_LANG_DOUBLE, "MIN_NORMAL", "D");
-                } */
                 else if (Double.compare(d, Double.MIN_VALUE) == 0)
                 {
                     write(
@@ -95,8 +89,15 @@ public final class ConstantValueWriter
                 }
                 else
                 {
-                    // TODO Conversion de la valeur en constante ?
+                    float widened = (float) d;
                     String value = String.valueOf(d);
+                    if (widened == d && !String.valueOf(widened).equals(value)) {
+                        // The compiler widened a float constant: print it as a float,
+                        // with a cast so that the expression stays of type double
+                        printer.print("(double) ");
+                        printer.printNumeric(String.valueOf(widened) + 'F');
+                        break;
+                    }
                     if (value.indexOf('.') == -1) {
                         value += ".0";
                     }
@@ -221,6 +222,11 @@ public final class ConstantValueWriter
             {
                 String s = constants.getConstantUtf8(
                     ((ConstantString)cv).getStringIndex());
+                if (classFile.getMajorVersion() >= Const.MAJOR_15 && !printer.isLineNumbersDisplayed() && isTextBlock(s))
+                {
+                    writeTextBlock(printer, s, classFile.getThisClassName());
+                    break;
+                }
                 String escapedString =
                     StringUtil.escapeStringAndAppendQuotationMark(s);
                 String scopeInternalName = classFile.getThisClassName();
@@ -237,6 +243,124 @@ public final class ConstantValueWriter
             }
             break;
         }
+    }
+
+    private static final String TEXT_BLOCK_DELIMITER = "\"\"\"";
+
+    private static boolean isTextBlock(String s)
+    {
+        int lines = 0;
+        for (int i = 0; i < s.length(); i++) {
+            if (s.charAt(i) == '\n') {
+                lines++;
+            }
+        }
+        // Without a closing delimiter on its own line, the lines must not all start with spaces
+        // that the compiler would remove as incidental whitespace
+        return lines >= 3 && !hasEdgeWhitespace(s) && !hasBlankLineWithSpaces(s) && (s.endsWith("\n") || minimalIndentation(s) == 0);
+    }
+
+    /** Whitespace other than a space or a tab at the edge of a line cannot be escaped: the compiler would strip it. */
+    private static boolean hasEdgeWhitespace(String s)
+    {
+        for (String line : s.split("\n", -1)) {
+            if (!line.isEmpty() && (isUnescapableWhitespace(line.charAt(0)) || isUnescapableWhitespace(line.charAt(line.length() - 1)))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isUnescapableWhitespace(char c)
+    {
+        return Character.isWhitespace(c) && c != ' ' && c != '\t' && c != '\r' && c != '\b' && c != '\f' && c >= ' ';
+    }
+
+    /** A line of spaces is emptied by the compiler, and decides nothing about the indentation: keep such strings as literals. */
+    private static boolean hasBlankLineWithSpaces(String s)
+    {
+        for (String line : s.split("\n", -1)) {
+            if (!line.isEmpty() && line.isBlank()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static int minimalIndentation(String s)
+    {
+        int minimum = Integer.MAX_VALUE;
+        for (String line : s.split("\n", -1)) {
+            if (!line.isBlank()) {
+                int indentation = 0;
+                while (line.charAt(indentation) == ' ') {
+                    indentation++;
+                }
+                minimum = Math.min(minimum, indentation);
+            }
+        }
+        return minimum == Integer.MAX_VALUE ? 0 : minimum;
+    }
+
+    /** Writes a string of several lines as a text block, the closing delimiter on its own line when the text ends with a line feed. */
+    private static void writeTextBlock(Printer printer, String s, String scopeInternalName)
+    {
+        printer.printString(TEXT_BLOCK_DELIMITER, scopeInternalName);
+        String[] lines = s.split("\n", -1);
+        boolean endsWithLineFeed = s.endsWith("\n");
+        int count = endsWithLineFeed ? lines.length - 1 : lines.length;
+        for (int i = 0; i < count; i++)
+        {
+            printer.endOfLine();
+            printer.startOfLine(Printer.UNKNOWN_LINE_NUMBER);
+            String line = escapeTextBlockLine(lines[i], !endsWithLineFeed && i == count - 1);
+            printer.printString(line, scopeInternalName);
+        }
+        if (endsWithLineFeed)
+        {
+            printer.endOfLine();
+            printer.startOfLine(Printer.UNKNOWN_LINE_NUMBER);
+            printer.printString(TEXT_BLOCK_DELIMITER, scopeInternalName);
+        }
+        else
+        {
+            printer.printString(TEXT_BLOCK_DELIMITER, scopeInternalName);
+        }
+    }
+
+    private static String escapeTextBlockLine(String line, boolean last)
+    {
+        StringBuilder sb = new StringBuilder(line.length() + 4);
+        for (int i = 0; i < line.length(); i++)
+        {
+            char c = line.charAt(i);
+            if (c == '\\') {
+                sb.append("\\\\");
+            } else if (c == '"' && line.startsWith("\"\"", i + 1)) {
+                sb.append("\\\"");
+            } else if (c == '\t') {
+                sb.append("\\t");
+            } else if (c == '\r') {
+                sb.append("\\r");
+            } else if (c == '\b') {
+                sb.append("\\b");
+            } else if (c == '\f') {
+                sb.append("\\f");
+            } else if (c < ' ') {
+                // An octal escape: a unicode escape would be translated before the whitespace is stripped
+                sb.append("\\0").append((char) ('0' + (c >> 3))).append((char) ('0' + (c & 7)));
+            } else if (c == ' ' && i == line.length() - 1) {
+                sb.append("\\s");
+            } else {
+                sb.append(c);
+            }
+        }
+        if (last && line.endsWith("\"")) {
+            // The closing delimiter follows: a quote at the end would merge with it
+            sb.setLength(sb.length() - 1);
+            sb.append("\\\"");
+        }
+        return sb.toString();
     }
 
     private static void write(

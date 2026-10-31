@@ -157,18 +157,18 @@
 /*     */ 
 /*     */     try
 /*     */     {
-/* 160 */       CArrayOfStar<ST_Agnode_s> vlist = ((ST_rank_t)Macro.GD_rank(root).get__(r)).v;
+/* 160 */       CArrayOfStar<ST_Agnode_s> vlist = Macro.GD_rank(root).get__(r).v;
 /* 161 */       if (d <= 0) { int i;
-/* 162 */         for (i = pos - d + 1; i < ((ST_rank_t)Macro.GD_rank(root).get__(r)).n; i++) {
+/* 162 */         for (i = pos - d + 1; i < Macro.GD_rank(root).get__(r).n; i++) {
 /* 163 */           ST_Agnode_s v = (ST_Agnode_s)vlist.get_(i);
 /* 164 */           Macro.ND_order(v, i + d - 1);
 /* 165 */           vlist.set_(Macro.ND_order(v), v);
 /*     */         }
-/* 167 */         for (i = ((ST_rank_t)Macro.GD_rank(root).get__(r)).n + d - 1; i < ((ST_rank_t)Macro.GD_rank(root).get__(r)).n; i++)
+/* 167 */         for (i = Macro.GD_rank(root).get__(r).n + d - 1; i < Macro.GD_rank(root).get__(r).n; i++)
 /* 168 */           vlist.set_(i, null);
 /*     */       }
 /*     */       int i;
-/* 171 */       for (i = ((ST_rank_t)Macro.GD_rank(root).get__(r)).n - 1; i > pos; i--) {
+/* 171 */       for (i = Macro.GD_rank(root).get__(r).n - 1; i > pos; i--) {
 /* 172 */         ST_Agnode_s v = (ST_Agnode_s)vlist.get_(i);
 /* 173 */         Macro.ND_order(v, i + d - 1);
 /* 174 */         vlist.set_(Macro.ND_order(v), v);
@@ -176,7 +176,7 @@
 /* 176 */       for (i = pos + 1; i < pos + d; i++) {
 /* 177 */         vlist.set_(i, null);
 /*     */       }
-/* 179 */       ((ST_rank_t)Macro.GD_rank(root).get__(r)).n = ((ST_rank_t)Macro.GD_rank(root).get__(r)).n + d - 1;
+/* 179 */       Macro.GD_rank(root).get__(r).n = Macro.GD_rank(root).get__(r).n + d - 1;
 /*     */     } finally {
 /* 181 */       SmetanaDebug.LEAVING("5ib4nnt2ah5fdd22zs0xds29r", "make_slots");
 /*     */     }
@@ -408,14 +408,14 @@
 /*     */     {
 /* 409 */       ST_Agraph_s root = dotinit__c.dot_root(subg);
 /* 410 */       if (Macro.GD_minrank(subg) > 0)
-/* 411 */         ((ST_rank_t)Macro.GD_rank(root).get__(Macro.GD_minrank(subg) - 1)).valid = 0;
+/* 411 */         Macro.GD_rank(root).get__(Macro.GD_minrank(subg) - 1).valid = 0;
 /* 412 */       int r; for (r = Macro.GD_minrank(subg); r <= Macro.GD_maxrank(subg); r++) {
-/* 413 */         int d = ((ST_rank_t)Macro.GD_rank(subg).get__(r)).n;
+/* 413 */         int d = Macro.GD_rank(subg).get__(r).n;
 /* 414 */         int pos; int ipos = pos = Macro.ND_order((ST_Agnode_s)Macro.GD_rankleader(subg).get_(r));
 /* 415 */         make_slots(root, r, pos, d);
-/* 416 */         for (int i = 0; i < ((ST_rank_t)Macro.GD_rank(subg).get__(r)).n; i++) {
-/* 417 */           ST_Agnode_s v = (ST_Agnode_s)((ST_rank_t)Macro.GD_rank(subg).get__(r)).v.get_(i);
-/* 418 */           ((ST_rank_t)Macro.GD_rank(root).get__(r)).v.set_(pos, v);
+/* 416 */         for (int i = 0; i < Macro.GD_rank(subg).get__(r).n; i++) {
+/* 417 */           ST_Agnode_s v = (ST_Agnode_s)Macro.GD_rank(subg).get__(r).v.get_(i);
+/* 418 */           Macro.GD_rank(root).get__(r).v.set_(pos, v);
 /* 419 */           Macro.ND_order(v, pos++);
 /*     */           
 /* 421 */           if (Macro.ND_node_type(v) == 1)
@@ -424,11 +424,11 @@
 /* 424 */           fastgr__c.fast_node(root, v);
 /* 425 */           Macro.GD_n_nodes(root, Macro.GD_n_nodes(root) + 1);
 /*     */         }
-/* 427 */         ((ST_rank_t)Macro.GD_rank(subg).get__(r)).v = ((ST_rank_t)Macro.GD_rank(root).get__(r)).v.plus_(ipos);
-/* 428 */         ((ST_rank_t)Macro.GD_rank(root).get__(r)).valid = 0;
+/* 427 */         Macro.GD_rank(subg).get__(r).v = Macro.GD_rank(root).get__(r).v.plus_(ipos);
+/* 428 */         Macro.GD_rank(root).get__(r).valid = 0;
 /*     */       }
 /* 430 */       if (r < Macro.GD_maxrank(root))
-/* 431 */         ((ST_rank_t)Macro.GD_rank(root).get__(r)).valid = 0;
+/* 431 */         Macro.GD_rank(root).get__(r).valid = 0;
 /* 432 */       Macro.GD_expanded(subg, true);
 /*     */     } finally {
 /* 434 */       SmetanaDebug.LEAVING("85nhs7tnmwunw0fsjj1kxao7l", "merge_ranks");

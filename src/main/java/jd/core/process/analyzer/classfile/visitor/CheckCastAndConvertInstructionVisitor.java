@@ -398,9 +398,17 @@ public final class CheckCastAndConvertInstructionVisitor
                  || typeArgsLeft instanceof GenericType
                      && (typeArgsRight instanceof WildcardExtendsTypeArgument
                       || typeArgsRight instanceof WildcardSuperTypeArgument)) {
+                    Instruction value = valueref;
+                    if (typeArgsLeft instanceof GenericType && hasConcreteBound(typeArgsRight)) {
+                        // The bounds of the variable are unknown: (List<T>) (List<?>) numbers()
+                        int unbounded = classFile.getConstantPool().addConstantUtf8(
+                                "[".repeat(otLeft.getDimension()) + 'L' + otLeft.getInternalName() + "<*>;");
+                        value = new CheckCast(Const.CHECKCAST, valuerefAttribute.getOffset(),
+                                valuerefAttribute.getLineNumber(), unbounded, valueref);
+                    }
                     valuerefAttribute.setValueref(new CheckCast(
                             Const.CHECKCAST, valuerefAttribute.getOffset(),
-                            valuerefAttribute.getLineNumber(), descriptorIndex, valueref));
+                            valuerefAttribute.getLineNumber(), descriptorIndex, value));
                 }
                 if (typeArgsLeft != null && typeArgsLeft.isTypeArgumentList()
                 && typeArgsRight != null && typeArgsRight.isTypeArgumentList()) {
@@ -418,6 +426,12 @@ public final class CheckCastAndConvertInstructionVisitor
                 }
             }
         }
+    }
+
+    private static boolean hasConcreteBound(BaseTypeArgument wildcard)
+    {
+        return wildcard instanceof WildcardExtendsTypeArgument extendsBound && extendsBound.type() instanceof ObjectType
+            || wildcard instanceof WildcardSuperTypeArgument superBound && superBound.type() instanceof ObjectType;
     }
 
     private static boolean hasClassLiteralArgument(ClassFile classFile, Instruction instruction)

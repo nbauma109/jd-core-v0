@@ -32,6 +32,7 @@ public class ReferenceMap
     private final Set<String> javaLangReferences;
     private final Set<String> typeParameterNames;
     private final Set<String> permittedSimpleNames;
+    private final Set<String> promotedLocalTypeNames;
 
     public ReferenceMap()
     {
@@ -40,6 +41,7 @@ public class ReferenceMap
         this.javaLangReferences = new HashSet<>();
         this.typeParameterNames = new HashSet<>();
         this.permittedSimpleNames = new HashSet<>();
+        this.promotedLocalTypeNames = new HashSet<>();
     }
 
     public void addJavaLangReference(String internalName) {
@@ -56,6 +58,14 @@ public class ReferenceMap
 
     public boolean isTypeParameterName(String name) {
         return this.typeParameterNames.contains(name);
+    }
+
+    public void addPromotedLocalTypeNames(Set<String> names) {
+        this.promotedLocalTypeNames.addAll(names);
+    }
+
+    public boolean isPromotedLocalTypeName(String name) {
+        return this.promotedLocalTypeNames.contains(name);
     }
 
     public void addPermittedSimpleNames(Set<String> names) {

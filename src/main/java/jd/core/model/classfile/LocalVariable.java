@@ -42,6 +42,7 @@ public class LocalVariable
 
     private FastTry tryResources;
     private boolean throwableFromTryResources;
+    private boolean patternBinding;
 
     public LocalVariable(org.apache.bcel.classfile.LocalVariable lv)
     {
@@ -245,6 +246,15 @@ public class LocalVariable
 
     public void setTryResources(FastTry tryResources) {
         this.tryResources = tryResources;
+    }
+
+    /** A variable bound by a pattern is declared by the pattern itself. */
+    public boolean isPatternBinding() {
+        return patternBinding;
+    }
+
+    public void setPatternBinding(boolean patternBinding) {
+        this.patternBinding = patternBinding;
     }
 
     public boolean isThrowableFromTryResources() {

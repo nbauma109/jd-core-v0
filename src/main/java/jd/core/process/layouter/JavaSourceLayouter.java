@@ -110,7 +110,8 @@ public class JavaSourceLayouter
                         preferences, layoutBlockList, classFile,
                         method, (FastTestList)instruction);
                 break;
-            case FastConstants.INFINITE_LOOP:
+            case FastConstants.INFINITE_LOOP,
+             FastConstants.BLOCK:
                 createBlocksForInfiniteLoop(
                         preferences, layoutBlockList, classFile,
                         method, (FastList)instruction);
@@ -363,7 +364,9 @@ public class JavaSourceLayouter
             Method method, FastList fl)
     {
         layoutBlockList.add(new FragmentLayoutBlock(
-                LayoutBlockConstants.FRAGMENT_INFINITE_LOOP));
+                fl.getOpcode() == FastConstants.BLOCK
+                    ? LayoutBlockConstants.FRAGMENT_BLOCK
+                    : LayoutBlockConstants.FRAGMENT_INFINITE_LOOP));
 
         createBlockForSubList(
                 preferences, layoutBlockList, classFile,
@@ -588,7 +591,8 @@ public class JavaSourceLayouter
 
             // Don't write default case on last position with empty
             // instructions list.
-            if (pair.isDefault() && last && (instructions == null || instructions.isEmpty() || instructions.size() == 1 &&
+            if (pair.isDefault() && last && fs.getPatternSelector() == null
+                    && (instructions == null || instructions.isEmpty() || instructions.size() == 1 &&
                     instructions.get(0).getOpcode() == FastConstants.GOTO_BREAK)) {
                 break;
             }
@@ -826,7 +830,8 @@ public class JavaSourceLayouter
                         preferences, layoutBlockList, classFile, method,
                         (FastTestList)instruction);
                 break;
-            case FastConstants.INFINITE_LOOP:
+            case FastConstants.INFINITE_LOOP,
+             FastConstants.BLOCK:
                 createBlocksForInfiniteLoop(
                         preferences, layoutBlockList, classFile,
                         method, (FastList)instruction);
@@ -1025,6 +1030,7 @@ public class JavaSourceLayouter
             if (instruction.getOpcode() == FastConstants.WHILE
              || instruction.getOpcode() == FastConstants.DO_WHILE
              || instruction.getOpcode() == FastConstants.INFINITE_LOOP
+             || instruction.getOpcode() == FastConstants.BLOCK
              || instruction.getOpcode() == FastConstants.FOR
              || instruction.getOpcode() == FastConstants.FOREACH
              || instruction.getOpcode() == FastConstants.IF_SIMPLE

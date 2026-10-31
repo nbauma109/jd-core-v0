@@ -34,6 +34,7 @@ import java.util.Set;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
+import jd.core.model.instruction.bytecode.instruction.PutField;
 import jd.core.model.classfile.Field;
 import jd.core.model.classfile.Field.ValueAndMethod;
 import jd.core.model.classfile.Method;
@@ -661,6 +662,33 @@ public final class ClassFileLayouter {
      *  -  StatementsBlockEndLayoutBlock ?
      *  - MethodBlockEndLayoutBlock
      */
+    // The constructor of an anonymous class cannot be written, but the
+    // statements left once the super constructor call has been removed
+    // come from an instance initializer block that must not be lost.
+    private static boolean hasInstanceInitializerCode(ClassFile classFile, Method method)
+    {
+        ConstantPool constants = classFile.getConstantPool();
+        List<Instruction> list = method.getFastNodes();
+        if (method.getCode() == null || method.containsError() || list == null || list.isEmpty()) {
+            return false;
+        }
+        for (Instruction instruction : list) {
+            if (instruction.getOpcode() == Const.INVOKESPECIAL) {
+                return false;
+            }
+            if (instruction instanceof PutField putField) {
+                ConstantFieldref fieldref = constants.getConstantFieldref(putField.getIndex());
+                ConstantNameAndType nameAndType = constants.getConstantNameAndType(fieldref.getNameAndTypeIndex());
+                String name = constants.getConstantUtf8(nameAndType.getNameIndex());
+                if (name.startsWith("val$") || name.startsWith("this$")) {
+                    // Captured variable or outer instance not reconstructed
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
     private static List<SubListLayoutBlock> createSortedBlocksForMethods(
         Preferences preferences, ClassFile classFile)
     {
@@ -702,12 +730,16 @@ public final class ClassFileLayouter {
             signatureIndex = method.getSignatureIndex();
             signature = constants.getConstantUtf8(signatureIndex);
 
-            if ((classFile.getAccessFlags() & Const.ACC_ENUM) != 0 &&
+            boolean instanceInitializer = method.getNameIndex() == constants.getInstanceConstructorIndex()
+                    && classFile.getInternalAnonymousClassName() != null
+                    && hasInstanceInitializerCode(classFile, method);
+
+            if (!instanceInitializer && (classFile.getAccessFlags() & Const.ACC_ENUM) != 0 &&
                 ClassFileUtil.isAMethodOfEnum(classFile, method, signature)) {
                 continue;
             }
 
-            if (method.getNameIndex() == constants.getInstanceConstructorIndex())
+            if (!instanceInitializer && method.getNameIndex() == constants.getInstanceConstructorIndex())
             {
                 if (classFile.getInternalAnonymousClassName() != null) {
                     // Ne pas afficher les constructeurs des classes anonymes.
@@ -785,7 +817,10 @@ public final class ClassFileLayouter {
             // 'EmptyCodeLayoutBlock'.
             nullCodeFlag = method.getCode() == null;
             displayThrowsFlag = false;
-            if (method.getNameIndex() == constants.getClassConstructorIndex())
+            if (instanceInitializer)
+            {
+                subLayoutBlockList.add(new MethodStaticLayoutBlock(classFile, true));
+            } else if (method.getNameIndex() == constants.getClassConstructorIndex())
             {
                 subLayoutBlockList.add(new MethodStaticLayoutBlock(classFile));
             } else if (method.getExceptionIndexes() == null)
