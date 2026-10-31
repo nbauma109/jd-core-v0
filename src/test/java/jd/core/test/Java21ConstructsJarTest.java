@@ -385,4 +385,12 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("(List<String>)(List<?>)numbers()"));
         }
     }
+
+    @Test
+    public void rawCastBeforeArrayAccessIsKept() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("ThirtySeventh", new ZipLoader(in));
+            assertTrue(output, output.contains("((ThirtySeventh.Box)c.get()).array()[0]"));
+        }
+    }
 }

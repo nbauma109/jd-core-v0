@@ -46,6 +46,8 @@ import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.instruction.bytecode.instruction.AConstNull;
+import jd.core.model.instruction.bytecode.instruction.ArrayInstruction;
+import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.CheckCast;
 import jd.core.model.instruction.bytecode.instruction.IfCmp;
@@ -163,6 +165,7 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
     {
         // A member selected from the value gets its own cast: the runtime check changes
         return context instanceof ObjectrefAttribute holder && holder.getObjectref() == selected
+            || context instanceof ArrayInstruction || context instanceof ArrayStoreInstruction
             || context instanceof InstanceOf || context instanceof CheckCast || context instanceof BinaryOperatorInstruction
             || context instanceof IfCmp || context instanceof TernaryOperator || context instanceof Switch;
     }
