@@ -153,8 +153,8 @@ public class AddWildcardCastVisitor extends AbstractReplaceInstructionVisitor<In
                 return typeMaker.isAssignable(targetType, bound);
             }
         }
-        return value instanceof WildcardExtendsTypeArgument extendsBound && extendsBound.type() instanceof GenericType
-            || value instanceof WildcardSuperTypeArgument superBound && superBound.type() instanceof GenericType;
+        // A wildcard bounded by a type variable: its bounds are unknown, the cast goes through '?'
+        return false;
     }
 
     private static boolean isBoundedByConcreteType(TypeArgument value)

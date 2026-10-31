@@ -377,4 +377,12 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("addSuppressed"));
         }
     }
+
+    @Test
+    public void wildcardBoundedByTypeVariableKeepsIntermediateCast() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("ThirtySixth", new ZipLoader(in));
+            assertTrue(output, output.contains("(List<String>)(List<?>)numbers()"));
+        }
+    }
 }
