@@ -368,4 +368,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("addSuppressed"));
         }
     }
+
+    @Test
+    public void cleanupOnFailureOnlyIsNotATryWithResources() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("ThirtyFifth", new ZipLoader(in));
+            assertFalse(output, output.contains("try (ThirtyFifth.Res"));
+            assertTrue(output, output.contains("addSuppressed"));
+        }
+    }
 }

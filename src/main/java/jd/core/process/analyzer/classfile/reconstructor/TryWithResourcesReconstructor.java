@@ -141,7 +141,8 @@ public final class TryWithResourcesReconstructor {
         }
 
         int declarationOffset = declaration.getOffset();
-        if (closesInsideProtectedRange(cp, list, exceptions, guarded, firstBodyIndex, resourceIndex, declarationOffset)) {
+        if (!hasExitCleanup(cp, list, guarded, firstBodyIndex, resourceIndex, declarationOffset)
+                || closesInsideProtectedRange(cp, list, exceptions, guarded, firstBodyIndex, resourceIndex, declarationOffset)) {
             return false;
         }
         int throwOffset = athrow.getOffset();
@@ -173,6 +174,19 @@ public final class TryWithResourcesReconstructor {
         exceptions.removeIf(e -> e.getHandlerPC() == guardedHandler || e.getHandlerPC() == cleanupHandler);
         method.getTryResources().add(new int[] {resourceIndex, declarationOffset, guarded.getHandlerPC()});
         return true;
+    }
+
+    /** A resource is closed on the normal exits of the body too: a handler closing it on failure only is the user's. */
+    private static boolean hasExitCleanup(ConstantPool cp, List<Instruction> list, CodeException guarded, int firstBodyIndex,
+            int resourceIndex, int declarationOffset) {
+        for (int i = firstBodyIndex; i < list.size(); i++) {
+            Instruction instruction = list.get(i);
+            if (instruction.getOffset() < guarded.getHandlerPC() && closedResource(cp, instruction) == resourceIndex
+                    && isExitCleanup(list, i, guarded.getHandlerPC(), declarationOffset)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** The compiler leaves the calls of close() on the exits of the body out of the ranges its handler protects. */
