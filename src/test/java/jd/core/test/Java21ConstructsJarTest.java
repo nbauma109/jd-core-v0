@@ -466,4 +466,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("FortyFifth.R(java.util.List<String> xs)") || output.contains("FortyFifth.R(List<String> xs)"));
         }
     }
+
+    @Test
+    public void nullInitializerIsNotTypedWithVar() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("FortySixth", new ZipLoader(in));
+            assertFalse(output, output.contains("var value"));
+            assertFalse(output, output.contains("static record R"));
+        }
+    }
 }

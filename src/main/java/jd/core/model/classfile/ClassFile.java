@@ -345,7 +345,27 @@ public class ClassFile extends Base
                 this.thisClassName.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR) + 1);
         return !simpleName.equals(TypeNameUtil.localTypeSimpleName(simpleName))
                 && ((getAccessFlags() & (Const.ACC_ENUM | Const.ACC_INTERFACE)) != 0 || isRecord())
-                && isUniqueLocalTypeName(simpleName);
+                && isUniqueLocalTypeName(simpleName) && !referencesOtherLocalType();
+    }
+
+    /** A member cannot name a type local to a method: the types the local one refers to must stay reachable. */
+    private boolean referencesOtherLocalType()
+    {
+        ConstantPool constants = getConstantPool();
+        for (int i = 1; i < constants.size(); i++) {
+            if (constants.get(i) instanceof ConstantClass constantClass) {
+                String name = constants.getConstantUtf8(constantClass.getNameIndex());
+                if (name.charAt(0) == '[') {
+                    name = name.substring(name.indexOf('L') + 1, name.length() - 1);
+                }
+                int separator = name.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR);
+                if (!name.equals(this.thisClassName) && separator != -1 && separator + 2 < name.length()
+                        && Character.isDigit(name.charAt(separator + 1)) && !TypeNameUtil.localTypeSimpleName(name.substring(separator + 1)).equals(name.substring(separator + 1))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /** Local types of different methods can share a name: only one of them can become a member. */

@@ -85,6 +85,7 @@ import jd.core.model.instruction.bytecode.instruction.IncInstruction;
 import jd.core.model.instruction.bytecode.instruction.IndexInstruction;
 import jd.core.model.instruction.bytecode.instruction.InitArrayInstruction;
 import jd.core.model.instruction.bytecode.instruction.InstanceOf;
+import jd.core.model.instruction.bytecode.instruction.AConstNull;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNew;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
@@ -2863,6 +2864,12 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         return visit(instruction, instruction.getValue());
     }
 
+    /** 'var' needs an initializer with a type: not null, not a declaration alone. */
+    private static boolean hasInferableInitializer(FastDeclaration fd)
+    {
+        return fd.getInstruction() instanceof StoreInstruction store && !(store.getValueref() instanceof AConstNull);
+    }
+
     private int writeDeclaration(FastDeclaration fd)
     {
         int lineNumber = MinLineNumberVisitor.visit(fd);
@@ -2913,7 +2920,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                     innerClassFile.getInternalAnonymousClassName() != null)
                 {
                     if (this.classFile.getMajorVersion() >= Const.MAJOR_10
-                            && declaresOwnMembers(innerClassFile))
+                            && declaresOwnMembers(innerClassFile) && hasInferableInitializer(fd))
                     {
                         // Members not inherited can only be reached through
                         // a variable typed with the anonymous class: 'var'.
