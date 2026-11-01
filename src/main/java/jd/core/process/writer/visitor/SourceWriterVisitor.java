@@ -117,6 +117,7 @@ import jd.core.process.writer.EnumSwitchNameResolver;
 import jd.core.process.writer.EnumSwitchNameResolver.EnumSwitchNames;
 import jd.core.process.writer.PatternSwitchLabelWriter;
 import jd.core.process.writer.SignatureWriter;
+import jd.core.process.analyzer.instruction.fast.visitor.CheckLocalVariableUsedVisitor;
 import jd.core.process.writer.SourceWriteable;
 import jd.core.util.SignatureUtil;
 import jd.core.util.StringUtil;
@@ -141,6 +142,8 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
     private int lastOffset;
     private int previousOffset;
     private final TypeMaker typeMaker;
+
+    private java.util.List<Instruction> fastNodes;
 
     public SourceWriterVisitor(
         Loader loader,
@@ -180,6 +183,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
             this.methodAccessFlags = method.getAccessFlags();
             this.localVariables = method.getLocalVariables();
         }
+        this.fastNodes = method == null ? null : method.getFastNodes();
     }
 
     public int visit(Instruction instruction)
@@ -2864,10 +2868,20 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
         return visit(instruction, instruction.getValue());
     }
 
-    /** 'var' needs an initializer with a type: not null, not a declaration alone. */
-    private static boolean hasInferableInitializer(FastDeclaration fd)
+    /** 'var' needs an initializer with a type, and the variable can be assigned nothing of another anonymous type. */
+    private boolean hasInferableInitializer(FastDeclaration fd, LocalVariable lv)
     {
-        return fd.getInstruction() instanceof StoreInstruction store && !(store.getValueref() instanceof AConstNull);
+        if (!(fd.getInstruction() instanceof StoreInstruction declaration) || declaration.getValueref() instanceof AConstNull
+            || this.fastNodes == null) {
+            return false;
+        }
+        for (Instruction node : this.fastNodes) {
+            if (CheckLocalVariableUsedVisitor.visit(other -> other instanceof StoreInstruction store && store != declaration
+                    && store.getIndex() == lv.getIndex(), node)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private int writeDeclaration(FastDeclaration fd)
@@ -2920,7 +2934,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
                     innerClassFile.getInternalAnonymousClassName() != null)
                 {
                     if (this.classFile.getMajorVersion() >= Const.MAJOR_10
-                            && declaresOwnMembers(innerClassFile) && hasInferableInitializer(fd))
+                            && declaresOwnMembers(innerClassFile) && hasInferableInitializer(fd, lv))
                     {
                         // Members not inherited can only be reached through
                         // a variable typed with the anonymous class: 'var'.

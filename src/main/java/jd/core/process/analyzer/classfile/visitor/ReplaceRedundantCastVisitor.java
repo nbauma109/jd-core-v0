@@ -194,12 +194,11 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
         }
         Type selected = selectedType(parent);
         boolean dependent = selected == null || dependsOnTypeVariable(selected);
-        boolean chained = parentOf.get(parent) instanceof ObjectrefAttribute holder && holder.getObjectref() == parent;
         if (parent instanceof PutField write && dependent && !assignsSameType(write, selected)) {
             return true;
         }
         // A raw receiver erases the generic types of the members it has: they are not the ones the value must fit
-        if (isParameterized(selected) && (dependent || !chained && !fitsDestination(parent, parentOf.get(parent), selected))) {
+        if (isParameterized(selected) && (dependent || !fitsDestination(parent, parentOf.get(parent), selected))) {
             return true;
         }
         return dependent && (callArguments.contains(parent) ? callIsOverloaded(parent) : isTypeSensitive(parent, parentOf.get(parent)));

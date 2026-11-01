@@ -414,8 +414,8 @@
 /* 414 */         int pos; int ipos = pos = Macro.ND_order((ST_Agnode_s)Macro.GD_rankleader(subg).get_(r));
 /* 415 */         make_slots(root, r, pos, d);
 /* 416 */         for (int i = 0; i < Macro.GD_rank(subg).get__(r).n; i++) {
-/* 417 */           ST_Agnode_s v = (ST_Agnode_s)Macro.GD_rank(subg).get__(r).v.get_(i);
-/* 418 */           Macro.GD_rank(root).get__(r).v.set_(pos, v);
+/* 417 */           ST_Agnode_s v = (ST_Agnode_s)((ST_rank_t)Macro.GD_rank(subg).get__(r)).v.get_(i);
+/* 418 */           ((ST_rank_t)Macro.GD_rank(root).get__(r)).v.set_(pos, v);
 /* 419 */           Macro.ND_order(v, pos++);
 /*     */           
 /* 421 */           if (Macro.ND_node_type(v) == 1)
@@ -424,7 +424,7 @@
 /* 424 */           fastgr__c.fast_node(root, v);
 /* 425 */           Macro.GD_n_nodes(root, Macro.GD_n_nodes(root) + 1);
 /*     */         }
-/* 427 */         Macro.GD_rank(subg).get__(r).v = Macro.GD_rank(root).get__(r).v.plus_(ipos);
+/* 427 */         Macro.GD_rank(subg).get__(r).v = ((ST_rank_t)Macro.GD_rank(root).get__(r)).v.plus_(ipos);
 /* 428 */         Macro.GD_rank(root).get__(r).valid = 0;
 /*     */       }
 /* 430 */       if (r < Macro.GD_maxrank(root))

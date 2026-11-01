@@ -16,11 +16,14 @@ package jd.core.process.analyzer.classfile.reconstructor;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.JavaClass;
 import org.apache.bcel.classfile.PermittedSubclasses;
 import org.jd.core.v1.api.loader.Loader;
 import org.jd.core.v1.util.StringConstants;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -404,7 +407,7 @@ public final class PatternSwitchReconstructor {
             List<Instruction> instructions = pairs[i].getInstructions();
             // The compiler puts the default it adds first; the default of the user, after the patterns, is kept
             if (i == 0 && pairs[i].isDefault() && instructions != null && instructions.size() == 1
-                    && isSealedOrEnum(classFile, selector.getReturnedSignature(classFile, localVariables))
+                    && coversSelector(classFile, selector.getReturnedSignature(classFile, localVariables), selector, pairs)
                     && instructions.get(0) instanceof AThrow thrown && thrown.getValueref() instanceof InvokeNew created
                     && created.getArgs().stream().allMatch(AConstNull.class::isInstance)
                     && "java/lang/MatchException".equals(cp.getConstantClassName(cp.getConstantMethodref(created.getIndex()).getClassIndex()))) {
@@ -418,8 +421,12 @@ public final class PatternSwitchReconstructor {
         return false;
     }
 
-    /** Only the switch over a sealed type or an enum is made exhaustive by the compiler: elsewhere the default is the user's. */
-    private static boolean isSealedOrEnum(ClassFile classFile, String signature) {
+    /**
+     * The compiler adds the default only to a switch over a sealed type or an enum whose labels cover it:
+     * a default thrown by the user in front of labels that do not is the user's own.
+     */
+    private static boolean coversSelector(ClassFile classFile, String signature, PatternSwitchSelector selector,
+            FastSwitch.Pair[] pairs) {
         if (signature == null || !signature.startsWith("L")) {
             return false;
         }
@@ -432,7 +439,34 @@ public final class PatternSwitchReconstructor {
             }
             JavaClass selectorType = new ClassParser(new ByteArrayInputStream(loader.load(name + StringConstants.CLASS_FILE_SUFFIX)),
                     name).parse();
-            return selectorType.isEnum() || java.util.Arrays.stream(selectorType.getAttributes()).anyMatch(PermittedSubclasses.class::isInstance);
+            ConstantPool cp = classFile.getConstantPool();
+            Set<String> classLabels = new HashSet<>();
+            int constantLabels = 0;
+            for (FastSwitch.Pair pair : pairs) {
+                int index = pair.isDefault() ? -1 : selector.getLabelConstantIndex(pair.getKey());
+                if (index >= 0 && cp.get(index) instanceof ConstantClass) {
+                    classLabels.add(cp.getConstantClassName(index));
+                } else if (index >= 0 && cp.get(index) instanceof org.apache.bcel.classfile.ConstantString) {
+                    constantLabels++;
+                }
+            }
+            if (selectorType.isEnum()) {
+                long constants = java.util.Arrays.stream(selectorType.getFields()).filter(field -> field.isEnum()).count();
+                return constantLabels >= constants;
+            }
+            for (var attribute : selectorType.getAttributes()) {
+                if (attribute instanceof PermittedSubclasses permitted) {
+                    for (int classIndex : permitted.getClasses()) {
+                        String permittedName = selectorType.getConstantPool().getConstantString(classIndex,
+                                org.apache.bcel.Const.CONSTANT_Class).replace('.', '/');
+                        if (!classLabels.contains(permittedName)) {
+                            return false;
+                        }
+                    }
+                    return true;
+                }
+            }
+            return false;
         } catch (IOException e) {
             return false;
         }

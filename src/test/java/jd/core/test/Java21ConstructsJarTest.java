@@ -475,4 +475,14 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output, output.contains("static record R"));
         }
     }
+
+    @Test
+    public void chainedParameterizedResultsReassignedLocalsAndUserDefaults() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("FortySeventh", new ZipLoader(in));
+            assertTrue(output, output.contains("((FortySeventh.Box)c.get()).fixed().get(0)"));
+            assertFalse(output, output.contains("var v"));
+            assertTrue(output, output.contains("throw new MatchException(null, null)"));
+        }
+    }
 }
