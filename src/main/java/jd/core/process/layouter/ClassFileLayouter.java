@@ -34,6 +34,7 @@ import java.util.Set;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
+import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
 import jd.core.model.instruction.bytecode.instruction.PutField;
 import jd.core.model.classfile.Field;
 import jd.core.model.classfile.Field.ValueAndMethod;
@@ -665,6 +666,14 @@ public final class ClassFileLayouter {
     // The constructor of an anonymous class cannot be written, but the
     // statements left once the super constructor call has been removed
     // come from an instance initializer block that must not be lost.
+    /** Only a constructor call left in the code is not an initializer: super.touch() is a statement of the block. */
+    private static boolean isConstructorCall(ConstantPool constants, InvokeNoStaticInstruction call)
+    {
+        ConstantNameAndType nameAndType = constants.getConstantNameAndType(
+            constants.getConstantMethodref(call.getIndex()).getNameAndTypeIndex());
+        return StringConstants.INSTANCE_CONSTRUCTOR.equals(constants.getConstantUtf8(nameAndType.getNameIndex()));
+    }
+
     private static boolean hasInstanceInitializerCode(ClassFile classFile, Method method)
     {
         ConstantPool constants = classFile.getConstantPool();
@@ -673,7 +682,8 @@ public final class ClassFileLayouter {
             return false;
         }
         for (Instruction instruction : list) {
-            if (instruction.getOpcode() == Const.INVOKESPECIAL) {
+            if (instruction instanceof InvokeNoStaticInstruction call && instruction.getOpcode() == Const.INVOKESPECIAL
+                    && isConstructorCall(constants, call)) {
                 return false;
             }
             if (instruction instanceof PutField putField) {

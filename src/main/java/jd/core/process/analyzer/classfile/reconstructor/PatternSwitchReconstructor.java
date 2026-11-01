@@ -14,6 +14,13 @@
  ******************************************************************************/
 package jd.core.process.analyzer.classfile.reconstructor;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import org.apache.bcel.classfile.ClassParser;
+import org.apache.bcel.classfile.JavaClass;
+import org.apache.bcel.classfile.PermittedSubclasses;
+import org.jd.core.v1.api.loader.Loader;
+import org.jd.core.v1.util.StringConstants;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
@@ -243,7 +250,7 @@ public final class PatternSwitchReconstructor {
     private static void process(ClassFile classFile, Method method, LocalVariables localVariables, List<Instruction> fastList,
             FastSwitch fs, PatternSwitchSelector selector) {
         fs.setPatternSelector(selector);
-        boolean exhaustive = removeMatchExceptionDefault(classFile, fs);
+        boolean exhaustive = removeMatchExceptionDefault(classFile, localVariables, fs, selector);
         moveTrailingCode(fastList, fs);
         labelTotalPattern(classFile, fs, selector);
         for (FastSwitch.Pair pair : fs.getPairs()) {
@@ -327,18 +334,38 @@ public final class PatternSwitchReconstructor {
 
     /** A case leaving the switch shares the code after it with the last case: it does not belong to the last one. */
     private static boolean hasBreak(FastSwitch.Pair[] pairs) {
-        SearchInstructionByTypeVisitor<FastInstruction> visitor = new SearchInstructionByTypeVisitor<>(FastInstruction.class,
-                jump -> jump.getOpcode() == FastConstants.GOTO_BREAK || jump.getOpcode() == FastConstants.IF_BREAK);
         for (FastSwitch.Pair pair : pairs) {
             if (pair.getInstructions() != null) {
                 for (Instruction instruction : pair.getInstructions()) {
-                    if (visitor.visit(instruction) != null) {
+                    if (leavesSwitch(instruction)) {
                         return true;
                     }
                 }
             }
         }
         return false;
+    }
+
+    /** The breaks of a loop or of a switch inside a case leave that statement, not the switch of the cases. */
+    private static boolean leavesSwitch(Instruction labeled) {
+        Instruction instruction = labeled instanceof FastLabel label && label.getInstruction() != null
+                ? label.getInstruction() : labeled;
+        switch (instruction.getOpcode()) {
+        case FastConstants.GOTO_BREAK, FastConstants.IF_BREAK:
+            return true;
+        case FastConstants.WHILE, FastConstants.DO_WHILE, FastConstants.INFINITE_LOOP, FastConstants.FOR, FastConstants.FOREACH,
+             FastConstants.SWITCH, FastConstants.SWITCH_ENUM, FastConstants.SWITCH_STRING:
+            return false;
+        default:
+            for (List<Instruction> nested : TryWithResourcesReconstructor.nestedLists(instruction)) {
+                for (Instruction inner : nested) {
+                    if (leavesSwitch(inner)) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
     }
 
     private static boolean isStatement(List<Instruction> fastList, FastSwitch fs) {
@@ -370,13 +397,15 @@ public final class PatternSwitchReconstructor {
     }
 
     /** An exhaustive switch gets a default case throwing MatchException, which source code does not have. */
-    private static boolean removeMatchExceptionDefault(ClassFile classFile, FastSwitch fs) {
+    private static boolean removeMatchExceptionDefault(ClassFile classFile, LocalVariables localVariables, FastSwitch fs,
+            PatternSwitchSelector selector) {
         ConstantPool cp = classFile.getConstantPool();
         FastSwitch.Pair[] pairs = fs.getPairs();
         for (int i = 0; i < pairs.length; i++) {
             List<Instruction> instructions = pairs[i].getInstructions();
             // The compiler puts the default it adds first; the default of the user, after the patterns, is kept
             if (i == 0 && pairs[i].isDefault() && instructions != null && instructions.size() == 1
+                    && isSealedOrEnum(classFile, selector.getReturnedSignature(classFile, localVariables))
                     && instructions.get(0) instanceof AThrow thrown && thrown.getValueref() instanceof InvokeNew created
                     && created.getArgs().stream().allMatch(AConstNull.class::isInstance)
                     && "java/lang/MatchException".equals(cp.getConstantClassName(cp.getConstantMethodref(created.getIndex()).getClassIndex()))) {
@@ -388,6 +417,26 @@ public final class PatternSwitchReconstructor {
             }
         }
         return false;
+    }
+
+    /** Only the switch over a sealed type or an enum is made exhaustive by the compiler: elsewhere the default is the user's. */
+    private static boolean isSealedOrEnum(ClassFile classFile, String signature) {
+        if (signature == null || !signature.startsWith("L")) {
+            return false;
+        }
+        int end = signature.indexOf('<') == -1 ? signature.length() - 1 : signature.indexOf('<');
+        String name = signature.substring(1, end);
+        Loader loader = classFile.getLoader();
+        try {
+            if (loader == null || !loader.canLoad(name + StringConstants.CLASS_FILE_SUFFIX)) {
+                return false;
+            }
+            JavaClass selectorType = new ClassParser(new ByteArrayInputStream(loader.load(name + StringConstants.CLASS_FILE_SUFFIX)),
+                    name).parse();
+            return selectorType.isEnum() || java.util.Arrays.stream(selectorType.getAttributes()).anyMatch(PermittedSubclasses.class::isInstance);
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     private static LocalVariable bindingOf(LocalVariables localVariables, Instruction first, PatternSwitchSelector selector) {

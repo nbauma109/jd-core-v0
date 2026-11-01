@@ -299,7 +299,7 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
     public void siblingRedeclarationsChainedCastsAndGenericBindings() throws IOException {
         try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
             String output = decompile("TwentySixth", new ZipLoader(in));
-            assertEquals(output, 2, output.split("TwentySixth.R r = new TwentySixth.R\\(\\);", -1).length - 1);
+            assertTrue(output, output.contains("TwentySixth.R r; if (b)"));
             assertTrue(output, output.contains("((TwentySixth.Box)c.get()).get().toString()"));
             assertTrue(output, output.contains("instanceof ArrayList<String> a"));
         }
@@ -400,6 +400,18 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             String output = decompile("ThirtyEighth", new ZipLoader(in));
             assertTrue(output, output.contains("((ThirtyEighth.Box)c.get()).m("));
             assertFalse(output, output.contains("instanceof String s"));
+        }
+    }
+
+    @Test
+    public void copilotReportedShapes() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("ThirtyNinth", new ZipLoader(in));
+            assertTrue(output, output.contains("case String s:"));
+            assertTrue(output, output.contains("ThirtyNinth.Res r;"));
+            assertTrue(output, output.contains("((ThirtyNinth.Box)c.get()).names()"));
+            assertTrue(output, output.contains("((ThirtyNinth.Box)c.get()).value = Integer.valueOf(7)"));
+            assertTrue(output, output.contains("super.touch()"));
         }
     }
 }

@@ -33,6 +33,7 @@ import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.ALoad;
 import jd.core.model.instruction.bytecode.instruction.AStore;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
+import jd.core.process.analyzer.instruction.fast.visitor.CheckLocalVariableUsedVisitor;
 import jd.core.model.instruction.bytecode.instruction.AThrow;
 import jd.core.model.instruction.bytecode.instruction.ExceptionLoad;
 import jd.core.model.instruction.bytecode.instruction.Goto;
@@ -289,12 +290,12 @@ public final class TryWithResourcesReconstructor {
             LocalVariables localVariables = method.getLocalVariables();
             LocalVariable lv = localVariables == null ? null
                     : localVariables.getLocalVariableWithIndexAndOffset(resource[0], resource[1]);
+            removeHoistedDeclarations(fastList, lv);
             if (wrap(localVariables, fastList, resource)) {
                 wrapped.add(lv);
             } else {
                 missing.add(lv);
             }
-            removeHoistedDeclarations(fastList, lv);
         }
         // The code of a 'finally' block is compiled twice: the copy that was dropped has no declaration
         return missing.stream().allMatch(lv -> lv != null && wrapped.stream().anyMatch(other -> other != null
@@ -360,8 +361,8 @@ public final class TryWithResourcesReconstructor {
     /**
      * Another variable declared after the statement may have the same slot, name and type as the resource: the
      * analysis took its declaration for an assignment, which was right as long as the resource was in scope.
-     *
-     * Sibling scopes are restored independently of each other.
+     * Its declaration goes back to the first statement using it: the store itself, or just before the statement
+     * holding all the uses of the scopes below.
      */
     private static void restoreLaterDeclaration(LocalVariables localVariables, List<Instruction> list, LocalVariable resource) {
         for (int i = 0; i < list.size(); i++) {
@@ -377,11 +378,33 @@ public final class TryWithResourcesReconstructor {
                     list.set(i, new FastDeclaration(store.getOffset(), store.getLineNumber(), lv, store));
                     return;
                 }
-            }
-            for (List<Instruction> nested : nestedLists(instruction)) {
-                restoreLaterDeclaration(localVariables, nested, resource);
+            } else {
+                LocalVariable used = usedInNestedScope(localVariables, instruction, resource);
+                if (used != null) {
+                    used.setDeclarationFlag(true);
+                    list.add(i, new FastDeclaration(used.getStartPc(), Instruction.UNKNOWN_LINE_NUMBER, used, null));
+                    return;
+                }
             }
         }
+    }
+
+    private static LocalVariable usedInNestedScope(LocalVariables localVariables, Instruction instruction, LocalVariable resource) {
+        LocalVariable[] found = new LocalVariable[1];
+        for (List<Instruction> nested : nestedLists(instruction)) {
+            for (Instruction inner : nested) {
+                CheckLocalVariableUsedVisitor.visit(candidate -> {
+                    if (candidate.getIndex() == resource.getIndex() && found[0] == null) {
+                        LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(candidate.getIndex(), candidate.getOffset());
+                        if (lv != null && sameVariable(lv, resource)) {
+                            found[0] = lv;
+                        }
+                    }
+                    return found[0] != null;
+                }, inner);
+            }
+        }
+        return found[0];
     }
 
     /** The declaration of the resource, even if the analysis left it as a plain store. */
@@ -401,7 +424,7 @@ public final class TryWithResourcesReconstructor {
         return null;
     }
 
-    private static List<List<Instruction>> nestedLists(Instruction instruction) {
+    static List<List<Instruction>> nestedLists(Instruction instruction) {
         List<List<Instruction>> lists = new ArrayList<>();
         if (instruction instanceof FastLabel label && label.getInstruction() != null) {
             lists.addAll(nestedLists(label.getInstruction()));

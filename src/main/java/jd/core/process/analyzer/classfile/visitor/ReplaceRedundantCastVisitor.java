@@ -44,6 +44,7 @@ import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker.Typ
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
+import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.instruction.bytecode.instruction.AConstNull;
 import jd.core.model.instruction.bytecode.instruction.ArrayInstruction;
@@ -57,6 +58,8 @@ import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.GetField;
 import jd.core.model.instruction.bytecode.instruction.InvokeInstruction;
+import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
+import jd.core.model.instruction.bytecode.instruction.PutField;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
 import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
 import jd.core.process.analyzer.instruction.fast.visitor.AbstractReplaceInstructionVisitor;
@@ -149,8 +152,12 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
         }
 
         Type selected = selectedType(parent);
-        if ((selected == null || dependsOnTypeVariable(selected))
-            && (isParameterized(selected) || (callArguments.contains(parent) ? callIsOverloaded(parent) : isTypeSensitive(parent, parentOf.get(parent))))) {
+        boolean dependent = selected == null || dependsOnTypeVariable(selected);
+        boolean chained = parentOf.get(parent) instanceof ObjectrefAttribute holder && holder.getObjectref() == parent;
+        if (parent instanceof PutField write && dependent && !assignsSameType(write, selected)
+            // A raw receiver erases the generic types of the members it has: they are not the ones the value must fit
+            || isParameterized(selected) && (dependent || !chained && !fitsDestination(parent, parentOf.get(parent), selected))
+            || dependent && (callArguments.contains(parent) ? callIsOverloaded(parent) : isTypeSensitive(parent, parentOf.get(parent)))) {
             return false;
         }
 
@@ -158,6 +165,35 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
         return argument instanceof ObjectType argumentType && argumentType.getDimension() == 0
             && argumentType.getInternalName().equals(constants.getConstantClassName(cast.getIndex()))
             && (argumentType.getTypeArguments() == null || acceptsAnyArgument(parent));
+    }
+
+    /** The value written to a field typed after the receiver has the type of the field as declared. */
+    private boolean assignsSameType(PutField write, Type selected)
+    {
+        String signature = selected == null ? null : write.getValueref().getReturnedSignature(classFile, localVariables);
+        if (signature == null) {
+            return false;
+        }
+        Type value = typeMaker.makeFromSignature(signature);
+        // A raw value converts to any parameterization; the arguments of a call result are those of its own receiver
+        return selected.equals(value)
+            || value instanceof ObjectType other && selected instanceof ObjectType parameterized
+                && other.getInternalName().equals(parameterized.getInternalName())
+                && (other.getTypeArguments() == null || other.getTypeArguments() instanceof GenericType);
+    }
+
+    /** A parameterized result is safe where the variable receiving it is declared with the very same type. */
+    private boolean fitsDestination(Instruction parent, Instruction context, Type selected)
+    {
+        if (parent instanceof PutField write) {
+            return assignsSameType(write, selected);
+        }
+        if (selected == null || !(context instanceof StoreInstruction store)) {
+            return false;
+        }
+        LocalVariable lv = localVariables.getLocalVariableForStoreInstruction(store);
+        return lv != null && lv.getSignatureIndex() > 0
+            && selected.equals(typeMaker.makeFromSignature(lv.getSignature(classFile.getConstantPool())));
     }
 
     /** Operators and tests whose operand type must be compatible with the other operand or the tested type. */
