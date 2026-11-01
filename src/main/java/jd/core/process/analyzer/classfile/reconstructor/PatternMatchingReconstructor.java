@@ -86,7 +86,7 @@ public final class PatternMatchingReconstructor {
                     && !readsRecordComponents(classFile, list, i + 2, store.getIndex())) {
                 LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(store.getIndex(), store.getOffset());
                 if (lv != null && declaredBy(method, lv, store) && !isStoredElsewhere(method, list, store, lv)
-                        && hasPatternType(classFile, lv, instanceOf)) {
+                        && hasPatternType(classFile, method, lv, instanceOf)) {
                     instanceOf.setPatternVariable(lv);
                     markBinding(classFile, method, lv);
                     list.remove(i + 1);
@@ -185,11 +185,19 @@ public final class PatternMatchingReconstructor {
     }
 
     /** The variable has the type of the pattern: a wider declared type would change the type of its uses. */
-    private static boolean hasPatternType(ClassFile classFile, LocalVariable lv, InstanceOf instanceOf) {
+    private static boolean hasPatternType(ClassFile classFile, Method method, LocalVariable lv, InstanceOf instanceOf) {
         ConstantPool cp = classFile.getConstantPool();
         String name = cp.getConstantClassName(instanceOf.getIndex());
         String signature = lv.getSignature(cp);
-        return signature != null && (signature.equals(name) || signature.equals("L" + name + ";") || signature.startsWith("L" + name + "<"));
+        if (signature == null) {
+            return false;
+        }
+        if (signature.equals(name) || signature.equals("L" + name + ";")) {
+            return true;
+        }
+        // A parameterized pattern must be a checked cast of the tested value: an unchecked one stays a separate cast
+        String tested = instanceOf.getObjectref().getReturnedSignature(classFile, method.getLocalVariables());
+        return signature.startsWith("L" + name + "<") && tested != null && tested.indexOf('<') != -1;
     }
 
     /** A variable also assigned elsewhere is shared by several branches: it is not a pattern variable. */

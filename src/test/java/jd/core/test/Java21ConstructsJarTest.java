@@ -430,4 +430,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("((FortyFirst.Box)c.get()).exception()"));
         }
     }
+
+    @Test
+    public void uncheckedCastIsNotAParameterizedPattern() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("FortySecond", new ZipLoader(in));
+            assertFalse(output, output.contains("instanceof List<String>"));
+            assertTrue(output, output.contains("List<String> xs = (List)o;"));
+        }
+    }
 }
