@@ -161,9 +161,36 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
             && (argumentType.getTypeArguments() == null || acceptsAnyArgument(parent));
     }
 
+    /** The checked exceptions of a member declared with the type variables of the receiver depend on its type arguments. */
+    private boolean throwsTypeVariable(Instruction parent)
+    {
+        if (!(parent instanceof InvokeNoStaticInstruction call)) {
+            return false;
+        }
+        ConstantPool constants = classFile.getConstantPool();
+        ConstantCP methodref = constants.getConstantMethodref(call.getIndex());
+        ConstantNameAndType nameAndType = constants.getConstantNameAndType(methodref.getNameAndTypeIndex());
+        MethodTypes types = typeMaker.makeMethodTypes(constants.getConstantClassName(methodref.getClassIndex()),
+            constants.getConstantUtf8(nameAndType.getNameIndex()), constants.getConstantUtf8(nameAndType.getSignatureIndex()));
+        if (types == null) {
+            return true;
+        }
+        if (types.getExceptionTypes() != null) {
+            for (Type thrown : types.getExceptionTypes()) {
+                if (thrown instanceof GenericType) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     /** Removing the raw cast would change the type of the selected member where it is used. */
     private boolean keepsRawCast(Instruction parent)
     {
+        if (throwsTypeVariable(parent)) {
+            return true;
+        }
         Type selected = selectedType(parent);
         boolean dependent = selected == null || dependsOnTypeVariable(selected);
         boolean chained = parentOf.get(parent) instanceof ObjectrefAttribute holder && holder.getObjectref() == parent;

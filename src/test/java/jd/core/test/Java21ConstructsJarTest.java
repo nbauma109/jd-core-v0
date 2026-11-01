@@ -414,4 +414,12 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("super.touch()"));
         }
     }
+
+    @Test
+    public void rawCastBeforeMemberThrowingTypeVariableIsKept() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Fortieth", new ZipLoader(in));
+            assertTrue(output, output.contains("((Fortieth.Box)c.get()).run()"));
+        }
+    }
 }
