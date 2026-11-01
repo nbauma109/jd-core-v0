@@ -422,4 +422,12 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("((Fortieth.Box)c.get()).run()"));
         }
     }
+
+    @Test
+    public void rawCastBeforeThrownResultIsKept() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("FortyFirst", new ZipLoader(in));
+            assertTrue(output, output.contains("((FortyFirst.Box)c.get()).exception()"));
+        }
+    }
 }
