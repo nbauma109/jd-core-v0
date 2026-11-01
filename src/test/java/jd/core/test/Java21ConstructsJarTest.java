@@ -393,4 +393,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("((ThirtySeventh.Box)c.get()).array()[0]"));
         }
     }
+
+    @Test
+    public void overloadedNullCallsAndWiderLocalsAreKept() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("ThirtyEighth", new ZipLoader(in));
+            assertTrue(output, output.contains("((ThirtyEighth.Box)c.get()).m("));
+            assertFalse(output, output.contains("instanceof String s"));
+        }
+    }
 }

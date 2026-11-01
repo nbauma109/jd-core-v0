@@ -173,7 +173,11 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
     /** Whether the call receiving the argument is generic or has an overload with as many parameters. */
     private boolean callIsOverloaded(Instruction argument)
     {
-        InvokeInstruction call = callOfArgument.get(argument);
+        return isGenericOrOverloaded(callOfArgument.get(argument));
+    }
+
+    private boolean isGenericOrOverloaded(InvokeInstruction call)
+    {
         ConstantPool constants = classFile.getConstantPool();
         ConstantCP methodref = constants.getConstantMethodref(call.getIndex());
         ConstantNameAndType nameAndType = constants.getConstantNameAndType(methodref.getNameAndTypeIndex());
@@ -292,10 +296,10 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
     }
 
     /** The raw cast of a parameterized type can be what makes the arguments of the call acceptable: it is kept unless they are null. */
-    private static boolean acceptsAnyArgument(Instruction parent)
+    private boolean acceptsAnyArgument(Instruction parent)
     {
         return !(parent instanceof InvokeNoStaticInstruction call)
-            || call.getArgs().stream().allMatch(AConstNull.class::isInstance);
+            || call.getArgs().stream().allMatch(AConstNull.class::isInstance) && !isGenericOrOverloaded(call);
     }
 
     private TypeArgument typeArgument(String owner, String typeParameterName, BaseTypeArgument arguments)

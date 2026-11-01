@@ -85,7 +85,8 @@ public final class PatternMatchingReconstructor {
                     && test.getJumpOffset() > store.getOffset()
                     && !readsRecordComponents(classFile, list, i + 2, store.getIndex())) {
                 LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(store.getIndex(), store.getOffset());
-                if (lv != null && declaredBy(method, lv, store) && !isStoredElsewhere(method, list, store, lv)) {
+                if (lv != null && declaredBy(method, lv, store) && !isStoredElsewhere(method, list, store, lv)
+                        && hasPatternType(classFile, lv, instanceOf)) {
                     instanceOf.setPatternVariable(lv);
                     markBinding(classFile, method, lv);
                     list.remove(i + 1);
@@ -181,6 +182,14 @@ public final class PatternMatchingReconstructor {
         }
         method.getRecordAccessOffsets().addAll(accessOffsets);
         return end;
+    }
+
+    /** The variable has the type of the pattern: a wider declared type would change the type of its uses. */
+    private static boolean hasPatternType(ClassFile classFile, LocalVariable lv, InstanceOf instanceOf) {
+        ConstantPool cp = classFile.getConstantPool();
+        String name = cp.getConstantClassName(instanceOf.getIndex());
+        String signature = lv.getSignature(cp);
+        return signature != null && (signature.equals(name) || signature.equals("L" + name + ";") || signature.startsWith("L" + name + "<"));
     }
 
     /** A variable also assigned elsewhere is shared by several branches: it is not a pattern variable. */
