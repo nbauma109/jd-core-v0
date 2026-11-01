@@ -351,10 +351,10 @@ public class ClassFile extends Base
     /** A member cannot name a type local to a method: the types the local one refers to must stay reachable. */
     private boolean referencesOtherLocalType()
     {
-        ConstantPool constants = getConstantPool();
-        for (int i = 1; i < constants.size(); i++) {
-            if (constants.get(i) instanceof ConstantClass constantClass) {
-                String name = constants.getConstantUtf8(constantClass.getNameIndex());
+        ConstantPool pool = getConstantPool();
+        for (int i = 1; i < pool.size(); i++) {
+            if (pool.get(i) instanceof ConstantClass constantClass) {
+                String name = pool.getConstantUtf8(constantClass.getNameIndex());
                 if (name.charAt(0) == '[') {
                     name = name.substring(name.indexOf('L') + 1, name.length() - 1);
                 }
