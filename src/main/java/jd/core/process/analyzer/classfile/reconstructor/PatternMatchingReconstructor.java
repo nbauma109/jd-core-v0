@@ -19,6 +19,8 @@ import java.util.List;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.CodeException;
+import org.jd.core.v1.model.javasyntax.type.ObjectType;
+import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
 import org.apache.bcel.classfile.ConstantCP;
 
 import jd.core.model.classfile.ClassFile;
@@ -197,7 +199,14 @@ public final class PatternMatchingReconstructor {
         }
         // A parameterized pattern must be a checked cast of the tested value: an unchecked one stays a separate cast
         String tested = instanceOf.getObjectref().getReturnedSignature(classFile, method.getLocalVariables());
-        return signature.startsWith("L" + name + "<") && tested != null && tested.indexOf('<') != -1;
+        if (!signature.startsWith("L" + name + "<") || tested == null || tested.indexOf('<') == -1) {
+            return false;
+        }
+        // The type arguments of the pattern are those of the tested value, as in List<String> to ArrayList<String>
+        TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
+        return typeMaker.makeFromSignature(signature) instanceof ObjectType bound
+            && typeMaker.makeFromSignature(tested) instanceof ObjectType testedType
+            && bound.getTypeArguments() != null && bound.getTypeArguments().equals(testedType.getTypeArguments());
     }
 
     /** A variable also assigned elsewhere is shared by several branches: it is not a pattern variable. */

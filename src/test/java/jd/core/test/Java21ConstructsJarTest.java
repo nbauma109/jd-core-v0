@@ -439,4 +439,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("List<String> xs = (List)o;"));
         }
     }
+
+    @Test
+    public void parameterizedPatternsNeedCompatibleArguments() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("FortyThird", new ZipLoader(in));
+            assertTrue(output, output.contains("ArrayList<String> xs = (ArrayList)o;"));
+            assertTrue(output, output.contains("instanceof ArrayList<String>"));
+        }
+    }
 }
