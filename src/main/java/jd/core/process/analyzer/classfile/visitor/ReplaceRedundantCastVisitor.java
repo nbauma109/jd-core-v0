@@ -151,13 +151,7 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
             return false;
         }
 
-        Type selected = selectedType(parent);
-        boolean dependent = selected == null || dependsOnTypeVariable(selected);
-        boolean chained = parentOf.get(parent) instanceof ObjectrefAttribute holder && holder.getObjectref() == parent;
-        if (parent instanceof PutField write && dependent && !assignsSameType(write, selected)
-            // A raw receiver erases the generic types of the members it has: they are not the ones the value must fit
-            || isParameterized(selected) && (dependent || !chained && !fitsDestination(parent, parentOf.get(parent), selected))
-            || dependent && (callArguments.contains(parent) ? callIsOverloaded(parent) : isTypeSensitive(parent, parentOf.get(parent)))) {
+        if (keepsRawCast(parent)) {
             return false;
         }
 
@@ -165,6 +159,22 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
         return argument instanceof ObjectType argumentType && argumentType.getDimension() == 0
             && argumentType.getInternalName().equals(constants.getConstantClassName(cast.getIndex()))
             && (argumentType.getTypeArguments() == null || acceptsAnyArgument(parent));
+    }
+
+    /** Removing the raw cast would change the type of the selected member where it is used. */
+    private boolean keepsRawCast(Instruction parent)
+    {
+        Type selected = selectedType(parent);
+        boolean dependent = selected == null || dependsOnTypeVariable(selected);
+        boolean chained = parentOf.get(parent) instanceof ObjectrefAttribute holder && holder.getObjectref() == parent;
+        if (parent instanceof PutField write && dependent && !assignsSameType(write, selected)) {
+            return true;
+        }
+        // A raw receiver erases the generic types of the members it has: they are not the ones the value must fit
+        if (isParameterized(selected) && (dependent || !chained && !fitsDestination(parent, parentOf.get(parent), selected))) {
+            return true;
+        }
+        return dependent && (callArguments.contains(parent) ? callIsOverloaded(parent) : isTypeSensitive(parent, parentOf.get(parent)));
     }
 
     /** The value written to a field typed after the receiver has the type of the field as declared. */

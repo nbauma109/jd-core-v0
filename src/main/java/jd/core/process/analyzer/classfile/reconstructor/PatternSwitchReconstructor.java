@@ -52,7 +52,6 @@ import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.attribute.ValuerefAttribute;
 import jd.core.model.instruction.fast.FastConstants;
 import jd.core.model.instruction.fast.instruction.FastDeclaration;
-import jd.core.model.instruction.fast.instruction.FastInstruction;
 import jd.core.model.instruction.fast.instruction.FastLabel;
 import jd.core.model.instruction.fast.instruction.FastList;
 import jd.core.model.instruction.fast.instruction.FastSwitch;

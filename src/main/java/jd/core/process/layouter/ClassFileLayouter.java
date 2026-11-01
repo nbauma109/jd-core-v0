@@ -650,6 +650,14 @@ public final class ClassFileLayouter {
         return sortBlocks(sortedFieldBlockList, true);
     }
 
+    /** Only a constructor call left in the code is not an initializer: super.touch() is a statement of the block. */
+    private static boolean isConstructorCall(ConstantPool constants, InvokeNoStaticInstruction call)
+    {
+        ConstantNameAndType nameAndType = constants.getConstantNameAndType(
+            constants.getConstantMethodref(call.getIndex()).getNameAndTypeIndex());
+        return StringConstants.INSTANCE_CONSTRUCTOR.equals(constants.getConstantUtf8(nameAndType.getNameIndex()));
+    }
+
     /**
      * @return liste de sequences de 'LayoutBlock'
      * Sequence produite pour chaque méthode:
@@ -666,14 +674,6 @@ public final class ClassFileLayouter {
     // The constructor of an anonymous class cannot be written, but the
     // statements left once the super constructor call has been removed
     // come from an instance initializer block that must not be lost.
-    /** Only a constructor call left in the code is not an initializer: super.touch() is a statement of the block. */
-    private static boolean isConstructorCall(ConstantPool constants, InvokeNoStaticInstruction call)
-    {
-        ConstantNameAndType nameAndType = constants.getConstantNameAndType(
-            constants.getConstantMethodref(call.getIndex()).getNameAndTypeIndex());
-        return StringConstants.INSTANCE_CONSTRUCTOR.equals(constants.getConstantUtf8(nameAndType.getNameIndex()));
-    }
-
     private static boolean hasInstanceInitializerCode(ClassFile classFile, Method method)
     {
         ConstantPool constants = classFile.getConstantPool();
