@@ -457,4 +457,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("Integer.valueOf(i)"));
         }
     }
+
+    @Test
+    public void componentPatternsKeepTheTypeOfTheComponent() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("FortyFifth", new ZipLoader(in));
+            assertFalse(output, output.contains("R(java.util.List<Integer>"));
+            assertTrue(output, output.contains("FortyFifth.R(java.util.List<String> xs)") || output.contains("FortyFifth.R(List<String> xs)"));
+        }
+    }
 }

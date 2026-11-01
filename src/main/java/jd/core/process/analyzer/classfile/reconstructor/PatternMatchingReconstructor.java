@@ -22,8 +22,10 @@ import org.apache.bcel.classfile.CodeException;
 import org.jd.core.v1.model.javasyntax.type.BaseTypeArgument;
 import org.jd.core.v1.model.javasyntax.type.GenericType;
 import org.jd.core.v1.model.javasyntax.type.TypeArgument;
+import org.jd.core.v1.model.javasyntax.type.Type;
 import org.jd.core.v1.model.javasyntax.type.ObjectType;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
+import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.ConstantCP;
 
 import jd.core.model.classfile.ClassFile;
@@ -173,7 +175,7 @@ public final class PatternMatchingReconstructor {
                 return -1;
             }
             LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(binding.getIndex(), binding.getOffset());
-            if (lv == null || !declaredBy(method, lv, binding)) {
+            if (lv == null || !declaredBy(method, lv, binding) || !bindingMatchesComponent(classFile, accessor, lv)) {
                 return -1;
             }
             bindings.add(lv);
@@ -264,6 +266,25 @@ public final class PatternMatchingReconstructor {
             }
         }
         return false;
+    }
+
+    /** A component pattern has the type of the component: an unchecked conversion of the copy cannot be written as one. */
+    private static boolean bindingMatchesComponent(ClassFile classFile, InvokeNoStaticInstruction accessor, LocalVariable binding) {
+        ConstantPool cp = classFile.getConstantPool();
+        ConstantCP methodref = cp.getConstantMethodref(accessor.getIndex());
+        ConstantNameAndType nameAndType = cp.getConstantNameAndType(methodref.getNameAndTypeIndex());
+        TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
+        var types = typeMaker.makeMethodTypes(cp.getConstantClassName(methodref.getClassIndex()),
+                cp.getConstantUtf8(nameAndType.getNameIndex()), cp.getConstantUtf8(nameAndType.getSignatureIndex()));
+        String signature = binding.getSignature(cp);
+        if (types == null || types.getReturnedType() == null || signature == null) {
+            return false;
+        }
+        Type component = types.getReturnedType();
+        Type declared = typeMaker.makeFromSignature(signature);
+        boolean parameterized = component instanceof ObjectType object && object.getTypeArguments() != null
+                || declared instanceof ObjectType other && other.getTypeArguments() != null;
+        return !parameterized || component.equals(declared);
     }
 
     /** Whether the store is the one declaring the variable, not an assignment to a variable that existed before. */
