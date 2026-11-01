@@ -19,6 +19,9 @@ import java.util.List;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.CodeException;
+import org.jd.core.v1.model.javasyntax.type.BaseTypeArgument;
+import org.jd.core.v1.model.javasyntax.type.GenericType;
+import org.jd.core.v1.model.javasyntax.type.TypeArgument;
 import org.jd.core.v1.model.javasyntax.type.ObjectType;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
 import org.apache.bcel.classfile.ConstantCP;
@@ -206,7 +209,44 @@ public final class PatternMatchingReconstructor {
         TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
         return typeMaker.makeFromSignature(signature) instanceof ObjectType bound
             && typeMaker.makeFromSignature(tested) instanceof ObjectType testedType
-            && bound.getTypeArguments() != null && bound.getTypeArguments().equals(testedType.getTypeArguments());
+            && bound.getTypeArguments() != null && bound.getTypeArguments().equals(testedType.getTypeArguments())
+            && passesArgumentsThrough(typeMaker, bound.getInternalName(), testedType.getInternalName());
+    }
+
+    /** Whether the class lists the tested one as a direct supertype with its own type parameters, in the same order. */
+    private static boolean passesArgumentsThrough(TypeMaker typeMaker, String boundName, String testedName) {
+        var typeTypes = typeMaker.makeTypeTypes(boundName);
+        if (typeTypes == null || typeTypes.getTypeParameters() == null) {
+            return false;
+        }
+        List<String> parameters = new ArrayList<>();
+        for (var parameter : typeTypes.getTypeParameters()) {
+            parameters.add(parameter.getIdentifier());
+        }
+        List<ObjectType> supertypes = new ArrayList<>();
+        if (typeTypes.getSuperType() != null) {
+            supertypes.add(typeTypes.getSuperType());
+        }
+        if (typeTypes.getInterfaces() != null) {
+            for (var implemented : typeTypes.getInterfaces()) {
+                if (implemented instanceof ObjectType type) {
+                    supertypes.add(type);
+                }
+            }
+        }
+        for (ObjectType supertype : supertypes) {
+            if (testedName.equals(supertype.getInternalName()) && supertype.getTypeArguments() != null) {
+                List<String> arguments = new ArrayList<>();
+                BaseTypeArgument typeArguments = supertype.getTypeArguments();
+                for (int i = 0; i < typeArguments.typeArgumentSize(); i++) {
+                    TypeArgument argument = typeArguments.isTypeArgumentList()
+                            ? typeArguments.getTypeArgumentList().get(i) : typeArguments.getTypeArgumentFirst();
+                    arguments.add(argument instanceof GenericType generic ? generic.getName() : null);
+                }
+                return arguments.equals(parameters);
+            }
+        }
+        return false;
     }
 
     /** A variable also assigned elsewhere is shared by several branches: it is not a pattern variable. */

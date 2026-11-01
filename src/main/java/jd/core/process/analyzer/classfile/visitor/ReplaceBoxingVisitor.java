@@ -66,11 +66,19 @@ public class ReplaceBoxingVisitor extends AbstractReplaceInstructionVisitor<Inst
     {
         if (parentFound instanceof InvokeInstruction invoke && instruction instanceof Invokestatic boxing
             && boxing.getArgs().size() == 1 && isBoxing(boxing) && !isConversion(boxing.getArgs().get(0)) && hasBoxedType(boxing) && isReferenceParameter(invoke, boxing)
-            && hasSingleCandidate(invoke))
+            && !isSignaturePolymorphic(invoke) && hasSingleCandidate(invoke))
         {
             return boxing.getArgs().get(0);
         }
         return null;
+    }
+
+    /** The call-site descriptor of MethodHandle.invokeExact is made of the types of the arguments as written. */
+    private boolean isSignaturePolymorphic(InvokeInstruction invoke)
+    {
+        ConstantPool constants = classFile.getConstantPool();
+        String owner = constants.getConstantClassName(constants.getConstantMethodref(invoke.getIndex()).getClassIndex());
+        return "java/lang/invoke/MethodHandle".equals(owner) || "java/lang/invoke/VarHandle".equals(owner);
     }
 
     /** A byte, short or char argument of Integer.valueOf is widened without any instruction: the types must be the same. */

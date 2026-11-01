@@ -448,4 +448,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("instanceof ArrayList<String>"));
         }
     }
+
+    @Test
+    public void rearrangedArgumentsAndPolymorphicCallsKeepTheirForm() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("FortyFourth", new ZipLoader(in));
+            assertFalse(output, output.contains("instanceof FortyFourth.Flip<"));
+            assertTrue(output, output.contains("Integer.valueOf(i)"));
+        }
+    }
 }
