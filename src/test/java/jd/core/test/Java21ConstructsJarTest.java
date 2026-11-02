@@ -494,4 +494,12 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("MatchException"));
         }
     }
+
+    @Test
+    public void fieldWriteOfTypeVariableListKeepsRawCast() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("FortyNinth", new ZipLoader(in));
+            assertTrue(output, output.contains("((FortyNinth.Box)c.get()).field = value"));
+        }
+    }
 }

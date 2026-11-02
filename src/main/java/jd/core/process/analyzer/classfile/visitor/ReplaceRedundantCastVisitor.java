@@ -216,7 +216,7 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
         return selected.equals(value)
             || value instanceof ObjectType other && selected instanceof ObjectType parameterized
                 && other.getInternalName().equals(parameterized.getInternalName())
-                && (other.getTypeArguments() == null || other.getTypeArguments() instanceof GenericType);
+                && (other.getTypeArguments() == null || other.getTypeArguments() instanceof GenericType && write.getValueref() instanceof InvokeInstruction);
     }
 
     /** A parameterized result is safe where the variable receiving it is declared with the very same type. */
