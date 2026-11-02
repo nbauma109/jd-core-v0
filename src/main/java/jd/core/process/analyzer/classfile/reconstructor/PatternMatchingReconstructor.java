@@ -112,6 +112,11 @@ public final class PatternMatchingReconstructor {
                 || source.getIndex() != tested.getIndex()) {
             return false;
         }
+        // The extraction runs when the test succeeds: the jump of a failing test skips it
+        IfInstruction test = (IfInstruction) list.get(ifIndex);
+        if (test.getCmp() != ByteCodeConstants.CMP_EQ || test.getJumpOffset() <= recordStore.getOffset()) {
+            return false;
+        }
         List<LocalVariable> bindings = new ArrayList<>();
         int end = collectComponents(classFile, method, list, ifIndex + 2, recordStore.getIndex(),
                 classFile.getConstantPool().getConstantClassName(instanceOf.getIndex()), bindings);

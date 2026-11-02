@@ -485,4 +485,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("throw new MatchException(null, null)"));
         }
     }
+
+    @Test
+    public void negatedTestIsNotARecordPattern() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("FortyEighth", new ZipLoader(in));
+            assertFalse(output, output.contains("instanceof FortyEighth.R(int"));
+            assertTrue(output, output.contains("MatchException"));
+        }
+    }
 }
