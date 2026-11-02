@@ -502,4 +502,12 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("((FortyNinth.Box)c.get()).field = value"));
         }
     }
+
+    @Test
+    public void extractionAfterTheBranchIsNotFolded() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Fiftieth", new ZipLoader(in));
+            assertFalse(output, output.contains("instanceof Fiftieth.R(int"));
+        }
+    }
 }

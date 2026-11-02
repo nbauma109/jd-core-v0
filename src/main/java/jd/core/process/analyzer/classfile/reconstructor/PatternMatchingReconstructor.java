@@ -121,7 +121,8 @@ public final class PatternMatchingReconstructor {
         int end = collectComponents(classFile, method, list, ifIndex + 2, recordStore.getIndex(),
                 classFile.getConstantPool().getConstantClassName(instanceOf.getIndex()), bindings);
         int bodyEnd = ((IfInstruction) list.get(ifIndex)).getJumpOffset();
-        if (end < 0 || isUsedAfter(list, end, recordStore.getIndex(), bodyEnd)
+        // The failing test must skip the whole extraction, not only the store of the record
+        if (end < 0 || bodyEnd <= list.get(end - 1).getOffset() || isUsedAfter(list, end, recordStore.getIndex(), bodyEnd)
                 || areTemporariesUsedAfter(list, end, method, bodyEnd)) {
             // The record itself is still needed: keep the ordinary type pattern
             return false;
