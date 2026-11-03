@@ -526,4 +526,17 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output, output.contains("instanceof FiftySecond.R(int"));
         }
     }
+
+    @Test
+    public void bridgesHandlesTotalPatternsAndOlderUnconditionalTests() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("FiftyThird", new ZipLoader(in));
+            assertTrue(output, output.contains("(java.util.List<S>)(java.util.List<?>)numbers()"));
+            assertTrue(output, output.contains("h.invokeExact(((FiftyThird.Box)c.get()).get())"));
+            assertTrue(output, output.contains("case CharSequence c:"));
+            assertFalse(output, output.contains("default:"));
+            String older = decompile("FiftyFourth", new ZipLoader(getClass().getResourceAsStream("/constructs-jdk21.jar")));
+            assertFalse(older, older.contains("instanceof CharSequence s"));
+        }
+    }
 }

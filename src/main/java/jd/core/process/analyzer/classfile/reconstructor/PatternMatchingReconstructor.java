@@ -202,12 +202,27 @@ public final class PatternMatchingReconstructor {
         return end;
     }
 
+    /** Before Java 21 a pattern cannot match every value of the tested type; a type variable may be bounded by the pattern type. */
+    private static boolean isUnconditionalBeforeJava21(ClassFile classFile, Method method, InstanceOf instanceOf, String name) {
+        if (classFile.getMajorVersion() >= 65) {
+            return false;
+        }
+        String tested = instanceOf.getObjectref().getReturnedSignature(classFile, method.getLocalVariables());
+        if (tested == null) {
+            return false;
+        }
+        TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
+        Type testedType = typeMaker.makeFromSignature(tested);
+        return testedType instanceof GenericType
+                || testedType instanceof ObjectType object && object.getDimension() == 0 && typeMaker.isAssignable(typeMaker.makeFromInternalTypeName(name), object);
+    }
+
     /** The variable has the type of the pattern: a wider declared type would change the type of its uses. */
     private static boolean hasPatternType(ClassFile classFile, Method method, LocalVariable lv, InstanceOf instanceOf) {
         ConstantPool cp = classFile.getConstantPool();
         String name = cp.getConstantClassName(instanceOf.getIndex());
         String signature = lv.getSignature(cp);
-        if (signature == null) {
+        if (signature == null || isUnconditionalBeforeJava21(classFile, method, instanceOf, name)) {
             return false;
         }
         if (signature.equals(name) || signature.equals("L" + name + ";")) {

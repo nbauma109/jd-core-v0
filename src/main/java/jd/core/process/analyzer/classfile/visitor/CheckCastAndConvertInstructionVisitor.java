@@ -399,7 +399,7 @@ public final class CheckCastAndConvertInstructionVisitor
                      && (typeArgsRight instanceof WildcardExtendsTypeArgument
                       || typeArgsRight instanceof WildcardSuperTypeArgument)) {
                     Instruction value = valueref;
-                    if (typeArgsLeft instanceof GenericType && hasConcreteBound(typeArgsRight)) {
+                    if (typeArgsLeft instanceof GenericType left && needsBridge(typeArgsRight, left.getName())) {
                         // The bounds of the variable are unknown: (List<T>) (List<?>) numbers()
                         int unbounded = classFile.getConstantPool().addConstantUtf8(
                                 "[".repeat(otLeft.getDimension()) + 'L' + otLeft.getInternalName() + "<*>;");
@@ -428,10 +428,12 @@ public final class CheckCastAndConvertInstructionVisitor
         }
     }
 
-    private static boolean hasConcreteBound(BaseTypeArgument wildcard)
+    /** A wildcard not bounded by the very variable of the target is cast to it through the unbounded wildcard. */
+    private static boolean needsBridge(BaseTypeArgument wildcard, String variable)
     {
-        return wildcard instanceof WildcardExtendsTypeArgument extendsBound && extendsBound.type() instanceof ObjectType
-            || wildcard instanceof WildcardSuperTypeArgument superBound && superBound.type() instanceof ObjectType;
+        TypeArgument bound = wildcard instanceof WildcardExtendsTypeArgument extendsBound ? extendsBound.type()
+            : wildcard instanceof WildcardSuperTypeArgument superBound ? superBound.type() : null;
+        return bound != null && !(bound instanceof GenericType generic && generic.getName().equals(variable));
     }
 
     private static boolean hasClassLiteralArgument(ClassFile classFile, Instruction instruction)

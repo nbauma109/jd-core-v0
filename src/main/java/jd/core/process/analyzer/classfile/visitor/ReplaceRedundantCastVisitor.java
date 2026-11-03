@@ -272,7 +272,9 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
         ConstantNameAndType nameAndType = constants.getConstantNameAndType(methodref.getNameAndTypeIndex());
         MethodTypes called = typeMaker.makeMethodTypes(constants.getConstantClassName(methodref.getClassIndex()),
             constants.getConstantUtf8(nameAndType.getNameIndex()), constants.getConstantUtf8(nameAndType.getSignatureIndex()));
-        if (called == null || called.getTypeParameters() != null) {
+        String ownerName = constants.getConstantClassName(methodref.getClassIndex());
+        if (called == null || called.getTypeParameters() != null
+            || "java/lang/invoke/MethodHandle".equals(ownerName) || "java/lang/invoke/VarHandle".equals(ownerName)) {
             // The type arguments of a generic method are inferred from its arguments
             return true;
         }
