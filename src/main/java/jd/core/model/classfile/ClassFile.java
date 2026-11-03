@@ -194,7 +194,7 @@ public class ClassFile extends Base
                 this.thisClassName.substring(index + 1);
         }
         String outerClassName = this.outerClass.getThisClassName();
-        return TypeNameUtil.localTypeSimpleName(this.thisClassName.substring(
+        return TypeNameUtil.localTypeSimpleName(this.thisClassName, this.thisClassName.substring(
             outerClassName.length() + 1));
     }
 
@@ -365,27 +365,49 @@ public class ClassFile extends Base
         return false;
     }
 
-    /** A member cannot name a type local to a method: the types the local one refers to must stay reachable. */
+    private static final ThreadLocal<Set<String>> CHECKED_LOCAL_TYPES = ThreadLocal.withInitial(HashSet::new);
+
+    /** A member cannot name a type local to a method: the types the local one refers to must become members too. */
     private boolean referencesOtherLocalType()
     {
-        ConstantPool pool = getConstantPool();
-        for (int i = 1; i < pool.size(); i++) {
-            if (pool.get(i) instanceof ConstantClass constantClass) {
-                String name = pool.getConstantUtf8(constantClass.getNameIndex());
-                if (name.charAt(0) == '[') {
-                    name = name.substring(name.indexOf('L') + 1, name.length() - 1);
-                }
-                int separator = name.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR);
-                if (!name.equals(this.thisClassName) && separator != -1 && separator + 2 < name.length()
-                        && Character.isDigit(name.charAt(separator + 1)) && !TypeNameUtil.localTypeSimpleName(name.substring(separator + 1)).equals(name.substring(separator + 1))) {
+        Set<String> checking = CHECKED_LOCAL_TYPES.get();
+        if (!checking.add(this.thisClassName)) {
+            // Types referring to each other: the answer depends on the other references only
+            return false;
+        }
+        try {
+            ConstantPool pool = getConstantPool();
+            for (int i = 1; i < pool.size(); i++) {
+                if (pool.get(i) instanceof ConstantClass constantClass && isUnpromotableLocalType(pool.getConstantUtf8(constantClass.getNameIndex()))) {
                     return true;
                 }
             }
+            return false;
+        } finally {
+            checking.remove(this.thisClassName);
         }
-        return false;
     }
 
-    /** Local types of different methods can share a name: only one of them can become a member. */
+    private boolean isUnpromotableLocalType(String referenced)
+    {
+        String name = referenced;
+        if (name.charAt(0) == '[') {
+            name = name.substring(name.indexOf('L') + 1, name.length() - 1);
+        }
+        int separator = name.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR);
+        if (name.equals(this.thisClassName) || separator == -1 || separator + 2 >= name.length()
+                || !Character.isDigit(name.charAt(separator + 1))
+                || TypeNameUtil.localTypeSimpleName(name.substring(separator + 1)).equals(name.substring(separator + 1))) {
+            return false;
+        }
+        if (this.loader == null) {
+            return true;
+        }
+        ClassFile other = jd.core.process.deserializer.ClassFileDeserializer.deserialize(this.loader, name + StringConstants.CLASS_FILE_SUFFIX, true);
+        return other == null || !other.isLocalNamedStaticType();
+    }
+
+    /** A member type of the same name would be the one written, wherever the local type is named. */
     private boolean isUniqueLocalTypeName(String simpleName)
     {
         if (this.loader == null) {
@@ -396,16 +418,8 @@ public class ClassFile extends Base
                 0, this.thisClassName.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR) + 1);
         String member = prefix + plainName;
         if (this.loader.canLoad(member) || this.loader.canLoad(member + StringConstants.CLASS_FILE_SUFFIX)) {
-            // A member type already has this name
-            return false;
-        }
-        for (int i = 1; i < 10; i++)
-        {
-            String other = prefix + i + plainName;
-            if (!other.equals(this.thisClassName)
-                    && (this.loader.canLoad(other) || this.loader.canLoad(other + StringConstants.CLASS_FILE_SUFFIX))) {
-                return false;
-            }
+            // A member type already has this name: the local one is written with its number
+            TypeNameUtil.registerLocalTypeShadowedByMember(this.thisClassName);
         }
         return true;
     }

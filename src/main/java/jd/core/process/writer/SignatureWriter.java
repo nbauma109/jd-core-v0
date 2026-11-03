@@ -535,6 +535,7 @@ public final class SignatureWriter
         }
         // La classe n'est pas la classe courante ou l'une de ses classes
         // internes
+        final String originalName = internalName;
         int index = internalName.lastIndexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR);
         int lastIndexOfDollar = internalName.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR);
 
@@ -618,6 +619,11 @@ public final class SignatureWriter
             }
         }
 
+        if (TypeNameUtil.isLocalTypeShadowedByMember(originalName)) {
+            int separator = internalName.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR);
+            internalName = internalName.substring(0, separator + 1)
+                + TypeNameUtil.localTypeSimpleName(originalName, internalName.substring(separator + 1));
+        }
         return TypeNameUtil.localTypeQualifiedName(
                 internalName.replace(StringConstants.INTERNAL_INNER_SEPARATOR, StringConstants.INNER_SEPARATOR));
     }

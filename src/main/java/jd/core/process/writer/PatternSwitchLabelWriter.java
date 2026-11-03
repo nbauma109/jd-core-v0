@@ -176,6 +176,11 @@ public final class PatternSwitchLabelWriter
             }
             first = false;
             SignatureWriter.writeSignature(loader, printer, referenceMap, classFile, component.getSignature(constants));
+            if (component.getRecordComponents() != null)
+            {
+                writeComponents(loader, printer, referenceMap, classFile, component.getRecordComponents());
+                continue;
+            }
             printer.print(' ');
             printer.print(constants.getConstantUtf8(component.getNameIndex()));
         }

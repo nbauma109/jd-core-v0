@@ -33,6 +33,7 @@ public class PatternSwitchSelector extends ALoad
     private final Map<Integer, LocalVariable> bindings = new HashMap<>();
     private final Map<Integer, List<LocalVariable>> recordComponents = new HashMap<>();
     private final Map<Integer, Instruction> guards = new HashMap<>();
+    private final List<Instruction> typeTests = new java.util.ArrayList<>();
     private final Map<Integer, Integer> bodyOffsets = new HashMap<>();
     private final Map<Integer, Integer> extraLabels = new HashMap<>();
     private final java.util.Set<String> referencedTypes = new java.util.LinkedHashSet<>();
@@ -82,6 +83,12 @@ public class PatternSwitchSelector extends ALoad
     }
 
     /** Condition of the 'when' clause of the case with the given key. */
+    /** The tests of the type of the components of record patterns, which are not guards. */
+    public List<Instruction> getTypeTests()
+    {
+        return typeTests;
+    }
+
     public Map<Integer, Instruction> getGuards()
     {
         return guards;

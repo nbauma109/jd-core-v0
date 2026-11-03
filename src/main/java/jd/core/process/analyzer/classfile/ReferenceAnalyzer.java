@@ -144,7 +144,7 @@ public final class ReferenceAnalyzer
         }
         for (ClassFile innerClassFile : innerClassFiles) {
             if (innerClassFile.isLocalNamedStaticType()) {
-                names.add(TypeNameUtil.localTypeSimpleName(innerClassFile.getThisClassName().substring(
+                names.add(TypeNameUtil.localTypeSimpleName(innerClassFile.getThisClassName(), innerClassFile.getThisClassName().substring(
                     innerClassFile.getThisClassName().lastIndexOf('$') + 1)));
             }
             collectPromotedLocalTypeNames(innerClassFile, names);

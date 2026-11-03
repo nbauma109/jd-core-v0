@@ -566,4 +566,59 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output, output.contains("\"zero\"") && output.contains("\"one\""));
         }
     }
+
+    @Test
+    public void nestedAndGuardedRecordPatterns() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("FiftyNinth", new ZipLoader(in));
+            assertFalse(output, output.contains("Byte code"));
+            assertFalse(output, output.contains("MatchException"));
+            String compact = output.replaceAll("\\s+", " ");
+            assertTrue(output, compact.contains("x instanceof FiftyNinth.Pair(FiftyNinth.Box(String s), FiftyNinth.Box(Integer i))"));
+            assertTrue(output, compact.contains("case FiftyNinth.Box(String s) when s.length() > 2 -> s;"));
+            assertTrue(output, compact.contains("case FiftyNinth.Box(Object o) -> \"box\";"));
+        }
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Sixty3rd", new ZipLoader(in));
+            assertFalse(output, output.contains("Byte code"));
+            assertFalse(output, output.contains("MatchException"));
+            String compact = output.replaceAll("\\s+", " ");
+            assertTrue(output, compact.contains("case Sixty3rd.Pair(Sixty3rd.Box(String s), Sixty3rd.Box b) -> s + b;"));
+            assertTrue(output, compact.contains("case Sixty3rd.Box(CharSequence c) when c.length() > 3 ->"));
+            assertTrue(output, compact.contains("case Sixty3rd.Wrap(Sixty3rd.Num(int n)) ->"));
+            assertTrue(output, compact.contains("x instanceof Sixty3rd.Box(Sixty3rd.Num(int n))) && n > 2"));
+        }
+    }
+
+    @Test
+    public void recordComponentsFollowedByLoops() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("FiftyEighth", new ZipLoader(in));
+            assertFalse(output, output.contains("Byte code"));
+            String compact = output.replaceAll("\\s+", " ");
+            assertTrue(output, compact.contains("case FiftyEighth.A(List<String> l): { for (String x : l) {"));
+            assertTrue(output, compact.contains("for (String x : a.l()) {"));
+            assertTrue(output, compact.contains("for (int i = 0; i < b.n(); i++) {"));
+        }
+    }
+
+    @Test
+    public void localTypesReferringToEachOtherOrSharingANameAreMembers() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Sixtieth", new ZipLoader(in));
+            String compact = output.replaceAll("\\s+", " ");
+            assertTrue(output, compact.contains("return new Sixtieth.Outer(new Sixtieth.Inner(1));"));
+            assertTrue(output, compact.contains("static record Outer(Sixtieth.Inner i)"));
+            assertTrue(output, compact.contains("return new Sixtieth.Member_1(1);"));
+            assertTrue(output, compact.contains("static record Member_1(int a)"));
+            assertTrue(output, compact.contains("class Member {}"));
+        }
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Sixty2nd", new ZipLoader(in));
+            String compact = output.replaceAll("\\s+", " ");
+            assertTrue(output, compact.contains("return new Sixty2nd.R(1);"));
+            assertTrue(output, compact.contains("return new Sixty2nd.R_2(\"x\");"));
+            assertTrue(output, compact.contains("static record R_2(String b)"));
+        }
+    }
 }

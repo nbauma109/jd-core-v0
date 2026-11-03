@@ -39,6 +39,9 @@ import jd.core.model.instruction.bytecode.instruction.AThrow;
 import jd.core.model.instruction.bytecode.instruction.ConditionalBranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.Goto;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
+import jd.core.model.instruction.bytecode.instruction.InstanceOf;
+import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
+import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.InvokeNew;
 import jd.core.model.instruction.bytecode.instruction.LookupSwitch;
 import jd.core.model.instruction.bytecode.instruction.Switch;
@@ -91,6 +94,12 @@ public final class PatternSwitchReconstructor {
             if (list.get(s) instanceof Switch lookup && lookup.getKey() instanceof PatternSwitchSelector selector) {
                 removeRestarts(list, lookup, selector);
                 reconstructRecordCases(classFile, method, list, lookup, selector);
+                for (Instruction typeTest : selector.getTypeTests()) {
+                    if (list.contains(typeTest)) {
+                        // The test belongs to a pattern that could not be rebuilt
+                        throw new IllegalStateException("Type test of a nested pattern");
+                    }
+                }
                 if (!selector.getRecordComponents().isEmpty()) {
                     if (containsPatternSwitchInside(list, lookup)) {
                         // The compiler merges the cases starting with the same record pattern into a nested switch
@@ -133,6 +142,11 @@ public final class PatternSwitchReconstructor {
                 Instruction candidate = list.get(i);
                 if (candidate instanceof ConditionalBranchInstruction branch && branch.getJumpOffset() > blockStart
                         && branch.getJumpOffset() <= store.getOffset()) {
+                    if (isComponentTypeTest(list, i)) {
+                        // The test of a nested pattern, read with the components of the record
+                        selector.getTypeTests().add(candidate);
+                        continue;
+                    }
                     if (!isConstantTest(candidate)) {
                         ComparisonInstructionAnalyzer.inverseComparison(candidate);
                         addGuard(selector, keyOfCase(lookup, candidate.getOffset()), candidate);
@@ -155,6 +169,14 @@ public final class PatternSwitchReconstructor {
             }
             list.subList(r, r + 2).clear();
         }
+    }
+
+    /** A test of the type of the component just read from a record: the type pattern of that component. */
+    private static boolean isComponentTypeTest(List<Instruction> list, int index) {
+        return index > 0 && list.get(index) instanceof IfInstruction test && test.getCmp() == ByteCodeConstants.CMP_EQ
+                && test.getValue() instanceof InstanceOf instanceOf && instanceOf.getObjectref() instanceof ALoad tested
+                && list.get(index - 1) instanceof StoreInstruction read && read.getIndex() == tested.getIndex()
+                && read.getValueref() instanceof InvokeNoStaticInstruction accessor && accessor.getArgs().isEmpty();
     }
 
     private static int keyAt(Switch sw, int index) {
@@ -219,9 +241,7 @@ public final class PatternSwitchReconstructor {
                 continue;
             }
             list.subList(first, end).clear();
-            for (LocalVariable component : components) {
-                PatternMatchingReconstructor.markBinding(classFile, method, component);
-            }
+            PatternMatchingReconstructor.markBindings(classFile, method, components);
             selector.getRecordComponents().put(keyAt(lookup, i), components);
         }
     }

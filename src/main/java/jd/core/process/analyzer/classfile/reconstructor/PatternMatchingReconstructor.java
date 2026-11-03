@@ -76,7 +76,8 @@ public final class PatternMatchingReconstructor {
             return;
         }
         boolean recordPattern = false;
-        for (int i = list.size() - 2; i >= 0; i--) {
+        // The outer pattern first: it takes the nested ones
+        for (int i = 0; i < list.size() - 1; i++) {
             if (list.get(i) instanceof IfInstruction test && test.getValue() instanceof InstanceOf instanceOf
                     && instanceOf.getPatternVariable() == null && instanceOf.getRecordPatternVariables() == null) {
                 recordPattern |= reconstructRecordPattern(classFile, method, list, i, instanceOf);
@@ -124,7 +125,7 @@ public final class PatternMatchingReconstructor {
         }
         List<LocalVariable> bindings = new ArrayList<>();
         int end = collectComponents(classFile, method, list, ifIndex + 2, recordStore.getIndex(),
-                classFile.getConstantPool().getConstantClassName(instanceOf.getIndex()), bindings);
+                classFile.getConstantPool().getConstantClassName(instanceOf.getIndex()), bindings, test.getJumpOffset());
         int bodyEnd = ((IfInstruction) list.get(ifIndex)).getJumpOffset();
         // The failing test must skip the whole extraction, not only the store of the record
         if (end < 0 || bodyEnd <= list.get(end - 1).getOffset() || isUsedAfter(list, end, recordStore.getIndex(), bodyEnd)
@@ -133,9 +134,7 @@ public final class PatternMatchingReconstructor {
             return false;
         }
         list.subList(ifIndex + 1, end).clear();
-        for (LocalVariable lv : bindings) {
-            markBinding(classFile, method, lv);
-        }
+        markBindings(classFile, method, bindings);
         instanceOf.setRecordPatternVariables(bindings);
         return true;
     }
@@ -148,58 +147,125 @@ public final class PatternMatchingReconstructor {
      */
     static int collectComponents(ClassFile classFile, Method method, List<Instruction> list,
             int start, int recordVariable, String recordName, List<LocalVariable> bindings) {
-        LocalVariables localVariables = method.getLocalVariables();
-        ConstantPool cp = classFile.getConstantPool();
-        if (!isRecord(classFile, recordName)) {
-            return -1;
-        }
-        List<String> accessedNames = new ArrayList<>();
-        List<Integer> accessOffsets = new ArrayList<>();
+        return collectComponents(classFile, method, list, start, recordVariable, recordName, bindings, -1);
+    }
+
+    /**
+     * @param failTarget offset where the tests of the nested patterns jump when they fail, or -1 if unknown
+     */
+    static int collectComponents(ClassFile classFile, Method method, List<Instruction> list,
+            int start, int recordVariable, String recordName, List<LocalVariable> bindings, int failTarget) {
         method.getRecordTemporaries().clear();
-        int end = start;
-        while (end < list.size() && list.get(end) instanceof StoreInstruction component
-                && component.getValueref() instanceof InvokeNoStaticInstruction accessor
-                && accessor.getArgs().isEmpty()
-                && accessor.getObjectref() instanceof ALoad owner && owner.getIndex() == recordVariable
-                && recordName.equals(cp.getConstantClassName(cp.getConstantMethodref(accessor.getIndex()).getClassIndex()))) {
-            accessOffsets.add(accessor.getOffset());
-            accessedNames.add(cp.getConstantUtf8(cp.getConstantNameAndType(
-                    cp.getConstantMethodref(accessor.getIndex()).getNameAndTypeIndex()).getNameIndex()));
-            int next = end + 1;
-            StoreInstruction binding = null;
-            method.getRecordTemporaries().add(localVariables.getLocalVariableWithIndexAndOffset(component.getIndex(), component.getOffset()));
-            while (next < list.size()) {
-                Instruction instruction = list.get(next);
-                if (instruction instanceof StoreInstruction copy && copy.getValueref() instanceof LoadInstruction load
-                        && load.getIndex() == component.getIndex()) {
-                    if (binding != null) {
-                        // An earlier copy is a temporary of the pattern
-                        method.getRecordTemporaries().add(localVariables.getLocalVariableWithIndexAndOffset(binding.getIndex(), binding.getOffset()));
-                    }
-                    binding = copy;
-                } else if (!(instruction instanceof IfInstruction check && check.getValue() instanceof IConst)) {
-                    break;
-                }
-                next++;
-            }
-            if (binding == null) {
-                return -1;
-            }
-            LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(binding.getIndex(), binding.getOffset());
-            if (lv == null || !declaredBy(method, lv, binding) || !bindingMatchesComponent(classFile, accessor, lv)) {
-                return -1;
-            }
-            bindings.add(lv);
-            end = next;
-        }
-        if (bindings.isEmpty() || !accessedNames.equals(componentNames(classFile, recordName))
-                || !isWrappedByMatchException(classFile, method, list, accessOffsets, componentOffsets(list, start, end))) {
+        List<Integer> accessOffsets = new ArrayList<>();
+        int end = collectNested(classFile, method, list, start, recordVariable, recordName, bindings, failTarget, accessOffsets);
+        if (end < 0 || !isWrappedByMatchException(classFile, method, list, accessOffsets, componentOffsets(list, start, end))) {
             // A record pattern reads every component, in the order of the declaration
             bindings.clear();
             return -1;
         }
         method.getRecordAccessOffsets().addAll(accessOffsets);
         return end;
+    }
+
+    private static int collectNested(ClassFile classFile, Method method, List<Instruction> list,
+            int start, int recordVariable, String recordName, List<LocalVariable> bindings, int failTarget,
+            List<Integer> allAccessOffsets) {
+        LocalVariables localVariables = method.getLocalVariables();
+        ConstantPool cp = classFile.getConstantPool();
+        if (!isRecord(classFile, recordName)) {
+            return -1;
+        }
+        List<String> accessedNames = new ArrayList<>();
+        List<Boolean> tested = new ArrayList<>();
+        int end = start;
+        while (end < list.size() && list.get(end) instanceof StoreInstruction component
+                && component.getValueref() instanceof InvokeNoStaticInstruction accessor
+                && accessor.getArgs().isEmpty()
+                && accessor.getObjectref() instanceof ALoad owner && owner.getIndex() == recordVariable
+                && recordName.equals(cp.getConstantClassName(cp.getConstantMethodref(accessor.getIndex()).getClassIndex()))) {
+            allAccessOffsets.add(accessor.getOffset());
+            accessedNames.add(cp.getConstantUtf8(cp.getConstantNameAndType(
+                    cp.getConstantMethodref(accessor.getIndex()).getNameAndTypeIndex()).getNameIndex()));
+            int next = end + 1;
+            StoreInstruction binding = null;
+            LocalVariable testedBinding = null;
+            InstanceOf typeTest = null;
+            method.getRecordTemporaries().add(localVariables.getLocalVariableWithIndexAndOffset(component.getIndex(), component.getOffset()));
+            while (next < list.size()) {
+                Instruction instruction = list.get(next);
+                if (instruction instanceof StoreInstruction copy && unwrapCast(copy.getValueref()) instanceof LoadInstruction load
+                        && load.getIndex() == component.getIndex()
+                        && (copy.getValueref() == load || typeTest != null && copy.getValueref() instanceof CheckCast cast && cast.getIndex() == typeTest.getIndex())) {
+                    if (binding != null) {
+                        // An earlier copy is a temporary of the pattern
+                        method.getRecordTemporaries().add(localVariables.getLocalVariableWithIndexAndOffset(binding.getIndex(), binding.getOffset()));
+                    }
+                    binding = copy;
+                } else if (isComponentTypeTest(instruction, component, failTarget) && typeTest == null) {
+                    typeTest = (InstanceOf) ((IfInstruction) instruction).getValue();
+                    // The test and the store of the binding may have been combined into a type pattern
+                    testedBinding = typeTest.getPatternVariable();
+                    if (testedBinding == null && typeTest.getRecordPatternVariables() != null) {
+                        // Already rebuilt as a record pattern, which holds the components read by the nested one
+                        testedBinding = new LocalVariable(instruction.getOffset(), 0, 0,
+                                cp.addConstantUtf8("L" + cp.getConstantClassName(typeTest.getIndex()) + ";"), -1);
+                        testedBinding.setRecordComponents(typeTest.getRecordPatternVariables());
+                    }
+                } else if (!(instruction instanceof IfInstruction check && check.getValue() instanceof IConst)) {
+                    break;
+                }
+                next++;
+            }
+            if (binding == null && testedBinding == null) {
+                return -1;
+            }
+            LocalVariable lv = testedBinding != null ? testedBinding
+                    : localVariables.getLocalVariableWithIndexAndOffset(binding.getIndex(), binding.getOffset());
+            if (lv == null || testedBinding == null && !declaredBy(method, lv, binding)
+                    || !(typeTest == null ? bindingMatchesComponent(classFile, accessor, lv) : hasTestedType(classFile, lv, typeTest))) {
+                return -1;
+            }
+            bindings.add(lv);
+            tested.add(typeTest != null);
+            end = next;
+        }
+        if (bindings.isEmpty() || !accessedNames.equals(componentNames(classFile, recordName))) {
+            bindings.clear();
+            return -1;
+        }
+        // The components tested for a record type may be record patterns themselves, read once the outer components are bound
+        for (int i = 0; i < bindings.size(); i++) {
+            LocalVariable nested = bindings.get(i);
+            String nestedName = nested.getSignature(cp) == null ? null : nested.getSignature(cp);
+            if (!tested.get(i) || nestedName == null || !nestedName.startsWith("L") || !nestedName.endsWith(";")
+                    || !readsRecordComponents(classFile, list, end, nested.getIndex())) {
+                continue;
+            }
+            List<LocalVariable> components = new ArrayList<>();
+            end = collectNested(classFile, method, list, end, nested.getIndex(),
+                    nestedName.substring(1, nestedName.length() - 1), components, failTarget, allAccessOffsets);
+            if (end < 0) {
+                bindings.clear();
+                return -1;
+            }
+            nested.setRecordComponents(components);
+        }
+        return end;
+    }
+
+    /** The test of a component against a type: it fails to the same place as the test of the whole pattern. */
+    private static boolean isComponentTypeTest(Instruction instruction, StoreInstruction component, int failTarget) {
+        return instruction instanceof IfInstruction check && check.getCmp() == ByteCodeConstants.CMP_EQ
+                && check.getValue() instanceof InstanceOf instanceOf && instanceOf.getObjectref() instanceof ALoad tested
+                && tested.getIndex() == component.getIndex() && (failTarget == -1 || check.getJumpOffset() == failTarget);
+    }
+
+    /** The binding has the type tested by its pattern. */
+    private static boolean hasTestedType(ClassFile classFile, LocalVariable binding, InstanceOf typeTest) {
+        ConstantPool cp = classFile.getConstantPool();
+        String name = cp.getConstantClassName(typeTest.getIndex());
+        String signature = binding.getSignature(cp);
+        return signature != null && (signature.equals(name) || signature.equals("L" + name + ";"));
     }
 
     /** Before Java 21 a pattern cannot match every value of the tested type; a type variable may be bounded by the pattern type. */
@@ -323,25 +389,32 @@ public final class PatternMatchingReconstructor {
     /** Whether the temporaries holding the components are read after the pattern: they are variables of the user then. */
     static boolean areTemporariesUsedAfter(List<Instruction> list, int from, Method method, int endOffset) {
         java.util.Set<LocalVariable> temporaries = method.getRecordTemporaries();
-        for (int i = from; i < list.size() && list.get(i).getOffset() < endOffset; i++) {
-            if (CheckLocalVariableUsedVisitor.visit(
-                    instruction -> instruction instanceof LoadInstruction && !(instruction instanceof StoreInstruction)
-                            && temporaries.contains(method.getLocalVariables()
-                                    .getLocalVariableWithIndexAndOffset(instruction.getIndex(), instruction.getOffset())),
-                    list.get(i))) {
-                return true;
+        java.util.Set<Integer> slots = new java.util.HashSet<>();
+        for (LocalVariable temporary : temporaries) {
+            if (temporary != null) {
+                slots.add(temporary.getIndex());
             }
         }
-        return false;
+        return isSlotReadAfter(list, from, slots, endOffset);
     }
 
     /** Whether a local variable is read by the instructions from an index on, before an offset. */
     static boolean isUsedAfter(List<Instruction> list, int from, int variableIndex, int endOffset) {
-        for (int i = from; i < list.size() && list.get(i).getOffset() < endOffset; i++) {
+        return isSlotReadAfter(list, from, java.util.Set.of(variableIndex), endOffset);
+    }
+
+    /** A slot written before it is read holds another variable: the code that follows reused it. */
+    private static boolean isSlotReadAfter(List<Instruction> list, int from, java.util.Set<Integer> slots, int endOffset) {
+        java.util.Set<Integer> live = new java.util.HashSet<>(slots);
+        for (int i = from; i < list.size() && list.get(i).getOffset() < endOffset && !live.isEmpty(); i++) {
+            Instruction instruction = list.get(i);
             if (CheckLocalVariableUsedVisitor.visit(
-                    instruction -> instruction instanceof LoadInstruction && !(instruction instanceof StoreInstruction)
-                            && instruction.getIndex() == variableIndex, list.get(i))) {
+                    candidate -> candidate instanceof LoadInstruction && !(candidate instanceof StoreInstruction)
+                            && live.contains(candidate.getIndex()), instruction)) {
                 return true;
+            }
+            if (instruction instanceof StoreInstruction store) {
+                live.remove(store.getIndex());
             }
         }
         return false;
@@ -561,6 +634,17 @@ public final class PatternMatchingReconstructor {
      * after the statement binding it has one range for each part of the code using it, which are
      * all the same variable for the source code.
      */
+    static void markBindings(ClassFile classFile, Method method, List<LocalVariable> bindings) {
+        for (LocalVariable lv : bindings) {
+            if (lv.getNameIndex() != 0) {
+                markBinding(classFile, method, lv);
+            }
+            if (lv.getRecordComponents() != null) {
+                markBindings(classFile, method, lv.getRecordComponents());
+            }
+        }
+    }
+
     static void markBinding(ClassFile classFile, Method method, LocalVariable binding) {
         LocalVariables localVariables = method.getLocalVariables();
         ConstantPool cp = classFile.getConstantPool();

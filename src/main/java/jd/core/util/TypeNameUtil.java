@@ -33,7 +33,8 @@ public final class TypeNameUtil
     /**
      * Name of a local type as written in the source: the compiler prefixes it
      * with a number ({@code Outer$1Local}), which is not part of the name.
-     * Anonymous classes ({@code Outer$1}) are left unchanged.
+     * Anonymous classes ({@code Outer$1}) are left unchanged. A local type sharing its name with the
+     * one of another method ({@code Outer$2Local}) is written {@code Local_2}.
      */
     public static String localTypeSimpleName(String name)
     {
@@ -41,7 +42,39 @@ public final class TypeNameUtil
         while (start < name.length() && Character.isDigit(name.charAt(start))) {
             start++;
         }
-        return start == 0 || start == name.length() ? name : name.substring(start);
+        if (start == 0 || start == name.length()) {
+            return name;
+        }
+        // The first local type of a name keeps it; the ones of other methods get the number back
+        String plain = name.substring(start);
+        return start == 1 && name.charAt(0) == '1' ? plain : plain + '_' + name.substring(0, start);
+    }
+
+    private static final java.util.Set<String> SHADOWED_BY_MEMBER = java.util.concurrent.ConcurrentHashMap.newKeySet();
+
+    /** The local type (internal name) shares its name with a member type of the same class: it keeps its number. */
+    public static void registerLocalTypeShadowedByMember(String internalName)
+    {
+        SHADOWED_BY_MEMBER.add(internalName);
+    }
+
+    /** Name of the local type with the given internal name, as written in the source. */
+    public static String localTypeSimpleName(String internalName, String name)
+    {
+        if (!SHADOWED_BY_MEMBER.contains(internalName)) {
+            return localTypeSimpleName(name);
+        }
+        int start = 0;
+        while (start < name.length() && Character.isDigit(name.charAt(start))) {
+            start++;
+        }
+        return start == 0 || start == name.length() ? name : name.substring(start) + '_' + name.substring(0, start);
+    }
+
+    /** Whether the type, local to a method, was given another name than its own to be told from a member. */
+    public static boolean isLocalTypeShadowedByMember(String internalName)
+    {
+        return SHADOWED_BY_MEMBER.contains(internalName);
     }
 
     /** Removes the number prefix of every local type found in a dotted type name. */
