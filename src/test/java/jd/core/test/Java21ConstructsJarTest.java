@@ -539,4 +539,14 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(older, older.contains("instanceof CharSequence s"));
         }
     }
+
+    @Test
+    public void typeVariableNamesAndConstructorParametersStayOutOfMembers() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("FiftyFifth", new ZipLoader(in));
+            assertFalse(output, output.contains("record T"));
+            assertTrue(output, output.contains("T generic(T value)"));
+            assertFalse(output, output.contains("println(n)"));
+        }
+    }
 }

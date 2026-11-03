@@ -345,7 +345,24 @@ public class ClassFile extends Base
                 this.thisClassName.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR) + 1);
         return !simpleName.equals(TypeNameUtil.localTypeSimpleName(simpleName))
                 && ((getAccessFlags() & (Const.ACC_ENUM | Const.ACC_INTERFACE)) != 0 || isRecord())
-                && isUniqueLocalTypeName(simpleName) && !referencesOtherLocalType();
+                && isUniqueLocalTypeName(simpleName) && !referencesOtherLocalType() && !hidesTypeParameter(simpleName);
+    }
+
+    /** A type variable of an enclosing class cannot be qualified: a member of the same name would take its place. */
+    private boolean hidesTypeParameter(String simpleName)
+    {
+        String plainName = TypeNameUtil.localTypeSimpleName(simpleName);
+        for (ClassFile enclosing = this.outerClass; enclosing != null; enclosing = enclosing.outerClass) {
+            for (Attribute attribute : enclosing.getAttributes()) {
+                if (attribute instanceof Signature signature) {
+                    String declared = signature.getSignature();
+                    if (declared.startsWith("<") && (declared.startsWith("<" + plainName + ":") || declared.contains(";" + plainName + ":"))) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     /** A member cannot name a type local to a method: the types the local one refers to must stay reachable. */

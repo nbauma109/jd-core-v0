@@ -35,6 +35,9 @@ import java.util.Set;
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
+import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
+import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
+import jd.core.process.analyzer.instruction.fast.visitor.CheckLocalVariableUsedVisitor;
 import jd.core.model.instruction.bytecode.instruction.PutField;
 import jd.core.model.classfile.Field;
 import jd.core.model.classfile.Field.ValueAndMethod;
@@ -674,6 +677,27 @@ public final class ClassFileLayouter {
     // The constructor of an anonymous class cannot be written, but the
     // statements left once the super constructor call has been removed
     // come from an instance initializer block that must not be lost.
+    /** Number of local variable slots taken by the parameters of a method, from its descriptor. */
+    private static int parameterSlots(String descriptor)
+    {
+        int slots = 0;
+        int i = 1;
+        while (descriptor.charAt(i) != ')') {
+            char c = descriptor.charAt(i);
+            if (c == 'J' || c == 'D') {
+                slots += 2;
+                i++;
+            } else {
+                slots++;
+                while (descriptor.charAt(i) == '[') {
+                    i++;
+                }
+                i = descriptor.charAt(i) == 'L' ? descriptor.indexOf(';', i) + 1 : i + 1;
+            }
+        }
+        return slots;
+    }
+
     private static boolean hasInstanceInitializerCode(ClassFile classFile, Method method)
     {
         ConstantPool constants = classFile.getConstantPool();
@@ -681,9 +705,16 @@ public final class ClassFileLayouter {
         if (method.getCode() == null || method.containsError() || list == null || list.isEmpty()) {
             return false;
         }
+        int parameterSlots = parameterSlots(constants.getConstantUtf8(method.getDescriptorIndex()));
         for (Instruction instruction : list) {
             if (instruction instanceof InvokeNoStaticInstruction call && instruction.getOpcode() == Const.INVOKESPECIAL
                     && isConstructorCall(constants, call)) {
+                return false;
+            }
+            // A parameter of the constructor is not declared by an initializer block
+            if (CheckLocalVariableUsedVisitor.visit(
+                    used -> used instanceof LoadInstruction && !(used instanceof StoreInstruction)
+                            && used.getIndex() >= 1 && used.getIndex() <= parameterSlots, instruction)) {
                 return false;
             }
             if (instruction instanceof PutField putField) {
