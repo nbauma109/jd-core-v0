@@ -160,10 +160,13 @@ public final class TryWithResourcesReconstructor {
             if (i != lastRemoved - 1 && instruction.getOffset() < guarded.getHandlerPC()
                     && closedResource(cp, instruction) == resourceIndex
                     && isExitCleanup(list, i, guarded.getHandlerPC(), declarationOffset)) {
+                // The generated guard of the cleanup skips the call of close() only
+                int afterClose = i + 1 < list.size() ? list.get(i + 1).getOffset() : -1;
                 list.remove(i);
                 lastRemoved = i;
                 if (i > 0 && list.get(i - 1) instanceof IfInstruction nullCheck
-                        && nullCheck.getValue() instanceof ALoad checked && checked.getIndex() == resourceIndex) {
+                        && nullCheck.getValue() instanceof ALoad checked && checked.getIndex() == resourceIndex
+                        && nullCheck.getJumpOffset() == afterClose) {
                     list.remove(i - 1);
                     lastRemoved = i - 1;
                 }

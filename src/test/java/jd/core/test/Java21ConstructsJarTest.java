@@ -629,4 +629,20 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output, output.contains("var value"));
         }
     }
+
+    @Test
+    public void monitorsKeepRawCastsAndGeneratedNamesDoNotCollide() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Sixty5th", new ZipLoader(in));
+            assertTrue(output, output.replaceAll("\\s+", "").contains("synchronized(((Sixty5th.Box)c.get()).get())"));
+        }
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Sixty6th", new ZipLoader(in));
+            assertFalse(output, output.contains("record R_1(int c)"));
+        }
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Sixty7th", new ZipLoader(in));
+            assertTrue(output, output.replaceAll("\\s+", "").contains("if(r==null)return;"));
+        }
+    }
 }

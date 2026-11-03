@@ -421,7 +421,9 @@ public class ClassFile extends Base
             // A member type already has this name: the local one is written with its number
             TypeNameUtil.registerLocalTypeShadowedByMember(this.thisClassName);
         }
-        return true;
+        // The name written must not be the one of another member either
+        String written = prefix + TypeNameUtil.localTypeSimpleName(this.thisClassName, simpleName);
+        return written.equals(member) || !(this.loader.canLoad(written) || this.loader.canLoad(written + StringConstants.CLASS_FILE_SUFFIX));
     }
 
     public boolean isAInnerClass()
