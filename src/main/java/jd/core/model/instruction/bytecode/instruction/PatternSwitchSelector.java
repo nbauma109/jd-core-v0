@@ -82,13 +82,13 @@ public class PatternSwitchSelector extends ALoad
         return recordComponents;
     }
 
-    /** Condition of the 'when' clause of the case with the given key. */
     /** The tests of the type of the components of record patterns, which are not guards. */
     public List<Instruction> getTypeTests()
     {
         return typeTests;
     }
 
+    /** Condition of the 'when' clause of the case with the given key. */
     public Map<Integer, Instruction> getGuards()
     {
         return guards;

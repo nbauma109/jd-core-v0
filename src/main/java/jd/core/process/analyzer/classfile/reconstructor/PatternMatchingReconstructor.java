@@ -124,8 +124,8 @@ public final class PatternMatchingReconstructor {
             return false;
         }
         List<LocalVariable> bindings = new ArrayList<>();
-        int end = collectComponents(classFile, method, list, ifIndex + 2, recordStore.getIndex(),
-                classFile.getConstantPool().getConstantClassName(instanceOf.getIndex()), bindings, test.getJumpOffset());
+        int end = collectComponents(new Scan(classFile, method, list, test.getJumpOffset(), new ArrayList<>()), ifIndex + 2,
+                recordStore.getIndex(), classFile.getConstantPool().getConstantClassName(instanceOf.getIndex()), bindings);
         int bodyEnd = ((IfInstruction) list.get(ifIndex)).getJumpOffset();
         // The failing test must skip the whole extraction, not only the store of the record
         if (end < 0 || bodyEnd <= list.get(end - 1).getOffset() || isUsedAfter(list, end, recordStore.getIndex(), bodyEnd)
@@ -147,36 +147,43 @@ public final class PatternMatchingReconstructor {
      */
     static int collectComponents(ClassFile classFile, Method method, List<Instruction> list,
             int start, int recordVariable, String recordName, List<LocalVariable> bindings) {
-        return collectComponents(classFile, method, list, start, recordVariable, recordName, bindings, -1);
+        return collectComponents(new Scan(classFile, method, list, -1, new ArrayList<>()), start, recordVariable, recordName, bindings);
     }
 
     /**
      * @param failTarget offset where the tests of the nested patterns jump when they fail, or -1 if unknown
      */
-    static int collectComponents(ClassFile classFile, Method method, List<Instruction> list,
-            int start, int recordVariable, String recordName, List<LocalVariable> bindings, int failTarget) {
+    private record Scan(ClassFile classFile, Method method, List<Instruction> list, int failTarget, List<Integer> accessOffsets) {
+    }
+
+    static int collectComponents(Scan scan, int start, int recordVariable, String recordName, List<LocalVariable> bindings) {
+        ClassFile classFile = scan.classFile();
+        Method method = scan.method();
+        List<Instruction> list = scan.list();
         method.getRecordTemporaries().clear();
-        List<Integer> accessOffsets = new ArrayList<>();
-        int end = collectNested(classFile, method, list, start, recordVariable, recordName, bindings, failTarget, accessOffsets);
-        if (end < 0 || !isWrappedByMatchException(classFile, method, list, accessOffsets, componentOffsets(list, start, end))) {
+        int end = collectNested(scan, start, recordVariable, recordName, bindings);
+        if (end < 0 || !isWrappedByMatchException(classFile, method, list, scan.accessOffsets(), componentOffsets(list, start, end))) {
             // A record pattern reads every component, in the order of the declaration
             bindings.clear();
             return -1;
         }
-        method.getRecordAccessOffsets().addAll(accessOffsets);
+        method.getRecordAccessOffsets().addAll(scan.accessOffsets());
         return end;
     }
 
-    private static int collectNested(ClassFile classFile, Method method, List<Instruction> list,
-            int start, int recordVariable, String recordName, List<LocalVariable> bindings, int failTarget,
-            List<Integer> allAccessOffsets) {
+    private static int collectNested(Scan scan, int start, int recordVariable, String recordName, List<LocalVariable> bindings) {
+        ClassFile classFile = scan.classFile();
+        Method method = scan.method();
+        List<Instruction> list = scan.list();
+        int failTarget = scan.failTarget();
+        List<Integer> allAccessOffsets = scan.accessOffsets();
         LocalVariables localVariables = method.getLocalVariables();
         ConstantPool cp = classFile.getConstantPool();
         if (!isRecord(classFile, recordName)) {
             return -1;
         }
         List<String> accessedNames = new ArrayList<>();
-        List<Boolean> tested = new ArrayList<>();
+        java.util.BitSet tested = new java.util.BitSet();
         int end = start;
         while (end < list.size() && list.get(end) instanceof StoreInstruction component
                 && component.getValueref() instanceof InvokeNoStaticInstruction accessor
@@ -226,7 +233,7 @@ public final class PatternMatchingReconstructor {
                 return -1;
             }
             bindings.add(lv);
-            tested.add(typeTest != null);
+            tested.set(bindings.size() - 1, typeTest != null);
             end = next;
         }
         if (bindings.isEmpty() || !accessedNames.equals(componentNames(classFile, recordName))) {
@@ -236,14 +243,13 @@ public final class PatternMatchingReconstructor {
         // The components tested for a record type may be record patterns themselves, read once the outer components are bound
         for (int i = 0; i < bindings.size(); i++) {
             LocalVariable nested = bindings.get(i);
-            String nestedName = nested.getSignature(cp) == null ? null : nested.getSignature(cp);
+            String nestedName = nested.getSignature(cp);
             if (!tested.get(i) || nestedName == null || !nestedName.startsWith("L") || !nestedName.endsWith(";")
                     || !readsRecordComponents(classFile, list, end, nested.getIndex())) {
                 continue;
             }
             List<LocalVariable> components = new ArrayList<>();
-            end = collectNested(classFile, method, list, end, nested.getIndex(),
-                    nestedName.substring(1, nestedName.length() - 1), components, failTarget, allAccessOffsets);
+            end = collectNested(scan, end, nested.getIndex(), nestedName.substring(1, nestedName.length() - 1), components);
             if (end < 0) {
                 bindings.clear();
                 return -1;
