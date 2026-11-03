@@ -557,4 +557,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("(List<T>)(List<?>)c.numbers()"));
         }
     }
+
+    @Test
+    public void calledMethodTypeParametersAndSeveralConstructors() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("FiftySeventh", new ZipLoader(in));
+            assertTrue(output, output.contains("(List<T>)(List<?>)strings()"));
+            assertFalse(output, output.contains("\"zero\"") && output.contains("\"one\""));
+        }
+    }
 }

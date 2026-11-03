@@ -773,6 +773,7 @@ public final class ClassFileLayouter {
 
             boolean instanceInitializer = method.getNameIndex() == constants.getInstanceConstructorIndex()
                     && classFile.getInternalAnonymousClassName() != null
+                    && !ClassFileUtil.containsMultipleConstructor(classFile)
                     && hasInstanceInitializerCode(classFile, method);
 
             if (!instanceInitializer && (classFile.getAccessFlags() & Const.ACC_ENUM) != 0 &&

@@ -16,6 +16,7 @@
  ******************************************************************************/
 package jd.core.process.analyzer.classfile.visitor;
 
+import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantClass;
@@ -445,11 +446,11 @@ public final class CheckCastAndConvertInstructionVisitor
         if (bound == null) {
             return false;
         }
-        return !(bound instanceof GenericType generic && generic.getName().equals(variable) && !isForeignCall(classFile, localVariables, value));
+        return !(bound instanceof GenericType generic && generic.getName().equals(variable) && !isForeignCall(classFile, localVariables, value, variable));
     }
 
     /** The call is on another class, or on a receiver whose type arguments are given: its type variables are not ours. */
-    private static boolean isForeignCall(ClassFile classFile, LocalVariables localVariables, Instruction value)
+    private static boolean isForeignCall(ClassFile classFile, LocalVariables localVariables, Instruction value, String variable)
     {
         if (!(value instanceof InvokeNoStaticInstruction call)) {
             return value instanceof InvokeInstruction;
@@ -459,12 +460,34 @@ public final class CheckCastAndConvertInstructionVisitor
             constants.getConstantClassName(constants.getConstantMethodref(call.getIndex()).getClassIndex()))) {
             return true;
         }
+        if (declaresTypeParameter(classFile, call, variable)) {
+            return true;
+        }
         String receiver = call.getObjectref().getReturnedSignature(classFile, localVariables);
         if (receiver == null || receiver.indexOf('<') == -1) {
             return false;
         }
         return new TypeMaker(classFile.getLoader()).makeFromSignature(receiver) instanceof ObjectType type
             && type.getTypeArguments() != null && !(type.getTypeArguments() instanceof GenericType);
+    }
+
+    /** The called method declares a type variable of that name itself: it hides the one of the class. */
+    private static boolean declaresTypeParameter(ClassFile classFile, InvokeInstruction call, String variable)
+    {
+        ConstantPool constants = classFile.getConstantPool();
+        ConstantCP methodref = constants.getConstantMethodref(call.getIndex());
+        ConstantNameAndType nameAndType = constants.getConstantNameAndType(methodref.getNameAndTypeIndex());
+        var types = new TypeMaker(classFile.getLoader()).makeMethodTypes(constants.getConstantClassName(methodref.getClassIndex()),
+            constants.getConstantUtf8(nameAndType.getNameIndex()), constants.getConstantUtf8(nameAndType.getSignatureIndex()));
+        if (types == null || types.getTypeParameters() == null) {
+            return false;
+        }
+        for (var parameter : types.getTypeParameters()) {
+            if (parameter.getIdentifier().equals(variable)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean hasClassLiteralArgument(ClassFile classFile, Instruction instruction)
