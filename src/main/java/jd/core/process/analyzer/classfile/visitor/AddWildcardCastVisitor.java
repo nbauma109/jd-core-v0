@@ -121,9 +121,11 @@ public class AddWildcardCastVisitor extends AbstractReplaceInstructionVisitor<In
         {
             return false;
         }
+        // A type variable of another class is a different variable, even with the same name
+        boolean ownDeclaration = classFile.getThisClassName().equals(constants.getConstantClassName(methodref.getClassIndex()));
         for (int i = 0; i < target.getTypeArguments().typeArgumentSize(); i++)
         {
-            if (!isCompatible(argumentAt(returned.getTypeArguments(), i), argumentAt(target.getTypeArguments(), i))) {
+            if (!isCompatible(argumentAt(returned.getTypeArguments(), i), argumentAt(target.getTypeArguments(), i), ownDeclaration)) {
                 return false;
             }
         }
@@ -135,14 +137,14 @@ public class AddWildcardCastVisitor extends AbstractReplaceInstructionVisitor<In
         return arguments.isTypeArgumentList() ? arguments.getTypeArgumentList().get(index) : arguments.getTypeArgumentFirst();
     }
 
-    private boolean isCompatible(TypeArgument value, TypeArgument target)
+    private boolean isCompatible(TypeArgument value, TypeArgument target, boolean ownDeclaration)
     {
         if (value.equals(target) || value instanceof WildcardTypeArgument) {
             return true;
         }
         if (target instanceof GenericType variable) {
             // The bounds of the variable are unknown: a bounded wildcard needs the cast through '?', unless it is bounded by that very variable
-            return !isBounded(value) || boundedBy(value, variable.getName());
+            return !isBounded(value) || ownDeclaration && !declaresMethodTypeParameter(variable.getName()) && boundedBy(value, variable.getName());
         }
         if (target instanceof ObjectType targetType) {
             // The capture of '? extends B' is a subtype of B, the one of '? super B' a supertype of B
@@ -160,6 +162,19 @@ public class AddWildcardCastVisitor extends AbstractReplaceInstructionVisitor<In
     private static boolean isBounded(TypeArgument value)
     {
         return value instanceof WildcardExtendsTypeArgument || value instanceof WildcardSuperTypeArgument;
+    }
+
+    /** A type variable declared by the method itself is not the one of the class, whatever the name. */
+    private boolean declaresMethodTypeParameter(String name)
+    {
+        var attribute = method.getAttributeSignature();
+        if (attribute == null) {
+            return false;
+        }
+        String signature = classFile.getConstantPool().getConstantUtf8(attribute.getSignatureIndex());
+        int parameters = signature.indexOf('(');
+        String declarations = parameters == -1 ? signature : signature.substring(0, parameters);
+        return declarations.startsWith("<") && (declarations.startsWith("<" + name + ":") || declarations.contains(";" + name + ":"));
     }
 
     private static boolean boundedBy(TypeArgument value, String variable)

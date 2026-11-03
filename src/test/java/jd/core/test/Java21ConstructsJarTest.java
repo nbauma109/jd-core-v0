@@ -549,4 +549,12 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output, output.contains("println(n)"));
         }
     }
+
+    @Test
+    public void sameNamedTypeVariablesKeepTheBridge() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("FiftySixth", new ZipLoader(in));
+            assertTrue(output, output.contains("(List<T>)(List<?>)c.numbers()"));
+        }
+    }
 }

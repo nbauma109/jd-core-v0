@@ -36,6 +36,7 @@ import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker.Met
 import java.util.List;
 
 import jd.core.model.classfile.ClassFile;
+import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.Field;
 import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
@@ -399,7 +400,7 @@ public final class CheckCastAndConvertInstructionVisitor
                      && (typeArgsRight instanceof WildcardExtendsTypeArgument
                       || typeArgsRight instanceof WildcardSuperTypeArgument)) {
                     Instruction value = valueref;
-                    if (typeArgsLeft instanceof GenericType left && needsBridge(typeArgsRight, left.getName())) {
+                    if (typeArgsLeft instanceof GenericType left && needsBridge(typeArgsRight, left.getName(), classFile, localVariables, valueref)) {
                         // The bounds of the variable are unknown: (List<T>) (List<?>) numbers()
                         int unbounded = classFile.getConstantPool().addConstantUtf8(
                                 "[".repeat(otLeft.getDimension()) + 'L' + otLeft.getInternalName() + "<*>;");
@@ -428,8 +429,12 @@ public final class CheckCastAndConvertInstructionVisitor
         }
     }
 
-    /** A wildcard not bounded by the very variable of the target is cast to it through the unbounded wildcard. */
-    private static boolean needsBridge(BaseTypeArgument wildcard, String variable)
+    /**
+     * A bounded wildcard is cast to a type variable through the unbounded wildcard, unless it is bounded by
+     * that very variable: a variable of the same name declared by another class is not the same.
+     */
+    private static boolean needsBridge(BaseTypeArgument wildcard, String variable, ClassFile classFile,
+            LocalVariables localVariables, Instruction value)
     {
         TypeArgument bound = null;
         if (wildcard instanceof WildcardExtendsTypeArgument extendsBound) {
@@ -437,7 +442,29 @@ public final class CheckCastAndConvertInstructionVisitor
         } else if (wildcard instanceof WildcardSuperTypeArgument superBound) {
             bound = superBound.type();
         }
-        return bound != null && !(bound instanceof GenericType generic && generic.getName().equals(variable));
+        if (bound == null) {
+            return false;
+        }
+        return !(bound instanceof GenericType generic && generic.getName().equals(variable) && !isForeignCall(classFile, localVariables, value));
+    }
+
+    /** The call is on another class, or on a receiver whose type arguments are given: its type variables are not ours. */
+    private static boolean isForeignCall(ClassFile classFile, LocalVariables localVariables, Instruction value)
+    {
+        if (!(value instanceof InvokeNoStaticInstruction call)) {
+            return value instanceof InvokeInstruction;
+        }
+        ConstantPool constants = classFile.getConstantPool();
+        if (!classFile.getThisClassName().equals(
+            constants.getConstantClassName(constants.getConstantMethodref(call.getIndex()).getClassIndex()))) {
+            return true;
+        }
+        String receiver = call.getObjectref().getReturnedSignature(classFile, localVariables);
+        if (receiver == null || receiver.indexOf('<') == -1) {
+            return false;
+        }
+        return new TypeMaker(classFile.getLoader()).makeFromSignature(receiver) instanceof ObjectType type
+            && type.getTypeArguments() != null && !(type.getTypeArguments() instanceof GenericType);
     }
 
     private static boolean hasClassLiteralArgument(ClassFile classFile, Instruction instruction)
