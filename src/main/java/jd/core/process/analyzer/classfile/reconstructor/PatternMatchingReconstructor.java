@@ -117,6 +117,11 @@ public final class PatternMatchingReconstructor {
         if (test.getCmp() != ByteCodeConstants.CMP_EQ || test.getJumpOffset() <= recordStore.getOffset()) {
             return false;
         }
+        // The record of the pattern is a temporary of the compiler, or a variable of the branch: not one assigned before it
+        LocalVariable recordVariable = method.getLocalVariables().getLocalVariableWithIndexAndOffset(recordStore.getIndex(), recordStore.getOffset());
+        if (recordVariable != null && !declaredBy(method, recordVariable, recordStore)) {
+            return false;
+        }
         List<LocalVariable> bindings = new ArrayList<>();
         int end = collectComponents(classFile, method, list, ifIndex + 2, recordStore.getIndex(),
                 classFile.getConstantPool().getConstantClassName(instanceOf.getIndex()), bindings);

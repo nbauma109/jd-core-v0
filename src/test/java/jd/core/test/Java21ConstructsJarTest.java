@@ -518,4 +518,12 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("((FiftyFirst.Box)c.get()).field = other.values()"));
         }
     }
+
+    @Test
+    public void recordAssignedToAnExistingLocalIsNotFolded() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("FiftySecond", new ZipLoader(in));
+            assertFalse(output, output.contains("instanceof FiftySecond.R(int"));
+        }
+    }
 }
