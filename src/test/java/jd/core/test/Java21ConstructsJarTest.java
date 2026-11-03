@@ -621,4 +621,12 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, compact.contains("static record R_2(String b)"));
         }
     }
+
+    @Test
+    public void conditionalOfNullsIsNotInferred() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Sixty4th", new ZipLoader(in));
+            assertFalse(output, output.contains("var value"));
+        }
+    }
 }

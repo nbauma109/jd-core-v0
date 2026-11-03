@@ -2871,7 +2871,7 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
     /** 'var' needs an initializer with a type, and the variable can be assigned nothing of another anonymous type. */
     private boolean hasInferableInitializer(FastDeclaration fd, LocalVariable lv)
     {
-        if (!(fd.getInstruction() instanceof StoreInstruction declaration) || declaration.getValueref() instanceof AConstNull
+        if (!(fd.getInstruction() instanceof StoreInstruction declaration) || isNullTyped(declaration.getValueref())
             || this.fastNodes == null) {
             return false;
         }
@@ -2882,6 +2882,13 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
             }
         }
         return true;
+    }
+
+    /** The null literal, or a conditional made of nothing else, has no type to infer. */
+    private static boolean isNullTyped(Instruction value)
+    {
+        return value instanceof AConstNull
+            || value instanceof TernaryOperator ternary && isNullTyped(ternary.getValue1()) && isNullTyped(ternary.getValue2());
     }
 
     private int writeDeclaration(FastDeclaration fd)
