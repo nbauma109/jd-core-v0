@@ -216,7 +216,23 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
         return selected.equals(value)
             || value instanceof ObjectType other && selected instanceof ObjectType parameterized
                 && other.getInternalName().equals(parameterized.getInternalName())
-                && (other.getTypeArguments() == null || other.getTypeArguments() instanceof GenericType && write.getValueref() instanceof InvokeInstruction);
+                && (other.getTypeArguments() == null || other.getTypeArguments() instanceof GenericType && isCalledOnSameType(write.getValueref(), selected));
+    }
+
+    /** The arguments of a call result are those of its receiver: they are the field's if the receiver has the type of the field. */
+    private boolean isCalledOnSameType(Instruction value, Type selected)
+    {
+        if (!(value instanceof InvokeNoStaticInstruction call)) {
+            return false;
+        }
+        String receiver = call.getObjectref().getReturnedSignature(classFile, localVariables);
+        if (receiver == null) {
+            return false;
+        }
+        Type type = typeMaker.makeFromSignature(receiver);
+        return selected.equals(type)
+            || type instanceof ObjectType other && selected instanceof ObjectType parameterized
+                && other.getTypeArguments() == null && other.getInternalName().equals(parameterized.getInternalName());
     }
 
     /** A parameterized result is safe where the variable receiving it is declared with the very same type. */

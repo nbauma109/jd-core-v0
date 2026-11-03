@@ -510,4 +510,12 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output, output.contains("instanceof Fiftieth.R(int"));
         }
     }
+
+    @Test
+    public void fieldWriteOfForeignCallResultKeepsRawCast() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("FiftyFirst", new ZipLoader(in));
+            assertTrue(output, output.contains("((FiftyFirst.Box)c.get()).field = other.values()"));
+        }
+    }
 }
