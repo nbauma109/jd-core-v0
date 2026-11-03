@@ -431,8 +431,12 @@ public final class CheckCastAndConvertInstructionVisitor
     /** A wildcard not bounded by the very variable of the target is cast to it through the unbounded wildcard. */
     private static boolean needsBridge(BaseTypeArgument wildcard, String variable)
     {
-        TypeArgument bound = wildcard instanceof WildcardExtendsTypeArgument extendsBound ? extendsBound.type()
-            : wildcard instanceof WildcardSuperTypeArgument superBound ? superBound.type() : null;
+        TypeArgument bound = null;
+        if (wildcard instanceof WildcardExtendsTypeArgument extendsBound) {
+            bound = extendsBound.type();
+        } else if (wildcard instanceof WildcardSuperTypeArgument superBound) {
+            bound = superBound.type();
+        }
         return bound != null && !(bound instanceof GenericType generic && generic.getName().equals(variable));
     }
 

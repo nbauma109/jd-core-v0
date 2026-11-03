@@ -140,9 +140,9 @@ public class AddWildcardCastVisitor extends AbstractReplaceInstructionVisitor<In
         if (value.equals(target) || value instanceof WildcardTypeArgument) {
             return true;
         }
-        if (target instanceof GenericType) {
+        if (target instanceof GenericType variable) {
             // The bounds of the variable are unknown: a bounded wildcard needs the cast through '?', unless it is bounded by that very variable
-            return !isBounded(value) || boundedBy(value, ((GenericType) target).getName());
+            return !isBounded(value) || boundedBy(value, variable.getName());
         }
         if (target instanceof ObjectType targetType) {
             // The capture of '? extends B' is a subtype of B, the one of '? super B' a supertype of B
@@ -164,9 +164,15 @@ public class AddWildcardCastVisitor extends AbstractReplaceInstructionVisitor<In
 
     private static boolean boundedBy(TypeArgument value, String variable)
     {
-        TypeArgument bound = value instanceof WildcardExtendsTypeArgument extendsBound ? extendsBound.type()
-            : value instanceof WildcardSuperTypeArgument superBound ? superBound.type() : null;
-        return bound instanceof GenericType generic && generic.getName().equals(variable);
+        return boundOf(value) instanceof GenericType generic && generic.getName().equals(variable);
+    }
+
+    private static TypeArgument boundOf(TypeArgument wildcard)
+    {
+        if (wildcard instanceof WildcardExtendsTypeArgument extendsBound) {
+            return extendsBound.type();
+        }
+        return wildcard instanceof WildcardSuperTypeArgument superBound ? superBound.type() : null;
     }
 
     private String returnedSignature()
