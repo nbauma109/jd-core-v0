@@ -283,6 +283,10 @@ public final class PatternMatchingReconstructor {
         if (tested == null) {
             return false;
         }
+        if (tested.charAt(0) == '[') {
+            // An array tested for its own type
+            return tested.equals(name);
+        }
         TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
         Type testedType = typeMaker.makeFromSignature(tested);
         return testedType instanceof GenericType

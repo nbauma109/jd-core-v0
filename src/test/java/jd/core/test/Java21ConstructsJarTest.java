@@ -718,4 +718,12 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output, output.contains("n = effect()"));
         }
     }
+
+    @Test
+    public void arrayTestedForItsOwnTypeIsNotAPattern() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov7", new ZipLoader(in));
+            assertFalse(output, output.contains("instanceof String[] s"));
+        }
+    }
 }
