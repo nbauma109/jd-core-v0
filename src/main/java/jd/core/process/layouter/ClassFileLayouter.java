@@ -36,7 +36,6 @@ import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
 import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
-import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.process.analyzer.instruction.fast.visitor.CheckLocalVariableUsedVisitor;
 import jd.core.model.instruction.bytecode.instruction.PutField;
 import jd.core.model.classfile.Field;
