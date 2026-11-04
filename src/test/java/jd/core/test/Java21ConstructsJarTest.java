@@ -710,4 +710,12 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("return m.get(\"k\").get();"));
         }
     }
+
+    @Test
+    public void writtenConstructorParametersAreNotInitializers() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov6", new ZipLoader(in));
+            assertFalse(output, output.contains("n = effect()"));
+        }
+    }
 }

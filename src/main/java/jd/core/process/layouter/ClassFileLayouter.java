@@ -711,9 +711,9 @@ public final class ClassFileLayouter {
                     && isConstructorCall(constants, call)) {
                 return false;
             }
-            // A parameter of the constructor is not declared by an initializer block
+            // A parameter of the constructor, read or written, is not declared by an initializer block
             if (CheckLocalVariableUsedVisitor.visit(
-                    used -> used instanceof LoadInstruction && !(used instanceof StoreInstruction)
+                    used -> used instanceof LoadInstruction
                             && used.getIndex() >= 1 && used.getIndex() <= parameterSlots, instruction)) {
                 return false;
             }
