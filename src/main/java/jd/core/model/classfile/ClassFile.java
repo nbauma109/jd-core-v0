@@ -423,7 +423,27 @@ public class ClassFile extends Base
         }
         // The name written must not be the one of another member either
         String written = prefix + TypeNameUtil.localTypeSimpleName(this.thisClassName, simpleName);
-        return written.equals(member) || !(this.loader.canLoad(written) || this.loader.canLoad(written + StringConstants.CLASS_FILE_SUFFIX));
+        if (!written.equals(member) && (this.loader.canLoad(written) || this.loader.canLoad(written + StringConstants.CLASS_FILE_SUFFIX))) {
+            return false;
+        }
+        // Another local type of the same class may be written with this name
+        String writtenSimpleName = written.substring(prefix.length());
+        List<String> siblings = new java.util.ArrayList<>();
+        siblings.add(prefix + 1 + writtenSimpleName);
+        for (int i = 1; i < 10; i++)
+        {
+            if (writtenSimpleName.endsWith("_" + i)) {
+                siblings.add(prefix + i + writtenSimpleName.substring(0, writtenSimpleName.length() - 2));
+            }
+        }
+        for (String other : siblings)
+        {
+            if (!other.equals(this.thisClassName)
+                    && (this.loader.canLoad(other) || this.loader.canLoad(other + StringConstants.CLASS_FILE_SUFFIX))) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public boolean isAInnerClass()

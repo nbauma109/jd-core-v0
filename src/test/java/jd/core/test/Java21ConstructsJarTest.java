@@ -726,4 +726,19 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output, output.contains("instanceof String[] s"));
         }
     }
+
+    @Test
+    public void covariantArraysAndGeneratedNamesOfSiblings() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov8", new ZipLoader(in));
+            assertFalse(output, output.contains("instanceof Object[] a"));
+        }
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov9", new ZipLoader(in));
+            assertFalse(output, output.contains("Byte code"));
+            assertFalse(output, output.replaceAll("\\s+", " ").contains("record R_1(int x) {} static record R_1(int x)"));
+            assertTrue(output, output.split("record R_1\\(", -1).length <= 2);
+            assertTrue(output, output.split("record R\\(", -1).length <= 2);
+        }
+    }
 }

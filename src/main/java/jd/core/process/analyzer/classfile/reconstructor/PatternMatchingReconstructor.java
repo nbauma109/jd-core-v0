@@ -284,8 +284,9 @@ public final class PatternMatchingReconstructor {
             return false;
         }
         if (tested.charAt(0) == '[') {
-            // An array tested for its own type
-            return tested.equals(name);
+            // An array tested for its own type, or for an array of Object it is covariant with
+            return tested.equals(name) || name.startsWith("[") && name.endsWith("Ljava/lang/Object;")
+                && name.lastIndexOf('[') <= tested.lastIndexOf('[');
         }
         TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
         Type testedType = typeMaker.makeFromSignature(tested);
