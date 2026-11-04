@@ -14,8 +14,6 @@
  ******************************************************************************/
 package jd.core.process.analyzer.classfile.visitor;
 
-import java.util.HashSet;
-import java.util.Set;
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantNameAndType;
@@ -23,7 +21,6 @@ import org.jd.core.v1.model.javasyntax.type.BaseTypeArgument;
 import org.jd.core.v1.model.javasyntax.type.GenericType;
 import org.jd.core.v1.model.javasyntax.type.ObjectType;
 import org.jd.core.v1.model.javasyntax.type.Type;
-import org.jd.core.v1.model.javasyntax.type.TypeParameter;
 import org.jd.core.v1.model.javasyntax.type.TypeArgument;
 import org.jd.core.v1.model.javasyntax.type.WildcardExtendsTypeArgument;
 import org.jd.core.v1.model.javasyntax.type.WildcardSuperTypeArgument;
@@ -124,17 +121,9 @@ public class AddWildcardCastVisitor extends AbstractReplaceInstructionVisitor<In
         {
             return false;
         }
-        // A type variable of another class is a different variable, even with the same name
-        boolean ownDeclaration = classFile.getThisClassName().equals(constants.getConstantClassName(methodref.getClassIndex()));
-        Set<String> calledVariables = new HashSet<>();
-        if (methodTypes.getTypeParameters() != null) {
-            for (TypeParameter parameter : methodTypes.getTypeParameters()) {
-                calledVariables.add(parameter.getIdentifier());
-            }
-        }
         for (int i = 0; i < target.getTypeArguments().typeArgumentSize(); i++)
         {
-            if (!isCompatible(argumentAt(returned.getTypeArguments(), i), argumentAt(target.getTypeArguments(), i), ownDeclaration, calledVariables)) {
+            if (!isCompatible(argumentAt(returned.getTypeArguments(), i), argumentAt(target.getTypeArguments(), i))) {
                 return false;
             }
         }
@@ -146,14 +135,14 @@ public class AddWildcardCastVisitor extends AbstractReplaceInstructionVisitor<In
         return arguments.isTypeArgumentList() ? arguments.getTypeArgumentList().get(index) : arguments.getTypeArgumentFirst();
     }
 
-    private boolean isCompatible(TypeArgument value, TypeArgument target, boolean ownDeclaration, Set<String> calledVariables)
+    private boolean isCompatible(TypeArgument value, TypeArgument target)
     {
         if (value.equals(target) || value instanceof WildcardTypeArgument) {
             return true;
         }
-        if (target instanceof GenericType variable) {
-            // The bounds of the variable are unknown: a bounded wildcard needs the cast through '?', unless it is bounded by that very variable
-            return !isBounded(value) || ownDeclaration && !calledVariables.contains(variable.getName()) && !declaresMethodTypeParameter(variable.getName()) && boundedBy(value, variable.getName());
+        if (target instanceof GenericType) {
+            // The bounds of the variable are unknown: a bounded wildcard needs the cast through '?'
+            return !isBounded(value);
         }
         if (target instanceof ObjectType targetType) {
             // The capture of '? extends B' is a subtype of B, the one of '? super B' a supertype of B
@@ -171,32 +160,6 @@ public class AddWildcardCastVisitor extends AbstractReplaceInstructionVisitor<In
     private static boolean isBounded(TypeArgument value)
     {
         return value instanceof WildcardExtendsTypeArgument || value instanceof WildcardSuperTypeArgument;
-    }
-
-    /** A type variable declared by the method itself is not the one of the class, whatever the name. */
-    private boolean declaresMethodTypeParameter(String name)
-    {
-        var attribute = method.getAttributeSignature();
-        if (attribute == null) {
-            return false;
-        }
-        String signature = classFile.getConstantPool().getConstantUtf8(attribute.getSignatureIndex());
-        int parameters = signature.indexOf('(');
-        String declarations = parameters == -1 ? signature : signature.substring(0, parameters);
-        return declarations.startsWith("<") && (declarations.startsWith("<" + name + ":") || declarations.contains(";" + name + ":"));
-    }
-
-    private static boolean boundedBy(TypeArgument value, String variable)
-    {
-        return boundOf(value) instanceof GenericType generic && generic.getName().equals(variable);
-    }
-
-    private static TypeArgument boundOf(TypeArgument wildcard)
-    {
-        if (wildcard instanceof WildcardExtendsTypeArgument extendsBound) {
-            return extendsBound.type();
-        }
-        return wildcard instanceof WildcardSuperTypeArgument superBound ? superBound.type() : null;
     }
 
     private String returnedSignature()

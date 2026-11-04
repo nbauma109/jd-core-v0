@@ -645,4 +645,69 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.replaceAll("\\s+", "").contains("if(r==null)return;"));
         }
     }
+
+    @Test
+    public void textBlocksEscapeWhitespaceAndQuotes() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov1", new ZipLoader(in));
+            assertFalse(output, output.contains("<failed"));
+            assertTrue(output, output.contains("\\ttab"));
+            assertTrue(output, output.contains("\\rcr"));
+            assertTrue(output, output.contains("back\\bspace"));
+            assertTrue(output, output.contains("form\\ffeed"));
+            assertTrue(output, output.contains("\\001ctl"));
+            assertTrue(output, output.contains("trailing\\s"));
+            assertTrue(output, output.contains("back\\\\slash"));
+            assertTrue(output, output.contains("case \"a\" -> 1;"));
+            assertTrue(output, output.contains("case 2 -> 2;"));
+        }
+    }
+
+    @Test
+    public void wildcardCastsInReturnsAndStores() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov2", new ZipLoader(in));
+            assertFalse(output, output.contains("Byte code"));
+            assertTrue(output, output.contains("return (List<Integer>)numbers();"));
+            assertTrue(output, output.contains("return (List<T>)(List<?>)shadow();"));
+        }
+    }
+
+    @Test
+    public void resourcesOfSeveralKindsAndConsecutiveStatements() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov3", new ZipLoader(in));
+            assertFalse(output, output.contains("Byte code"));
+            String compact = output.replaceAll("\\s+", " ");
+            assertTrue(output, compact.contains("try (Cov3.R a = open(); Cov3.R b = open();) { return a.read() + b.read(); }"));
+            assertTrue(output, compact.contains("try (Cov3.R a = open()) { a.read(); } try (Cov3.R a = open()) { return a.read(); }"));
+            assertFalse(output, compact.contains("Cov3.R a; try"));
+        }
+    }
+
+    @Test
+    public void patternsOfOtherClassesAndSwitchShapes() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov4", new ZipLoader(in));
+            assertFalse(output, output.contains("Byte code"));
+            String compact = output.replaceAll("\\s+", " ");
+            assertTrue(output, compact.contains("x instanceof Rec(String s, int n)) && n > 1"));
+            assertTrue(output, compact.contains("case Rec(Integer i, int n) -> \"i\" + i + n;"));
+            assertTrue(output, compact.contains("case Cov4.Color x when x == Cov4.Color.RED -> 1;"));
+            assertTrue(output, compact.contains("case Cov4.B(int n) when n > 3 -> 2;"));
+            assertTrue(output, compact.contains("case null -> \"null\";"));
+        }
+    }
+
+    @Test
+    public void rawCastsAreKeptWhereTheyAreRuntimeChecks() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov5", new ZipLoader(in));
+            assertFalse(output, output.contains("Byte code"));
+            assertTrue(output, output.contains("a[0] = ((Cov5.Box)c.get()).get();"));
+            assertTrue(output, output.contains("return (Object[])((Cov5.Box)c.get()).get();"));
+            assertTrue(output, output.contains("return a[b.get().intValue()];"));
+            assertTrue(output, output.contains("return m.get(\"k\").get();"));
+        }
+    }
 }
