@@ -40,6 +40,7 @@ import jd.core.process.analyzer.instruction.fast.visitor.CheckLocalVariableUsedV
 import jd.core.model.instruction.bytecode.instruction.PutField;
 import jd.core.model.instruction.bytecode.instruction.Return;
 import jd.core.model.instruction.fast.FastConstants;
+import jd.core.model.instruction.fast.instruction.FastSynchronized;
 import jd.core.model.instruction.fast.instruction.FastTry;
 import jd.core.model.classfile.Field;
 import jd.core.model.classfile.Field.ValueAndMethod;
@@ -752,6 +753,9 @@ public final class ClassFileLayouter {
                 // An empty body is one whose throw was not rebuilt
                 || (fastTry.getInstructions().isEmpty() || cannotCompleteNormally(fastTry.getInstructions()))
                     && fastTry.getCatches().stream().allMatch(c -> cannotCompleteNormally(c.instructions()));
+        }
+        if (instruction instanceof FastSynchronized synced) {
+            return synced.getInstructions() == null || synced.getInstructions().isEmpty() || cannotCompleteNormally(synced.getInstructions());
         }
         return instruction instanceof AThrow || instruction.getOpcode() == FastConstants.INFINITE_LOOP;
     }

@@ -204,8 +204,14 @@ public final class PatternMatchingReconstructor {
                         && load.getIndex() == component.getIndex()
                         && (copy.getValueref() == load || typeTest != null && copy.getValueref() instanceof CheckCast cast && cast.getIndex() == typeTest.getIndex())) {
                     if (binding != null) {
-                        // An earlier copy is a temporary of the pattern
-                        method.getRecordTemporaries().add(localVariables.getLocalVariableWithIndexAndOffset(binding.getIndex(), binding.getOffset()));
+                        // An earlier copy is a temporary of the pattern, unless it assigns a variable declared before
+                        LocalVariable earlier = localVariables.getLocalVariableWithIndexAndOffset(binding.getIndex(), binding.getOffset());
+                        if (earlier != null && !declaredBy(method, earlier, binding)
+                                && earlier.getStartPc() + earlier.getLength() > copy.getOffset() + 1) {
+                            // The assignment of a variable that outlives the copy is the user's
+                            return -1;
+                        }
+                        method.getRecordTemporaries().add(earlier);
                     }
                     binding = copy;
                 } else if (isComponentTypeTest(instruction, component, failTarget) && typeTest == null) {

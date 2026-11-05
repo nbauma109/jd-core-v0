@@ -805,4 +805,14 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output.replaceAll("\\s+", " "), output.replaceAll("\\s+", " ").contains("{ try {"));
         }
     }
+
+    @Test
+    public void componentCopiesKeepAssignmentsAndSynchronizedConstructorsAreNotInitializers() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov17", new ZipLoader(in));
+            assertFalse(output, output.contains("o instanceof R(int b)"));
+            assertTrue(output, output.contains("a = "));
+            assertFalse(output.replaceAll("\\s+", " "), output.replaceAll("\\s+", " ").contains("{ synchronized"));
+        }
+    }
 }
