@@ -788,4 +788,12 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output, output.contains("{ while (true)"));
         }
     }
+
+    @Test
+    public void resourceNullTestBeforeBreakIsKept() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov15", new ZipLoader(in));
+            assertTrue(output, output.contains("r == null") || output.contains("null == r"));
+        }
+    }
 }
