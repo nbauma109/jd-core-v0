@@ -824,4 +824,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("a = "));
         }
     }
+
+    @Test
+    public void unnamedPackageTypesAreNotShadowedAndSwitchConstructorsAreNotInitializers() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov19", new ZipLoader(in));
+            assertFalse(output, output.contains("static record Cov19R"));
+            assertFalse(output.replaceAll("\\s+", " "), output.replaceAll("\\s+", " ").contains("{ switch"));
+        }
+    }
 }

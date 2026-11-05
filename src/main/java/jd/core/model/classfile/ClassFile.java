@@ -433,6 +433,15 @@ public class ClassFile extends Base
             // A member type already has this name: the local one is written with its number
             TypeNameUtil.registerLocalTypeShadowedByMember(this.thisClassName);
         }
+        // A top-level type of the unnamed package cannot be qualified: the member would take its place
+        if (this.thisClassName.indexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR) == -1) {
+            String writtenName = TypeNameUtil.localTypeSimpleName(this.thisClassName, simpleName);
+            for (String top : new String[] {plainName, writtenName}) {
+                if (this.loader.canLoad(top) || this.loader.canLoad(top + StringConstants.CLASS_FILE_SUFFIX)) {
+                    return false;
+                }
+            }
+        }
         // The name written must not be the one of another member either
         String written = prefix + TypeNameUtil.localTypeSimpleName(this.thisClassName, simpleName);
         if (!written.equals(member) && (this.loader.canLoad(written) || this.loader.canLoad(written + StringConstants.CLASS_FILE_SUFFIX))) {

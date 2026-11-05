@@ -40,6 +40,7 @@ import jd.core.process.analyzer.instruction.fast.visitor.CheckLocalVariableUsedV
 import jd.core.model.instruction.bytecode.instruction.PutField;
 import jd.core.model.instruction.bytecode.instruction.Return;
 import jd.core.model.instruction.fast.FastConstants;
+import jd.core.model.instruction.fast.instruction.FastSwitch;
 import jd.core.model.instruction.fast.instruction.FastSynchronized;
 import jd.core.model.instruction.fast.instruction.FastTry;
 import jd.core.model.classfile.Field;
@@ -754,10 +755,32 @@ public final class ClassFileLayouter {
                 || (fastTry.getInstructions().isEmpty() || cannotCompleteNormally(fastTry.getInstructions()))
                     && fastTry.getCatches().stream().allMatch(c -> cannotCompleteNormally(c.instructions()));
         }
+        if (instruction instanceof FastSwitch fastSwitch) {
+            return switchCannotComplete(fastSwitch);
+        }
         if (instruction instanceof FastSynchronized synced) {
             return synced.getInstructions() == null || synced.getInstructions().isEmpty() || cannotCompleteNormally(synced.getInstructions());
         }
         return instruction instanceof AThrow || instruction.getOpcode() == FastConstants.INFINITE_LOOP;
+    }
+
+    /** Every arm of the switch ends with a throw or an endless loop, and one of them takes the values left. */
+    private static boolean switchCannotComplete(FastSwitch fastSwitch)
+    {
+        FastSwitch.Pair[] pairs = fastSwitch.getPairs();
+        if (pairs == null || pairs.length == 0) {
+            return false;
+        }
+        boolean hasDefault = false;
+        for (FastSwitch.Pair pair : pairs) {
+            hasDefault |= pair.isDefault();
+            // An empty arm falls through to the next one
+            if (pair.getInstructions() != null && !pair.getInstructions().isEmpty() && !cannotCompleteNormally(pair.getInstructions())) {
+                return false;
+            }
+        }
+        List<Instruction> last = pairs[pairs.length - 1].getInstructions();
+        return hasDefault && last != null && !last.isEmpty();
     }
 
     private static boolean isCapturedFieldWrite(ConstantPool constants, PutField putField)
