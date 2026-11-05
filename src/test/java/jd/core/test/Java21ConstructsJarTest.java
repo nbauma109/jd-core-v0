@@ -741,4 +741,14 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.split("record R\\(", -1).length <= 2);
         }
     }
+
+    @Test
+    public void typeVariableFieldsAndEarlyReturnsKeepTheirMeaning() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov10", new ZipLoader(in));
+            assertTrue(output, output.contains("((Cov10.Box)c.get()).field = value"));
+            assertFalse(output, output.contains("c.get().field = value"));
+            assertFalse(output, output.replaceAll("\\s+", " ").contains("{ while (again())"));
+        }
+    }
 }

@@ -38,6 +38,7 @@ import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
 import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
 import jd.core.process.analyzer.instruction.fast.visitor.CheckLocalVariableUsedVisitor;
 import jd.core.model.instruction.bytecode.instruction.PutField;
+import jd.core.model.instruction.bytecode.instruction.Return;
 import jd.core.model.classfile.Field;
 import jd.core.model.classfile.Field.ValueAndMethod;
 import jd.core.model.classfile.Method;
@@ -702,6 +703,11 @@ public final class ClassFileLayouter {
         ConstantPool constants = classFile.getConstantPool();
         List<Instruction> list = method.getFastNodes();
         if (method.getCode() == null || method.containsError() || list == null || list.isEmpty()) {
+            return false;
+        }
+        // An initializer block cannot return early: only the final return of the constructor may go
+        List<Instruction> bytecode = method.getInstructions();
+        if (bytecode != null && bytecode.stream().filter(Return.class::isInstance).count() > 1) {
             return false;
         }
         int parameterSlots = parameterSlots(constants.getConstantUtf8(method.getDescriptorIndex()));

@@ -209,7 +209,8 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
     private boolean assignsSameType(PutField write, Type selected)
     {
         String signature = selected == null ? null : write.getValueref().getReturnedSignature(classFile, localVariables);
-        if (signature == null) {
+        // A type variable of the field is that of the receiver's class, not the value's
+        if (signature == null || selected instanceof GenericType) {
             return false;
         }
         Type value = typeMaker.makeFromSignature(signature);
