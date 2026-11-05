@@ -833,4 +833,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output.replaceAll("\\s+", " "), output.replaceAll("\\s+", " ").contains("{ switch"));
         }
     }
+
+    @Test
+    public void assertDetailsKeepRawCastsAndExhaustiveSwitchConstructorsAreNotInitializers() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov20", new ZipLoader(in));
+            assertTrue(output, output.contains("((Cov20.Box)c.get()).get()"));
+            assertFalse(output.replaceAll("\\s+", " "), output.replaceAll("\\s+", " ").contains("{ switch"));
+        }
+    }
 }

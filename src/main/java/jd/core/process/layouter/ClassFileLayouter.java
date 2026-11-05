@@ -771,7 +771,8 @@ public final class ClassFileLayouter {
         if (pairs == null || pairs.length == 0) {
             return false;
         }
-        boolean hasDefault = false;
+        // A pattern switch is exhaustive: the default it lacks was left out by the reconstruction
+        boolean hasDefault = fastSwitch.getPatternSelector() != null;
         for (FastSwitch.Pair pair : pairs) {
             hasDefault |= pair.isDefault();
             // An empty arm falls through to the next one
