@@ -433,22 +433,34 @@ public class ClassFile extends Base
             // A member type already has this name: the local one is written with its number
             TypeNameUtil.registerLocalTypeShadowedByMember(this.thisClassName);
         }
-        // A top-level type of the unnamed package cannot be qualified: the member would take its place
-        if (this.thisClassName.indexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR) == -1) {
-            String writtenName = TypeNameUtil.localTypeSimpleName(this.thisClassName, simpleName);
-            for (String top : new String[] {plainName, writtenName}) {
-                if (this.loader.canLoad(top) || this.loader.canLoad(top + StringConstants.CLASS_FILE_SUFFIX)) {
-                    return false;
-                }
-            }
+        if (hidesUnnamedPackageType(simpleName)) {
+            return false;
         }
         // The name written must not be the one of another member either
         String written = prefix + TypeNameUtil.localTypeSimpleName(this.thisClassName, simpleName);
         if (!written.equals(member) && (this.loader.canLoad(written) || this.loader.canLoad(written + StringConstants.CLASS_FILE_SUFFIX))) {
             return false;
         }
-        // Another local type of the same class may be written with this name
-        String writtenSimpleName = written.substring(prefix.length());
+        return !collidesWithSiblingLocalType(prefix, written.substring(prefix.length()));
+    }
+
+    /** A top-level type of the unnamed package cannot be qualified: the member would take its place. */
+    private boolean hidesUnnamedPackageType(String simpleName)
+    {
+        if (this.thisClassName.indexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR) != -1) {
+            return false;
+        }
+        for (String top : new String[] {TypeNameUtil.localTypeSimpleName(simpleName), TypeNameUtil.localTypeSimpleName(this.thisClassName, simpleName)}) {
+            if (this.loader.canLoad(top) || this.loader.canLoad(top + StringConstants.CLASS_FILE_SUFFIX)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Another local type of the same class may be written with this name. */
+    private boolean collidesWithSiblingLocalType(String prefix, String writtenSimpleName)
+    {
         List<String> siblings = new java.util.ArrayList<>();
         siblings.add(prefix + 1 + writtenSimpleName);
         for (int i = 1; i < 10; i++)
@@ -461,10 +473,10 @@ public class ClassFile extends Base
         {
             if (!other.equals(this.thisClassName)
                     && (this.loader.canLoad(other) || this.loader.canLoad(other + StringConstants.CLASS_FILE_SUFFIX))) {
-                return false;
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
     public boolean isAInnerClass()
