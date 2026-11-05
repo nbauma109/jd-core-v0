@@ -796,4 +796,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("r == null") || output.contains("null == r"));
         }
     }
+
+    @Test
+    public void renamedLocalTypesAvoidTypeParametersAndTryBodiesMayNotComplete() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov16", new ZipLoader(in));
+            assertFalse(output, output.contains("record R_1"));
+            assertFalse(output.replaceAll("\\s+", " "), output.replaceAll("\\s+", " ").contains("{ try {"));
+        }
+    }
 }

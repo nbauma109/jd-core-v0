@@ -40,6 +40,7 @@ import jd.core.process.analyzer.instruction.fast.visitor.CheckLocalVariableUsedV
 import jd.core.model.instruction.bytecode.instruction.PutField;
 import jd.core.model.instruction.bytecode.instruction.Return;
 import jd.core.model.instruction.fast.FastConstants;
+import jd.core.model.instruction.fast.instruction.FastTry;
 import jd.core.model.classfile.Field;
 import jd.core.model.classfile.Field.ValueAndMethod;
 import jd.core.model.classfile.Method;
@@ -735,14 +736,23 @@ public final class ClassFileLayouter {
         return true;
     }
 
-    /** The body ends with a throw or an endless loop. */
+    /** The body ends with a throw or an endless loop, possibly inside a try statement. */
     private static boolean cannotCompleteNormally(List<Instruction> list)
     {
+        if (list == null || list.isEmpty()) {
+            return false;
+        }
         int last = list.size() - 1;
         if (last > 0 && list.get(last) instanceof Return) {
             last--;
         }
         Instruction instruction = list.get(last);
+        if (instruction instanceof FastTry fastTry) {
+            return cannotCompleteNormally(fastTry.getFinallyInstructions())
+                // An empty body is one whose throw was not rebuilt
+                || (fastTry.getInstructions().isEmpty() || cannotCompleteNormally(fastTry.getInstructions()))
+                    && fastTry.getCatches().stream().allMatch(c -> cannotCompleteNormally(c.instructions()));
+        }
         return instruction instanceof AThrow || instruction.getOpcode() == FastConstants.INFINITE_LOOP;
     }
 

@@ -351,15 +351,27 @@ public class ClassFile extends Base
     /** A type variable of an enclosing class cannot be qualified: a member of the same name would take its place. */
     private boolean hidesTypeParameter(String simpleName)
     {
+        // The name written may be the one given to tell the type from a member
         String plainName = TypeNameUtil.localTypeSimpleName(simpleName);
+        String writtenName = TypeNameUtil.localTypeSimpleName(this.thisClassName, simpleName);
         for (ClassFile enclosing = this.outerClass; enclosing != null; enclosing = enclosing.outerClass) {
             for (Attribute attribute : enclosing.getAttributes()) {
-                if (attribute instanceof Signature signature) {
-                    String declared = signature.getSignature();
-                    if (declared.startsWith("<") && (declared.startsWith("<" + plainName + ":") || declared.contains(";" + plainName + ":"))) {
-                        return true;
-                    }
+                if (attribute instanceof Signature signature && declaresTypeParameter(signature.getSignature(), plainName, writtenName)) {
+                    return true;
                 }
+            }
+        }
+        return false;
+    }
+
+    private static boolean declaresTypeParameter(String declared, String... names)
+    {
+        if (!declared.startsWith("<")) {
+            return false;
+        }
+        for (String name : names) {
+            if (declared.startsWith("<" + name + ":") || declared.contains(";" + name + ":")) {
+                return true;
             }
         }
         return false;
