@@ -124,7 +124,7 @@ public final class PatternMatchingReconstructor {
             return false;
         }
         List<LocalVariable> bindings = new ArrayList<>();
-        int end = collectComponents(new Scan(classFile, method, list, test.getJumpOffset(), new ArrayList<>()), ifIndex + 2,
+        int end = collectComponents(new Scan(classFile, method, list, test.getJumpOffset(), new ArrayList<>(), list.get(ifIndex).getOffset()), ifIndex + 2,
                 recordStore.getIndex(), classFile.getConstantPool().getConstantClassName(instanceOf.getIndex()), bindings);
         int bodyEnd = ((IfInstruction) list.get(ifIndex)).getJumpOffset();
         // The failing test must skip the whole extraction, not only the store of the record
@@ -147,13 +147,13 @@ public final class PatternMatchingReconstructor {
      */
     static int collectComponents(ClassFile classFile, Method method, List<Instruction> list,
             int start, int recordVariable, String recordName, List<LocalVariable> bindings) {
-        return collectComponents(new Scan(classFile, method, list, -1, new ArrayList<>()), start, recordVariable, recordName, bindings);
+        return collectComponents(new Scan(classFile, method, list, -1, new ArrayList<>(), list.get(start).getOffset()), start, recordVariable, recordName, bindings);
     }
 
     /**
      * @param failTarget offset where the tests of the nested patterns jump when they fail, or -1 if unknown
      */
-    private record Scan(ClassFile classFile, Method method, List<Instruction> list, int failTarget, List<Integer> accessOffsets) {
+    private record Scan(ClassFile classFile, Method method, List<Instruction> list, int failTarget, List<Integer> accessOffsets, int patternOffset) {
     }
 
     static int collectComponents(Scan scan, int start, int recordVariable, String recordName, List<LocalVariable> bindings) {
@@ -197,7 +197,12 @@ public final class PatternMatchingReconstructor {
             StoreInstruction binding = null;
             LocalVariable testedBinding = null;
             InstanceOf typeTest = null;
-            method.getRecordTemporaries().add(localVariables.getLocalVariableWithIndexAndOffset(component.getIndex(), component.getOffset()));
+            LocalVariable stored = localVariables.getLocalVariableWithIndexAndOffset(component.getIndex(), component.getOffset());
+            if (assignsOutlivingVariable(method, stored, component, scan.patternOffset())) {
+                // The assignment of a variable that outlives the pattern is the user's
+                return -1;
+            }
+            method.getRecordTemporaries().add(stored);
             while (next < list.size()) {
                 Instruction instruction = list.get(next);
                 if (instruction instanceof StoreInstruction copy && unwrapCast(copy.getValueref()) instanceof LoadInstruction load
@@ -206,8 +211,7 @@ public final class PatternMatchingReconstructor {
                     if (binding != null) {
                         // An earlier copy is a temporary of the pattern, unless it assigns a variable declared before
                         LocalVariable earlier = localVariables.getLocalVariableWithIndexAndOffset(binding.getIndex(), binding.getOffset());
-                        if (earlier != null && !declaredBy(method, earlier, binding)
-                                && earlier.getStartPc() + earlier.getLength() > copy.getOffset() + 1) {
+                        if (assignsOutlivingVariable(method, earlier, binding, scan.patternOffset())) {
                             // The assignment of a variable that outlives the copy is the user's
                             return -1;
                         }
@@ -415,6 +419,12 @@ public final class PatternMatchingReconstructor {
         boolean parameterized = component instanceof ObjectType object && object.getTypeArguments() != null
                 || declared instanceof ObjectType other && other.getTypeArguments() != null;
         return !parameterized || component.equals(declared);
+    }
+
+    /** Whether the store assigns a variable declared before the pattern and still in scope after the store. */
+    private static boolean assignsOutlivingVariable(Method method, LocalVariable lv, StoreInstruction store, int patternOffset) {
+        return lv != null && lv.getStartPc() < patternOffset && !declaredBy(method, lv, store)
+                && lv.getStartPc() + lv.getLength() > store.getOffset() + 1;
     }
 
     /** Whether the store is the one declaring the variable, not an assignment to a variable that existed before. */

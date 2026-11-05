@@ -815,4 +815,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output.replaceAll("\\s+", " "), output.replaceAll("\\s+", " ").contains("{ synchronized"));
         }
     }
+
+    @Test
+    public void accessorResultAssignedToExistingVariableIsKept() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov18", new ZipLoader(in));
+            assertFalse(output, output.contains("instanceof Cov18.R(int"));
+            assertTrue(output, output.contains("a = "));
+        }
+    }
 }
