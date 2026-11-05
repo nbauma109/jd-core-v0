@@ -760,4 +760,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output, output.contains("{ throw new IllegalStateException"));
         }
     }
+
+    @Test
+    public void arraysOfSubtypesAreNotPatterns() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov12", new ZipLoader(in));
+            assertEquals(output, 1, output.split("instanceof CharSequence\\[\\] a", -1).length - 1);
+            assertTrue(output, output.contains("o instanceof CharSequence[] a"));
+        }
+    }
 }

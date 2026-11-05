@@ -286,12 +286,25 @@ public final class PatternMatchingReconstructor {
         if (tested.charAt(0) == '[') {
             // An array tested for its own type, or for an array of Object it is covariant with
             return tested.equals(name) || name.startsWith("[") && name.endsWith("Ljava/lang/Object;")
-                && name.lastIndexOf('[') <= tested.lastIndexOf('[');
+                && name.lastIndexOf('[') <= tested.lastIndexOf('[') || isCovariantArray(classFile, tested, name);
         }
         TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
         Type testedType = typeMaker.makeFromSignature(tested);
         return testedType instanceof GenericType
                 || testedType instanceof ObjectType object && object.getDimension() == 0 && typeMaker.isAssignable(typeMaker.makeFromInternalTypeName(name), object);
+    }
+
+    /** An array of a subtype is assignable to the array of the pattern with the same number of dimensions. */
+    private static boolean isCovariantArray(ClassFile classFile, String tested, String name) {
+        int dimension = tested.lastIndexOf('[') + 1;
+        if (!name.startsWith("[") || name.lastIndexOf('[') + 1 != dimension
+                || tested.charAt(dimension) != 'L' || name.charAt(dimension) != 'L') {
+            return false;
+        }
+        TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
+        String testedName = tested.substring(dimension + 1, tested.length() - 1);
+        String patternName = name.substring(dimension + 1, name.length() - 1);
+        return typeMaker.isAssignable(typeMaker.makeFromInternalTypeName(patternName), typeMaker.makeFromInternalTypeName(testedName));
     }
 
     /** The variable has the type of the pattern: a wider declared type would change the type of its uses. */
