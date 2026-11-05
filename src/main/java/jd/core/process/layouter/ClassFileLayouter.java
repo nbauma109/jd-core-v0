@@ -722,17 +722,20 @@ public final class ClassFileLayouter {
                             && used.getIndex() >= 1 && used.getIndex() <= parameterSlots, instruction)) {
                 return false;
             }
-            if (instruction instanceof PutField putField) {
-                ConstantFieldref fieldref = constants.getConstantFieldref(putField.getIndex());
-                ConstantNameAndType nameAndType = constants.getConstantNameAndType(fieldref.getNameAndTypeIndex());
-                String name = constants.getConstantUtf8(nameAndType.getNameIndex());
-                if (name.startsWith("val$") || name.startsWith("this$")) {
-                    // Captured variable or outer instance not reconstructed
-                    return false;
-                }
+            if (instruction instanceof PutField putField && isCapturedFieldWrite(constants, putField)) {
+                // Captured variable or outer instance not reconstructed
+                return false;
             }
         }
         return true;
+    }
+
+    private static boolean isCapturedFieldWrite(ConstantPool constants, PutField putField)
+    {
+        ConstantFieldref fieldref = constants.getConstantFieldref(putField.getIndex());
+        ConstantNameAndType nameAndType = constants.getConstantNameAndType(fieldref.getNameAndTypeIndex());
+        String name = constants.getConstantUtf8(nameAndType.getNameIndex());
+        return name.startsWith("val$") || name.startsWith("this$");
     }
 
     private static List<SubListLayoutBlock> createSortedBlocksForMethods(
