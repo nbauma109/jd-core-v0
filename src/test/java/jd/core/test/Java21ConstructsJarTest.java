@@ -769,4 +769,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("o instanceof CharSequence[] a"));
         }
     }
+
+    @Test
+    public void arraysOfArraysAreNotPatternsOfTheirInterfaces() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov13", new ZipLoader(in));
+            assertEquals(output, 1, output.split("instanceof Cloneable\\[\\] a", -1).length - 1);
+            assertTrue(output, output.contains("o instanceof Cloneable[] a"));
+        }
+    }
 }

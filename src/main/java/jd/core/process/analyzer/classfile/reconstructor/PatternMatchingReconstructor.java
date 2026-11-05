@@ -291,19 +291,25 @@ public final class PatternMatchingReconstructor {
         TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
         Type testedType = typeMaker.makeFromSignature(tested);
         return testedType instanceof GenericType
-                || testedType instanceof ObjectType object && object.getDimension() == 0 && typeMaker.isAssignable(typeMaker.makeFromInternalTypeName(name), object);
+                || testedType instanceof ObjectType object && object.getDimension() == 0 && name.charAt(0) != '[' && typeMaker.isAssignable(typeMaker.makeFromInternalTypeName(name), object);
     }
 
-    /** An array of a subtype is assignable to the array of the pattern with the same number of dimensions. */
+    /** An array is assignable to the array of the pattern with the same dimensions and a supertype component, or with fewer and an array supertype. */
     private static boolean isCovariantArray(ClassFile classFile, String tested, String name) {
         int dimension = tested.lastIndexOf('[') + 1;
-        if (!name.startsWith("[") || name.lastIndexOf('[') + 1 != dimension
-                || tested.charAt(dimension) != 'L' || name.charAt(dimension) != 'L') {
+        int patternDimension = name.lastIndexOf('[') + 1;
+        if (patternDimension == 0 || patternDimension > dimension || name.charAt(patternDimension) != 'L') {
+            return false;
+        }
+        String patternName = name.substring(patternDimension + 1, name.length() - 1);
+        if (patternDimension < dimension) {
+            return "java/lang/Cloneable".equals(patternName) || "java/io/Serializable".equals(patternName);
+        }
+        if (tested.charAt(dimension) != 'L') {
             return false;
         }
         TypeMaker typeMaker = new TypeMaker(classFile.getLoader());
         String testedName = tested.substring(dimension + 1, tested.length() - 1);
-        String patternName = name.substring(dimension + 1, name.length() - 1);
         return typeMaker.isAssignable(typeMaker.makeFromInternalTypeName(patternName), typeMaker.makeFromInternalTypeName(testedName));
     }
 
