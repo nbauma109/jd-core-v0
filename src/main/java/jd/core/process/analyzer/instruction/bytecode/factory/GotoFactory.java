@@ -155,26 +155,39 @@ public class GotoFactory implements InstructionFactory
                 return setsRestartIndex
                     && pos + (short) ((code[pos + 1] & 255) << 8 | code[pos + 2] & 255) <= active.getOffset();
             }
-            if (opcode >= Const.ICONST_M1 && opcode <= Const.ICONST_5 || opcode == Const.BIPUSH)
+            int stored = storedVariable(code, pos);
+            if (stored >= 0)
             {
-                pos += opcode == Const.BIPUSH ? 2 : 1;
+                setsRestartIndex = stored == restartVariable;
             }
-            else if (opcode >= Const.ISTORE_0 && opcode <= Const.ISTORE_3)
-            {
-                setsRestartIndex = opcode - Const.ISTORE_0 == restartVariable;
-                pos += 1;
-            }
-            else if (opcode == Const.ISTORE)
-            {
-                setsRestartIndex = (code[pos + 1] & 255) == restartVariable;
-                pos += 2;
-            }
-            else
+            else if (!isConstantPush(opcode))
             {
                 return false;
             }
+            pos += instructionLength(opcode);
         }
         return false;
+    }
+
+    private static boolean isConstantPush(int opcode)
+    {
+        return opcode >= Const.ICONST_M1 && opcode <= Const.ICONST_5 || opcode == Const.BIPUSH;
+    }
+
+    /** @return the variable stored by the int store at the position, or -1 */
+    private static int storedVariable(byte[] code, int pos)
+    {
+        int opcode = code[pos] & 255;
+        if (opcode >= Const.ISTORE_0 && opcode <= Const.ISTORE_3)
+        {
+            return opcode - Const.ISTORE_0;
+        }
+        return opcode == Const.ISTORE ? code[pos + 1] & 255 : -1;
+    }
+
+    private static int instructionLength(int opcode)
+    {
+        return opcode == Const.BIPUSH || opcode == Const.ISTORE ? 2 : 1;
     }
 
     private static int search2ndValueOffset(
