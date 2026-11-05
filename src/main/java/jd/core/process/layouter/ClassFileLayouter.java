@@ -710,6 +710,10 @@ public final class ClassFileLayouter {
         if (bytecode != null && bytecode.stream().filter(Return.class::isInstance).count() > 1) {
             return false;
         }
+        // An initializer block must be able to complete normally
+        if (list.get(list.size() - 1) instanceof AThrow) {
+            return false;
+        }
         int parameterSlots = parameterSlots(constants.getConstantUtf8(method.getDescriptorIndex()));
         for (Instruction instruction : list) {
             if (instruction instanceof InvokeNoStaticInstruction call && instruction.getOpcode() == Const.INVOKESPECIAL

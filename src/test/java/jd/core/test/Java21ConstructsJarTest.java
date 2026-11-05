@@ -751,4 +751,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output, output.replaceAll("\\s+", " ").contains("{ while (again())"));
         }
     }
+
+    @Test
+    public void varargsElementsKeepRawCastsAndThrowingConstructorsAreNotInitializers() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov11", new ZipLoader(in));
+            assertTrue(output, output.contains("((Cov11.Box)c.get()).get()"));
+            assertFalse(output, output.contains("{ throw new IllegalStateException"));
+        }
+    }
 }
