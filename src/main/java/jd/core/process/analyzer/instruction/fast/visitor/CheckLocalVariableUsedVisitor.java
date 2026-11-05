@@ -279,6 +279,14 @@ public final class CheckLocalVariableUsedVisitor
                 if (visit(predicate, fs.getTest())) {
                     return true;
                 }
+                // The guards of the cases of a switch on patterns are kept apart from the bodies
+                if (fs.getPatternSelector() != null) {
+                    for (Instruction guard : fs.getPatternSelector().getGuards().values()) {
+                        if (guard != null && visit(predicate, guard)) {
+                            return true;
+                        }
+                    }
+                }
                 FastSwitch.Pair[] pairs = fs.getPairs();
                 List<Instruction> instructions;
                 for (int i=pairs.length-1; i>=0; --i)

@@ -842,4 +842,16 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output.replaceAll("\\s+", " "), output.replaceAll("\\s+", " ").contains("{ switch"));
         }
     }
+
+    @Test
+    public void selectorsGuardsAndLoopsAfterPatternSwitches() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov21", new ZipLoader(in));
+            String compact = output.replaceAll("\\s+", " ");
+            assertTrue(output, compact.contains("((Cov21.Box)c.get()).get()"));
+            assertFalse(output, compact.contains("{ switch"));
+            assertTrue(output, compact.contains("? 1 : 2") || compact.contains("?1:2"));
+            assertFalse(output, output.contains("Byte code"));
+        }
+    }
 }

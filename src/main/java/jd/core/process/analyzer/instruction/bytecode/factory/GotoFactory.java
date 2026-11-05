@@ -98,8 +98,9 @@ public class GotoFactory implements InstructionFactory
                 return;
             }
 
+            Switch active = activeSwitch(list);
             if (ByteCodeUtil.isIfInstruction(previousInstruction.getOpcode(), false)
-                && !(inPatternSwitch(list) && skipsBackwardJump(code, (BranchInstruction) previousInstruction)))
+                && !(active != null && skipsBackwardJump(code, (BranchInstruction) previousInstruction, active)))
             {
                 // Gestion de l'operateur ternaire
                 final int ternaryOp2ndValueOffset =
@@ -117,44 +118,55 @@ public class GotoFactory implements InstructionFactory
         }
     }
 
-    private static boolean inPatternSwitch(List<Instruction> list)
+    /** The selector of the last switch on patterns, whose cases may be restarted. */
+    private static Switch activeSwitch(List<Instruction> list)
     {
+        Switch active = null;
         for (Instruction instruction : list)
         {
             if (instruction instanceof Switch sw && sw.getKey() instanceof PatternSwitchSelector) {
-                return true;
+                active = sw;
             }
         }
-        return false;
+        return active;
     }
 
     /**
      * A condition jumping to a block restarting the matching of a switch on patterns (set the index,
      * jump back), or jumping over such a block, is not the condition of a ternary operator.
      */
-    private static boolean skipsBackwardJump(byte[] code, BranchInstruction branch)
+    private static boolean skipsBackwardJump(byte[] code, BranchInstruction branch, Switch active)
     {
-        return isRestartBlock(code, branch.getJumpOffset())
-            || branch.getBranch() > 0 && isRestartBlock(code, branch.getOffset() + 3);
+        return isRestartBlock(code, branch.getJumpOffset(), active)
+            || branch.getBranch() > 0 && isRestartBlock(code, branch.getOffset() + 3, active);
     }
 
-    private static boolean isRestartBlock(byte[] code, int start)
+    /** The block sets the variable holding the index the matching restarts from, then jumps back to the switch. */
+    private static boolean isRestartBlock(byte[] code, int start, Switch active)
     {
+        int restartVariable = ((PatternSwitchSelector) active.getKey()).getRestartIndexVariable();
         int pos = start;
+        boolean setsRestartIndex = false;
         for (int i = 0; i < 3 && pos + 2 < code.length; i++)
         {
             int opcode = code[pos] & 255;
             if (opcode == Const.GOTO)
             {
-                return (short) ((code[pos + 1] & 255) << 8 | code[pos + 2] & 255) < 0;
+                return setsRestartIndex
+                    && pos + (short) ((code[pos + 1] & 255) << 8 | code[pos + 2] & 255) <= active.getOffset();
             }
-            if (opcode >= Const.ICONST_M1 && opcode <= Const.ICONST_5
-                || opcode >= Const.ISTORE_0 && opcode <= Const.ISTORE_3)
+            if (opcode >= Const.ICONST_M1 && opcode <= Const.ICONST_5 || opcode == Const.BIPUSH)
             {
+                pos += opcode == Const.BIPUSH ? 2 : 1;
+            }
+            else if (opcode >= Const.ISTORE_0 && opcode <= Const.ISTORE_3)
+            {
+                setsRestartIndex = opcode - Const.ISTORE_0 == restartVariable;
                 pos += 1;
             }
-            else if (opcode == Const.BIPUSH || opcode == Const.ISTORE)
+            else if (opcode == Const.ISTORE)
             {
+                setsRestartIndex = (code[pos + 1] & 255) == restartVariable;
                 pos += 2;
             }
             else

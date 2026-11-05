@@ -54,6 +54,7 @@ import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
 import jd.core.model.instruction.bytecode.instruction.BinaryOperatorInstruction;
 import jd.core.model.instruction.bytecode.instruction.CheckCast;
 import jd.core.model.instruction.bytecode.instruction.IfCmp;
+import jd.core.model.instruction.fast.instruction.FastSwitch;
 import jd.core.model.instruction.fast.instruction.FastSynchronized;
 import jd.core.model.instruction.bytecode.instruction.InitArrayInstruction;
 import jd.core.model.instruction.bytecode.instruction.InstanceOf;
@@ -261,7 +262,8 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
             || context instanceof ArrayInstruction || context instanceof ArrayStoreInstruction
             || context instanceof AThrow || context instanceof InstanceOf || context instanceof CheckCast || context instanceof BinaryOperatorInstruction
             || context instanceof IfCmp || context instanceof TernaryOperator || context instanceof Switch
-            || context instanceof FastSynchronized || context instanceof InitArrayInstruction || context instanceof AssertInstruction;
+            || context instanceof FastSynchronized || context instanceof InitArrayInstruction || context instanceof AssertInstruction
+            || context instanceof FastSwitch;
     }
 
     /** Whether the call receiving the argument is generic or has an overload with as many parameters. */
