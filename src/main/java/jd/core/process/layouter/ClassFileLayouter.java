@@ -39,6 +39,7 @@ import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
 import jd.core.process.analyzer.instruction.fast.visitor.CheckLocalVariableUsedVisitor;
 import jd.core.model.instruction.bytecode.instruction.PutField;
 import jd.core.model.instruction.bytecode.instruction.Return;
+import jd.core.model.instruction.fast.FastConstants;
 import jd.core.model.classfile.Field;
 import jd.core.model.classfile.Field.ValueAndMethod;
 import jd.core.model.classfile.Method;
@@ -711,7 +712,7 @@ public final class ClassFileLayouter {
             return false;
         }
         // An initializer block must be able to complete normally
-        if (list.get(list.size() - 1) instanceof AThrow) {
+        if (cannotCompleteNormally(list)) {
             return false;
         }
         int parameterSlots = parameterSlots(constants.getConstantUtf8(method.getDescriptorIndex()));
@@ -732,6 +733,17 @@ public final class ClassFileLayouter {
             }
         }
         return true;
+    }
+
+    /** The body ends with a throw or an endless loop. */
+    private static boolean cannotCompleteNormally(List<Instruction> list)
+    {
+        int last = list.size() - 1;
+        if (last > 0 && list.get(last) instanceof Return) {
+            last--;
+        }
+        Instruction instruction = list.get(last);
+        return instruction instanceof AThrow || instruction.getOpcode() == FastConstants.INFINITE_LOOP;
     }
 
     private static boolean isCapturedFieldWrite(ConstantPool constants, PutField putField)
