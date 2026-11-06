@@ -720,22 +720,27 @@ public final class ClassFileLayouter {
         }
         int parameterSlots = parameterSlots(constants.getConstantUtf8(method.getDescriptorIndex()));
         for (Instruction instruction : list) {
-            if (instruction instanceof InvokeNoStaticInstruction call && instruction.getOpcode() == Const.INVOKESPECIAL
-                    && isConstructorCall(constants, call)) {
-                return false;
-            }
-            // A parameter of the constructor, read or written, is not declared by an initializer block
-            if (CheckLocalVariableUsedVisitor.visit(
-                    used -> (used instanceof LoadInstruction || used.getOpcode() == Const.IINC)
-                            && used.getIndex() >= 1 && used.getIndex() <= parameterSlots, instruction)) {
-                return false;
-            }
-            if (instruction instanceof PutField putField && isCapturedFieldWrite(constants, putField)) {
-                // Captured variable or outer instance not reconstructed
+            if (!canMoveToInitializer(constants, instruction, parameterSlots)) {
                 return false;
             }
         }
         return true;
+    }
+
+    private static boolean canMoveToInitializer(ConstantPool constants, Instruction instruction, int parameterSlots)
+    {
+        if (instruction instanceof InvokeNoStaticInstruction call && instruction.getOpcode() == Const.INVOKESPECIAL
+                && isConstructorCall(constants, call)) {
+            return false;
+        }
+        // A parameter of the constructor, read or written, is not declared by an initializer block
+        if (CheckLocalVariableUsedVisitor.visit(
+                used -> (used instanceof LoadInstruction || used.getOpcode() == Const.IINC)
+                        && used.getIndex() >= 1 && used.getIndex() <= parameterSlots, instruction)) {
+            return false;
+        }
+        // Captured variable or outer instance not reconstructed
+        return !(instruction instanceof PutField putField && isCapturedFieldWrite(constants, putField));
     }
 
     /** The body ends with a throw or an endless loop, possibly inside a try statement. */
