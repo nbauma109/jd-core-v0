@@ -438,7 +438,7 @@ public class ClassFile extends Base
         }
         // The name written must not be the one of another member either
         String written = prefix + TypeNameUtil.localTypeSimpleName(this.thisClassName, simpleName);
-        if (!written.equals(member) && (this.loader.canLoad(written) || this.loader.canLoad(written + StringConstants.CLASS_FILE_SUFFIX))) {
+        if (this.loader.canLoad(written) || this.loader.canLoad(written + StringConstants.CLASS_FILE_SUFFIX)) {
             return false;
         }
         String writtenSimpleName = written.substring(prefix.length());

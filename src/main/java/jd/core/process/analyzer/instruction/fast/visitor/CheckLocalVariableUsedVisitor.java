@@ -327,6 +327,9 @@ public final class CheckLocalVariableUsedVisitor
                 FastDeclaration fd = (FastDeclaration)instruction;
                 return fd.getInstruction() != null && visit(predicate, fd.getInstruction());
             }
+        case Const.INVOKEDYNAMIC:
+            return instruction instanceof jd.core.model.instruction.bytecode.instruction.LambdaInstruction lambda
+                    && visit(predicate, lambda.getCapturedArguments());
         case Const.IINC:
             return predicate.test((IndexInstruction)instruction);
         case Const.GETSTATIC,
@@ -338,7 +341,6 @@ public final class CheckLocalVariableUsedVisitor
              ByteCodeConstants.FCONST,
              ByteCodeConstants.DCONST,
              Const.GOTO,
-             Const.INVOKEDYNAMIC,
              Const.JSR,
              Const.LDC,
              Const.LDC2_W,

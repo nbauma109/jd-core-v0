@@ -890,4 +890,22 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output, output.contains("Byte code"));
         }
     }
+
+    @Test
+    public void lambdaCapturedRecordVariablesAreKept() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov26", new ZipLoader(in));
+            assertTrue(output, output.contains("() -> r") || output.contains("()->r"));
+            assertTrue(output, output.contains("R r") || output.contains("R(int"));
+            assertFalse(output, output.contains("Byte code"));
+        }
+    }
+
+    @Test
+    public void localTypesAreNotNamedLikeSuffixedMembers() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("p/Cov27", new ZipLoader(in));
+            assertFalse(output, output.contains("Byte code"));
+        }
+    }
 }
