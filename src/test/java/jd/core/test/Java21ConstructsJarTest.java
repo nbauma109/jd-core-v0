@@ -854,4 +854,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output, output.contains("Byte code"));
         }
     }
+
+    @Test
+    public void parameterIncrementsAreNotMovedIntoInitializers() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov22", new ZipLoader(in));
+            assertFalse(output, output.replaceAll("\\s+", " ").contains("new Local(7) { { n"));
+            assertFalse(output, output.contains("Byte code"));
+        }
+    }
 }

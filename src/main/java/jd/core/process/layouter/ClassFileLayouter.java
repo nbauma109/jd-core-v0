@@ -726,7 +726,7 @@ public final class ClassFileLayouter {
             }
             // A parameter of the constructor, read or written, is not declared by an initializer block
             if (CheckLocalVariableUsedVisitor.visit(
-                    used -> used instanceof LoadInstruction
+                    used -> (used instanceof LoadInstruction || used.getOpcode() == Const.IINC)
                             && used.getIndex() >= 1 && used.getIndex() <= parameterSlots, instruction)) {
                 return false;
             }

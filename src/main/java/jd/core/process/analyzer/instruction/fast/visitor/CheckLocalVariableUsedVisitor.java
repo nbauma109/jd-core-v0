@@ -327,6 +327,8 @@ public final class CheckLocalVariableUsedVisitor
                 FastDeclaration fd = (FastDeclaration)instruction;
                 return fd.getInstruction() != null && visit(predicate, fd.getInstruction());
             }
+        case Const.IINC:
+            return predicate.test((IndexInstruction)instruction);
         case Const.GETSTATIC,
              ByteCodeConstants.OUTERTHIS,
              Const.ACONST_NULL,
@@ -336,7 +338,6 @@ public final class CheckLocalVariableUsedVisitor
              ByteCodeConstants.FCONST,
              ByteCodeConstants.DCONST,
              Const.GOTO,
-             Const.IINC,
              Const.INVOKEDYNAMIC,
              Const.JSR,
              Const.LDC,
