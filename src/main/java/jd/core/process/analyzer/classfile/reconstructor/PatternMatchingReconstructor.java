@@ -418,7 +418,9 @@ public final class PatternMatchingReconstructor {
         Type declared = typeMaker.makeFromSignature(signature);
         boolean parameterized = component instanceof ObjectType object && object.getTypeArguments() != null
                 || declared instanceof ObjectType other && other.getTypeArguments() != null;
-        return !parameterized || component.equals(declared);
+        // A primitive component is matched by a pattern of the very same type, never a wider one
+        boolean primitive = component.isPrimitiveType() || declared.isPrimitiveType();
+        return !(parameterized || primitive) || component.equals(declared);
     }
 
     /** Whether the store assigns a variable declared before the pattern and still in scope after the store. */

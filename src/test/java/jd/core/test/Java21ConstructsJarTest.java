@@ -881,4 +881,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output, output.contains("Byte code"));
         }
     }
+
+    @Test
+    public void widenedPrimitiveComponentIsNotAPattern() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov25", new ZipLoader(in));
+            assertFalse(output, output.contains("R(int"));
+            assertFalse(output, output.contains("Byte code"));
+        }
+    }
 }
