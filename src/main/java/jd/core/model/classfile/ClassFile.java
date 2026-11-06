@@ -416,7 +416,15 @@ public class ClassFile extends Base
             return true;
         }
         ClassFile other = jd.core.process.deserializer.ClassFileDeserializer.deserialize(this.loader, name + StringConstants.CLASS_FILE_SUFFIX, true);
-        return other == null || !other.isLocalNamedStaticType();
+        if (other == null) {
+            return true;
+        }
+        // The type variables of the enclosing classes decide whether it can be promoted
+        String prefix = name.substring(0, name.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR));
+        if (this.outerClass != null && other.outerClass == null && this.outerClass.thisClassName.equals(prefix)) {
+            other.outerClass = this.outerClass;
+        }
+        return !other.isLocalNamedStaticType();
     }
 
     /** A member type of the same name would be the one written, wherever the local type is named. */
