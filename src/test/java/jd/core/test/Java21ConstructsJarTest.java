@@ -872,4 +872,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("++"));
         }
     }
+
+    @Test
+    public void localTypesAreNotNamedLikeEnclosingClasses() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("p/R_1", new ZipLoader(in));
+            assertFalse(output, output.contains("record R_1("));
+            assertFalse(output, output.contains("Byte code"));
+        }
+    }
 }

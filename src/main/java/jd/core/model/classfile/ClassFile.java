@@ -441,7 +441,15 @@ public class ClassFile extends Base
         if (!written.equals(member) && (this.loader.canLoad(written) || this.loader.canLoad(written + StringConstants.CLASS_FILE_SUFFIX))) {
             return false;
         }
-        return !collidesWithSiblingLocalType(prefix, written.substring(prefix.length()));
+        String writtenSimpleName = written.substring(prefix.length());
+        return !namesEnclosingClass(prefix, writtenSimpleName) && !collidesWithSiblingLocalType(prefix, writtenSimpleName);
+    }
+
+    /** A nested type cannot be named like one of the classes enclosing it. */
+    private static boolean namesEnclosingClass(String prefix, String writtenSimpleName)
+    {
+        String enclosing = prefix.substring(prefix.lastIndexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR) + 1);
+        return java.util.Arrays.asList(enclosing.split("\\" + StringConstants.INTERNAL_INNER_SEPARATOR)).contains(writtenSimpleName);
     }
 
     /** A top-level type of the unnamed package cannot be qualified: the member would take its place. */
