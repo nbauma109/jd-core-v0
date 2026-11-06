@@ -457,7 +457,7 @@ public final class PatternMatchingReconstructor {
         for (int i = from; i < list.size() && list.get(i).getOffset() < endOffset && !live.isEmpty(); i++) {
             Instruction instruction = list.get(i);
             if (CheckLocalVariableUsedVisitor.visit(
-                    candidate -> candidate instanceof LoadInstruction && !(candidate instanceof StoreInstruction)
+                    candidate -> (candidate instanceof LoadInstruction && !(candidate instanceof StoreInstruction) || candidate.getOpcode() == Const.IINC)
                             && live.contains(candidate.getIndex()), instruction)) {
                 return true;
             }
