@@ -49,6 +49,9 @@ public final class FastConstants
 
     public static final int ENUMVALUE          = 321;
 
+    /** Block of statements that can be the target of a labeled break. */
+    public static final int BLOCK              = 322;
+
     // Type of try blocks
     public static final int TYPE_UNDEFINED                 = 0;
     public static final int TYPE_CATCH                     = 1;

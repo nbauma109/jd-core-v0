@@ -42,6 +42,8 @@ public class LocalVariable
 
     private FastTry tryResources;
     private boolean throwableFromTryResources;
+    private boolean patternBinding;
+    private java.util.List<LocalVariable> recordComponents;
 
     public LocalVariable(org.apache.bcel.classfile.LocalVariable lv)
     {
@@ -245,6 +247,24 @@ public class LocalVariable
 
     public void setTryResources(FastTry tryResources) {
         this.tryResources = tryResources;
+    }
+
+    /** A variable bound by a pattern is declared by the pattern itself. */
+    public boolean isPatternBinding() {
+        return patternBinding;
+    }
+
+    public void setPatternBinding(boolean patternBinding) {
+        this.patternBinding = patternBinding;
+    }
+
+    /** The components of the record pattern this value is matched against, null for a plain binding. */
+    public java.util.List<LocalVariable> getRecordComponents() {
+        return recordComponents;
+    }
+
+    public void setRecordComponents(java.util.List<LocalVariable> recordComponents) {
+        this.recordComponents = recordComponents;
     }
 
     public boolean isThrowableFromTryResources() {

@@ -220,6 +220,7 @@ public class ReferenceVisitor
             {
                 Switch sw = (Switch)instruction;
                 visit(sw.getKey());
+                addSelectorReferences(sw.getKey());
             }
             break;
         case Const.MULTIANEWARRAY:
@@ -298,7 +299,8 @@ public class ReferenceVisitor
             FastTestList ftl = (FastTestList)instruction;
             visit(ftl.getTest());
             // intended fall through
-        case FastConstants.INFINITE_LOOP:
+        case FastConstants.INFINITE_LOOP,
+             FastConstants.BLOCK:
             {
                 List<Instruction> instructions =
                         ((FastList)instruction).getInstructions();
@@ -338,6 +340,7 @@ public class ReferenceVisitor
             {
                 FastSwitch fs = (FastSwitch)instruction;
                 visit(fs.getTest());
+                addLabelReferences(fs);
                 Pair[] pairs = fs.getPairs();
                 for (int i=pairs.length-1; i>=0; --i)
                 {
@@ -435,6 +438,24 @@ public class ReferenceVisitor
         if (c instanceof ConstantClass cc)
         {
             addReference(constants.getConstantUtf8(cc.getNameIndex()));
+        }
+    }
+
+    /** The types written by the labels of a switch on patterns. */
+    private void addSelectorReferences(Instruction key)
+    {
+        if (key instanceof jd.core.model.instruction.bytecode.instruction.PatternSwitchSelector selector) {
+            selector.getReferencedTypes().forEach(this::addReference);
+            selector.getGuards().values().forEach(this::visit);
+        }
+    }
+
+    private void addLabelReferences(FastSwitch fs)
+    {
+        if (fs.getPatternSelector() != null) {
+            fs.getPatternSelector().getReferencedTypes().forEach(this::addReference);
+            // The guards were moved out of the case bodies
+            fs.getPatternSelector().getGuards().values().forEach(this::visit);
         }
     }
 

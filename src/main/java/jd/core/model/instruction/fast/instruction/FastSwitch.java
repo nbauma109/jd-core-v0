@@ -23,13 +23,15 @@ import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.instruction.bytecode.instruction.BranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
+import jd.core.model.instruction.bytecode.instruction.PatternSwitchSelector;
 import jd.core.process.analyzer.classfile.visitor.SearchInstructionByTypeVisitor;
 
 /* Switch statement */
 public class FastSwitch extends BranchInstruction
 {
     private Instruction test;
-    private final Pair[] pairs;
+    private Pair[] pairs;
+    private PatternSwitchSelector patternSelector;
 
     public FastSwitch(
         int opcode, int offset, int lineNumber, int branch,
@@ -38,6 +40,22 @@ public class FastSwitch extends BranchInstruction
         super(opcode, offset, lineNumber, branch);
         this.setTest(test);
         this.pairs = pairs;
+    }
+
+    public void setPairs(Pair[] pairs)
+    {
+        this.pairs = pairs;
+    }
+
+    /** Labels and bindings of a switch on patterns, or null for any other switch. */
+    public PatternSwitchSelector getPatternSelector()
+    {
+        return patternSelector;
+    }
+
+    public void setPatternSelector(PatternSwitchSelector patternSelector)
+    {
+        this.patternSelector = patternSelector;
     }
 
     public static class Pair implements Comparable<Pair>

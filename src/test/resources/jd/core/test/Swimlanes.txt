@@ -335,7 +335,7 @@
 /*     */     
 /* 336 */     if (color != null) {
 /* 337 */       double titleHeight = getTitlesHeight(ug.getStringBounder());
-/* 338 */       double fullWidth = ((Swimlane)swimlanesSpecial().get(swimlanesSpecial().size() - 1)).getTranslate().getDx() - 10.0D - 1.0D;
+/* 338 */       double fullWidth = swimlanesSpecial().get(swimlanesSpecial().size() - 1).getTranslate().getDx() - 10.0D - 1.0D;
 /* 339 */       URectangle back = URectangle.build(fullWidth, titleHeight).ignoreForCompressionOnX()
 /* 340 */         .ignoreForCompressionOnY();
 /* 341 */       ug.apply(UTranslate.dx(5.0D)).apply(color.bg()).apply(color).draw(back);

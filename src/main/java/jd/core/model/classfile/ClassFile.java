@@ -34,6 +34,8 @@ import org.jd.core.v1.model.javasyntax.type.Type;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
 import org.jd.core.v1.util.StringConstants;
 
+import jd.core.util.TypeNameUtil;
+
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -192,8 +194,8 @@ public class ClassFile extends Base
                 this.thisClassName.substring(index + 1);
         }
         String outerClassName = this.outerClass.getThisClassName();
-        return this.thisClassName.substring(
-            outerClassName.length() + 1);
+        return TypeNameUtil.localTypeSimpleName(this.thisClassName, this.thisClassName.substring(
+            outerClassName.length() + 1));
     }
 
     public String getThisClassName()
@@ -329,7 +331,236 @@ public class ClassFile extends Base
         int index = this.thisClassName.lastIndexOf(
                 StringConstants.INTERNAL_INNER_SEPARATOR);
 
-        return index != -1 && index+1 < this.thisClassName.length() && Character.isDigit(this.thisClassName.charAt(index+1));
+        return index != -1 && index+1 < this.thisClassName.length() && Character.isDigit(this.thisClassName.charAt(index+1))
+                && !isLocalNamedStaticType();
+    }
+
+    /**
+     * A local enum, record or interface is implicitly static and cannot capture
+     * anything: it is written as a member type, with the name it was given.
+     */
+    public boolean isLocalNamedStaticType()
+    {
+        String simpleName = this.thisClassName.substring(
+                this.thisClassName.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR) + 1);
+        return !simpleName.equals(TypeNameUtil.localTypeSimpleName(simpleName))
+                && ((getAccessFlags() & (Const.ACC_ENUM | Const.ACC_INTERFACE)) != 0 || isRecord())
+                && isUniqueLocalTypeName(simpleName) && !referencesOtherLocalType() && !hidesTypeParameter(simpleName);
+    }
+
+    /** A type variable of an enclosing class cannot be qualified: a member of the same name would take its place. */
+    private boolean hidesTypeParameter(String simpleName)
+    {
+        // The name written may be the one given to tell the type from a member
+        String plainName = TypeNameUtil.localTypeSimpleName(simpleName);
+        String writtenName = TypeNameUtil.localTypeSimpleName(this.thisClassName, simpleName);
+        for (ClassFile enclosing = this.outerClass; enclosing != null; enclosing = enclosing.outerClass) {
+            for (Attribute attribute : enclosing.getAttributes()) {
+                if (attribute instanceof Signature signature && declaresTypeParameter(signature.getSignature(), plainName, writtenName)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean declaresTypeParameter(String declared, String... names)
+    {
+        if (!declared.startsWith("<")) {
+            return false;
+        }
+        for (String name : names) {
+            if (declared.startsWith("<" + name + ":") || declared.contains(";" + name + ":")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static final ThreadLocal<Set<String>> CHECKED_LOCAL_TYPES = ThreadLocal.withInitial(HashSet::new);
+
+    /** A member cannot name a type local to a method: the types the local one refers to must become members too. */
+    private boolean referencesOtherLocalType()
+    {
+        Set<String> checking = CHECKED_LOCAL_TYPES.get();
+        if (!checking.add(this.thisClassName)) {
+            // Types referring to each other: the answer depends on the other references only
+            return false;
+        }
+        try {
+            ConstantPool pool = getConstantPool();
+            for (int i = 1; i < pool.size(); i++) {
+                if (pool.get(i) instanceof ConstantClass constantClass && isUnpromotableLocalType(pool.getConstantUtf8(constantClass.getNameIndex()))) {
+                    return true;
+                }
+            }
+            return false;
+        } finally {
+            checking.remove(this.thisClassName);
+        }
+    }
+
+    private boolean isUnpromotableLocalType(String referenced)
+    {
+        String name = referenced;
+        if (name.charAt(0) == '[') {
+            name = name.substring(name.indexOf('L') + 1, name.length() - 1);
+        }
+        int separator = name.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR);
+        if (name.equals(this.thisClassName) || separator == -1 || separator + 2 >= name.length()
+                || !Character.isDigit(name.charAt(separator + 1))
+                || TypeNameUtil.localTypeSimpleName(name.substring(separator + 1)).equals(name.substring(separator + 1))) {
+            return false;
+        }
+        if (this.loader == null) {
+            return true;
+        }
+        ClassFile other = jd.core.process.deserializer.ClassFileDeserializer.deserialize(this.loader, name + StringConstants.CLASS_FILE_SUFFIX, true);
+        if (other == null) {
+            return true;
+        }
+        // The type variables of the enclosing classes decide whether it can be promoted
+        String prefix = name.substring(0, name.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR));
+        if (this.outerClass != null && other.outerClass == null && this.outerClass.thisClassName.equals(prefix)) {
+            other.outerClass = this.outerClass;
+        }
+        return !other.isLocalNamedStaticType();
+    }
+
+    /** A member type of the same name would be the one written, wherever the local type is named. */
+    private boolean isUniqueLocalTypeName(String simpleName)
+    {
+        if (this.loader == null) {
+            return true;
+        }
+        String plainName = TypeNameUtil.localTypeSimpleName(simpleName);
+        String prefix = this.thisClassName.substring(
+                0, this.thisClassName.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR) + 1);
+        String member = prefix + plainName;
+        if (this.loader.canLoad(member) || this.loader.canLoad(member + StringConstants.CLASS_FILE_SUFFIX)) {
+            // A member type already has this name: the local one is written with its number
+            TypeNameUtil.registerLocalTypeShadowedByMember(this.thisClassName);
+        }
+        if (hidesUnnamedPackageType(simpleName) || hidesPackageQualifier(plainName)) {
+            return false;
+        }
+        // The name written must not be the one of another member either
+        String written = prefix + TypeNameUtil.localTypeSimpleName(this.thisClassName, simpleName);
+        if (this.loader.canLoad(written) || this.loader.canLoad(written + StringConstants.CLASS_FILE_SUFFIX)) {
+            return false;
+        }
+        String writtenSimpleName = written.substring(prefix.length());
+        return !namesEnclosingClass(prefix, writtenSimpleName) && !collidesWithSiblingLocalType(prefix, writtenSimpleName)
+                && !hidesPackageQualifier(writtenSimpleName);
+    }
+
+    /** A nested type cannot be named like one of the classes enclosing it. */
+    private static boolean namesEnclosingClass(String prefix, String writtenSimpleName)
+    {
+        String enclosing = prefix.substring(prefix.lastIndexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR) + 1);
+        return java.util.Arrays.asList(enclosing.split("\\" + StringConstants.INTERNAL_INNER_SEPARATOR)).contains(writtenSimpleName);
+    }
+
+    /** A member named like the root of a package would break the qualified names that start with it. */
+    private boolean hidesPackageQualifier(String plainName)
+    {
+        ClassFile root = this;
+        while (root.outerClass != null) {
+            root = root.outerClass;
+        }
+        return usesQualifier(root, plainName + StringConstants.INTERNAL_PACKAGE_SEPARATOR);
+    }
+
+    /** Whether the class or one of its nested classes refers to a qualified name that starts with the qualifier. */
+    private static boolean usesQualifier(ClassFile classFile, String qualifier)
+    {
+        ConstantPool pool = classFile.getConstantPool();
+        for (int i = 1; i < pool.size(); i++) {
+            if (pool.get(i) instanceof org.apache.bcel.classfile.ConstantUtf8 utf8 && startsPackage(utf8.getBytes(), qualifier)) {
+                return true;
+            }
+        }
+        if (classFile.innerClassFiles != null) {
+            for (ClassFile inner : classFile.innerClassFiles) {
+                if (usesQualifier(inner, qualifier)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        return usesQualifierInNestedClasses(classFile, qualifier);
+    }
+
+    /** The nested classes are not set yet while the class is being read: they are read from the loader. */
+    private static boolean usesQualifierInNestedClasses(ClassFile classFile, String qualifier)
+    {
+        InnerClasses nested = classFile.getAttributeInnerClasses();
+        if (nested == null || classFile.loader == null) {
+            return false;
+        }
+        String prefix = classFile.thisClassName + StringConstants.INTERNAL_INNER_SEPARATOR;
+        for (org.apache.bcel.classfile.InnerClass innerClass : nested.getInnerClasses()) {
+            String name = classFile.constants.getConstantClassName(innerClass.getInnerClassIndex());
+            if (name.startsWith(prefix) && name.indexOf(StringConstants.INTERNAL_INNER_SEPARATOR, prefix.length()) == -1) {
+                ClassFile inner = jd.core.process.deserializer.ClassFileDeserializer.deserialize(
+                    classFile.loader, name + StringConstants.CLASS_FILE_SUFFIX, true);
+                if (inner != null && usesQualifier(inner, qualifier)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /** Whether a class name or descriptor contains a qualified name that starts with the qualifier. */
+    private static boolean startsPackage(String text, String qualifier)
+    {
+        for (int at = text.indexOf(qualifier); at != -1; at = text.indexOf(qualifier, at + 1)) {
+            if (at == 0 || !Character.isJavaIdentifierPart(text.charAt(at - 1)) && text.charAt(at - 1) != '/'
+                    || at == 1 && text.charAt(0) == 'L') {
+                return true;
+            }
+            // Descriptors write the class after an L that follows a delimiter, as in (Lorg/Thing;)
+            if (text.charAt(at - 1) == 'L' && (at == 1 || "(;[<>)+-:^".indexOf(text.charAt(at - 2)) != -1)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** A top-level type of the unnamed package cannot be qualified: the member would take its place. */
+    private boolean hidesUnnamedPackageType(String simpleName)
+    {
+        if (this.thisClassName.indexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR) != -1) {
+            return false;
+        }
+        for (String top : new String[] {TypeNameUtil.localTypeSimpleName(simpleName), TypeNameUtil.localTypeSimpleName(this.thisClassName, simpleName)}) {
+            if (this.loader.canLoad(top) || this.loader.canLoad(top + StringConstants.CLASS_FILE_SUFFIX)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Another local type of the same class may be written with this name. */
+    private boolean collidesWithSiblingLocalType(String prefix, String writtenSimpleName)
+    {
+        List<String> siblings = new java.util.ArrayList<>();
+        siblings.add(prefix + 1 + writtenSimpleName);
+        for (int i = 1; i < 10; i++)
+        {
+            if (writtenSimpleName.endsWith("_" + i)) {
+                siblings.add(prefix + i + writtenSimpleName.substring(0, writtenSimpleName.length() - 2));
+            }
+        }
+        for (String other : siblings)
+        {
+            if (!other.equals(this.thisClassName)
+                    && (this.loader.canLoad(other) || this.loader.canLoad(other + StringConstants.CLASS_FILE_SUFFIX))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public boolean isAInnerClass()

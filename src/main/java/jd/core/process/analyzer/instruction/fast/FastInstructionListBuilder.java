@@ -478,7 +478,7 @@ public final class FastInstructionListBuilder {
         LocalVariable lv;
         for (int i = indexOfFirstLocalVariable; i < nbrOfLocalVariables; ++i) {
             lv = localVariables.getLocalVariableAt(i);
-            lv.setDeclarationFlag(lv.isExceptionOrReturnAddress() ? DECLARED : NOT_DECLARED);
+            lv.setDeclarationFlag(lv.isExceptionOrReturnAddress() || lv.isPatternBinding() ? DECLARED : NOT_DECLARED);
         }
     }
 
@@ -5059,7 +5059,8 @@ public final class FastInstructionListBuilder {
         Instruction instruction = list.get(index);
 
         switch (instruction.getOpcode()) {
-        case FastConstants.INFINITE_LOOP: {
+        case FastConstants.INFINITE_LOOP,
+             FastConstants.BLOCK: {
             List<Instruction> instructions = ((FastList) instruction).getInstructions();
             if (instructions != null) {
                 found = searchInstructionAndAddLabel(instructions, labelOffset);
@@ -5107,8 +5108,10 @@ public final class FastInstructionListBuilder {
                     List<Instruction> instructions;
                     for (int i = pairs.length - 1; i >= 0 && !found; --i) {
                         instructions = pairs[i].getInstructions();
-                        if (instructions != null) {
+                        // Only the case containing the offset can hold the label
+                        if (instructions != null && labelOffset >= pairs[i].getOffset()) {
                             found = searchInstructionAndAddLabel(instructions, labelOffset);
+                            break;
                         }
                     }
                 }
@@ -5131,10 +5134,76 @@ public final class FastInstructionListBuilder {
         }
         }
 
-        if (!found) {
+        if (!found && !wrapInLabeledBlock(list, index, labelOffset)) {
             list.set(index, new FastLabel(FastConstants.LABEL, labelOffset, instruction.getLineNumber(), instruction));
         }
 
         return true;
+    }
+
+    /**
+     * A labeled break can only leave a labeled statement: the statements before the target of the
+     * break, from the first one containing a jump to it, are put in a labeled block.
+     *
+     * @return false if the jumps are not in the statements preceding the target in this list
+     */
+    private static boolean wrapInLabeledBlock(List<Instruction> list, int targetIndex, int labelOffset) {
+        int first = -1;
+        for (int i = 0; i < targetIndex && first < 0; i++) {
+            Instruction candidate = list.get(i);
+            if (candidate instanceof FastDeclaration || candidate instanceof FastLabel) {
+                continue;
+            }
+            if (containsLabeledBreak(candidate, labelOffset)) {
+                first = i;
+            }
+        }
+        if (first < 0) {
+            return false;
+        }
+        for (int i = first; i < targetIndex; i++) {
+            if (list.get(i) instanceof FastDeclaration) {
+                // The scope of the declared variable would shrink
+                return false;
+            }
+        }
+        List<Instruction> block = new ArrayList<>(list.subList(first, targetIndex));
+        list.subList(first, targetIndex).clear();
+        Instruction head = block.get(0);
+        FastList fastList = new FastList(FastConstants.BLOCK, head.getOffset(), head.getLineNumber(), 0, block);
+        list.add(first, new FastLabel(FastConstants.LABEL, labelOffset, head.getLineNumber(), fastList));
+        return true;
+    }
+
+    private static boolean containsLabeledBreak(Instruction instruction, int labelOffset) {
+        if (instruction instanceof FastInstruction fastInstruction) {
+            return (instruction.getOpcode() == FastConstants.GOTO_LABELED_BREAK
+                    || instruction.getOpcode() == FastConstants.IF_LABELED_BREAK)
+                    && fastInstruction.getInstruction() instanceof BranchInstruction branch
+                    && branch.getJumpOffset() == labelOffset;
+        }
+        if (instruction instanceof FastLabel label) {
+            return label.getInstruction() != null && containsLabeledBreak(label.getInstruction(), labelOffset);
+        }
+        if (instruction instanceof FastTry fastTry) {
+            return containsLabeledBreak(fastTry.getInstructions(), labelOffset)
+                    || fastTry.getCatches().stream().anyMatch(c -> containsLabeledBreak(c.instructions(), labelOffset))
+                    || fastTry.getFinallyInstructions() != null
+                        && containsLabeledBreak(fastTry.getFinallyInstructions(), labelOffset);
+        }
+        if (instruction instanceof FastSwitch fastSwitch) {
+            return fastSwitch.getPairs() != null && Arrays.stream(fastSwitch.getPairs())
+                    .anyMatch(pair -> pair.getInstructions() != null && containsLabeledBreak(pair.getInstructions(), labelOffset));
+        }
+        if (instruction instanceof FastTest2Lists test2Lists
+                && test2Lists.getInstructions2() != null && containsLabeledBreak(test2Lists.getInstructions2(), labelOffset)) {
+            return true;
+        }
+        return instruction instanceof FastList fastList && fastList.getInstructions() != null
+                && containsLabeledBreak(fastList.getInstructions(), labelOffset);
+    }
+
+    private static boolean containsLabeledBreak(List<Instruction> instructions, int labelOffset) {
+        return instructions.stream().anyMatch(instruction -> containsLabeledBreak(instruction, labelOffset));
     }
 }

@@ -815,7 +815,7 @@
 /* 815 */     while (this.currentStatement < statements.size()) {
 /* 816 */       int thisStatement = this.currentStatement;
 /* 817 */       this.currentStatement++;
-/* 818 */       ((Statement)statements.get(thisStatement)).execute();
+/* 818 */       statements.get(thisStatement).execute();
 /*     */     }
 /*     */   }
 /*     */   

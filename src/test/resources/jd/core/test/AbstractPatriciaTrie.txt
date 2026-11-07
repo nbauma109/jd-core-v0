@@ -2263,7 +2263,7 @@
 /* 2263 */       Iterator<Entry<K, V>> it = AbstractPatriciaTrie.this.entrySet().iterator();
 /* 2264 */       Set<K> currentKeys = keySet();
 /* 2265 */       while (it.hasNext()) {
-/* 2266 */         if (currentKeys.contains(((Entry)it.next()).getKey())) {
+/* 2266 */         if (currentKeys.contains(it.next().getKey())) {
 /* 2267 */           it.remove();
 /*      */         }
 /*      */       }

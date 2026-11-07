@@ -27,6 +27,7 @@ import org.apache.bcel.classfile.LineNumber;
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
+import jd.core.model.instruction.bytecode.instruction.PatternSwitchSelector;
 import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.model.instruction.fast.FastConstants;
@@ -138,7 +139,7 @@ public final class SwitchExpressionReconstructor {
                 continue;
             }
 
-            Instruction result = resolveCaseResultFromBytecode(classFile, method, pair.getOffset(), breakOffset);
+            Instruction result = resolveCaseResultFromBytecode(classFile, method, bodyOffset(fs, pair), breakOffset);
             if (result == null) {
                 return false;
             }
@@ -163,6 +164,13 @@ public final class SwitchExpressionReconstructor {
         }
 
         return true;
+    }
+
+    private static int bodyOffset(FastSwitch fs, FastSwitch.Pair pair) {
+        if (fs.getTest() instanceof PatternSwitchSelector selector && !pair.isDefault()) {
+            return selector.getBodyOffsets().getOrDefault(pair.getKey(), pair.getOffset());
+        }
+        return pair.getOffset();
     }
 
     private static Instruction resolveCaseResultFromBytecode(ClassFile classFile, Method method, int startOffset, int breakOffset) {

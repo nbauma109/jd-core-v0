@@ -187,7 +187,7 @@
 /*     */       }
 /* 188 */       if (this.itemCount == 0) {
 /* 189 */         this.current = (Map.Entry)this.entryIterator.next();
-/* 190 */         this.itemCount = ((AbstractMapMultiSet.MutableInteger)this.current.getValue()).value;
+/* 190 */         this.itemCount = this.current.getValue().value;
 /*     */       }
 /* 192 */       this.canRemove = true;
 /* 193 */       this.itemCount--;
@@ -435,7 +435,7 @@
 /*     */     
 /*     */     @Override
 /*     */     public int getCount() {
-/* 438 */       return ((AbstractMapMultiSet.MutableInteger)this.parentEntry.getValue()).value;
+/* 438 */       return this.parentEntry.getValue().value;
 /*     */     }
 /*     */   }
 /*     */   

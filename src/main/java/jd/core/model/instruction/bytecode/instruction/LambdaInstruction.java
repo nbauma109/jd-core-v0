@@ -30,6 +30,7 @@ public class LambdaInstruction extends Instruction {
     private final Type returnType;
     private final Method method;
     private final ClassFile classFile;
+    private List<Instruction> capturedArguments = java.util.Collections.emptyList();
 
     public LambdaInstruction(int opcode, int offset, int lineNumber, List<String> parameterNames, Type returnType,  Method method, ClassFile classFile) {
         super(opcode, offset, lineNumber);
@@ -46,6 +47,15 @@ public class LambdaInstruction extends Instruction {
 
     public List<Instruction> getInstructions() {
         return method.getFastNodes();
+    }
+
+    /** The values of the enclosing method that the lambda captures. */
+    public List<Instruction> getCapturedArguments() {
+        return capturedArguments;
+    }
+
+    public void setCapturedArguments(List<Instruction> capturedArguments) {
+        this.capturedArguments = capturedArguments == null ? java.util.Collections.emptyList() : capturedArguments;
     }
 
     public Method getMethod() {

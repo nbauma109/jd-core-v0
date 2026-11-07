@@ -34,6 +34,15 @@ import java.util.Set;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
+import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
+import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
+import jd.core.process.analyzer.instruction.fast.visitor.CheckLocalVariableUsedVisitor;
+import jd.core.model.instruction.bytecode.instruction.PutField;
+import jd.core.model.instruction.bytecode.instruction.Return;
+import jd.core.model.instruction.fast.FastConstants;
+import jd.core.model.instruction.fast.instruction.FastSwitch;
+import jd.core.model.instruction.fast.instruction.FastSynchronized;
+import jd.core.model.instruction.fast.instruction.FastTry;
 import jd.core.model.classfile.Field;
 import jd.core.model.classfile.Field.ValueAndMethod;
 import jd.core.model.classfile.Method;
@@ -550,6 +559,27 @@ public final class ClassFileLayouter {
         }
     }
 
+    /** Number of local variable slots taken by the parameters of a method, from its descriptor. */
+    private static int parameterSlots(String descriptor)
+    {
+        int slots = 0;
+        int i = 1;
+        while (descriptor.charAt(i) != ')') {
+            char c = descriptor.charAt(i);
+            if (c == 'J' || c == 'D') {
+                slots += 2;
+                i++;
+            } else {
+                slots++;
+                while (descriptor.charAt(i) == '[') {
+                    i++;
+                }
+                i = descriptor.charAt(i) == 'L' ? descriptor.indexOf(';', i) + 1 : i + 1;
+            }
+        }
+        return slots;
+    }
+
     /**
      * @return liste de sequences de 'LayoutBlock'
      * Sequence produite pour chaque champ:
@@ -648,6 +678,14 @@ public final class ClassFileLayouter {
         return sortBlocks(sortedFieldBlockList, true);
     }
 
+    /** Only a constructor call left in the code is not an initializer: super.touch() is a statement of the block. */
+    private static boolean isConstructorCall(ConstantPool constants, InvokeNoStaticInstruction call)
+    {
+        ConstantNameAndType nameAndType = constants.getConstantNameAndType(
+            constants.getConstantMethodref(call.getIndex()).getNameAndTypeIndex());
+        return StringConstants.INSTANCE_CONSTRUCTOR.equals(constants.getConstantUtf8(nameAndType.getNameIndex()));
+    }
+
     /**
      * @return liste de sequences de 'LayoutBlock'
      * Sequence produite pour chaque méthode:
@@ -661,6 +699,104 @@ public final class ClassFileLayouter {
      *  -  StatementsBlockEndLayoutBlock ?
      *  - MethodBlockEndLayoutBlock
      */
+    // The constructor of an anonymous class cannot be written, but the
+    // statements left once the super constructor call has been removed
+    // come from an instance initializer block that must not be lost.
+    private static boolean hasInstanceInitializerCode(ClassFile classFile, Method method)
+    {
+        ConstantPool constants = classFile.getConstantPool();
+        List<Instruction> list = method.getFastNodes();
+        if (method.getCode() == null || method.containsError() || list == null || list.isEmpty()) {
+            return false;
+        }
+        // An initializer block cannot return early: only the final return of the constructor may go
+        List<Instruction> bytecode = method.getInstructions();
+        if (bytecode != null && bytecode.stream().filter(Return.class::isInstance).count() > 1) {
+            return false;
+        }
+        // An initializer block must be able to complete normally
+        if (cannotCompleteNormally(list)) {
+            return false;
+        }
+        int parameterSlots = parameterSlots(constants.getConstantUtf8(method.getDescriptorIndex()));
+        for (Instruction instruction : list) {
+            if (!canMoveToInitializer(constants, instruction, parameterSlots)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean canMoveToInitializer(ConstantPool constants, Instruction instruction, int parameterSlots)
+    {
+        if (instruction instanceof InvokeNoStaticInstruction call && instruction.getOpcode() == Const.INVOKESPECIAL
+                && isConstructorCall(constants, call)) {
+            return false;
+        }
+        // A parameter of the constructor, read or written, is not declared by an initializer block
+        if (CheckLocalVariableUsedVisitor.visit(
+                used -> (used instanceof LoadInstruction || used.getOpcode() == Const.IINC)
+                        && used.getIndex() >= 1 && used.getIndex() <= parameterSlots, instruction)) {
+            return false;
+        }
+        // Captured variable or outer instance not reconstructed
+        return !(instruction instanceof PutField putField && isCapturedFieldWrite(constants, putField));
+    }
+
+    /** The body ends with a throw or an endless loop, possibly inside a try statement. */
+    private static boolean cannotCompleteNormally(List<Instruction> list)
+    {
+        if (list == null || list.isEmpty()) {
+            return false;
+        }
+        int last = list.size() - 1;
+        if (last > 0 && list.get(last) instanceof Return) {
+            last--;
+        }
+        Instruction instruction = list.get(last);
+        if (instruction instanceof FastTry fastTry) {
+            return cannotCompleteNormally(fastTry.getFinallyInstructions())
+                // An empty body is one whose throw was not rebuilt
+                || (fastTry.getInstructions().isEmpty() || cannotCompleteNormally(fastTry.getInstructions()))
+                    && fastTry.getCatches().stream().allMatch(c -> cannotCompleteNormally(c.instructions()));
+        }
+        if (instruction instanceof FastSwitch fastSwitch) {
+            return switchCannotComplete(fastSwitch);
+        }
+        if (instruction instanceof FastSynchronized synced) {
+            return synced.getInstructions() == null || synced.getInstructions().isEmpty() || cannotCompleteNormally(synced.getInstructions());
+        }
+        return instruction instanceof AThrow || instruction.getOpcode() == FastConstants.INFINITE_LOOP;
+    }
+
+    /** Every arm of the switch ends with a throw or an endless loop, and one of them takes the values left. */
+    private static boolean switchCannotComplete(FastSwitch fastSwitch)
+    {
+        FastSwitch.Pair[] pairs = fastSwitch.getPairs();
+        if (pairs == null || pairs.length == 0) {
+            return false;
+        }
+        // A pattern switch is exhaustive: the default it lacks was left out by the reconstruction
+        boolean hasDefault = fastSwitch.getPatternSelector() != null;
+        for (FastSwitch.Pair pair : pairs) {
+            hasDefault |= pair.isDefault();
+            // An empty arm falls through to the next one
+            if (pair.getInstructions() != null && !pair.getInstructions().isEmpty() && !cannotCompleteNormally(pair.getInstructions())) {
+                return false;
+            }
+        }
+        List<Instruction> last = pairs[pairs.length - 1].getInstructions();
+        return hasDefault && last != null && !last.isEmpty();
+    }
+
+    private static boolean isCapturedFieldWrite(ConstantPool constants, PutField putField)
+    {
+        ConstantFieldref fieldref = constants.getConstantFieldref(putField.getIndex());
+        ConstantNameAndType nameAndType = constants.getConstantNameAndType(fieldref.getNameAndTypeIndex());
+        String name = constants.getConstantUtf8(nameAndType.getNameIndex());
+        return name.startsWith("val$") || name.startsWith("this$");
+    }
+
     private static List<SubListLayoutBlock> createSortedBlocksForMethods(
         Preferences preferences, ClassFile classFile)
     {
@@ -702,12 +838,17 @@ public final class ClassFileLayouter {
             signatureIndex = method.getSignatureIndex();
             signature = constants.getConstantUtf8(signatureIndex);
 
-            if ((classFile.getAccessFlags() & Const.ACC_ENUM) != 0 &&
+            boolean instanceInitializer = method.getNameIndex() == constants.getInstanceConstructorIndex()
+                    && classFile.getInternalAnonymousClassName() != null
+                    && !ClassFileUtil.containsMultipleConstructor(classFile)
+                    && hasInstanceInitializerCode(classFile, method);
+
+            if (!instanceInitializer && (classFile.getAccessFlags() & Const.ACC_ENUM) != 0 &&
                 ClassFileUtil.isAMethodOfEnum(classFile, method, signature)) {
                 continue;
             }
 
-            if (method.getNameIndex() == constants.getInstanceConstructorIndex())
+            if (!instanceInitializer && method.getNameIndex() == constants.getInstanceConstructorIndex())
             {
                 if (classFile.getInternalAnonymousClassName() != null) {
                     // Ne pas afficher les constructeurs des classes anonymes.
@@ -785,7 +926,10 @@ public final class ClassFileLayouter {
             // 'EmptyCodeLayoutBlock'.
             nullCodeFlag = method.getCode() == null;
             displayThrowsFlag = false;
-            if (method.getNameIndex() == constants.getClassConstructorIndex())
+            if (instanceInitializer)
+            {
+                subLayoutBlockList.add(new MethodStaticLayoutBlock(classFile, true));
+            } else if (method.getNameIndex() == constants.getClassConstructorIndex())
             {
                 subLayoutBlockList.add(new MethodStaticLayoutBlock(classFile));
             } else if (method.getExceptionIndexes() == null)

@@ -52,6 +52,7 @@ import jd.core.model.instruction.fast.instruction.FastDeclaration;
 import jd.core.model.instruction.fast.instruction.FastFor;
 import jd.core.model.instruction.fast.instruction.FastForEach;
 import jd.core.model.instruction.fast.instruction.FastInstruction;
+import jd.core.model.instruction.fast.instruction.FastLabel;
 import jd.core.model.instruction.fast.instruction.FastList;
 import jd.core.model.instruction.fast.instruction.FastSwitch;
 import jd.core.model.instruction.fast.instruction.FastSwitch.Pair;
@@ -292,7 +293,8 @@ public final class SearchInstructionByTypeVisitor<T extends Instruction>
                 }
             }
             // intended fall through
-        case FastConstants.INFINITE_LOOP:
+        case FastConstants.INFINITE_LOOP,
+             FastConstants.BLOCK:
             {
                 List<Instruction> instructions =
                         ((FastList)instruction).getInstructions();
@@ -399,6 +401,11 @@ public final class SearchInstructionByTypeVisitor<T extends Instruction>
              ByteCodeConstants.RETURNADDRESSLOAD,
              Const.SIPUSH:
             break;
+        case FastConstants.LABEL:
+            {
+                Instruction labeled = ((FastLabel) instruction).getInstruction();
+                return labeled == null ? null : visit(labeled);
+            }
         default:
             System.err.println(
                     "Can not search instruction in " +

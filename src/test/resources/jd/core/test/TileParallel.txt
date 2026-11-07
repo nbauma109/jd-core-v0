@@ -125,7 +125,7 @@
 /*     */           
 /*     */           @Override
 /*     */           public Real next() {
-/* 128 */             return ((Tile)this.source.next()).getMinX();
+/* 128 */             return this.source.next().getMinX();
 /*     */           }
 /*     */           
 /*     */           @Override
@@ -151,7 +151,7 @@
 /*     */           
 /*     */           @Override
 /*     */           public Real next() {
-/* 154 */             return ((Tile)this.source.next()).getMaxX();
+/* 154 */             return this.source.next().getMaxX();
 /*     */           }
 /*     */           
 /*     */           @Override

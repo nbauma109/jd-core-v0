@@ -51,7 +51,10 @@ import static org.apache.bcel.Const.WIDE;
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
+import jd.core.model.instruction.bytecode.instruction.BranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.Goto;
+import jd.core.model.instruction.bytecode.instruction.PatternSwitchSelector;
+import jd.core.model.instruction.bytecode.instruction.Switch;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
 import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
@@ -89,7 +92,15 @@ public class GotoFactory implements InstructionFactory
         {
             Instruction previousInstruction = list.get(i);
 
-            if (ByteCodeUtil.isIfInstruction(previousInstruction.getOpcode(), false))
+            if (previousInstruction instanceof Switch sw && sw.getKey() instanceof PatternSwitchSelector)
+            {
+                // The values left on the stack belong to the cases of a switch expression
+                return;
+            }
+
+            Switch active = activeSwitch(list);
+            if (ByteCodeUtil.isIfInstruction(previousInstruction.getOpcode(), false)
+                && !(active != null && skipsBackwardJump(code, (BranchInstruction) previousInstruction, active)))
             {
                 // Gestion de l'operateur ternaire
                 final int ternaryOp2ndValueOffset =
@@ -105,6 +116,78 @@ public class GotoFactory implements InstructionFactory
                 return;
             }
         }
+    }
+
+    /** The selector of the last switch on patterns, whose cases may be restarted. */
+    private static Switch activeSwitch(List<Instruction> list)
+    {
+        Switch active = null;
+        for (Instruction instruction : list)
+        {
+            if (instruction instanceof Switch sw && sw.getKey() instanceof PatternSwitchSelector) {
+                active = sw;
+            }
+        }
+        return active;
+    }
+
+    /**
+     * A condition jumping to a block restarting the matching of a switch on patterns (set the index,
+     * jump back), or jumping over such a block, is not the condition of a ternary operator.
+     */
+    private static boolean skipsBackwardJump(byte[] code, BranchInstruction branch, Switch active)
+    {
+        return isRestartBlock(code, branch.getJumpOffset(), active)
+            || branch.getBranch() > 0 && isRestartBlock(code, branch.getOffset() + 3, active);
+    }
+
+    /** The block sets the variable holding the index the matching restarts from, then jumps back to the switch. */
+    private static boolean isRestartBlock(byte[] code, int start, Switch active)
+    {
+        int restartVariable = ((PatternSwitchSelector) active.getKey()).getRestartIndexVariable();
+        int pos = start;
+        boolean setsRestartIndex = false;
+        for (int i = 0; i < 3 && pos + 2 < code.length; i++)
+        {
+            int opcode = code[pos] & 255;
+            if (opcode == Const.GOTO)
+            {
+                return setsRestartIndex
+                    && pos + (short) ((code[pos + 1] & 255) << 8 | code[pos + 2] & 255) <= active.getOffset();
+            }
+            int stored = storedVariable(code, pos);
+            if (stored >= 0)
+            {
+                setsRestartIndex = stored == restartVariable;
+            }
+            else if (!isConstantPush(opcode))
+            {
+                return false;
+            }
+            pos += instructionLength(opcode);
+        }
+        return false;
+    }
+
+    private static boolean isConstantPush(int opcode)
+    {
+        return opcode >= Const.ICONST_M1 && opcode <= Const.ICONST_5 || opcode == Const.BIPUSH;
+    }
+
+    /** @return the variable stored by the int store at the position, or -1 */
+    private static int storedVariable(byte[] code, int pos)
+    {
+        int opcode = code[pos] & 255;
+        if (opcode >= Const.ISTORE_0 && opcode <= Const.ISTORE_3)
+        {
+            return opcode - Const.ISTORE_0;
+        }
+        return opcode == Const.ISTORE ? code[pos + 1] & 255 : -1;
+    }
+
+    private static int instructionLength(int opcode)
+    {
+        return opcode == Const.BIPUSH || opcode == Const.ISTORE ? 2 : 1;
     }
 
     private static int search2ndValueOffset(

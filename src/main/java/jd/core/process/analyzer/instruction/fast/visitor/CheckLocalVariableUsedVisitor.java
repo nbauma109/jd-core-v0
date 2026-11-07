@@ -82,7 +82,7 @@ public final class CheckLocalVariableUsedVisitor
              ByteCodeConstants.ARRAYSTORE:
             {
                 ArrayStoreInstruction asi = (ArrayStoreInstruction)instruction;
-                return visit(predicate, asi.getIndexref()) || visit(predicate, asi.getValueref());
+                return visit(predicate, asi.getArrayref()) || visit(predicate, asi.getIndexref()) || visit(predicate, asi.getValueref());
             }
         case  ByteCodeConstants.ASSERT:
             {
@@ -207,7 +207,7 @@ public final class CheckLocalVariableUsedVisitor
         case ByteCodeConstants.TERNARYOP:
             {
                 TernaryOperator to = (TernaryOperator)instruction;
-                return visit(predicate, to.getValue1()) || visit(predicate, to.getValue2());
+                return visit(predicate, to.getTest()) || visit(predicate, to.getValue1()) || visit(predicate, to.getValue2());
             }
         case ByteCodeConstants.ASSIGNMENT:
             {
@@ -232,7 +232,7 @@ public final class CheckLocalVariableUsedVisitor
         case FastConstants.FOR:
             {
                 FastFor ff = (FastFor)instruction;
-                return ff.getInit() != null && visit(predicate, ff.getInit()) || ff.getInc() != null && visit(predicate, ff.getInc())
+                return ff.getInit() != null && visit(predicate, ff.getInit()) || ff.getTest() != null && visit(predicate, ff.getTest()) || ff.getInc() != null && visit(predicate, ff.getInc())
                     || ff.getInstructions() != null && visit(predicate, ff.getInstructions());
             }
         case FastConstants.WHILE,
@@ -244,7 +244,8 @@ public final class CheckLocalVariableUsedVisitor
                 return test != null && visit(predicate, test)
                     || instructions != null && visit(predicate, instructions);
             }
-        case FastConstants.INFINITE_LOOP:
+        case FastConstants.INFINITE_LOOP,
+             FastConstants.BLOCK:
             {
                 List<Instruction> instructions =
                         ((FastList)instruction).getInstructions();
@@ -278,6 +279,14 @@ public final class CheckLocalVariableUsedVisitor
                 if (visit(predicate, fs.getTest())) {
                     return true;
                 }
+                // The guards of the cases of a switch on patterns are kept apart from the bodies
+                if (fs.getPatternSelector() != null) {
+                    for (Instruction guard : fs.getPatternSelector().getGuards().values()) {
+                        if (guard != null && visit(predicate, guard)) {
+                            return true;
+                        }
+                    }
+                }
                 FastSwitch.Pair[] pairs = fs.getPairs();
                 List<Instruction> instructions;
                 for (int i=pairs.length-1; i>=0; --i)
@@ -292,7 +301,7 @@ public final class CheckLocalVariableUsedVisitor
         case FastConstants.TRY:
             {
                 FastTry ft = (FastTry)instruction;
-                if (visit(predicate, ft.getInstructions()) || ft.getFinallyInstructions() != null && visit(predicate, ft.getFinallyInstructions())) {
+                if (visit(predicate, ft.getResources()) || visit(predicate, ft.getInstructions()) || ft.getFinallyInstructions() != null && visit(predicate, ft.getFinallyInstructions())) {
                     return true;
                 }
                 List<FastCatch> catchs = ft.getCatches();
@@ -318,6 +327,11 @@ public final class CheckLocalVariableUsedVisitor
                 FastDeclaration fd = (FastDeclaration)instruction;
                 return fd.getInstruction() != null && visit(predicate, fd.getInstruction());
             }
+        case Const.INVOKEDYNAMIC:
+            return instruction instanceof jd.core.model.instruction.bytecode.instruction.LambdaInstruction lambda
+                    && visit(predicate, lambda.getCapturedArguments());
+        case Const.IINC:
+            return predicate.test((IndexInstruction)instruction);
         case Const.GETSTATIC,
              ByteCodeConstants.OUTERTHIS,
              Const.ACONST_NULL,
@@ -327,8 +341,6 @@ public final class CheckLocalVariableUsedVisitor
              ByteCodeConstants.FCONST,
              ByteCodeConstants.DCONST,
              Const.GOTO,
-             Const.IINC,
-             Const.INVOKEDYNAMIC,
              Const.JSR,
              Const.LDC,
              Const.LDC2_W,
