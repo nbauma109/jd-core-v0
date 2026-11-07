@@ -441,7 +441,7 @@ public class ClassFile extends Base
             // A member type already has this name: the local one is written with its number
             TypeNameUtil.registerLocalTypeShadowedByMember(this.thisClassName);
         }
-        if (hidesUnnamedPackageType(simpleName)) {
+        if (hidesUnnamedPackageType(simpleName) || hidesPackageQualifier(plainName)) {
             return false;
         }
         // The name written must not be the one of another member either
@@ -458,6 +458,14 @@ public class ClassFile extends Base
     {
         String enclosing = prefix.substring(prefix.lastIndexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR) + 1);
         return java.util.Arrays.asList(enclosing.split("\\" + StringConstants.INTERNAL_INNER_SEPARATOR)).contains(writtenSimpleName);
+    }
+
+    /** A member named like the root of a package would break the qualified names that start with it. */
+    private boolean hidesPackageQualifier(String plainName)
+    {
+        int separator = this.thisClassName.indexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR);
+        String root = separator == -1 ? "" : this.thisClassName.substring(0, separator);
+        return plainName.equals(root) || "java".equals(plainName) || "javax".equals(plainName) || "jdk".equals(plainName);
     }
 
     /** A top-level type of the unnamed package cannot be qualified: the member would take its place. */

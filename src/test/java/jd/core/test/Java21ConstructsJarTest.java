@@ -946,4 +946,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output, output.contains("Byte code"));
         }
     }
+
+    @Test
+    public void localTypesAreNotNamedLikePackageRoots() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov32", new ZipLoader(in));
+            assertFalse(output, output.contains("record java("));
+            assertTrue(output, output.contains("java.lang.String g(java.lang.String"));
+        }
+    }
 }
