@@ -963,4 +963,12 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.contains("org.example.Thing g(") || output.contains("Thing g(Thing"));
         }
     }
+
+    @Test
+    public void packageRootsUsedByNestedClassesAreNotShadowed() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("p/Cov34", new ZipLoader(in));
+            assertFalse(output, output.contains("record org("));
+        }
+    }
 }

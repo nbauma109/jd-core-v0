@@ -467,11 +467,45 @@ public class ClassFile extends Base
         while (root.outerClass != null) {
             root = root.outerClass;
         }
-        ConstantPool pool = root.getConstantPool();
-        String qualifier = plainName + StringConstants.INTERNAL_PACKAGE_SEPARATOR;
+        return usesQualifier(root, plainName + StringConstants.INTERNAL_PACKAGE_SEPARATOR);
+    }
+
+    /** Whether the class or one of its nested classes refers to a qualified name that starts with the qualifier. */
+    private static boolean usesQualifier(ClassFile classFile, String qualifier)
+    {
+        ConstantPool pool = classFile.getConstantPool();
         for (int i = 1; i < pool.size(); i++) {
             if (pool.get(i) instanceof org.apache.bcel.classfile.ConstantUtf8 utf8 && startsPackage(utf8.getBytes(), qualifier)) {
                 return true;
+            }
+        }
+        if (classFile.innerClassFiles != null) {
+            for (ClassFile inner : classFile.innerClassFiles) {
+                if (usesQualifier(inner, qualifier)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        return usesQualifierInNestedClasses(classFile, qualifier);
+    }
+
+    /** The nested classes are not set yet while the class is being read: they are read from the loader. */
+    private static boolean usesQualifierInNestedClasses(ClassFile classFile, String qualifier)
+    {
+        InnerClasses nested = classFile.getAttributeInnerClasses();
+        if (nested == null || classFile.loader == null) {
+            return false;
+        }
+        String prefix = classFile.thisClassName + StringConstants.INTERNAL_INNER_SEPARATOR;
+        for (org.apache.bcel.classfile.InnerClass innerClass : nested.getInnerClasses()) {
+            String name = classFile.constants.getConstantClassName(innerClass.getInnerClassIndex());
+            if (name.startsWith(prefix) && name.indexOf(StringConstants.INTERNAL_INNER_SEPARATOR, prefix.length()) == -1) {
+                ClassFile inner = jd.core.process.deserializer.ClassFileDeserializer.deserialize(
+                    classFile.loader, name + StringConstants.CLASS_FILE_SUFFIX, true);
+                if (inner != null && usesQualifier(inner, qualifier)) {
+                    return true;
+                }
             }
         }
         return false;
