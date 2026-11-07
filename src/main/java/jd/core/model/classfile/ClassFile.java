@@ -463,9 +463,34 @@ public class ClassFile extends Base
     /** A member named like the root of a package would break the qualified names that start with it. */
     private boolean hidesPackageQualifier(String plainName)
     {
-        int separator = this.thisClassName.indexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR);
-        String root = separator == -1 ? "" : this.thisClassName.substring(0, separator);
-        return plainName.equals(root) || "java".equals(plainName) || "javax".equals(plainName) || "jdk".equals(plainName);
+        ClassFile root = this;
+        while (root.outerClass != null) {
+            root = root.outerClass;
+        }
+        ConstantPool pool = root.getConstantPool();
+        String qualifier = plainName + StringConstants.INTERNAL_PACKAGE_SEPARATOR;
+        for (int i = 1; i < pool.size(); i++) {
+            if (pool.get(i) instanceof org.apache.bcel.classfile.ConstantUtf8 utf8 && startsPackage(utf8.getBytes(), qualifier)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Whether a class name or descriptor contains a qualified name that starts with the qualifier. */
+    private static boolean startsPackage(String text, String qualifier)
+    {
+        for (int at = text.indexOf(qualifier); at != -1; at = text.indexOf(qualifier, at + 1)) {
+            if (at == 0 || !Character.isJavaIdentifierPart(text.charAt(at - 1)) && text.charAt(at - 1) != '/'
+                    || at == 1 && text.charAt(0) == 'L') {
+                return true;
+            }
+            // Descriptors write the class after an L that follows a delimiter, as in (Lorg/Thing;)
+            if (text.charAt(at - 1) == 'L' && (at == 1 || "(;[<>)".indexOf(text.charAt(at - 2)) != -1)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** A top-level type of the unnamed package cannot be qualified: the member would take its place. */

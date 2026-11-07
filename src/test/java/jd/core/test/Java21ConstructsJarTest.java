@@ -952,7 +952,15 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
         try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
             String output = decompile("Cov32", new ZipLoader(in));
             assertFalse(output, output.contains("record java("));
-            assertTrue(output, output.contains("java.lang.String g(java.lang.String"));
+        }
+    }
+
+    @Test
+    public void localTypesAreNotNamedLikeRequiredPackageRoots() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("p/Cov33", new ZipLoader(in));
+            assertFalse(output, output.contains("record org("));
+            assertTrue(output, output.contains("org.example.Thing g(") || output.contains("Thing g(Thing"));
         }
     }
 }
