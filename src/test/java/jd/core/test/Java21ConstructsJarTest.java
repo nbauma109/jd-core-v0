@@ -992,4 +992,12 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output, output.contains("Byte code"));
         }
     }
+
+    @Test
+    public void packageRootsBehindWildcardBoundsAreNotShadowed() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("p/Cov38", new ZipLoader(in));
+            assertFalse(output, output.contains("record org("));
+        }
+    }
 }

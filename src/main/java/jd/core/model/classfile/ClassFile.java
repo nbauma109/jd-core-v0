@@ -521,7 +521,7 @@ public class ClassFile extends Base
                 return true;
             }
             // Descriptors write the class after an L that follows a delimiter, as in (Lorg/Thing;)
-            if (text.charAt(at - 1) == 'L' && (at == 1 || "(;[<>)".indexOf(text.charAt(at - 2)) != -1)) {
+            if (text.charAt(at - 1) == 'L' && (at == 1 || "(;[<>)+-:^".indexOf(text.charAt(at - 2)) != -1)) {
                 return true;
             }
         }
