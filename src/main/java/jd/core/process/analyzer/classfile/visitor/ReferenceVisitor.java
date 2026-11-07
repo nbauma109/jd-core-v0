@@ -220,10 +220,7 @@ public class ReferenceVisitor
             {
                 Switch sw = (Switch)instruction;
                 visit(sw.getKey());
-                if (sw.getKey() instanceof jd.core.model.instruction.bytecode.instruction.PatternSwitchSelector selector) {
-                    selector.getReferencedTypes().forEach(this::addReference);
-                    selector.getGuards().values().forEach(this::visit);
-                }
+                addSelectorReferences(sw.getKey());
             }
             break;
         case Const.MULTIANEWARRAY:
@@ -445,6 +442,14 @@ public class ReferenceVisitor
     }
 
     /** The types written by the labels of a switch on patterns. */
+    private void addSelectorReferences(Instruction key)
+    {
+        if (key instanceof jd.core.model.instruction.bytecode.instruction.PatternSwitchSelector selector) {
+            selector.getReferencedTypes().forEach(this::addReference);
+            selector.getGuards().values().forEach(this::visit);
+        }
+    }
+
     private void addLabelReferences(FastSwitch fs)
     {
         if (fs.getPatternSelector() != null) {
