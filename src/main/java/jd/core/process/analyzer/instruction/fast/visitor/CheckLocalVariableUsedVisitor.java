@@ -207,7 +207,7 @@ public final class CheckLocalVariableUsedVisitor
         case ByteCodeConstants.TERNARYOP:
             {
                 TernaryOperator to = (TernaryOperator)instruction;
-                return visit(predicate, to.getValue1()) || visit(predicate, to.getValue2());
+                return visit(predicate, to.getTest()) || visit(predicate, to.getValue1()) || visit(predicate, to.getValue2());
             }
         case ByteCodeConstants.ASSIGNMENT:
             {
