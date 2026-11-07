@@ -220,6 +220,13 @@ public final class PatternSwitchReconstructor {
         return next;
     }
 
+    private static boolean guardReads(PatternSwitchSelector selector, int key, int variableIndex) {
+        Instruction guard = selector.getGuards().get(key);
+        return guard != null && jd.core.process.analyzer.instruction.fast.visitor.CheckLocalVariableUsedVisitor.visit(
+            used -> used instanceof jd.core.model.instruction.bytecode.instruction.LoadInstruction
+                    && used.getIndex() == variableIndex, guard);
+    }
+
     private static void reconstructRecordCases(ClassFile classFile, Method method, List<Instruction> list,
             Switch lookup, PatternSwitchSelector selector) {
         for (int i = 0; i < lookup.getOffsets().length; i++) {
@@ -231,6 +238,10 @@ public final class PatternSwitchReconstructor {
             if (first + 1 >= list.size() || !(list.get(first) instanceof StoreInstruction recordStore)
                     || !(recordStore.getValueref() instanceof CheckCast cast) || !(cast.getObjectref() instanceof ALoad source)
                     || source.getIndex() != selector.getIndex()) {
+                continue;
+            }
+            if (guardReads(selector, keyAt(lookup, i), recordStore.getIndex())) {
+                // The guard still uses the record variable: it cannot be replaced by a record pattern
                 continue;
             }
             List<LocalVariable> components = new ArrayList<>();

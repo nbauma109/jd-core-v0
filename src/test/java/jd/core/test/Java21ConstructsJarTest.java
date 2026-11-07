@@ -983,4 +983,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(guarded, guarded.contains("import java.util.regex.Pattern;"));
         }
     }
+
+    @Test
+    public void guardsReadingTheRecordKeepItsBinding() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov37", new ZipLoader(in));
+            assertTrue(output, output.contains("case Cov37.R r when r.x() > 0"));
+            assertFalse(output, output.contains("Byte code"));
+        }
+    }
 }
