@@ -220,6 +220,10 @@ public class ReferenceVisitor
             {
                 Switch sw = (Switch)instruction;
                 visit(sw.getKey());
+                if (sw.getKey() instanceof jd.core.model.instruction.bytecode.instruction.PatternSwitchSelector selector) {
+                    selector.getReferencedTypes().forEach(this::addReference);
+                    selector.getGuards().values().forEach(this::visit);
+                }
             }
             break;
         case Const.MULTIANEWARRAY:
@@ -445,6 +449,8 @@ public class ReferenceVisitor
     {
         if (fs.getPatternSelector() != null) {
             fs.getPatternSelector().getReferencedTypes().forEach(this::addReference);
+            // The guards were moved out of the case bodies
+            fs.getPatternSelector().getGuards().values().forEach(this::visit);
         }
     }
 

@@ -971,4 +971,16 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output, output.contains("record org("));
         }
     }
+
+    @Test
+    public void generatedNamesAndGuardTypesKeepQualifiersResolvable() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("p/Cov35", new ZipLoader(in));
+            assertFalse(output, output.contains("record R_1("));
+        }
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String guarded = decompile("p/Cov36", new ZipLoader(in));
+            assertTrue(guarded, guarded.contains("import java.util.regex.Pattern;"));
+        }
+    }
 }

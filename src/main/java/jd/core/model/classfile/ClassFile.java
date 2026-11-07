@@ -450,7 +450,8 @@ public class ClassFile extends Base
             return false;
         }
         String writtenSimpleName = written.substring(prefix.length());
-        return !namesEnclosingClass(prefix, writtenSimpleName) && !collidesWithSiblingLocalType(prefix, writtenSimpleName);
+        return !namesEnclosingClass(prefix, writtenSimpleName) && !collidesWithSiblingLocalType(prefix, writtenSimpleName)
+                && !hidesPackageQualifier(writtenSimpleName);
     }
 
     /** A nested type cannot be named like one of the classes enclosing it. */
