@@ -456,6 +456,8 @@ public final class PatternMatchingReconstructor {
     /** A slot written before it is read holds another variable: the code that follows reused it. */
     private static boolean isSlotReadAfter(List<Instruction> list, int from, java.util.Set<Integer> slots, int endOffset) {
         java.util.Set<Integer> live = new java.util.HashSet<>(slots);
+        // A store skipped by a branch does not always run: it cannot end the life of the variable
+        int skippedUntil = 0;
         for (int i = from; i < list.size() && list.get(i).getOffset() < endOffset && !live.isEmpty(); i++) {
             Instruction instruction = list.get(i);
             if (CheckLocalVariableUsedVisitor.visit(
@@ -463,11 +465,20 @@ public final class PatternMatchingReconstructor {
                             && live.contains(candidate.getIndex()), instruction)) {
                 return true;
             }
-            if (instruction instanceof StoreInstruction store) {
+            skippedUntil = Math.max(skippedUntil, jumpEnd(instruction));
+            if (instruction instanceof StoreInstruction store && store.getOffset() >= skippedUntil) {
                 live.remove(store.getIndex());
             }
         }
         return false;
+    }
+
+    /** The offset up to which the instruction may skip the code that follows. */
+    private static int jumpEnd(Instruction instruction) {
+        if (instruction instanceof jd.core.model.instruction.bytecode.instruction.Switch) {
+            return Integer.MAX_VALUE;
+        }
+        return instruction instanceof jd.core.model.instruction.bytecode.instruction.BranchInstruction branch ? branch.getJumpOffset() : 0;
     }
 
     /** Names of the components of a record: its instance fields, in the order of the declaration. */

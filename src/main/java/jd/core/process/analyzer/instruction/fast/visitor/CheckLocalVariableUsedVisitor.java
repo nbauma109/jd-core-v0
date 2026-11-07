@@ -232,7 +232,7 @@ public final class CheckLocalVariableUsedVisitor
         case FastConstants.FOR:
             {
                 FastFor ff = (FastFor)instruction;
-                return ff.getInit() != null && visit(predicate, ff.getInit()) || ff.getInc() != null && visit(predicate, ff.getInc())
+                return ff.getInit() != null && visit(predicate, ff.getInit()) || ff.getTest() != null && visit(predicate, ff.getTest()) || ff.getInc() != null && visit(predicate, ff.getInc())
                     || ff.getInstructions() != null && visit(predicate, ff.getInstructions());
             }
         case FastConstants.WHILE,

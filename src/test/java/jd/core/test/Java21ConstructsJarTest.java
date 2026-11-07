@@ -926,4 +926,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output, output.contains("Byte code"));
         }
     }
+
+    @Test
+    public void forLoopTestsAndConditionalWritesKeepTheirMeaning() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov30", new ZipLoader(in));
+            assertFalse(output, output.replaceAll("\\s+", " ").contains("{ for (int i = 0; i < n"));
+            assertFalse(output, output.contains("Byte code"));
+        }
+    }
 }
