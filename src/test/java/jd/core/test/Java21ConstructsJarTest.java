@@ -935,4 +935,15 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output, output.contains("Byte code"));
         }
     }
+
+    @Test
+    public void arrayStoreReceiversAndResourcesKeepParameterScope() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov31", new ZipLoader(in));
+            String compact = output.replaceAll("\\s+", " ");
+            assertFalse(output, compact.contains("{ n[0] = 1"));
+            assertFalse(output, compact.contains("{ try (Res r = open(n))"));
+            assertFalse(output, output.contains("Byte code"));
+        }
+    }
 }

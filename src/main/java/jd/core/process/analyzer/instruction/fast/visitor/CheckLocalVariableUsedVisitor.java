@@ -82,7 +82,7 @@ public final class CheckLocalVariableUsedVisitor
              ByteCodeConstants.ARRAYSTORE:
             {
                 ArrayStoreInstruction asi = (ArrayStoreInstruction)instruction;
-                return visit(predicate, asi.getIndexref()) || visit(predicate, asi.getValueref());
+                return visit(predicate, asi.getArrayref()) || visit(predicate, asi.getIndexref()) || visit(predicate, asi.getValueref());
             }
         case  ByteCodeConstants.ASSERT:
             {
@@ -301,7 +301,7 @@ public final class CheckLocalVariableUsedVisitor
         case FastConstants.TRY:
             {
                 FastTry ft = (FastTry)instruction;
-                if (visit(predicate, ft.getInstructions()) || ft.getFinallyInstructions() != null && visit(predicate, ft.getFinallyInstructions())) {
+                if (visit(predicate, ft.getResources()) || visit(predicate, ft.getInstructions()) || ft.getFinallyInstructions() != null && visit(predicate, ft.getFinallyInstructions())) {
                     return true;
                 }
                 List<FastCatch> catchs = ft.getCatches();
