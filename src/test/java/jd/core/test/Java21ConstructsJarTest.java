@@ -1018,4 +1018,12 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output, output.contains("Byte code"));
         }
     }
+
+    @Test
+    public void overloadsInheritedFromRuntimeClassesKeepRawCasts() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov42", new ZipLoader(in));
+            assertTrue(output, output.replaceAll("\\s+", "").contains("((Cov42.Box)c.get()).get()"));
+        }
+    }
 }

@@ -297,12 +297,15 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
             return;
         }
         String entry = owner + StringConstants.CLASS_FILE_SUFFIX;
-        Loader loader = classFile.getLoader();
         try {
-            if (loader == null || !loader.canLoad(entry)) {
+            byte[] bytes = loadClass(entry);
+            if (bytes == null) {
+                // Unknown owner: any overload may be declared there
+                erasures.add("?");
+                erasures.add("??");
                 return;
             }
-            JavaClass javaClass = new ClassParser(new ByteArrayInputStream(loader.load(entry)), entry).parse();
+            JavaClass javaClass = new ClassParser(new ByteArrayInputStream(bytes), entry).parse();
             for (org.apache.bcel.classfile.Method method : javaClass.getMethods()) {
                 if (method.getName().equals(name) && method.getArgumentTypes().length == parameters) {
                     erasures.add(method.getSignature());
@@ -316,6 +319,18 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
             // Unknown: assume the worst
             erasures.add("?");
             erasures.add("??");
+        }
+    }
+
+    /** The class comes from the loader of the decompiled classes, or else from the runtime that runs the decompiler. */
+    private byte[] loadClass(String entry) throws IOException
+    {
+        Loader loader = classFile.getLoader();
+        if (loader != null && loader.canLoad(entry)) {
+            return loader.load(entry);
+        }
+        try (java.io.InputStream in = ClassLoader.getSystemResourceAsStream(entry)) {
+            return in == null ? null : in.readAllBytes();
         }
     }
 
