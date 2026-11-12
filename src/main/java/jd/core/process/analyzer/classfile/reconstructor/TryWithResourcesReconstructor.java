@@ -332,9 +332,11 @@ public final class TryWithResourcesReconstructor {
 
     /** Another variable may reuse the slot of the resource: it has another name or type. */
     private static boolean sameVariable(LocalVariable declared, LocalVariable resource) {
+        // A variable declared before the resource, in the range of another variable, is not the resource
         return declared == resource || declared.getIndex() == resource.getIndex()
                 && declared.getNameIndex() == resource.getNameIndex()
-                && declared.getSignatureIndex() == resource.getSignatureIndex();
+                && declared.getSignatureIndex() == resource.getSignatureIndex()
+                && declared.getStartPc() >= resource.getStartPc() - 1;
     }
 
     private static boolean wrap(LocalVariables localVariables, List<Instruction> list, int[] resource) {

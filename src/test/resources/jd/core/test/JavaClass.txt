@@ -3,6 +3,7 @@
 /*     */ import java.io.ByteArrayOutputStream;
 /*     */ import java.io.DataOutputStream;
 /*     */ import java.io.File;
+/*     */ import java.io.FileOutputStream;
 /*     */ import java.io.IOException;
 /*     */ import java.io.OutputStream;
 /*     */ import java.util.ArrayList;
@@ -18,7 +19,6 @@
 /*     */ import org.apache.bcel.util.Repository;
 /*     */ import org.apache.bcel.util.SyntheticRepository;
 /*     */ import org.apache.commons.lang3.ArrayUtils;
-/*     */ 
 /*     */ 
 /*     */ 
 /*     */ 
@@ -358,7 +358,7 @@
 /* 358 */         throw new IOException("Could not create the directory " + dir);
 /*     */       }
 /*     */     }
-/* 361 */     try (DataOutputStream dos = new DataOutputStream(new java.io.FileOutputStream(file))) {
+/* 361 */     try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(file))) {
 /* 362 */       dump(dos);
 /*     */     }
 /*     */     

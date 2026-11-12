@@ -1,5 +1,6 @@
 /*      */ package org.apache.commons.io;
 /*      */ 
+/*      */ import java.io.BufferedOutputStream;
 /*      */ import java.io.File;
 /*      */ import java.io.FileFilter;
 /*      */ import java.io.FileInputStream;
@@ -7,6 +8,7 @@
 /*      */ import java.io.FileOutputStream;
 /*      */ import java.io.IOException;
 /*      */ import java.io.InputStream;
+/*      */ import java.io.InputStreamReader;
 /*      */ import java.io.OutputStream;
 /*      */ import java.io.Reader;
 /*      */ import java.io.UncheckedIOException;
@@ -20,6 +22,7 @@
 /*      */ import java.nio.file.FileVisitOption;
 /*      */ import java.nio.file.Files;
 /*      */ import java.nio.file.LinkOption;
+/*      */ import java.nio.file.OpenOption;
 /*      */ import java.nio.file.Path;
 /*      */ import java.nio.file.StandardCopyOption;
 /*      */ import java.time.Instant;
@@ -39,6 +42,7 @@
 /*      */ import java.util.stream.Collectors;
 /*      */ import java.util.stream.Stream;
 /*      */ import java.util.zip.CRC32;
+/*      */ import java.util.zip.CheckedInputStream;
 /*      */ import java.util.zip.Checksum;
 /*      */ import org.apache.commons.io.file.AccumulatorPathVisitor;
 /*      */ import org.apache.commons.io.file.Counters;
@@ -51,10 +55,6 @@
 /*      */ import org.apache.commons.io.filefilter.FileFileFilter;
 /*      */ import org.apache.commons.io.filefilter.IOFileFilter;
 /*      */ import org.apache.commons.io.filefilter.SuffixFileFilter;
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -285,7 +285,7 @@
 /*  285 */     requireExistsChecked(file, "file");
 /*  286 */     requireFile(file, "file");
 /*  287 */     Objects.requireNonNull(checksum, "checksum");
-/*  288 */     try (InputStream inputStream = new java.util.zip.CheckedInputStream(Files.newInputStream(file.toPath()), checksum)) {
+/*  288 */     try (InputStream inputStream = new CheckedInputStream(Files.newInputStream(file.toPath()), checksum)) {
 /*  289 */       IOUtils.consume(inputStream);
 /*      */     }
 /*  291 */     return checksum;
@@ -456,8 +456,8 @@
 /*      */     }
 /*      */     
 /*  458 */     Charset charset = Charsets.toCharset(charsetName);
-/*  459 */     try (Reader input1 = new java.io.InputStreamReader(Files.newInputStream(file1.toPath()), charset);
-/*  460 */     Reader input2 = new java.io.InputStreamReader(Files.newInputStream(file2.toPath()), charset);) {
+/*  459 */     try (Reader input1 = new InputStreamReader(Files.newInputStream(file1.toPath()), charset);
+/*  460 */     Reader input2 = new InputStreamReader(Files.newInputStream(file2.toPath()), charset);) {
 /*  461 */       return IOUtils.contentEqualsIgnoreEOL(input1, input2);
 /*      */     }
 /*      */     
@@ -3471,7 +3471,7 @@
 /*      */   public static void writeLines(File file, String charsetName, Collection<?> lines, String lineEnding, boolean append)
 /*      */     throws IOException
 /*      */   {
-/* 3474 */     try (OutputStream out = new java.io.BufferedOutputStream(openOutputStream(file, append))) {
+/* 3474 */     try (OutputStream out = new BufferedOutputStream(openOutputStream(file, append))) {
 /* 3475 */       IOUtils.writeLines(lines, lineEnding, out, charsetName);
 /*      */     }
 /*      */     

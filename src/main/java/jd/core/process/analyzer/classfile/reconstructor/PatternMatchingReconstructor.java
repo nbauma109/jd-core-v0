@@ -128,7 +128,7 @@ public final class PatternMatchingReconstructor {
                 recordStore.getIndex(), classFile.getConstantPool().getConstantClassName(instanceOf.getIndex()), bindings);
         int bodyEnd = ((IfInstruction) list.get(ifIndex)).getJumpOffset();
         // The failing test must skip the whole extraction, not only the store of the record
-        if (end < 0 || bodyEnd <= list.get(end - 1).getOffset() || isUsedAfter(list, end, recordStore.getIndex(), bodyEnd)
+        if (end < 0 || bodyEnd <= list.get(end - 1).getOffset() || isUsedAfter(list, end, recordStore.getIndex(), bodyEnd, method.getCodeExceptions())
                 || areTemporariesUsedAfter(list, end, method, bodyEnd)) {
             // The record itself is still needed: keep the ordinary type pattern
             return false;
@@ -449,8 +449,9 @@ public final class PatternMatchingReconstructor {
     }
 
     /** Whether a local variable is read by the instructions from an index on, before an offset. */
-    static boolean isUsedAfter(List<Instruction> list, int from, int variableIndex, int endOffset) {
-        return isSlotReadAfter(list, from, java.util.Set.of(variableIndex), endOffset, null);
+    static boolean isUsedAfter(List<Instruction> list, int from, int variableIndex, int endOffset,
+            org.apache.bcel.classfile.CodeException[] handlers) {
+        return isSlotReadAfter(list, from, java.util.Set.of(variableIndex), endOffset, handlers);
     }
 
     /** A slot written before it is read holds another variable: the code that follows reused it. */

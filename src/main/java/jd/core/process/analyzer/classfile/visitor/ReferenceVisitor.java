@@ -357,6 +357,7 @@ public class ReferenceVisitor
         case FastConstants.TRY:
             {
                 FastTry ft = (FastTry)instruction;
+                visit(ft.getResources());
                 visit(ft.getInstructions());
                 List<FastCatch> catches = ft.getCatches();
                 for (int i=catches.size()-1; i>=0; --i) {

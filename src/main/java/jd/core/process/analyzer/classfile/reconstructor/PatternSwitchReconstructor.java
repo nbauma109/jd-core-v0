@@ -247,7 +247,7 @@ public final class PatternSwitchReconstructor {
             List<LocalVariable> components = new ArrayList<>();
             int end = PatternMatchingReconstructor.collectComponents(classFile, method, list, first + 1,
                     recordStore.getIndex(), classFile.getConstantPool().getConstantClassName(cast.getIndex()), components);
-            if (end < 0 || PatternMatchingReconstructor.isUsedAfter(list, end, recordStore.getIndex(), nextCaseOffset(lookup, caseStart))
+            if (end < 0 || PatternMatchingReconstructor.isUsedAfter(list, end, recordStore.getIndex(), nextCaseOffset(lookup, caseStart), method.getCodeExceptions())
                     || PatternMatchingReconstructor.areTemporariesUsedAfter(list, end, method, nextCaseOffset(lookup, caseStart))) {
                 continue;
             }

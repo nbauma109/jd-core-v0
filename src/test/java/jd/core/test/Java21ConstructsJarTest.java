@@ -1008,4 +1008,14 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output, output.contains("Byte code"));
         }
     }
+
+    @Test
+    public void handlersEarlierDeclarationsAndResourceReferencesKeepTheirMeaning() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov40", new ZipLoader(in));
+            assertTrue(output, output.contains("InputStream r; if (flag)"));
+            assertTrue(output, output.contains("Cov40.R r = (Cov40.R)o;"));
+            assertFalse(output, output.contains("Byte code"));
+        }
+    }
 }
