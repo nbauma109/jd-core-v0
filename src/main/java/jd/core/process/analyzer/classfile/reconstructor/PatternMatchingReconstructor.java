@@ -445,16 +445,17 @@ public final class PatternMatchingReconstructor {
                 slots.add(temporary.getIndex());
             }
         }
-        return isSlotReadAfter(list, from, slots, endOffset);
+        return isSlotReadAfter(list, from, slots, endOffset, method.getCodeExceptions());
     }
 
     /** Whether a local variable is read by the instructions from an index on, before an offset. */
     static boolean isUsedAfter(List<Instruction> list, int from, int variableIndex, int endOffset) {
-        return isSlotReadAfter(list, from, java.util.Set.of(variableIndex), endOffset);
+        return isSlotReadAfter(list, from, java.util.Set.of(variableIndex), endOffset, null);
     }
 
     /** A slot written before it is read holds another variable: the code that follows reused it. */
-    private static boolean isSlotReadAfter(List<Instruction> list, int from, java.util.Set<Integer> slots, int endOffset) {
+    private static boolean isSlotReadAfter(List<Instruction> list, int from, java.util.Set<Integer> slots, int endOffset,
+            org.apache.bcel.classfile.CodeException[] handlers) {
         java.util.Set<Integer> live = new java.util.HashSet<>(slots);
         // A store skipped by a branch does not always run: it cannot end the life of the variable
         int skippedUntil = 0;
@@ -466,8 +467,20 @@ public final class PatternMatchingReconstructor {
                 return true;
             }
             skippedUntil = Math.max(skippedUntil, jumpEnd(instruction));
-            if (instruction instanceof StoreInstruction store && store.getOffset() >= skippedUntil) {
+            if (instruction instanceof StoreInstruction store && store.getOffset() >= skippedUntil && !isProtected(store.getOffset(), handlers)) {
                 live.remove(store.getIndex());
+            }
+        }
+        return false;
+    }
+
+    /** A store inside a try block may not run: an exception can leave the block before it. */
+    private static boolean isProtected(int offset, org.apache.bcel.classfile.CodeException[] handlers) {
+        if (handlers != null) {
+            for (org.apache.bcel.classfile.CodeException handler : handlers) {
+                if (offset >= handler.getStartPC() && offset < handler.getEndPC()) {
+                    return true;
+                }
             }
         }
         return false;

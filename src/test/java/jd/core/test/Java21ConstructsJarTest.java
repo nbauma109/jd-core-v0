@@ -1000,4 +1000,12 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertFalse(output, output.contains("record org("));
         }
     }
+
+    @Test
+    public void storesInsideTryBlocksDoNotEndTheLifeOfRecordTemporaries() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov39", new ZipLoader(in));
+            assertFalse(output, output.contains("Byte code"));
+        }
+    }
 }
