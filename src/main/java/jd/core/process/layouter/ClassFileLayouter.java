@@ -709,6 +709,11 @@ public final class ClassFileLayouter {
         if (method.getCode() == null || method.containsError() || list == null || list.isEmpty()) {
             return false;
         }
+        // The type parameters of the constructor are declared by the constructor only
+        Signature signature = method.getAttributeSignature();
+        if (signature != null && constants.getConstantUtf8(signature.getSignatureIndex()).startsWith("<")) {
+            return false;
+        }
         // An initializer block cannot return early: only the final return of the constructor may go
         List<Instruction> bytecode = method.getInstructions();
         if (bytecode != null && bytecode.stream().filter(Return.class::isInstance).count() > 1) {

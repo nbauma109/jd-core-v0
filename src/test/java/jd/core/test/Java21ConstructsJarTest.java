@@ -1026,4 +1026,13 @@ public class Java21ConstructsJarTest extends AbstractTestCase {
             assertTrue(output, output.replaceAll("\\s+", "").contains("((Cov42.Box)c.get()).get()"));
         }
     }
+
+    @Test
+    public void constructorsWithTypeParametersAreNotInitializers() throws IOException {
+        try (InputStream in = getClass().getResourceAsStream("/constructs-jdk21.jar")) {
+            String output = decompile("Cov43", new ZipLoader(in));
+            assertFalse(output, output.replaceAll("\\s+", " ").contains("{ T value"));
+            assertFalse(output, output.contains("Byte code"));
+        }
+    }
 }
