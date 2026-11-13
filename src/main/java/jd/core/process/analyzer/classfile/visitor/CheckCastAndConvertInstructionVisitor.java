@@ -16,6 +16,7 @@
  ******************************************************************************/
 package jd.core.process.analyzer.classfile.visitor;
 
+import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantClass;
@@ -36,6 +37,7 @@ import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker.Met
 import java.util.List;
 
 import jd.core.model.classfile.ClassFile;
+import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.Field;
 import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
@@ -398,9 +400,17 @@ public final class CheckCastAndConvertInstructionVisitor
                  || typeArgsLeft instanceof GenericType
                      && (typeArgsRight instanceof WildcardExtendsTypeArgument
                       || typeArgsRight instanceof WildcardSuperTypeArgument)) {
+                    Instruction value = valueref;
+                    if (typeArgsLeft instanceof GenericType left && needsBridge(typeArgsRight, left.getName(), classFile, localVariables, valueref)) {
+                        // The bounds of the variable are unknown: (List<T>) (List<?>) numbers()
+                        int unbounded = classFile.getConstantPool().addConstantUtf8(
+                                "[".repeat(otLeft.getDimension()) + 'L' + otLeft.getInternalName() + "<*>;");
+                        value = new CheckCast(Const.CHECKCAST, valuerefAttribute.getOffset(),
+                                valuerefAttribute.getLineNumber(), unbounded, valueref);
+                    }
                     valuerefAttribute.setValueref(new CheckCast(
                             Const.CHECKCAST, valuerefAttribute.getOffset(),
-                            valuerefAttribute.getLineNumber(), descriptorIndex, valueref));
+                            valuerefAttribute.getLineNumber(), descriptorIndex, value));
                 }
                 if (typeArgsLeft != null && typeArgsLeft.isTypeArgumentList()
                 && typeArgsRight != null && typeArgsRight.isTypeArgumentList()) {
@@ -418,6 +428,66 @@ public final class CheckCastAndConvertInstructionVisitor
                 }
             }
         }
+    }
+
+    /**
+     * A bounded wildcard is cast to a type variable through the unbounded wildcard, unless it is bounded by
+     * that very variable: a variable of the same name declared by another class is not the same.
+     */
+    private static boolean needsBridge(BaseTypeArgument wildcard, String variable, ClassFile classFile,
+            LocalVariables localVariables, Instruction value)
+    {
+        TypeArgument bound = null;
+        if (wildcard instanceof WildcardExtendsTypeArgument extendsBound) {
+            bound = extendsBound.type();
+        } else if (wildcard instanceof WildcardSuperTypeArgument superBound) {
+            bound = superBound.type();
+        }
+        if (bound == null) {
+            return false;
+        }
+        return !(bound instanceof GenericType generic && generic.getName().equals(variable) && !isForeignCall(classFile, localVariables, value, variable));
+    }
+
+    /** The call is on another class, or on a receiver whose type arguments are given: its type variables are not ours. */
+    private static boolean isForeignCall(ClassFile classFile, LocalVariables localVariables, Instruction value, String variable)
+    {
+        if (!(value instanceof InvokeNoStaticInstruction call)) {
+            return value instanceof InvokeInstruction;
+        }
+        ConstantPool constants = classFile.getConstantPool();
+        if (!classFile.getThisClassName().equals(
+            constants.getConstantClassName(constants.getConstantMethodref(call.getIndex()).getClassIndex()))) {
+            return true;
+        }
+        if (declaresTypeParameter(classFile, call, variable)) {
+            return true;
+        }
+        String receiver = call.getObjectref().getReturnedSignature(classFile, localVariables);
+        if (receiver == null || receiver.indexOf('<') == -1) {
+            return false;
+        }
+        return new TypeMaker(classFile.getLoader()).makeFromSignature(receiver) instanceof ObjectType type
+            && type.getTypeArguments() != null && !(type.getTypeArguments() instanceof GenericType);
+    }
+
+    /** The called method declares a type variable of that name itself: it hides the one of the class. */
+    private static boolean declaresTypeParameter(ClassFile classFile, InvokeInstruction call, String variable)
+    {
+        ConstantPool constants = classFile.getConstantPool();
+        ConstantCP methodref = constants.getConstantMethodref(call.getIndex());
+        ConstantNameAndType nameAndType = constants.getConstantNameAndType(methodref.getNameAndTypeIndex());
+        var types = new TypeMaker(classFile.getLoader()).makeMethodTypes(constants.getConstantClassName(methodref.getClassIndex()),
+            constants.getConstantUtf8(nameAndType.getNameIndex()), constants.getConstantUtf8(nameAndType.getSignatureIndex()));
+        if (types == null || types.getTypeParameters() == null) {
+            return false;
+        }
+        for (var parameter : types.getTypeParameters()) {
+            if (parameter.getIdentifier().equals(variable)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean hasClassLiteralArgument(ClassFile classFile, Instruction instruction)

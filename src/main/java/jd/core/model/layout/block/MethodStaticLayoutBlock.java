@@ -22,14 +22,26 @@ import jd.core.model.instruction.bytecode.instruction.Instruction;
 public class MethodStaticLayoutBlock extends LayoutBlock
 {
     private final ClassFile classFile;
+    private final boolean instanceInitializer;
 
     public MethodStaticLayoutBlock(ClassFile classFile)
+    {
+        this(classFile, false);
+    }
+
+    public MethodStaticLayoutBlock(ClassFile classFile, boolean instanceInitializer)
     {
         super(
             LayoutBlockConstants.METHOD_STATIC,
             Instruction.UNKNOWN_LINE_NUMBER, Instruction.UNKNOWN_LINE_NUMBER,
             0, 0, 0);
         this.classFile = classFile;
+        this.instanceInitializer = instanceInitializer;
+    }
+
+    /** An instance initializer block has no 'static' keyword. */
+    public boolean isInstanceInitializer() {
+        return instanceInitializer;
     }
 
     public ClassFile getClassFile() {

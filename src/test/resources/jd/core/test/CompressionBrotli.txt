@@ -1,5 +1,6 @@
 /*    */ package jd.core.test;
 /*    */ 
+/*    */ import java.io.ByteArrayInputStream;
 /*    */ import java.io.ByteArrayOutputStream;
 /*    */ import java.io.IOException;
 /*    */ import net.sourceforge.plantuml.FileUtils;
@@ -9,8 +10,7 @@
 /*    */ import net.sourceforge.plantuml.code.NoPlantumlCompressionException;
 /*    */ import net.sourceforge.plantuml.log.Logme;
 /*    */ 
-/*    */ public class CompressionBrotli
-/*    */   implements Compression
+/*    */ public class CompressionBrotli implements Compression
 /*    */ {
 /*    */   public byte[] compress(byte[] in)
 /*    */   {
@@ -18,7 +18,7 @@
 /*    */   }
 /*    */   
 /*    */   public ByteArray decompress(byte[] in) throws NoPlantumlCompressionException {
-/* 21 */     try (BrotliInputStream brotli = new BrotliInputStream(new java.io.ByteArrayInputStream(in));
+/* 21 */     try (BrotliInputStream brotli = new BrotliInputStream(new ByteArrayInputStream(in));
 /* 22 */     ByteArrayOutputStream result = new ByteArrayOutputStream();) {
 /* 23 */       FileUtils.copyToStream(brotli, result);
 /* 24 */       return ByteArray.from(result.toByteArray());

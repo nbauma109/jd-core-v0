@@ -76,9 +76,16 @@ import jd.core.process.analyzer.classfile.reconstructor.NewInstructionReconstruc
 import jd.core.process.analyzer.classfile.reconstructor.OuterReferenceReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.PostIncReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.PreIncReconstructor;
+import jd.core.process.analyzer.classfile.reconstructor.PatternMatchingReconstructor;
+import jd.core.process.analyzer.classfile.reconstructor.PatternSwitchReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.SimpleNewInstructionReconstructor;
+import jd.core.process.analyzer.classfile.reconstructor.TryWithResourcesReconstructor;
 import jd.core.process.analyzer.classfile.visitor.CheckCastAndConvertInstructionVisitor;
 import jd.core.process.analyzer.classfile.visitor.ReplaceOuterReferenceVisitor;
+import jd.core.process.analyzer.classfile.visitor.AddWildcardCastVisitor;
+import jd.core.process.analyzer.classfile.visitor.ReplaceBooleanTernaryVisitor;
+import jd.core.process.analyzer.classfile.visitor.ReplaceBoxingVisitor;
+import jd.core.process.analyzer.classfile.visitor.ReplaceRedundantCastVisitor;
 import jd.core.process.analyzer.classfile.visitor.ReplaceStringBuxxxerVisitor;
 import jd.core.process.analyzer.classfile.visitor.SetConstantTypeInStringIndexOfMethodsVisitor;
 import jd.core.process.analyzer.instruction.bytecode.InstructionListBuilder;
@@ -314,7 +321,7 @@ public final class ClassFileAnalyzer
             {
                 assert ExceptionUtil.printStackTrace(e);
                 method.setContainsError(true);
-            }
+        }
         }
     }
 
@@ -955,6 +962,15 @@ public final class ClassFileAnalyzer
         List<Instruction> fastList =
                 new ArrayList<>(list);
         method.setFastNodes(fastList);
+        if (classFile.getMajorVersion() >= Const.MAJOR_11) {
+            TryWithResourcesReconstructor.reconstruct(classFile, method, fastList);
+        }
+        if (classFile.getMajorVersion() >= Const.MAJOR_16) {
+            PatternMatchingReconstructor.reconstruct(classFile, method, fastList);
+        }
+        if (classFile.getMajorVersion() >= Const.MAJOR_21) {
+            PatternSwitchReconstructor.reconstructCases(classFile, method, fastList);
+        }
 
         // DEBUG //
         //ConstantPool debugConstants = classFile.getConstantPool();
@@ -965,7 +981,16 @@ public final class ClassFileAnalyzer
 
         // Ajout des déclarations des variables locales temporaires
         DupLocalVariableAnalyzer.declare(classFile, method, fastList);
+        PatternSwitchReconstructor.reconstruct(classFile, method, fastList);
+        new ReplaceBooleanTernaryVisitor(classFile, method.getLocalVariables()).visit(fastList);
+        new ReplaceRedundantCastVisitor(classFile, method.getLocalVariables()).visit(fastList);
+        new ReplaceBoxingVisitor(classFile, method.getLocalVariables()).visit(fastList);
+        new AddWildcardCastVisitor(classFile, method).visit(fastList);
+        if (!method.getTryResources().isEmpty() && !TryWithResourcesReconstructor.wrap(method, fastList)) {
+            method.setContainsError(true);
+        }
     }
+
 
     public static void postAnalyzeSingleMethod(ClassFile classFile, final Method method) {
         try
@@ -1283,6 +1308,7 @@ public final class ClassFileAnalyzer
             ClassFile classFile, LocalVariables localVariables, List<Instruction> list)
     {
         new ReplaceStringBuxxxerVisitor(classFile, localVariables).visit(list);
+        new ReplaceBooleanTernaryVisitor(classFile, localVariables).visit(list);
     }
 
     private static void removeUnusedPopInstruction(List<Instruction> list)

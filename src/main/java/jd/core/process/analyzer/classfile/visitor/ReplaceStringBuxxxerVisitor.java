@@ -61,6 +61,7 @@ public class ReplaceStringBuxxxerVisitor extends AbstractReplaceInstructionVisit
         return match(instruction);
     }
 
+    @SuppressWarnings("java:S3776")
     @Override
     protected Instruction match(Instruction i)
     {
@@ -81,6 +82,10 @@ public class ReplaceStringBuxxxerVisitor extends AbstractReplaceInstructionVisit
                 if (cnat.getNameIndex() == constants.getToStringIndex()) {
                     SignatureInfo signatureInfo = new SignatureInfo();
                     Instruction result = match(iv.getObjectref(), cmr.getClassIndex(), signatureInfo);
+                    if (!signatureInfo.rootIsNew) {
+                        // The content of an existing buffer is not part of the chain
+                        return null;
+                    }
                     if (signatureInfo.accept()) {
                         return result;
                     }
@@ -131,6 +136,11 @@ public class ReplaceStringBuxxxerVisitor extends AbstractReplaceInstructionVisit
         {
             InvokeNew in = (InvokeNew)i;
             ConstantCP cmr = constants.getConstantMethodref(in.getIndex());
+
+            if (cmr.getClassIndex() == classIndex)
+            {
+                signatureInfo.rootIsNew = true;
+            }
 
             if (cmr.getClassIndex() == classIndex && in.getArgs().size() == 1)
             {
@@ -185,6 +195,7 @@ public class ReplaceStringBuxxxerVisitor extends AbstractReplaceInstructionVisit
 
     private static class SignatureInfo {
         private String invokeNewSignature;
+        private boolean rootIsNew;
         private Set<String> appendSignatures = new HashSet<>();
 
         private boolean accept() {

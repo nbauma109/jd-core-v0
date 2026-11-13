@@ -153,7 +153,7 @@
 /* 153 */       DiagramDescription desc = sourceStringReader.generateDiagramDescription(fileFormatOption);
 /* 154 */       List<BlockUml> blocks = sourceStringReader.getBlocks();
 /* 155 */       if (blocks.size() > 0) {
-/* 156 */         ((BlockUml)blocks.get(0)).getDiagram().exportDiagram(baos, 0, fileFormatOption);
+/* 156 */         blocks.get(0).getDiagram().exportDiagram(baos, 0, fileFormatOption);
 /*     */       }
 /* 158 */       String errorFileName = pngFileName.substring(0, pngFileName.length() - 4) + ".err";
 /* 159 */       synchronized (this) {

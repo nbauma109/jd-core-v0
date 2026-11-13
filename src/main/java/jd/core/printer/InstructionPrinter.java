@@ -267,6 +267,8 @@ public class InstructionPrinter implements Printer
     @Override
     public void printNumeric(String s) { this.printer.printNumeric(s); }
     @Override
+    public boolean isLineNumbersDisplayed() { return this.printer.isLineNumbersDisplayed(); }
+    @Override
     public void printString(String s, String scopeInternalName) { this.printer.printString(s, scopeInternalName); }
     @Override
     public void printKeyword(String keyword) { this.printer.printKeyword(keyword); }

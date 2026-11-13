@@ -33,6 +33,7 @@ import jd.core.model.reference.ReferenceMap;
 import jd.core.printer.Printer;
 import jd.core.util.CharArrayUtil;
 import jd.core.util.SignatureUtil;
+import jd.core.util.TypeNameUtil;
 
 public final class SignatureWriter
 {
@@ -534,6 +535,7 @@ public final class SignatureWriter
         }
         // La classe n'est pas la classe courante ou l'une de ses classes
         // internes
+        final String originalName = internalName;
         int index = internalName.lastIndexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR);
         int lastIndexOfDollar = internalName.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR);
 
@@ -546,7 +548,13 @@ public final class SignatureWriter
                 // Classe appartenant au même package que la classe courante
                 String simpleName = internalName.substring(
                     Math.max(index, lastIndexOfDollar) + 1);
-                if (referenceMap.isTypeParameterName(simpleName)) {
+                if (referenceMap.isTypeParameterName(TypeNameUtil.localTypeSimpleName(simpleName))) {
+                    internalName = internalName.replace(
+                        StringConstants.INTERNAL_PACKAGE_SEPARATOR,
+                        StringConstants.PACKAGE_SEPARATOR);
+                } else if (referenceMap.isPromotedLocalTypeName(simpleName) && classFile.getInnerClassFile(internalName) == null)
+                {
+                    // A local type written as a member would hide this class
                     internalName = internalName.replace(
                         StringConstants.INTERNAL_PACKAGE_SEPARATOR,
                         StringConstants.PACKAGE_SEPARATOR);
@@ -594,9 +602,16 @@ public final class SignatureWriter
                     internalName = internalName.substring(index + 1);
                 }
             } else if (lastIndexOfDollar != -1) {
-                internalName = internalName.substring(index+1)
-                                           .replace(StringConstants.INTERNAL_INNER_SEPARATOR,
-                                                    StringConstants.PACKAGE_SEPARATOR);
+                int firstIndexOfDollar = internalName.indexOf(StringConstants.INTERNAL_INNER_SEPARATOR, index);
+                if (referenceMap.contains(internalName.substring(0, firstIndexOfDollar))) {
+                    // The outer class is imported
+                    internalName = internalName.substring(index+1)
+                                               .replace(StringConstants.INTERNAL_INNER_SEPARATOR,
+                                                        StringConstants.PACKAGE_SEPARATOR);
+                } else {
+                    internalName = internalName.replace(StringConstants.INTERNAL_PACKAGE_SEPARATOR,
+                            StringConstants.PACKAGE_SEPARATOR);
+                }
             } else {
                 // Sinon, on conserve le nom du package
                 internalName = internalName.replace(StringConstants.INTERNAL_PACKAGE_SEPARATOR,
@@ -604,7 +619,13 @@ public final class SignatureWriter
             }
         }
 
-        return internalName.replace(StringConstants.INTERNAL_INNER_SEPARATOR, StringConstants.INNER_SEPARATOR);
+        if (TypeNameUtil.isLocalTypeShadowedByMember(originalName)) {
+            int separator = internalName.lastIndexOf(StringConstants.INTERNAL_INNER_SEPARATOR);
+            internalName = internalName.substring(0, separator + 1)
+                + TypeNameUtil.localTypeSimpleName(originalName, internalName.substring(separator + 1));
+        }
+        return TypeNameUtil.localTypeQualifiedName(
+                internalName.replace(StringConstants.INTERNAL_INNER_SEPARATOR, StringConstants.INNER_SEPARATOR));
     }
 
     public static String internalClassNameToShortClassName(

@@ -188,7 +188,7 @@
 /*  188 */       if (!this.strategy.isNumber() || !lt.hasNext()) {
 /*  189 */         return 0;
 /*      */       }
-/*  191 */       FastDateParser.Strategy nextStrategy = ((StrategyAndWidth)lt.next()).strategy;
+/*  191 */       FastDateParser.Strategy nextStrategy = lt.next().strategy;
 /*  192 */       lt.previous();
 /*  193 */       return nextStrategy.isNumber() ? this.width : 0;
 /*      */     }

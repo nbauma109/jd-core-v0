@@ -687,7 +687,7 @@
 /*      */   {
 /*  688 */     int size = this.exceptionList.size();
 /*  689 */     CodeException[] cExc = new CodeException[size];
-/*  690 */     Arrays.setAll(cExc,  i -> ((CodeExceptionGen)this.exceptionList.get(i)).getCodeException(super.getConstantPool()));
+/*  690 */     Arrays.setAll(cExc,  i -> this.exceptionList.get(i).getCodeException(super.getConstantPool()));
 /*  691 */     return cExc;
 /*      */   }
 /*      */   
@@ -732,7 +732,7 @@
 /*      */   {
 /*  733 */     int size = this.lineNumberList.size();
 /*  734 */     LineNumber[] ln = new LineNumber[size];
-/*  735 */     Arrays.setAll(ln,  i -> ((LineNumberGen)this.lineNumberList.get(i)).getLineNumber());
+/*  735 */     Arrays.setAll(ln,  i -> this.lineNumberList.get(i).getLineNumber());
 /*  736 */     return new LineNumberTable(cp.addUtf8("LineNumberTable"), 2 + ln.length * 4, ln, cp.getConstantPool());
 /*      */   }
 /*      */   
