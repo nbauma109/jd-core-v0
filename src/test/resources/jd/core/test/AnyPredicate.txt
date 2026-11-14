@@ -43,21 +43,23 @@
 /*     */ 
 /*     */ 
 /*     */ 
+/*     */ 
+/*     */ 
 /*     */ public final class AnyPredicate<T>
 /*     */   extends AbstractQuantifierPredicate<T>
 /*     */ {
 /*     */   private static final long serialVersionUID = 7429999530934647542L;
 /*     */   
-/*     */   public static <T> Predicate<T> anyPredicate(Predicate<? super T>... predicates)
+/*     */   public static <T> Predicate<T> anyPredicate(Collection<? extends Predicate<? super T>> predicates)
 /*     */   {
-/*  53 */     FunctorUtils.validate(predicates);
-/*  54 */     if (predicates.length == 0) {
-/*  55 */       return FalsePredicate.falsePredicate();
+/*  55 */     Predicate<? super T>[] preds = FunctorUtils.validate(predicates);
+/*  56 */     if (preds.length == 0) {
+/*  57 */       return FalsePredicate.falsePredicate();
 /*     */     }
-/*  57 */     if (predicates.length == 1) {
-/*  58 */       return (Predicate<T>)predicates[0];
+/*  59 */     if (preds.length == 1) {
+/*  60 */       return (Predicate<T>)preds[0];
 /*     */     }
-/*  60 */     return new AnyPredicate<>(FunctorUtils.copy(predicates));
+/*  62 */     return new AnyPredicate<>(preds);
 /*     */   }
 /*     */   
 /*     */ 
@@ -72,16 +74,17 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */   public static <T> Predicate<T> anyPredicate(Collection<? extends Predicate<? super T>> predicates)
+/*     */ 
+/*     */   public static <T> Predicate<T> anyPredicate(Predicate<? super T>... predicates)
 /*     */   {
-/*  77 */     Predicate<? super T>[] preds = FunctorUtils.validate(predicates);
-/*  78 */     if (preds.length == 0) {
-/*  79 */       return FalsePredicate.falsePredicate();
+/*  80 */     FunctorUtils.validate(predicates);
+/*  81 */     if (predicates.length == 0) {
+/*  82 */       return FalsePredicate.falsePredicate();
 /*     */     }
-/*  81 */     if (preds.length == 1) {
-/*  82 */       return (Predicate<T>)preds[0];
+/*  84 */     if (predicates.length == 1) {
+/*  85 */       return (Predicate<T>)predicates[0];
 /*     */     }
-/*  84 */     return new AnyPredicate<>(preds);
+/*  87 */     return new AnyPredicate<>((Predicate[])FunctorUtils.copy(predicates));
 /*     */   }
 /*     */   
 /*     */ 
@@ -91,7 +94,7 @@
 /*     */ 
 /*     */   public AnyPredicate(Predicate<? super T>... predicates)
 /*     */   {
-/*  94 */     super(predicates);
+/*  97 */     super(predicates);
 /*     */   }
 /*     */   
 /*     */ 
@@ -100,13 +103,13 @@
 /*     */ 
 /*     */ 
 /*     */   @Override
-/*     */   public boolean evaluate(T object)
+/*     */   public boolean test(T object)
 /*     */   {
-/* 105 */     for (Predicate<? super T> iPredicate : this.iPredicates) {
-/* 106 */       if (iPredicate.evaluate(object)) {
-/* 107 */         return true;
+/* 108 */     for (Predicate<? super T> iPredicate : this.iPredicates) {
+/* 109 */       if (iPredicate.test(object)) {
+/* 110 */         return true;
 /*     */       }
 /*     */     }
-/* 110 */     return false;
+/* 113 */     return false;
 /*     */   }
 /*     */ }

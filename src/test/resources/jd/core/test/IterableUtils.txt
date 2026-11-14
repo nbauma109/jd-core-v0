@@ -4,9 +4,13 @@
 /*      */ import java.util.Collection;
 /*      */ import java.util.Collections;
 /*      */ import java.util.Comparator;
+/*      */ import java.util.HashSet;
 /*      */ import java.util.Iterator;
+/*      */ import java.util.LinkedHashSet;
 /*      */ import java.util.List;
+/*      */ import java.util.Objects;
 /*      */ import java.util.Set;
+/*      */ import java.util.function.ToIntFunction;
 /*      */ import org.apache.commons.collections4.functors.EqualPredicate;
 /*      */ import org.apache.commons.collections4.iterators.LazyIteratorChain;
 /*      */ import org.apache.commons.collections4.iterators.ReverseListIterator;
@@ -47,16 +51,33 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ public class IterableUtils
 /*      */ {
-/*   56 */   static final FluentIterable EMPTY_ITERABLE = new FluentIterable<Object>() {
+/*      */   private static final class UnmodifiableIterable<E>
+/*      */     extends FluentIterable<E>
+/*      */   {
+/*      */     private final Iterable<E> iterable;
+/*      */     
+/*      */     UnmodifiableIterable(Iterable<E> iterable)
+/*      */     {
+/*   63 */       this.iterable = iterable;
+/*      */     }
+/*      */     
+/*      */     @Override
+/*      */     public Iterator<E> iterator() {
+/*   68 */       return IteratorUtils.unmodifiableIterator(this.iterable.iterator());
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*   76 */   static final FluentIterable EMPTY_ITERABLE = new FluentIterable<Object>()
+/*      */   {
 /*      */     @Override
 /*      */     public Iterator<Object> iterator() {
-/*   59 */       return IteratorUtils.emptyIterator();
+/*   80 */       return IteratorUtils.emptyIterator();
 /*      */     }
 /*      */   };
 /*      */   
@@ -71,15 +92,57 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   public static <E> Iterable<E> emptyIterable()
+/*      */ 
+/*      */   public static <E> Iterable<E> boundedIterable(final Iterable<E> iterable, final long maxSize)
 /*      */   {
-/*   76 */     return EMPTY_ITERABLE;
+/*   98 */     Objects.requireNonNull(iterable, "iterable");
+/*   99 */     if (maxSize < 0L) {
+/*  100 */       throw new IllegalArgumentException("MaxSize parameter must not be negative.");
+/*      */     }
+/*  102 */     return new FluentIterable<E>()
+/*      */     {
+/*      */       @Override
+/*      */       public Iterator<E> iterator() {
+/*  106 */         return IteratorUtils.boundedIterator(iterable.iterator(), maxSize);
+/*      */       }
+/*      */     };
 /*      */   }
 /*      */   
 /*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static <E> Iterable<E> chainedIterable(final Iterable<? extends E>... iterables)
+/*      */   {
+/*  127 */     checkNotNull(iterables);
+/*  128 */     return new FluentIterable<E>()
+/*      */     {
+/*      */       @Override
+/*      */       public Iterator<E> iterator() {
+/*  132 */         return new LazyIteratorChain<E>()
+/*      */         {
+/*      */           @Override
+/*      */           protected Iterator<? extends E> nextIterator(int count) {
+/*  136 */             if (count > iterables.length) {
+/*  137 */               return null;
+/*      */             }
+/*  139 */             return iterables[(count - 1)].iterator();
+/*      */           }
+/*      */         };
+/*      */       }
+/*      */     };
+/*      */   }
+/*      */   
 /*      */ 
 /*      */ 
 /*      */ 
@@ -98,11 +161,9 @@
 /*      */ 
 /*      */   public static <E> Iterable<E> chainedIterable(Iterable<? extends E> a, Iterable<? extends E> b)
 /*      */   {
-/*  101 */     return chainedIterable(new Iterable[] { a, b });
+/*  164 */     return chainedIterable(new Iterable[] { a, b });
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -122,11 +183,9 @@
 /*      */ 
 /*      */   public static <E> Iterable<E> chainedIterable(Iterable<? extends E> a, Iterable<? extends E> b, Iterable<? extends E> c)
 /*      */   {
-/*  125 */     return chainedIterable(new Iterable[] { a, b, c });
+/*  186 */     return chainedIterable(new Iterable[] { a, b, c });
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -148,7 +207,7 @@
 /*      */ 
 /*      */   public static <E> Iterable<E> chainedIterable(Iterable<? extends E> a, Iterable<? extends E> b, Iterable<? extends E> c, Iterable<? extends E> d)
 /*      */   {
-/*  151 */     return chainedIterable(new Iterable[] { a, b, c, d });
+/*  210 */     return chainedIterable(new Iterable[] { a, b, c, d });
 /*      */   }
 /*      */   
 /*      */ 
@@ -156,66 +215,14 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */   public static <E> Iterable<E> chainedIterable(final Iterable<? extends E>... iterables)
+/*      */   static void checkNotNull(Iterable<?>... iterables)
 /*      */   {
-/*  170 */     checkNotNull(iterables);
-/*  171 */     return new FluentIterable<E>() {
-/*      */       @Override
-/*      */       public Iterator<E> iterator() {
-/*  174 */         return new LazyIteratorChain<E>() {
-/*      */           @Override
-/*      */           protected Iterator<? extends E> nextIterator(int count) {
-/*  177 */             if (count > iterables.length) {
-/*  178 */               return null;
-/*      */             }
-/*  180 */             return iterables[(count - 1)].iterator();
-/*      */           }
-/*      */         };
-/*      */       }
-/*      */     };
+/*  220 */     Objects.requireNonNull(iterables, "iterables");
+/*  221 */     for (Iterable<?> iterable : iterables) {
+/*  222 */       Objects.requireNonNull(iterable, "iterable");
+/*      */     }
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */   public static <E> Iterable<E> collatedIterable(final Iterable<? extends E> a, final Iterable<? extends E> b)
-/*      */   {
-/*  205 */     checkNotNull(new Iterable[] { a, b });
-/*  206 */     return new FluentIterable<E>() {
-/*      */       @Override
-/*      */       public Iterator<E> iterator() {
-/*  209 */         return IteratorUtils.collatedIterator(null, a.iterator(), b.iterator());
-/*      */       }
-/*      */     };
-/*      */   }
-/*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -230,330 +237,12 @@
 /*      */ 
 /*      */   public static <E> Iterable<E> collatedIterable(final Comparator<? super E> comparator, final Iterable<? extends E> a, final Iterable<? extends E> b)
 /*      */   {
-/*  233 */     checkNotNull(new Iterable[] { a, b });
-/*  234 */     return new FluentIterable<E>() {
-/*      */       @Override
-/*      */       public Iterator<E> iterator() {
-/*  237 */         return IteratorUtils.collatedIterator(comparator, a.iterator(), b.iterator());
-/*      */       }
-/*      */     };
-/*      */   }
-/*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */   public static <E> Iterable<E> filteredIterable(final Iterable<E> iterable, final Predicate<? super E> predicate)
-/*      */   {
-/*  260 */     checkNotNull(iterable);
-/*  261 */     if (predicate == null) {
-/*  262 */       throw new NullPointerException("Predicate must not be null.");
-/*      */     }
-/*  264 */     return new FluentIterable<E>() {
-/*      */       @Override
-/*      */       public Iterator<E> iterator() {
-/*  267 */         return IteratorUtils.filteredIterator(IterableUtils.emptyIteratorIfNull(iterable), predicate);
-/*      */       }
-/*      */     };
-/*      */   }
-/*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */   public static <E> Iterable<E> boundedIterable(final Iterable<E> iterable, final long maxSize)
-/*      */   {
-/*  290 */     checkNotNull(iterable);
-/*  291 */     if (maxSize < 0L) {
-/*  292 */       throw new IllegalArgumentException("MaxSize parameter must not be negative.");
-/*      */     }
-/*      */     
-/*  295 */     return new FluentIterable<E>() {
-/*      */       @Override
-/*      */       public Iterator<E> iterator() {
-/*  298 */         return IteratorUtils.boundedIterator(iterable.iterator(), maxSize);
-/*      */       }
-/*      */     };
-/*      */   }
-/*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */   public static <E> Iterable<E> loopingIterable(final Iterable<E> iterable)
-/*      */   {
-/*  322 */     checkNotNull(iterable);
-/*  323 */     return new FluentIterable<E>() {
-/*      */       @Override
-/*      */       public Iterator<E> iterator() {
-/*  326 */         return new LazyIteratorChain<E>() {
-/*      */           @Override
-/*      */           protected Iterator<? extends E> nextIterator(int count) {
-/*  329 */             if (IterableUtils.isEmpty(iterable)) {
-/*  330 */               return null;
-/*      */             }
-/*  332 */             return iterable.iterator();
-/*      */           }
-/*      */         };
-/*      */       }
-/*      */     };
-/*      */   }
-/*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */   public static <E> Iterable<E> reversedIterable(final Iterable<E> iterable)
-/*      */   {
-/*  359 */     checkNotNull(iterable);
-/*  360 */     return new FluentIterable<E>() {
-/*      */       @Override
-/*      */       public Iterator<E> iterator() {
-/*  363 */         List<E> list = (iterable instanceof List) ? (List)iterable : 
-/*      */         
-/*  365 */           IteratorUtils.toList(iterable.iterator());
-/*  366 */         return new ReverseListIterator<>(list);
-/*      */       }
-/*      */     };
-/*      */   }
-/*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */   public static <E> Iterable<E> skippingIterable(final Iterable<E> iterable, final long elementsToSkip)
-/*      */   {
-/*  388 */     checkNotNull(iterable);
-/*  389 */     if (elementsToSkip < 0L) {
-/*  390 */       throw new IllegalArgumentException("ElementsToSkip parameter must not be negative.");
-/*      */     }
-/*      */     
-/*  393 */     return new FluentIterable<E>() {
-/*      */       @Override
-/*      */       public Iterator<E> iterator() {
-/*  396 */         return IteratorUtils.skippingIterator(iterable.iterator(), elementsToSkip);
-/*      */       }
-/*      */     };
-/*      */   }
-/*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */   public static <I, O> Iterable<O> transformedIterable(final Iterable<I> iterable, final Transformer<? super I, ? extends O> transformer)
-/*      */   {
-/*  420 */     checkNotNull(iterable);
-/*  421 */     if (transformer == null) {
-/*  422 */       throw new NullPointerException("Transformer must not be null.");
-/*      */     }
-/*  424 */     return new FluentIterable<O>() {
-/*      */       @Override
-/*      */       public Iterator<O> iterator() {
-/*  427 */         return IteratorUtils.transformedIterator(iterable.iterator(), transformer);
-/*      */       }
-/*      */     };
-/*      */   }
-/*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */   public static <E> Iterable<E> uniqueIterable(final Iterable<E> iterable)
-/*      */   {
-/*  448 */     checkNotNull(iterable);
-/*  449 */     return new FluentIterable<E>() {
-/*      */       @Override
-/*      */       public Iterator<E> iterator() {
-/*  452 */         return new UniqueFilterIterator<>(iterable.iterator());
-/*      */       }
-/*      */     };
-/*      */   }
-/*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */   public static <E> Iterable<E> unmodifiableIterable(Iterable<E> iterable)
-/*      */   {
-/*  471 */     checkNotNull(iterable);
-/*  472 */     if ((iterable instanceof UnmodifiableIterable)) {
-/*  473 */       return iterable;
-/*      */     }
-/*  475 */     return new UnmodifiableIterable<>(iterable);
-/*      */   }
-/*      */   
-/*      */ 
-/*      */   private static final class UnmodifiableIterable<E>
-/*      */     extends FluentIterable<E>
-/*      */   {
-/*      */     private final Iterable<E> unmodifiable;
-/*      */     
-/*      */     public UnmodifiableIterable(Iterable<E> iterable)
-/*      */     {
-/*  486 */       this.unmodifiable = iterable;
-/*      */     }
-/*      */     
-/*      */     @Override
-/*      */     public Iterator<E> iterator() {
-/*  491 */       return IteratorUtils.unmodifiableIterator(this.unmodifiable.iterator());
-/*      */     }
-/*      */   }
-/*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */   public static <E> Iterable<E> zippingIterable(final Iterable<? extends E> a, final Iterable<? extends E> b)
-/*      */   {
-/*  516 */     checkNotNull(a);
-/*  517 */     checkNotNull(b);
-/*  518 */     return new FluentIterable<E>() {
-/*      */       @Override
-/*      */       public Iterator<E> iterator() {
-/*  521 */         return IteratorUtils.zippingIterator(a.iterator(), b.iterator());
-/*      */       }
-/*      */     };
-/*      */   }
-/*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */   public static <E> Iterable<E> zippingIterable(final Iterable<? extends E> first, final Iterable<? extends E>... others)
-/*      */   {
-/*  544 */     checkNotNull(first);
-/*  545 */     checkNotNull(others);
-/*  546 */     return new FluentIterable<E>()
+/*  240 */     checkNotNull(new Iterable[] { a, b });
+/*  241 */     return new FluentIterable<E>()
 /*      */     {
 /*      */       @Override
-/*      */       public Iterator<E> iterator()
-/*      */       {
-/*  551 */         Iterator<? extends E>[] iterators = new Iterator[others.length + 1];
-/*  552 */         iterators[0] = first.iterator();
-/*  553 */         for (int i = 0; i < others.length; i++) {
-/*  554 */           iterators[(i + 1)] = others[i].iterator();
-/*      */         }
-/*  556 */         return IteratorUtils.zippingIterator(iterators);
+/*      */       public Iterator<E> iterator() {
+/*  245 */         return IteratorUtils.collatedIterator(comparator, a.iterator(), b.iterator());
 /*      */       }
 /*      */     };
 /*      */   }
@@ -568,152 +257,19 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   public static <E> Iterable<E> emptyIfNull(Iterable<E> iterable)
+/*      */ 
+/*      */   public static <E> Iterable<E> collatedIterable(final Iterable<? extends E> a, final Iterable<? extends E> b)
 /*      */   {
-/*  573 */     return iterable == null ? emptyIterable() : iterable;
+/*  263 */     checkNotNull(new Iterable[] { a, b });
+/*  264 */     return new FluentIterable<E>()
+/*      */     {
+/*      */       @Override
+/*      */       public Iterator<E> iterator() {
+/*  268 */         return IteratorUtils.collatedIterator(null, a.iterator(), b.iterator());
+/*      */       }
+/*      */     };
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */   public static <E> void forEach(Iterable<E> iterable, Closure<? super E> closure)
-/*      */   {
-/*  585 */     IteratorUtils.forEach(emptyIteratorIfNull(iterable), closure);
-/*      */   }
-/*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */   public static <E> E forEachButLast(Iterable<E> iterable, Closure<? super E> closure)
-/*      */   {
-/*  599 */     return IteratorUtils.forEachButLast(emptyIteratorIfNull(iterable), closure);
-/*      */   }
-/*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */   public static <E> E find(Iterable<E> iterable, Predicate<? super E> predicate)
-/*      */   {
-/*  614 */     return IteratorUtils.find(emptyIteratorIfNull(iterable), predicate);
-/*      */   }
-/*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */   public static <E> int indexOf(Iterable<E> iterable, Predicate<? super E> predicate)
-/*      */   {
-/*  630 */     return IteratorUtils.indexOf(emptyIteratorIfNull(iterable), predicate);
-/*      */   }
-/*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */   public static <E> boolean matchesAll(Iterable<E> iterable, Predicate<? super E> predicate)
-/*      */   {
-/*  646 */     return IteratorUtils.matchesAll(emptyIteratorIfNull(iterable), predicate);
-/*      */   }
-/*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */   public static <E> boolean matchesAny(Iterable<E> iterable, Predicate<? super E> predicate)
-/*      */   {
-/*  661 */     return IteratorUtils.matchesAny(emptyIteratorIfNull(iterable), predicate);
-/*      */   }
-/*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */   public static <E> long countMatches(Iterable<E> input, Predicate<? super E> predicate)
-/*      */   {
-/*  676 */     if (predicate == null) {
-/*  677 */       throw new NullPointerException("Predicate must not be null.");
-/*      */     }
-/*  679 */     return size(filteredIterable(emptyIfNull(input), predicate));
-/*      */   }
-/*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */   public static boolean isEmpty(Iterable<?> iterable)
-/*      */   {
-/*  691 */     if ((iterable instanceof Collection)) {
-/*  692 */       return ((Collection)iterable).isEmpty();
-/*      */     }
-/*  694 */     return IteratorUtils.isEmpty(emptyIteratorIfNull(iterable));
-/*      */   }
-/*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */   public static <E> boolean contains(Iterable<E> iterable, Object object)
-/*      */   {
-/*  708 */     if ((iterable instanceof Collection)) {
-/*  709 */       return ((Collection)iterable).contains(object);
-/*      */     }
-/*  711 */     return IteratorUtils.contains(emptyIteratorIfNull(iterable), object);
-/*      */   }
-/*      */   
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -730,10 +286,8 @@
 /*      */ 
 /*      */   public static <E> boolean contains(Iterable<? extends E> iterable, E object, Equator<? super E> equator)
 /*      */   {
-/*  733 */     if (equator == null) {
-/*  734 */       throw new NullPointerException("Equator must not be null.");
-/*      */     }
-/*  736 */     return matchesAny(iterable, EqualPredicate.equalPredicate(object, equator));
+/*  289 */     Objects.requireNonNull(equator, "equator");
+/*  290 */     return matchesAny(iterable, EqualPredicate.equalPredicate(object, equator));
 /*      */   }
 /*      */   
 /*      */ 
@@ -744,15 +298,14 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   public static <E, T extends E> int frequency(Iterable<E> iterable, T obj)
+/*      */ 
+/*      */ 
+/*      */   public static <E> boolean contains(Iterable<E> iterable, Object object)
 /*      */   {
-/*  749 */     if ((iterable instanceof Set)) {
-/*  750 */       return ((Set)iterable).contains(obj) ? 1 : 0;
+/*  305 */     if ((iterable instanceof Collection)) {
+/*  306 */       return ((Collection)iterable).contains(object);
 /*      */     }
-/*  752 */     if ((iterable instanceof Bag)) {
-/*  753 */       return ((Bag)iterable).getCount(obj);
-/*      */     }
-/*  755 */     return size(filteredIterable(emptyIfNull(iterable), EqualPredicate.equalPredicate(obj)));
+/*  308 */     return IteratorUtils.contains(emptyIteratorIfNull(iterable), object);
 /*      */   }
 /*      */   
 /*      */ 
@@ -766,16 +319,147 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   public static <T> T get(Iterable<T> iterable, int index)
+/*      */   public static <E> long countMatches(Iterable<E> input, Predicate<? super E> predicate)
 /*      */   {
-/*  771 */     CollectionUtils.checkIndexBounds(index);
-/*  772 */     if ((iterable instanceof List)) {
-/*  773 */       return (T)((List)iterable).get(index);
-/*      */     }
-/*  775 */     return IteratorUtils.get(emptyIteratorIfNull(iterable), index);
+/*  324 */     Objects.requireNonNull(predicate, "predicate");
+/*  325 */     return size(filteredIterable(emptyIfNull(input), predicate));
 /*      */   }
 /*      */   
 /*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static <E> List<E> duplicateList(Iterable<E> iterable)
+/*      */   {
+/*  338 */     return new ArrayList<>(duplicateSequencedSet(iterable));
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static <E> Set<E> duplicateSequencedSet(Iterable<E> iterable)
+/*      */   {
+/*  354 */     return (Set)duplicateSet(iterable, new LinkedHashSet<>());
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static <E> Set<E> duplicateSet(Iterable<E> iterable)
+/*      */   {
+/*  367 */     return (Set)duplicateSet(iterable, new HashSet<>());
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   static <C extends Collection<E>, E> C duplicateSet(Iterable<E> iterable, C duplicates)
+/*      */   {
+/*  380 */     Set<E> set = new HashSet<>();
+/*  381 */     for (E e : iterable) {
+/*  382 */       (set.contains(e) ? duplicates : set).add(e);
+/*      */     }
+/*  384 */     return duplicates;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static <E> Iterable<E> emptyIfNull(Iterable<E> iterable)
+/*      */   {
+/*  395 */     return iterable == null ? emptyIterable() : iterable;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static <E> Iterable<E> emptyIterable()
+/*      */   {
+/*  409 */     return EMPTY_ITERABLE;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static <E> Iterator<E> emptyIteratorIfNull(Iterable<E> iterable)
+/*      */   {
+/*  420 */     return iterable != null ? iterable.iterator() : IteratorUtils.emptyIterator();
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static <E> Iterable<E> filteredIterable(final Iterable<E> iterable, final Predicate<? super E> predicate)
+/*      */   {
+/*  436 */     Objects.requireNonNull(iterable, "iterable");
+/*  437 */     Objects.requireNonNull(predicate, "predicate");
+/*  438 */     return new FluentIterable<E>()
+/*      */     {
+/*      */       @Override
+/*      */       public Iterator<E> iterator() {
+/*  442 */         return IteratorUtils.filteredIterator(IterableUtils.emptyIteratorIfNull(iterable), predicate);
+/*      */       }
+/*      */     };
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static <E> E find(Iterable<E> iterable, Predicate<? super E> predicate)
+/*      */   {
+/*  460 */     return IteratorUtils.find(emptyIteratorIfNull(iterable), predicate);
+/*      */   }
+/*      */   
 /*      */ 
 /*      */ 
 /*      */ 
@@ -792,7 +476,7 @@
 /*      */ 
 /*      */   public static <T> T first(Iterable<T> iterable)
 /*      */   {
-/*  795 */     return get(iterable, 0);
+/*  479 */     return get(iterable, 0);
 /*      */   }
 /*      */   
 /*      */ 
@@ -802,51 +486,99 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   public static int size(Iterable<?> iterable)
+/*      */   public static <E> void forEach(Iterable<E> iterable, Closure<? super E> closure)
 /*      */   {
-/*  807 */     if ((iterable instanceof Collection)) {
-/*  808 */       return ((Collection)iterable).size();
+/*  491 */     IteratorUtils.forEach(emptyIteratorIfNull(iterable), closure);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static <E> E forEachButLast(Iterable<E> iterable, Closure<? super E> closure)
+/*      */   {
+/*  506 */     return IteratorUtils.forEachButLast(emptyIteratorIfNull(iterable), closure);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static <E, T extends E> int frequency(Iterable<E> iterable, T obj)
+/*      */   {
+/*  520 */     if ((iterable instanceof Set)) {
+/*  521 */       return ((Set)iterable).contains(obj) ? 1 : 0;
 /*      */     }
-/*  810 */     return IteratorUtils.size(emptyIteratorIfNull(iterable));
-/*      */   }
-/*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */   public static <O> List<List<O>> partition(Iterable<? extends O> iterable, Predicate<? super O> predicate)
-/*      */   {
-/*  842 */     if (predicate == null) {
-/*  843 */       throw new NullPointerException("Predicate must not be null.");
+/*  523 */     if ((iterable instanceof MultiSet)) {
+/*  524 */       return ((MultiSet)iterable).getCount(obj);
 /*      */     }
-/*      */     
-/*  846 */     Factory<List<O>> factory = (Factory)FactoryUtils.instantiateFactory(ArrayList.class);
-/*      */     
-/*  848 */     Predicate<? super O>[] predicates = new Predicate[] { predicate };
-/*  849 */     return partition(iterable, factory, predicates);
+/*  526 */     if ((iterable instanceof Bag)) {
+/*  527 */       return ((Bag)iterable).getCount(obj);
+/*      */     }
+/*  529 */     return size(filteredIterable(emptyIfNull(iterable), EqualPredicate.equalPredicate(obj)));
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static <T> T get(Iterable<T> iterable, int index)
+/*      */   {
+/*  545 */     CollectionUtils.checkIndexBounds(index);
+/*  546 */     if ((iterable instanceof List)) {
+/*  547 */       return (T)((List)iterable).get(index);
+/*      */     }
+/*  549 */     return IteratorUtils.get(emptyIteratorIfNull(iterable), index);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static <E> int indexOf(Iterable<E> iterable, Predicate<? super E> predicate)
+/*      */   {
+/*  565 */     return IteratorUtils.indexOf(emptyIteratorIfNull(iterable), predicate);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static boolean isEmpty(Iterable<?> iterable)
+/*      */   {
+/*  578 */     if ((iterable instanceof Collection)) {
+/*  579 */       return ((Collection)iterable).isEmpty();
+/*      */     }
+/*  581 */     return IteratorUtils.isEmpty(emptyIteratorIfNull(iterable));
 /*      */   }
 /*      */   
 /*      */ 
@@ -861,32 +593,57 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */   public static <O> List<List<O>> partition(Iterable<? extends O> iterable, Predicate<? super O>... predicates)
+/*      */   public static <E> Iterable<E> loopingIterable(final Iterable<E> iterable)
 /*      */   {
-/*  888 */     Factory<List<O>> factory = (Factory)FactoryUtils.instantiateFactory(ArrayList.class);
-/*  889 */     return partition(iterable, factory, predicates);
+/*  598 */     Objects.requireNonNull(iterable, "iterable");
+/*  599 */     return new FluentIterable<E>()
+/*      */     {
+/*      */       @Override
+/*      */       public Iterator<E> iterator() {
+/*  603 */         return new LazyIteratorChain<E>()
+/*      */         {
+/*      */           @Override
+/*      */           protected Iterator<? extends E> nextIterator(int count) {
+/*  607 */             if (IterableUtils.isEmpty(iterable)) {
+/*  608 */               return null;
+/*      */             }
+/*  610 */             return iterable.iterator();
+/*      */           }
+/*      */         };
+/*      */       }
+/*      */     };
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static <E> boolean matchesAll(Iterable<E> iterable, Predicate<? super E> predicate)
+/*      */   {
+/*  630 */     return IteratorUtils.matchesAll(emptyIteratorIfNull(iterable), predicate);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static <E> boolean matchesAny(Iterable<E> iterable, Predicate<? super E> predicate)
+/*      */   {
+/*  646 */     return IteratorUtils.matchesAny(emptyIteratorIfNull(iterable), predicate);
 /*      */   }
 /*      */   
 /*      */ 
@@ -927,59 +684,237 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
-/*  931 */     if (iterable == null) {
-/*  932 */       empty = emptyIterable();
-/*  933 */       return partition(empty, partitionFactory, predicates);
+/*  687 */     if (iterable == null) {
+/*  688 */       empty = emptyIterable();
+/*  689 */       return partition(empty, partitionFactory, predicates);
 /*      */     }
-/*      */     
-/*  936 */     if (predicates == null) {
-/*  937 */       throw new NullPointerException("Predicates must not be null.");
+/*  691 */     Objects.requireNonNull(predicates, "predicates");
+/*  692 */     for (Predicate<?> predicate : predicates) {
+/*  693 */       Objects.requireNonNull(predicate, "predicate");
 /*      */     }
-/*      */     
-/*  940 */     for (Predicate<?> p : predicates) {
-/*  941 */       if (p == null) {
-/*  942 */         throw new NullPointerException("Predicate must not be null.");
-/*      */       }
-/*      */     }
-/*      */     
-/*  946 */     if (predicates.length < 1)
+/*  695 */     if (predicates.length < 1)
 /*      */     {
-/*  948 */       R singlePartition = (R)partitionFactory.create();
-/*  949 */       CollectionUtils.addAll(singlePartition, iterable);
-/*  950 */       return Collections.singletonList(singlePartition);
+/*  697 */       R singlePartition = (R)partitionFactory.get();
+/*  698 */       CollectionUtils.addAll(singlePartition, iterable);
+/*  699 */       return Collections.singletonList(singlePartition);
+/*      */     }
+/*      */     
+/*  702 */     int numberOfPredicates = predicates.length;
+/*  703 */     int numberOfPartitions = numberOfPredicates + 1;
+/*  704 */     List<R> partitions = new ArrayList<>(numberOfPartitions);
+/*  705 */     for (int i = 0; i < numberOfPartitions; i++) {
+/*  706 */       partitions.add(partitionFactory.get());
 /*      */     }
 /*      */     
 /*      */ 
-/*  954 */     int numberOfPredicates = predicates.length;
-/*  955 */     int numberOfPartitions = numberOfPredicates + 1;
-/*  956 */     List<R> partitions = new ArrayList<>(numberOfPartitions);
-/*  957 */     for (int i = 0; i < numberOfPartitions; i++) {
-/*  958 */       partitions.add(partitionFactory.create());
-/*      */     }
-/*      */     
 /*      */ 
 /*      */ 
-/*      */ 
-/*      */ 
-/*  965 */     for (O element : iterable) {
-/*  966 */       boolean elementAssigned = false;
-/*  967 */       for (int i = 0; i < numberOfPredicates; i++) {
-/*  968 */         if (predicates[i].evaluate(element)) {
-/*  969 */           ((Collection)partitions.get(i)).add(element);
-/*  970 */           elementAssigned = true;
-/*  971 */           break;
+/*  712 */     for (O element : iterable) {
+/*  713 */       boolean elementAssigned = false;
+/*  714 */       for (int i = 0; i < numberOfPredicates; i++) {
+/*  715 */         if (predicates[i].test(element)) {
+/*  716 */           ((Collection)partitions.get(i)).add(element);
+/*  717 */           elementAssigned = true;
+/*  718 */           break;
 /*      */         }
 /*      */       }
-/*      */       
-/*  975 */       if (!elementAssigned)
+/*  721 */       if (!elementAssigned)
 /*      */       {
 /*      */ 
-/*  978 */         ((Collection)partitions.get(numberOfPredicates)).add(element);
+/*  724 */         ((Collection)partitions.get(numberOfPredicates)).add(element);
 /*      */       }
 /*      */     }
+/*  727 */     return partitions;
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static <O> List<List<O>> partition(Iterable<? extends O> iterable, Predicate<? super O> predicate)
+/*      */   {
+/*  758 */     Objects.requireNonNull(predicate, "predicate");
 /*      */     
-/*  982 */     return partitions;
+/*  760 */     Factory<List<O>> factory = (Factory)FactoryUtils.instantiateFactory(ArrayList.class);
+/*      */     
+/*  762 */     Predicate<? super O>[] predicates = new Predicate[] { predicate };
+/*  763 */     return partition(iterable, factory, predicates);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static <O> List<List<O>> partition(Iterable<? extends O> iterable, Predicate<? super O>... predicates)
+/*      */   {
+/*  801 */     Factory<List<O>> factory = (Factory)FactoryUtils.instantiateFactory(ArrayList.class);
+/*  802 */     return partition(iterable, factory, predicates);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static <E> Iterable<E> reversedIterable(final Iterable<E> iterable)
+/*      */   {
+/*  822 */     Objects.requireNonNull(iterable, "iterable");
+/*  823 */     return new FluentIterable<E>()
+/*      */     {
+/*      */       @Override
+/*      */       public Iterator<E> iterator() {
+/*  827 */         List<E> list = (iterable instanceof List) ? (List)iterable : IteratorUtils.toList(iterable.iterator());
+/*  828 */         return new ReverseListIterator<>(list);
+/*      */       }
+/*      */     };
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static int size(Iterable<?> iterable)
+/*      */   {
+/*  843 */     if (iterable == null) {
+/*  844 */       return 0;
+/*      */     }
+/*  846 */     if ((iterable instanceof Collection)) {
+/*  847 */       return ((Collection)iterable).size();
+/*      */     }
+/*  849 */     return IteratorUtils.size(emptyIteratorIfNull(iterable));
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static <E> Iterable<E> skippingIterable(final Iterable<E> iterable, final long elementsToSkip)
+/*      */   {
+/*  866 */     Objects.requireNonNull(iterable, "iterable");
+/*  867 */     if (elementsToSkip < 0L) {
+/*  868 */       throw new IllegalArgumentException("ElementsToSkip parameter must not be negative.");
+/*      */     }
+/*  870 */     return new FluentIterable<E>()
+/*      */     {
+/*      */       @Override
+/*      */       public Iterator<E> iterator() {
+/*  874 */         return IteratorUtils.skippingIterator(iterable.iterator(), elementsToSkip);
+/*      */       }
+/*      */     };
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static <E> int sumSizesToInt(Iterable<? extends Collection<E>> iterable)
+/*      */   {
+/*  892 */     return sumToInt(iterable, Collection::size);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static <C extends Collection<?>> int sumToInt(Iterable<C> iterable, ToIntFunction<C> toIntFunction)
+/*      */   {
+/*  907 */     int size = 0;
+/*      */     try {
+/*  909 */       for (C item : iterable) {
+/*  910 */         if (item != null) {
+/*  911 */           size = Math.addExact(size, toIntFunction.applyAsInt(item));
+/*      */         }
+/*      */       }
+/*      */     } catch (ArithmeticException e) {
+/*  915 */       size = Integer.MAX_VALUE;
+/*      */     }
+/*  917 */     return size;
 /*      */   }
 /*      */   
 /*      */ 
@@ -990,10 +925,9 @@
 /*      */ 
 /*      */   public static <E> List<E> toList(Iterable<E> iterable)
 /*      */   {
-/*  993 */     return IteratorUtils.toList(emptyIteratorIfNull(iterable));
+/*  928 */     return IteratorUtils.toList(emptyIteratorIfNull(iterable));
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1006,11 +940,9 @@
 /*      */ 
 /*      */   public static <E> String toString(Iterable<E> iterable)
 /*      */   {
-/* 1009 */     return IteratorUtils.toString(emptyIteratorIfNull(iterable));
+/*  943 */     return IteratorUtils.toString(emptyIteratorIfNull(iterable));
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1025,16 +957,10 @@
 /*      */ 
 /*      */   public static <E> String toString(Iterable<E> iterable, Transformer<? super E, String> transformer)
 /*      */   {
-/* 1028 */     if (transformer == null) {
-/* 1029 */       throw new NullPointerException("Transformer must not be null.");
-/*      */     }
-/* 1031 */     return IteratorUtils.toString(emptyIteratorIfNull(iterable), transformer);
+/*  960 */     Objects.requireNonNull(transformer, "transformer");
+/*  961 */     return IteratorUtils.toString(emptyIteratorIfNull(iterable), transformer);
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1053,7 +979,7 @@
 /*      */ 
 /*      */   public static <E> String toString(Iterable<E> iterable, Transformer<? super E, String> transformer, String delimiter, String prefix, String suffix)
 /*      */   {
-/* 1056 */     return IteratorUtils.toString(emptyIteratorIfNull(iterable), transformer, delimiter, prefix, suffix);
+/*  982 */     return IteratorUtils.toString(emptyIteratorIfNull(iterable), transformer, delimiter, prefix, suffix);
 /*      */   }
 /*      */   
 /*      */ 
@@ -1065,11 +991,20 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   static void checkNotNull(Iterable<?> iterable)
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static <I, O> Iterable<O> transformedIterable(final Iterable<I> iterable, final Transformer<? super I, ? extends O> transformer)
 /*      */   {
-/* 1070 */     if (iterable == null) {
-/* 1071 */       throw new NullPointerException("Iterable must not be null.");
-/*      */     }
+/*  999 */     Objects.requireNonNull(iterable, "iterable");
+/* 1000 */     Objects.requireNonNull(transformer, "transformer");
+/* 1001 */     return new FluentIterable<O>()
+/*      */     {
+/*      */       @Override
+/*      */       public Iterator<O> iterator() {
+/* 1005 */         return IteratorUtils.transformedIterator(iterable.iterator(), transformer);
+/*      */       }
+/*      */     };
 /*      */   }
 /*      */   
 /*      */ 
@@ -1077,14 +1012,22 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   static void checkNotNull(Iterable<?>... iterables)
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static <E> Iterable<E> uniqueIterable(final Iterable<E> iterable)
 /*      */   {
-/* 1082 */     if (iterables == null) {
-/* 1083 */       throw new NullPointerException("Iterables must not be null.");
-/*      */     }
-/* 1085 */     for (Iterable<?> iterable : iterables) {
-/* 1086 */       checkNotNull(iterable);
-/*      */     }
+/* 1023 */     Objects.requireNonNull(iterable, "iterable");
+/* 1024 */     return new FluentIterable<E>()
+/*      */     {
+/*      */       @Override
+/*      */       public Iterator<E> iterator() {
+/* 1028 */         return new UniqueFilterIterator<>(iterable.iterator());
+/*      */       }
+/*      */     };
 /*      */   }
 /*      */   
 /*      */ 
@@ -1094,8 +1037,77 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   private static <E> Iterator<E> emptyIteratorIfNull(Iterable<E> iterable)
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static <E> Iterable<E> unmodifiableIterable(Iterable<E> iterable)
 /*      */   {
-/* 1099 */     return iterable != null ? iterable.iterator() : IteratorUtils.emptyIterator();
+/* 1045 */     Objects.requireNonNull(iterable, "iterable");
+/* 1046 */     if ((iterable instanceof UnmodifiableIterable)) {
+/* 1047 */       return iterable;
+/*      */     }
+/* 1049 */     return new UnmodifiableIterable<>(iterable);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static <E> Iterable<E> zippingIterable(final Iterable<? extends E> a, final Iterable<? extends E> b)
+/*      */   {
+/* 1069 */     Objects.requireNonNull(a, "iterable");
+/* 1070 */     Objects.requireNonNull(b, "iterable");
+/* 1071 */     return new FluentIterable<E>()
+/*      */     {
+/*      */       @Override
+/*      */       public Iterator<E> iterator() {
+/* 1075 */         return IteratorUtils.zippingIterator(a.iterator(), b.iterator());
+/*      */       }
+/*      */     };
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static <E> Iterable<E> zippingIterable(final Iterable<? extends E> first, final Iterable<? extends E>... others)
+/*      */   {
+/* 1097 */     Objects.requireNonNull(first, "iterable");
+/* 1098 */     checkNotNull(others);
+/* 1099 */     return new FluentIterable<E>()
+/*      */     {
+/*      */       @Override
+/*      */       public Iterator<E> iterator()
+/*      */       {
+/* 1104 */         Iterator<? extends E>[] iterators = new Iterator[others.length + 1];
+/* 1105 */         iterators[0] = first.iterator();
+/* 1106 */         for (int i = 0; i < others.length; i++) {
+/* 1107 */           iterators[(i + 1)] = others[i].iterator();
+/*      */         }
+/* 1109 */         return IteratorUtils.zippingIterator(iterators);
+/*      */       }
+/*      */     };
 /*      */   }
 /*      */ }

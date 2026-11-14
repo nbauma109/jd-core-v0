@@ -2,14 +2,25 @@
 /*     */ 
 /*     */ import java.io.File;
 /*     */ import java.io.FileFilter;
+/*     */ import java.io.IOException;
 /*     */ import java.io.Serializable;
+/*     */ import java.util.ArrayList;
 /*     */ import java.util.Arrays;
 /*     */ import java.util.Comparator;
 /*     */ import java.util.List;
+/*     */ import java.util.Objects;
 /*     */ import java.util.concurrent.CopyOnWriteArrayList;
+/*     */ import java.util.stream.Stream;
 /*     */ import org.apache.commons.io.FileUtils;
 /*     */ import org.apache.commons.io.IOCase;
+/*     */ import org.apache.commons.io.build.AbstractOriginSupplier;
 /*     */ import org.apache.commons.io.comparator.NameFileComparator;
+/*     */ import org.apache.commons.io.filefilter.TrueFileFilter;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */ 
 /*     */ 
 /*     */ 
@@ -120,20 +131,64 @@
 /*     */ {
 /*     */   private static final long serialVersionUID = 1185122225658782848L;
 /*     */   private final FileEntry rootEntry;
-/*     */   private final FileFilter fileFilter;
+/*     */   private final transient FileFilter fileFilter;
 /*     */   private final Comparator<File> comparator;
-/* 125 */   private final List<FileAlterationListener> listeners = new CopyOnWriteArrayList<>();
 /*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   public FileAlterationObserver(String directoryName)
+/*     */   public static final class Builder
+/*     */     extends AbstractOriginSupplier<FileAlterationObserver, Builder>
 /*     */   {
-/* 136 */     this(new File(directoryName));
+/*     */     private FileEntry rootEntry;
+/*     */     private FileFilter fileFilter;
+/*     */     private IOCase ioCase;
+/*     */     
+/*     */     private File checkOriginFile()
+/*     */     {
+/* 146 */       return checkOrigin().getFile();
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     @Override
+/*     */     public FileAlterationObserver get()
+/*     */       throws IOException
+/*     */     {
+/* 157 */       return new FileAlterationObserver(this);
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public Builder setFileFilter(FileFilter fileFilter)
+/*     */     {
+/* 167 */       this.fileFilter = fileFilter;
+/* 168 */       return (Builder)asThis();
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public Builder setIOCase(IOCase ioCase)
+/*     */     {
+/* 178 */       this.ioCase = ioCase;
+/* 179 */       return (Builder)asThis();
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     public Builder setRootEntry(FileEntry rootEntry)
+/*     */     {
+/* 189 */       this.rootEntry = rootEntry;
+/* 190 */       return (Builder)asThis();
+/*     */     }
 /*     */   }
 /*     */   
 /*     */ 
@@ -141,10 +196,29 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */   public FileAlterationObserver(String directoryName, FileFilter fileFilter)
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public static Builder builder()
 /*     */   {
-/* 146 */     this(new File(directoryName), fileFilter);
+/* 204 */     return new Builder();
 /*     */   }
+/*     */   
+/*     */   private static Comparator<File> toComparator(IOCase ioCase) {
+/* 208 */     switch (IOCase.value(ioCase, IOCase.SYSTEM)) {
+/*     */     case SYSTEM: 
+/* 210 */       return NameFileComparator.NAME_SYSTEM_COMPARATOR;
+/*     */     case INSENSITIVE: 
+/* 212 */       return NameFileComparator.NAME_INSENSITIVE_COMPARATOR;
+/*     */     }
+/* 214 */     return NameFileComparator.NAME_COMPARATOR;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/* 221 */   private final transient List<FileAlterationListener> listeners = new CopyOnWriteArrayList<>();
 /*     */   
 /*     */ 
 /*     */ 
@@ -154,18 +228,26 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */   public FileAlterationObserver(String directoryName, FileFilter fileFilter, IOCase caseSensitivity)
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   private FileAlterationObserver(Builder builder)
 /*     */   {
-/* 159 */     this(new File(directoryName), fileFilter, caseSensitivity);
+/* 239 */     this(builder.rootEntry != null ? builder.rootEntry : new FileEntry(builder.checkOriginFile()), builder.fileFilter, toComparator(builder.ioCase));
 /*     */   }
 /*     */   
 /*     */ 
 /*     */ 
 /*     */ 
 /*     */ 
+/*     */ 
+/*     */   @Deprecated
 /*     */   public FileAlterationObserver(File directory)
 /*     */   {
-/* 168 */     this(directory, null);
+/* 250 */     this(directory, (FileFilter)null);
 /*     */   }
 /*     */   
 /*     */ 
@@ -173,9 +255,11 @@
 /*     */ 
 /*     */ 
 /*     */ 
+/*     */ 
+/*     */   @Deprecated
 /*     */   public FileAlterationObserver(File directory, FileFilter fileFilter)
 /*     */   {
-/* 178 */     this(directory, fileFilter, null);
+/* 262 */     this(directory, fileFilter, (IOCase)null);
 /*     */   }
 /*     */   
 /*     */ 
@@ -185,9 +269,59 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */   public FileAlterationObserver(File directory, FileFilter fileFilter, IOCase caseSensitivity)
+/*     */   @Deprecated
+/*     */   public FileAlterationObserver(File directory, FileFilter fileFilter, IOCase ioCase)
 /*     */   {
-/* 190 */     this(new FileEntry(directory), fileFilter, caseSensitivity);
+/* 275 */     this(new FileEntry(directory), fileFilter, ioCase);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   private FileAlterationObserver(FileEntry rootEntry, FileFilter fileFilter, Comparator<File> comparator)
+/*     */   {
+/* 286 */     Objects.requireNonNull(rootEntry, "rootEntry");
+/* 287 */     Objects.requireNonNull(rootEntry.getFile(), "rootEntry.getFile()");
+/* 288 */     this.rootEntry = rootEntry;
+/* 289 */     this.fileFilter = fileFilter != null ? fileFilter : TrueFileFilter.INSTANCE;
+/* 290 */     this.comparator = (Comparator)Objects.requireNonNull(comparator, "comparator");
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   protected FileAlterationObserver(FileEntry rootEntry, FileFilter fileFilter, IOCase ioCase)
+/*     */   {
+/* 301 */     this(rootEntry, fileFilter, toComparator(ioCase));
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Deprecated
+/*     */   public FileAlterationObserver(String directoryName)
+/*     */   {
+/* 312 */     this(new File(directoryName));
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Deprecated
+/*     */   public FileAlterationObserver(String directoryName, FileFilter fileFilter)
+/*     */   {
+/* 324 */     this(new File(directoryName), fileFilter);
 /*     */   }
 /*     */   
 /*     */ 
@@ -197,43 +331,10 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
-/*     */   protected FileAlterationObserver(FileEntry rootEntry, FileFilter fileFilter, IOCase caseSensitivity)
+/*     */   @Deprecated
+/*     */   public FileAlterationObserver(String directoryName, FileFilter fileFilter, IOCase ioCase)
 /*     */   {
-/* 203 */     if (rootEntry == null) {
-/* 204 */       throw new IllegalArgumentException("Root entry is missing");
-/*     */     }
-/* 206 */     if (rootEntry.getFile() == null) {
-/* 207 */       throw new IllegalArgumentException("Root directory is missing");
-/*     */     }
-/* 209 */     this.rootEntry = rootEntry;
-/* 210 */     this.fileFilter = fileFilter;
-/* 211 */     if (caseSensitivity == null || caseSensitivity.equals(IOCase.SYSTEM)) {
-/* 212 */       this.comparator = NameFileComparator.NAME_SYSTEM_COMPARATOR;
-/* 213 */     } else if (caseSensitivity.equals(IOCase.INSENSITIVE)) {
-/* 214 */       this.comparator = NameFileComparator.NAME_INSENSITIVE_COMPARATOR;
-/*     */     } else {
-/* 216 */       this.comparator = NameFileComparator.NAME_COMPARATOR;
-/*     */     }
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   public File getDirectory()
-/*     */   {
-/* 226 */     return this.rootEntry.getFile();
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   public FileFilter getFileFilter()
-/*     */   {
-/* 236 */     return this.fileFilter;
+/* 337 */     this(new File(directoryName), fileFilter, ioCase);
 /*     */   }
 /*     */   
 /*     */ 
@@ -242,8 +343,8 @@
 /*     */ 
 /*     */   public void addListener(FileAlterationListener listener)
 /*     */   {
-/* 245 */     if (listener != null) {
-/* 246 */       this.listeners.add(listener);
+/* 346 */     if (listener != null) {
+/* 347 */       this.listeners.add(listener);
 /*     */     }
 /*     */   }
 /*     */   
@@ -251,10 +352,54 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */   public void removeListener(FileAlterationListener listener)
+/*     */ 
+/*     */ 
+/*     */   private void checkAndFire(FileEntry parentEntry, FileEntry[] previousEntries, File[] currentEntries)
 /*     */   {
-/* 256 */     while (listener != null && 
-/* 257 */       this.listeners.remove(listener)) {}
+/* 359 */     int c = 0;
+/* 360 */     FileEntry[] actualEntries = currentEntries.length > 0 ? new FileEntry[currentEntries.length] : FileEntry.EMPTY_FILE_ENTRY_ARRAY;
+/* 361 */     for (FileEntry previousEntry : previousEntries) {
+/* 362 */       while (c < currentEntries.length && this.comparator.compare(previousEntry.getFile(), currentEntries[c]) > 0) {
+/* 363 */         actualEntries[c] = createFileEntry(parentEntry, currentEntries[c]);
+/* 364 */         fireOnCreate(actualEntries[c]);
+/* 365 */         c++;
+/*     */       }
+/* 367 */       if (c < currentEntries.length && this.comparator.compare(previousEntry.getFile(), currentEntries[c]) == 0) {
+/* 368 */         fireOnChange(previousEntry, currentEntries[c]);
+/* 369 */         checkAndFire(previousEntry, previousEntry.getChildren(), listFiles(currentEntries[c]));
+/* 370 */         actualEntries[c] = previousEntry;
+/* 371 */         c++;
+/*     */       } else {
+/* 373 */         checkAndFire(previousEntry, previousEntry.getChildren(), FileUtils.EMPTY_FILE_ARRAY);
+/* 374 */         fireOnDelete(previousEntry);
+/*     */       }
+/*     */     }
+/* 377 */     for (; c < currentEntries.length; c++) {
+/* 378 */       actualEntries[c] = createFileEntry(parentEntry, currentEntries[c]);
+/* 379 */       fireOnCreate(actualEntries[c]);
+/*     */     }
+/* 381 */     parentEntry.setChildren(actualEntries);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void checkAndNotify()
+/*     */   {
+/* 390 */     this.listeners.forEach(listener -> listener.onStart(this));
+/*     */     
+/*     */ 
+/* 393 */     File rootFile = this.rootEntry.getFile();
+/* 394 */     if (rootFile.exists()) {
+/* 395 */       checkAndFire(this.rootEntry, this.rootEntry.getChildren(), listFiles(rootFile));
+/* 396 */     } else if (this.rootEntry.isExists()) {
+/* 397 */       checkAndFire(this.rootEntry, this.rootEntry.getChildren(), FileUtils.EMPTY_FILE_ARRAY);
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/* 402 */     this.listeners.forEach(listener -> listener.onStop(this));
 /*     */   }
 /*     */   
 /*     */ 
@@ -263,24 +408,15 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
-/*     */   public Iterable<FileAlterationListener> getListeners()
+/*     */   private FileEntry createFileEntry(FileEntry parent, File file)
 /*     */   {
-/* 269 */     return this.listeners;
+/* 413 */     FileEntry entry = parent.newChildInstance(file);
+/* 414 */     entry.refresh(file);
+/* 415 */     entry.setChildren(listFileEntries(file, entry));
+/* 416 */     return entry;
 /*     */   }
 /*     */   
 /*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   public void initialize()
-/*     */     throws Exception
-/*     */   {
-/* 279 */     this.rootEntry.refresh(this.rootEntry.getFile());
-/* 280 */     FileEntry[] children = doListFiles(this.rootEntry.getFile(), this.rootEntry);
-/* 281 */     this.rootEntry.setChildren(children);
-/*     */   }
-/*     */   
 /*     */ 
 /*     */ 
 /*     */ 
@@ -295,125 +431,16 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */   public void checkAndNotify()
+/*     */   private void fireOnChange(FileEntry entry, File file)
 /*     */   {
-/* 300 */     for (FileAlterationListener listener : this.listeners) {
-/* 301 */       listener.onStart(this);
-/*     */     }
-/*     */     
-/*     */ 
-/* 305 */     File rootFile = this.rootEntry.getFile();
-/* 306 */     if (rootFile.exists()) {
-/* 307 */       checkAndNotify(this.rootEntry, this.rootEntry.getChildren(), listFiles(rootFile));
-/* 308 */     } else if (this.rootEntry.isExists()) {
-/* 309 */       checkAndNotify(this.rootEntry, this.rootEntry.getChildren(), FileUtils.EMPTY_FILE_ARRAY);
-/*     */     }
-/*     */     
-/*     */ 
-/*     */ 
-/*     */ 
-/* 315 */     for (FileAlterationListener listener : this.listeners) {
-/* 316 */       listener.onStop(this);
-/*     */     }
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   private void checkAndNotify(FileEntry parent, FileEntry[] previous, File[] files)
-/*     */   {
-/* 328 */     int c = 0;
-/* 329 */     FileEntry[] current = files.length > 0 ? new FileEntry[files.length] : FileEntry.EMPTY_FILE_ENTRY_ARRAY;
-/* 330 */     for (FileEntry entry : previous) {
-/* 331 */       while (c < files.length && this.comparator.compare(entry.getFile(), files[c]) > 0) {
-/* 332 */         current[c] = createFileEntry(parent, files[c]);
-/* 333 */         doCreate(current[c]);
-/* 334 */         c++;
-/*     */       }
-/* 336 */       if (c < files.length && this.comparator.compare(entry.getFile(), files[c]) == 0) {
-/* 337 */         doMatch(entry, files[c]);
-/* 338 */         checkAndNotify(entry, entry.getChildren(), listFiles(files[c]));
-/* 339 */         current[c] = entry;
-/* 340 */         c++;
-/*     */       } else {
-/* 342 */         checkAndNotify(entry, entry.getChildren(), FileUtils.EMPTY_FILE_ARRAY);
-/* 343 */         doDelete(entry);
-/*     */       }
-/*     */     }
-/* 346 */     for (; c < files.length; c++) {
-/* 347 */       current[c] = createFileEntry(parent, files[c]);
-/* 348 */       doCreate(current[c]);
-/*     */     }
-/* 350 */     parent.setChildren(current);
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   private FileEntry createFileEntry(FileEntry parent, File file)
-/*     */   {
-/* 361 */     FileEntry entry = parent.newChildInstance(file);
-/* 362 */     entry.refresh(file);
-/* 363 */     FileEntry[] children = doListFiles(file, entry);
-/* 364 */     entry.setChildren(children);
-/* 365 */     return entry;
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   private FileEntry[] doListFiles(File file, FileEntry entry)
-/*     */   {
-/* 375 */     File[] files = listFiles(file);
-/* 376 */     FileEntry[] children = files.length > 0 ? new FileEntry[files.length] : FileEntry.EMPTY_FILE_ENTRY_ARRAY;
-/* 377 */     for (int i = 0; i < files.length; i++) {
-/* 378 */       children[i] = createFileEntry(entry, files[i]);
-/*     */     }
-/* 380 */     return children;
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   private void doCreate(FileEntry entry)
-/*     */   {
-/* 389 */     for (FileAlterationListener listener : this.listeners) {
-/* 390 */       if (entry.isDirectory()) {
-/* 391 */         listener.onDirectoryCreate(entry.getFile());
-/*     */       } else {
-/* 393 */         listener.onFileCreate(entry.getFile());
-/*     */       }
-/*     */     }
-/* 396 */     FileEntry[] children = entry.getChildren();
-/* 397 */     for (FileEntry aChildren : children) {
-/* 398 */       doCreate(aChildren);
-/*     */     }
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   private void doMatch(FileEntry entry, File file)
-/*     */   {
-/* 409 */     if (entry.refresh(file)) {
-/* 410 */       for (FileAlterationListener listener : this.listeners) {
-/* 411 */         if (entry.isDirectory()) {
-/* 412 */           listener.onDirectoryChange(file);
+/* 436 */     if (entry.refresh(file)) {
+/* 437 */       this.listeners.forEach(listener ->  {
+/* 438 */         if (entry.isDirectory()) {
+/* 439 */           listener.onDirectoryChange(file);
 /*     */         } else {
-/* 414 */           listener.onFileChange(file);
+/* 441 */           listener.onFileChange(file);
 /*     */         }
-/*     */       }
+/*     */       });
 /*     */     }
 /*     */   }
 /*     */   
@@ -421,15 +448,74 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */   private void doDelete(FileEntry entry)
+/*     */   private void fireOnCreate(FileEntry entry)
 /*     */   {
-/* 426 */     for (FileAlterationListener listener : this.listeners) {
-/* 427 */       if (entry.isDirectory()) {
-/* 428 */         listener.onDirectoryDelete(entry.getFile());
+/* 453 */     this.listeners.forEach(listener ->  {
+/* 454 */       if (entry.isDirectory()) {
+/* 455 */         listener.onDirectoryCreate(entry.getFile());
 /*     */       } else {
-/* 430 */         listener.onFileDelete(entry.getFile());
+/* 457 */         listener.onFileCreate(entry.getFile());
 /*     */       }
-/*     */     }
+/*     */     });
+/* 460 */     Stream.of(entry.getChildren()).forEach(this::fireOnCreate);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   private void fireOnDelete(FileEntry entry)
+/*     */   {
+/* 469 */     this.listeners.forEach(listener ->  {
+/* 470 */       if (entry.isDirectory()) {
+/* 471 */         listener.onDirectoryDelete(entry.getFile());
+/*     */       } else {
+/* 473 */         listener.onFileDelete(entry.getFile());
+/*     */       }
+/*     */     });
+/*     */   }
+/*     */   
+/*     */   Comparator<File> getComparator() {
+/* 479 */     return this.comparator;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public File getDirectory()
+/*     */   {
+/* 488 */     return this.rootEntry.getFile();
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public FileFilter getFileFilter()
+/*     */   {
+/* 498 */     return this.fileFilter;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public Iterable<FileAlterationListener> getListeners()
+/*     */   {
+/* 507 */     return new ArrayList<>(this.listeners);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void initialize()
+/*     */     throws Exception
+/*     */   {
+/* 517 */     this.rootEntry.refresh(this.rootEntry.getFile());
+/* 518 */     this.rootEntry.setChildren(listFileEntries(this.rootEntry.getFile(), this.rootEntry));
 /*     */   }
 /*     */   
 /*     */ 
@@ -438,19 +524,40 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */   private File[] listFiles(File file)
+/*     */   private FileEntry[] listFileEntries(File file, FileEntry entry)
 /*     */   {
-/* 443 */     File[] children = null;
-/* 444 */     if (file.isDirectory()) {
-/* 445 */       children = this.fileFilter == null ? file.listFiles() : file.listFiles(this.fileFilter);
+/* 529 */     return (FileEntry[])Stream.of(listFiles(file)).map(f -> createFileEntry(entry, f)).toArray(FileEntry[]::new);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   private File[] listFiles(File directory)
+/*     */   {
+/* 539 */     return directory.isDirectory() ? sort(directory.listFiles(this.fileFilter)) : FileUtils.EMPTY_FILE_ARRAY;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public void removeListener(FileAlterationListener listener)
+/*     */   {
+/* 548 */     if (listener != null) {
+/* 549 */       this.listeners.removeIf(listener::equals);
 /*     */     }
-/* 447 */     if (children == null) {
-/* 448 */       children = FileUtils.EMPTY_FILE_ARRAY;
+/*     */   }
+/*     */   
+/*     */   private File[] sort(File[] files) {
+/* 554 */     if (files == null) {
+/* 555 */       return FileUtils.EMPTY_FILE_ARRAY;
 /*     */     }
-/* 450 */     if (this.comparator != null && children.length > 1) {
-/* 451 */       Arrays.sort(children, this.comparator);
+/* 557 */     if (files.length > 1) {
+/* 558 */       Arrays.sort(files, this.comparator);
 /*     */     }
-/* 453 */     return children;
+/* 560 */     return files;
 /*     */   }
 /*     */   
 /*     */ 
@@ -460,18 +567,16 @@
 /*     */   @Override
 /*     */   public String toString()
 /*     */   {
-/* 463 */     StringBuilder builder = new StringBuilder();
-/* 464 */     builder.append(getClass().getSimpleName());
-/* 465 */     builder.append("[file='");
-/* 466 */     builder.append(getDirectory().getPath());
-/* 467 */     builder.append('\'');
-/* 468 */     if (this.fileFilter != null) {
-/* 469 */       builder.append(", ");
-/* 470 */       builder.append(this.fileFilter.toString());
-/*     */     }
-/* 472 */     builder.append(", listeners=");
-/* 473 */     builder.append(this.listeners.size());
-/* 474 */     builder.append("]");
-/* 475 */     return builder.toString();
+/* 570 */     StringBuilder builder = new StringBuilder();
+/* 571 */     builder.append(getClass().getSimpleName());
+/* 572 */     builder.append("[file='");
+/* 573 */     builder.append(getDirectory().getPath());
+/* 574 */     builder.append('\'');
+/* 575 */     builder.append(", ");
+/* 576 */     builder.append(this.fileFilter.toString());
+/* 577 */     builder.append(", listeners=");
+/* 578 */     builder.append(this.listeners.size());
+/* 579 */     builder.append("]");
+/* 580 */     return builder.toString();
 /*     */   }
 /*     */ }

@@ -1289,22 +1289,23 @@
 /* 1289 */     return (a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y);
 /*      */   }
 /*      */   
+/* 1292 */   private static final Pattern p = Pattern.compile("_dim_([.\\d]+)_([\\d.]+)_");
+/*      */   
 /*      */   public static void hackInitDimensionFromLabel(ST_pointf size, String label) {
-/* 1293 */     Pattern p = Pattern.compile("_dim_([.\\d]+)_([\\d.]+)_");
-/* 1294 */     Matcher m = p.matcher(label);
-/* 1295 */     if (m.matches()) {
-/* 1296 */       double ww = Double.parseDouble(m.group(1));
-/* 1297 */       double hh = Double.parseDouble(m.group(2));
-/* 1298 */       size.x = ww;
-/* 1299 */       size.y = hh;
-/* 1300 */       JUtils.LOG2("Hacking dimension to width=" + ww + " height=" + hh);
+/* 1295 */     Matcher m = p.matcher(label);
+/* 1296 */     if (m.matches()) {
+/* 1297 */       double ww = Double.parseDouble(m.group(1));
+/* 1298 */       double hh = Double.parseDouble(m.group(2));
+/* 1299 */       size.x = ww;
+/* 1300 */       size.y = hh;
+/* 1301 */       JUtils.LOG2("Hacking dimension to width=" + ww + " height=" + hh);
 /*      */     } else {
-/* 1302 */       JUtils.LOG2("Strange label " + label);
+/* 1303 */       JUtils.LOG2("Strange label " + label);
 /*      */     }
 /*      */   }
 /*      */   
 /*      */   public static CString createHackInitDimensionFromLabel(int width, int height) {
-/* 1307 */     return new CString("_dim_" + width + "_" + height + "_");
+/* 1308 */     return new CString("_dim_" + width + "_" + height + "_");
 /*      */   }
 /*      */   
 /*      */ 
@@ -1313,13 +1314,13 @@
 /*      */ 
 /*      */   public static void PF2P(ST_pointf pf, ST_pointf p)
 /*      */   {
-/* 1316 */     p.x = ROUND(pf.x);
-/* 1317 */     p.y = ROUND(pf.y);
+/* 1317 */     p.x = ROUND(pf.x);
+/* 1318 */     p.y = ROUND(pf.y);
 /*      */   }
 /*      */   
 /*      */   public static void PF2P(ST_pointf pf, ST_point p) {
-/* 1321 */     p.x = ROUND(pf.x);
-/* 1322 */     p.y = ROUND(pf.y);
+/* 1322 */     p.x = ROUND(pf.x);
+/* 1323 */     p.y = ROUND(pf.y);
 /*      */   }
 /*      */   
 /*      */ 
@@ -1406,23 +1407,23 @@
 /*      */ 
 /*      */   public static void dtinsert(Globals zz, ST_dt_s d, Object o)
 /*      */   {
-/* 1409 */     d.searchf.exe(zz, d, o, Integer.valueOf(1));
+/* 1410 */     d.searchf.exeSearch(zz, d, o, 1);
 /*      */   }
 /*      */   
 /*      */   public static Object dtsearch(Globals zz, ST_dt_s d, Object o) {
-/* 1413 */     return d.searchf.exe(zz, d, o, Integer.valueOf(4));
+/* 1414 */     return d.searchf.exeSearch(zz, d, o, 4);
 /*      */   }
 /*      */   
 /*      */   public static Object dtfirst(Globals zz, ST_dt_s d) {
-/* 1417 */     return d.searchf.exe(zz, d, null, Integer.valueOf(128));
+/* 1418 */     return d.searchf.exeSearch(zz, d, null, 128);
 /*      */   }
 /*      */   
 /*      */   public static Object dtnext(Globals zz, ST_dt_s d, Object o) {
-/* 1421 */     return d.searchf.exe(zz, d, o, Integer.valueOf(8));
+/* 1422 */     return d.searchf.exeSearch(zz, d, o, 8);
 /*      */   }
 /*      */   
 /*      */   public static Object dtdelete(Globals zz, ST_dt_s d, Object o) {
-/* 1425 */     return d.searchf.exe(zz, d, o, Integer.valueOf(2));
+/* 1426 */     return d.searchf.exeSearch(zz, d, o, 2);
 /*      */   }
 /*      */   
 /*      */ 
@@ -1502,25 +1503,25 @@
 /*      */ 
 /*      */   public static void rrotate(ST_dtlink_s x, ST_dtlink_s y)
 /*      */   {
-/* 1505 */     x._left = y.right;
-/* 1506 */     y.right = x;
+/* 1506 */     x._left = y.right;
+/* 1507 */     y.right = x;
 /*      */   }
 /*      */   
 /*      */   public static void lrotate(ST_dtlink_s x, ST_dtlink_s y) {
-/* 1510 */     x.right = y._left;
-/* 1511 */     y._left = x;
+/* 1511 */     x.right = y._left;
+/* 1512 */     y._left = x;
 /*      */   }
 /*      */   
 /*      */   public static ST_dtlink_s rlink____warning(ST_dtlink_s r, ST_dtlink_s x) {
-/* 1515 */     r._left = x;
+/* 1516 */     r._left = x;
 /*      */     
-/* 1517 */     return x;
+/* 1518 */     return x;
 /*      */   }
 /*      */   
 /*      */   public static ST_dtlink_s llink____warning(ST_dtlink_s l, ST_dtlink_s x) {
-/* 1521 */     l.right = x;
+/* 1522 */     l.right = x;
 /*      */     
-/* 1523 */     return x;
+/* 1524 */     return x;
 /*      */   }
 /*      */   
 /*      */ 
@@ -1538,15 +1539,15 @@
 /*      */ 
 /*      */   public static ST_Agsym_s agfindgraphattr(Globals zz, ST_Agraph_s g, String a)
 /*      */   {
-/* 1541 */     return attr__c.agattr(zz, g, 0, new CString(a), null);
+/* 1542 */     return attr__c.agattr(zz, g, 0, new CString(a), null);
 /*      */   }
 /*      */   
 /*      */   public static ST_Agsym_s agfindnodeattr(Globals zz, ST_Agraph_s g, String a) {
-/* 1545 */     return attr__c.agattr(zz, g, 1, new CString(a), null);
+/* 1546 */     return attr__c.agattr(zz, g, 1, new CString(a), null);
 /*      */   }
 /*      */   
 /*      */   public static ST_Agsym_s agfindedgeattr(Globals zz, ST_Agraph_s g, String a) {
-/* 1549 */     return attr__c.agattr(zz, g, 2, new CString(a), null);
+/* 1550 */     return attr__c.agattr(zz, g, 2, new CString(a), null);
 /*      */   }
 /*      */   
 /*      */ 
@@ -1557,15 +1558,15 @@
 /*      */ 
 /*      */   public static int POINTS(double a_inches)
 /*      */   {
-/* 1560 */     return ROUND(a_inches * 72.0D);
+/* 1561 */     return ROUND(a_inches * 72.0D);
 /*      */   }
 /*      */   
 /*      */   public static double INCH2PS(double a_inches) {
-/* 1564 */     return a_inches * 72.0D;
+/* 1565 */     return a_inches * 72.0D;
 /*      */   }
 /*      */   
 /*      */   public static double PS2INCH(double a_points) {
-/* 1568 */     return a_points / 72.0D;
+/* 1569 */     return a_points / 72.0D;
 /*      */   }
 /*      */   
 /*      */ 
@@ -1594,21 +1595,21 @@
 /*      */ 
 /*      */   public static void PAD(ST_pointf d)
 /*      */   {
-/* 1597 */     XPAD(d);
-/* 1598 */     YPAD(d);
+/* 1598 */     XPAD(d);
+/* 1599 */     YPAD(d);
 /*      */   }
 /*      */   
 /*      */   public static void YPAD(ST_pointf d) {
-/* 1602 */     d.y += 8.0D;
+/* 1603 */     d.y += 8.0D;
 /*      */   }
 /*      */   
 /*      */   public static void XPAD(ST_pointf d) {
-/* 1606 */     d.x += 16.0D;
+/* 1607 */     d.x += 16.0D;
 /*      */   }
 /*      */   
 /*      */   public static void UNFLATTEN(ST_dt_s dt) {
-/* 1610 */     if ((dt.data.type & 0x1000) != 0) {
-/* 1611 */       dtrestore__c.dtrestore(dt, null);
+/* 1611 */     if ((dt.data.type & 0x1000) != 0) {
+/* 1612 */       dtrestore__c.dtrestore(dt, null);
 /*      */     }
 /*      */   }
 /*      */   
@@ -1620,23 +1621,23 @@
 /*      */ 
 /*      */   public static __ptr__ AGCLOS_id(ST_Agraph_s g)
 /*      */   {
-/* 1623 */     return g.clos.state.id;
+/* 1624 */     return g.clos.state.id;
 /*      */   }
 /*      */   
 /*      */   public static ST_Agiddisc_s AGDISC_id(ST_Agraph_s g) {
-/* 1627 */     return g.clos.disc.id;
+/* 1628 */     return g.clos.disc.id;
 /*      */   }
 /*      */   
 /*      */   public static __ptr__ AGCLOS_mem(ST_Agraph_s g) {
-/* 1631 */     return g.clos.state.mem;
+/* 1632 */     return g.clos.state.mem;
 /*      */   }
 /*      */   
 /*      */   public static ST_Agmemdisc_s AGDISC_mem(ST_Agraph_s g) {
-/* 1635 */     return g.clos.disc.mem;
+/* 1636 */     return g.clos.disc.mem;
 /*      */   }
 /*      */   
 /*      */   public static ST_Agiodisc_s AGDISC_io(ST_Agraph_s g) {
-/* 1639 */     return g.clos.disc.io;
+/* 1640 */     return g.clos.disc.io;
 /*      */   }
 /*      */   
 /*      */ 
@@ -1659,33 +1660,37 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/* 1662 */   public static final CString HEAD_ID = new CString("headport");
-/* 1663 */   public static final CString TAIL_ID = new CString("tailport");
+/* 1663 */   public static final CString HEAD_ID = new CString("headport");
+/* 1664 */   public static final CString TAIL_ID = new CString("tailport");
 /*      */   
+/*      */ 
+/*      */ 
 /*      */ 
 /*      */   public static __ptr__ _DTKEY(__ptr__ o, FieldOffset ky, int sz)
 /*      */   {
-/* 1668 */     return (__ptr__)o.getTheField(ky);
+/* 1671 */     if (ky == null || ky.getSign() == 0)
+/* 1672 */       return o;
+/* 1673 */     return (__ptr__)o.getTheField(ky);
 /*      */   }
 /*      */   
 /*      */   public static int _DTCMP(Globals zz, ST_dt_s dt, __ptr__ k1, __ptr__ k2, ST_dtdisc_s dc, CFunction cmpf, int sz)
 /*      */   {
-/* 1673 */     return 
-/* 1674 */       sz <= 0 ? cmpf != null ? ((Integer)cmpf.exe(zz, dt, k1, k2, dc)).intValue() : JUtils.strcmp((CString)k1, (CString)k2) : UNSUPPORTED_INT("memcmp(ok,nk,sz)");
+/* 1678 */     return 
+/* 1679 */       sz <= 0 ? cmpf != null ? cmpf.exeCmpInt(zz, dt, k1, k2, dc) : JUtils.strcmp((CString)k1, (CString)k2) : UNSUPPORTED_INT("memcmp(ok,nk,sz)");
 /*      */   }
 /*      */   
 /*      */ 
 /*      */   public static ST_Agedge_s agfindedge(Globals zz, ST_Agraph_s g, ST_Agnode_s t, ST_Agnode_s h)
 /*      */   {
-/* 1680 */     return edge__c.agedge(zz, g, t, h, null, false);
+/* 1685 */     return edge__c.agedge(zz, g, t, h, null, false);
 /*      */   }
 /*      */   
 /*      */   public static int flatindex(ST_Agnode_s v) {
-/* 1684 */     return ND_low(v);
+/* 1689 */     return ND_low(v);
 /*      */   }
 /*      */   
 /*      */   public static void flatindex(ST_Agnode_s v, int data) {
-/* 1688 */     ND_low(v, data);
+/* 1693 */     ND_low(v, data);
 /*      */   }
 /*      */   
 /*      */ 
@@ -1696,21 +1701,21 @@
 /*      */ 
 /*      */   public static ST_subtree_t ND_subtree(ST_Agnode_s n)
 /*      */   {
-/* 1699 */     throw new UnsupportedOperationException();
+/* 1704 */     throw new UnsupportedOperationException();
 /*      */   }
 /*      */   
 /*      */   public static void ND_subtree_set(ST_Agnode_s n, ST_subtree_t value)
 /*      */   {
-/* 1704 */     throw new UnsupportedOperationException();
+/* 1709 */     throw new UnsupportedOperationException();
 /*      */   }
 /*      */   
 /*      */   public static boolean streq(CString a, CString b)
 /*      */   {
-/* 1709 */     return a.charAt(0) == b.charAt(0) && JUtils.strcmp(a, b) == 0;
+/* 1714 */     return a.charAt(0) == b.charAt(0) && JUtils.strcmp(a, b) == 0;
 /*      */   }
 /*      */   
 /*      */   public static boolean streq(CString a, String b) {
-/* 1713 */     return streq(a, new CString(b));
+/* 1718 */     return streq(a, new CString(b));
 /*      */   }
 /*      */   
 /*      */   public static final int AGRAPH = 0;
