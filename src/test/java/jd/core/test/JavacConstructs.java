@@ -136,20 +136,6 @@ public class JavacConstructs {
         }
     }
 
-    static void manualClose(InputStream in, List<Integer> out) throws IOException {
-        try {
-            out.add(in.read());
-            in.close();
-        } catch (Throwable t) {
-            try {
-                in.close();
-            } catch (Throwable suppressed) {
-                t.addSuppressed(suppressed);
-            }
-            throw t;
-        }
-    }
-
     static <R extends Collection<String>> void overloaded(StringBuilder builder, Supplier<R> factory) {
         builder.append(factory.get());
     }
@@ -204,94 +190,6 @@ public class JavacConstructs {
                 out.add(s);
             }
         });
-    }
-
-    static void noSuppressed(InputStream in) throws IOException {
-        try {
-            in.read();
-        } catch (Throwable t) {
-            in.close();
-            throw t;
-        }
-        try {
-            in.available();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    static void swappedSuppressed(InputStream in) throws IOException {
-        try {
-            in.available();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            in.read();
-        } catch (Throwable t) {
-            try {
-                in.close();
-            } catch (Throwable suppressed) {
-                suppressed.addSuppressed(t);
-            }
-            throw t;
-        }
-    }
-
-    static void wrapped(InputStream in) throws IOException {
-        try {
-            in.available();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
-            in.read();
-        } catch (Throwable t) {
-            try {
-                in.close();
-            } catch (Throwable suppressed) {
-                t.addSuppressed(suppressed);
-            }
-            throw new IllegalStateException(t);
-        }
-    }
-
-    static void otherResource(InputStream in, InputStream other) throws IOException {
-        try {
-            in.read();
-        } catch (Throwable t) {
-            try {
-                other.close();
-            } catch (Throwable suppressed) {
-                t.addSuppressed(suppressed);
-            }
-            throw t;
-        }
-        try {
-            in.available();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    static void notJustAfterStore(InputStream in, List<Integer> out) throws IOException {
-        try {
-            in.available();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        InputStream stream = in;
-        out.add(1);
-        try {
-            out.add(stream.read());
-        } catch (Throwable t) {
-            try {
-                stream.close();
-            } catch (Throwable suppressed) {
-                t.addSuppressed(suppressed);
-            }
-            throw t;
-        }
     }
 
     /** An explicit null check is not the null check of a method reference. */
