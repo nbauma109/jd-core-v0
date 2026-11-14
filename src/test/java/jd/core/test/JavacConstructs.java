@@ -293,4 +293,11 @@ public class JavacConstructs {
             throw t;
         }
     }
+
+    /** An explicit null check is not the null check of a method reference. */
+    static Runnable explicitCheck(Object input) {
+        Object copy;
+        java.util.Objects.requireNonNull(copy = input);
+        return () -> { };
+    }
 }

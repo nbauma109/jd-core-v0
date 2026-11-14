@@ -50,6 +50,7 @@ import jd.core.model.instruction.bytecode.instruction.ALoad;
 import jd.core.model.instruction.bytecode.instruction.ConstructorReference;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.DupLoad;
+import jd.core.model.instruction.bytecode.instruction.DupStore;
 import jd.core.model.instruction.bytecode.instruction.Invokestatic;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
 import jd.core.model.instruction.bytecode.instruction.LambdaInstruction;
@@ -86,12 +87,6 @@ public class InvokeDynamicFactory implements InstructionFactory
                     list.remove(list.size() - 1);
                 }
             }
-        }
-
-        // Remove the null check 'Objects.requireNonNull(receiver)' that javac 9+ generates before the method reference 'receiver::name'
-        if (!listForAnalyze.isEmpty() && !list.isEmpty() && isReceiverNullCheck(constants, listForAnalyze.get(listForAnalyze.size() - 1))) {
-            listForAnalyze.remove(listForAnalyze.size() - 1);
-            list.remove(list.size() - 1);
         }
 
         final int opcode = code[offset] & 255;
@@ -210,15 +205,31 @@ public class InvokeDynamicFactory implements InstructionFactory
         }
 
         // Create method reference
+        removeReceiverNullCheck(constants, list, listForAnalyze, indyParameters);
         stack.push(new MethodReference(opcode, offset, lineNumber, indyParameters, typeName, name1, descriptor1));
 
         return Const.getNoOfOperands(opcode);
     }
 
-    private static boolean isReceiverNullCheck(ConstantPool constants, Instruction instruction)
+    /**
+     * Removes the null check 'Objects.requireNonNull(receiver)' that javac 9+ generates before the method reference
+     * 'receiver::name': only if the receiver of the method reference is the very value that is checked.
+     */
+    private static void removeReceiverNullCheck(ConstantPool constants, List<Instruction> list,
+            List<Instruction> listForAnalyze, List<Instruction> receivers)
+    {
+        if (!listForAnalyze.isEmpty() && !list.isEmpty() && !receivers.isEmpty() && receivers.get(0) instanceof DupLoad receiver
+            && isReceiverNullCheck(constants, listForAnalyze.get(listForAnalyze.size() - 1), receiver.getDupStore()))
+        {
+            listForAnalyze.remove(listForAnalyze.size() - 1);
+            list.remove(list.size() - 1);
+        }
+    }
+
+    private static boolean isReceiverNullCheck(ConstantPool constants, Instruction instruction, DupStore receiver)
     {
         if (!(instruction instanceof Invokestatic invokestatic) || invokestatic.getArgs().size() != 1
-            || !(invokestatic.getArgs().get(0) instanceof DupLoad))
+            || !(invokestatic.getArgs().get(0) instanceof DupLoad checked) || checked.getDupStore() != receiver)
         {
             return false;
         }

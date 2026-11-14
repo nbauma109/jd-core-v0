@@ -155,10 +155,10 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
         String owner = constants.getConstantClassName(methodref.getClassIndex());
         MethodTypes methodTypes = typeMaker.makeMethodTypes(owner,
             constants.getConstantUtf8(nameAndType.getNameIndex()), constants.getConstantUtf8(nameAndType.getSignatureIndex()));
-        // The argument exists, so does the parameter; a type variable of the parameter is not an array type
+        // The argument exists, so does the parameter. An array of a type variable is not the type variable: the cast is kept
         if (methodTypes == null
             || !(methodTypes.getParameterTypes().getList().get(index) instanceof GenericType parameter)
-            || declaresTypeParameter(methodTypes, parameter.getName()))
+            || parameter.getDimension() != 0 || declaresTypeParameter(methodTypes, parameter.getName()))
         {
             return false;
         }
