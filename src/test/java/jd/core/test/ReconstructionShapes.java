@@ -65,4 +65,102 @@ public abstract class ReconstructionShapes {
         int[] inline = { first, second };
         return values.length > 1 ? values : inline;
     }
+
+    /** Control characters that need an escape sequence in a string constant. */
+    static final String CONTROLS = "backspace\b formfeed\f tab\t newline\n return\r quote\" backslash\\";
+
+    /** A try with only a finally, and a nested synchronized block, inside a synchronized block. */
+    int nested(List<Integer> values, Object other) {
+        synchronized (values) {
+            synchronized (other) {
+                try {
+                    values.add(1);
+                } finally {
+                    other.notifyAll();
+                }
+            }
+            return values.size();
+        }
+    }
+
+    /** The result is discarded where it is called. */
+    private int touch() {
+        return counter++;
+    }
+
+    /** The value that is returned is stored before the finally block, whatever its type. */
+    long returnedLong(long value) {
+        try {
+            return value * 2;
+        } finally {
+            touch();
+        }
+    }
+
+    double returnedDouble(double value) {
+        try {
+            return value / 2;
+        } finally {
+            touch();
+        }
+    }
+
+    float returnedFloat(float value) {
+        try {
+            return value + 1;
+        } finally {
+            touch();
+        }
+    }
+
+    Object returnedObject(Object value) {
+        try {
+            return value;
+        } finally {
+            touch();
+        }
+    }
+
+    /** An array initializer whose values are calls on their own lines. */
+    static String[] calls(int a, int b) {
+        return new String[] {
+                String.valueOf(a),
+                String.valueOf(b),
+                String.valueOf(a + b)
+        };
+    }
+
+    /** A try with a finally and no value, inside a synchronized block. */
+    void finallyInSynchronized(Object lock, Object other) {
+        synchronized (lock) {
+            try {
+                touch();
+            } finally {
+                touch();
+            }
+        }
+    }
+
+    /** Conditions whose operands are conditions with ternary operators. */
+    boolean ternaryConditions(int x, int y, int z) {
+        boolean result = (x > 0 ? y > 0 : z > 0) && (y > 5 ? z > 5 : x > 5);
+        if (x > 0 ? y > 0 : y < 0 && x < -3) {
+            x++;
+        }
+        return result;
+    }
+
+    /** Arrays whose values are calls written on their own lines. */
+    Object[] spreadCalls(Object a, int b, String c) {
+        String[] names = new String[] {
+                c.trim(),
+                c.trim() };
+        int[] numbers = new int[] {
+                b + 1,
+                b + 2 };
+        return new Object[] {
+                a,
+                numbers.length,
+                names[0].toString() };
+    }
 }
