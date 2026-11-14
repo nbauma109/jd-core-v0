@@ -194,7 +194,7 @@ public class JavacConstructs {
 
     /** An explicit null check is not the null check of a method reference. */
     static Runnable explicitCheck(Object input) {
-        Object copy;
+        Object copy; // NOSONAR the unused assignment is the point: javac keeps its value on the stack for the null check
         java.util.Objects.requireNonNull(copy = input);
         return () -> { };
     }

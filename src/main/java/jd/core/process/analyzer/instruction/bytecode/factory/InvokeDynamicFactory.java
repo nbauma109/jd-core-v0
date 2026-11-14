@@ -218,7 +218,7 @@ public class InvokeDynamicFactory implements InstructionFactory
     private static void removeReceiverNullCheck(ConstantPool constants, List<Instruction> list,
             List<Instruction> listForAnalyze, List<Instruction> receivers)
     {
-        if (!listForAnalyze.isEmpty() && !list.isEmpty() && !receivers.isEmpty() && receivers.get(0) instanceof DupLoad receiver
+        if (!listForAnalyze.isEmpty() && receivers.get(0) instanceof DupLoad receiver
             && isReceiverNullCheck(constants, listForAnalyze.get(listForAnalyze.size() - 1), receiver.getDupStore()))
         {
             listForAnalyze.remove(listForAnalyze.size() - 1);
