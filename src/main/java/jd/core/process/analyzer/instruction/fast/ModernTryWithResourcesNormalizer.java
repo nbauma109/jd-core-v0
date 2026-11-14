@@ -190,7 +190,7 @@ final class ModernTryWithResourcesNormalizer {
         return instruction instanceof InvokeNoStaticInstruction call
                 && isMethod(cp, call, "addSuppressed", "(Ljava/lang/Throwable;)V")
                 && call.getObjectref() instanceof ALoad target && target.getIndex() == throwableIndex
-                && call.getArgs().size() == 1 && call.getArgs().get(0) instanceof ALoad argument
+                && call.getArgs().get(0) instanceof ALoad argument
                 && argument.getIndex() == suppressedIndex;
     }
 

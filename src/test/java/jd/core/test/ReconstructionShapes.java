@@ -164,4 +164,16 @@ public abstract class ReconstructionShapes {
                 names.length,
                 c.toUpperCase() };
     }
+
+    /** A method returning an array of a type variable, overridden with an array of a type argument. */
+    abstract static class Source<T> {
+        abstract T[] items();
+    }
+
+    static class Names extends Source<String> {
+        @Override
+        String[] items() {
+            return new String[0];
+        }
+    }
 }
