@@ -51,7 +51,6 @@ import jd.core.model.instruction.bytecode.instruction.ConstructorReference;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.DupLoad;
 import jd.core.model.instruction.bytecode.instruction.Invokestatic;
-import jd.core.model.instruction.bytecode.instruction.Pop;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
 import jd.core.model.instruction.bytecode.instruction.LambdaInstruction;
 import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
@@ -218,8 +217,7 @@ public class InvokeDynamicFactory implements InstructionFactory
 
     private static boolean isReceiverNullCheck(ConstantPool constants, Instruction instruction)
     {
-        Instruction call = instruction instanceof Pop pop ? pop.getObjectref() : instruction;
-        if (!(call instanceof Invokestatic invokestatic) || invokestatic.getArgs().size() != 1
+        if (!(instruction instanceof Invokestatic invokestatic) || invokestatic.getArgs().size() != 1
             || !(invokestatic.getArgs().get(0) instanceof DupLoad))
         {
             return false;

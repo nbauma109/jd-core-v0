@@ -1335,18 +1335,19 @@ public final class FastInstructionListBuilder {
             }
             return;
         }
-        if (catches.size() != 1 || !removeRethrowingCatch(list, index, catches.get(0))) {
+        if (catches.size() != 1 || !removeLeftRethrow(list, index, catches.get(0))) {
             return;
         }
         catches.clear();
         resource.setTryResources(fastTry);
     }
 
-    /** @return true if the catch only rethrows the exception: the rethrow may have been left after the try block */
-    private static boolean removeRethrowingCatch(List<Instruction> list, int index, FastCatch fastCatch) {
+    /** @return true if the catch is empty and its rethrow has been left after the try block: the rethrow is removed */
+    private static boolean removeLeftRethrow(List<Instruction> list, int index, FastCatch fastCatch) {
         List<Instruction> catchInstructions = fastCatch.instructions();
         if (!catchInstructions.isEmpty()) {
-            return catchInstructions.size() == 1 && isRethrow(catchInstructions.get(0), fastCatch.localVarIndex());
+            // only the rethrow left after the try block has been seen: another shape is not a try-with-resources
+            return false;
         }
         if (index + 2 >= list.size() || !isRethrow(list.get(index + 2), fastCatch.localVarIndex())) {
             return false;

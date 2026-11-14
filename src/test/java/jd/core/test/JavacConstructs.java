@@ -168,4 +168,104 @@ public class JavacConstructs {
         list.add(supplier.get());
         return String.valueOf(supplier.get());
     }
+
+    static class Holder {
+        Object object() {
+            return "";
+        }
+    }
+
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+    static void rawCalls(Supplier raw, List<String> list, Holder holder) {
+        list.add((String) raw.get());
+        list.add((String) holder.object());
+        list.addAll((Collection<String>) holder.object());
+    }
+
+    static <R extends Collection<String>> void allOf(List<String> list, Supplier<R> factory) {
+        list.addAll(factory.get());
+    }
+
+    static void twoConditions(boolean first, int second, int value) {
+        if (first && second != 0) {
+            assert value > 0 : "value";
+        }
+    }
+
+    static Runnable thrower(String message) {
+        return () -> {
+            throw new IllegalStateException(message);
+        };
+    }
+
+    static void loops(List<List<String>> lists, List<String> out) {
+        lists.forEach(l -> {
+            for (String s : l) {
+                out.add(s);
+            }
+        });
+    }
+
+    static void noSuppressed(InputStream in) throws IOException {
+        try {
+            in.read();
+        } catch (Throwable t) {
+            in.close();
+            throw t;
+        }
+    }
+
+    static void swappedSuppressed(InputStream in) throws IOException {
+        try {
+            in.read();
+        } catch (Throwable t) {
+            try {
+                in.close();
+            } catch (Throwable suppressed) {
+                suppressed.addSuppressed(t);
+            }
+            throw t;
+        }
+    }
+
+    static void wrapped(InputStream in) throws IOException {
+        try {
+            in.read();
+        } catch (Throwable t) {
+            try {
+                in.close();
+            } catch (Throwable suppressed) {
+                t.addSuppressed(suppressed);
+            }
+            throw new IllegalStateException(t);
+        }
+    }
+
+    static void otherResource(InputStream in, InputStream other) throws IOException {
+        try {
+            in.read();
+        } catch (Throwable t) {
+            try {
+                other.close();
+            } catch (Throwable suppressed) {
+                t.addSuppressed(suppressed);
+            }
+            throw t;
+        }
+    }
+
+    static void notJustAfterStore(InputStream in, List<Integer> out) throws IOException {
+        InputStream stream = in;
+        out.add(1);
+        try {
+            out.add(stream.read());
+        } catch (Throwable t) {
+            try {
+                stream.close();
+            } catch (Throwable suppressed) {
+                t.addSuppressed(suppressed);
+            }
+            throw t;
+        }
+    }
 }
