@@ -164,6 +164,8 @@ public final class FastInstructionListBuilder {
             return;
         }
 
+        ModernTryWithResourcesNormalizer.normalize(method, classFile.getConstantPool(), list);
+
         // Aggregation des déclarations CodeException
         List<FastCodeExcepcion> lfce = FastCodeExceptionAnalyzer.aggregateCodeExceptions(method, list);
 
@@ -1244,6 +1246,7 @@ public final class FastInstructionListBuilder {
             executeReconstructors(referenceMap, classFile, finallyInstructions, localVariables);
         }
         ConstantPool cp = classFile.getConstantPool();
+        convertModernTryResources(localVariables, list, index, fastTry, catches, finallyInstructions);
         boolean removedTryResourcesPattern = fastTry.removeTryResourcesPattern(localVariables, cp, finallyInstructions);
         removedTryResourcesPattern |= fastTry.removeTryResourcesPattern(localVariables, cp, tryInstructions);
         boolean processTryResources = fastTry.processTryResources();
@@ -1309,6 +1312,48 @@ public final class FastInstructionListBuilder {
         if (!instructionsToMove.isEmpty()) {
             list.addAll(index + 2, instructionsToMove);
         }
+    }
+
+    /**
+     * Turns the 'try { ... } catch (Throwable t) { throw t; }' left by
+     * {@link ModernTryWithResourcesNormalizer} into a try-with-resources statement.
+     */
+    private static void convertModernTryResources(LocalVariables localVariables, List<Instruction> list, int index,
+            FastTry fastTry, List<FastCatch> catches, List<Instruction> finallyInstructions) {
+        if (index < 0 || !(list.get(index) instanceof AStore resourceStore)) {
+            return;
+        }
+        LocalVariable resource = localVariables.getLocalVariableWithIndexAndOffset(resourceStore.getIndex(),
+                resourceStore.getOffset());
+        if (resource == null || !resource.isModernTryResource()) {
+            return;
+        }
+        if (catches == null || catches.isEmpty()) {
+            // 'catch (Throwable t) { throw t; }' has been recognized as an empty 'finally' block
+            if (finallyInstructions == null || finallyInstructions.isEmpty()) {
+                resource.setTryResources(fastTry);
+            }
+            return;
+        }
+        if (catches.size() != 1) {
+            return;
+        }
+        FastCatch fastCatch = catches.get(0);
+        List<Instruction> catchInstructions = fastCatch.instructions();
+        if (catchInstructions.isEmpty()) {
+            // the 'throw t' instruction has been left after the try block
+            if (index + 2 < list.size() && list.get(index + 2) instanceof AThrow athrow
+                    && athrow.getValue() instanceof ALoad aload && aload.getIndex() == fastCatch.localVarIndex()) {
+                list.set(index + 2, null);
+            } else {
+                return;
+            }
+        } else if (!(catchInstructions.size() == 1 && catchInstructions.get(0) instanceof AThrow athrow
+                && athrow.getValue() instanceof ALoad aload && aload.getIndex() == fastCatch.localVarIndex())) {
+            return;
+        }
+        catches.clear();
+        resource.setTryResources(fastTry);
     }
 
     private static ExceptionLoad searchExceptionLoadInstruction(List<Instruction> instructions) {

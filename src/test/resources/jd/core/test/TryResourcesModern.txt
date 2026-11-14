@@ -1,0 +1,40 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.io.IOException;
+/*    */ import java.io.InputStream;
+/*    */ import java.io.OutputStream;
+/*    */ import java.nio.file.Path;
+/*    */ import java.util.zip.Checksum;
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ public class TryResourcesModern
+/*    */ {
+/*    */   public static long consume(InputStream in)
+/*    */     throws IOException
+/*    */   {
+/* 18 */     return in.transferTo(OutputStream.nullOutputStream());
+/*    */   }
+/*    */   
+/*    */   public static Checksum checksum(Path path, Checksum checksum) throws IOException {
+/* 22 */     try (InputStream in = new java.util.zip.CheckedInputStream(java.nio.file.Files.newInputStream(path), checksum)) {
+/* 23 */       consume(in);
+/*    */     }
+/* 25 */     return checksum;
+/*    */   }
+/*    */   
+/*    */   public static int first(Path path) throws IOException {
+/* 29 */     try (InputStream in = java.nio.file.Files.newInputStream(path)) {
+/* 30 */       return in.read();
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   public static void copy(Path source, Path target) throws IOException {
+/* 35 */     try (InputStream in = java.nio.file.Files.newInputStream(source);OutputStream out = java.nio.file.Files.newOutputStream(target);) {
+/* 36 */       in.transferTo(out);
+/*    */     }
+/*    */     
+/*    */   }
+/*    */ }
