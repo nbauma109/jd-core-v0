@@ -209,4 +209,9 @@ public class JavacConstructs {
         java.util.Objects.requireNonNull(copy = input);
         return this::describe;
     }
+
+    /** The cast of the receiver is not the type that the compiler infers for the call: it is kept. */
+    static IntSupplier sizeOfChecked(Object value) {
+        return ((Collection<?>) java.util.Objects.requireNonNull(value))::size;
+    }
 }

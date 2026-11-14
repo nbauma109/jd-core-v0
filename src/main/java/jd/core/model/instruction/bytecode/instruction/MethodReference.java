@@ -79,14 +79,42 @@ public class MethodReference extends Instruction implements SourceWriteable {
     private static void writeReceiver(Printer printer, SourceWriterVisitor visitor, Instruction receiver) {
         if (!(receiver instanceof CheckCast cast)) {
             visitor.visit(receiver);
-        } else if (cast.getObjectref() instanceof Invokestatic) {
-            // The type of a generic call such as Objects.requireNonNull is inferred: no cast
-            visitor.visit(cast.getObjectref());
+        } else if (cast.getObjectref() instanceof Invokestatic call && hasTypeOfCast(visitor, call, cast)) {
+            // The type of a generic call such as Objects.requireNonNull(x) is inferred from its argument: no cast
+            visitor.visit(call);
         } else {
             // The cast must not apply to the whole method reference
             printer.print('(');
             visitor.visit(receiver);
             printer.print(')');
         }
+    }
+
+    /** The argument of the call already has the type of the cast: it is the type that the compiler infers for the call. */
+    private static boolean hasTypeOfCast(SourceWriterVisitor visitor, Invokestatic call, CheckCast cast) {
+        String castSignature = cast.getReturnedSignature(visitor.getClassFile(), visitor.getLocalVariables());
+        return call.getArgs().stream().findFirst()
+            .map(argument -> castSignature.equals(
+                eraseTypeArguments(argument.getReturnedSignature(visitor.getClassFile(), visitor.getLocalVariables()))))
+            .orElse(false);
+    }
+
+    /** 'Ljava/util/List<Ljava/lang/String;>;' becomes 'Ljava/util/List;' */
+    private static String eraseTypeArguments(String signature) {
+        if (signature == null) {
+            return "";
+        }
+        StringBuilder erased = new StringBuilder();
+        int depth = 0;
+        for (char c : signature.toCharArray()) {
+            if (c == '<') {
+                depth++;
+            } else if (c == '>') {
+                depth--;
+            } else if (depth == 0) {
+                erased.append(c);
+            }
+        }
+        return erased.toString();
     }
 }

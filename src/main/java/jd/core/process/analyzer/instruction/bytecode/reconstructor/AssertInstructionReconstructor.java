@@ -126,12 +126,13 @@ public final class AssertInstructionReconstructor
                 cbl.getInstructions().remove(guardIndex);
                 Instruction enclosingCondition = null;
                 if (guardIndex > 0) {
-                    // Conditions before the test of the assertion field guard the assert: they become an enclosing if
+                    // Conditions before the test of the assertion field guard the assert: they become an enclosing if.
+                    // They keep the operator of the group: each one jumps to the same target, the code that skips the assert.
                     List<Instruction> before = new ArrayList<>(cbl.getInstructions().subList(0, guardIndex));
                     cbl.getInstructions().subList(0, guardIndex).clear();
                     enclosingCondition = before.size() == 1 ? before.get(0)
                             : new ComplexConditionalBranchInstruction(ByteCodeConstants.COMPLEXIF, cbl.getOffset(),
-                                    cbl.getLineNumber(), ByteCodeConstants.CMP_AND, before, cbl.getBranch());
+                                    cbl.getLineNumber(), cbl.getCmp(), before, cbl.getBranch());
                 }
 
                 Instruction assertedCondition = cbl;
