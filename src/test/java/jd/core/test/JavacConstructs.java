@@ -149,4 +149,23 @@ public class JavacConstructs {
             throw t;
         }
     }
+
+    static <R extends Collection<String>> void overloaded(StringBuilder builder, Supplier<R> factory) {
+        builder.append(factory.get());
+    }
+
+    static <R extends Collection<String>> void otherParameter(List<Collection<String>> target, Supplier<R> factory) {
+        target.add(factory.get());
+    }
+
+    static <R extends Collection<String>> int sizes(List<R> target, Supplier<R> factory, R extra) {
+        target.add(factory.get());
+        target.add(extra);
+        return target.size();
+    }
+
+    static String text(Supplier<String> supplier, List<String> list) {
+        list.add(supplier.get());
+        return String.valueOf(supplier.get());
+    }
 }
