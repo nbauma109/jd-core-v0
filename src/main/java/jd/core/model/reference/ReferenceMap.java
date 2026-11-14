@@ -99,16 +99,8 @@ public class ReferenceMap
             if (ref == null) {
                 int lastIndexOfSlash = internalName.lastIndexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR);
                 int lastIndexOfDollar = internalName.lastIndexOf('$');
-                if (lastIndexOfDollar != -1) {
-                    String imported = this.simpleNameToInternalName.get(internalName.substring(lastIndexOfDollar + 1));
-                    if (imported != null && !imported.equals(internalName) && imported.indexOf('$') != -1
-                            && this.references.containsKey(imported)) {
-                        // 'a.A.Builder' and 'b.B.Builder': the simple name cannot be imported twice
-                        this.references.remove(imported);
-                        this.clashingMemberTypes.add(imported);
-                        this.clashingMemberTypes.add(internalName);
-                        return;
-                    }
+                if (clashesWithImportedMemberType(internalName, lastIndexOfDollar)) {
+                    return;
                 }
                 this.references.put(internalName, new Reference(internalName));
                 if (lastIndexOfDollar != -1) {
@@ -120,6 +112,27 @@ public class ReferenceMap
                 ref.incCounter();
             }
         }
+    }
+
+    /**
+     * 'a.A.Builder' and 'b.B.Builder': the simple name cannot be imported twice, so none of them is imported.
+     *
+     * @return true if the member type clashes with an imported one, which is then removed
+     */
+    private boolean clashesWithImportedMemberType(String internalName, int lastIndexOfDollar)
+    {
+        if (lastIndexOfDollar == -1) {
+            return false;
+        }
+        String imported = this.simpleNameToInternalName.get(internalName.substring(lastIndexOfDollar + 1));
+        if (imported == null || imported.equals(internalName) || imported.indexOf('$') == -1
+                || !this.references.containsKey(imported)) {
+            return false;
+        }
+        this.references.remove(imported);
+        this.clashingMemberTypes.add(imported);
+        this.clashingMemberTypes.add(internalName);
+        return true;
     }
 
     public Reference remove(String internalName)

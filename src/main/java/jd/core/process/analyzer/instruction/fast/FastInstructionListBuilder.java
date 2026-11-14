@@ -1315,7 +1315,7 @@ public final class FastInstructionListBuilder {
     }
 
     /**
-     * Turns the 'try { ... } catch (Throwable t) { throw t; }' left by
+     * Turns the try block with a catch of Throwable that only rethrows, left by
      * {@link ModernTryWithResourcesNormalizer} into a try-with-resources statement.
      */
     private static void convertModernTryResources(LocalVariables localVariables, List<Instruction> list, int index,
@@ -1329,7 +1329,7 @@ public final class FastInstructionListBuilder {
             return;
         }
         if (catches == null || catches.isEmpty()) {
-            // 'catch (Throwable t) { throw t; }' has been recognized as an empty 'finally' block
+            // a catch of Throwable that only rethrows has been recognized as an empty finally block
             if (finallyInstructions == null || finallyInstructions.isEmpty()) {
                 resource.setTryResources(fastTry);
             }
@@ -1339,21 +1339,22 @@ public final class FastInstructionListBuilder {
             return;
         }
         FastCatch fastCatch = catches.get(0);
-        List<Instruction> catchInstructions = fastCatch.instructions();
-        if (catchInstructions.isEmpty()) {
-            // the 'throw t' instruction has been left after the try block
-            if (index + 2 < list.size() && list.get(index + 2) instanceof AThrow athrow
-                    && athrow.getValue() instanceof ALoad aload && aload.getIndex() == fastCatch.localVarIndex()) {
-                list.set(index + 2, null);
-            } else {
+        if (fastCatch.instructions().isEmpty()) {
+            // the rethrow has been left after the try block
+            if (index + 2 >= list.size() || !isRethrow(list.get(index + 2), fastCatch.localVarIndex())) {
                 return;
             }
-        } else if (!(catchInstructions.size() == 1 && catchInstructions.get(0) instanceof AThrow athrow
-                && athrow.getValue() instanceof ALoad aload && aload.getIndex() == fastCatch.localVarIndex())) {
+            list.set(index + 2, null);
+        } else if (fastCatch.instructions().size() != 1 || !isRethrow(fastCatch.instructions().get(0), fastCatch.localVarIndex())) {
             return;
         }
         catches.clear();
         resource.setTryResources(fastTry);
+    }
+
+    private static boolean isRethrow(Instruction instruction, int variableIndex) {
+        return instruction instanceof AThrow athrow && athrow.getValue() instanceof ALoad aload
+                && aload.getIndex() == variableIndex;
     }
 
     private static ExceptionLoad searchExceptionLoadInstruction(List<Instruction> instructions) {

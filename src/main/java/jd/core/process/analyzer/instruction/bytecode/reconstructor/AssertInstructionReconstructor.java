@@ -122,11 +122,11 @@ public final class AssertInstructionReconstructor
             list.remove(index--);
 
             if (cbl != null) {
-                // Remove condition "!($assertionsDisabled)"
+                // Remove the test of the assertion field
                 cbl.getInstructions().remove(guardIndex);
                 Instruction enclosingCondition = null;
                 if (guardIndex > 0) {
-                    // 'if (condition && !$assertionsDisabled && test) throw ...' is 'if (condition) { assert test; }'
+                    // Conditions before the test of the assertion field guard the assert: they become an enclosing if
                     List<Instruction> before = new ArrayList<>(cbl.getInstructions().subList(0, guardIndex));
                     cbl.getInstructions().subList(0, guardIndex).clear();
                     enclosingCondition = before.size() == 1 ? before.get(0)
@@ -136,7 +136,7 @@ public final class AssertInstructionReconstructor
 
                 Instruction assertedCondition = cbl;
                 if (cbl.getInstructions().isEmpty()) {
-                    // 'if (condition && !$assertionsDisabled) throw ...' is 'if (condition) { assert false; }'
+                    // Only conditions before the test of the assertion field: the assert is unconditional (assert false)
                     IConst falseConst = new IConst(ByteCodeConstants.ICONST, athrow.getOffset(), cbl.getLineNumber(), 0);
                     falseConst.setSignature("Z");
                     assertedCondition = falseConst;

@@ -74,79 +74,23 @@ final class ModernTryWithResourcesNormalizer {
         }
     }
 
+    /** Position of the closing code in the handler of the protected region, and the variables it uses. */
+    private record Handler(int throwIndex, int resourceIndex, CodeException inner) {
+    }
+
     private static boolean normalize(ConstantPool cp, List<Instruction> list, LocalVariables localVariables,
             List<CodeException> remaining, CodeException outer) {
         int handlerIndex = indexOfOffset(list, outer.getHandlerPC());
-        if (handlerIndex < 1 || !(list.get(handlerIndex) instanceof AStore storeThrowable)
-                || !(storeThrowable.getValueref() instanceof ExceptionLoad)) {
+        Handler handler = parseHandler(cp, list, remaining, handlerIndex);
+        if (handler == null) {
             return false;
         }
-        int next = handlerIndex + 1;
-        if (next >= list.size()) {
-            return false;
-        }
-
-        // Optional null check of the resource
-        int resourceIndex = -1;
-        if (list.get(next) instanceof IfInstruction ifNull && isNullCheck(ifNull)) {
-            resourceIndex = ((ALoad) ifNull.getValue()).getIndex();
-            next++;
-        }
-
-        // r.close() protected by the inner exception table entry
-        if (next >= list.size() || !(list.get(next) instanceof InvokeNoStaticInstruction close)
-                || !isMethod(cp, close, "close", "()V") || !(close.getObjectref() instanceof ALoad closeTarget)
-                || resourceIndex != -1 && resourceIndex != closeTarget.getIndex()) {
-            return false;
-        }
-        resourceIndex = closeTarget.getIndex();
-        next++;
-
-        // goto to the throw instruction
-        if (next >= list.size() || !(list.get(next) instanceof Goto)) {
-            return false;
-        }
-        next++;
-
-        // catch (Throwable t2)
-        if (next >= list.size() || !(list.get(next) instanceof AStore storeSuppressed)
-                || !(storeSuppressed.getValueref() instanceof ExceptionLoad)) {
-            return false;
-        }
-        CodeException inner = null;
-        for (CodeException ce : remaining) {
-            if (ce.getHandlerPC() == storeSuppressed.getOffset() && isThrowable(cp, ce)) {
-                inner = ce;
-            }
-        }
-        if (inner == null) {
-            return false;
-        }
-        next++;
-
-        // t.addSuppressed(t2)
-        if (next >= list.size() || !(list.get(next) instanceof InvokeNoStaticInstruction addSuppressed)
-                || !isMethod(cp, addSuppressed, "addSuppressed", "(Ljava/lang/Throwable;)V")
-                || !(addSuppressed.getObjectref() instanceof ALoad suppressedTarget)
-                || suppressedTarget.getIndex() != storeThrowable.getIndex()
-                || addSuppressed.getArgs().size() != 1
-                || !(addSuppressed.getArgs().get(0) instanceof ALoad suppressedArg)
-                || suppressedArg.getIndex() != storeSuppressed.getIndex()) {
-            return false;
-        }
-        next++;
-
-        // throw t
-        if (next >= list.size() || !(list.get(next) instanceof AThrow athrow)
-                || !(athrow.getValue() instanceof ALoad thrown) || thrown.getIndex() != storeThrowable.getIndex()) {
-            return false;
-        }
-        int throwIndex = next;
 
         // The resource is stored just before the protected region
         int startIndex = InstructionUtil.getIndexForOffset(list, outer.getStartPC());
         if (startIndex < 1 || !(list.get(startIndex - 1) instanceof AStore storeResource)
-                || storeResource.getIndex() != resourceIndex || storeResource.getValueref() instanceof ExceptionLoad) {
+                || storeResource.getIndex() != handler.resourceIndex()
+                || storeResource.getValueref() instanceof ExceptionLoad) {
             return false;
         }
         LocalVariable resource = localVariables.getLocalVariableWithIndexAndOffset(storeResource.getIndex(),
@@ -157,20 +101,102 @@ final class ModernTryWithResourcesNormalizer {
 
         // A genuine try-with-resources always closes the resource after the protected region.
         // Hand written code that only mimics the exceptional path is left untouched.
-        List<Integer> normalPathCloses = findNormalPathCloses(cp, list, remaining, outer, resourceIndex);
+        List<Integer> normalPathCloses = findNormalPathCloses(cp, list, remaining, outer, handler.resourceIndex());
         if (normalPathCloses.isEmpty()) {
             return false;
         }
 
-        // Remove the closing code of the exceptional path, only 'catch (Throwable t) { throw t; }' is kept
-        list.subList(handlerIndex + 1, throwIndex).clear();
-        remaining.remove(inner);
+        // Only the catch of Throwable that rethrows is kept: the closing code of the exceptional path is removed
+        list.subList(handlerIndex + 1, handler.throwIndex()).clear();
+        remaining.remove(handler.inner());
 
         // Remove the closing code of the normal path (not protected by the exception table)
-        removeNormalPathCloses(list, normalPathCloses, resourceIndex);
+        removeNormalPathCloses(list, normalPathCloses, handler.resourceIndex());
 
         resource.setModernTryResource(true);
         return true;
+    }
+
+    /**
+     * Recognizes the handler: optional null check, close of the resource, goto, handler of the close,
+     * addSuppressed and rethrow.
+     *
+     * @return null if the handler has another shape
+     */
+    private static Handler parseHandler(ConstantPool cp, List<Instruction> list, List<CodeException> remaining,
+            int handlerIndex) {
+        if (handlerIndex < 1 || handlerIndex + 1 >= list.size() || !isExceptionStore(list.get(handlerIndex))) {
+            return null;
+        }
+        AStore storeThrowable = (AStore) list.get(handlerIndex);
+        int next = handlerIndex + 1;
+
+        // Optional null check of the resource
+        int resourceIndex = -1;
+        if (list.get(next) instanceof IfInstruction ifNull && isNullCheck(ifNull)) {
+            resourceIndex = ((ALoad) ifNull.getValue()).getIndex();
+            next++;
+        }
+
+        // The close of the resource is protected by the inner exception table entry
+        int closedIndex = next < list.size() ? closedResourceIndex(cp, list.get(next)) : -1;
+        if (closedIndex == -1 || resourceIndex != -1 && resourceIndex != closedIndex) {
+            return null;
+        }
+        resourceIndex = closedIndex;
+        next++;
+
+        // goto to the throw instruction, then the handler of the close
+        if (next + 1 >= list.size() || !(list.get(next) instanceof Goto) || !isExceptionStore(list.get(next + 1))) {
+            return null;
+        }
+        AStore storeSuppressed = (AStore) list.get(next + 1);
+        CodeException inner = findHandlerOf(cp, remaining, storeSuppressed.getOffset());
+        next += 2;
+
+        if (inner == null || next + 1 >= list.size()
+                || !isAddSuppressed(cp, list.get(next), storeThrowable.getIndex(), storeSuppressed.getIndex())
+                || !isThrow(list.get(next + 1), storeThrowable.getIndex())) {
+            return null;
+        }
+        return new Handler(next + 1, resourceIndex, inner);
+    }
+
+    private static boolean isExceptionStore(Instruction instruction) {
+        return instruction instanceof AStore store && store.getValueref() instanceof ExceptionLoad;
+    }
+
+    /** @return the index of the variable on which close() is called, or -1 */
+    private static int closedResourceIndex(ConstantPool cp, Instruction instruction) {
+        if (instruction instanceof InvokeNoStaticInstruction close && isMethod(cp, close, "close", "()V")
+                && close.getObjectref() instanceof ALoad target) {
+            return target.getIndex();
+        }
+        return -1;
+    }
+
+    private static CodeException findHandlerOf(ConstantPool cp, List<CodeException> remaining, int handlerPc) {
+        CodeException found = null;
+        for (CodeException ce : remaining) {
+            if (ce.getHandlerPC() == handlerPc && isThrowable(cp, ce)) {
+                found = ce;
+            }
+        }
+        return found;
+    }
+
+    private static boolean isAddSuppressed(ConstantPool cp, Instruction instruction, int throwableIndex,
+            int suppressedIndex) {
+        return instruction instanceof InvokeNoStaticInstruction call
+                && isMethod(cp, call, "addSuppressed", "(Ljava/lang/Throwable;)V")
+                && call.getObjectref() instanceof ALoad target && target.getIndex() == throwableIndex
+                && call.getArgs().size() == 1 && call.getArgs().get(0) instanceof ALoad argument
+                && argument.getIndex() == suppressedIndex;
+    }
+
+    private static boolean isThrow(Instruction instruction, int variableIndex) {
+        return instruction instanceof AThrow athrow && athrow.getValue() instanceof ALoad thrown
+                && thrown.getIndex() == variableIndex;
     }
 
     /** @return indexes of the compiler generated 'r.close()' calls of the normal path, in descending order */
