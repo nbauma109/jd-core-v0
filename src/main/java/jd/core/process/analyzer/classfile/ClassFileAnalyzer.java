@@ -983,7 +983,7 @@ public final class ClassFileAnalyzer
         DupLocalVariableAnalyzer.declare(classFile, method, fastList);
         PatternSwitchReconstructor.reconstruct(classFile, method, fastList);
         new ReplaceBooleanTernaryVisitor(classFile, method.getLocalVariables()).visit(fastList);
-        new ReplaceRedundantCastVisitor(classFile, method.getLocalVariables()).visit(fastList);
+        new ReplaceRedundantCastVisitor(classFile, method.getLocalVariables(), method).visit(fastList);
         new ReplaceBoxingVisitor(classFile, method.getLocalVariables()).visit(fastList);
         new AddWildcardCastVisitor(classFile, method).visit(fastList);
         if (!method.getTryResources().isEmpty() && !TryWithResourcesReconstructor.wrap(method, fastList)) {

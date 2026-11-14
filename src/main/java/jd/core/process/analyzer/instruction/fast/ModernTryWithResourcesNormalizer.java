@@ -19,6 +19,9 @@ import jd.core.model.instruction.bytecode.instruction.ALoad;
 import jd.core.model.instruction.bytecode.instruction.AStore;
 import jd.core.model.instruction.bytecode.instruction.AThrow;
 import jd.core.model.instruction.bytecode.instruction.ExceptionLoad;
+import jd.core.model.instruction.bytecode.instruction.Return;
+import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
+import jd.core.model.instruction.bytecode.instruction.BranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.Goto;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
@@ -102,7 +105,8 @@ final class ModernTryWithResourcesNormalizer {
         // A genuine try-with-resources closes the resource after the protected region, unless the body never completes
         // normally. Hand written code that only mimics the exceptional path is left untouched.
         List<Integer> normalPathCloses = findNormalPathCloses(cp, list, remaining, outer, handler.resourceIndex());
-        if (normalPathCloses.isEmpty() && !cannotFallIntoHandler(list.get(handlerIndex - 1))) {
+        if (normalPathCloses.isEmpty() && (!cannotFallIntoHandler(list.get(handlerIndex - 1))
+                || hasNormalExit(list, startIndex, handlerIndex, outer.getHandlerPC()))) {
             return false;
         }
 
@@ -157,6 +161,18 @@ final class ModernTryWithResourcesNormalizer {
             return null;
         }
         return new Handler(next + 1, closedIndex, inner);
+    }
+
+    /** A return, or a jump to the code after the handler, leaves the protected region without closing the resource. */
+    private static boolean hasNormalExit(List<Instruction> list, int startIndex, int handlerIndex, int handlerPc) {
+        for (int i = startIndex; i < handlerIndex; i++) {
+            Instruction instruction = list.get(i);
+            if (instruction instanceof ReturnInstruction || instruction instanceof Return
+                    || instruction instanceof BranchInstruction branch && branch.getJumpOffset() >= handlerPc) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** The body ends with a throw or a jump back (an endless loop): the code after the region is not reached. */

@@ -17,4 +17,10 @@ public class ArrayParameterCastTest extends AbstractTestCase {
         String output = decompile("jd/core/test/ArrayParameterCast");
         assertTrue(output, output.contains("sink.set(("));
     }
+
+    @Test
+    public void explicitRuntimeCheckIsKept() throws Exception {
+        String output = decompile("jd/core/test/ArrayParameterCast");
+        assertTrue(output, output.contains("sink.put((") && output.contains("String"));
+    }
 }

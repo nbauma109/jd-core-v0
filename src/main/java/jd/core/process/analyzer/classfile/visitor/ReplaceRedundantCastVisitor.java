@@ -27,6 +27,7 @@ import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.JavaClass;
+import org.apache.bcel.classfile.Signature;
 import org.jd.core.v1.api.loader.Loader;
 import org.jd.core.v1.util.StringConstants;
 import org.jd.core.v1.model.javasyntax.type.BaseTypeArgument;
@@ -36,6 +37,7 @@ import org.jd.core.v1.model.javasyntax.type.ObjectType;
 import org.jd.core.v1.model.javasyntax.type.Type;
 import org.jd.core.v1.model.javasyntax.type.TypeArgument;
 import org.jd.core.v1.model.javasyntax.type.TypeParameter;
+import org.jd.core.v1.model.javasyntax.type.TypeParameterWithTypeBounds;
 import org.jd.core.v1.model.javasyntax.type.WildcardExtendsTypeArgument;
 import org.jd.core.v1.model.javasyntax.type.WildcardSuperTypeArgument;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
@@ -46,6 +48,7 @@ import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
+import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.instruction.AConstNull;
 import jd.core.model.instruction.bytecode.instruction.AThrow;
 import jd.core.model.instruction.bytecode.instruction.AssertInstruction;
@@ -79,6 +82,8 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
     private final ClassFile classFile;
     private final LocalVariables localVariables;
     private final TypeMaker typeMaker;
+    /** The type parameters of the method that is visited, null if they are unknown. */
+    private final BaseTypeParameter methodTypeParameters;
     /** Arguments of the calls met so far: their static type takes part in the choice of an overload. */
     private final Set<Instruction> callArguments = Collections.newSetFromMap(new IdentityHashMap<>());
     private final Map<Instruction, Instruction> parentOf = new IdentityHashMap<>();
@@ -86,9 +91,25 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
 
     public ReplaceRedundantCastVisitor(ClassFile classFile, LocalVariables localVariables)
     {
+        this(classFile, localVariables, null);
+    }
+
+    /** @param method the method that is visited: its type variables are those of the arguments */
+    public ReplaceRedundantCastVisitor(ClassFile classFile, LocalVariables localVariables, Method method)
+    {
         this.classFile = classFile;
         this.localVariables = localVariables;
         this.typeMaker = new TypeMaker(classFile.getLoader());
+        this.methodTypeParameters = method == null ? null : methodTypeParameters(method);
+    }
+
+    private BaseTypeParameter methodTypeParameters(Method method)
+    {
+        ConstantPool constants = classFile.getConstantPool();
+        Signature signature = method.getAttributeSignature();
+        MethodTypes methodTypes = typeMaker.makeMethodTypes(classFile.getThisClassName(), method.getName(constants),
+            signature == null ? method.getDescriptor(constants) : signature.getSignature());
+        return methodTypes == null ? null : methodTypes.getTypeParameters();
     }
 
     @Override
@@ -164,7 +185,37 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
         }
         return receiverType(call) instanceof ObjectType receiverType && owner.equals(receiverType.getInternalName())
             && receiverType.getTypeArguments() != null
-            && valueType.equals(typeArgument(owner, parameter.getName(), receiverType.getTypeArguments()));
+            && valueType.equals(typeArgument(owner, parameter.getName(), receiverType.getTypeArguments()))
+            && constants.getConstantClassName(cast.getIndex()).equals(erasureOf(((GenericType) valueType).getName()));
+    }
+
+    /**
+     * The erasure of a type variable is its first bound, or Object: a cast to another class is a runtime check of the
+     * source, not the cast that the compiler adds. The variable is looked for in the method, then in the class.
+     *
+     * @return the internal name of the erasure, null if the variable is not declared by the method or the class
+     */
+    private String erasureOf(String variable)
+    {
+        String erasure = erasureIn(methodTypeParameters, variable);
+        if (erasure == null) {
+            TypeTypes classTypes = typeMaker.makeTypeTypes(classFile.getThisClassName());
+            erasure = erasureIn(classTypes == null ? null : classTypes.getTypeParameters(), variable);
+        }
+        return erasure;
+    }
+
+    private static String erasureIn(BaseTypeParameter parameters, String variable)
+    {
+        if (parameters != null) {
+            for (TypeParameter parameter : parameters) {
+                if (parameter.getIdentifier().equals(variable)) {
+                    return parameter instanceof TypeParameterWithTypeBounds withBounds
+                        ? withBounds.getTypeBounds().getFirst().getInternalName() : "java/lang/Object";
+                }
+            }
+        }
+        return null;
     }
 
     private Type receiverType(InvokeNoStaticInstruction call)

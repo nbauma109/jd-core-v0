@@ -130,4 +130,22 @@ public class TryResourcesLookAlikes {
             throw t;
         }
     }
+
+    /** An early return leaves the resource open: only the exceptional path closes it, the body ends with a throw. */
+    static void earlyReturn(InputStream in, boolean stop) throws Exception {
+        InputStream resource = in;
+        try {
+            if (stop) {
+                return;
+            }
+            throw new Exception("never completes normally");
+        } catch (Throwable t) {
+            try {
+                resource.close();
+            } catch (Throwable suppressed) {
+                t.addSuppressed(suppressed);
+            }
+            throw t;
+        }
+    }
 }

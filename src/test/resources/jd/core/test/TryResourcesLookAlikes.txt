@@ -130,4 +130,22 @@
 /* 130 */       throw t;
 /*     */     }
 /*     */   }
+/*     */   
+/*     */   static void earlyReturn(InputStream in, boolean stop) throws Exception
+/*     */   {
+/* 136 */     InputStream resource = in;
+/*     */     try {
+/* 138 */       if (stop) {
+/* 139 */         return;
+/*     */       }
+/* 141 */       throw new Exception("never completes normally");
+/*     */     } catch (Throwable t) {
+/*     */       try {
+/* 144 */         resource.close();
+/*     */       } catch (Throwable suppressed) {
+/* 146 */         t.addSuppressed(suppressed);
+/*     */       }
+/* 148 */       throw t;
+/*     */     }
+/*     */   }
 /*     */ }
