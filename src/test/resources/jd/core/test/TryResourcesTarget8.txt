@@ -41,6 +41,20 @@
 /* 41 */     try (InputStream in = Files.newInputStream(source); OutputStream out = Files.newOutputStream(target);) {
 /* 42 */       out.write(in.read());
 /*    */     }
+/*    */   }
+/*    */   
+/*    */   public static void throwing(Path path) throws IOException {
+/* 47 */     try (InputStream in = Files.newInputStream(path)) {
+/* 48 */       throw new IllegalStateException("never completes normally");
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   public static void endless(Path path) throws IOException {
+/* 53 */     try (InputStream in = Files.newInputStream(path)) {
+/*    */       for (;;) {
+/* 55 */         in.read();
+/*    */       }
+/*    */     }
 /*    */     
 /*    */   }
 /*    */ }

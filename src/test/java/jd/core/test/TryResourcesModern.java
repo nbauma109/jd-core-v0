@@ -42,4 +42,18 @@ public class TryResourcesModern {
             out.write(in.read());
         }
     }
+
+    public static void throwing(Path path) throws IOException {
+        try (InputStream in = Files.newInputStream(path)) {
+            throw new IllegalStateException("never completes normally");
+        }
+    }
+
+    public static void endless(Path path) throws IOException {
+        try (InputStream in = Files.newInputStream(path)) {
+            while (true) {
+                in.read();
+            }
+        }
+    }
 }

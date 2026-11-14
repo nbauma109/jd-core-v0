@@ -52,4 +52,27 @@ public class TryResourcesModern
     }
     
   }
+  
+  public static void throwing(Path paramPath)
+    throws IOException
+  {
+    try (InputStream localInputStream = Files.newInputStream(paramPath))
+    {
+      throw new IllegalStateException("never completes normally");
+    }
+    
+  }
+  
+  public static void endless(Path paramPath)
+    throws IOException
+  {
+    try (InputStream localInputStream = Files.newInputStream(paramPath))
+    {
+      for (;;)
+      {
+        localInputStream.read();
+      }
+    }
+    
+  }
 }

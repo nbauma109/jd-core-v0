@@ -99,10 +99,10 @@ final class ModernTryWithResourcesNormalizer {
             return false;
         }
 
-        // A genuine try-with-resources always closes the resource after the protected region.
-        // Hand written code that only mimics the exceptional path is left untouched.
+        // A genuine try-with-resources closes the resource after the protected region, unless the body never completes
+        // normally. Hand written code that only mimics the exceptional path is left untouched.
         List<Integer> normalPathCloses = findNormalPathCloses(cp, list, remaining, outer, handler.resourceIndex());
-        if (normalPathCloses.isEmpty()) {
+        if (normalPathCloses.isEmpty() && !cannotFallIntoHandler(list.get(handlerIndex - 1))) {
             return false;
         }
 
@@ -157,6 +157,11 @@ final class ModernTryWithResourcesNormalizer {
             return null;
         }
         return new Handler(next + 1, closedIndex, inner);
+    }
+
+    /** The body ends with a throw or a jump back (an endless loop): the code after the region is not reached. */
+    private static boolean cannotFallIntoHandler(Instruction last) {
+        return last instanceof AThrow || last instanceof Goto jump && jump.getBranch() <= 0;
     }
 
     /** @return the instruction at the index, or null after the end of the list */
