@@ -130,7 +130,7 @@
 /*     */   }
 /*     */   
 /*     */ 
-/*     */   void finallyInSynchronized(Object lock, Object other)
+/*     */   void finallyInSynchronized(Object lock)
 /*     */   {
 /* 135 */     synchronized (lock) {
 /*     */       try {
@@ -160,8 +160,8 @@
 /*     */ 
 /* 161 */     return new Object[] { a, 
 /*     */     
-/* 163 */       Integer.valueOf(numbers.length), names[0]
-/* 164 */       .toString() };
+/* 163 */       Integer.valueOf(numbers.length), c
+/* 164 */       .toUpperCase() };
 /*     */   }
 /*     */   
 /*     */   protected abstract int compute();

@@ -131,7 +131,7 @@ public abstract class ReconstructionShapes {
     }
 
     /** A try with a finally and no value, inside a synchronized block. */
-    void finallyInSynchronized(Object lock, Object other) {
+    void finallyInSynchronized(Object lock) {
         synchronized (lock) {
             try {
                 touch();
@@ -152,15 +152,15 @@ public abstract class ReconstructionShapes {
 
     /** Arrays whose values are calls written on their own lines. */
     Object[] spreadCalls(Object a, int b, String c) {
-        String[] names = new String[] {
+        String[] names = {
                 c.trim(),
                 c.trim() };
-        int[] numbers = new int[] {
+        int[] numbers = {
                 b + 1,
                 b + 2 };
         return new Object[] {
                 a,
                 numbers.length,
-                names[0].toString() };
+                c.toUpperCase() };
     }
 }
