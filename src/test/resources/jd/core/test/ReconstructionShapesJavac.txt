@@ -160,8 +160,9 @@
 /*     */ 
 /* 161 */     return new Object[] { a, 
 /*     */     
-/* 163 */       Integer.valueOf(numbers.length), c
-/* 164 */       .toUpperCase() };
+/* 163 */       Integer.valueOf(numbers.length), 
+/* 164 */       Integer.valueOf(names.length), c
+/* 165 */       .toUpperCase() };
 /*     */   }
 /*     */   
 /*     */   protected abstract int compute();

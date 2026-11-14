@@ -161,7 +161,8 @@
 /* 161 */     return new Object[] {
 /* 162 */       a, 
 /* 163 */       Integer.valueOf(numbers.length), 
-/* 164 */       c.toUpperCase() };
+/* 164 */       Integer.valueOf(names.length), 
+/* 165 */       c.toUpperCase() };
 /*     */   }
 /*     */   
 /*     */   protected abstract int compute();

@@ -161,6 +161,7 @@ public abstract class ReconstructionShapes {
         return new Object[] {
                 a,
                 numbers.length,
+                names.length,
                 c.toUpperCase() };
     }
 }
