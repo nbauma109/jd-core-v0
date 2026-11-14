@@ -1,5 +1,14 @@
 /*     */ package org.apache.commons.io;
 /*     */ 
+/*     */ import java.nio.ByteBuffer;
+/*     */ import java.nio.CharBuffer;
+/*     */ import java.nio.charset.CharacterCodingException;
+/*     */ import java.nio.charset.Charset;
+/*     */ import java.nio.charset.CharsetEncoder;
+/*     */ import java.nio.charset.CoderResult;
+/*     */ import java.nio.charset.CodingErrorAction;
+/*     */ import java.nio.charset.StandardCharsets;
+/*     */ import java.text.BreakIterator;
 /*     */ import java.util.Arrays;
 /*     */ import java.util.Locale;
 /*     */ import java.util.Objects;
@@ -36,12 +45,7 @@
 /*     */ 
 /*     */ public enum FileSystem
 /*     */ {
-/*  39 */   GENERIC(false, false, Integer.MAX_VALUE, Integer.MAX_VALUE, new char[] { '\000' }, new String[0], false), 
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*  44 */   LINUX(true, true, 255, 4096, new char[] { '\000', '/' }, new String[0], false), 
+/*  48 */   GENERIC(4096, false, false, 1020, 1048576, new int[] { 0 }, new String[0], false, false, '/', NameLengthStrategy.BYTES) {}, 
 /*     */   
 /*     */ 
 /*     */ 
@@ -51,9 +55,7 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
-/*     */ 
-/*  56 */   MAC_OSX(true, true, 255, 1024, new char[] { '\000', '/', ':' }, new String[0], false), 
+/*  58 */   LINUX(8192, true, true, 255, 4096, new int[] { 0, 47 }, new String[0], false, false, '/', NameLengthStrategy.BYTES), 
 /*     */   
 /*     */ 
 /*     */ 
@@ -65,29 +67,42 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*  77 */   WINDOWS(false, true, 255, 32000, new char[] { '\000', '\001', '\002', '\003', '\004', '\005', '\006', '\007', '\b', '\t', '\n', '\013', '\f', '\r', '\016', '\017', '\020', '\021', '\022', '\023', '\024', '\025', '\026', '\027', '\030', '\031', '\032', '\033', '\034', '\035', '\036', '\037', '"', '*', '/', ':', '<', '>', '?', '\\', '|' }, new String[] { "AUX", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "CON", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9", "NUL", "PRN" }, true);
+/*  70 */   MAC_OSX(4096, true, true, 255, 1024, new int[] { 0, 47, 58 }, new String[0], false, false, '/', NameLengthStrategy.BYTES), 
 /*     */   
 /*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*  94 */   WINDOWS(4096, false, true, 255, 32767, new int[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 34, 42, 47, 58, 60, 62, 63, 92, 124 }, new String[] { "AUX", "COM1", "COM2", "COM3", "COM4", "COM5", "COM6", "COM7", "COM8", "COM9", "COM²", "COM³", "COM¹", "CON", "CONIN$", "CONOUT$", "LPT1", "LPT2", "LPT3", "LPT4", "LPT5", "LPT6", "LPT7", "LPT8", "LPT9", "LPT²", "LPT³", "LPT¹", "NUL", "PRN" }, true, true, '\\', NameLengthStrategy.UTF16_CODE_UNITS);
+/*     */   
 /*     */ 
 /*     */   private static final String OS_NAME_WINDOWS_PREFIX = "Windows";
 /*     */   
-/*     */ 
+/*     */   private final int blockSize;
+/*     */   
 /*     */   private final boolean casePreserving;
 /*     */   
-/*     */ 
 /*     */   private final boolean caseSensitive;
 /*     */   
-/*     */ 
-/*     */   private final char[] illegalFileNameChars;
+/*     */   private final int[] illegalFileNameChars;
 /*     */   
 /*     */   private final int maxFileNameLength;
 /*     */   
@@ -95,9 +110,140 @@
 /*     */   
 /*     */   private final String[] reservedFileNames;
 /*     */   
+/*     */   private final boolean reservedFileNamesExtensions;
+/*     */   
 /*     */   private final boolean supportsDriveLetter;
+/*     */   private final char nameSeparator;
+/*     */   private final char nameSeparatorOther;
+/*     */   private final NameLengthStrategy nameLengthStrategy;
 /*     */   
-/* 100 */   private static final boolean IS_OS_LINUX = getOsMatchesName("Linux");
+/*     */   static enum NameLengthStrategy
+/*     */   {
+/* 122 */     BYTES {
+/*     */       @Override
+/*     */       int getLength(CharSequence value, Charset charset) {
+/* 125 */         CharsetEncoder enc = charset.newEncoder()
+/* 126 */           .onMalformedInput(CodingErrorAction.REPORT)
+/* 127 */           .onUnmappableCharacter(CodingErrorAction.REPORT);
+/*     */         try {
+/* 129 */           return enc.encode(CharBuffer.wrap(value)).remaining();
+/*     */         }
+/*     */         catch (CharacterCodingException e) {}
+/* 132 */         return Integer.MAX_VALUE;
+/*     */       }
+/*     */       
+/*     */       @Override
+/*     */       CharSequence truncate(CharSequence value, int limit, Charset charset)
+/*     */       {
+/* 138 */         CharsetEncoder encoder = charset.newEncoder()
+/* 139 */           .onMalformedInput(CodingErrorAction.REPORT)
+/* 140 */           .onUnmappableCharacter(CodingErrorAction.REPORT);
+/* 141 */         if (!encoder.canEncode(value)) {
+/* 142 */           throw new IllegalArgumentException("The value " + value + " cannot be encoded using " + charset.name());
+/*     */         }
+/*     */         
+/* 145 */         if (value.length() <= Math.floor(limit / encoder.maxBytesPerChar())) {
+/* 146 */           return value;
+/*     */         }
+/*     */         
+/*     */ 
+/* 150 */         CharSequence[] parts = FileSystem.splitExtension(value);
+/* 151 */         int extensionLength = getLength(parts[1], charset);
+/* 152 */         if (extensionLength > 0 && extensionLength >= limit)
+/*     */         {
+/* 154 */           throw new IllegalArgumentException("The extension of " + value + " is too long to fit within " + limit + " bytes");
+/*     */         }
+/*     */         
+/* 157 */         ByteBuffer byteBuffer = ByteBuffer.allocate(limit - extensionLength);
+/* 158 */         CharBuffer charBuffer = CharBuffer.wrap(parts[0]);
+/*     */         
+/* 160 */         CoderResult cr = encoder.encode(charBuffer, byteBuffer, true);
+/* 161 */         if (cr.isUnderflow())
+/*     */         {
+/* 163 */           return value;
+/*     */         }
+/* 165 */         CharSequence truncated = FileSystem.safeTruncate(value, charBuffer.position());
+/* 166 */         return extensionLength == 0 ? truncated : truncated.toString() + parts[1];
+/*     */       }
+/*     */     }, 
+/*     */     
+/*     */ 
+/* 171 */     UTF16_CODE_UNITS {
+/*     */       @Override
+/*     */       int getLength(CharSequence value, Charset charset) {
+/* 174 */         return value.length();
+/*     */       }
+/*     */       
+/*     */       @Override
+/*     */       CharSequence truncate(CharSequence value, int limit, Charset charset) {
+/* 179 */         if (!StandardCharsets.UTF_16.newEncoder().canEncode(value)) {
+/* 180 */           throw new IllegalArgumentException("The value " + value + " can not be encoded using " + StandardCharsets.UTF_16.name());
+/*     */         }
+/*     */         
+/* 183 */         if (value.length() <= limit) {
+/* 184 */           return value;
+/*     */         }
+/*     */         
+/*     */ 
+/* 188 */         CharSequence[] parts = FileSystem.splitExtension(value);
+/* 189 */         int extensionLength = parts[1].length();
+/* 190 */         if (extensionLength > 0 && extensionLength >= limit)
+/*     */         {
+/* 192 */           throw new IllegalArgumentException("The extension of " + value + " is too long to fit within " + limit + " characters");
+/*     */         }
+/*     */         
+/* 195 */         CharSequence truncated = FileSystem.safeTruncate(value, limit - extensionLength);
+/* 196 */         return extensionLength == 0 ? truncated : truncated.toString() + parts[1];
+/*     */       }
+/*     */     };
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     abstract int getLength(CharSequence paramCharSequence, Charset paramCharset);
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     final boolean isWithinLimit(CharSequence value, int limit, Charset charset)
+/*     */     {
+/* 218 */       return getLength(value, charset) <= limit;
+/*     */     }
+/*     */     
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */     abstract CharSequence truncate(CharSequence paramCharSequence, int paramInt, Charset paramCharset);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/* 238 */   private static final boolean IS_OS_LINUX = getOsMatchesName("Linux");
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/* 246 */   private static final boolean IS_OS_MAC = getOsMatchesName("Mac");
 /*     */   
 /*     */ 
 /*     */ 
@@ -107,22 +253,33 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/* 110 */   private static final boolean IS_OS_MAC = getOsMatchesName("Mac");
+/*     */ 
+/*     */ 
+/*     */ 
+/* 259 */   private static final boolean IS_OS_WINDOWS = getOsMatchesName("Windows");
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/* 264 */   private static final FileSystem CURRENT = current();
 /*     */   
 /*     */ 
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/* 125 */   private static final boolean IS_OS_WINDOWS = getOsMatchesName("Windows");
+/*     */   private static FileSystem current()
+/*     */   {
+/* 272 */     if (IS_OS_LINUX) {
+/* 273 */       return LINUX;
+/*     */     }
+/* 275 */     if (IS_OS_MAC) {
+/* 276 */       return MAC_OSX;
+/*     */     }
+/* 278 */     if (IS_OS_WINDOWS) {
+/* 279 */       return WINDOWS;
+/*     */     }
+/* 281 */     return GENERIC;
+/*     */   }
 /*     */   
 /*     */ 
 /*     */ 
@@ -130,16 +287,7 @@
 /*     */ 
 /*     */   public static FileSystem getCurrent()
 /*     */   {
-/* 133 */     if (IS_OS_LINUX) {
-/* 134 */       return LINUX;
-/*     */     }
-/* 136 */     if (IS_OS_MAC) {
-/* 137 */       return MAC_OSX;
-/*     */     }
-/* 139 */     if (IS_OS_WINDOWS) {
-/* 140 */       return WINDOWS;
-/*     */     }
-/* 142 */     return GENERIC;
+/* 290 */     return CURRENT;
 /*     */   }
 /*     */   
 /*     */ 
@@ -150,11 +298,9 @@
 /*     */ 
 /*     */   private static boolean getOsMatchesName(String osNamePrefix)
 /*     */   {
-/* 153 */     return isOsNameMatch(getSystemProperty("os.name"), osNamePrefix);
+/* 301 */     return isOsNameMatch(getSystemProperty("os.name"), osNamePrefix);
 /*     */   }
 /*     */   
-/*     */ 
-/*     */ 
 /*     */ 
 /*     */ 
 /*     */ 
@@ -168,15 +314,30 @@
 /*     */   {
 /*     */     try
 /*     */     {
-/* 171 */       return System.getProperty(property);
+/* 317 */       return System.getProperty(property);
 /*     */     }
 /*     */     catch (SecurityException ex) {
-/* 174 */       System.err.println("Caught a SecurityException reading the system property '" + property + "'; the SystemUtils property value will default to null.");
+/* 320 */       System.err.println("Caught a SecurityException reading the system property '" + property + "'; the SystemUtils property value will default to null.");
 /*     */     }
-/* 176 */     return null;
+/* 322 */     return null;
 /*     */   }
 /*     */   
 /*     */ 
+/*     */ 
+/*     */ 
+/*     */   private static int indexOfFirstDot(CharSequence cs)
+/*     */   {
+/* 330 */     if ((cs instanceof String)) {
+/* 331 */       return ((String)cs).indexOf('.');
+/*     */     }
+/* 333 */     for (int i = 0; i < cs.length(); i++) {
+/* 334 */       if (cs.charAt(i) == '.') {
+/* 335 */         return i;
+/*     */       }
+/*     */     }
+/* 338 */     return -1;
+/*     */   }
+/*     */   
 /*     */ 
 /*     */ 
 /*     */ 
@@ -190,10 +351,59 @@
 /*     */ 
 /*     */   private static boolean isOsNameMatch(String osName, String osNamePrefix)
 /*     */   {
-/* 193 */     if (osName == null) {
-/* 194 */       return false;
+/* 354 */     if (osName == null) {
+/* 355 */       return false;
 /*     */     }
-/* 196 */     return osName.toUpperCase(Locale.ROOT).startsWith(osNamePrefix.toUpperCase(Locale.ROOT));
+/* 357 */     return osName.toUpperCase(Locale.ROOT).startsWith(osNamePrefix.toUpperCase(Locale.ROOT));
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   private static String replace(String path, char oldChar, char newChar)
+/*     */   {
+/* 369 */     return path == null ? null : path.replace(oldChar, newChar);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   private static CharSequence safeTruncate(CharSequence value, int limit)
+/*     */   {
+/* 381 */     if (value.length() <= limit) {
+/* 382 */       return value;
+/*     */     }
+/* 384 */     BreakIterator boundary = BreakIterator.getCharacterInstance(Locale.ROOT);
+/* 385 */     String text = value.toString();
+/* 386 */     boundary.setText(text);
+/* 387 */     int end = boundary.preceding(limit + 1);
+/* 388 */     assert (end != -1);
+/* 389 */     if (end == 0) {
+/* 390 */       String limitMessage = limit <= 1 ? "1 character" : limit + " characters";
+/* 391 */       throw new IllegalArgumentException("The value " + value + " can not be truncated to " + limitMessage + " without breaking the first codepoint or grapheme cluster");
+/*     */     }
+/*     */     
+/* 394 */     return text.substring(0, end);
+/*     */   }
+/*     */   
+/* 397 */   static CharSequence[] splitExtension(CharSequence value) { int index = indexOfFirstDot(value);
+/*     */     
+/* 399 */     return index < 1 ? 
+/* 400 */       new CharSequence[] { value, "" } : 
+/* 401 */       new CharSequence[] { value.subSequence(0, index), value.subSequence(index, value.length()) };
+/*     */   }
+/*     */   
+/* 404 */   static CharSequence trimExtension(CharSequence cs) { int index = indexOfFirstDot(cs);
+/*     */     
+/* 406 */     return index < 1 ? cs : cs.subSequence(0, index);
 /*     */   }
 /*     */   
 /*     */ 
@@ -216,15 +426,44 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */   private FileSystem(boolean caseSensitive, boolean casePreserving, int maxFileLength, int maxPathLength, char[] illegalFileNameChars, String[] reservedFileNames, boolean supportsDriveLetter)
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   private FileSystem(int blockSize, boolean caseSensitive, boolean casePreserving, int maxFileLength, int maxPathLength, int[] illegalFileNameChars, String[] reservedFileNames, boolean reservedFileNamesExtensions, boolean supportsDriveLetter, char nameSeparator, NameLengthStrategy nameLengthStrategy)
 /*     */   {
-/* 221 */     this.maxFileNameLength = maxFileLength;
-/* 222 */     this.maxPathLength = maxPathLength;
-/* 223 */     this.illegalFileNameChars = (char[])Objects.requireNonNull(illegalFileNameChars, "illegalFileNameChars");
-/* 224 */     this.reservedFileNames = (String[])Objects.requireNonNull(reservedFileNames, "reservedFileNames");
-/* 225 */     this.caseSensitive = caseSensitive;
-/* 226 */     this.casePreserving = casePreserving;
-/* 227 */     this.supportsDriveLetter = supportsDriveLetter;
+/* 444 */     this.blockSize = blockSize;
+/* 445 */     this.maxFileNameLength = maxFileLength;
+/* 446 */     this.maxPathLength = maxPathLength;
+/* 447 */     this.illegalFileNameChars = (int[])Objects.requireNonNull(illegalFileNameChars, "illegalFileNameChars");
+/* 448 */     this.reservedFileNames = (String[])Objects.requireNonNull(reservedFileNames, "reservedFileNames");
+/*     */     
+/* 450 */     this.reservedFileNamesExtensions = reservedFileNamesExtensions;
+/* 451 */     this.caseSensitive = caseSensitive;
+/* 452 */     this.casePreserving = casePreserving;
+/* 453 */     this.supportsDriveLetter = supportsDriveLetter;
+/* 454 */     this.nameSeparator = nameSeparator;
+/* 455 */     this.nameSeparatorOther = FilenameUtils.flipSeparator(nameSeparator);
+/* 456 */     this.nameLengthStrategy = nameLengthStrategy;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int getBlockSize()
+/*     */   {
+/* 466 */     return this.blockSize;
 /*     */   }
 /*     */   
 /*     */ 
@@ -233,25 +472,92 @@
 /*     */ 
 /*     */   public char[] getIllegalFileNameChars()
 /*     */   {
-/* 236 */     return (char[])this.illegalFileNameChars.clone();
+/* 475 */     char[] chars = new char[this.illegalFileNameChars.length];
+/* 476 */     for (int i = 0; i < this.illegalFileNameChars.length; i++) {
+/* 477 */       chars[i] = ((char)this.illegalFileNameChars[i]);
+/*     */     }
+/* 479 */     return chars;
 /*     */   }
 /*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public int[] getIllegalFileNameCodePoints()
+/*     */   {
+/* 489 */     return (int[])this.illegalFileNameChars.clone();
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */ 
 /*     */ 
 /*     */ 
 /*     */ 
 /*     */   public int getMaxFileNameLength()
 /*     */   {
-/* 245 */     return this.maxFileNameLength;
+/* 519 */     return this.maxFileNameLength;
 /*     */   }
 /*     */   
 /*     */ 
 /*     */ 
 /*     */ 
 /*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public int getMaxPathLength()
 /*     */   {
-/* 254 */     return this.maxPathLength;
+/* 546 */     return this.maxPathLength;
+/*     */   }
+/*     */   
+/*     */   NameLengthStrategy getNameLengthStrategy() {
+/* 550 */     return this.nameLengthStrategy;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public char getNameSeparator()
+/*     */   {
+/* 560 */     return this.nameSeparator;
 /*     */   }
 /*     */   
 /*     */ 
@@ -260,7 +566,7 @@
 /*     */ 
 /*     */   public String[] getReservedFileNames()
 /*     */   {
-/* 263 */     return (String[])this.reservedFileNames.clone();
+/* 569 */     return (String[])this.reservedFileNames.clone();
 /*     */   }
 /*     */   
 /*     */ 
@@ -269,7 +575,7 @@
 /*     */ 
 /*     */   public boolean isCasePreserving()
 /*     */   {
-/* 272 */     return this.casePreserving;
+/* 578 */     return this.casePreserving;
 /*     */   }
 /*     */   
 /*     */ 
@@ -278,7 +584,7 @@
 /*     */ 
 /*     */   public boolean isCaseSensitive()
 /*     */   {
-/* 281 */     return this.caseSensitive;
+/* 587 */     return this.caseSensitive;
 /*     */   }
 /*     */   
 /*     */ 
@@ -287,11 +593,16 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */   private boolean isIllegalFileNameChar(char c)
+/*     */   private boolean isIllegalFileNameChar(int c)
 /*     */   {
-/* 292 */     return Arrays.binarySearch(this.illegalFileNameChars, c) >= 0;
+/* 598 */     return Arrays.binarySearch(this.illegalFileNameChars, c) >= 0;
 /*     */   }
 /*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */ 
 /*     */ 
 /*     */ 
@@ -302,18 +613,32 @@
 /*     */ 
 /*     */   public boolean isLegalFileName(CharSequence candidate)
 /*     */   {
-/* 305 */     if (candidate == null || candidate.length() == 0 || candidate.length() > this.maxFileNameLength) {
-/* 306 */       return false;
-/*     */     }
-/* 308 */     if (isReservedFileName(candidate)) {
-/* 309 */       return false;
-/*     */     }
-/* 311 */     for (int i = 0; i < candidate.length(); i++) {
-/* 312 */       if (isIllegalFileNameChar(candidate.charAt(i))) {
-/* 313 */         return false;
-/*     */       }
-/*     */     }
-/* 316 */     return true;
+/* 616 */     return isLegalFileName(candidate, Charset.defaultCharset());
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public boolean isLegalFileName(CharSequence candidate, Charset charset)
+/*     */   {
+/* 637 */     return candidate != null && 
+/* 638 */       candidate.length() != 0 && 
+/* 639 */       this.nameLengthStrategy.isWithinLimit(candidate, getMaxFileNameLength(), charset) && 
+/* 640 */       !isReservedFileName(candidate) && 
+/* 641 */       candidate.chars().noneMatch(this::isIllegalFileNameChar);
 /*     */   }
 /*     */   
 /*     */ 
@@ -324,7 +649,19 @@
 /*     */ 
 /*     */   public boolean isReservedFileName(CharSequence candidate)
 /*     */   {
-/* 327 */     return Arrays.binarySearch(this.reservedFileNames, candidate) >= 0;
+/* 652 */     CharSequence test = this.reservedFileNamesExtensions ? trimExtension(candidate) : candidate;
+/* 653 */     return Arrays.binarySearch(this.reservedFileNames, test) >= 0;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public String normalizeSeparators(String path)
+/*     */   {
+/* 664 */     return replace(path, this.nameSeparatorOther, this.nameSeparator);
 /*     */   }
 /*     */   
 /*     */ 
@@ -340,7 +677,7 @@
 /*     */ 
 /*     */   public boolean supportsDriveLetter()
 /*     */   {
-/* 343 */     return this.supportsDriveLetter;
+/* 680 */     return this.supportsDriveLetter;
 /*     */   }
 /*     */   
 /*     */ 
@@ -354,24 +691,45 @@
 /*     */ 
 /*     */ 
 /*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   public String toLegalFileName(CharSequence candidate, char replacement, Charset charset)
+/*     */   {
+/* 702 */     Objects.requireNonNull(candidate, "candidate");
+/* 703 */     if (candidate.length() == 0) {
+/* 704 */       throw new IllegalArgumentException("The candidate file name is empty");
+/*     */     }
+/* 706 */     if (isIllegalFileNameChar(replacement))
+/*     */     {
+/* 708 */       throw new IllegalArgumentException(String.format("The replacement character '%s' cannot be one of the %s illegal characters: %s", 
+/* 709 */         replacement == 0 ? "\\0" : Character.valueOf(replacement), name(), Arrays.toString(this.illegalFileNameChars)));
+/*     */     }
+/* 711 */     CharSequence truncated = this.nameLengthStrategy.truncate(candidate, getMaxFileNameLength(), charset);
+/* 712 */     int[] array = truncated.chars().map( i -> isIllegalFileNameChar(i) ? replacement : i).toArray();
+/* 713 */     return new String(array, 0, array.length);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   public String toLegalFileName(String candidate, char replacement)
 /*     */   {
-/* 359 */     if (isIllegalFileNameChar(replacement))
-/*     */     {
-/* 361 */       throw new IllegalArgumentException(String.format("The replacement character '%s' cannot be one of the %s illegal characters: %s", replacement == 0 ? "\\0" : 
-/*     */       
-/* 363 */         Character.valueOf(replacement), name(), Arrays.toString(this.illegalFileNameChars)));
-/*     */     }
-/* 365 */     String truncated = candidate.length() > this.maxFileNameLength ? candidate.substring(0, this.maxFileNameLength) : candidate;
-/*     */     
-/* 367 */     boolean changed = false;
-/* 368 */     char[] charArray = truncated.toCharArray();
-/* 369 */     for (int i = 0; i < charArray.length; i++) {
-/* 370 */       if (isIllegalFileNameChar(charArray[i])) {
-/* 371 */         charArray[i] = replacement;
-/* 372 */         changed = true;
-/*     */       }
-/*     */     }
-/* 375 */     return changed ? String.valueOf(charArray) : truncated;
+/* 733 */     return toLegalFileName(candidate, replacement, Charset.defaultCharset());
 /*     */   }
 /*     */ }

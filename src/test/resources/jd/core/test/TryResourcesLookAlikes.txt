@@ -1,0 +1,133 @@
+/*     */ package jd.core.test;
+/*     */ 
+/*     */ import java.io.IOException;
+/*     */ import java.io.InputStream;
+/*     */ import java.util.List;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public class TryResourcesLookAlikes
+/*     */ {
+/*     */   static void noSuppressed(InputStream in)
+/*     */     throws IOException
+/*     */   {
+/*     */     try
+/*     */     {
+/*  16 */       in.read();
+/*     */     } catch (Throwable t) {
+/*  18 */       in.close();
+/*  19 */       throw t;
+/*     */     }
+/*     */     try {
+/*  22 */       in.available();
+/*     */     } catch (IOException e) {
+/*  24 */       e.printStackTrace();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   static void swappedSuppressed(InputStream in) throws IOException {
+/*     */     try {
+/*  30 */       in.available();
+/*     */     } catch (IOException e) {
+/*  32 */       e.printStackTrace();
+/*     */     }
+/*     */     try {
+/*  35 */       in.read();
+/*     */     } catch (Throwable t) {
+/*     */       try {
+/*  38 */         in.close();
+/*     */       } catch (Throwable suppressed) {
+/*  40 */         suppressed.addSuppressed(t);
+/*     */       }
+/*  42 */       throw t;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   static void wrapped(InputStream in) throws IOException {
+/*     */     try {
+/*  48 */       in.available();
+/*     */     } catch (IOException e) {
+/*  50 */       e.printStackTrace();
+/*     */     }
+/*     */     try {
+/*  53 */       in.read();
+/*     */     } catch (Throwable t) {
+/*     */       try {
+/*  56 */         in.close();
+/*     */       } catch (Throwable suppressed) {
+/*  58 */         t.addSuppressed(suppressed);
+/*     */       }
+/*  60 */       throw new IllegalStateException(t);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   static void otherResource(InputStream in, InputStream other) throws IOException {
+/*     */     try {
+/*  66 */       in.read();
+/*     */     } catch (Throwable t) {
+/*     */       try {
+/*  69 */         other.close();
+/*     */       } catch (Throwable suppressed) {
+/*  71 */         t.addSuppressed(suppressed);
+/*     */       }
+/*  73 */       throw t;
+/*     */     }
+/*     */     try {
+/*  76 */       in.available();
+/*     */     } catch (IOException e) {
+/*  78 */       e.printStackTrace();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   static void notJustAfterStore(InputStream in, List<Integer> out) throws IOException {
+/*     */     try {
+/*  84 */       in.available();
+/*     */     } catch (IOException e) {
+/*  86 */       e.printStackTrace();
+/*     */     }
+/*  88 */     InputStream stream = in;
+/*  89 */     out.add(1);
+/*     */     try {
+/*  91 */       out.add(stream.read());
+/*     */     } catch (Throwable t) {
+/*     */       try {
+/*  94 */         stream.close();
+/*     */       } catch (Throwable suppressed) {
+/*  96 */         t.addSuppressed(suppressed);
+/*     */       }
+/*  98 */       throw t;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   static void notACloseCall(InputStream in) throws IOException {
+/*     */     try {
+/* 104 */       in.available();
+/*     */     } catch (IOException e) {
+/* 106 */       e.printStackTrace();
+/*     */     }
+/*     */     try {
+/* 109 */       in.read();
+/*     */     } catch (Throwable t) {
+/*     */       try {
+/* 112 */         in.available();
+/*     */       } catch (Throwable suppressed) {
+/* 114 */         t.addSuppressed(suppressed);
+/*     */       }
+/* 116 */       throw t;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   static void manualClose(InputStream in, List<Integer> out) throws IOException {
+/*     */     try {
+/* 122 */       out.add(in.read());
+/* 123 */       in.close();
+/*     */     } catch (Throwable t) {
+/*     */       try {
+/* 126 */         in.close();
+/*     */       } catch (Throwable suppressed) {
+/* 128 */         t.addSuppressed(suppressed);
+/*     */       }
+/* 130 */       throw t;
+/*     */     }
+/*     */   }
+/*     */ }

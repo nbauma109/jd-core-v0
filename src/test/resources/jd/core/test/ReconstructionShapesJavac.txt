@@ -1,0 +1,184 @@
+/*     */ package jd.core.test;
+/*     */ 
+/*     */ import java.util.ArrayList;
+/*     */ import java.util.List;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ public abstract class ReconstructionShapes
+/*     */ {
+/*     */   static final String CONTROLS = "backspace\b formfeed\f tab\t newline\n return\r quote\" backslash\\";
+/*  15 */   private int counter = 5;
+/*     */   
+/*     */   protected ReconstructionShapes() {
+/*  18 */     this.counter++;
+/*     */   }
+/*     */   
+/*     */ 
+/*  22 */   static final List<String> LOG = new ArrayList<>();
+/*     */   
+/*     */   static {
+/*  25 */     LOG.add("loaded");
+/*     */   }
+/*     */   
+/*  28 */   static final int[] PRIMES = { 2, 3, 5, 7 };
+/*     */   
+/*     */ 
+/*  31 */   static final String[] NAMES = { "first", "second", "third", "fourth", "fifth", "sixth" };
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   int guarded(List<Integer> values)
+/*     */   {
+/*  42 */     synchronized (values) {
+/*     */       try {
+/*  44 */         return values.get(0).intValue() + this.counter;
+/*     */       } catch (IndexOutOfBoundsException e) {
+/*  46 */         return -1;
+/*     */       } finally {
+/*  48 */         values.clear();
+/*     */       }
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   void asserted(int value, Integer boxed, List<String> names)
+/*     */   {
+/*  55 */     assert (value > 0) : boxed;
+/*  56 */     assert (value < 10) : ((String)names.get(0));
+/*  57 */     assert (value != 5) : Integer.valueOf(value);
+/*     */   }
+/*     */   
+/*     */   int[] spread(int first, int second)
+/*     */   {
+/*  62 */     int[] values = {
+/*  63 */       Math.abs(first), 
+/*  64 */       Math.abs(second) };
+/*  65 */     int[] inline = { first, second };
+/*  66 */     return values.length > 1 ? values : inline;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   int nested(List<Integer> values, Object other)
+/*     */   {
+/*  74 */     synchronized (values) {
+/*  75 */       synchronized (other) {
+/*     */         try {
+/*  77 */           values.add(1);
+/*     */         } finally {
+/*  79 */           other.notifyAll();
+/*     */         }
+/*     */       }
+/*  82 */       return values.size();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   private int touch()
+/*     */   {
+/*  88 */     return this.counter++;
+/*     */   }
+/*     */   
+/*     */   long returnedLong(long value)
+/*     */   {
+/*     */     try {
+/*  94 */       return value * 2L;
+/*     */     } finally {
+/*  96 */       touch();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   double returnedDouble(double value) {
+/*     */     try {
+/* 102 */       return value / 2.0D;
+/*     */     } finally {
+/* 104 */       touch();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   float returnedFloat(float value) {
+/*     */     try {
+/* 110 */       return value + 1.0F;
+/*     */     } finally {
+/* 112 */       touch();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   Object returnedObject(Object value) {
+/*     */     try {
+/* 118 */       return value;
+/*     */     } finally {
+/* 120 */       touch();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   static String[] calls(int a, int b)
+/*     */   {
+/* 126 */     return new String[] {
+/* 127 */       String.valueOf(a), 
+/* 128 */       String.valueOf(b), 
+/* 129 */       String.valueOf(a + b) };
+/*     */   }
+/*     */   
+/*     */ 
+/*     */   void finallyInSynchronized(Object lock)
+/*     */   {
+/* 135 */     synchronized (lock) {
+/*     */       try {
+/* 137 */         touch();
+/*     */       } finally {
+/* 139 */         touch();
+/*     */       }
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   boolean ternaryConditions(int x, int y, int z)
+/*     */   {
+/* 146 */     boolean result = (x > 0 ? y > 0 : z > 0) && (y > 5 ? z > 5 : x > 5);
+/* 147 */     if (x > 0 ? y > 0 : y < 0 && x < -3) {
+/* 148 */       x++;
+/*     */     }
+/* 150 */     return result;
+/*     */   }
+/*     */   
+/*     */   Object[] spreadCalls(Object a, int b, String c)
+/*     */   {
+/* 155 */     String[] names = {c
+/* 156 */       .trim(), c
+/* 157 */       .trim() };
+/* 158 */     int[] numbers = { b + 1, b + 2 };
+/*     */     
+/*     */ 
+/* 161 */     return new Object[] { a, 
+/*     */     
+/* 163 */       Integer.valueOf(numbers.length), 
+/* 164 */       Integer.valueOf(names.length), c
+/* 165 */       .toUpperCase() };
+/*     */   }
+/*     */   
+/*     */   protected abstract int compute();
+/*     */   
+/*     */   static class Names
+/*     */     extends ReconstructionShapes.Source<String>
+/*     */   {
+/*     */     @Override
+/*     */     String[] items()
+/*     */     {
+/* 176 */       return new String[0];
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   static abstract class Source<T>
+/*     */   {
+/*     */     abstract T[] items();
+/*     */   }
+/*     */ }

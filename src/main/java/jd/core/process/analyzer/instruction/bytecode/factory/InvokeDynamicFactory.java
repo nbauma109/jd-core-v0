@@ -49,6 +49,9 @@ import jd.core.model.instruction.bytecode.instruction.ArrayReference;
 import jd.core.model.instruction.bytecode.instruction.ALoad;
 import jd.core.model.instruction.bytecode.instruction.ConstructorReference;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
+import jd.core.model.instruction.bytecode.instruction.DupLoad;
+import jd.core.model.instruction.bytecode.instruction.DupStore;
+import jd.core.model.instruction.bytecode.instruction.Invokestatic;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
 import jd.core.model.instruction.bytecode.instruction.LambdaInstruction;
 import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
@@ -202,9 +205,42 @@ public class InvokeDynamicFactory implements InstructionFactory
         }
 
         // Create method reference
+        removeReceiverNullCheck(constants, list, listForAnalyze, indyParameters);
         stack.push(new MethodReference(opcode, offset, lineNumber, indyParameters, typeName, name1, descriptor1));
 
         return Const.getNoOfOperands(opcode);
+    }
+
+    /**
+     * Removes the null check 'Objects.requireNonNull(receiver)' that javac 9+ generates before the method reference
+     * 'receiver::name': only if the receiver of the method reference is the very value that is checked.
+     */
+    private static void removeReceiverNullCheck(ConstantPool constants, List<Instruction> list,
+            List<Instruction> listForAnalyze, List<Instruction> receivers)
+    {
+        // The statements may all be removed already: the 'getClass()' call of javac 8 is removed above
+        if (!listForAnalyze.isEmpty() && receivers.get(0) instanceof DupLoad receiver
+            && isReceiverNullCheck(constants, listForAnalyze.get(listForAnalyze.size() - 1), receiver.getDupStore()))
+        {
+            listForAnalyze.remove(listForAnalyze.size() - 1);
+            list.remove(list.size() - 1);
+        }
+    }
+
+    private static boolean isReceiverNullCheck(ConstantPool constants, Instruction instruction, DupStore receiver)
+    {
+        return instruction instanceof Invokestatic invokestatic && isRequireNonNull(constants, invokestatic)
+            && invokestatic.getArgs().get(0) instanceof DupLoad checked && checked.getDupStore() == receiver;
+    }
+
+    /** Objects.requireNonNull(Object): the descriptor gives its only argument. */
+    private static boolean isRequireNonNull(ConstantPool constants, Invokestatic invokestatic)
+    {
+        ConstantCP methodref = constants.getConstantMethodref(invokestatic.getIndex());
+        ConstantNameAndType nameAndType = constants.getConstantNameAndType(methodref.getNameAndTypeIndex());
+        return "java/util/Objects.requireNonNull(Ljava/lang/Object;)Ljava/lang/Object;".equals(
+            constants.getConstantClassName(methodref.getClassIndex()) + '.' + constants.getConstantUtf8(nameAndType.getNameIndex())
+            + constants.getConstantUtf8(nameAndType.getSignatureIndex()));
     }
 
     /** Labels that are classes, strings or integers; qualified enum constants are dynamic constants. */

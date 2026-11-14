@@ -13,8 +13,8 @@
 /*     */ import net.sourceforge.plantuml.klimt.font.StringBounder;
 /*     */ import net.sourceforge.plantuml.klimt.geom.HorizontalAlignment;
 /*     */ import net.sourceforge.plantuml.klimt.geom.XDimension2D;
-/*     */ import net.sourceforge.plantuml.klimt.shape.AbstractTextBlock;
 /*     */ import net.sourceforge.plantuml.klimt.shape.TextBlock;
+/*     */ import net.sourceforge.plantuml.klimt.shape.TextBlockMemoized;
 /*     */ import net.sourceforge.plantuml.klimt.shape.TextBlockUtils;
 /*     */ import net.sourceforge.plantuml.klimt.shape.ULine;
 /*     */ import net.sourceforge.plantuml.style.ISkinParam;
@@ -53,177 +53,184 @@
 /*     */ 
 /*     */ 
 /*     */ 
+/*     */ 
+/*     */ 
 /*     */ public class TextBlockCucaJSon
-/*     */   extends AbstractTextBlock
-/*     */   implements WithPorts
+/*     */   implements TextBlock, WithPorts
 /*     */ {
 /*     */   private final ISkinParam skinParam;
 /*     */   private final FontConfiguration fontConfiguration;
 /*     */   private final JsonValue json;
-/*     */   private TextBlockJson jsonTextBlock;
+/*     */   private TextBlock jsonTextBlock;
 /*     */   private double mainTotalWidth;
 /*     */   private final LineBreakStrategy wordWrap;
 /*     */   
 /*     */   public TextBlockCucaJSon(FontConfiguration fontConfiguration, ISkinParam skinParam, JsonValue json, LineBreakStrategy wordWrap)
 /*     */   {
-/*  69 */     this.skinParam = skinParam;
-/*  70 */     this.json = json;
-/*  71 */     this.fontConfiguration = fontConfiguration;
-/*  72 */     this.wordWrap = wordWrap;
+/*  70 */     this.skinParam = skinParam;
+/*  71 */     this.json = json;
+/*  72 */     this.fontConfiguration = fontConfiguration;
+/*  73 */     this.wordWrap = wordWrap;
 /*     */   }
 /*     */   
-/*     */   private TextBlockJson getJsonTextBlock() {
-/*  76 */     if (this.jsonTextBlock == null) {
-/*  77 */       this.jsonTextBlock = new TextBlockJson(this.json, 0.0D);
+/*     */   private TextBlock getJsonTextBlock() {
+/*  77 */     if (this.jsonTextBlock == null) {
+/*  78 */       this.jsonTextBlock = getTextBlockValue(this.json, 0.0D);
 /*     */     }
-/*  79 */     this.jsonTextBlock.jsonTotalWidth = this.mainTotalWidth;
-/*  80 */     return this.jsonTextBlock;
+/*  80 */     if ((this.jsonTextBlock instanceof TextBlockJson))
+/*  81 */       ((TextBlockJson)this.jsonTextBlock).jsonTotalWidth = this.mainTotalWidth;
+/*  82 */     if ((this.jsonTextBlock instanceof TextBlockArray)) {
+/*  83 */       ((TextBlockArray)this.jsonTextBlock).arrayTotalWidth = this.mainTotalWidth;
+/*     */     }
+/*  85 */     return this.jsonTextBlock;
+/*     */   }
+/*     */   
+/*     */   private TextBlock getTextBlockValue(JsonValue value, double width2) {
+/*  89 */     if (value.isString() || value.isNull() || value.isTrue() || value.isFalse() || value.isNumber()) {
+/*  90 */       String tmp = value.isString() ? value.asString() : value.toString();
+/*  91 */       return getTextBlock(tmp);
+/*     */     }
+/*  93 */     if (value.isArray())
+/*  94 */       return new TextBlockArray(value.asArray(), width2);
+/*  95 */     if (value.isObject()) {
+/*  96 */       return new TextBlockJson(value.asObject(), width2);
+/*     */     }
+/*  98 */     String tmp = value.getClass().getSimpleName();
+/*  99 */     return getTextBlock(tmp);
 /*     */   }
 /*     */   
 /*     */   @Override
 /*     */   public Ports getPorts(StringBounder stringBounder) {
-/*  85 */     return new Ports();
+/* 104 */     return new Ports();
 /*     */   }
 /*     */   
 /*     */   @Override
-/*  89 */   public XDimension2D calculateDimension(StringBounder stringBounder) { return getJsonTextBlock().calculateDimension(stringBounder); }
-/*     */   
-/*     */   @Override
-/*     */   public void drawU(UGraphic ug) {
-/*  93 */     getJsonTextBlock().drawU(ug);
+/*     */   public XDimension2D calculateDimension(StringBounder stringBounder)
+/*     */   {
+/* 110 */     return getJsonTextBlock().calculateDimension(stringBounder);
 /*     */   }
 /*     */   
-/*     */   class TextBlockJson extends AbstractTextBlock
+/*     */   @Override
+/* 114 */   public void drawU(UGraphic ug) { getJsonTextBlock().drawU(ug); }
+/*     */   
+/*     */   class TextBlockJson extends TextBlockMemoized
 /*     */   {
 /*     */     private final JsonObject obj;
 /*     */     private double jsonTotalWidth;
 /*     */     
-/*     */     public TextBlockJson(JsonValue json, double totalWidth) {
-/* 102 */       this.obj = json.asObject();
-/* 103 */       this.jsonTotalWidth = totalWidth;
+/*     */     public TextBlockJson(JsonObject json, double totalWidth)
+/*     */     {
+/* 123 */       this.obj = json;
+/* 124 */       this.jsonTotalWidth = totalWidth;
 /*     */     }
 /*     */     
 /*     */     @Override
-/*     */     public XDimension2D calculateDimension(StringBounder stringBounder) {
-/* 108 */       return new XDimension2D(getWidth1(stringBounder) + getWidth2(stringBounder), getHeight(stringBounder));
+/*     */     public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
+/* 129 */       return new XDimension2D(getWidth1(stringBounder) + getWidth2(stringBounder), getHeight(stringBounder));
 /*     */     }
 /*     */     
 /*     */     private double getWidth1(StringBounder stringBounder) {
-/* 112 */       double result = 0.0D;
-/* 113 */       for (Member s : this.obj) {
-/* 114 */         TextBlock tb1 = TextBlockCucaJSon.this.getTextBlock(s.getName());
-/* 115 */         result = Math.max(result, tb1.calculateDimension(stringBounder).getWidth());
-/*     */       }
-/* 117 */       return result;
-/*     */     }
-/*     */     
-/*     */     private double getWidth2(StringBounder stringBounder) {
-/* 121 */       double result = 0.0D;
-/* 122 */       for (Member s : this.obj) {
-/* 123 */         TextBlock tb2 = TextBlockCucaJSon.this.getTextBlockValue(s.getValue(), this.jsonTotalWidth);
-/* 124 */         result = Math.max(result, tb2.calculateDimension(stringBounder).getWidth());
-/*     */       }
-/* 126 */       return result;
-/*     */     }
-/*     */     
-/*     */     private double getHeight(StringBounder stringBounder) {
-/* 130 */       double result = 0.0D;
-/* 131 */       for (Member s : this.obj) {
-/* 132 */         TextBlock tb1 = TextBlockCucaJSon.this.getTextBlock(s.getName());
-/* 133 */         TextBlock tb2 = TextBlockCucaJSon.this.getTextBlockValue(s.getValue(), this.jsonTotalWidth);
-/* 134 */         XDimension2D dim1 = tb1.calculateDimension(stringBounder);
-/* 135 */         XDimension2D dim2 = tb2.calculateDimension(stringBounder);
-/* 136 */         result += Math.max(dim1.getHeight(), dim2.getHeight());
+/* 133 */       double result = 0.0D;
+/* 134 */       for (Member s : this.obj) {
+/* 135 */         TextBlock tb1 = TextBlockCucaJSon.this.getTextBlock(s.getName());
+/* 136 */         result = Math.max(result, tb1.calculateDimension(stringBounder).getWidth());
 /*     */       }
 /* 138 */       return result;
 /*     */     }
 /*     */     
+/*     */     private double getWidth2(StringBounder stringBounder) {
+/* 142 */       double result = 0.0D;
+/* 143 */       for (Member s : this.obj) {
+/* 144 */         TextBlock tb2 = TextBlockCucaJSon.this.getTextBlockValue(s.getValue(), this.jsonTotalWidth);
+/* 145 */         result = Math.max(result, tb2.calculateDimension(stringBounder).getWidth());
+/*     */       }
+/* 147 */       return result;
+/*     */     }
+/*     */     
+/*     */     private double getHeight(StringBounder stringBounder) {
+/* 151 */       double result = 0.0D;
+/* 152 */       for (Member s : this.obj) {
+/* 153 */         TextBlock tb1 = TextBlockCucaJSon.this.getTextBlock(s.getName());
+/* 154 */         TextBlock tb2 = TextBlockCucaJSon.this.getTextBlockValue(s.getValue(), this.jsonTotalWidth);
+/* 155 */         XDimension2D dim1 = tb1.calculateDimension(stringBounder);
+/* 156 */         XDimension2D dim2 = tb2.calculateDimension(stringBounder);
+/* 157 */         result += Math.max(dim1.getHeight(), dim2.getHeight());
+/*     */       }
+/* 159 */       return result;
+/*     */     }
+/*     */     
 /*     */     @Override
 /*     */     public void drawU(UGraphic ug) {
-/* 143 */       StringBounder stringBounder = ug.getStringBounder();
-/* 144 */       double width1 = getWidth1(stringBounder);
-/* 145 */       double height = getHeight(stringBounder);
-/* 146 */       ug.apply(UTranslate.dx(width1)).draw(ULine.vline(height));
-/* 147 */       ULine hline = ULine.hline(this.jsonTotalWidth);
-/* 148 */       for (Member s : this.obj) {
-/* 149 */         TextBlock tb1 = TextBlockCucaJSon.this.getTextBlock(s.getName());
-/* 150 */         TextBlock tb2 = TextBlockCucaJSon.this.getTextBlockValue(s.getValue(), this.jsonTotalWidth - width1);
-/* 151 */         XDimension2D dim1 = tb1.calculateDimension(stringBounder);
-/* 152 */         XDimension2D dim2 = tb2.calculateDimension(stringBounder);
-/* 153 */         ug.draw(hline);
-/* 154 */         tb1.drawU(ug);
-/* 155 */         tb2.drawU(ug.apply(UTranslate.dx(width1)));
-/* 156 */         ug = ug.apply(UTranslate.dy(Math.max(dim1.getHeight(), dim2.getHeight())));
+/* 164 */       StringBounder stringBounder = ug.getStringBounder();
+/* 165 */       double width1 = getWidth1(stringBounder);
+/* 166 */       double height = getHeight(stringBounder);
+/* 167 */       ug.apply(UTranslate.dx(width1)).draw(ULine.vline(height));
+/* 168 */       ULine hline = ULine.hline(this.jsonTotalWidth);
+/* 169 */       for (Member s : this.obj) {
+/* 170 */         TextBlock tb1 = TextBlockCucaJSon.this.getTextBlock(s.getName());
+/* 171 */         TextBlock tb2 = TextBlockCucaJSon.this.getTextBlockValue(s.getValue(), this.jsonTotalWidth - width1);
+/* 172 */         XDimension2D dim1 = tb1.calculateDimension(stringBounder);
+/* 173 */         XDimension2D dim2 = tb2.calculateDimension(stringBounder);
+/* 174 */         ug.draw(hline);
+/* 175 */         tb1.drawU(ug);
+/* 176 */         tb2.drawU(ug.apply(UTranslate.dx(width1)));
+/* 177 */         ug = ug.apply(UTranslate.dy(Math.max(dim1.getHeight(), dim2.getHeight())));
 /*     */       }
 /*     */     }
 /*     */   }
 /*     */   
 /*     */ 
-/*     */   private TextBlock getTextBlockValue(JsonValue value, double width2)
+/*     */   private TextBlock getTextBlock(String key)
 /*     */   {
-/* 164 */     if (value.isString() || value.isNull() || value.isTrue() || value.isFalse() || value.isNumber()) {
-/* 165 */       String tmp = value.isString() ? value.asString() : value.toString();
-/* 166 */       return getTextBlock(tmp);
-/*     */     }
-/* 168 */     if (value.isArray())
-/* 169 */       return new TextBlockArray(value.asArray(), width2);
-/* 170 */     if (value.isObject()) {
-/* 171 */       return new TextBlockJson(value, width2);
-/*     */     }
-/* 173 */     String tmp = value.getClass().getSimpleName();
-/* 174 */     return getTextBlock(tmp);
-/*     */   }
-/*     */   
-/*     */   private TextBlock getTextBlock(String key) {
-/* 178 */     Display display = Display.getWithNewlines(key);
-/* 179 */     TextBlock result = display.create0(getFontConfiguration(), HorizontalAlignment.LEFT, this.skinParam, this.wordWrap, CreoleMode.FULL, null, null);
+/* 185 */     Display display = Display.getWithNewlines(this.skinParam.getPragma(), key);
+/* 186 */     TextBlock result = display.create0(getFontConfiguration(), HorizontalAlignment.LEFT, this.skinParam, this.wordWrap, CreoleMode.FULL, null, null);
 /*     */     
-/* 181 */     result = TextBlockUtils.withMargin(result, 5.0D, 2.0D);
-/* 182 */     return result;
+/* 188 */     result = TextBlockUtils.withMargin(result, 5.0D, 2.0D);
+/* 189 */     return result;
 /*     */   }
 /*     */   
-/*     */   class TextBlockArray extends AbstractTextBlock
+/*     */   class TextBlockArray extends TextBlockMemoized
 /*     */   {
 /*     */     private final JsonArray array;
-/*     */     private final double arrayTotalWidth;
+/*     */     private double arrayTotalWidth;
 /*     */     
 /*     */     public TextBlockArray(JsonArray array, double totalWidth) {
-/* 191 */       this.array = array;
-/* 192 */       this.arrayTotalWidth = totalWidth;
+/* 198 */       this.array = array;
+/* 199 */       this.arrayTotalWidth = totalWidth;
 /*     */     }
 /*     */     
 /*     */     @Override
-/*     */     public XDimension2D calculateDimension(StringBounder stringBounder) {
-/* 197 */       XDimension2D result = new XDimension2D(0.0D, 0.0D);
-/* 198 */       for (JsonValue element : this.array) {
-/* 199 */         TextBlock tb = TextBlockCucaJSon.this.getTextBlockValue(element, this.arrayTotalWidth);
-/* 200 */         XDimension2D dim = tb.calculateDimension(stringBounder);
-/* 201 */         result = result.mergeTB(dim);
+/*     */     public XDimension2D calculateDimensionSlow(StringBounder stringBounder) {
+/* 204 */       XDimension2D result = new XDimension2D(0.0D, 0.0D);
+/* 205 */       for (JsonValue element : this.array) {
+/* 206 */         TextBlock tb = TextBlockCucaJSon.this.getTextBlockValue(element, this.arrayTotalWidth);
+/* 207 */         XDimension2D dim = tb.calculateDimension(stringBounder);
+/* 208 */         result = result.mergeTB(dim);
 /*     */       }
-/* 203 */       return result;
+/* 210 */       return result;
 /*     */     }
 /*     */     
 /*     */     @Override
 /*     */     public void drawU(UGraphic ug) {
-/* 208 */       ULine hline = ULine.hline(this.arrayTotalWidth);
-/* 209 */       int nb = 0;
-/* 210 */       for (JsonValue element : this.array) {
-/* 211 */         TextBlock tb = TextBlockCucaJSon.this.getTextBlockValue(element, this.arrayTotalWidth);
-/* 212 */         if (nb > 0)
-/* 213 */           ug.draw(hline);
-/* 214 */         nb++;
-/* 215 */         tb.drawU(ug);
-/* 216 */         ug = ug.apply(UTranslate.dy(tb.calculateDimension(ug.getStringBounder()).getHeight()));
+/* 215 */       ULine hline = ULine.hline(this.arrayTotalWidth);
+/* 216 */       int nb = 0;
+/* 217 */       for (JsonValue element : this.array) {
+/* 218 */         TextBlock tb = TextBlockCucaJSon.this.getTextBlockValue(element, this.arrayTotalWidth);
+/* 219 */         if (nb > 0)
+/* 220 */           ug.draw(hline);
+/* 221 */         nb++;
+/* 222 */         tb.drawU(ug);
+/* 223 */         ug = ug.apply(UTranslate.dy(tb.calculateDimension(ug.getStringBounder()).getHeight()));
 /*     */       }
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   private FontConfiguration getFontConfiguration()
 /*     */   {
-/* 223 */     return this.fontConfiguration;
+/* 230 */     return this.fontConfiguration;
 /*     */   }
 /*     */   
 /*     */   public void setTotalWidth(double totalWidth) {
-/* 227 */     this.mainTotalWidth = totalWidth;
+/* 234 */     this.mainTotalWidth = totalWidth;
 /*     */   }
 /*     */ }

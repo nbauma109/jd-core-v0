@@ -733,9 +733,10 @@ public class ClassFile extends Base
                     if (nbrOfParameters1 == nbrOfParameters2) {
                         List<String> methodParameters = SignatureUtil.getParameterSignatures(methodDescriptor);
                         List<String> genericParameters = SignatureUtil.getParameterSignatures(signature);
-                        if (methodParameters.equals(genericParameters) ||
+                        if ((methodParameters.equals(genericParameters) ||
                         genericParameters.stream().allMatch(SignatureUtil::isGenericSignature)
-                         && methodParameters.stream().noneMatch(SignatureUtil::isPrimitiveSignature)) {
+                         && methodParameters.stream().noneMatch(SignatureUtil::isPrimitiveSignature))
+                         && isReturnTypeCompatible(methodDescriptor, descriptor, signature)) {
                             return method;
                         }
                     }
@@ -743,6 +744,22 @@ public class ClassFile extends Base
             }
         }
         return findMethodInSuperClassAndInterfaces(methodName, methodDescriptor);
+    }
+
+    /**
+     * A method matched through its generic signature must not return a type unrelated to the searched one:
+     * 'Map.Entry firstEntry()' of the JDK is not overridden by 'TrieEntry firstEntry()'.
+     * The returned type is free only if the method returns a type variable, that an override may narrow.
+     */
+    private static boolean isReturnTypeCompatible(String searchedDescriptor, String descriptor, String signature)
+    {
+        String searchedReturn = searchedDescriptor.substring(searchedDescriptor.lastIndexOf(')') + 1);
+        String declaredReturn = descriptor.substring(descriptor.lastIndexOf(')') + 1);
+        if (searchedReturn.equals(declaredReturn)) {
+            return true;
+        }
+        String genericReturn = signature.substring(signature.lastIndexOf(')') + 1);
+        return genericReturn.startsWith("T") || genericReturn.startsWith("[T");
     }
 
     public Method findMethodInSuperClassAndInterfaces(String methodName, String methodDescriptor)

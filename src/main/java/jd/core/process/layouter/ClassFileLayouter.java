@@ -416,7 +416,19 @@ public final class ClassFileLayouter {
         List<Instruction> list = method.getFastNodes();
 
         return method.getCode() != null && !method.containsError() && list != null
-                && (list.size() != 1 || list.get(0) instanceof AThrow);
+                && isBlockBody(list);
+    }
+
+    /** Only an expression can be the body of a lambda written without braces: '(x) -> if (x) {...}' is invalid. */
+    private static boolean isBlockBody(List<Instruction> list)
+    {
+        if (list.size() != 1) {
+            return true;
+        }
+        Instruction instruction = list.get(0);
+        int opcode = instruction.getOpcode();
+        return instruction instanceof AThrow
+                || opcode >= FastConstants.WHILE && opcode <= FastConstants.BLOCK;
     }
 
     public static int createBlocksForBodyOfLambda(
@@ -4045,7 +4057,7 @@ public final class ClassFileLayouter {
                 InnerTypeBodyBlockStartLayoutBlock mbbslb =
                     new InnerTypeBodyBlockStartLayoutBlock();
                 int n = list.size();
-                boolean block = n!=1 || list.get(n-1) instanceof AThrow;
+                boolean block = isBlockBody(list);
                 if (block) {
                     subLayoutBlockList.add(mbbslb);
                 } else {

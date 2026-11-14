@@ -1,0 +1,19 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ public class StringConcatShapes
+/*    */ {
+/*    */   private final String name;
+/*    */   
+/*    */ 
+/*    */   public StringConcatShapes(String name)
+/*    */   {
+/* 12 */     this.name = name;
+/*    */   }
+/*    */   
+/*    */   int check(int value) {
+/* 16 */     assert (value > 0) : ("value " + value + " of " + this.name);
+/* 17 */     return value;
+/*    */   }
+/*    */ }

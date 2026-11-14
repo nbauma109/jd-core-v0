@@ -117,7 +117,79 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
         {
             return invoke;
         }
+        // An argument already has the type of the parameter: the compiler only erased its type variable
+        if (parentFound instanceof InvokeNoStaticInstruction call && instruction instanceof CheckCast cast
+            && cast.getObjectref() instanceof InvokeNoStaticInstruction invoke && isRedundantArgument(call, cast, invoke))
+        {
+            return invoke;
+        }
         return null;
+    }
+
+    /**
+     * {@code list.add((Collection) factory.get())} with a {@code List<R>} and a {@code Factory<R>}:
+     * the cast is the erasure of the type variable {@code R}, which is already the type of the argument.
+     */
+    private boolean isRedundantArgument(InvokeNoStaticInstruction call, CheckCast cast, InvokeNoStaticInstruction invoke)
+    {
+        int index = -1;
+        for (int i = 0; i < call.getArgs().size(); i++) {
+            if (call.getArgs().get(i) == cast) {
+                index = i;
+            }
+        }
+        if (index < 0 || isGenericOrOverloaded(call)) {
+            return false;
+        }
+
+        // Type of the value, as seen from the receiver of the call that produces it
+        TypeArgument valueType = returnedTypeArgument(invoke);
+        if (!(valueType instanceof GenericType)) {
+            return false;
+        }
+
+        // Type of the parameter, as seen from the receiver of the call that takes it
+        ConstantPool constants = classFile.getConstantPool();
+        ConstantCP methodref = constants.getConstantMethodref(call.getIndex());
+        ConstantNameAndType nameAndType = constants.getConstantNameAndType(methodref.getNameAndTypeIndex());
+        String owner = constants.getConstantClassName(methodref.getClassIndex());
+        MethodTypes methodTypes = typeMaker.makeMethodTypes(owner,
+            constants.getConstantUtf8(nameAndType.getNameIndex()), constants.getConstantUtf8(nameAndType.getSignatureIndex()));
+        // The argument exists, so does the parameter. An array of a type variable is not the type variable: the cast is kept
+        if (methodTypes == null
+            || !(methodTypes.getParameterTypes().getList().get(index) instanceof GenericType parameter)
+            || parameter.getDimension() != 0 || declaresTypeParameter(methodTypes, parameter.getName()))
+        {
+            return false;
+        }
+        return receiverType(call) instanceof ObjectType receiverType && owner.equals(receiverType.getInternalName())
+            && receiverType.getTypeArguments() != null
+            && valueType.equals(typeArgument(owner, parameter.getName(), receiverType.getTypeArguments()));
+    }
+
+    private Type receiverType(InvokeNoStaticInstruction call)
+    {
+        String signature = call.getObjectref().getReturnedSignature(classFile, localVariables);
+        return signature == null || signature.indexOf('<') == -1 ? null : typeMaker.makeFromSignature(signature);
+    }
+
+    /** The returned type of a call selecting a type variable of the class of its receiver, as the receiver parameterizes it. */
+    private TypeArgument returnedTypeArgument(InvokeNoStaticInstruction invoke)
+    {
+        ConstantPool constants = classFile.getConstantPool();
+        ConstantCP methodref = constants.getConstantMethodref(invoke.getIndex());
+        ConstantNameAndType nameAndType = constants.getConstantNameAndType(methodref.getNameAndTypeIndex());
+        String owner = constants.getConstantClassName(methodref.getClassIndex());
+        MethodTypes methodTypes = typeMaker.makeMethodTypes(owner,
+            constants.getConstantUtf8(nameAndType.getNameIndex()), constants.getConstantUtf8(nameAndType.getSignatureIndex()));
+        if (methodTypes == null || !(methodTypes.getReturnedType() instanceof GenericType returned)
+            || returned.getDimension() != 0 || declaresTypeParameter(methodTypes, returned.getName()))
+        {
+            return null;
+        }
+        return receiverType(invoke) instanceof ObjectType receiverType && owner.equals(receiverType.getInternalName())
+            && receiverType.getTypeArguments() != null
+            ? typeArgument(owner, returned.getName(), receiverType.getTypeArguments()) : null;
     }
 
     @Override

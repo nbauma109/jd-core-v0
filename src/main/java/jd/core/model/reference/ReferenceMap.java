@@ -33,6 +33,8 @@ public class ReferenceMap
     private final Set<String> typeParameterNames;
     private final Set<String> permittedSimpleNames;
     private final Set<String> promotedLocalTypeNames;
+    /** Member types sharing their simple name with another one: none of them can be imported. */
+    private final Set<String> clashingMemberTypes;
 
     public ReferenceMap()
     {
@@ -42,6 +44,7 @@ public class ReferenceMap
         this.typeParameterNames = new HashSet<>();
         this.permittedSimpleNames = new HashSet<>();
         this.promotedLocalTypeNames = new HashSet<>();
+        this.clashingMemberTypes = new HashSet<>();
     }
 
     public void addJavaLangReference(String internalName) {
@@ -87,12 +90,19 @@ public class ReferenceMap
         }
         else
         {
+            if (this.clashingMemberTypes.contains(internalName)) {
+                return;
+            }
+
             Reference ref = this.references.get(internalName);
 
             if (ref == null) {
-                this.references.put(internalName, new Reference(internalName));
                 int lastIndexOfSlash = internalName.lastIndexOf(StringConstants.INTERNAL_PACKAGE_SEPARATOR);
                 int lastIndexOfDollar = internalName.lastIndexOf('$');
+                if (clashesWithImportedMemberType(internalName, lastIndexOfDollar)) {
+                    return;
+                }
+                this.references.put(internalName, new Reference(internalName));
                 if (lastIndexOfDollar != -1) {
                     this.simpleNameToInternalName.put(internalName.substring(lastIndexOfDollar + 1), internalName);
                 } else {
@@ -102,6 +112,27 @@ public class ReferenceMap
                 ref.incCounter();
             }
         }
+    }
+
+    /**
+     * 'a.A.Builder' and 'b.B.Builder': the simple name cannot be imported twice, so none of them is imported.
+     *
+     * @return true if the member type clashes with an imported one, which is then removed
+     */
+    private boolean clashesWithImportedMemberType(String internalName, int lastIndexOfDollar)
+    {
+        if (lastIndexOfDollar == -1) {
+            return false;
+        }
+        String imported = this.simpleNameToInternalName.get(internalName.substring(lastIndexOfDollar + 1));
+        if (imported == null || imported.equals(internalName) || imported.indexOf('$') == -1
+                || !this.references.containsKey(imported)) {
+            return false;
+        }
+        this.references.remove(imported);
+        this.clashingMemberTypes.add(imported);
+        this.clashingMemberTypes.add(internalName);
+        return true;
     }
 
     public Reference remove(String internalName)
