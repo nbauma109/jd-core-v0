@@ -87,4 +87,66 @@ public class JavacConstructs {
             return stream.read();
         }
     }
+
+    static int withCatch(InputStream in) {
+        try (InputStream stream = in) {
+            return stream.read();
+        } catch (IOException e) {
+            return -1;
+        }
+    }
+
+    static int withFinally(InputStream in, List<String> log) throws IOException {
+        try (InputStream stream = in) {
+            return stream.read();
+        } finally {
+            log.add("done");
+        }
+    }
+
+    static int loop(List<InputStream> streams) throws IOException {
+        int total = 0;
+        for (InputStream in : streams) {
+            try (InputStream stream = in) {
+                int b = stream.read();
+                if (b < 0) {
+                    break;
+                }
+                if (b == 0) {
+                    continue;
+                }
+                total += b;
+            }
+        }
+        return total;
+    }
+
+    static void nested(InputStream first, InputStream second, List<Integer> out) throws IOException {
+        try (InputStream a = first) {
+            try (InputStream b = second) {
+                out.add(a.read() + b.read());
+            }
+            out.add(a.read());
+        }
+    }
+
+    static void created(File file, List<Integer> out) throws IOException {
+        try (java.io.FileInputStream stream = new java.io.FileInputStream(file)) {
+            out.add(stream.read());
+        }
+    }
+
+    static void manualClose(InputStream in, List<Integer> out) throws IOException {
+        try {
+            out.add(in.read());
+            in.close();
+        } catch (Throwable t) {
+            try {
+                in.close();
+            } catch (Throwable suppressed) {
+                t.addSuppressed(suppressed);
+            }
+            throw t;
+        }
+    }
 }
