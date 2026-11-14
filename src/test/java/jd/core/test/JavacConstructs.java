@@ -198,4 +198,15 @@ public class JavacConstructs {
         java.util.Objects.requireNonNull(copy = input);
         return () -> { };
     }
+
+    String describe() {
+        return "constructs";
+    }
+
+    /** An explicit null check before a method reference that has another receiver: the check is kept. */
+    Supplier<String> boundToThis(Object input) {
+        Object copy; // NOSONAR the unused assignment is the point: javac keeps its value on the stack for the null check
+        java.util.Objects.requireNonNull(copy = input);
+        return this::describe;
+    }
 }

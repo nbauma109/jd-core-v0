@@ -17,5 +17,6 @@ public class JavacConstructsTest extends AbstractTestCase {
         assertFalse(output, output.contains("$assertionsDisabled"));
         assertFalse(output, output.contains("localThrowable"));
         assertTrue(output, output.contains("requireNonNull"));
+        assertTrue(output, output.contains("this::describe"));
     }
 }

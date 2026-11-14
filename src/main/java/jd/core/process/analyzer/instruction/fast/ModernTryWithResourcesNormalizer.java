@@ -132,34 +132,41 @@ final class ModernTryWithResourcesNormalizer {
         int next = handlerIndex + 1;
 
         // Optional null check of the resource
-        int resourceIndex = -1;
-        if (list.get(next) instanceof IfInstruction ifNull && isNullCheck(ifNull)) {
-            resourceIndex = ((ALoad) ifNull.getValue()).getIndex();
+        int resourceIndex = nullCheckedIndex(list.get(next));
+        if (resourceIndex != -1) {
             next++;
         }
 
         // The close of the resource is protected by the inner exception table entry
-        int closedIndex = next < list.size() ? closedResourceIndex(cp, list.get(next)) : -1;
+        int closedIndex = closedResourceIndex(cp, at(list, next));
         if (closedIndex == -1 || resourceIndex != -1 && resourceIndex != closedIndex) {
             return null;
         }
-        resourceIndex = closedIndex;
         next++;
 
         // goto to the throw instruction, then the handler of the close
-        if (next + 1 >= list.size() || !(list.get(next) instanceof Goto) || !isExceptionStore(list.get(next + 1))) {
+        if (!(at(list, next) instanceof Goto) || !isExceptionStore(at(list, next + 1))) {
             return null;
         }
         AStore storeSuppressed = (AStore) list.get(next + 1);
         CodeException inner = findHandlerOf(cp, remaining, storeSuppressed.getOffset());
         next += 2;
 
-        if (inner == null || next + 1 >= list.size()
-                || !isAddSuppressed(cp, list.get(next), storeThrowable.getIndex(), storeSuppressed.getIndex())
-                || !isThrow(list.get(next + 1), storeThrowable.getIndex())) {
+        if (inner == null || !isAddSuppressed(cp, at(list, next), storeThrowable.getIndex(), storeSuppressed.getIndex())
+                || loadedIndex(at(list, next + 1) instanceof AThrow athrow ? athrow.getValue() : null) != storeThrowable.getIndex()) {
             return null;
         }
-        return new Handler(next + 1, resourceIndex, inner);
+        return new Handler(next + 1, closedIndex, inner);
+    }
+
+    /** @return the instruction at the index, or null after the end of the list */
+    private static Instruction at(List<Instruction> list, int index) {
+        return index < list.size() ? list.get(index) : null;
+    }
+
+    /** @return the index of the local variable loaded by the instruction, or -1 */
+    private static int loadedIndex(Instruction instruction) {
+        return instruction instanceof ALoad load ? load.getIndex() : -1;
     }
 
     private static boolean isExceptionStore(Instruction instruction) {
@@ -168,11 +175,8 @@ final class ModernTryWithResourcesNormalizer {
 
     /** @return the index of the variable on which close() is called, or -1 */
     private static int closedResourceIndex(ConstantPool cp, Instruction instruction) {
-        if (instruction instanceof InvokeNoStaticInstruction close && isMethod(cp, close, "close", "()V")
-                && close.getObjectref() instanceof ALoad target) {
-            return target.getIndex();
-        }
-        return -1;
+        return instruction instanceof InvokeNoStaticInstruction close && isMethod(cp, close, "close", "()V")
+                ? loadedIndex(close.getObjectref()) : -1;
     }
 
     private static CodeException findHandlerOf(ConstantPool cp, List<CodeException> remaining, int handlerPc) {
@@ -189,14 +193,8 @@ final class ModernTryWithResourcesNormalizer {
             int suppressedIndex) {
         return instruction instanceof InvokeNoStaticInstruction call
                 && isMethod(cp, call, "addSuppressed", "(Ljava/lang/Throwable;)V")
-                && call.getObjectref() instanceof ALoad target && target.getIndex() == throwableIndex
-                && call.getArgs().get(0) instanceof ALoad argument
-                && argument.getIndex() == suppressedIndex;
-    }
-
-    private static boolean isThrow(Instruction instruction, int variableIndex) {
-        return instruction instanceof AThrow athrow && athrow.getValue() instanceof ALoad thrown
-                && thrown.getIndex() == variableIndex;
+                && loadedIndex(call.getObjectref()) == throwableIndex
+                && loadedIndex(call.getArgs().get(0)) == suppressedIndex;
     }
 
     /** @return indexes of the compiler generated 'r.close()' calls of the normal path, in descending order */
@@ -208,8 +206,7 @@ final class ModernTryWithResourcesNormalizer {
             Instruction instruction = list.get(i);
             int offset = instruction.getOffset();
             if (offset >= outer.getStartPC() && offset < handlerPc
-                    && instruction instanceof InvokeNoStaticInstruction close && isMethod(cp, close, "close", "()V")
-                    && close.getObjectref() instanceof ALoad target && target.getIndex() == resourceIndex
+                    && closedResourceIndex(cp, instruction) == resourceIndex
                     && !isProtected(remaining, handlerPc, offset)) {
                 indexes.add(i);
             }
@@ -220,8 +217,7 @@ final class ModernTryWithResourcesNormalizer {
     private static void removeNormalPathCloses(List<Instruction> list, List<Integer> indexes, int resourceIndex) {
         for (int i : indexes) {
             list.remove(i);
-            if (i > 0 && list.get(i - 1) instanceof IfInstruction ifNull && isNullCheck(ifNull)
-                    && ((ALoad) ifNull.getValue()).getIndex() == resourceIndex) {
+            if (i > 0 && nullCheckedIndex(list.get(i - 1)) == resourceIndex) {
                 list.remove(i - 1);
             }
         }
@@ -236,10 +232,10 @@ final class ModernTryWithResourcesNormalizer {
         return false;
     }
 
-    /** @return true for 'if (r == null) goto ...' */
-    private static boolean isNullCheck(IfInstruction instruction) {
-        return instruction.getOpcode() == ByteCodeConstants.IFXNULL && instruction.getCmp() == ByteCodeConstants.CMP_EQ
-                && instruction.getValue() instanceof ALoad;
+    /** @return the index of the variable r in 'if (r == null) goto ...', or -1 */
+    private static int nullCheckedIndex(Instruction instruction) {
+        return instruction instanceof IfInstruction ifNull && ifNull.getOpcode() == ByteCodeConstants.IFXNULL
+                && ifNull.getCmp() == ByteCodeConstants.CMP_EQ ? loadedIndex(ifNull.getValue()) : -1;
     }
 
     private static boolean isThrowable(ConstantPool cp, CodeException codeException) {
