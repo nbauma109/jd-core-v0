@@ -1335,21 +1335,24 @@ public final class FastInstructionListBuilder {
             }
             return;
         }
-        if (catches.size() != 1) {
-            return;
-        }
-        FastCatch fastCatch = catches.get(0);
-        if (fastCatch.instructions().isEmpty()) {
-            // the rethrow has been left after the try block
-            if (index + 2 >= list.size() || !isRethrow(list.get(index + 2), fastCatch.localVarIndex())) {
-                return;
-            }
-            list.set(index + 2, null);
-        } else if (fastCatch.instructions().size() != 1 || !isRethrow(fastCatch.instructions().get(0), fastCatch.localVarIndex())) {
+        if (catches.size() != 1 || !removeRethrowingCatch(list, index, catches.get(0))) {
             return;
         }
         catches.clear();
         resource.setTryResources(fastTry);
+    }
+
+    /** @return true if the catch only rethrows the exception: the rethrow may have been left after the try block */
+    private static boolean removeRethrowingCatch(List<Instruction> list, int index, FastCatch fastCatch) {
+        List<Instruction> catchInstructions = fastCatch.instructions();
+        if (!catchInstructions.isEmpty()) {
+            return catchInstructions.size() == 1 && isRethrow(catchInstructions.get(0), fastCatch.localVarIndex());
+        }
+        if (index + 2 >= list.size() || !isRethrow(list.get(index + 2), fastCatch.localVarIndex())) {
+            return false;
+        }
+        list.set(index + 2, null);
+        return true;
     }
 
     private static boolean isRethrow(Instruction instruction, int variableIndex) {
