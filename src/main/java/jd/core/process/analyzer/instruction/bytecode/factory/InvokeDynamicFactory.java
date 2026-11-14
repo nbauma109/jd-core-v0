@@ -218,6 +218,7 @@ public class InvokeDynamicFactory implements InstructionFactory
     private static void removeReceiverNullCheck(ConstantPool constants, List<Instruction> list,
             List<Instruction> listForAnalyze, List<Instruction> receivers)
     {
+        // The statements may all be removed already: the 'getClass()' call of javac 8 is removed above
         if (!listForAnalyze.isEmpty() && receivers.get(0) instanceof DupLoad receiver
             && isReceiverNullCheck(constants, listForAnalyze.get(listForAnalyze.size() - 1), receiver.getDupStore()))
         {
@@ -228,16 +229,18 @@ public class InvokeDynamicFactory implements InstructionFactory
 
     private static boolean isReceiverNullCheck(ConstantPool constants, Instruction instruction, DupStore receiver)
     {
-        if (!(instruction instanceof Invokestatic invokestatic) || invokestatic.getArgs().size() != 1
-            || !(invokestatic.getArgs().get(0) instanceof DupLoad checked) || checked.getDupStore() != receiver)
-        {
-            return false;
-        }
+        return instruction instanceof Invokestatic invokestatic && isRequireNonNull(constants, invokestatic)
+            && invokestatic.getArgs().get(0) instanceof DupLoad checked && checked.getDupStore() == receiver;
+    }
+
+    /** Objects.requireNonNull(Object): the descriptor gives its only argument. */
+    private static boolean isRequireNonNull(ConstantPool constants, Invokestatic invokestatic)
+    {
         ConstantCP methodref = constants.getConstantMethodref(invokestatic.getIndex());
         ConstantNameAndType nameAndType = constants.getConstantNameAndType(methodref.getNameAndTypeIndex());
-        return "java/util/Objects".equals(constants.getConstantClassName(methodref.getClassIndex()))
-            && "requireNonNull".equals(constants.getConstantUtf8(nameAndType.getNameIndex()))
-            && "(Ljava/lang/Object;)Ljava/lang/Object;".equals(constants.getConstantUtf8(nameAndType.getSignatureIndex()));
+        return "java/util/Objects.requireNonNull(Ljava/lang/Object;)Ljava/lang/Object;".equals(
+            constants.getConstantClassName(methodref.getClassIndex()) + '.' + constants.getConstantUtf8(nameAndType.getNameIndex())
+            + constants.getConstantUtf8(nameAndType.getSignatureIndex()));
     }
 
     /** Labels that are classes, strings or integers; qualified enum constants are dynamic constants. */
