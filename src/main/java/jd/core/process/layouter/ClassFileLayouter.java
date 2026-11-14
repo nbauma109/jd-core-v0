@@ -428,7 +428,7 @@ public final class ClassFileLayouter {
         Instruction instruction = list.get(0);
         int opcode = instruction.getOpcode();
         return instruction instanceof AThrow
-                || opcode >= FastConstants.WHILE && opcode <= FastConstants.BLOCK && opcode != FastConstants.ENUMVALUE;
+                || opcode >= FastConstants.WHILE && opcode <= FastConstants.BLOCK;
     }
 
     public static int createBlocksForBodyOfLambda(
