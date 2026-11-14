@@ -154,7 +154,7 @@ public class GeneratedTryResourcesTest extends AbstractTestCase {
         MethodGen mg = new MethodGen(Const.ACC_PUBLIC | Const.ACC_STATIC, Type.VOID, new Type[] { STREAM, STREAM },
                 new String[] { "in", "other" }, "run", className, il, cp);
 
-        InstructionHandle in = il.append(new ALOAD(0));
+        il.append(new ALOAD(0));
         il.append(new ASTORE(2));
         InstructionHandle start = il.append(new ALOAD(2));
         il.append(factory.createInvoke("java.io.InputStream", "read", Type.INT, Type.NO_ARGS, Const.INVOKEVIRTUAL));
@@ -212,7 +212,7 @@ public class GeneratedTryResourcesTest extends AbstractTestCase {
         InstructionHandle ret = il.append(new RETURN());
 
         toEnd.setTarget(ret);
-        if (!(handler == Handler.NO_INNER_HANDLER)) {
+        if (handler != Handler.NO_INNER_HANDLER) {
             toThrow.setTarget(throwTarget);
         }
         if (skipHandlerClose != null) {
