@@ -118,7 +118,7 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
             return invoke;
         }
         // An argument already has the type of the parameter: the compiler only erased its type variable
-        if (localVariables != null && parentFound instanceof InvokeNoStaticInstruction call && instruction instanceof CheckCast cast
+        if (parentFound instanceof InvokeNoStaticInstruction call && instruction instanceof CheckCast cast
             && cast.getObjectref() instanceof InvokeNoStaticInstruction invoke && isRedundantArgument(call, cast, invoke))
         {
             return invoke;
@@ -155,10 +155,10 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
         String owner = constants.getConstantClassName(methodref.getClassIndex());
         MethodTypes methodTypes = typeMaker.makeMethodTypes(owner,
             constants.getConstantUtf8(nameAndType.getNameIndex()), constants.getConstantUtf8(nameAndType.getSignatureIndex()));
-        if (methodTypes == null || methodTypes.getParameterTypes() == null
-            || methodTypes.getParameterTypes().size() <= index
+        // The argument exists, so does the parameter; a type variable of the parameter is not an array type
+        if (methodTypes == null
             || !(methodTypes.getParameterTypes().getList().get(index) instanceof GenericType parameter)
-            || parameter.getDimension() != 0 || declaresTypeParameter(methodTypes, parameter.getName()))
+            || declaresTypeParameter(methodTypes, parameter.getName()))
         {
             return false;
         }

@@ -4,6 +4,7 @@ import org.apache.bcel.classfile.CodeException;
 import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantNameAndType;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,7 +59,7 @@ final class ModernTryWithResourcesNormalizer {
     static void normalize(Method method, ConstantPool cp, List<Instruction> list) {
         CodeException[] codeExceptions = method.getCodeExceptions();
         LocalVariables localVariables = method.getLocalVariables();
-        if (codeExceptions == null || codeExceptions.length < 2 || localVariables == null) {
+        if (ArrayUtils.getLength(codeExceptions) < 2 || localVariables == null) {
             return;
         }
         List<CodeException> remaining = new ArrayList<>(Arrays.asList(codeExceptions));
