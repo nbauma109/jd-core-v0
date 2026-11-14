@@ -155,35 +155,48 @@ final class ModernTryWithResourcesNormalizer {
             return false;
         }
 
+        // A genuine try-with-resources always closes the resource after the protected region.
+        // Hand written code that only mimics the exceptional path is left untouched.
+        List<Integer> normalPathCloses = findNormalPathCloses(cp, list, remaining, outer, resourceIndex);
+        if (normalPathCloses.isEmpty()) {
+            return false;
+        }
+
         // Remove the closing code of the exceptional path, only 'catch (Throwable t) { throw t; }' is kept
         list.subList(handlerIndex + 1, throwIndex).clear();
         remaining.remove(inner);
 
         // Remove the closing code of the normal path (not protected by the exception table)
-        removeNormalPathClose(cp, list, remaining, outer, resourceIndex);
+        removeNormalPathCloses(list, normalPathCloses, resourceIndex);
 
         resource.setModernTryResource(true);
         return true;
     }
 
-    private static void removeNormalPathClose(ConstantPool cp, List<Instruction> list, List<CodeException> remaining,
-            CodeException outer, int resourceIndex) {
+    /** @return indexes of the compiler generated 'r.close()' calls of the normal path, in descending order */
+    private static List<Integer> findNormalPathCloses(ConstantPool cp, List<Instruction> list,
+            List<CodeException> remaining, CodeException outer, int resourceIndex) {
+        List<Integer> indexes = new ArrayList<>();
         int handlerPc = outer.getHandlerPC();
         for (int i = list.size() - 1; i >= 0; i--) {
             Instruction instruction = list.get(i);
             int offset = instruction.getOffset();
-            if (offset < outer.getStartPC() || offset >= handlerPc) {
-                continue;
-            }
-            if (instruction instanceof InvokeNoStaticInstruction close && isMethod(cp, close, "close", "()V")
+            if (offset >= outer.getStartPC() && offset < handlerPc
+                    && instruction instanceof InvokeNoStaticInstruction close && isMethod(cp, close, "close", "()V")
                     && close.getObjectref() instanceof ALoad target && target.getIndex() == resourceIndex
                     && !isProtected(remaining, handlerPc, offset)) {
-                list.remove(i);
-                if (i > 0 && list.get(i - 1) instanceof IfInstruction ifNull && isNullCheck(ifNull)
-                        && ((ALoad) ifNull.getValue()).getIndex() == resourceIndex) {
-                    list.remove(i - 1);
-                    i--;
-                }
+                indexes.add(i);
+            }
+        }
+        return indexes;
+    }
+
+    private static void removeNormalPathCloses(List<Instruction> list, List<Integer> indexes, int resourceIndex) {
+        for (int i : indexes) {
+            list.remove(i);
+            if (i > 0 && list.get(i - 1) instanceof IfInstruction ifNull && isNullCheck(ifNull)
+                    && ((ALoad) ifNull.getValue()).getIndex() == resourceIndex) {
+                list.remove(i - 1);
             }
         }
     }

@@ -1,0 +1,46 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.io.IOException;
+/*    */ import java.io.InputStream;
+/*    */ import java.io.OutputStream;
+/*    */ import java.nio.file.Files;
+/*    */ import java.nio.file.OpenOption;
+/*    */ import java.nio.file.Path;
+/*    */ import java.util.zip.CheckedInputStream;
+/*    */ import java.util.zip.Checksum;
+/*    */ 
+/*    */ 
+/*    */ public class TryResourcesModern
+/*    */ {
+/*    */   public static long consume(InputStream in)
+/*    */     throws IOException
+/*    */   {
+/* 18 */     long total = 0L;
+/* 19 */     byte[] buffer = new byte[1024];
+/*    */     int n;
+/* 21 */     while ((n = in.read(buffer)) != -1) {
+/* 22 */       total += n;
+/*    */     }
+/* 24 */     return total;
+/*    */   }
+/*    */   
+/*    */   public static Checksum checksum(Path path, Checksum checksum) throws IOException {
+/* 28 */     try (InputStream in = new CheckedInputStream(Files.newInputStream(path), checksum)) {
+/* 29 */       consume(in);
+/*    */     }
+/* 31 */     return checksum;
+/*    */   }
+/*    */   
+/*    */   public static int first(Path path) throws IOException {
+/* 35 */     try (InputStream in = Files.newInputStream(path)) {
+/* 36 */       return in.read();
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   public static void copy(Path source, Path target) throws IOException {
+/* 41 */     try (InputStream in = Files.newInputStream(source); OutputStream out = Files.newOutputStream(target);) {
+/* 42 */       out.write(in.read());
+/*    */     }
+/*    */     
+/*    */   }
+/*    */ }

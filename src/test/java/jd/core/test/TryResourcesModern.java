@@ -15,7 +15,13 @@ import java.util.zip.Checksum;
 public class TryResourcesModern {
 
     public static long consume(InputStream in) throws IOException {
-        return in.transferTo(OutputStream.nullOutputStream());
+        long total = 0;
+        byte[] buffer = new byte[1024];
+        int n;
+        while ((n = in.read(buffer)) != -1) {
+            total += n;
+        }
+        return total;
     }
 
     public static Checksum checksum(Path path, Checksum checksum) throws IOException {
@@ -33,7 +39,7 @@ public class TryResourcesModern {
 
     public static void copy(Path source, Path target) throws IOException {
         try (InputStream in = Files.newInputStream(source); OutputStream out = Files.newOutputStream(target)) {
-            in.transferTo(out);
+            out.write(in.read());
         }
     }
 }

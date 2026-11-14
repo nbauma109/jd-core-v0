@@ -80,6 +80,20 @@ public final class InitStaticFieldsReconstructor
 
             int lengthBeforeSubstitution = list.size();
 
+            // The compiler initializes '$assertionsDisabled' first, but declares it after the other fields:
+            // it must not move the position from which the other fields are searched.
+            if ("$assertionsDisabled".equals(constants.getConstantUtf8(cnat.getNameIndex())))
+            {
+                Field assertionsDisabled = searchStaticField(fields, cnat);
+                if (assertionsDisabled != null && visitor.visit(putStatic.getValueref()) == null)
+                {
+                    assertionsDisabled.setValueAndMethod(putStatic.getValueref(), method);
+                    list.remove(indexInstruction--);
+                    indexInstruction++;
+                    continue;
+                }
+            }
+
             while (indexField < fields.length)
             {
                 Field field = fields[indexField++];
@@ -173,5 +187,19 @@ public final class InitStaticFieldsReconstructor
                 }
             }
         }
+    }
+
+    private static Field searchStaticField(Field[] fields, ConstantNameAndType cnat)
+    {
+        for (Field field : fields)
+        {
+            if (field.isStatic() &&
+                cnat.getSignatureIndex() == field.getDescriptorIndex() &&
+                cnat.getNameIndex() == field.getNameIndex())
+            {
+                return field;
+            }
+        }
+        return null;
     }
 }

@@ -49,6 +49,9 @@ import jd.core.model.instruction.bytecode.instruction.ArrayReference;
 import jd.core.model.instruction.bytecode.instruction.ALoad;
 import jd.core.model.instruction.bytecode.instruction.ConstructorReference;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
+import jd.core.model.instruction.bytecode.instruction.DupLoad;
+import jd.core.model.instruction.bytecode.instruction.Invokestatic;
+import jd.core.model.instruction.bytecode.instruction.Pop;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
 import jd.core.model.instruction.bytecode.instruction.LambdaInstruction;
 import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
@@ -84,6 +87,12 @@ public class InvokeDynamicFactory implements InstructionFactory
                     list.remove(list.size() - 1);
                 }
             }
+        }
+
+        // Remove the null check 'Objects.requireNonNull(receiver)' that javac 9+ generates before the method reference 'receiver::name'
+        if (!listForAnalyze.isEmpty() && !list.isEmpty() && isReceiverNullCheck(constants, listForAnalyze.get(listForAnalyze.size() - 1))) {
+            listForAnalyze.remove(listForAnalyze.size() - 1);
+            list.remove(list.size() - 1);
         }
 
         final int opcode = code[offset] & 255;
@@ -205,6 +214,21 @@ public class InvokeDynamicFactory implements InstructionFactory
         stack.push(new MethodReference(opcode, offset, lineNumber, indyParameters, typeName, name1, descriptor1));
 
         return Const.getNoOfOperands(opcode);
+    }
+
+    private static boolean isReceiverNullCheck(ConstantPool constants, Instruction instruction)
+    {
+        Instruction call = instruction instanceof Pop pop ? pop.getObjectref() : instruction;
+        if (!(call instanceof Invokestatic invokestatic) || invokestatic.getArgs().size() != 1
+            || !(invokestatic.getArgs().get(0) instanceof DupLoad))
+        {
+            return false;
+        }
+        ConstantCP methodref = constants.getConstantMethodref(invokestatic.getIndex());
+        ConstantNameAndType nameAndType = constants.getConstantNameAndType(methodref.getNameAndTypeIndex());
+        return "java/util/Objects".equals(constants.getConstantClassName(methodref.getClassIndex()))
+            && "requireNonNull".equals(constants.getConstantUtf8(nameAndType.getNameIndex()))
+            && "(Ljava/lang/Object;)Ljava/lang/Object;".equals(constants.getConstantUtf8(nameAndType.getSignatureIndex()));
     }
 
     /** Labels that are classes, strings or integers; qualified enum constants are dynamic constants. */

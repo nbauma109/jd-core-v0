@@ -69,7 +69,22 @@ public class MethodReference extends Instruction implements SourceWriteable {
                 visitor.visit(aLoad);
             }
             if (parameter instanceof DupLoad dupLoad) {
-                visitor.visit(dupLoad.getDupStore().getObjectref());
+                Instruction receiver = dupLoad.getDupStore().getObjectref();
+                if (receiver instanceof CheckCast cast) {
+                    // 'receiver::name' with a cast: the cast must not apply to the whole method reference
+                    if (cast.getObjectref() instanceof Invokestatic) {
+                        // The type of a generic call such as 'Objects.requireNonNull(x)' is inferred
+                        receiver = cast.getObjectref();
+                    } else {
+                        printer.print('(');
+                        visitor.visit(receiver);
+                        printer.print(')');
+                        receiver = null;
+                    }
+                }
+                if (receiver != null) {
+                    visitor.visit(receiver);
+                }
             }
         }
         printer.print("::");
