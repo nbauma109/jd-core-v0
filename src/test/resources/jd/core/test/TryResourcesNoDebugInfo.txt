@@ -1,0 +1,55 @@
+package jd.core.test;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.OpenOption;
+import java.nio.file.Path;
+import java.util.zip.CheckedInputStream;
+import java.util.zip.Checksum;
+
+public class TryResourcesModern
+{
+  public static long consume(InputStream paramInputStream)
+    throws IOException
+  {
+    long l = 0L; byte[] arrayOfByte = new byte[1024];
+    int i;
+    while ((i = paramInputStream.read(arrayOfByte)) != -1) {
+      l += i;
+    }
+    return l;
+  }
+  
+  public static Checksum checksum(Path paramPath, Checksum paramChecksum)
+    throws IOException
+  {
+    try (CheckedInputStream localCheckedInputStream = new CheckedInputStream(Files.newInputStream(paramPath), paramChecksum))
+    {
+      consume(localCheckedInputStream);
+    }
+    
+    return paramChecksum;
+  }
+  
+  public static int first(Path paramPath)
+    throws IOException
+  {
+    try (InputStream localInputStream = Files.newInputStream(paramPath))
+    {
+      int i = localInputStream.read(); return i;
+    }
+    
+  }
+  
+  public static void copy(Path paramPath1, Path paramPath2)
+    throws IOException
+  {
+    try (InputStream localInputStream = Files.newInputStream(paramPath1); OutputStream localOutputStream = Files.newOutputStream(paramPath2);)
+    {
+      localOutputStream.write(localInputStream.read());
+    }
+    
+  }
+}

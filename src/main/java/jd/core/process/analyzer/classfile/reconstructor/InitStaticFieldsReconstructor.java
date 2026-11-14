@@ -88,8 +88,7 @@ public final class InitStaticFieldsReconstructor
                 if (assertionsDisabled != null && visitor.visit(putStatic.getValueref()) == null)
                 {
                     assertionsDisabled.setValueAndMethod(putStatic.getValueref(), method);
-                    list.remove(indexInstruction--);
-                    indexInstruction++;
+                    list.remove(indexInstruction);
                     continue;
                 }
             }

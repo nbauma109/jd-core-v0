@@ -1246,7 +1246,7 @@ public final class FastInstructionListBuilder {
             executeReconstructors(referenceMap, classFile, finallyInstructions, localVariables);
         }
         ConstantPool cp = classFile.getConstantPool();
-        convertModernTryResources(localVariables, list, index, fastTry, catches, finallyInstructions);
+        convertModernTryResources(localVariables, list, index, fastTry, catches);
         boolean removedTryResourcesPattern = fastTry.removeTryResourcesPattern(localVariables, cp, finallyInstructions);
         removedTryResourcesPattern |= fastTry.removeTryResourcesPattern(localVariables, cp, tryInstructions);
         boolean processTryResources = fastTry.processTryResources();
@@ -1319,7 +1319,7 @@ public final class FastInstructionListBuilder {
      * {@link ModernTryWithResourcesNormalizer} into a try-with-resources statement.
      */
     private static void convertModernTryResources(LocalVariables localVariables, List<Instruction> list, int index,
-            FastTry fastTry, List<FastCatch> catches, List<Instruction> finallyInstructions) {
+            FastTry fastTry, List<FastCatch> catches) {
         if (index < 0 || !(list.get(index) instanceof AStore resourceStore)) {
             return;
         }
@@ -1330,30 +1330,24 @@ public final class FastInstructionListBuilder {
         }
         if (catches == null || catches.isEmpty()) {
             // a catch of Throwable that only rethrows has been recognized as an empty finally block
-            if (finallyInstructions == null || finallyInstructions.isEmpty()) {
-                resource.setTryResources(fastTry);
-            }
-            return;
+            resource.setTryResources(fastTry);
+        } else if (catches.size() == 1 && removeLeftRethrow(list, index, catches.get(0))) {
+            catches.clear();
+            resource.setTryResources(fastTry);
         }
-        if (catches.size() != 1 || !removeLeftRethrow(list, index, catches.get(0))) {
-            return;
-        }
-        catches.clear();
-        resource.setTryResources(fastTry);
     }
 
-    /** @return true if the catch is empty and its rethrow has been left after the try block: the rethrow is removed */
+    /** @return true if the catch only rethrows the exception, in the catch or left after the try block (then removed) */
     private static boolean removeLeftRethrow(List<Instruction> list, int index, FastCatch fastCatch) {
         List<Instruction> catchInstructions = fastCatch.instructions();
         if (!catchInstructions.isEmpty()) {
-            // only the rethrow left after the try block has been seen: another shape is not a try-with-resources
-            return false;
+            return catchInstructions.size() == 1 && isRethrow(catchInstructions.get(0), fastCatch.localVarIndex());
         }
-        if (index + 2 >= list.size() || !isRethrow(list.get(index + 2), fastCatch.localVarIndex())) {
-            return false;
+        boolean left = index + 2 < list.size() && isRethrow(list.get(index + 2), fastCatch.localVarIndex());
+        if (left) {
+            list.set(index + 2, null);
         }
-        list.set(index + 2, null);
-        return true;
+        return left;
     }
 
     private static boolean isRethrow(Instruction instruction, int variableIndex) {

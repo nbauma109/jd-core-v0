@@ -162,13 +162,9 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
         {
             return false;
         }
-        Type receiver = receiverType(call);
-        if (!(receiver instanceof ObjectType receiverType) || !owner.equals(receiverType.getInternalName())
-            || receiverType.getTypeArguments() == null)
-        {
-            return false;
-        }
-        return valueType.equals(typeArgument(owner, parameter.getName(), receiverType.getTypeArguments()));
+        return receiverType(call) instanceof ObjectType receiverType && owner.equals(receiverType.getInternalName())
+            && receiverType.getTypeArguments() != null
+            && valueType.equals(typeArgument(owner, parameter.getName(), receiverType.getTypeArguments()));
     }
 
     private Type receiverType(InvokeNoStaticInstruction call)
@@ -191,12 +187,9 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
         {
             return null;
         }
-        if (!(receiverType(invoke) instanceof ObjectType receiverType) || !owner.equals(receiverType.getInternalName())
-            || receiverType.getTypeArguments() == null)
-        {
-            return null;
-        }
-        return typeArgument(owner, returned.getName(), receiverType.getTypeArguments());
+        return receiverType(invoke) instanceof ObjectType receiverType && owner.equals(receiverType.getInternalName())
+            && receiverType.getTypeArguments() != null
+            ? typeArgument(owner, returned.getName(), receiverType.getTypeArguments()) : null;
     }
 
     @Override

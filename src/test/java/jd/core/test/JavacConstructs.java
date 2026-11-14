@@ -213,9 +213,19 @@ public class JavacConstructs {
             in.close();
             throw t;
         }
+        try {
+            in.available();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     static void swappedSuppressed(InputStream in) throws IOException {
+        try {
+            in.available();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         try {
             in.read();
         } catch (Throwable t) {
@@ -229,6 +239,11 @@ public class JavacConstructs {
     }
 
     static void wrapped(InputStream in) throws IOException {
+        try {
+            in.available();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         try {
             in.read();
         } catch (Throwable t) {
@@ -252,9 +267,19 @@ public class JavacConstructs {
             }
             throw t;
         }
+        try {
+            in.available();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     static void notJustAfterStore(InputStream in, List<Integer> out) throws IOException {
+        try {
+            in.available();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         InputStream stream = in;
         out.add(1);
         try {

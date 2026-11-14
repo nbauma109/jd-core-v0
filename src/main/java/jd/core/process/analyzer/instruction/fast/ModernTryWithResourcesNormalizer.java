@@ -89,8 +89,7 @@ final class ModernTryWithResourcesNormalizer {
         // The resource is stored just before the protected region
         int startIndex = InstructionUtil.getIndexForOffset(list, outer.getStartPC());
         if (startIndex < 1 || !(list.get(startIndex - 1) instanceof AStore storeResource)
-                || storeResource.getIndex() != handler.resourceIndex()
-                || storeResource.getValueref() instanceof ExceptionLoad) {
+                || storeResource.getIndex() != handler.resourceIndex()) {
             return false;
         }
         LocalVariable resource = localVariables.getLocalVariableWithIndexAndOffset(storeResource.getIndex(),
@@ -125,7 +124,7 @@ final class ModernTryWithResourcesNormalizer {
      */
     private static Handler parseHandler(ConstantPool cp, List<Instruction> list, List<CodeException> remaining,
             int handlerIndex) {
-        if (handlerIndex < 1 || handlerIndex + 1 >= list.size() || !isExceptionStore(list.get(handlerIndex))) {
+        if (handlerIndex < 1 || !isExceptionStore(list.get(handlerIndex))) {
             return null;
         }
         AStore storeThrowable = (AStore) list.get(handlerIndex);

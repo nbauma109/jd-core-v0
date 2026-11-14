@@ -1,0 +1,70 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.util.ArrayList;
+/*    */ import java.util.List;
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ public abstract class ReconstructionShapes
+/*    */ {
+/* 15 */   private int counter = 5;
+/*    */   
+/*    */   protected ReconstructionShapes() {
+/* 18 */     this.counter++;
+/*    */   }
+/*    */   
+/*    */ 
+/* 22 */   static final List<String> LOG = new ArrayList<>();
+/*    */   
+/*    */   static {
+/* 25 */     LOG.add("loaded");
+/*    */   }
+/*    */   
+/* 28 */   static final int[] PRIMES = { 2, 3, 5, 7 };
+/*    */   
+/*    */ 
+/* 31 */   static final String[] NAMES = { "first", "second", "third", "fourth", "fifth", "sixth" };
+/*    */   
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */   int guarded(List<Integer> values)
+/*    */   {
+/* 42 */     synchronized (values) {
+/*    */       try {
+/* 44 */         return values.get(0).intValue() + this.counter;
+/*    */       } catch (IndexOutOfBoundsException e) {
+/* 46 */         return -1;
+/*    */       } finally {
+/* 48 */         values.clear();
+/*    */       }
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   void asserted(int value, Integer boxed, List<String> names)
+/*    */   {
+/* 55 */     assert (value > 0) : boxed;
+/* 56 */     assert (value < 10) : ((String)names.get(0));
+/* 57 */     assert (value != 5) : Integer.valueOf(value);
+/*    */   }
+/*    */   
+/*    */   int[] spread(int first, int second)
+/*    */   {
+/* 62 */     int[] values = {
+/* 63 */       Math.abs(first), 
+/* 64 */       Math.abs(second) };
+/* 65 */     int[] inline = { first, second };
+/* 66 */     return values.length > 1 ? values : inline;
+/*    */   }
+/*    */   
+/*    */   protected abstract int compute();
+/*    */ }
