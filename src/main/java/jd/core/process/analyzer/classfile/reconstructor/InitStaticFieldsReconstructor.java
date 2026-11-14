@@ -20,6 +20,7 @@ import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 
+import java.util.Arrays;
 import java.util.List;
 
 import jd.core.model.classfile.ClassFile;
@@ -82,15 +83,13 @@ public final class InitStaticFieldsReconstructor
 
             // The compiler initializes '$assertionsDisabled' first, but declares it after the other fields:
             // it must not move the position from which the other fields are searched.
-            if ("$assertionsDisabled".equals(constants.getConstantUtf8(cnat.getNameIndex())))
+            if ("$assertionsDisabled".equals(constants.getConstantUtf8(cnat.getNameIndex()))
+                && visitor.visit(putStatic.getValueref()) == null
+                && Arrays.stream(fields).filter(f -> isSameStaticField(f, cnat)).findFirst()
+                    .map(f -> { f.setValueAndMethod(putStatic.getValueref(), method); return true; }).orElse(false))
             {
-                Field assertionsDisabled = searchStaticField(fields, cnat);
-                if (assertionsDisabled != null && visitor.visit(putStatic.getValueref()) == null)
-                {
-                    assertionsDisabled.setValueAndMethod(putStatic.getValueref(), method);
-                    list.remove(indexInstruction);
-                    continue;
-                }
+                list.remove(indexInstruction);
+                continue;
             }
 
             while (indexField < fields.length)
@@ -188,17 +187,10 @@ public final class InitStaticFieldsReconstructor
         }
     }
 
-    private static Field searchStaticField(Field[] fields, ConstantNameAndType cnat)
+    private static boolean isSameStaticField(Field field, ConstantNameAndType cnat)
     {
-        for (Field field : fields)
-        {
-            if (field.isStatic() &&
-                cnat.getSignatureIndex() == field.getDescriptorIndex() &&
-                cnat.getNameIndex() == field.getNameIndex())
-            {
-                return field;
-            }
-        }
-        return null;
+        return field.isStatic() &&
+            cnat.getSignatureIndex() == field.getDescriptorIndex() &&
+            cnat.getNameIndex() == field.getNameIndex();
     }
 }
