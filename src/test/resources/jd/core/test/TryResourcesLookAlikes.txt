@@ -153,35 +153,36 @@
 /*     */ 
 /*     */ 
 /*     */ 
+/*     */ 
 /*     */   static void notAutoCloseable(NotCloseable input)
 /*     */     throws Exception
 /*     */   {
-/* 159 */     NotCloseable resource = input;
+/* 160 */     NotCloseable resource = input;
 /*     */     try {
-/* 161 */       throw new Exception("never completes normally");
+/* 162 */       throw new Exception("never completes normally");
 /*     */     } catch (Throwable t) {
 /*     */       try {
-/* 164 */         resource.close();
+/* 165 */         resource.close();
 /*     */       } catch (Throwable suppressed) {
-/* 166 */         t.addSuppressed(suppressed);
+/* 167 */         t.addSuppressed(suppressed);
 /*     */       }
-/* 168 */       throw t;
+/* 169 */       throw t;
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   static void reassigned(InputStream input, InputStream other) throws Exception
 /*     */   {
-/* 174 */     InputStream resource = input;
+/* 175 */     InputStream resource = input;
 /*     */     try {
-/* 176 */       resource = other;
-/* 177 */       throw new Exception("never completes normally");
+/* 177 */       resource = other;
+/* 178 */       throw new Exception("never completes normally");
 /*     */     } catch (Throwable t) {
 /*     */       try {
-/* 180 */         resource.close();
+/* 181 */         resource.close();
 /*     */       } catch (Throwable suppressed) {
-/* 182 */         t.addSuppressed(suppressed);
+/* 183 */         t.addSuppressed(suppressed);
 /*     */       }
-/* 184 */       throw t;
+/* 185 */       throw t;
 /*     */     }
 /*     */   }
 /*     */   

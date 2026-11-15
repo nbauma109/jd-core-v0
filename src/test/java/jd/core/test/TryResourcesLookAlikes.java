@@ -151,6 +151,7 @@ public class TryResourcesLookAlikes {
 
     static class NotCloseable {
         void close() throws Exception {
+            // Empty on purpose: the class has a close() method without being an AutoCloseable
         }
     }
 
