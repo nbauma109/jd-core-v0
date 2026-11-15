@@ -204,6 +204,23 @@
 /* 204 */     return resource;
 /*     */   }
 /*     */   
+/*     */   static void unguardedClose(InputStream input, List<Integer> out)
+/*     */     throws Exception
+/*     */   {
+/* 210 */     InputStream resource = input;
+/*     */     try {
+/* 212 */       out.add(resource.read());
+/*     */     } catch (Throwable t) {
+/*     */       try {
+/* 215 */         resource.close();
+/*     */       } catch (Throwable suppressed) {
+/* 217 */         t.addSuppressed(suppressed);
+/*     */       }
+/* 219 */       throw t;
+/*     */     }
+/* 221 */     resource.close();
+/*     */   }
+/*     */   
 /*     */   static class NotCloseable
 /*     */   {
 /*     */     void close()

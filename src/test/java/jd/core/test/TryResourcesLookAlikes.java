@@ -204,4 +204,20 @@ public class TryResourcesLookAlikes {
             return resource;
         }
     }
+
+    /** The resource can be null and is closed without null check: it is not the same as a resource specification. */
+    static void unguardedClose(InputStream input, List<Integer> out) throws Exception {
+        InputStream resource = input;
+        try {
+            out.add(resource.read());
+        } catch (Throwable t) {
+            try {
+                resource.close();
+            } catch (Throwable suppressed) {
+                t.addSuppressed(suppressed);
+            }
+            throw t;
+        }
+        resource.close();
+    }
 }

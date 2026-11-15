@@ -28,7 +28,7 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * Shapes of the closing code of a try-with-resources that no compiler generates, hence the generated classes:
- * javac 11+ tests the resource against null either on both paths or on none, and the exception of the protected
+ * javac 11+ tests a resource against null either on both paths or on none, and the exception of the protected
  * region is always stored. The shapes that the compilers do generate are compiled fixtures
  * ({@link TryResourcesTarget8Test}, {@link TryResourcesLookAlikesTest}).
  */
@@ -67,12 +67,18 @@ public class NonCompilerTryResourcesTest extends AbstractTestCase {
 
     @Test
     public void nullCheckOnlyOnTheNormalPath() throws Exception {
-        assertTrue(decompileGenerated("GuardedNormal", true, false, false).contains("try ("));
+        // The resource can be null and the handler would call close() on it: not the semantics of try-with-resources
+        assertFalse(decompileGenerated("GuardedNormal", true, false, false).contains("try ("));
     }
 
     @Test
     public void nullCheckOnlyInTheHandler() throws Exception {
-        assertTrue(decompileGenerated("GuardedHandler", false, true, false).contains("try ("));
+        assertFalse(decompileGenerated("GuardedHandler", false, true, false).contains("try ("));
+    }
+
+    @Test
+    public void nullChecksOnBothPaths() throws Exception {
+        assertTrue(decompileGenerated("GuardedBoth", true, true, false).contains("try ("));
     }
 
     @Test

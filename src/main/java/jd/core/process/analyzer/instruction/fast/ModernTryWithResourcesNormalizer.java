@@ -36,6 +36,7 @@ import jd.core.model.instruction.bytecode.instruction.BranchInstruction;
 import jd.core.model.instruction.bytecode.instruction.Goto;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
+import jd.core.model.instruction.bytecode.instruction.InvokeNew;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
 import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
 import jd.core.process.analyzer.classfile.visitor.SearchInstructionByTypeVisitor;
@@ -93,7 +94,8 @@ final class ModernTryWithResourcesNormalizer {
     }
 
     /** Position of the closing code in the handler of the protected region, and the variables it uses. */
-    private record Handler(int throwIndex, int resourceIndex, String resourceType, CodeException inner) {
+    private record Handler(int throwIndex, int resourceIndex, String resourceType, boolean nullChecked,
+            CodeException inner) {
     }
 
     private static boolean normalize(ConstantPool cp, Loader loader, List<Instruction> list,
@@ -123,6 +125,12 @@ final class ModernTryWithResourcesNormalizer {
         List<Integer> normalPathCloses = findNormalPathCloses(cp, list, remaining, outer, handler.resourceIndex());
         if (normalPathCloses.isEmpty() && (!cannotFallIntoHandler(list.get(handlerIndex - 1))
                 || hasNormalExit(list, startIndex, handlerIndex, outer.getHandlerPC()))) {
+            return false;
+        }
+
+        // A resource that can be null is closed only if it is not: javac omits the null checks of a new object only
+        if (!(storeResource.getValueref() instanceof InvokeNew)
+                && !(handler.nullChecked() && areNullChecked(list, normalPathCloses, handler.resourceIndex()))) {
             return false;
         }
 
@@ -159,7 +167,8 @@ final class ModernTryWithResourcesNormalizer {
 
         // Optional null check of the resource
         int resourceIndex = nullCheckedIndex(list.get(next));
-        if (resourceIndex != -1) {
+        boolean nullChecked = resourceIndex != -1;
+        if (nullChecked) {
             next++;
         }
 
@@ -183,7 +192,7 @@ final class ModernTryWithResourcesNormalizer {
                 || loadedIndex(at(list, next + 1) instanceof AThrow athrow ? athrow.getValue() : null) != storeThrowable.getIndex()) {
             return null;
         }
-        return new Handler(next + 1, closedIndex, closedOwner(cp, at(list, closeIndex)), inner);
+        return new Handler(next + 1, closedIndex, closedOwner(cp, at(list, closeIndex)), nullChecked, inner);
     }
 
     /** A return, or a jump to the code after the handler, leaves the protected region without closing the resource. */
@@ -214,6 +223,11 @@ final class ModernTryWithResourcesNormalizer {
             }
         }
         return false;
+    }
+
+    /** @return true if every closing call of the normal path follows the null check of the resource */
+    private static boolean areNullChecked(List<Instruction> list, List<Integer> normalPathCloses, int index) {
+        return normalPathCloses.stream().allMatch(close -> close > 0 && nullCheckedIndex(list.get(close - 1)) == index);
     }
 
     /** @return the class on which close() is called, as the call names it */
