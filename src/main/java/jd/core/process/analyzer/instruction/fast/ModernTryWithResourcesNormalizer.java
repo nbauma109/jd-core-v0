@@ -181,15 +181,23 @@ final class ModernTryWithResourcesNormalizer {
         next++;
 
         // goto to the throw instruction, then the handler of the close
-        if (!(at(list, next) instanceof Goto) || !isExceptionStore(at(list, next + 1))) {
+        if (!(at(list, next) instanceof Goto jump) || !isExceptionStore(at(list, next + 1))) {
             return null;
         }
         AStore storeSuppressed = (AStore) list.get(next + 1);
         CodeException inner = findHandlerOf(cp, remaining, storeSuppressed.getOffset());
         next += 2;
 
+        AThrow rethrow = at(list, next + 1) instanceof AThrow athrow ? athrow : null;
         if (inner == null || !isAddSuppressed(cp, at(list, next), storeThrowable.getIndex(), storeSuppressed.getIndex())
-                || loadedIndex(at(list, next + 1) instanceof AThrow athrow ? athrow.getValue() : null) != storeThrowable.getIndex()) {
+                || rethrow == null || loadedIndex(rethrow.getValue()) != storeThrowable.getIndex()) {
+            return null;
+        }
+
+        // The jumps that skip the closing code lead to the rethrow: another target swallows the exception when it succeeds
+        int rethrowOffset = rethrow.getValue().getOffset();
+        if (jump.getJumpOffset() != rethrowOffset
+                || nullChecked && ((IfInstruction) list.get(handlerIndex + 1)).getJumpOffset() != rethrowOffset) {
             return null;
         }
         return new Handler(next + 1, closedIndex, closedOwner(cp, at(list, closeIndex)), nullChecked, inner);

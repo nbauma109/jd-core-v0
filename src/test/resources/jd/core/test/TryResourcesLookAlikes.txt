@@ -1,5 +1,6 @@
 /*     */ package jd.core.test;
 /*     */ 
+/*     */ import java.io.ByteArrayInputStream;
 /*     */ import java.io.IOException;
 /*     */ import java.io.InputStream;
 /*     */ import java.util.List;
@@ -13,139 +14,139 @@
 /*     */   {
 /*     */     try
 /*     */     {
-/*  16 */       in.read();
+/*  17 */       in.read();
 /*     */     } catch (Throwable t) {
-/*  18 */       in.close();
-/*  19 */       throw t;
+/*  19 */       in.close();
+/*  20 */       throw t;
 /*     */     }
 /*     */     try {
-/*  22 */       in.available();
+/*  23 */       in.available();
 /*     */     } catch (IOException e) {
-/*  24 */       e.printStackTrace();
+/*  25 */       e.printStackTrace();
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   static void swappedSuppressed(InputStream in) throws IOException {
 /*     */     try {
-/*  30 */       in.available();
+/*  31 */       in.available();
 /*     */     } catch (IOException e) {
-/*  32 */       e.printStackTrace();
+/*  33 */       e.printStackTrace();
 /*     */     }
 /*     */     try {
-/*  35 */       in.read();
+/*  36 */       in.read();
 /*     */     } catch (Throwable t) {
 /*     */       try {
-/*  38 */         in.close();
+/*  39 */         in.close();
 /*     */       } catch (Throwable suppressed) {
-/*  40 */         suppressed.addSuppressed(t);
+/*  41 */         suppressed.addSuppressed(t);
 /*     */       }
-/*  42 */       throw t;
+/*  43 */       throw t;
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   static void wrapped(InputStream in) throws IOException {
 /*     */     try {
-/*  48 */       in.available();
+/*  49 */       in.available();
 /*     */     } catch (IOException e) {
-/*  50 */       e.printStackTrace();
+/*  51 */       e.printStackTrace();
 /*     */     }
 /*     */     try {
-/*  53 */       in.read();
+/*  54 */       in.read();
 /*     */     } catch (Throwable t) {
 /*     */       try {
-/*  56 */         in.close();
+/*  57 */         in.close();
 /*     */       } catch (Throwable suppressed) {
-/*  58 */         t.addSuppressed(suppressed);
+/*  59 */         t.addSuppressed(suppressed);
 /*     */       }
-/*  60 */       throw new IllegalStateException(t);
+/*  61 */       throw new IllegalStateException(t);
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   static void otherResource(InputStream in, InputStream other) throws IOException {
 /*     */     try {
-/*  66 */       in.read();
+/*  67 */       in.read();
 /*     */     } catch (Throwable t) {
 /*     */       try {
-/*  69 */         other.close();
+/*  70 */         other.close();
 /*     */       } catch (Throwable suppressed) {
-/*  71 */         t.addSuppressed(suppressed);
+/*  72 */         t.addSuppressed(suppressed);
 /*     */       }
-/*  73 */       throw t;
+/*  74 */       throw t;
 /*     */     }
 /*     */     try {
-/*  76 */       in.available();
+/*  77 */       in.available();
 /*     */     } catch (IOException e) {
-/*  78 */       e.printStackTrace();
+/*  79 */       e.printStackTrace();
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   static void notJustAfterStore(InputStream in, List<Integer> out) throws IOException {
 /*     */     try {
-/*  84 */       in.available();
+/*  85 */       in.available();
 /*     */     } catch (IOException e) {
-/*  86 */       e.printStackTrace();
+/*  87 */       e.printStackTrace();
 /*     */     }
-/*  88 */     InputStream stream = in;
-/*  89 */     out.add(1);
+/*  89 */     InputStream stream = in;
+/*  90 */     out.add(1);
 /*     */     try {
-/*  91 */       out.add(stream.read());
+/*  92 */       out.add(stream.read());
 /*     */     } catch (Throwable t) {
 /*     */       try {
-/*  94 */         stream.close();
+/*  95 */         stream.close();
 /*     */       } catch (Throwable suppressed) {
-/*  96 */         t.addSuppressed(suppressed);
+/*  97 */         t.addSuppressed(suppressed);
 /*     */       }
-/*  98 */       throw t;
+/*  99 */       throw t;
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   static void notACloseCall(InputStream in) throws IOException {
 /*     */     try {
-/* 104 */       in.available();
+/* 105 */       in.available();
 /*     */     } catch (IOException e) {
-/* 106 */       e.printStackTrace();
+/* 107 */       e.printStackTrace();
 /*     */     }
 /*     */     try {
-/* 109 */       in.read();
+/* 110 */       in.read();
 /*     */     } catch (Throwable t) {
 /*     */       try {
-/* 112 */         in.available();
+/* 113 */         in.available();
 /*     */       } catch (Throwable suppressed) {
-/* 114 */         t.addSuppressed(suppressed);
+/* 115 */         t.addSuppressed(suppressed);
 /*     */       }
-/* 116 */       throw t;
+/* 117 */       throw t;
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   static void manualClose(InputStream in, List<Integer> out) throws IOException {
 /*     */     try {
-/* 122 */       out.add(in.read());
-/* 123 */       in.close();
+/* 123 */       out.add(in.read());
+/* 124 */       in.close();
 /*     */     } catch (Throwable t) {
 /*     */       try {
-/* 126 */         in.close();
+/* 127 */         in.close();
 /*     */       } catch (Throwable suppressed) {
-/* 128 */         t.addSuppressed(suppressed);
+/* 129 */         t.addSuppressed(suppressed);
 /*     */       }
-/* 130 */       throw t;
+/* 131 */       throw t;
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   static void earlyReturn(InputStream in, boolean stop) throws Exception
 /*     */   {
-/* 136 */     InputStream resource = in;
+/* 137 */     InputStream resource = in;
 /*     */     try {
-/* 138 */       if (stop) {
-/* 139 */         return;
+/* 139 */       if (stop) {
+/* 140 */         return;
 /*     */       }
-/* 141 */       throw new Exception("never completes normally");
+/* 142 */       throw new Exception("never completes normally");
 /*     */     } catch (Throwable t) {
 /*     */       try {
-/* 144 */         resource.close();
+/* 145 */         resource.close();
 /*     */       } catch (Throwable suppressed) {
-/* 146 */         t.addSuppressed(suppressed);
+/* 147 */         t.addSuppressed(suppressed);
 /*     */       }
-/* 148 */       throw t;
+/* 149 */       throw t;
 /*     */     }
 /*     */   }
 /*     */   
@@ -157,68 +158,83 @@
 /*     */   static void notAutoCloseable(NotCloseable input)
 /*     */     throws Exception
 /*     */   {
-/* 160 */     NotCloseable resource = input;
+/* 161 */     NotCloseable resource = input;
 /*     */     try {
-/* 162 */       throw new Exception("never completes normally");
+/* 163 */       throw new Exception("never completes normally");
 /*     */     } catch (Throwable t) {
 /*     */       try {
-/* 165 */         resource.close();
+/* 166 */         resource.close();
 /*     */       } catch (Throwable suppressed) {
-/* 167 */         t.addSuppressed(suppressed);
+/* 168 */         t.addSuppressed(suppressed);
 /*     */       }
-/* 169 */       throw t;
+/* 170 */       throw t;
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   static void reassigned(InputStream input, InputStream other) throws Exception
 /*     */   {
-/* 175 */     InputStream resource = input;
+/* 176 */     InputStream resource = input;
 /*     */     try {
-/* 177 */       resource = other;
-/* 178 */       throw new Exception("never completes normally");
+/* 178 */       resource = other;
+/* 179 */       throw new Exception("never completes normally");
 /*     */     } catch (Throwable t) {
 /*     */       try {
-/* 181 */         resource.close();
+/* 182 */         resource.close();
 /*     */       } catch (Throwable suppressed) {
-/* 183 */         t.addSuppressed(suppressed);
+/* 184 */         t.addSuppressed(suppressed);
 /*     */       }
-/* 185 */       throw t;
+/* 186 */       throw t;
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   static InputStream usedInOuterCatch(InputStream input) throws Exception
 /*     */   {
-/* 191 */     InputStream resource = input;
+/* 192 */     InputStream resource = input;
 /*     */     try {
 /*     */       try {
-/* 194 */         throw new Exception("never completes normally");
+/* 195 */         throw new Exception("never completes normally");
 /*     */       } catch (Throwable t) {
 /*     */         try {
-/* 197 */           resource.close();
+/* 198 */           resource.close();
 /*     */         } catch (Throwable suppressed) {
-/* 199 */           t.addSuppressed(suppressed);
+/* 200 */           t.addSuppressed(suppressed);
 /*     */         }
-/* 201 */         throw t;
+/* 202 */         throw t;
 /*     */       }
 /*     */     } catch (IOException e) {}
-/* 204 */     return resource;
+/* 205 */     return resource;
 /*     */   }
 /*     */   
 /*     */   static void unguardedClose(InputStream input, List<Integer> out)
 /*     */     throws Exception
 /*     */   {
-/* 210 */     InputStream resource = input;
+/* 211 */     InputStream resource = input;
 /*     */     try {
-/* 212 */       out.add(resource.read());
+/* 213 */       out.add(resource.read());
 /*     */     } catch (Throwable t) {
 /*     */       try {
-/* 215 */         resource.close();
+/* 216 */         resource.close();
 /*     */       } catch (Throwable suppressed) {
-/* 217 */         t.addSuppressed(suppressed);
+/* 218 */         t.addSuppressed(suppressed);
 /*     */       }
-/* 219 */       throw t;
+/* 220 */       throw t;
 /*     */     }
-/* 221 */     resource.close();
+/* 222 */     resource.close();
+/*     */   }
+/*     */   
+/*     */   static void swallowedWhenClosed() throws Exception
+/*     */   {
+/* 227 */     InputStream resource = new ByteArrayInputStream(new byte[0]);
+/*     */     try {
+/* 229 */       throw new Exception("swallowed by the cleanup");
+/*     */     } catch (Throwable t) {
+/*     */       try {
+/* 232 */         resource.close();
+/*     */       } catch (Throwable suppressed) {
+/* 234 */         t.addSuppressed(suppressed);
+/* 235 */         throw t;
+/*     */       }
+/*     */     }
 /*     */   }
 /*     */   
 /*     */   static class NotCloseable

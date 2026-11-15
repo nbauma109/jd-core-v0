@@ -1,5 +1,6 @@
 package jd.core.test;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -219,5 +220,20 @@ public class TryResourcesLookAlikes {
             throw t;
         }
         resource.close();
+    }
+
+    /** The exception is rethrown only if the close fails: it is swallowed when the close succeeds. */
+    static void swallowedWhenClosed() throws Exception {
+        InputStream resource = new ByteArrayInputStream(new byte[0]);
+        try {
+            throw new Exception("swallowed by the cleanup");
+        } catch (Throwable t) {
+            try {
+                resource.close();
+            } catch (Throwable suppressed) {
+                t.addSuppressed(suppressed);
+                throw t;
+            }
+        }
     }
 }
