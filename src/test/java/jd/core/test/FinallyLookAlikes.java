@@ -101,4 +101,22 @@ public class FinallyLookAlikes {
             }
         }
     }
+
+    int differentReceivers(Object a, Object b) {
+        try {
+            a.hashCode();
+            return 0;
+        } finally {
+            b.hashCode();
+        }
+    }
+
+    int differentArguments(StringBuilder builder) {
+        try {
+            builder.append(1);
+            return 0;
+        } finally {
+            builder.append(2);
+        }
+    }
 }

@@ -101,4 +101,22 @@
 /*     */       }
 /*     */     }
 /*     */   }
+/*     */   
+/*     */   int differentReceivers(Object a, Object b) {
+/*     */     try {
+/* 107 */       a.hashCode();
+/* 108 */       return 0;
+/*     */     } finally {
+/* 110 */       b.hashCode();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   int differentArguments(StringBuilder builder) {
+/*     */     try {
+/* 116 */       builder.append(1);
+/* 117 */       return 0;
+/*     */     } finally {
+/* 119 */       builder.append(2);
+/*     */     }
+/*     */   }
 /*     */ }

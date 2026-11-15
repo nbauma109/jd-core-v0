@@ -165,9 +165,7 @@ public class FastCompareInstructionVisitor extends CompareInstructionVisitor
                 FastDeclaration fd2 = (FastDeclaration)i2;
                 return visit(fd1.getInstruction(), fd2.getInstruction());
             }
-        case Const.POP,
-             Const.MONITORENTER,
-             Const.MONITOREXIT:
+        case Const.POP:
             return visit(((ObjectrefAttribute)i1).getObjectref(), ((ObjectrefAttribute)i2).getObjectref());
         case Const.PUTSTATIC:
             return ((IndexInstruction)i1).getIndex() == ((IndexInstruction)i2).getIndex()
