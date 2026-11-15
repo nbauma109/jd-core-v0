@@ -1,0 +1,104 @@
+/*     */ package jd.core.test;
+/*     */ 
+/*     */ 
+/*     */ public class FinallyLookAlikes
+/*     */ {
+/*     */   static int shared;
+/*     */   
+/*     */   static int other;
+/*     */   
+/*     */ 
+/*     */   static int first()
+/*     */   {
+/*  13 */     return shared++;
+/*     */   }
+/*     */   
+/*     */   static int second() {
+/*  17 */     return shared--;
+/*     */   }
+/*     */   
+/*     */   static void log(String message) {
+/*  21 */     shared += message.length();
+/*     */   }
+/*     */   
+/*     */   static void use(long value) {
+/*  25 */     shared += (int)value;
+/*     */   }
+/*     */   
+/*     */   int differentMethods() {
+/*     */     try {
+/*  30 */       first();
+/*  31 */       return 0;
+/*     */     } finally {
+/*  33 */       second();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   int differentStaticFieldValues() {
+/*     */     try {
+/*  39 */       shared = 1;
+/*  40 */       return 0;
+/*     */     } finally {
+/*  42 */       shared = 2;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   int differentStaticFields() {
+/*     */     try {
+/*  48 */       use(shared);
+/*  49 */       return 0;
+/*     */     } finally {
+/*  51 */       use(other);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   int differentConstants() {
+/*     */     try {
+/*  57 */       log("a");
+/*  58 */       return 0;
+/*     */     } finally {
+/*  60 */       log("b");
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   int differentObjects() {
+/*     */     try {
+/*  66 */       new StringBuilder("a");
+/*  67 */       return 0;
+/*     */     } finally {
+/*  69 */       new StringBuilder("b");
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   int differentIncrements() {
+/*  74 */     int i = 0;
+/*     */     try {
+/*  76 */       i++;
+/*  77 */       return i;
+/*     */     } finally {
+/*  79 */       i += 2;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   long differentLongs(long v, long w) {
+/*     */     try {
+/*  85 */       use(v);
+/*  86 */       return v;
+/*     */     } finally {
+/*  88 */       use(w);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   int differentMonitors(Object a, Object b) {
+/*     */     try {
+/*  94 */       synchronized (a) {
+/*  95 */         shared++;
+/*     */       }
+/*  97 */       return 0;
+/*     */     } finally {
+/*  99 */       synchronized (b) {
+/* 100 */         shared++;
+/*     */       }
+/*     */     }
+/*     */   }
+/*     */ }
