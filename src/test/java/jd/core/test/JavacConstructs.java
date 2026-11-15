@@ -214,4 +214,16 @@ public class JavacConstructs {
     static IntSupplier sizeOfChecked(Object value) {
         return ((Collection<?>) java.util.Objects.requireNonNull(value))::size;
     }
+
+    /** The type variable is the one of the class: the cast is the erasure of its bound. */
+    static class ClassLevel<R extends Collection<String>> {
+        void add(List<R> target, Supplier<R> factory) {
+            target.add(factory.get());
+        }
+    }
+
+    /** The type of the argument is generic: the cast of the receiver is the inferred type. */
+    static IntSupplier inferredReceiver(Collection<String> value) {
+        return java.util.Objects.requireNonNull(value)::size;
+    }
 }

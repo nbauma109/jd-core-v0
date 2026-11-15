@@ -12,7 +12,6 @@ import org.jd.core.v1.util.StringConstants;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayDeque;
 import java.util.Deque;
 import java.util.HashSet;
@@ -111,12 +110,8 @@ final class ModernTryWithResourcesNormalizer {
         }
         LocalVariable resource = localVariables.getLocalVariableWithIndexAndOffset(storeResource.getIndex(),
                 storeResource.getOffset());
-        if (resource == null) {
-            return false;
-        }
-
         // Cleanup written by hand: the resource is not an AutoCloseable, or it is another value when it is closed
-        if (isKnownNotAutoCloseable(loader, handler.resourceType())
+        if (resource == null || isKnownNotAutoCloseable(loader, handler.resourceType())
                 || storesLocal(list, startIndex, handlerIndex, handler.resourceIndex())) {
             return false;
         }
@@ -241,16 +236,8 @@ final class ModernTryWithResourcesNormalizer {
     private static JavaClass parse(Loader loader, String name) {
         String entry = name + StringConstants.CLASS_FILE_SUFFIX;
         try {
-            byte[] bytes = loader != null && loader.canLoad(entry) ? loader.load(entry) : null;
-            if (bytes == null) {
-                try (InputStream in = ClassLoader.getSystemResourceAsStream(entry)) {
-                    bytes = in == null ? null : in.readAllBytes();
-                }
-            }
-            return bytes == null ? null : new ClassParser(new ByteArrayInputStream(bytes), entry).parse();
-        } catch (IOException e) {
-            return null;
-        }
+            return loader.canLoad(entry) ? new ClassParser(new ByteArrayInputStream(loader.load(entry)), entry).parse() : null;
+        } catch (IOException e) { return null; }
     }
 
     /** The body ends with a throw or a jump back (an endless loop): the code after the region is not reached. */

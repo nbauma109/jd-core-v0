@@ -18,6 +18,8 @@ public class JavacConstructsTest extends AbstractTestCase {
         assertFalse(output, output.contains("localThrowable"));
         assertTrue(output, output.contains("requireNonNull"));
         assertTrue(output, output.contains("this::describe"));
+        assertTrue(output, output.contains("target.add(factory.get())"));
+        assertTrue(output, output.contains("requireNonNull(value)::size"));
         assertTrue(output, output.contains("((Collection)java.util.Objects.requireNonNull(value))::size")
                 || output.contains("((Collection)Objects.requireNonNull(value))::size"));
     }

@@ -82,17 +82,12 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
     private final ClassFile classFile;
     private final LocalVariables localVariables;
     private final TypeMaker typeMaker;
-    /** The type parameters of the method that is visited, null if they are unknown. */
+    /** The type parameters of the method that is visited. */
     private final BaseTypeParameter methodTypeParameters;
     /** Arguments of the calls met so far: their static type takes part in the choice of an overload. */
     private final Set<Instruction> callArguments = Collections.newSetFromMap(new IdentityHashMap<>());
     private final Map<Instruction, Instruction> parentOf = new IdentityHashMap<>();
     private final Map<Instruction, InvokeInstruction> callOfArgument = new IdentityHashMap<>();
-
-    public ReplaceRedundantCastVisitor(ClassFile classFile, LocalVariables localVariables)
-    {
-        this(classFile, localVariables, null);
-    }
 
     /** @param method the method that is visited: its type variables are those of the arguments */
     public ReplaceRedundantCastVisitor(ClassFile classFile, LocalVariables localVariables, Method method)
@@ -100,7 +95,7 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
         this.classFile = classFile;
         this.localVariables = localVariables;
         this.typeMaker = new TypeMaker(classFile.getLoader());
-        this.methodTypeParameters = method == null ? null : methodTypeParameters(method);
+        this.methodTypeParameters = methodTypeParameters(method);
     }
 
     private BaseTypeParameter methodTypeParameters(Method method)
@@ -109,7 +104,7 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
         Signature signature = method.getAttributeSignature();
         MethodTypes methodTypes = typeMaker.makeMethodTypes(classFile.getThisClassName(), method.getName(constants),
             signature == null ? method.getDescriptor(constants) : signature.getSignature());
-        return methodTypes == null ? null : methodTypes.getTypeParameters();
+        return methodTypes.getTypeParameters();
     }
 
     @Override

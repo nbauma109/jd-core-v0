@@ -16,6 +16,8 @@
  ******************************************************************************/
 package jd.core.model.instruction.bytecode.instruction;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.List;
 
 import jd.core.model.classfile.ClassFile;
@@ -101,12 +103,9 @@ public class MethodReference extends Instruction implements SourceWriteable {
 
     /** 'Ljava/util/List<Ljava/lang/String;>;' becomes 'Ljava/util/List;' */
     private static String eraseTypeArguments(String signature) {
-        if (signature == null) {
-            return "";
-        }
         StringBuilder erased = new StringBuilder();
         int depth = 0;
-        for (char c : signature.toCharArray()) {
+        for (char c : StringUtils.defaultString(signature).toCharArray()) {
             if (c == '<') {
                 depth++;
             } else if (c == '>') {

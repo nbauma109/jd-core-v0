@@ -1,0 +1,11 @@
+/*   */ package jd.core.test;
+/*   */ 
+/*   */ public class MissingResourceUser
+/*   */ {
+/*   */   static int read(MissingResource resource) throws Exception {
+/* 6 */     try (MissingResource in = resource) {
+/* 7 */       return in.value();
+/*   */     }
+/*   */     
+/*   */   }
+/*   */ }
