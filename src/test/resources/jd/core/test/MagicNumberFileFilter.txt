@@ -2,7 +2,6 @@
 /*     */ 
 /*     */ import java.io.File;
 /*     */ import java.io.IOException;
-/*     */ import java.io.RandomAccessFile;
 /*     */ import java.io.Serializable;
 /*     */ import java.nio.ByteBuffer;
 /*     */ import java.nio.channels.FileChannel;
@@ -14,7 +13,16 @@
 /*     */ import java.nio.file.Path;
 /*     */ import java.nio.file.attribute.BasicFileAttributes;
 /*     */ import java.util.Arrays;
-/*     */ import org.apache.commons.io.IOUtils;
+/*     */ import java.util.Objects;
+/*     */ import org.apache.commons.io.RandomAccessFileMode;
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */ 
 /*     */ 
 /*     */ 
@@ -135,7 +143,7 @@
 /*     */   
 /*     */   public MagicNumberFileFilter(byte[] magicNumber)
 /*     */   {
-/* 138 */     this(magicNumber, 0L);
+/* 146 */     this(magicNumber, 0L);
 /*     */   }
 /*     */   
 /*     */ 
@@ -160,22 +168,18 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
-/*     */   public MagicNumberFileFilter(byte[] magicNumber, long offset)
+/*     */   public MagicNumberFileFilter(byte[] magicNumbers, long offset)
 /*     */   {
-/* 166 */     if (magicNumber == null) {
-/* 167 */       throw new IllegalArgumentException("The magic number cannot be null");
+/* 173 */     Objects.requireNonNull(magicNumbers, "magicNumbers");
+/* 174 */     if (magicNumbers.length == 0) {
+/* 175 */       throw new IllegalArgumentException("The magic number must contain at least one byte");
 /*     */     }
-/* 169 */     if (magicNumber.length == 0) {
-/* 170 */       throw new IllegalArgumentException("The magic number must contain at least one byte");
-/*     */     }
-/* 172 */     if (offset < 0L) {
-/* 173 */       throw new IllegalArgumentException("The offset cannot be negative");
+/* 177 */     if (offset < 0L) {
+/* 178 */       throw new IllegalArgumentException("The offset cannot be negative");
 /*     */     }
 /*     */     
-/* 176 */     this.magicNumbers = IOUtils.byteArray(magicNumber.length);
-/* 177 */     System.arraycopy(magicNumber, 0, this.magicNumbers, 0, magicNumber.length);
-/* 178 */     this.byteOffset = offset;
+/* 181 */     this.magicNumbers = (byte[])magicNumbers.clone();
+/* 182 */     this.byteOffset = offset;
 /*     */   }
 /*     */   
 /*     */ 
@@ -200,9 +204,10 @@
 /*     */ 
 /*     */   public MagicNumberFileFilter(String magicNumber)
 /*     */   {
-/* 203 */     this(magicNumber, 0L);
+/* 207 */     this(magicNumber, 0L);
 /*     */   }
 /*     */   
+/*     */ 
 /*     */ 
 /*     */ 
 /*     */ 
@@ -224,22 +229,9 @@
 /*     */ 
 /*     */   public MagicNumberFileFilter(String magicNumber, long offset)
 /*     */   {
-/* 227 */     if (magicNumber == null) {
-/* 228 */       throw new IllegalArgumentException("The magic number cannot be null");
-/*     */     }
-/* 230 */     if (magicNumber.isEmpty()) {
-/* 231 */       throw new IllegalArgumentException("The magic number must contain at least one byte");
-/*     */     }
-/* 233 */     if (offset < 0L) {
-/* 234 */       throw new IllegalArgumentException("The offset cannot be negative");
-/*     */     }
-/*     */     
-/* 237 */     this.magicNumbers = magicNumber.getBytes(Charset.defaultCharset());
-/*     */     
-/* 239 */     this.byteOffset = offset;
+/* 232 */     this(magicNumber.getBytes(Charset.defaultCharset()), offset);
 /*     */   }
 /*     */   
-/*     */ 
 /*     */ 
 /*     */ 
 /*     */ 
@@ -257,26 +249,18 @@
 /*     */   @Override
 /*     */   public boolean accept(File file)
 /*     */   {
-/* 260 */     if (file != null && file.isFile() && file.canRead())
-/*     */     {
-/* 262 */       try (RandomAccessFile randomAccessFile = new RandomAccessFile(file, "r")) {
-/* 263 */         byte[] fileBytes = IOUtils.byteArray(this.magicNumbers.length);
-/* 264 */         randomAccessFile.seek(this.byteOffset);
-/* 265 */         int read = randomAccessFile.read(fileBytes);
-/* 266 */         if (read != this.magicNumbers.length) {
-/* 267 */           return false;
-/*     */         }
-/* 269 */         return Arrays.equals(this.magicNumbers, fileBytes);
+/* 252 */     if (isFile(file) && file.canRead()) {
+/*     */       try {
+/* 254 */         return ((Boolean)RandomAccessFileMode.READ_ONLY.apply(file.toPath(), 
+/* 255 */         raf -> Boolean.valueOf(Arrays.equals(this.magicNumbers, org.apache.commons.io.RandomAccessFiles.read(raf, this.byteOffset, this.magicNumbers.length))))).booleanValue();
 /*     */       }
 /*     */       catch (IOException localIOException) {}
 /*     */     }
 /*     */     
-/*     */ 
-/*     */ 
-/*     */ 
-/* 277 */     return false;
+/* 260 */     return false;
 /*     */   }
 /*     */   
+/*     */ 
 /*     */ 
 /*     */ 
 /*     */ 
@@ -295,22 +279,22 @@
 /*     */   @Override
 /*     */   public FileVisitResult accept(Path file, BasicFileAttributes attributes)
 /*     */   {
-/* 298 */     if (file != null && Files.isRegularFile(file) && Files.isReadable(file))
+/* 282 */     if (file != null && Files.isRegularFile(file) && Files.isReadable(file))
 /*     */     {
-/* 300 */       try (FileChannel fileChannel = FileChannel.open(file)) {
-/* 301 */         ByteBuffer byteBuffer = ByteBuffer.allocate(this.magicNumbers.length);
-/* 302 */         int read = fileChannel.read(byteBuffer);
-/* 303 */         if (read != this.magicNumbers.length) {
-/* 304 */           return FileVisitResult.TERMINATE;
+/* 284 */       try (FileChannel fileChannel = FileChannel.open(file)) {
+/* 285 */         ByteBuffer byteBuffer = ByteBuffer.allocate(this.magicNumbers.length);
+/* 286 */         fileChannel.position(this.byteOffset);
+/* 287 */         int read = fileChannel.read(byteBuffer);
+/* 288 */         if (read != this.magicNumbers.length) {
+/* 289 */           return FileVisitResult.TERMINATE;
 /*     */         }
-/* 306 */         return toFileVisitResult(Arrays.equals(this.magicNumbers, byteBuffer.array()), file);
+/* 291 */         return toFileVisitResult(Arrays.equals(this.magicNumbers, byteBuffer.array()));
 /*     */       }
 /*     */       catch (IOException localIOException) {}
 /*     */     }
 /*     */     
 /*     */ 
-/*     */ 
-/* 313 */     return FileVisitResult.TERMINATE;
+/* 297 */     return FileVisitResult.TERMINATE;
 /*     */   }
 /*     */   
 /*     */ 
@@ -321,13 +305,13 @@
 /*     */   @Override
 /*     */   public String toString()
 /*     */   {
-/* 324 */     StringBuilder builder = new StringBuilder(super.toString());
-/* 325 */     builder.append("(");
-/* 326 */     builder.append(new String(this.magicNumbers, Charset.defaultCharset()));
+/* 308 */     StringBuilder builder = new StringBuilder(super.toString());
+/* 309 */     builder.append("(");
 /*     */     
-/* 328 */     builder.append(",");
-/* 329 */     builder.append(this.byteOffset);
-/* 330 */     builder.append(")");
-/* 331 */     return builder.toString();
+/* 311 */     builder.append(new String(this.magicNumbers, Charset.defaultCharset()));
+/* 312 */     builder.append(",");
+/* 313 */     builder.append(this.byteOffset);
+/* 314 */     builder.append(")");
+/* 315 */     return builder.toString();
 /*     */   }
 /*     */ }

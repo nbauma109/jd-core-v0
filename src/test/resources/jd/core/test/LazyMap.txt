@@ -5,12 +5,10 @@
 /*     */ import java.io.ObjectOutputStream;
 /*     */ import java.io.Serializable;
 /*     */ import java.util.Map;
+/*     */ import java.util.Objects;
 /*     */ import org.apache.commons.collections4.Factory;
 /*     */ import org.apache.commons.collections4.Transformer;
 /*     */ import org.apache.commons.collections4.functors.FactoryTransformer;
-/*     */ 
-/*     */ 
-/*     */ 
 /*     */ 
 /*     */ 
 /*     */ 
@@ -86,7 +84,7 @@
 /*     */   
 /*     */   public static <K, V> LazyMap<K, V> lazyMap(Map<K, V> map, Factory<? extends V> factory)
 /*     */   {
-/*  89 */     return new LazyMap<>(map, factory);
+/*  87 */     return new LazyMap<>(map, factory);
 /*     */   }
 /*     */   
 /*     */ 
@@ -101,9 +99,11 @@
 /*     */ 
 /*     */   public static <V, K> LazyMap<K, V> lazyMap(Map<K, V> map, Transformer<? super K, ? extends V> factory)
 /*     */   {
-/* 104 */     return new LazyMap<>(map, factory);
+/* 102 */     return new LazyMap<>(map, factory);
 /*     */   }
 /*     */   
+/*     */ 
+/*     */ 
 /*     */ 
 /*     */ 
 /*     */ 
@@ -114,10 +114,7 @@
 /*     */   protected LazyMap(Map<K, V> map, Factory<? extends V> factory)
 /*     */   {
 /* 116 */     super(map);
-/* 117 */     if (factory == null) {
-/* 118 */       throw new NullPointerException("Factory must not be null");
-/*     */     }
-/* 120 */     this.factory = FactoryTransformer.factoryTransformer(factory);
+/* 117 */     this.factory = FactoryTransformer.factoryTransformer((Factory)Objects.requireNonNull(factory, "factory"));
 /*     */   }
 /*     */   
 /*     */ 
@@ -128,24 +125,21 @@
 /*     */ 
 /*     */   protected LazyMap(Map<K, V> map, Transformer<? super K, ? extends V> factory)
 /*     */   {
-/* 131 */     super(map);
-/* 132 */     if (factory == null) {
-/* 133 */       throw new NullPointerException("Factory must not be null");
-/*     */     }
-/* 135 */     this.factory = factory;
+/* 128 */     super(map);
+/* 129 */     this.factory = (Transformer)Objects.requireNonNull(factory, "factory");
 /*     */   }
 /*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   private void writeObject(ObjectOutputStream out)
-/*     */     throws IOException
+/*     */   @Override
+/*     */   public V get(Object key)
 /*     */   {
-/* 147 */     out.defaultWriteObject();
-/* 148 */     out.writeObject(this.map);
+/* 135 */     if (!this.map.containsKey(key))
+/*     */     {
+/* 137 */       K castKey = (K)key;
+/* 138 */       V value = this.factory.apply(castKey);
+/* 139 */       this.map.put(castKey, value);
+/* 140 */       return value;
+/*     */     }
+/* 142 */     return this.map.get(key);
 /*     */   }
 /*     */   
 /*     */ 
@@ -158,21 +152,19 @@
 /*     */   private void readObject(ObjectInputStream in)
 /*     */     throws IOException, ClassNotFoundException
 /*     */   {
-/* 161 */     in.defaultReadObject();
-/* 162 */     this.map = (Map)in.readObject();
+/* 155 */     in.defaultReadObject();
+/* 156 */     this.map = (Map)in.readObject();
 /*     */   }
 /*     */   
 /*     */ 
-/*     */   @Override
-/*     */   public V get(Object key)
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   private void writeObject(ObjectOutputStream out)
+/*     */     throws IOException
 /*     */   {
-/* 169 */     if (!this.map.containsKey(key))
-/*     */     {
-/* 171 */       K castKey = (K)key;
-/* 172 */       V value = this.factory.transform(castKey);
-/* 173 */       this.map.put(castKey, value);
-/* 174 */       return value;
-/*     */     }
-/* 176 */     return this.map.get(key);
+/* 167 */     out.defaultWriteObject();
+/* 168 */     out.writeObject(this.map);
 /*     */   }
 /*     */ }

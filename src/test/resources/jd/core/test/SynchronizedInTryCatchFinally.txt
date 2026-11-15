@@ -1,0 +1,27 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class SynchronizedInTryCatchFinally
+/*    */ {
+/*    */   int counter;
+/*    */   
+/*    */   int touch()
+/*    */   {
+/*  9 */     return this.counter++;
+/*    */   }
+/*    */   
+/*    */   int other() {
+/* 13 */     return this.counter--;
+/*    */   }
+/*    */   
+/*    */   void withCatch(Object lock) {
+/*    */     try {
+/* 18 */       synchronized (lock) {
+/* 19 */         other();
+/*    */       }
+/*    */     } catch (IllegalStateException e) {
+/* 22 */       other();
+/*    */     } finally {
+/* 24 */       touch();
+/*    */     }
+/*    */   }
+/*    */ }

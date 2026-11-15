@@ -1,6 +1,7 @@
 /*     */ package org.apache.commons.collections4.bag;
 /*     */ 
 /*     */ import java.io.IOException;
+/*     */ import java.io.InvalidObjectException;
 /*     */ import java.io.ObjectInputStream;
 /*     */ import java.io.ObjectOutputStream;
 /*     */ import java.lang.reflect.Array;
@@ -9,6 +10,7 @@
 /*     */ import java.util.Iterator;
 /*     */ import java.util.Map;
 /*     */ import java.util.Map.Entry;
+/*     */ import java.util.Objects;
 /*     */ import java.util.Set;
 /*     */ import org.apache.commons.collections4.Bag;
 /*     */ import org.apache.commons.collections4.set.UnmodifiableSet;
@@ -43,372 +45,74 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
+/*     */ @Deprecated
 /*     */ public abstract class AbstractMapBag<E>
 /*     */   implements Bag<E>
 /*     */ {
 /*     */   private transient Map<E, MutableInteger> map;
-/*     */   private int size;
+/*     */   private long size;
 /*     */   private transient int modCount;
 /*     */   private transient Set<E> uniqueSet;
-/*     */   
 /*     */   protected AbstractMapBag() {}
 /*     */   
-/*     */   protected AbstractMapBag(Map<E, MutableInteger> map)
-/*     */   {
-/*  71 */     this.map = map;
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   protected Map<E, MutableInteger> getMap()
-/*     */   {
-/*  81 */     return this.map;
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   @Override
-/*     */   public int size()
-/*     */   {
-/*  92 */     return this.size;
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   @Override
-/*     */   public boolean isEmpty()
-/*     */   {
-/* 102 */     return this.map.isEmpty();
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   @Override
-/*     */   public int getCount(Object object)
-/*     */   {
-/* 114 */     MutableInteger count = (MutableInteger)this.map.get(object);
-/* 115 */     if (count != null) {
-/* 116 */       return count.value;
-/*     */     }
-/* 118 */     return 0;
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   @Override
-/*     */   public boolean contains(Object object)
-/*     */   {
-/* 131 */     return this.map.containsKey(object);
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   @Override
-/*     */   public boolean containsAll(Collection<?> coll)
-/*     */   {
-/* 142 */     if ((coll instanceof Bag)) {
-/* 143 */       return containsAll((Bag)coll);
-/*     */     }
-/* 145 */     return containsAll(new HashBag<>(coll));
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   boolean containsAll(Bag<?> other)
-/*     */   {
-/* 156 */     Iterator<?> it = other.uniqueSet().iterator();
-/* 157 */     while (it.hasNext()) {
-/* 158 */       Object current = it.next();
-/* 159 */       if (getCount(current) < other.getCount(current)) {
-/* 160 */         return false;
-/*     */       }
-/*     */     }
-/* 163 */     return true;
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   @Override
-/*     */   public Iterator<E> iterator()
-/*     */   {
-/* 175 */     return new BagIterator<>(this);
-/*     */   }
-/*     */   
-/*     */ 
 /*     */   static class BagIterator<E>
 /*     */     implements Iterator<E>
 /*     */   {
 /*     */     private final AbstractMapBag<E> parent;
-/*     */     
 /*     */     private final Iterator<Entry<E, AbstractMapBag.MutableInteger>> entryIterator;
-/*     */     
 /*     */     private Entry<E, AbstractMapBag.MutableInteger> current;
-/*     */     
 /*     */     private int itemCount;
-/*     */     
 /*     */     private final int mods;
 /*     */     private boolean canRemove;
 /*     */     
-/*     */     public BagIterator(AbstractMapBag<E> parent)
+/*     */     BagIterator(AbstractMapBag<E> parent)
 /*     */     {
-/* 195 */       this.parent = parent;
-/* 196 */       this.entryIterator = parent.map.entrySet().iterator();
-/* 197 */       this.current = null;
-/* 198 */       this.mods = parent.modCount;
-/* 199 */       this.canRemove = false;
+/*  70 */       this.parent = parent;
+/*  71 */       this.entryIterator = parent.map.entrySet().iterator();
+/*  72 */       this.current = null;
+/*  73 */       this.mods = parent.modCount;
+/*  74 */       this.canRemove = false;
 /*     */     }
 /*     */     
 /*     */     @Override
 /*     */     public boolean hasNext()
 /*     */     {
-/* 205 */       return this.itemCount > 0 || this.entryIterator.hasNext();
+/*  80 */       return this.itemCount > 0 || this.entryIterator.hasNext();
 /*     */     }
 /*     */     
 /*     */     @Override
 /*     */     public E next()
 /*     */     {
-/* 211 */       if (this.parent.modCount != this.mods) {
-/* 212 */         throw new ConcurrentModificationException();
+/*  86 */       if (this.parent.modCount != this.mods) {
+/*  87 */         throw new ConcurrentModificationException();
 /*     */       }
-/* 214 */       if (this.itemCount == 0) {
-/* 215 */         this.current = (Entry)this.entryIterator.next();
-/* 216 */         this.itemCount = this.current.getValue().value;
+/*  89 */       if (this.itemCount == 0) {
+/*  90 */         this.current = (Entry)this.entryIterator.next();
+/*  91 */         this.itemCount = this.current.getValue().value;
 /*     */       }
-/* 218 */       this.canRemove = true;
-/* 219 */       this.itemCount--;
-/* 220 */       return this.current.getKey();
+/*  93 */       this.canRemove = true;
+/*  94 */       this.itemCount--;
+/*  95 */       return this.current.getKey();
 /*     */     }
 /*     */     
 /*     */     @Override
 /*     */     public void remove()
 /*     */     {
-/* 226 */       if (this.parent.modCount != this.mods) {
-/* 227 */         throw new ConcurrentModificationException();
+/* 101 */       if (this.parent.modCount != this.mods) {
+/* 102 */         throw new ConcurrentModificationException();
 /*     */       }
-/* 229 */       if (!this.canRemove) {
-/* 230 */         throw new IllegalStateException();
+/* 104 */       if (!this.canRemove) {
+/* 105 */         throw new IllegalStateException();
 /*     */       }
-/* 232 */       AbstractMapBag.MutableInteger mut = (AbstractMapBag.MutableInteger)this.current.getValue();
-/* 233 */       if (mut.value > 1) {
-/* 234 */         mut.value--;
+/* 107 */       AbstractMapBag.MutableInteger mut = (AbstractMapBag.MutableInteger)this.current.getValue();
+/* 108 */       if (mut.value > 1) {
+/* 109 */         mut.value--;
 /*     */       } else {
-/* 236 */         this.entryIterator.remove();
+/* 111 */         this.entryIterator.remove();
 /*     */       }
-/* 238 */       this.parent.size--;
-/* 239 */       this.canRemove = false;
+/* 113 */       this.parent.size--;
+/* 114 */       this.canRemove = false;
 /*     */     }
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   @Override
-/*     */   public boolean add(E object)
-/*     */   {
-/* 252 */     return add(object, 1);
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   @Override
-/*     */   public boolean add(E object, int nCopies)
-/*     */   {
-/* 264 */     this.modCount++;
-/* 265 */     if (nCopies > 0) {
-/* 266 */       MutableInteger mut = (MutableInteger)this.map.get(object);
-/* 267 */       this.size += nCopies;
-/* 268 */       if (mut == null) {
-/* 269 */         this.map.put(object, new MutableInteger(nCopies));
-/* 270 */         return true;
-/*     */       }
-/* 272 */       mut.value += nCopies;
-/* 273 */       return false;
-/*     */     }
-/* 275 */     return false;
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   @Override
-/*     */   public boolean addAll(Collection<? extends E> coll)
-/*     */   {
-/* 286 */     boolean changed = false;
-/* 287 */     Iterator<? extends E> i = coll.iterator();
-/* 288 */     while (i.hasNext()) {
-/* 289 */       boolean added = add(i.next());
-/* 290 */       changed = changed || added;
-/*     */     }
-/* 292 */     return changed;
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   @Override
-/*     */   public void clear()
-/*     */   {
-/* 301 */     this.modCount++;
-/* 302 */     this.map.clear();
-/* 303 */     this.size = 0;
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   @Override
-/*     */   public boolean remove(Object object)
-/*     */   {
-/* 314 */     MutableInteger mut = (MutableInteger)this.map.get(object);
-/* 315 */     if (mut == null) {
-/* 316 */       return false;
-/*     */     }
-/* 318 */     this.modCount++;
-/* 319 */     this.map.remove(object);
-/* 320 */     this.size -= mut.value;
-/* 321 */     return true;
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   @Override
-/*     */   public boolean remove(Object object, int nCopies)
-/*     */   {
-/* 333 */     MutableInteger mut = (MutableInteger)this.map.get(object);
-/* 334 */     if (mut == null) {
-/* 335 */       return false;
-/*     */     }
-/* 337 */     if (nCopies <= 0) {
-/* 338 */       return false;
-/*     */     }
-/* 340 */     this.modCount++;
-/* 341 */     if (nCopies < mut.value) {
-/* 342 */       mut.value -= nCopies;
-/* 343 */       this.size -= nCopies;
-/*     */     } else {
-/* 345 */       this.map.remove(object);
-/* 346 */       this.size -= mut.value;
-/*     */     }
-/* 348 */     return true;
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   @Override
-/*     */   public boolean removeAll(Collection<?> coll)
-/*     */   {
-/* 360 */     boolean result = false;
-/* 361 */     if (coll != null) {
-/* 362 */       Iterator<?> i = coll.iterator();
-/* 363 */       while (i.hasNext()) {
-/* 364 */         boolean changed = remove(i.next(), 1);
-/* 365 */         result = result || changed;
-/*     */       }
-/*     */     }
-/* 368 */     return result;
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   @Override
-/*     */   public boolean retainAll(Collection<?> coll)
-/*     */   {
-/* 380 */     if ((coll instanceof Bag)) {
-/* 381 */       return retainAll((Bag)coll);
-/*     */     }
-/* 383 */     return retainAll(new HashBag<>(coll));
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   boolean retainAll(Bag<?> other)
-/*     */   {
-/* 395 */     boolean result = false;
-/* 396 */     Bag<E> excess = new HashBag<>();
-/* 397 */     Iterator<E> i = uniqueSet().iterator();
-/* 398 */     while (i.hasNext()) {
-/* 399 */       E current = i.next();
-/* 400 */       int myCount = getCount(current);
-/* 401 */       int otherCount = other.getCount(current);
-/* 402 */       if (1 <= otherCount && otherCount <= myCount) {
-/* 403 */         excess.add(current, myCount - otherCount);
-/*     */       } else {
-/* 405 */         excess.add(current, myCount);
-/*     */       }
-/*     */     }
-/* 408 */     if (!excess.isEmpty()) {
-/* 409 */       result = removeAll(excess);
-/*     */     }
-/* 411 */     return result;
 /*     */   }
 /*     */   
 /*     */ 
@@ -422,22 +126,23 @@
 /*     */ 
 /*     */ 
 /*     */ 
+/*     */ 
 /*     */     MutableInteger(int value)
 /*     */     {
-/* 427 */       this.value = value;
+/* 132 */       this.value = value;
 /*     */     }
 /*     */     
 /*     */     @Override
 /*     */     public boolean equals(Object obj) {
-/* 432 */       if (!(obj instanceof MutableInteger)) {
-/* 433 */         return false;
+/* 137 */       if (!(obj instanceof MutableInteger)) {
+/* 138 */         return false;
 /*     */       }
-/* 435 */       return ((MutableInteger)obj).value == this.value;
+/* 140 */       return ((MutableInteger)obj).value == this.value;
 /*     */     }
 /*     */     
 /*     */     @Override
 /*     */     public int hashCode() {
-/* 440 */       return this.value;
+/* 145 */       return this.value;
 /*     */     }
 /*     */   }
 /*     */   
@@ -446,19 +151,410 @@
 /*     */ 
 /*     */ 
 /*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   protected AbstractMapBag(Map<E, MutableInteger> map)
+/*     */   {
+/* 174 */     this.map = (Map)Objects.requireNonNull(map, "map");
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   protected AbstractMapBag(Map<E, MutableInteger> map, Iterable<? extends E> iterable)
+/*     */   {
+/* 185 */     this(map);
+/* 186 */     iterable.forEach(this::add);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public boolean add(E object)
+/*     */   {
+/* 197 */     return add(object, 1);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public boolean add(E object, int nCopies)
+/*     */   {
+/* 211 */     this.modCount++;
+/* 212 */     if (nCopies > 0) {
+/* 213 */       MutableInteger mut = (MutableInteger)this.map.get(object);
+/* 214 */       if (mut == null) {
+/* 215 */         this.map.put(object, new MutableInteger(nCopies));
+/* 216 */         this.size += nCopies;
+/* 217 */         return true;
+/*     */       }
+/* 219 */       int applied = Math.min(nCopies, Integer.MAX_VALUE - mut.value);
+/* 220 */       mut.value += applied;
+/* 221 */       this.size += applied;
+/*     */     }
+/* 223 */     return false;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public boolean addAll(Collection<? extends E> coll)
+/*     */   {
+/* 234 */     boolean changed = false;
+/* 235 */     for (E current : coll) {
+/* 236 */       boolean added = add(current);
+/* 237 */       changed = changed || added;
+/*     */     }
+/* 239 */     return changed;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public void clear()
+/*     */   {
+/* 247 */     this.modCount++;
+/* 248 */     this.map.clear();
+/* 249 */     this.size = 0L;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public boolean contains(Object object)
+/*     */   {
+/* 261 */     return this.map.containsKey(object);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   boolean containsAll(Bag<?> other)
+/*     */   {
+/* 272 */     for (Object current : other.uniqueSet()) {
+/* 273 */       if (getCount(current) < other.getCount(current)) {
+/* 274 */         return false;
+/*     */       }
+/*     */     }
+/* 277 */     return true;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public boolean containsAll(Collection<?> coll)
+/*     */   {
+/* 288 */     if ((coll instanceof Bag)) {
+/* 289 */       return containsAll((Bag)coll);
+/*     */     }
+/* 291 */     return containsAll(new HashBag<>(coll));
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   protected void doReadObject(Map<E, MutableInteger> map, ObjectInputStream in)
+/*     */     throws IOException, ClassNotFoundException
+/*     */   {
+/* 305 */     this.map = map;
+/* 306 */     int entrySize = in.readInt();
+/* 307 */     for (int i = 0; i < entrySize; i++)
+/*     */     {
+/* 309 */       E obj = (E)in.readObject();
+/* 310 */       int count = in.readInt();
+/* 311 */       if (count < 1) {
+/* 312 */         throw new InvalidObjectException("Invalid count for entry (must be >= 1): " + count);
+/*     */       }
+/* 314 */       map.put(obj, new MutableInteger(count));
+/* 315 */       this.size += count;
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   protected void doWriteObject(ObjectOutputStream out)
+/*     */     throws IOException
+/*     */   {
+/* 326 */     out.writeInt(this.map.size());
+/* 327 */     for (Entry<E, MutableInteger> entry : this.map.entrySet()) {
+/* 328 */       out.writeObject(entry.getKey());
+/* 329 */       out.writeInt(((MutableInteger)entry.getValue()).value);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public boolean equals(Object object)
+/*     */   {
+/* 342 */     if (object == this) {
+/* 343 */       return true;
+/*     */     }
+/* 345 */     if (!(object instanceof Bag)) {
+/* 346 */       return false;
+/*     */     }
+/* 348 */     Bag<?> other = (Bag)object;
+/* 349 */     if (other.size() != size()) {
+/* 350 */       return false;
+/*     */     }
+/* 352 */     for (E element : this.map.keySet()) {
+/* 353 */       if (other.getCount(element) != getCount(element)) {
+/* 354 */         return false;
+/*     */       }
+/*     */     }
+/* 357 */     return true;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public int getCount(Object object)
+/*     */   {
+/* 369 */     MutableInteger count = (MutableInteger)this.map.get(object);
+/* 370 */     if (count != null) {
+/* 371 */       return count.value;
+/*     */     }
+/* 373 */     return 0;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   protected Map<E, MutableInteger> getMap()
+/*     */   {
+/* 383 */     return this.map;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public int hashCode()
+/*     */   {
+/* 397 */     int total = 0;
+/* 398 */     for (Entry<E, MutableInteger> entry : this.map.entrySet()) {
+/* 399 */       E element = entry.getKey();
+/* 400 */       MutableInteger count = (MutableInteger)entry.getValue();
+/* 401 */       total += ((element == null ? 0 : element.hashCode()) ^ count.value);
+/*     */     }
+/* 403 */     return total;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public boolean isEmpty()
+/*     */   {
+/* 413 */     return this.map.isEmpty();
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public Iterator<E> iterator()
+/*     */   {
+/* 424 */     return new BagIterator<>(this);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public boolean remove(Object object)
+/*     */   {
+/* 435 */     MutableInteger mut = (MutableInteger)this.map.get(object);
+/* 436 */     if (mut == null) {
+/* 437 */       return false;
+/*     */     }
+/* 439 */     this.modCount++;
+/* 440 */     this.map.remove(object);
+/* 441 */     this.size -= mut.value;
+/* 442 */     return true;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public boolean remove(Object object, int nCopies)
+/*     */   {
+/* 454 */     MutableInteger mut = (MutableInteger)this.map.get(object);
+/* 455 */     if (mut == null) {
+/* 456 */       return false;
+/*     */     }
+/* 458 */     if (nCopies <= 0) {
+/* 459 */       return false;
+/*     */     }
+/* 461 */     this.modCount++;
+/* 462 */     if (nCopies < mut.value) {
+/* 463 */       mut.value -= nCopies;
+/* 464 */       this.size -= nCopies;
+/*     */     } else {
+/* 466 */       this.map.remove(object);
+/* 467 */       this.size -= mut.value;
+/*     */     }
+/* 469 */     return true;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public boolean removeAll(Collection<?> coll)
+/*     */   {
+/* 481 */     boolean result = false;
+/* 482 */     if (coll != null) {
+/* 483 */       for (Object current : coll) {
+/* 484 */         boolean changed = remove(current, 1);
+/* 485 */         result = result || changed;
+/*     */       }
+/*     */     }
+/* 488 */     return result;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   boolean retainAll(Bag<?> other)
+/*     */   {
+/* 500 */     boolean result = false;
+/* 501 */     Bag<E> excess = new HashBag<>();
+/* 502 */     for (E current : uniqueSet()) {
+/* 503 */       int myCount = getCount(current);
+/* 504 */       int otherCount = other.getCount(current);
+/* 505 */       if (1 <= otherCount && otherCount <= myCount) {
+/* 506 */         excess.add(current, myCount - otherCount);
+/* 507 */       } else if (otherCount == 0) {
+/* 508 */         excess.add(current, myCount);
+/*     */       }
+/*     */     }
+/* 511 */     if (!excess.isEmpty()) {
+/* 512 */       result = removeAll(excess);
+/*     */     }
+/* 514 */     return result;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public boolean retainAll(Collection<?> coll)
+/*     */   {
+/* 526 */     if ((coll instanceof Bag)) {
+/* 527 */       return retainAll((Bag)coll);
+/*     */     }
+/* 529 */     return retainAll(new HashBag<>(coll));
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public int size()
+/*     */   {
+/* 540 */     return (int)Math.min(this.size, 2147483647L);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   @Override
 /*     */   public Object[] toArray()
 /*     */   {
-/* 452 */     Object[] result = new Object[size()];
-/* 453 */     int i = 0;
-/* 454 */     Iterator<E> it = this.map.keySet().iterator();
-/* 455 */     while (it.hasNext()) {
-/* 456 */       E current = it.next();
-/* 457 */       for (int index = getCount(current); index > 0; index--) {
-/* 458 */         result[(i++)] = current;
+/* 550 */     Object[] result = new Object[size()];
+/* 551 */     int i = 0;
+/* 552 */     for (E current : this.map.keySet()) {
+/* 553 */       for (int index = getCount(current); index > 0; index--) {
+/* 554 */         result[(i++)] = current;
 /*     */       }
 /*     */     }
-/* 461 */     return result;
+/* 557 */     return result;
 /*     */   }
 /*     */   
 /*     */ 
@@ -475,124 +571,26 @@
 /*     */   @Override
 /*     */   public <T> T[] toArray(T[] array)
 /*     */   {
-/* 478 */     int size = size();
-/* 479 */     if (array.length < size)
+/* 574 */     int size = size();
+/* 575 */     if (array.length < size)
 /*     */     {
-/* 481 */       T[] unchecked = (T[])Array.newInstance(array.getClass().getComponentType(), size);
-/* 482 */       array = unchecked;
+/* 577 */       T[] unchecked = (T[])Array.newInstance(array.getClass().getComponentType(), size);
+/* 578 */       array = unchecked;
 /*     */     }
 /*     */     
-/* 485 */     int i = 0;
-/* 486 */     Iterator<E> it = this.map.keySet().iterator();
-/* 487 */     while (it.hasNext()) {
-/* 488 */       E current = it.next();
-/* 489 */       for (int index = getCount(current); index > 0; index--)
+/* 581 */     int i = 0;
+/* 582 */     for (E current : this.map.keySet()) {
+/* 583 */       for (int index = getCount(current); index > 0; index--)
 /*     */       {
 /*     */ 
-/* 492 */         T unchecked = (T)current;
-/* 493 */         array[(i++)] = unchecked;
+/* 586 */         T unchecked = (T)current;
+/* 587 */         array[(i++)] = unchecked;
 /*     */       }
 /*     */     }
-/* 496 */     while (i < array.length) {
-/* 497 */       array[(i++)] = null;
+/* 590 */     while (i < array.length) {
+/* 591 */       array[(i++)] = null;
 /*     */     }
-/* 499 */     return array;
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   @Override
-/*     */   public Set<E> uniqueSet()
-/*     */   {
-/* 509 */     if (this.uniqueSet == null) {
-/* 510 */       this.uniqueSet = UnmodifiableSet.unmodifiableSet(this.map.keySet());
-/*     */     }
-/* 512 */     return this.uniqueSet;
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   protected void doWriteObject(ObjectOutputStream out)
-/*     */     throws IOException
-/*     */   {
-/* 522 */     out.writeInt(this.map.size());
-/* 523 */     for (Entry<E, MutableInteger> entry : this.map.entrySet()) {
-/* 524 */       out.writeObject(entry.getKey());
-/* 525 */       out.writeInt(((MutableInteger)entry.getValue()).value);
-/*     */     }
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   protected void doReadObject(Map<E, MutableInteger> map, ObjectInputStream in)
-/*     */     throws IOException, ClassNotFoundException
-/*     */   {
-/* 539 */     this.map = map;
-/* 540 */     int entrySize = in.readInt();
-/* 541 */     for (int i = 0; i < entrySize; i++)
-/*     */     {
-/* 543 */       E obj = (E)in.readObject();
-/* 544 */       int count = in.readInt();
-/* 545 */       map.put(obj, new MutableInteger(count));
-/* 546 */       this.size += count;
-/*     */     }
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   @Override
-/*     */   public boolean equals(Object object)
-/*     */   {
-/* 560 */     if (object == this) {
-/* 561 */       return true;
-/*     */     }
-/* 563 */     if (!(object instanceof Bag)) {
-/* 564 */       return false;
-/*     */     }
-/* 566 */     Bag<?> other = (Bag)object;
-/* 567 */     if (other.size() != size()) {
-/* 568 */       return false;
-/*     */     }
-/* 570 */     for (E element : this.map.keySet()) {
-/* 571 */       if (other.getCount(element) != getCount(element)) {
-/* 572 */         return false;
-/*     */       }
-/*     */     }
-/* 575 */     return true;
-/*     */   }
-/*     */   
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */ 
-/*     */   @Override
-/*     */   public int hashCode()
-/*     */   {
-/* 589 */     int total = 0;
-/* 590 */     for (Entry<E, MutableInteger> entry : this.map.entrySet()) {
-/* 591 */       E element = entry.getKey();
-/* 592 */       MutableInteger count = (MutableInteger)entry.getValue();
-/* 593 */       total += ((element == null ? 0 : element.hashCode()) ^ count.value);
-/*     */     }
-/* 595 */     return total;
+/* 593 */     return array;
 /*     */   }
 /*     */   
 /*     */ 
@@ -602,23 +600,36 @@
 /*     */   @Override
 /*     */   public String toString()
 /*     */   {
-/* 605 */     if (size() == 0) {
-/* 606 */       return "[]";
+/* 603 */     if (isEmpty()) {
+/* 604 */       return "[]";
 /*     */     }
-/* 608 */     StringBuilder buf = new StringBuilder();
-/* 609 */     buf.append('[');
-/* 610 */     Iterator<E> it = uniqueSet().iterator();
-/* 611 */     while (it.hasNext()) {
-/* 612 */       Object current = it.next();
-/* 613 */       int count = getCount(current);
-/* 614 */       buf.append(count);
-/* 615 */       buf.append(':');
-/* 616 */       buf.append(current);
-/* 617 */       if (it.hasNext()) {
-/* 618 */         buf.append(',');
+/* 606 */     StringBuilder buf = new StringBuilder();
+/* 607 */     buf.append("[");
+/* 608 */     Iterator<E> it = uniqueSet().iterator();
+/* 609 */     while (it.hasNext()) {
+/* 610 */       Object current = it.next();
+/* 611 */       int count = getCount(current);
+/* 612 */       buf.append(count);
+/* 613 */       buf.append(":");
+/* 614 */       buf.append(current);
+/* 615 */       if (it.hasNext()) {
+/* 616 */         buf.append(",");
 /*     */       }
 /*     */     }
-/* 621 */     buf.append(']');
-/* 622 */     return buf.toString();
+/* 619 */     buf.append("]");
+/* 620 */     return buf.toString();
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public Set<E> uniqueSet()
+/*     */   {
+/* 630 */     if (this.uniqueSet == null) {
+/* 631 */       this.uniqueSet = UnmodifiableSet.unmodifiableSet(this.map.keySet());
+/*     */     }
+/* 633 */     return this.uniqueSet;
 /*     */   }
 /*     */ }

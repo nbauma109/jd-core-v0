@@ -1,0 +1,79 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ public class SynchronizedInTryFinally
+/*    */ {
+/*    */   int counter;
+/*    */   
+/*    */   int touch()
+/*    */   {
+/*  9 */     return this.counter++;
+/*    */   }
+/*    */   
+/*    */   int other() {
+/* 13 */     return this.counter--;
+/*    */   }
+/*    */   
+/*    */   void different(Object lock) {
+/*    */     try {
+/* 18 */       synchronized (lock) {
+/* 19 */         other();
+/*    */       }
+/*    */     } finally {
+/* 22 */       touch(); } touch();
+/*    */   }
+/*    */   
+/*    */   void same(Object lock)
+/*    */   {
+/*    */     try {
+/* 28 */       synchronized (lock) {
+/* 29 */         touch();
+/*    */       }
+/*    */     } finally {
+/* 32 */       touch(); } touch();
+/*    */   }
+/*    */   
+/*    */   void inSynchronized(Object lock, Object nested)
+/*    */   {
+/* 37 */     synchronized (lock) {
+/*    */       try {
+/* 39 */         synchronized (nested) {
+/* 40 */           other();
+/*    */         }
+/*    */       } finally {
+/* 43 */         touch(); } touch();
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   int returnedInside(Object lock)
+/*    */   {
+/*    */     try {
+/* 50 */       synchronized (lock) {
+/* 51 */         return other();
+/*    */       }
+/*    */     } finally {
+/* 54 */       touch();
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   void statementsAround(Object lock) {
+/*    */     try {
+/* 60 */       this.counter = 1;
+/* 61 */       synchronized (lock) {
+/* 62 */         other();
+/* 63 */         this.counter = 2;
+/*    */       }
+/* 65 */       this.counter = 3;
+/*    */     } finally {
+/* 67 */       touch();
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   int statementBeforeReturn() {
+/*    */     try {
+/* 73 */       other();
+/* 74 */       return this.counter;
+/*    */     } finally {
+/* 76 */       touch();
+/*    */     }
+/*    */   }
+/*    */ }

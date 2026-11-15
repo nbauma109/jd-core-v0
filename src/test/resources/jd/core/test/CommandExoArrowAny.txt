@@ -2,6 +2,7 @@
 /*     */ 
 /*     */ import net.sourceforge.plantuml.StringUtils;
 /*     */ import net.sourceforge.plantuml.command.CommandExecutionResult;
+/*     */ import net.sourceforge.plantuml.command.ParserPass;
 /*     */ import net.sourceforge.plantuml.command.SingleLineCommand2;
 /*     */ import net.sourceforge.plantuml.klimt.color.HColor;
 /*     */ import net.sourceforge.plantuml.klimt.color.NoSuchColorException;
@@ -64,155 +65,155 @@
 /*     */   
 /*     */   public CommandExoArrowAny(IRegex pattern)
 /*     */   {
-/*  67 */     super(pattern);
+/*  68 */     super(pattern);
 /*     */   }
 /*     */   
-/*     */   protected final CommandExecutionResult executeArg(SequenceDiagram diagram, LineLocation location, RegexResult arg)
+/*     */   protected final CommandExecutionResult executeArg(SequenceDiagram diagram, LineLocation location, RegexResult arg, ParserPass currentPass)
 /*     */     throws NoSuchColorException
 /*     */   {
-/*  73 */     String body = arg.getLazzy("ARROW_BODYA", 0) + arg.getLazzy("ARROW_BODYB", 0);
-/*  74 */     String dressing = arg.getLazzy("ARROW_DRESSING", 0);
-/*  75 */     Participant p = diagram.getOrCreateParticipant(
-/*  76 */       StringUtils.eventuallyRemoveStartingAndEndingDoubleQuote(arg.get("PARTICIPANT", 0)));
+/*  74 */     String body = arg.getLazzy("ARROW_BODYA", 0) + arg.getLazzy("ARROW_BODYB", 0);
+/*  75 */     String dressing = arg.getLazzy("ARROW_DRESSING", 0);
+/*  76 */     Participant p = diagram.getOrCreateParticipant(location, 
+/*  77 */       StringUtils.eventuallyRemoveStartingAndEndingDoubleQuote(arg.get("PARTICIPANT", 0)));
 /*     */     
-/*  78 */     boolean sync = dressing.length() == 2;
-/*  79 */     boolean dotted = body.contains("--");
+/*  79 */     boolean sync = dressing.length() == 2;
+/*  80 */     boolean dotted = body.contains("--");
 /*     */     
 /*     */     Display labels;
-/*  82 */     if (arg.get("LABEL", 0) == null) {
-/*  83 */       labels = Display.create(new CharSequence[] { "" });
+/*  83 */     if (arg.get("LABEL", 0) == null) {
+/*  84 */       labels = Display.create(new CharSequence[] { "" });
 /*     */     } else {
-/*  85 */       labels = Display.getWithNewlines(arg.get("LABEL", 0));
+/*  86 */       labels = Display.getWithNewlines(diagram.getPragma(), arg.get("LABEL", 0));
 /*     */     }
-/*  87 */     boolean bothDirection = arg.get("ARROW_BOTHDRESSING", 0) != null;
+/*  88 */     boolean bothDirection = arg.get("ARROW_BOTHDRESSING", 0) != null;
 /*     */     
-/*  89 */     ArrowConfiguration config = bothDirection ? ArrowConfiguration.withDirectionBoth() : 
-/*  90 */       ArrowConfiguration.withDirectionNormal();
-/*  91 */     if (dotted) {
-/*  92 */       config = config.withBody(ArrowBody.DOTTED);
+/*  90 */     ArrowConfiguration config = bothDirection ? ArrowConfiguration.withDirectionBoth() : 
+/*  91 */       ArrowConfiguration.withDirectionNormal();
+/*  92 */     if (dotted) {
+/*  93 */       config = config.withBody(ArrowBody.DOTTED);
 /*     */     }
-/*  94 */     if (sync) {
-/*  95 */       config = config.withHead(ArrowHead.ASYNC);
+/*  95 */     if (sync) {
+/*  96 */       config = config.withHead(ArrowHead.ASYNC);
 /*     */     }
-/*  97 */     MessageExoType messageExoType = getMessageExoType(arg);
+/*  98 */     MessageExoType messageExoType = getMessageExoType(arg);
 /*     */     
-/*  99 */     config = config.withPart(getArrowPart(dressing, messageExoType));
-/* 100 */     config = CommandArrow.applyStyle(arg.getLazzy("ARROW_STYLE", 0), config);
+/* 100 */     config = config.withPart(getArrowPart(dressing, messageExoType));
+/* 101 */     config = CommandArrow.applyStyle(arg.getLazzy("ARROW_STYLE", 0), config);
 /*     */     
-/* 102 */     String activationSpec = arg.get("ACTIVATION", 0);
+/* 103 */     String activationSpec = arg.get("ACTIVATION", 0);
 /*     */     
-/* 104 */     if (activationSpec != null && activationSpec.charAt(0) == '*') {
-/* 105 */       diagram.activate(p, LifeEventType.CREATE, null);
+/* 105 */     if (activationSpec != null && activationSpec.charAt(0) == '*') {
+/* 106 */       diagram.activate(p, LifeEventType.CREATE, null);
 /*     */     }
-/* 107 */     if (messageExoType == MessageExoType.TO_RIGHT || messageExoType == MessageExoType.TO_LEFT) {
-/* 108 */       if (containsSymbol("ARROW_SUPPCIRCLE1", arg, "o")) {
-/* 109 */         config = config.withDecoration1(ArrowDecoration.CIRCLE);
+/* 108 */     if (messageExoType == MessageExoType.TO_RIGHT || messageExoType == MessageExoType.TO_LEFT) {
+/* 109 */       if (containsSymbol("ARROW_SUPPCIRCLE1", arg, "o")) {
+/* 110 */         config = config.withDecoration1(ArrowDecoration.CIRCLE);
 /*     */       }
-/* 111 */       if (containsSymbol("ARROW_SUPPCIRCLE1", arg, "x")) {
-/* 112 */         config = config.withHead1(ArrowHead.CROSSX);
+/* 112 */       if (containsSymbol("ARROW_SUPPCIRCLE1", arg, "x")) {
+/* 113 */         config = config.withHead1(ArrowHead.CROSSX);
 /*     */       }
-/* 114 */       if (containsSymbol("ARROW_SUPPCIRCLE2", arg, "o")) {
-/* 115 */         config = config.withDecoration2(ArrowDecoration.CIRCLE);
+/* 115 */       if (containsSymbol("ARROW_SUPPCIRCLE2", arg, "o")) {
+/* 116 */         config = config.withDecoration2(ArrowDecoration.CIRCLE);
 /*     */       }
-/* 117 */       if (containsSymbol("ARROW_SUPPCIRCLE2", arg, "x")) {
-/* 118 */         config = config.withHead2(ArrowHead.CROSSX);
+/* 118 */       if (containsSymbol("ARROW_SUPPCIRCLE2", arg, "x")) {
+/* 119 */         config = config.withHead2(ArrowHead.CROSSX);
 /*     */       }
 /*     */     } else {
-/* 121 */       if (containsSymbol("ARROW_SUPPCIRCLE2", arg, "o")) {
-/* 122 */         config = config.withDecoration1(ArrowDecoration.CIRCLE);
+/* 122 */       if (containsSymbol("ARROW_SUPPCIRCLE2", arg, "o")) {
+/* 123 */         config = config.withDecoration1(ArrowDecoration.CIRCLE);
 /*     */       }
-/* 124 */       if (containsSymbol("ARROW_SUPPCIRCLE2", arg, "x")) {
-/* 125 */         config = config.withHead1(ArrowHead.CROSSX);
+/* 125 */       if (containsSymbol("ARROW_SUPPCIRCLE2", arg, "x")) {
+/* 126 */         config = config.withHead1(ArrowHead.CROSSX);
 /*     */       }
-/* 127 */       if (containsSymbol("ARROW_SUPPCIRCLE1", arg, "o")) {
-/* 128 */         config = config.withDecoration2(ArrowDecoration.CIRCLE);
+/* 128 */       if (containsSymbol("ARROW_SUPPCIRCLE1", arg, "o")) {
+/* 129 */         config = config.withDecoration2(ArrowDecoration.CIRCLE);
 /*     */       }
-/* 130 */       if (containsSymbol("ARROW_SUPPCIRCLE1", arg, "x")) {
-/* 131 */         config = config.withHead2(ArrowHead.CROSSX);
+/* 131 */       if (containsSymbol("ARROW_SUPPCIRCLE1", arg, "x")) {
+/* 132 */         config = config.withHead2(ArrowHead.CROSSX);
 /*     */       }
 /*     */     }
 /*     */     
-/* 135 */     MessageExo msg = new MessageExo(diagram.getSkinParam().getCurrentStyleBuilder(), p, messageExoType, labels, config, diagram
-/* 136 */       .getNextMessageNumber(), isShortArrow(arg));
-/* 137 */     if (arg.get("URL", 0) != null) {
-/* 138 */       UrlBuilder urlBuilder = new UrlBuilder(diagram.getSkinParam().getValue("topurl"), UrlMode.STRICT);
-/* 139 */       Url urlLink = urlBuilder.getUrl(arg.get("URL", 0));
-/* 140 */       msg.setUrl(urlLink);
+/* 136 */     MessageExo msg = new MessageExo(diagram.getSkinParam().getCurrentStyleBuilder(), p, messageExoType, labels, config, diagram
+/* 137 */       .getNextMessageNumber(), isShortArrow(arg), location);
+/* 138 */     if (arg.get("URL", 0) != null) {
+/* 139 */       UrlBuilder urlBuilder = new UrlBuilder(diagram.getSkinParam().getValue("topurl"), UrlMode.STRICT);
+/* 140 */       Url urlLink = urlBuilder.getUrl(arg.get("URL", 0));
+/* 141 */       msg.setUrl(urlLink);
 /*     */     }
 /*     */     
-/* 143 */     boolean parallel = arg.get("PARALLEL", 0) != null;
-/* 144 */     if (parallel) {
-/* 145 */       msg.goParallel();
+/* 144 */     boolean parallel = arg.get("PARALLEL", 0) != null;
+/* 145 */     if (parallel) {
+/* 146 */       msg.goParallel();
 /*     */     }
-/* 147 */     msg.setAnchor(arg.get("ANCHOR", 1));
-/* 148 */     msg.setPart1Anchor(arg.get("PART1ANCHOR", 1));
-/* 149 */     msg.setPart2Anchor(arg.get("PART2ANCHOR", 1));
+/* 148 */     msg.setAnchor(arg.get("ANCHOR", 1));
+/* 149 */     msg.setPart1Anchor(arg.get("PART1ANCHOR", 1));
+/* 150 */     msg.setPart2Anchor(arg.get("PART2ANCHOR", 1));
 /*     */     
-/* 151 */     CommandExecutionResult status = diagram.addMessage(msg);
-/* 152 */     if (!status.isOk()) {
-/* 153 */       return status;
+/* 152 */     CommandExecutionResult status = diagram.addMessage(msg);
+/* 153 */     if (!status.isOk()) {
+/* 154 */       return status;
 /*     */     }
-/* 155 */     String s = arg.get("LIFECOLOR", 0);
+/* 156 */     String s = arg.get("LIFECOLOR", 0);
 /*     */     
-/* 157 */     HColor activationColor = s == null ? null : diagram.getSkinParam().getIHtmlColorSet().getColor(s);
+/* 158 */     HColor activationColor = s == null ? null : diagram.getSkinParam().getIHtmlColorSet().getColor(s);
 /*     */     
-/* 159 */     if (activationSpec != null) {
-/* 160 */       switch (activationSpec.charAt(0)) {
+/* 160 */     if (activationSpec != null) {
+/* 161 */       switch (activationSpec.charAt(0)) {
 /*     */       case '+': 
-/* 162 */         diagram.activate(p, LifeEventType.ACTIVATE, activationColor);
-/* 163 */         break;
+/* 163 */         diagram.activate(p, LifeEventType.ACTIVATE, activationColor);
+/* 164 */         break;
 /*     */       case '-': 
-/* 165 */         diagram.activate(p, LifeEventType.DEACTIVATE, null);
-/* 166 */         break;
+/* 166 */         diagram.activate(p, LifeEventType.DEACTIVATE, null);
+/* 167 */         break;
 /*     */       case '!': 
-/* 168 */         diagram.activate(p, LifeEventType.DESTROY, null);
-/* 169 */         break;
+/* 169 */         diagram.activate(p, LifeEventType.DESTROY, null);
+/* 170 */         break;
 /*     */       
 /*     */       }
 /*     */       
-/* 173 */     } else if (diagram.isAutoactivate() && (
-/* 174 */       config.getHead() == ArrowHead.NORMAL || config.getHead() == ArrowHead.ASYNC)) {
-/* 175 */       if (config.isDotted()) {
-/* 176 */         diagram.activate(p, LifeEventType.DEACTIVATE, null);
+/* 174 */     } else if (diagram.isAutoactivate() && (
+/* 175 */       config.getHead() == ArrowHead.NORMAL || config.getHead() == ArrowHead.ASYNC)) {
+/* 176 */       if (config.isDotted()) {
+/* 177 */         diagram.activate(p, LifeEventType.DEACTIVATE, null);
 /*     */       } else {
-/* 178 */         diagram.activate(p, LifeEventType.ACTIVATE, activationColor);
+/* 179 */         diagram.activate(p, LifeEventType.ACTIVATE, activationColor);
 /*     */       }
 /*     */     }
 /*     */     
-/* 182 */     return CommandExecutionResult.ok();
+/* 183 */     return CommandExecutionResult.ok();
 /*     */   }
 /*     */   
 /*     */   private ArrowPart getArrowPart(String dressing, MessageExoType messageExoType) {
-/* 186 */     if (dressing.contains("/")) {
-/* 187 */       if (messageExoType.getDirection() == 1) {
-/* 188 */         return ArrowPart.BOTTOM_PART;
+/* 187 */     if (dressing.contains("/")) {
+/* 188 */       if (messageExoType.getDirection() == 1) {
+/* 189 */         return ArrowPart.BOTTOM_PART;
 /*     */       }
-/* 190 */       return ArrowPart.TOP_PART;
+/* 191 */       return ArrowPart.TOP_PART;
 /*     */     }
-/* 192 */     if (dressing.contains("\\")) {
-/* 193 */       if (messageExoType.getDirection() == 1) {
-/* 194 */         return ArrowPart.TOP_PART;
+/* 193 */     if (dressing.contains("\\")) {
+/* 194 */       if (messageExoType.getDirection() == 1) {
+/* 195 */         return ArrowPart.TOP_PART;
 /*     */       }
-/* 196 */       return ArrowPart.BOTTOM_PART;
+/* 197 */       return ArrowPart.BOTTOM_PART;
 /*     */     }
-/* 198 */     return ArrowPart.FULL;
+/* 199 */     return ArrowPart.FULL;
 /*     */   }
 /*     */   
 /*     */   abstract MessageExoType getMessageExoType(RegexResult paramRegexResult);
 /*     */   
 /*     */   private boolean isShortArrow(RegexResult arg2) {
-/* 204 */     String s = arg2.get("ARROW_SUPPCIRCLE2", 0);
-/* 205 */     if (s != null && s.contains("?")) {
-/* 206 */       return true;
+/* 205 */     String s = arg2.get("ARROW_SUPPCIRCLE2", 0);
+/* 206 */     if (s != null && s.contains("?")) {
+/* 207 */       return true;
 /*     */     }
-/* 208 */     return false;
+/* 209 */     return false;
 /*     */   }
 /*     */   
 /*     */   private boolean containsSymbol(String suppCircle, RegexResult arg2, String symbol) {
-/* 212 */     String s = arg2.get(suppCircle, 0);
-/* 213 */     if (s != null && s.contains(symbol)) {
-/* 214 */       return true;
+/* 213 */     String s = arg2.get(suppCircle, 0);
+/* 214 */     if (s != null && s.contains(symbol)) {
+/* 215 */       return true;
 /*     */     }
-/* 216 */     return false;
+/* 217 */     return false;
 /*     */   }
 /*     */ }

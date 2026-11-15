@@ -1,13 +1,11 @@
 /*     */ package net.sourceforge.plantuml.regex;
 /*     */ 
 /*     */ import java.util.Arrays;
-/*     */ import java.util.Collections;
-/*     */ import java.util.HashMap;
 /*     */ import java.util.Iterator;
 /*     */ import java.util.List;
-/*     */ import java.util.Map;
 /*     */ import java.util.concurrent.atomic.AtomicReference;
 /*     */ import net.sourceforge.plantuml.text.StringLocated;
+/*     */ import net.sourceforge.plantuml.utils.MyCollections;
 /*     */ 
 /*     */ 
 /*     */ 
@@ -54,75 +52,71 @@
 /*     */   
 /*     */   protected final List<IRegex> partials()
 /*     */   {
-/*  57 */     return this.partials;
+/*  55 */     return this.partials;
 /*     */   }
 /*     */   
-/*     */   protected abstract String getFullSlow();
-/*     */   
-/*  62 */   private final AtomicReference<Pattern2> fullCached = new AtomicReference<>();
+/*  58 */   private final AtomicReference<Pattern2> fullCached = new AtomicReference<>();
 /*     */   
 /*     */   private Pattern2 getPattern2() {
-/*  65 */     Pattern2 result = (Pattern2)this.fullCached.get();
-/*  66 */     if (result == null) {
-/*  67 */       String fullSlow = getFullSlow();
-/*  68 */       result = MyPattern.cmpile(fullSlow);
-/*  69 */       this.fullCached.set(result);
+/*  61 */     Pattern2 result = (Pattern2)this.fullCached.get();
+/*  62 */     if (result != null) {
+/*  63 */       return result;
 /*     */     }
-/*  71 */     return result;
+/*  65 */     Pattern2 computed = Pattern2.cmpile(getPatternAsString());
+/*  66 */     if (this.fullCached.compareAndSet(null, computed)) {
+/*  67 */       return computed;
+/*     */     }
+/*  69 */     return (Pattern2)this.fullCached.get();
 /*     */   }
 /*     */   
 /*     */   protected final boolean isCompiled() {
-/*  75 */     return this.fullCached.get() != null;
+/*  73 */     return this.fullCached.get() != null;
 /*     */   }
 /*     */   
 /*     */   public RegexComposed(IRegex... partial) {
-/*  79 */     this.partials = Collections.unmodifiableList(Arrays.asList(partial));
+/*  77 */     this.partials = MyCollections.unmodifiableList(Arrays.asList(partial));
 /*     */   }
 /*     */   
 /*     */   @Override
-/*     */   public Map<String, RegexPartialMatch> createPartialMatch(Iterator<String> it) {
-/*  84 */     Map<String, RegexPartialMatch> result = new HashMap<>();
-/*  85 */     for (IRegex r : this.partials) {
-/*  86 */       result.putAll(r.createPartialMatch(it));
-/*     */     }
-/*  88 */     return result;
+/*     */   public void fillPartialMatch(Iterator<String> it, RegexResult result) {
+/*  82 */     for (IRegex r : this.partials)
+/*  83 */       r.fillPartialMatch(it, result);
 /*     */   }
 /*     */   
 /*     */   @Override
-/*  92 */   public final int count() { int cpt = getStartCount();
-/*  93 */     for (IRegex r : this.partials) {
-/*  94 */       cpt += r.count();
+/*  87 */   public final int count() { int cpt = getStartCount();
+/*  88 */     for (IRegex r : this.partials) {
+/*  89 */       cpt += r.count();
 /*     */     }
-/*  96 */     return cpt;
+/*  91 */     return cpt;
 /*     */   }
 /*     */   
 /*     */ 
-/* 100 */   protected int getStartCount() { return 0; }
+/*  95 */   protected int getStartCount() { return 0; }
 /*     */   
 /*     */   @Override
 /*     */   public RegexResult matcher(String s) {
-/* 104 */     Matcher2 matcher = getPattern2().matcher(s);
-/* 105 */     if (!matcher.find()) {
-/* 106 */       return null;
+/*  99 */     Matcher2 matcher = getPattern2().matcher(s, 0);
+/* 100 */     if (!matcher.find()) {
+/* 101 */       return null;
 /*     */     }
-/* 108 */     Iterator<String> it = new MatcherIterator(matcher);
-/* 109 */     return new RegexResult(createPartialMatch(it));
+/* 103 */     Iterator<String> it = new MatcherIterator(matcher);
+/*     */     
+/* 105 */     RegexResult result = new RegexResult();
+/* 106 */     fillPartialMatch(it, result);
+/* 107 */     return result;
 /*     */   }
 /*     */   
 /*     */   @Override
-/* 113 */   public boolean match(StringLocated s) { String tmp = s.getString();
-/* 114 */     Matcher2 matcher = getPattern2().matcher(tmp);
-/* 115 */     if (matcher == null) {
-/* 116 */       return false;
-/*     */     }
-/* 118 */     return matcher.find();
-/*     */   }
+/* 111 */   public boolean match(StringLocated s) { return getPattern2().find(s.getString()); }
 /*     */   
-/*     */   @Override
-/* 122 */   public final String getPattern() { return getPattern2().pattern(); }
-/*     */   
-/*     */   protected final List<IRegex> getPartials()
+/*     */ 
+/*     */   public final String getPattern()
 /*     */   {
-/* 126 */     return this.partials;
+/* 116 */     return getPattern2().pattern();
+/*     */   }
+/*     */   
+/*     */   protected final List<IRegex> getPartials() {
+/* 120 */     return this.partials;
 /*     */   }
 /*     */ }

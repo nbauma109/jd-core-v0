@@ -27,6 +27,7 @@ import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.JavaClass;
+import org.apache.bcel.classfile.Signature;
 import org.jd.core.v1.api.loader.Loader;
 import org.jd.core.v1.util.StringConstants;
 import org.jd.core.v1.model.javasyntax.type.BaseTypeArgument;
@@ -36,6 +37,7 @@ import org.jd.core.v1.model.javasyntax.type.ObjectType;
 import org.jd.core.v1.model.javasyntax.type.Type;
 import org.jd.core.v1.model.javasyntax.type.TypeArgument;
 import org.jd.core.v1.model.javasyntax.type.TypeParameter;
+import org.jd.core.v1.model.javasyntax.type.TypeParameterWithTypeBounds;
 import org.jd.core.v1.model.javasyntax.type.WildcardExtendsTypeArgument;
 import org.jd.core.v1.model.javasyntax.type.WildcardSuperTypeArgument;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
@@ -46,6 +48,7 @@ import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.LocalVariables;
+import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.instruction.AConstNull;
 import jd.core.model.instruction.bytecode.instruction.AThrow;
 import jd.core.model.instruction.bytecode.instruction.AssertInstruction;
@@ -79,16 +82,29 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
     private final ClassFile classFile;
     private final LocalVariables localVariables;
     private final TypeMaker typeMaker;
+    /** The type parameters of the method that is visited. */
+    private final BaseTypeParameter methodTypeParameters;
     /** Arguments of the calls met so far: their static type takes part in the choice of an overload. */
     private final Set<Instruction> callArguments = Collections.newSetFromMap(new IdentityHashMap<>());
     private final Map<Instruction, Instruction> parentOf = new IdentityHashMap<>();
     private final Map<Instruction, InvokeInstruction> callOfArgument = new IdentityHashMap<>();
 
-    public ReplaceRedundantCastVisitor(ClassFile classFile, LocalVariables localVariables)
+    /** @param method the method that is visited: its type variables are those of the arguments */
+    public ReplaceRedundantCastVisitor(ClassFile classFile, LocalVariables localVariables, Method method)
     {
         this.classFile = classFile;
         this.localVariables = localVariables;
         this.typeMaker = new TypeMaker(classFile.getLoader());
+        this.methodTypeParameters = methodTypeParameters(method);
+    }
+
+    private BaseTypeParameter methodTypeParameters(Method method)
+    {
+        ConstantPool constants = classFile.getConstantPool();
+        Signature signature = method.getAttributeSignature();
+        MethodTypes methodTypes = typeMaker.makeMethodTypes(classFile.getThisClassName(), method.getName(constants),
+            signature == null ? method.getDescriptor(constants) : signature.getSignature());
+        return methodTypes.getTypeParameters();
     }
 
     @Override
@@ -117,7 +133,150 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
         {
             return invoke;
         }
+        // The message of an assertion is an Object: the cast that the compiler adds to a generic result is useless
+        if (parentFound instanceof AssertInstruction assertion && assertion.getMsg() == instruction
+            && instruction instanceof CheckCast cast && cast.getObjectref() instanceof InvokeNoStaticInstruction invoke
+            && returnedTypeArgument(invoke) instanceof ObjectType resolved && resolved.getDimension() == 0
+            && resolved.getInternalName().equals(classFile.getConstantPool().getConstantClassName(cast.getIndex())))
+        {
+            return invoke;
+        }
+        // An argument already has the type of the parameter: the compiler only erased its type variable
+        if (parentFound instanceof InvokeNoStaticInstruction call && instruction instanceof CheckCast cast
+            && cast.getObjectref() instanceof InvokeNoStaticInstruction invoke && isRedundantArgument(call, cast, invoke))
+        {
+            return invoke;
+        }
+        if (parentFound instanceof InvokeNoStaticInstruction call && instruction instanceof CheckCast cast) {
+            printGenericArrayCast(call, cast);
+        }
         return null;
+    }
+
+    /**
+     * {@code list.add((Collection) factory.get())} with a {@code List<R>} and a {@code Factory<R>}:
+     * the cast is the erasure of the type variable {@code R}, which is already the type of the argument.
+     */
+    private boolean isRedundantArgument(InvokeNoStaticInstruction call, CheckCast cast, InvokeNoStaticInstruction invoke)
+    {
+        int index = -1;
+        for (int i = 0; i < call.getArgs().size(); i++) {
+            if (call.getArgs().get(i) == cast) {
+                index = i;
+            }
+        }
+        if (index < 0 || isGenericOrOverloaded(call)) {
+            return false;
+        }
+
+        // Type of the value, as seen from the receiver of the call that produces it
+        TypeArgument valueType = returnedTypeArgument(invoke);
+        if (!(valueType instanceof GenericType)) {
+            return false;
+        }
+
+        // Type of the parameter, as seen from the receiver of the call that takes it
+        ConstantPool constants = classFile.getConstantPool();
+        ConstantCP methodref = constants.getConstantMethodref(call.getIndex());
+        ConstantNameAndType nameAndType = constants.getConstantNameAndType(methodref.getNameAndTypeIndex());
+        String owner = constants.getConstantClassName(methodref.getClassIndex());
+        MethodTypes methodTypes = typeMaker.makeMethodTypes(owner,
+            constants.getConstantUtf8(nameAndType.getNameIndex()), constants.getConstantUtf8(nameAndType.getSignatureIndex()));
+        // The argument exists, so does the parameter. An array of a type variable is not the type variable: the cast is kept
+        if (methodTypes == null
+            || !(methodTypes.getParameterTypes().getList().get(index) instanceof GenericType parameter)
+            || parameter.getDimension() != 0 || declaresTypeParameter(methodTypes, parameter.getName()))
+        {
+            return false;
+        }
+        return receiverType(call) instanceof ObjectType receiverType && owner.equals(receiverType.getInternalName())
+            && receiverType.getTypeArguments() != null
+            && valueType.equals(typeArgument(owner, parameter.getName(), receiverType.getTypeArguments()))
+            && constants.getConstantClassName(cast.getIndex()).equals(erasureOf(((GenericType) valueType).getName()));
+    }
+
+    /**
+     * The erasure of a type variable is its first bound, or Object: a cast to another class is a runtime check of the
+     * source, not the cast that the compiler adds. The variable is looked for in the method, then in the class.
+     *
+     * @return the internal name of the erasure, null if the variable is not declared by the method or the class
+     */
+    private String erasureOf(String variable)
+    {
+        String erasure = erasureIn(methodTypeParameters, variable);
+        if (erasure == null) {
+            TypeTypes classTypes = typeMaker.makeTypeTypes(classFile.getThisClassName());
+            erasure = erasureIn(classTypes == null ? null : classTypes.getTypeParameters(), variable);
+        }
+        return erasure;
+    }
+
+    private static String erasureIn(BaseTypeParameter parameters, String variable)
+    {
+        if (parameters != null) {
+            for (TypeParameter parameter : parameters) {
+                if (parameter.getIdentifier().equals(variable)) {
+                    return parameter instanceof TypeParameterWithTypeBounds withBounds
+                        ? withBounds.getTypeBounds().getFirst().getInternalName() : "java/lang/Object";
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * The argument of a parameter typed as an array of a type variable, {@code void set(T[] value)} with a
+     * {@code Sink<R>}, is cast to the array of the type variable of the receiver: the cast is kept and written with it
+     * ({@code (R[])}), not with its erasure ({@code (Object[])}).
+     */
+    private void printGenericArrayCast(InvokeNoStaticInstruction call, CheckCast cast)
+    {
+        int index = -1;
+        for (int i = 0; i < call.getArgs().size(); i++) {
+            if (call.getArgs().get(i) == cast) {
+                index = i;
+            }
+        }
+        ConstantPool constants = classFile.getConstantPool();
+        ConstantCP methodref = constants.getConstantMethodref(call.getIndex());
+        ConstantNameAndType nameAndType = constants.getConstantNameAndType(methodref.getNameAndTypeIndex());
+        String owner = constants.getConstantClassName(methodref.getClassIndex());
+        MethodTypes methodTypes = typeMaker.makeMethodTypes(owner,
+            constants.getConstantUtf8(nameAndType.getNameIndex()), constants.getConstantUtf8(nameAndType.getSignatureIndex()));
+        if (index >= 0 && methodTypes != null && methodTypes.getParameterTypes() != null
+            && methodTypes.getParameterTypes().getList().get(index) instanceof GenericType parameter
+            && parameter.getDimension() > 0 && !declaresTypeParameter(methodTypes, parameter.getName())
+            && receiverType(call) instanceof ObjectType receiverType && owner.equals(receiverType.getInternalName())
+            && receiverType.getTypeArguments() != null
+            && typeArgument(owner, parameter.getName(), receiverType.getTypeArguments()) instanceof GenericType variable
+            && cast.getReturnedSignature(classFile, localVariables).startsWith("[".repeat(parameter.getDimension()))) {
+            cast.setIndex(constants.addConstantUtf8("[".repeat(parameter.getDimension()) + 'T' + variable.getName() + ';'));
+        }
+    }
+
+    private Type receiverType(InvokeNoStaticInstruction call)
+    {
+        String signature = call.getObjectref().getReturnedSignature(classFile, localVariables);
+        return signature == null || signature.indexOf('<') == -1 ? null : typeMaker.makeFromSignature(signature);
+    }
+
+    /** The returned type of a call selecting a type variable of the class of its receiver, as the receiver parameterizes it. */
+    private TypeArgument returnedTypeArgument(InvokeNoStaticInstruction invoke)
+    {
+        ConstantPool constants = classFile.getConstantPool();
+        ConstantCP methodref = constants.getConstantMethodref(invoke.getIndex());
+        ConstantNameAndType nameAndType = constants.getConstantNameAndType(methodref.getNameAndTypeIndex());
+        String owner = constants.getConstantClassName(methodref.getClassIndex());
+        MethodTypes methodTypes = typeMaker.makeMethodTypes(owner,
+            constants.getConstantUtf8(nameAndType.getNameIndex()), constants.getConstantUtf8(nameAndType.getSignatureIndex()));
+        if (methodTypes == null || !(methodTypes.getReturnedType() instanceof GenericType returned)
+            || returned.getDimension() != 0 || declaresTypeParameter(methodTypes, returned.getName()))
+        {
+            return null;
+        }
+        return receiverType(invoke) instanceof ObjectType receiverType && owner.equals(receiverType.getInternalName())
+            && receiverType.getTypeArguments() != null
+            ? typeArgument(owner, returned.getName(), receiverType.getTypeArguments()) : null;
     }
 
     @Override

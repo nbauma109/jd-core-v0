@@ -28,9 +28,31 @@ import jd.core.model.instruction.fast.instruction.FastTestList;
 import jd.core.model.instruction.fast.instruction.FastTry;
 import jd.core.model.instruction.fast.instruction.FastTry.FastCatch;
 import jd.core.process.analyzer.classfile.visitor.CompareInstructionVisitor;
+import org.apache.bcel.Const;
+import org.apache.bcel.classfile.ConstantNameAndType;
+import jd.core.model.classfile.ConstantPool;
+import jd.core.model.instruction.bytecode.ByteCodeConstants;
+import jd.core.model.instruction.bytecode.instruction.IndexInstruction;
+import jd.core.model.instruction.bytecode.instruction.InvokeInstruction;
+import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
+import jd.core.model.instruction.bytecode.instruction.attribute.ObjectrefAttribute;
+import jd.core.model.instruction.bytecode.instruction.attribute.ValuerefAttribute;
 
+
+/**
+ * Compares instructions to find the copies of a finally block. Contrary to the {@link CompareInstructionVisitor},
+ * the called methods, the discarded values, the fields and the constants take part in the comparison: a statement
+ * that looks like the last one of the finally block is not a copy of it.
+ */
 public class FastCompareInstructionVisitor extends CompareInstructionVisitor
 {
+    private final ConstantPool constants;
+
+    public FastCompareInstructionVisitor(ConstantPool constants)
+    {
+        this.constants = constants;
+    }
+
     public boolean visit(
         List<Instruction> list1, List<Instruction> list2,
         int index1, int index2, int length)
@@ -143,9 +165,43 @@ public class FastCompareInstructionVisitor extends CompareInstructionVisitor
                 FastDeclaration fd2 = (FastDeclaration)i2;
                 return visit(fd1.getInstruction(), fd2.getInstruction());
             }
+        case Const.POP,
+             Const.MONITORENTER,
+             Const.MONITOREXIT:
+            return visit(((ObjectrefAttribute)i1).getObjectref(), ((ObjectrefAttribute)i2).getObjectref());
+        case Const.PUTSTATIC:
+            return ((IndexInstruction)i1).getIndex() == ((IndexInstruction)i2).getIndex()
+                && visit(((ValuerefAttribute)i1).getValueref(), ((ValuerefAttribute)i2).getValueref());
+        case Const.GETSTATIC,
+             Const.LDC,
+             Const.LDC2_W,
+             Const.NEW,
+             Const.IINC,
+             ByteCodeConstants.LOAD:
+            return ((IndexInstruction)i1).getIndex() == ((IndexInstruction)i2).getIndex();
+        case Const.INVOKEINTERFACE,
+             Const.INVOKESPECIAL,
+             Const.INVOKEVIRTUAL:
+            return isSameMethod((InvokeInstruction)i1, (InvokeInstruction)i2)
+                && visit(((InvokeNoStaticInstruction)i1).getObjectref(), ((InvokeNoStaticInstruction)i2).getObjectref())
+                && visit(((InvokeInstruction)i1).getArgs(), ((InvokeInstruction)i2).getArgs());
+        case Const.INVOKESTATIC:
+            return isSameMethod((InvokeInstruction)i1, (InvokeInstruction)i2)
+                && visit(((InvokeInstruction)i1).getArgs(), ((InvokeInstruction)i2).getArgs());
         default:
             return super.visit(i1, i2);
         }
+    }
+
+    /** The two calls name the same method: the compiler may refer to it through the type of the variable or of its class. */
+    private boolean isSameMethod(InvokeInstruction i1, InvokeInstruction i2)
+    {
+        ConstantNameAndType method1 = constants.getConstantNameAndType(
+            constants.getConstantMethodref(i1.getIndex()).getNameAndTypeIndex());
+        ConstantNameAndType method2 = constants.getConstantNameAndType(
+            constants.getConstantMethodref(i2.getIndex()).getNameAndTypeIndex());
+        return constants.getConstantUtf8(method1.getNameIndex()).equals(constants.getConstantUtf8(method2.getNameIndex()))
+            && constants.getConstantUtf8(method1.getSignatureIndex()).equals(constants.getConstantUtf8(method2.getSignatureIndex()));
     }
 
     private static boolean compareExceptionTypeIndexes(

@@ -67,53 +67,90 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
 /*     */   private UnmodifiableSet(Set<? extends E> set)
 /*     */   {
-/*  73 */     super((Set)set);
+/*  72 */     super((Set)set);
 /*     */   }
 /*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   @Override
-/*     */   public Iterator<E> iterator()
+/*     */   public boolean add(E object)
 /*     */   {
-/*  79 */     return UnmodifiableIterator.unmodifiableIterator(decorated().iterator());
+/*  83 */     throw new UnsupportedOperationException();
 /*     */   }
 /*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   @Override
-/*     */   public boolean add(E object) {
-/*  84 */     throw new UnsupportedOperationException();
-/*     */   }
-/*     */   
-/*     */   @Override
-/*     */   public boolean addAll(Collection<? extends E> coll) {
-/*  89 */     throw new UnsupportedOperationException();
-/*     */   }
-/*     */   
-/*     */   @Override
-/*     */   public void clear() {
+/*     */   public boolean addAll(Collection<? extends E> coll)
+/*     */   {
 /*  94 */     throw new UnsupportedOperationException();
 /*     */   }
 /*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   @Override
-/*     */   public boolean remove(Object object) {
-/*  99 */     throw new UnsupportedOperationException();
+/*     */   public void clear()
+/*     */   {
+/* 104 */     throw new UnsupportedOperationException();
 /*     */   }
 /*     */   
+/*     */   @Override
+/*     */   public Iterator<E> iterator() {
+/* 109 */     return UnmodifiableIterator.unmodifiableIterator(decorated().iterator());
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public boolean remove(Object object)
+/*     */   {
+/* 120 */     throw new UnsupportedOperationException();
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */   @Override
+/*     */   public boolean removeAll(Collection<?> coll)
+/*     */   {
+/* 131 */     throw new UnsupportedOperationException();
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */ 
 /*     */ 
 /*     */   @Override
 /*     */   public boolean removeIf(Predicate<? super E> filter)
 /*     */   {
-/* 107 */     throw new UnsupportedOperationException();
+/* 143 */     throw new UnsupportedOperationException();
 /*     */   }
 /*     */   
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
+/*     */ 
 /*     */   @Override
-/*     */   public boolean removeAll(Collection<?> coll) {
-/* 112 */     throw new UnsupportedOperationException();
-/*     */   }
-/*     */   
-/*     */   @Override
-/*     */   public boolean retainAll(Collection<?> coll) {
-/* 117 */     throw new UnsupportedOperationException();
+/*     */   public boolean retainAll(Collection<?> coll)
+/*     */   {
+/* 154 */     throw new UnsupportedOperationException();
 /*     */   }
 /*     */ }

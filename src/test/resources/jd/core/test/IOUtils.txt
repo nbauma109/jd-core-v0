@@ -15,6 +15,7 @@
 /*      */ import java.io.OutputStream;
 /*      */ import java.io.OutputStreamWriter;
 /*      */ import java.io.Reader;
+/*      */ import java.io.UncheckedIOException;
 /*      */ import java.io.Writer;
 /*      */ import java.net.HttpURLConnection;
 /*      */ import java.net.ServerSocket;
@@ -24,23 +25,39 @@
 /*      */ import java.net.URLConnection;
 /*      */ import java.nio.ByteBuffer;
 /*      */ import java.nio.CharBuffer;
+/*      */ import java.nio.channels.Channels;
 /*      */ import java.nio.channels.ReadableByteChannel;
 /*      */ import java.nio.channels.Selector;
 /*      */ import java.nio.charset.Charset;
+/*      */ import java.nio.charset.StandardCharsets;
 /*      */ import java.nio.file.Files;
 /*      */ import java.nio.file.OpenOption;
-/*      */ import java.util.ArrayList;
+/*      */ import java.util.Arrays;
 /*      */ import java.util.Collection;
+/*      */ import java.util.Iterator;
 /*      */ import java.util.List;
 /*      */ import java.util.Objects;
 /*      */ import java.util.function.Consumer;
+/*      */ import java.util.function.Supplier;
+/*      */ import java.util.stream.Collectors;
+/*      */ import java.util.stream.Stream;
+/*      */ import org.apache.commons.io.channels.FileChannels;
 /*      */ import org.apache.commons.io.function.IOConsumer;
+/*      */ import org.apache.commons.io.function.IOSupplier;
+/*      */ import org.apache.commons.io.function.IOTriFunction;
+/*      */ import org.apache.commons.io.input.BoundedInputStream;
+/*      */ import org.apache.commons.io.input.CharSequenceReader;
+/*      */ import org.apache.commons.io.input.QueueInputStream;
 /*      */ import org.apache.commons.io.output.AppendableWriter;
-/*      */ import org.apache.commons.io.output.ByteArrayOutputStream;
 /*      */ import org.apache.commons.io.output.NullOutputStream;
+/*      */ import org.apache.commons.io.output.NullWriter;
 /*      */ import org.apache.commons.io.output.StringBuilderWriter;
-/*      */ import org.apache.commons.io.output.ThresholdingOutputStream;
 /*      */ import org.apache.commons.io.output.UnsynchronizedByteArrayOutputStream;
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -123,7 +140,124 @@
 /*      */   public static final char DIR_SEPARATOR_WINDOWS = '\\';
 /*      */   public static final int EOF = -1;
 /*      */   public static final int LF = 10;
-/*  126 */   public static final char DIR_SEPARATOR = File.separatorChar;
+/*      */   public static final int SOFT_MAX_ARRAY_LENGTH = 2147483639;
+/*      */   
+/*      */   static final class ScratchBytes
+/*      */     implements AutoCloseable
+/*      */   {
+/*      */     private final byte[] buffer;
+/*  149 */     private static final ThreadLocal<Object[]> LOCAL = ThreadLocal.withInitial(() -> new Object[] { Boolean.valueOf(false), IOUtils.byteArray() });
+/*      */     
+/*  151 */     private static final ScratchBytes INSTANCE = new ScratchBytes(null);
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     static ScratchBytes get()
+/*      */     {
+/*  159 */       Object[] holder = (Object[])LOCAL.get();
+/*      */       
+/*  161 */       if (((Boolean)holder[0]).booleanValue()) {
+/*  162 */         return new ScratchBytes(IOUtils.byteArray());
+/*      */       }
+/*  164 */       holder[0] = Boolean.valueOf(true);
+/*  165 */       return INSTANCE;
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     private ScratchBytes(byte[] buffer)
+/*      */     {
+/*  174 */       this.buffer = buffer;
+/*      */     }
+/*      */     
+/*      */     byte[] array() {
+/*  178 */       return this.buffer != null ? this.buffer : (byte[])((Object[])LOCAL.get())[1];
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */     @Override
+/*      */     public void close()
+/*      */     {
+/*  186 */       if (this.buffer == null) {
+/*  187 */         Object[] holder = (Object[])LOCAL.get();
+/*  188 */         Arrays.fill((byte[])holder[1], (byte)0);
+/*  189 */         holder[0] = Boolean.valueOf(false);
+/*      */       }
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   static final class ScratchChars
+/*      */     implements AutoCloseable
+/*      */   {
+/*      */     private final char[] buffer;
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*  217 */     private static final ThreadLocal<Object[]> LOCAL = ThreadLocal.withInitial(() -> new Object[] { Boolean.valueOf(false), IOUtils.charArray() });
+/*      */     
+/*  219 */     private static final ScratchChars INSTANCE = new ScratchChars(null);
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     static ScratchChars get()
+/*      */     {
+/*  227 */       Object[] holder = (Object[])LOCAL.get();
+/*      */       
+/*  229 */       if (((Boolean)holder[0]).booleanValue()) {
+/*  230 */         return new ScratchChars(IOUtils.charArray());
+/*      */       }
+/*  232 */       holder[0] = Boolean.valueOf(true);
+/*  233 */       return INSTANCE;
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */     private ScratchChars(char[] buffer)
+/*      */     {
+/*  242 */       this.buffer = buffer;
+/*      */     }
+/*      */     
+/*      */     char[] array() {
+/*  246 */       return this.buffer != null ? this.buffer : (char[])((Object[])LOCAL.get())[1];
+/*      */     }
+/*      */     
+/*      */ 
+/*      */ 
+/*      */     @Override
+/*      */     public void close()
+/*      */     {
+/*  254 */       if (this.buffer == null) {
+/*  255 */         Object[] holder = (Object[])LOCAL.get();
+/*  256 */         Arrays.fill((char[])holder[1], '\000');
+/*  257 */         holder[0] = Boolean.valueOf(false);
+/*      */       }
+/*      */     }
+/*      */   }
 /*      */   
 /*      */ 
 /*      */ 
@@ -140,8 +274,26 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*  143 */   public static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
+/*  277 */   public static final char DIR_SEPARATOR = File.separatorChar;
 /*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*  294 */   public static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
+/*      */   
+/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -161,32 +313,31 @@
 /*      */ 
 /*      */ 
 /*      */   @Deprecated
-/*  164 */   public static final String LINE_SEPARATOR = System.lineSeparator();
+/*  316 */   public static final String LINE_SEPARATOR = System.lineSeparator();
 /*      */   
 /*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
-/*  171 */   public static final String LINE_SEPARATOR_UNIX = StandardLineSeparator.LF.getString();
+/*  323 */   public static final String LINE_SEPARATOR_UNIX = StandardLineSeparator.LF.getString();
 /*      */   
 /*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
-/*  178 */   public static final String LINE_SEPARATOR_WINDOWS = StandardLineSeparator.CRLF.getString();
+/*  330 */   public static final String LINE_SEPARATOR_WINDOWS = StandardLineSeparator.CRLF.getString();
 /*      */   
 /*      */ 
 /*      */ 
 /*      */ 
-/*  183 */   private static final ThreadLocal<byte[]> SKIP_BYTE_BUFFER = ThreadLocal.withInitial(IOUtils::byteArray);
-/*      */   
 /*      */ 
 /*      */ 
 /*      */ 
-/*  188 */   private static final ThreadLocal<char[]> SKIP_CHAR_BUFFER = ThreadLocal.withInitial(IOUtils::charArray);
-/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -200,12 +351,10 @@
 /*      */ 
 /*      */   public static BufferedInputStream buffer(InputStream inputStream)
 /*      */   {
-/*  203 */     Objects.requireNonNull(inputStream, "inputStream");
-/*  204 */     return (inputStream instanceof BufferedInputStream) ? (BufferedInputStream)inputStream : new BufferedInputStream(inputStream);
+/*  354 */     Objects.requireNonNull(inputStream, "inputStream");
+/*  355 */     return (inputStream instanceof BufferedInputStream) ? (BufferedInputStream)inputStream : new BufferedInputStream(inputStream);
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -219,12 +368,10 @@
 /*      */ 
 /*      */   public static BufferedInputStream buffer(InputStream inputStream, int size)
 /*      */   {
-/*  222 */     Objects.requireNonNull(inputStream, "inputStream");
-/*  223 */     return (inputStream instanceof BufferedInputStream) ? (BufferedInputStream)inputStream : new BufferedInputStream(inputStream, size);
+/*  371 */     Objects.requireNonNull(inputStream, "inputStream");
+/*  372 */     return (inputStream instanceof BufferedInputStream) ? (BufferedInputStream)inputStream : new BufferedInputStream(inputStream, size);
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -237,12 +384,10 @@
 /*      */ 
 /*      */   public static BufferedOutputStream buffer(OutputStream outputStream)
 /*      */   {
-/*  240 */     Objects.requireNonNull(outputStream, "outputStream");
-/*  241 */     return (outputStream instanceof BufferedOutputStream) ? (BufferedOutputStream)outputStream : new BufferedOutputStream(outputStream);
+/*  387 */     Objects.requireNonNull(outputStream, "outputStream");
+/*  388 */     return (outputStream instanceof BufferedOutputStream) ? (BufferedOutputStream)outputStream : new BufferedOutputStream(outputStream);
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -256,12 +401,10 @@
 /*      */ 
 /*      */   public static BufferedOutputStream buffer(OutputStream outputStream, int size)
 /*      */   {
-/*  259 */     Objects.requireNonNull(outputStream, "outputStream");
-/*  260 */     return (outputStream instanceof BufferedOutputStream) ? (BufferedOutputStream)outputStream : new BufferedOutputStream(outputStream, size);
+/*  404 */     Objects.requireNonNull(outputStream, "outputStream");
+/*  405 */     return (outputStream instanceof BufferedOutputStream) ? (BufferedOutputStream)outputStream : new BufferedOutputStream(outputStream, size);
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -271,10 +414,9 @@
 /*      */ 
 /*      */   public static BufferedReader buffer(Reader reader)
 /*      */   {
-/*  274 */     return (reader instanceof BufferedReader) ? (BufferedReader)reader : new BufferedReader(reader);
+/*  417 */     return (reader instanceof BufferedReader) ? (BufferedReader)reader : new BufferedReader(reader);
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -285,10 +427,9 @@
 /*      */ 
 /*      */   public static BufferedReader buffer(Reader reader, int size)
 /*      */   {
-/*  288 */     return (reader instanceof BufferedReader) ? (BufferedReader)reader : new BufferedReader(reader, size);
+/*  430 */     return (reader instanceof BufferedReader) ? (BufferedReader)reader : new BufferedReader(reader, size);
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -298,10 +439,9 @@
 /*      */ 
 /*      */   public static BufferedWriter buffer(Writer writer)
 /*      */   {
-/*  301 */     return (writer instanceof BufferedWriter) ? (BufferedWriter)writer : new BufferedWriter(writer);
+/*  442 */     return (writer instanceof BufferedWriter) ? (BufferedWriter)writer : new BufferedWriter(writer);
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -312,7 +452,7 @@
 /*      */ 
 /*      */   public static BufferedWriter buffer(Writer writer, int size)
 /*      */   {
-/*  315 */     return (writer instanceof BufferedWriter) ? (BufferedWriter)writer : new BufferedWriter(writer, size);
+/*  455 */     return (writer instanceof BufferedWriter) ? (BufferedWriter)writer : new BufferedWriter(writer, size);
 /*      */   }
 /*      */   
 /*      */ 
@@ -322,10 +462,9 @@
 /*      */ 
 /*      */   public static byte[] byteArray()
 /*      */   {
-/*  325 */     return byteArray(8192);
+/*  465 */     return byteArray(8192);
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -335,7 +474,7 @@
 /*      */ 
 /*      */   public static byte[] byteArray(int size)
 /*      */   {
-/*  338 */     return new byte[size];
+/*  477 */     return new byte[size];
 /*      */   }
 /*      */   
 /*      */ 
@@ -345,7 +484,18 @@
 /*      */ 
 /*      */   private static char[] charArray()
 /*      */   {
-/*  348 */     return charArray(8192);
+/*  487 */     return charArray(8192);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static char[] charArray(int size)
+/*      */   {
+/*  498 */     return new char[size];
 /*      */   }
 /*      */   
 /*      */ 
@@ -356,9 +506,208 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   private static char[] charArray(int size)
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static void checkFromIndexSize(byte[] array, int off, int len)
 /*      */   {
-/*  361 */     return new char[size];
+/*  550 */     checkFromIndexSize(off, len, ((byte[])Objects.requireNonNull(array, "byte array")).length);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static void checkFromIndexSize(char[] array, int off, int len)
+/*      */   {
+/*  602 */     checkFromIndexSize(off, len, ((char[])Objects.requireNonNull(array, "char array")).length);
+/*      */   }
+/*      */   
+/*      */   static void checkFromIndexSize(int off, int len, int arrayLength) {
+/*  606 */     if ((off | len | arrayLength) < 0 || arrayLength - len < off) {
+/*  607 */       throw new IndexOutOfBoundsException(String.format("Range [%s, %<s + %s) out of bounds for length %s", Integer.valueOf(off), Integer.valueOf(len), Integer.valueOf(arrayLength)));
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static void checkFromIndexSize(String str, int off, int len)
+/*      */   {
+/*  649 */     checkFromIndexSize(off, len, ((String)Objects.requireNonNull(str, "str")).length());
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static void checkFromToIndex(CharSequence seq, int fromIndex, int toIndex)
+/*      */   {
+/*  690 */     checkFromToIndex(fromIndex, toIndex, seq != null ? seq.length() : 4);
+/*      */   }
+/*      */   
+/*      */   static void checkFromToIndex(int fromIndex, int toIndex, int length) {
+/*  694 */     if (fromIndex < 0 || toIndex < fromIndex || length < toIndex) {
+/*  695 */       throw new IndexOutOfBoundsException(String.format("Range [%s, %s) out of bounds for length %s", Integer.valueOf(fromIndex), Integer.valueOf(toIndex), Integer.valueOf(length)));
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   static void clear()
+/*      */   {
+/*  709 */     ScratchBytes.LOCAL.remove();
+/*  710 */     ScratchChars.LOCAL.remove();
 /*      */   }
 /*      */   
 /*      */ 
@@ -369,8 +718,8 @@
 /*      */   public static void close(Closeable closeable)
 /*      */     throws IOException
 /*      */   {
-/*  372 */     if (closeable != null) {
-/*  373 */       closeable.close();
+/*  721 */     if (closeable != null) {
+/*  722 */       closeable.close();
 /*      */     }
 /*      */   }
 /*      */   
@@ -380,13 +729,9 @@
 /*      */ 
 /*      */ 
 /*      */   public static void close(Closeable... closeables)
-/*      */     throws IOException
+/*      */     throws IOExceptionList
 /*      */   {
-/*  385 */     if (closeables != null) {
-/*  386 */       for (Closeable closeable : closeables) {
-/*  387 */         close(closeable);
-/*      */       }
-/*      */     }
+/*  734 */     IOConsumer.forAll(IOUtils::close, closeables);
 /*      */   }
 /*      */   
 /*      */ 
@@ -398,12 +743,16 @@
 /*      */   public static void close(Closeable closeable, IOConsumer<IOException> consumer)
 /*      */     throws IOException
 /*      */   {
-/*  401 */     if (closeable == null)
+/*  746 */     if (closeable == null)
 /*      */       return;
-/*  403 */     try { closeable.close();
+/*  748 */     try { closeable.close();
 /*      */     } catch (IOException e) {
-/*  405 */       if (consumer != null) {
-/*  406 */         consumer.accept(e);
+/*  750 */       if (consumer != null) {
+/*  751 */         consumer.accept(e);
+/*      */       }
+/*      */     } catch (Exception e) {
+/*  754 */       if (consumer != null) {
+/*  755 */         consumer.accept(new IOException(e));
 /*      */       }
 /*      */     }
 /*      */   }
@@ -416,12 +765,20 @@
 /*      */ 
 /*      */   public static void close(URLConnection conn)
 /*      */   {
-/*  419 */     if ((conn instanceof HttpURLConnection)) {
-/*  420 */       ((HttpURLConnection)conn).disconnect();
+/*  768 */     if ((conn instanceof HttpURLConnection)) {
+/*  769 */       ((HttpURLConnection)conn).disconnect();
 /*      */     }
 /*      */   }
 /*      */   
 /*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   private static void closeQ(Closeable closeable)
+/*      */   {
+/*  779 */     closeQuietly(closeable, (Consumer)null);
+/*      */   }
+/*      */   
 /*      */ 
 /*      */ 
 /*      */ 
@@ -463,9 +820,11 @@
 /*      */ 
 /*      */   public static void closeQuietly(Closeable closeable)
 /*      */   {
-/*  466 */     closeQuietly(closeable, (Consumer)null);
+/*  823 */     closeQuietly(closeable, (Consumer)null);
 /*      */   }
 /*      */   
+/*      */ 
+/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -513,11 +872,8 @@
 /*      */ 
 /*      */   public static void closeQuietly(Closeable... closeables)
 /*      */   {
-/*  516 */     if (closeables == null) {
-/*  517 */       return;
-/*      */     }
-/*  519 */     for (Closeable closeable : closeables) {
-/*  520 */       closeQuietly(closeable);
+/*  875 */     if (closeables != null) {
+/*  876 */       closeQuietly(Arrays.stream(closeables));
 /*      */     }
 /*      */   }
 /*      */   
@@ -527,18 +883,20 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   public static void closeQuietly(Closeable closeable, Consumer<IOException> consumer)
+/*      */   public static void closeQuietly(Closeable closeable, Consumer<Exception> consumer)
 /*      */   {
-/*  532 */     if (closeable == null)
+/*  888 */     if (closeable == null)
 /*      */       return;
-/*  534 */     try { closeable.close();
-/*      */     } catch (IOException e) {
-/*  536 */       if (consumer != null) {
-/*  537 */         consumer.accept(e);
+/*  890 */     try { closeable.close();
+/*      */     } catch (Exception e) {
+/*  892 */       if (consumer != null) {
+/*  893 */         consumer.accept(e);
 /*      */       }
 /*      */     }
 /*      */   }
 /*      */   
+/*      */ 
+/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -568,9 +926,26 @@
 /*      */ 
 /*      */   public static void closeQuietly(InputStream input)
 /*      */   {
-/*  571 */     closeQuietly(input);
+/*  929 */     closeQ(input);
 /*      */   }
 /*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static void closeQuietly(Iterable<Closeable> closeables)
+/*      */   {
+/*  943 */     if (closeables != null) {
+/*  944 */       closeables.forEach(IOUtils::closeQuietly);
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -600,9 +975,11 @@
 /*      */ 
 /*      */   public static void closeQuietly(OutputStream output)
 /*      */   {
-/*  603 */     closeQuietly(output);
+/*  978 */     closeQ(output);
 /*      */   }
 /*      */   
+/*      */ 
+/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -631,9 +1008,10 @@
 /*      */ 
 /*      */   public static void closeQuietly(Reader reader)
 /*      */   {
-/*  634 */     closeQuietly(reader);
+/* 1011 */     closeQ(reader);
 /*      */   }
 /*      */   
+/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -662,9 +1040,11 @@
 /*      */ 
 /*      */   public static void closeQuietly(Selector selector)
 /*      */   {
-/*  665 */     closeQuietly(selector);
+/* 1043 */     closeQ(selector);
 /*      */   }
 /*      */   
+/*      */ 
+/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -693,9 +1073,11 @@
 /*      */ 
 /*      */   public static void closeQuietly(ServerSocket serverSocket)
 /*      */   {
-/*  696 */     closeQuietly(serverSocket);
+/* 1076 */     closeQ(serverSocket);
 /*      */   }
 /*      */   
+/*      */ 
+/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -724,9 +1106,27 @@
 /*      */ 
 /*      */   public static void closeQuietly(Socket socket)
 /*      */   {
-/*  727 */     closeQuietly(socket);
+/* 1109 */     closeQ(socket);
 /*      */   }
 /*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static void closeQuietly(Stream<Closeable> closeables)
+/*      */   {
+/* 1123 */     if (closeables != null) {
+/* 1124 */       closeables.forEach(IOUtils::closeQuietly);
+/*      */     }
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -754,11 +1154,40 @@
 /*      */ 
 /*      */   public static void closeQuietly(Writer writer)
 /*      */   {
-/*  757 */     closeQuietly(writer);
+/* 1157 */     closeQ(writer);
 /*      */   }
 /*      */   
 /*      */ 
 /*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static <T extends Throwable> T closeQuietlySuppress(Closeable closeable, T throwable)
+/*      */   {
+/* 1187 */     closeQuietly(closeable, throwable::addSuppressed);
+/* 1188 */     return throwable;
+/*      */   }
+/*      */   
 /*      */ 
 /*      */ 
 /*      */ 
@@ -772,13 +1201,25 @@
 /*      */   public static long consume(InputStream input)
 /*      */     throws IOException
 /*      */   {
-/*  775 */     return copyLarge(input, NullOutputStream.NULL_OUTPUT_STREAM, getByteArray());
+/* 1204 */     return copyLarge(input, NullOutputStream.INSTANCE);
 /*      */   }
 /*      */   
 /*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static long consume(Reader input)
+/*      */     throws IOException
+/*      */   {
+/* 1220 */     return copyLarge(input, NullWriter.INSTANCE);
+/*      */   }
+/*      */   
 /*      */ 
 /*      */ 
 /*      */ 
@@ -793,48 +1234,24 @@
 /*      */   public static boolean contentEquals(InputStream input1, InputStream input2)
 /*      */     throws IOException
 /*      */   {
-/*  796 */     if (input1 == input2) {
-/*  797 */       return true;
+/* 1237 */     if (input1 == input2) {
+/* 1238 */       return true;
 /*      */     }
-/*  799 */     if (input1 == null || input2 == null) {
-/*  800 */       return false;
+/* 1240 */     if (input1 == null || input2 == null) {
+/* 1241 */       return false;
 /*      */     }
 /*      */     
-/*      */ 
-/*  804 */     byte[] array1 = getByteArray();
-/*      */     
-/*  806 */     byte[] array2 = byteArray();
-/*      */     
-/*      */ 
-/*      */ 
-/*      */     for (;;)
-/*      */     {
-/*  812 */       int pos1 = 0;
-/*  813 */       int pos2 = 0;
-/*  814 */       for (int index = 0; index < 8192; index++) {
-/*  815 */         if (pos1 == index) {
-/*      */           int count1;
-/*  817 */           do { count1 = input1.read(array1, pos1, 8192 - pos1);
-/*  818 */           } while (count1 == 0);
-/*  819 */           if (count1 == -1) {
-/*  820 */             return pos2 == index && input2.read() == -1;
-/*      */           }
-/*  822 */           pos1 += count1;
-/*      */         }
-/*  824 */         if (pos2 == index) {
-/*      */           int count2;
-/*  826 */           do { count2 = input2.read(array2, pos2, 8192 - pos2);
-/*  827 */           } while (count2 == 0);
-/*  828 */           if (count2 == -1) {
-/*  829 */             return pos1 == index && input1.read() == -1;
-/*      */           }
-/*  831 */           pos2 += count2;
-/*      */         }
-/*  833 */         if (array1[index] != array2[index]) {
-/*  834 */           return false;
-/*      */         }
+/* 1244 */     return FileChannels.contentEquals(Channels.newChannel(input1), Channels.newChannel(input2), 8192);
+/*      */   }
+/*      */   
+/*      */   private static boolean contentEquals(Iterator<?> iterator1, Iterator<?> iterator2)
+/*      */   {
+/* 1249 */     while (iterator1.hasNext()) {
+/* 1250 */       if (!iterator2.hasNext() || !Objects.equals(iterator1.next(), iterator2.next())) {
+/* 1251 */         return false;
 /*      */       }
 /*      */     }
+/* 1254 */     return !iterator2.hasNext();
 /*      */   }
 /*      */   
 /*      */ 
@@ -851,52 +1268,71 @@
 /*      */   public static boolean contentEquals(Reader input1, Reader input2)
 /*      */     throws IOException
 /*      */   {
-/*  854 */     if (input1 == input2) {
-/*  855 */       return true;
+/* 1271 */     if (input1 == input2) {
+/* 1272 */       return true;
 /*      */     }
-/*  857 */     if (input1 == null || input2 == null) {
-/*  858 */       return false;
+/* 1274 */     if (input1 == null || input2 == null) {
+/* 1275 */       return false;
 /*      */     }
-/*      */     
-/*      */ 
-/*  862 */     char[] array1 = getCharArray();
-/*      */     
-/*  864 */     char[] array2 = charArray();
-/*      */     
+/* 1277 */     try (ScratchChars scratch = ScratchChars.get()) {
+/* 1278 */       char[] array1 = scratch.array();
+/* 1279 */       char[] array2 = charArray();
+/*      */       
 /*      */ 
 /*      */ 
-/*      */     for (;;)
-/*      */     {
-/*  870 */       int pos1 = 0;
-/*  871 */       int pos2 = 0;
-/*  872 */       for (int index = 0; index < 8192; index++) {
-/*  873 */         if (pos1 == index) {
-/*      */           int count1;
-/*  875 */           do { count1 = input1.read(array1, pos1, 8192 - pos1);
-/*  876 */           } while (count1 == 0);
-/*  877 */           if (count1 == -1) {
-/*  878 */             return pos2 == index && input2.read() == -1;
+/*      */       for (;;)
+/*      */       {
+/* 1285 */         int pos1 = 0;
+/* 1286 */         int pos2 = 0;
+/* 1287 */         for (int index = 0; index < 8192; index++) {
+/* 1288 */           if (pos1 == index) {
+/*      */             int count1;
+/* 1290 */             do { count1 = input1.read(array1, pos1, 8192 - pos1);
+/* 1291 */             } while (count1 == 0);
+/* 1292 */             if (count1 == -1) {
+/* 1293 */               return pos2 == index && input2.read() == -1;
+/*      */             }
+/* 1295 */             pos1 += count1;
 /*      */           }
-/*  880 */           pos1 += count1;
-/*      */         }
-/*  882 */         if (pos2 == index) {
-/*      */           int count2;
-/*  884 */           do { count2 = input2.read(array2, pos2, 8192 - pos2);
-/*  885 */           } while (count2 == 0);
-/*  886 */           if (count2 == -1) {
-/*  887 */             return pos1 == index && input1.read() == -1;
+/* 1297 */           if (pos2 == index) {
+/*      */             int count2;
+/* 1299 */             do { count2 = input2.read(array2, pos2, 8192 - pos2);
+/* 1300 */             } while (count2 == 0);
+/* 1301 */             if (count2 == -1) {
+/* 1302 */               return pos1 == index && input1.read() == -1;
+/*      */             }
+/* 1304 */             pos2 += count2;
 /*      */           }
-/*  889 */           pos2 += count2;
-/*      */         }
-/*  891 */         if (array1[index] != array2[index]) {
-/*  892 */           return false;
+/* 1306 */           if (array1[index] != array2[index]) {
+/* 1307 */             return false;
+/*      */           }
 /*      */         }
 /*      */       }
 /*      */     }
+/*      */     
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
+/*      */   private static boolean contentEquals(Stream<?> stream1, Stream<?> stream2) {
+/* 1316 */     if (stream1 == stream2) {
+/* 1317 */       return true;
+/*      */     }
+/* 1319 */     if (stream1 == null || stream2 == null) {
+/* 1320 */       return false;
+/*      */     }
+/* 1322 */     return contentEquals(stream1.iterator(), stream2.iterator());
+/*      */   }
+/*      */   
+/*      */   private static boolean contentEqualsIgnoreEOL(BufferedReader reader1, BufferedReader reader2)
+/*      */   {
+/* 1327 */     if (reader1 == reader2) {
+/* 1328 */       return true;
+/*      */     }
+/* 1330 */     if (reader1 == null || reader2 == null) {
+/* 1331 */       return false;
+/*      */     }
+/* 1333 */     return contentEquals(reader1.lines(), reader2.lines());
+/*      */   }
+/*      */   
 /*      */ 
 /*      */ 
 /*      */ 
@@ -910,27 +1346,17 @@
 /*      */ 
 /*      */ 
 /*      */   public static boolean contentEqualsIgnoreEOL(Reader reader1, Reader reader2)
-/*      */     throws IOException
+/*      */     throws UncheckedIOException
 /*      */   {
-/*  915 */     if (reader1 == reader2) {
-/*  916 */       return true;
+/* 1351 */     if (reader1 == reader2) {
+/* 1352 */       return true;
 /*      */     }
-/*  918 */     if (((reader1 == null ? 1 : 0) ^ (reader2 == null ? 1 : 0)) != 0) {
-/*  919 */       return false;
+/* 1354 */     if (reader1 == null || reader2 == null) {
+/* 1355 */       return false;
 /*      */     }
-/*  921 */     BufferedReader br1 = toBufferedReader(reader1);
-/*  922 */     BufferedReader br2 = toBufferedReader(reader2);
-/*      */     
-/*  924 */     String line1 = br1.readLine();
-/*  925 */     String line2 = br2.readLine();
-/*  926 */     while (line1 != null && line1.equals(line2)) {
-/*  927 */       line1 = br1.readLine();
-/*  928 */       line2 = br2.readLine();
-/*      */     }
-/*  930 */     return Objects.equals(line1, line2);
+/* 1357 */     return contentEqualsIgnoreEOL(toBufferedReader(reader1), toBufferedReader(reader2));
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -950,15 +1376,10 @@
 /*      */   public static int copy(InputStream inputStream, OutputStream outputStream)
 /*      */     throws IOException
 /*      */   {
-/*  953 */     long count = copyLarge(inputStream, outputStream);
-/*  954 */     if (count > 2147483647L) {
-/*  955 */       return -1;
-/*      */     }
-/*  957 */     return (int)count;
+/* 1379 */     long count = copyLarge(inputStream, outputStream);
+/* 1380 */     return count > 2147483647L ? -1 : (int)count;
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -975,10 +1396,9 @@
 /*      */   public static long copy(InputStream inputStream, OutputStream outputStream, int bufferSize)
 /*      */     throws IOException
 /*      */   {
-/*  978 */     return copyLarge(inputStream, outputStream, byteArray(bufferSize));
+/* 1399 */     return copyLarge(inputStream, outputStream, byteArray(bufferSize));
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -997,10 +1417,9 @@
 /*      */   public static void copy(InputStream input, Writer writer)
 /*      */     throws IOException
 /*      */   {
-/* 1000 */     copy(input, writer, Charset.defaultCharset());
+/* 1420 */     copy(input, writer, Charset.defaultCharset());
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1018,13 +1437,9 @@
 /*      */   public static void copy(InputStream input, Writer writer, Charset inputCharset)
 /*      */     throws IOException
 /*      */   {
-/* 1021 */     InputStreamReader reader = new InputStreamReader(input, Charsets.toCharset(inputCharset));
-/* 1022 */     copy(reader, writer);
+/* 1440 */     copy(new InputStreamReader(input, Charsets.toCharset(inputCharset)), writer);
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1046,10 +1461,38 @@
 /*      */   public static void copy(InputStream input, Writer writer, String inputCharsetName)
 /*      */     throws IOException
 /*      */   {
-/* 1049 */     copy(input, writer, Charsets.toCharset(inputCharsetName));
+/* 1464 */     copy(input, writer, Charsets.toCharset(inputCharsetName));
 /*      */   }
 /*      */   
 /*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static QueueInputStream copy(java.io.ByteArrayOutputStream outputStream)
+/*      */     throws IOException
+/*      */   {
+/* 1490 */     Objects.requireNonNull(outputStream, "outputStream");
+/* 1491 */     QueueInputStream in = new QueueInputStream();
+/* 1492 */     outputStream.writeTo(in.newQueueOutputStream());
+/* 1493 */     return in;
+/*      */   }
+/*      */   
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1068,10 +1511,9 @@
 /*      */   public static long copy(Reader reader, Appendable output)
 /*      */     throws IOException
 /*      */   {
-/* 1071 */     return copy(reader, output, CharBuffer.allocate(8192));
+/* 1514 */     return copy(reader, output, CharBuffer.allocate(8192));
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1087,17 +1529,16 @@
 /*      */   public static long copy(Reader reader, Appendable output, CharBuffer buffer)
 /*      */     throws IOException
 /*      */   {
-/* 1090 */     long count = 0L;
+/* 1532 */     long count = 0L;
 /*      */     int n;
-/* 1092 */     while (-1 != (n = reader.read(buffer))) {
-/* 1093 */       buffer.flip();
-/* 1094 */       output.append(buffer, 0, n);
-/* 1095 */       count += n;
+/* 1534 */     while (-1 != (n = reader.read(buffer))) {
+/* 1535 */       buffer.flip();
+/* 1536 */       output.append(buffer, 0, n);
+/* 1537 */       count += n;
 /*      */     }
-/* 1097 */     return count;
+/* 1539 */     return count;
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1120,14 +1561,9 @@
 /*      */   public static void copy(Reader reader, OutputStream output)
 /*      */     throws IOException
 /*      */   {
-/* 1123 */     copy(reader, output, Charset.defaultCharset());
+/* 1564 */     copy(reader, output, Charset.defaultCharset());
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1148,17 +1584,13 @@
 /*      */   public static void copy(Reader reader, OutputStream output, Charset outputCharset)
 /*      */     throws IOException
 /*      */   {
-/* 1151 */     OutputStreamWriter writer = new OutputStreamWriter(output, Charsets.toCharset(outputCharset));
-/* 1152 */     copy(reader, writer);
+/* 1587 */     OutputStreamWriter writer = new OutputStreamWriter(output, Charsets.toCharset(outputCharset));
+/* 1588 */     copy(reader, writer);
 /*      */     
 /*      */ 
-/* 1155 */     writer.flush();
+/* 1591 */     writer.flush();
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1183,10 +1615,9 @@
 /*      */   public static void copy(Reader reader, OutputStream output, String outputCharsetName)
 /*      */     throws IOException
 /*      */   {
-/* 1186 */     copy(reader, output, Charsets.toCharset(outputCharsetName));
+/* 1618 */     copy(reader, output, Charsets.toCharset(outputCharsetName));
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1205,11 +1636,11 @@
 /*      */   public static int copy(Reader reader, Writer writer)
 /*      */     throws IOException
 /*      */   {
-/* 1208 */     long count = copyLarge(reader, writer);
-/* 1209 */     if (count > 2147483647L) {
-/* 1210 */       return -1;
+/* 1639 */     long count = copyLarge(reader, writer);
+/* 1640 */     if (count > 2147483647L) {
+/* 1641 */       return -1;
 /*      */     }
-/* 1212 */     return (int)count;
+/* 1643 */     return (int)count;
 /*      */   }
 /*      */   
 /*      */ 
@@ -1230,8 +1661,8 @@
 /*      */   public static long copy(URL url, File file)
 /*      */     throws IOException
 /*      */   {
-/* 1233 */     try (OutputStream outputStream = Files.newOutputStream(((File)Objects.requireNonNull(file, "file")).toPath())) {
-/* 1234 */       return copy(url, outputStream);
+/* 1664 */     try (OutputStream outputStream = Files.newOutputStream(((File)Objects.requireNonNull(file, "file")).toPath())) {
+/* 1665 */       return copy(url, outputStream);
 /*      */     }
 /*      */     
 /*      */   }
@@ -1253,8 +1684,8 @@
 /*      */   public static long copy(URL url, OutputStream outputStream)
 /*      */     throws IOException
 /*      */   {
-/* 1256 */     try (InputStream inputStream = ((URL)Objects.requireNonNull(url, "url")).openStream()) {
-/* 1257 */       return copyLarge(inputStream, outputStream);
+/* 1687 */     try (InputStream inputStream = ((URL)Objects.requireNonNull(url, "url")).openStream()) {
+/* 1688 */       return copyLarge(inputStream, outputStream);
 /*      */     }
 /*      */     
 /*      */   }
@@ -1273,18 +1704,12 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */   public static long copyLarge(InputStream inputStream, OutputStream outputStream)
 /*      */     throws IOException
 /*      */   {
-/* 1282 */     return copy(inputStream, outputStream, 8192);
+/* 1710 */     return copy(inputStream, outputStream, 8192);
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1302,22 +1727,17 @@
 /*      */   public static long copyLarge(InputStream inputStream, OutputStream outputStream, byte[] buffer)
 /*      */     throws IOException
 /*      */   {
-/* 1305 */     Objects.requireNonNull(inputStream, "inputStream");
-/* 1306 */     Objects.requireNonNull(outputStream, "outputStream");
-/* 1307 */     long count = 0L;
+/* 1730 */     Objects.requireNonNull(inputStream, "inputStream");
+/* 1731 */     Objects.requireNonNull(outputStream, "outputStream");
+/* 1732 */     long count = 0L;
 /*      */     int n;
-/* 1309 */     while (-1 != (n = inputStream.read(buffer))) {
-/* 1310 */       outputStream.write(buffer, 0, n);
-/* 1311 */       count += n;
+/* 1734 */     while (-1 != (n = inputStream.read(buffer))) {
+/* 1735 */       outputStream.write(buffer, 0, n);
+/* 1736 */       count += n;
 /*      */     }
-/* 1313 */     return count;
+/* 1738 */     return count;
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1339,14 +1759,12 @@
 /*      */   public static long copyLarge(InputStream input, OutputStream output, long inputOffset, long length)
 /*      */     throws IOException
 /*      */   {
-/* 1342 */     return copyLarge(input, output, inputOffset, length, getByteArray());
+/* 1762 */     try (ScratchBytes scratch = ScratchBytes.get()) {
+/* 1763 */       return copyLarge(input, output, inputOffset, length, scratch.array());
+/*      */     }
+/*      */     
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1368,30 +1786,31 @@
 /*      */   public static long copyLarge(InputStream input, OutputStream output, long inputOffset, long length, byte[] buffer)
 /*      */     throws IOException
 /*      */   {
-/* 1371 */     if (inputOffset > 0L) {
-/* 1372 */       skipFully(input, inputOffset);
+/* 1789 */     if (inputOffset > 0L) {
+/* 1790 */       skipFully(input, inputOffset);
 /*      */     }
-/* 1374 */     if (length == 0L) {
-/* 1375 */       return 0L;
+/* 1792 */     if (length == 0L) {
+/* 1793 */       return 0L;
 /*      */     }
-/* 1377 */     int bufferLength = buffer.length;
-/* 1378 */     int bytesToRead = bufferLength;
-/* 1379 */     if (length > 0L && length < bufferLength) {
-/* 1380 */       bytesToRead = (int)length;
+/* 1795 */     int bufferLength = buffer.length;
+/* 1796 */     int bytesToRead = bufferLength;
+/* 1797 */     if (length > 0L && length < bufferLength) {
+/* 1798 */       bytesToRead = (int)length;
 /*      */     }
 /*      */     
-/* 1383 */     long totalRead = 0L;
-/* 1384 */     int read; while (bytesToRead > 0 && -1 != (read = input.read(buffer, 0, bytesToRead))) {
-/* 1385 */       output.write(buffer, 0, read);
-/* 1386 */       totalRead += read;
-/* 1387 */       if (length <= 0L)
+/* 1801 */     long totalRead = 0L;
+/* 1802 */     int read; while (bytesToRead > 0 && -1 != (read = input.read(buffer, 0, bytesToRead))) {
+/* 1803 */       output.write(buffer, 0, read);
+/* 1804 */       totalRead += read;
+/* 1805 */       if (length <= 0L)
 /*      */         continue;
-/* 1389 */       bytesToRead = (int)Math.min(length - totalRead, bufferLength);
+/* 1807 */       bytesToRead = (int)Math.min(length - totalRead, bufferLength);
 /*      */     }
 /*      */     
-/* 1392 */     return totalRead;
+/* 1810 */     return totalRead;
 /*      */   }
 /*      */   
+/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1408,11 +1827,12 @@
 /*      */   public static long copyLarge(Reader reader, Writer writer)
 /*      */     throws IOException
 /*      */   {
-/* 1411 */     return copyLarge(reader, writer, getCharArray());
+/* 1830 */     try (ScratchChars scratch = ScratchChars.get()) {
+/* 1831 */       return copyLarge(reader, writer, scratch.array());
+/*      */     }
+/*      */     
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1427,17 +1847,15 @@
 /*      */   public static long copyLarge(Reader reader, Writer writer, char[] buffer)
 /*      */     throws IOException
 /*      */   {
-/* 1430 */     long count = 0L;
+/* 1850 */     long count = 0L;
 /*      */     int n;
-/* 1432 */     while (-1 != (n = reader.read(buffer))) {
-/* 1433 */       writer.write(buffer, 0, n);
-/* 1434 */       count += n;
+/* 1852 */     while (-1 != (n = reader.read(buffer))) {
+/* 1853 */       writer.write(buffer, 0, n);
+/* 1854 */       count += n;
 /*      */     }
-/* 1436 */     return count;
+/* 1856 */     return count;
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1457,15 +1875,12 @@
 /*      */   public static long copyLarge(Reader reader, Writer writer, long inputOffset, long length)
 /*      */     throws IOException
 /*      */   {
-/* 1460 */     return copyLarge(reader, writer, inputOffset, length, getCharArray());
+/* 1878 */     try (ScratchChars scratch = ScratchChars.get()) {
+/* 1879 */       return copyLarge(reader, writer, inputOffset, length, scratch.array());
+/*      */     }
+/*      */     
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1482,48 +1897,46 @@
 /*      */   public static long copyLarge(Reader reader, Writer writer, long inputOffset, long length, char[] buffer)
 /*      */     throws IOException
 /*      */   {
-/* 1485 */     if (inputOffset > 0L) {
-/* 1486 */       skipFully(reader, inputOffset);
+/* 1900 */     if (inputOffset > 0L) {
+/* 1901 */       skipFully(reader, inputOffset);
 /*      */     }
-/* 1488 */     if (length == 0L) {
-/* 1489 */       return 0L;
+/* 1903 */     if (length == 0L) {
+/* 1904 */       return 0L;
 /*      */     }
-/* 1491 */     int bytesToRead = buffer.length;
-/* 1492 */     if (length > 0L && length < buffer.length) {
-/* 1493 */       bytesToRead = (int)length;
+/* 1906 */     int bytesToRead = buffer.length;
+/* 1907 */     if (length > 0L && length < buffer.length) {
+/* 1908 */       bytesToRead = (int)length;
 /*      */     }
 /*      */     
-/* 1496 */     long totalRead = 0L;
-/* 1497 */     int read; while (bytesToRead > 0 && -1 != (read = reader.read(buffer, 0, bytesToRead))) {
-/* 1498 */       writer.write(buffer, 0, read);
-/* 1499 */       totalRead += read;
-/* 1500 */       if (length <= 0L)
+/* 1911 */     long totalRead = 0L;
+/* 1912 */     int read; while (bytesToRead > 0 && -1 != (read = reader.read(buffer, 0, bytesToRead))) {
+/* 1913 */       writer.write(buffer, 0, read);
+/* 1914 */       totalRead += read;
+/* 1915 */       if (length <= 0L)
 /*      */         continue;
-/* 1502 */       bytesToRead = (int)Math.min(length - totalRead, buffer.length);
+/* 1917 */       bytesToRead = (int)Math.min(length - totalRead, buffer.length);
 /*      */     }
 /*      */     
-/* 1505 */     return totalRead;
+/* 1920 */     return totalRead;
 /*      */   }
 /*      */   
 /*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   static byte[] getByteArray()
+/*      */ 
+/*      */ 
+/*      */   static UnsynchronizedByteArrayOutputStream copyToOutputStream(InputStream input, long limit, int bufferSize)
+/*      */     throws IOException
 /*      */   {
-/* 1514 */     return (byte[])SKIP_BYTE_BUFFER.get();
+/* 1932 */     try (UnsynchronizedByteArrayOutputStream output = ((UnsynchronizedByteArrayOutputStream.Builder)UnsynchronizedByteArrayOutputStream.builder().setBufferSize(bufferSize)).get();
+/* 1933 */     InputStream boundedInput = ((BoundedInputStream.Builder)((BoundedInputStream.Builder)((BoundedInputStream.Builder)BoundedInputStream.builder().setMaxCount(limit)).setPropagateClose(false)).setInputStream(input)).get();) {
+/* 1934 */       output.write(boundedInput);
+/* 1935 */       return output;
+/*      */     }
+/*      */     
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */   static char[] getCharArray()
-/*      */   {
-/* 1523 */     return (char[])SKIP_CHAR_BUFFER.get();
-/*      */   }
-/*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1531,7 +1944,7 @@
 /*      */ 
 /*      */   public static int length(byte[] array)
 /*      */   {
-/* 1534 */     return array == null ? 0 : array.length;
+/* 1947 */     return array == null ? 0 : array.length;
 /*      */   }
 /*      */   
 /*      */ 
@@ -1542,7 +1955,7 @@
 /*      */ 
 /*      */   public static int length(char[] array)
 /*      */   {
-/* 1545 */     return array == null ? 0 : array.length;
+/* 1958 */     return array == null ? 0 : array.length;
 /*      */   }
 /*      */   
 /*      */ 
@@ -1553,7 +1966,7 @@
 /*      */ 
 /*      */   public static int length(CharSequence csq)
 /*      */   {
-/* 1556 */     return csq == null ? 0 : csq.length();
+/* 1969 */     return csq == null ? 0 : csq.length();
 /*      */   }
 /*      */   
 /*      */ 
@@ -1564,7 +1977,7 @@
 /*      */ 
 /*      */   public static int length(Object[] array)
 /*      */   {
-/* 1567 */     return array == null ? 0 : array.length;
+/* 1980 */     return array == null ? 0 : array.length;
 /*      */   }
 /*      */   
 /*      */ 
@@ -1597,11 +2010,9 @@
 /*      */ 
 /*      */   public static LineIterator lineIterator(InputStream input, Charset charset)
 /*      */   {
-/* 1600 */     return new LineIterator(new InputStreamReader(input, Charsets.toCharset(charset)));
+/* 2013 */     return new LineIterator(new InputStreamReader(input, Charsets.toCharset(charset)));
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1633,7 +2044,7 @@
 /*      */ 
 /*      */   public static LineIterator lineIterator(InputStream input, String charsetName)
 /*      */   {
-/* 1636 */     return lineIterator(input, Charsets.toCharset(charsetName));
+/* 2047 */     return lineIterator(input, Charsets.toCharset(charsetName));
 /*      */   }
 /*      */   
 /*      */ 
@@ -1664,9 +2075,11 @@
 /*      */ 
 /*      */   public static LineIterator lineIterator(Reader reader)
 /*      */   {
-/* 1667 */     return new LineIterator(reader);
+/* 2078 */     return new LineIterator(reader);
 /*      */   }
 /*      */   
+/*      */ 
+/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1680,9 +2093,11 @@
 /*      */   public static int read(InputStream input, byte[] buffer)
 /*      */     throws IOException
 /*      */   {
-/* 1683 */     return read(input, buffer, 0, buffer.length);
+/* 2096 */     return read(input, buffer, 0, buffer.length);
 /*      */   }
 /*      */   
+/*      */ 
+/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1699,19 +2114,17 @@
 /*      */   public static int read(InputStream input, byte[] buffer, int offset, int length)
 /*      */     throws IOException
 /*      */   {
-/* 1702 */     if (length < 0) {
-/* 1703 */       throw new IllegalArgumentException("Length must not be negative: " + length);
-/*      */     }
-/* 1705 */     int remaining = length;
-/* 1706 */     while (remaining > 0) {
-/* 1707 */       int location = length - remaining;
-/* 1708 */       int count = input.read(buffer, offset + location, remaining);
-/* 1709 */       if (-1 == count) {
+/* 2117 */     checkFromIndexSize(buffer, offset, length);
+/* 2118 */     int remaining = length;
+/* 2119 */     while (remaining > 0) {
+/* 2120 */       int location = length - remaining;
+/* 2121 */       int count = input.read(buffer, offset + location, remaining);
+/* 2122 */       if (-1 == count) {
 /*      */         break;
 /*      */       }
-/* 1712 */       remaining -= count;
+/* 2125 */       remaining -= count;
 /*      */     }
-/* 1714 */     return length - remaining;
+/* 2127 */     return length - remaining;
 /*      */   }
 /*      */   
 /*      */ 
@@ -1728,16 +2141,17 @@
 /*      */   public static int read(ReadableByteChannel input, ByteBuffer buffer)
 /*      */     throws IOException
 /*      */   {
-/* 1731 */     int length = buffer.remaining();
-/* 1732 */     while (buffer.remaining() > 0) {
-/* 1733 */       int count = input.read(buffer);
-/* 1734 */       if (-1 == count) {
+/* 2144 */     int length = buffer.remaining();
+/* 2145 */     while (buffer.remaining() > 0) {
+/* 2146 */       int count = input.read(buffer);
+/* 2147 */       if (-1 == count) {
 /*      */         break;
 /*      */       }
 /*      */     }
-/* 1738 */     return length - buffer.remaining();
+/* 2151 */     return length - buffer.remaining();
 /*      */   }
 /*      */   
+/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1751,9 +2165,11 @@
 /*      */   public static int read(Reader reader, char[] buffer)
 /*      */     throws IOException
 /*      */   {
-/* 1754 */     return read(reader, buffer, 0, buffer.length);
+/* 2168 */     return read(reader, buffer, 0, buffer.length);
 /*      */   }
 /*      */   
+/*      */ 
+/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1770,19 +2186,17 @@
 /*      */   public static int read(Reader reader, char[] buffer, int offset, int length)
 /*      */     throws IOException
 /*      */   {
-/* 1773 */     if (length < 0) {
-/* 1774 */       throw new IllegalArgumentException("Length must not be negative: " + length);
-/*      */     }
-/* 1776 */     int remaining = length;
-/* 1777 */     while (remaining > 0) {
-/* 1778 */       int location = length - remaining;
-/* 1779 */       int count = reader.read(buffer, offset + location, remaining);
-/* 1780 */       if (-1 == count) {
+/* 2189 */     checkFromIndexSize(buffer, offset, length);
+/* 2190 */     int remaining = length;
+/* 2191 */     while (remaining > 0) {
+/* 2192 */       int location = length - remaining;
+/* 2193 */       int count = reader.read(buffer, offset + location, remaining);
+/* 2194 */       if (-1 == count) {
 /*      */         break;
 /*      */       }
-/* 1783 */       remaining -= count;
+/* 2197 */       remaining -= count;
 /*      */     }
-/* 1785 */     return length - remaining;
+/* 2199 */     return length - remaining;
 /*      */   }
 /*      */   
 /*      */ 
@@ -1800,7 +2214,7 @@
 /*      */   public static void readFully(InputStream input, byte[] buffer)
 /*      */     throws IOException
 /*      */   {
-/* 1803 */     readFully(input, buffer, 0, buffer.length);
+/* 2217 */     readFully(input, buffer, 0, buffer.length);
 /*      */   }
 /*      */   
 /*      */ 
@@ -1821,9 +2235,9 @@
 /*      */   public static void readFully(InputStream input, byte[] buffer, int offset, int length)
 /*      */     throws IOException
 /*      */   {
-/* 1824 */     int actual = read(input, buffer, offset, length);
-/* 1825 */     if (actual != length) {
-/* 1826 */       throw new EOFException("Length to read: " + length + " actual: " + actual);
+/* 2238 */     int actual = read(input, buffer, offset, length);
+/* 2239 */     if (actual != length) {
+/* 2240 */       throw new EOFException("Length to read: " + length + " actual: " + actual);
 /*      */     }
 /*      */   }
 /*      */   
@@ -1839,14 +2253,16 @@
 /*      */ 
 /*      */ 
 /*      */ 
+/*      */ 
+/*      */ 
+/*      */   @Deprecated
 /*      */   public static byte[] readFully(InputStream input, int length)
 /*      */     throws IOException
 /*      */   {
-/* 1845 */     byte[] buffer = byteArray(length);
-/* 1846 */     readFully(input, buffer, 0, buffer.length);
-/* 1847 */     return buffer;
+/* 2262 */     return toByteArray(input, length);
 /*      */   }
 /*      */   
+/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1860,13 +2276,14 @@
 /*      */   public static void readFully(ReadableByteChannel input, ByteBuffer buffer)
 /*      */     throws IOException
 /*      */   {
-/* 1863 */     int expected = buffer.remaining();
-/* 1864 */     int actual = read(input, buffer);
-/* 1865 */     if (actual != expected) {
-/* 1866 */       throw new EOFException("Length to read: " + expected + " actual: " + actual);
+/* 2279 */     int expected = buffer.remaining();
+/* 2280 */     int actual = read(input, buffer);
+/* 2281 */     if (actual != expected) {
+/* 2282 */       throw new EOFException("Length to read: " + expected + " actual: " + actual);
 /*      */     }
 /*      */   }
 /*      */   
+/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1881,9 +2298,10 @@
 /*      */   public static void readFully(Reader reader, char[] buffer)
 /*      */     throws IOException
 /*      */   {
-/* 1884 */     readFully(reader, buffer, 0, buffer.length);
+/* 2301 */     readFully(reader, buffer, 0, buffer.length);
 /*      */   }
 /*      */   
+/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1901,13 +2319,27 @@
 /*      */   public static void readFully(Reader reader, char[] buffer, int offset, int length)
 /*      */     throws IOException
 /*      */   {
-/* 1904 */     int actual = read(reader, buffer, offset, length);
-/* 1905 */     if (actual != length) {
-/* 1906 */       throw new EOFException("Length to read: " + length + " actual: " + actual);
+/* 2322 */     int actual = read(reader, buffer, offset, length);
+/* 2323 */     if (actual != length) {
+/* 2324 */       throw new EOFException("Length to read: " + length + " actual: " + actual);
 /*      */     }
 /*      */   }
 /*      */   
 /*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static List<String> readLines(CharSequence csq)
+/*      */     throws UncheckedIOException
+/*      */   {
+/* 2337 */     try (CharSequenceReader reader = new CharSequenceReader(csq)) {
+/* 2338 */       return readLines(reader);
+/*      */     }
+/*      */     
+/*      */   }
+/*      */   
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1921,12 +2353,11 @@
 /*      */ 
 /*      */   @Deprecated
 /*      */   public static List<String> readLines(InputStream input)
-/*      */     throws IOException
+/*      */     throws UncheckedIOException
 /*      */   {
-/* 1926 */     return readLines(input, Charset.defaultCharset());
+/* 2358 */     return readLines(input, Charset.defaultCharset());
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1939,15 +2370,11 @@
 /*      */ 
 /*      */ 
 /*      */   public static List<String> readLines(InputStream input, Charset charset)
-/*      */     throws IOException
+/*      */     throws UncheckedIOException
 /*      */   {
-/* 1944 */     InputStreamReader reader = new InputStreamReader(input, Charsets.toCharset(charset));
-/* 1945 */     return readLines(reader);
+/* 2375 */     return readLines(new InputStreamReader(input, Charsets.toCharset(charset)));
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1964,12 +2391,11 @@
 /*      */ 
 /*      */ 
 /*      */   public static List<String> readLines(InputStream input, String charsetName)
-/*      */     throws IOException
+/*      */     throws UncheckedIOException
 /*      */   {
-/* 1969 */     return readLines(input, Charsets.toCharset(charsetName));
+/* 2396 */     return readLines(input, Charsets.toCharset(charsetName));
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -1982,19 +2408,11 @@
 /*      */ 
 /*      */ 
 /*      */   public static List<String> readLines(Reader reader)
-/*      */     throws IOException
+/*      */     throws UncheckedIOException
 /*      */   {
-/* 1987 */     BufferedReader bufReader = toBufferedReader(reader);
-/* 1988 */     List<String> list = new ArrayList<>();
-/*      */     String line;
-/* 1990 */     while ((line = bufReader.readLine()) != null) {
-/* 1991 */       list.add(line);
-/*      */     }
-/* 1993 */     return list;
+/* 2413 */     return (List)toBufferedReader(reader).lines().collect(Collectors.toList());
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2008,11 +2426,9 @@
 /*      */   public static byte[] resourceToByteArray(String name)
 /*      */     throws IOException
 /*      */   {
-/* 2011 */     return resourceToByteArray(name, null);
+/* 2429 */     return resourceToByteArray(name, null);
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2027,12 +2443,9 @@
 /*      */   public static byte[] resourceToByteArray(String name, ClassLoader classLoader)
 /*      */     throws IOException
 /*      */   {
-/* 2030 */     return toByteArray(resourceToURL(name, classLoader));
+/* 2446 */     return toByteArray(resourceToURL(name, classLoader));
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2047,12 +2460,9 @@
 /*      */   public static String resourceToString(String name, Charset charset)
 /*      */     throws IOException
 /*      */   {
-/* 2050 */     return resourceToString(name, charset, null);
+/* 2463 */     return resourceToString(name, charset, null);
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2068,12 +2478,9 @@
 /*      */   public static String resourceToString(String name, Charset charset, ClassLoader classLoader)
 /*      */     throws IOException
 /*      */   {
-/* 2071 */     return toString(resourceToURL(name, classLoader), charset);
+/* 2481 */     return toString(resourceToURL(name, classLoader), charset);
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2086,11 +2493,9 @@
 /*      */   public static URL resourceToURL(String name)
 /*      */     throws IOException
 /*      */   {
-/* 2089 */     return resourceToURL(name, null);
+/* 2496 */     return resourceToURL(name, null);
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2107,13 +2512,11 @@
 /*      */   public static URL resourceToURL(String name, ClassLoader classLoader)
 /*      */     throws IOException
 /*      */   {
-/* 2110 */     URL resource = classLoader == null ? IOUtils.class.getResource(name) : classLoader.getResource(name);
-/*      */     
-/* 2112 */     if (resource == null) {
-/* 2113 */       throw new IOException("Resource not found: " + name);
+/* 2515 */     URL resource = classLoader == null ? IOUtils.class.getResource(name) : classLoader.getResource(name);
+/* 2516 */     if (resource == null) {
+/* 2517 */       throw new IOException("Resource not found: " + name);
 /*      */     }
-/*      */     
-/* 2116 */     return resource;
+/* 2519 */     return resource;
 /*      */   }
 /*      */   
 /*      */ 
@@ -2135,33 +2538,62 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */   public static long skip(InputStream input, long toSkip)
+/*      */   public static long skip(InputStream input, long skip)
 /*      */     throws IOException
 /*      */   {
-/* 2141 */     if (toSkip < 0L) {
-/* 2142 */       throw new IllegalArgumentException("Skip count must be non-negative, actual: " + toSkip);
+/* 2544 */     try (ScratchBytes scratch = ScratchBytes.get()) {
+/* 2545 */       return skip(input, skip, scratch::array);
+/*      */     }
+/*      */     
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static long skip(InputStream input, long skip, Supplier<byte[]> skipBufferSupplier)
+/*      */     throws IOException
+/*      */   {
+/* 2576 */     if (skip < 0L) {
+/* 2577 */       throw new IllegalArgumentException("Skip count must be non-negative, actual: " + skip);
 /*      */     }
 /*      */     
 /*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
-/* 2150 */     long remain = toSkip;
-/* 2151 */     while (remain > 0L)
-/*      */     {
-/* 2153 */       byte[] byteArray = getByteArray();
-/* 2154 */       long n = input.read(byteArray, 0, (int)Math.min(remain, byteArray.length));
-/* 2155 */       if (n < 0L) {
+/* 2584 */     long remain = skip;
+/* 2585 */     while (remain > 0L) {
+/* 2586 */       byte[] skipBuffer = (byte[])skipBufferSupplier.get();
+/*      */       
+/* 2588 */       long n = input.read(skipBuffer, 0, (int)Math.min(remain, skipBuffer.length));
+/* 2589 */       if (n < 0L) {
 /*      */         break;
 /*      */       }
-/* 2158 */       remain -= n;
+/* 2592 */       remain -= n;
 /*      */     }
-/* 2160 */     return toSkip - remain;
+/* 2594 */     return skip - remain;
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2173,26 +2605,23 @@
 /*      */   public static long skip(ReadableByteChannel input, long toSkip)
 /*      */     throws IOException
 /*      */   {
-/* 2176 */     if (toSkip < 0L) {
-/* 2177 */       throw new IllegalArgumentException("Skip count must be non-negative, actual: " + toSkip);
+/* 2608 */     if (toSkip < 0L) {
+/* 2609 */       throw new IllegalArgumentException("Skip count must be non-negative, actual: " + toSkip);
 /*      */     }
-/* 2179 */     ByteBuffer skipByteBuffer = ByteBuffer.allocate((int)Math.min(toSkip, 8192L));
-/* 2180 */     long remain = toSkip;
-/* 2181 */     while (remain > 0L) {
-/* 2182 */       skipByteBuffer.position(0);
-/* 2183 */       skipByteBuffer.limit((int)Math.min(remain, 8192L));
-/* 2184 */       int n = input.read(skipByteBuffer);
-/* 2185 */       if (n == -1) {
+/* 2611 */     ByteBuffer skipByteBuffer = ByteBuffer.allocate((int)Math.min(toSkip, 8192L));
+/* 2612 */     long remain = toSkip;
+/* 2613 */     while (remain > 0L) {
+/* 2614 */       skipByteBuffer.position(0);
+/* 2615 */       skipByteBuffer.limit((int)Math.min(remain, 8192L));
+/* 2616 */       int n = input.read(skipByteBuffer);
+/* 2617 */       if (n == -1) {
 /*      */         break;
 /*      */       }
-/* 2188 */       remain -= n;
+/* 2620 */       remain -= n;
 /*      */     }
-/* 2190 */     return toSkip - remain;
+/* 2622 */     return toSkip - remain;
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2212,23 +2641,24 @@
 /*      */   public static long skip(Reader reader, long toSkip)
 /*      */     throws IOException
 /*      */   {
-/* 2215 */     if (toSkip < 0L) {
-/* 2216 */       throw new IllegalArgumentException("Skip count must be non-negative, actual: " + toSkip);
+/* 2644 */     if (toSkip < 0L) {
+/* 2645 */       throw new IllegalArgumentException("Skip count must be non-negative, actual: " + toSkip);
 /*      */     }
-/* 2218 */     long remain = toSkip;
-/* 2219 */     while (remain > 0L)
-/*      */     {
-/* 2221 */       char[] charArray = getCharArray();
-/* 2222 */       long n = reader.read(charArray, 0, (int)Math.min(remain, charArray.length));
-/* 2223 */       if (n < 0L) {
-/*      */         break;
+/* 2647 */     long remain = toSkip;
+/* 2648 */     try (ScratchChars scratch = ScratchChars.get()) {
+/* 2649 */       char[] chars = scratch.array();
+/* 2650 */       while (remain > 0L)
+/*      */       {
+/* 2652 */         long n = reader.read(chars, 0, (int)Math.min(remain, chars.length));
+/* 2653 */         if (n < 0L) {
+/*      */           break;
+/*      */         }
+/* 2656 */         remain -= n;
 /*      */       }
-/* 2226 */       remain -= n;
 /*      */     }
-/* 2228 */     return toSkip - remain;
+/* 2659 */     return toSkip - remain;
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2248,12 +2678,42 @@
 /*      */   public static void skipFully(InputStream input, long toSkip)
 /*      */     throws IOException
 /*      */   {
-/* 2251 */     if (toSkip < 0L) {
-/* 2252 */       throw new IllegalArgumentException("Bytes to skip must not be negative: " + toSkip);
+/* 2681 */     long skipped = skip(input, toSkip);
+/* 2682 */     if (skipped != toSkip) {
+/* 2683 */       throw new EOFException("Bytes to skip: " + toSkip + " actual: " + skipped);
 /*      */     }
-/* 2254 */     long skipped = skip(input, toSkip);
-/* 2255 */     if (skipped != toSkip) {
-/* 2256 */       throw new EOFException("Bytes to skip: " + toSkip + " actual: " + skipped);
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static void skipFully(InputStream input, long toSkip, Supplier<byte[]> skipBufferSupplier)
+/*      */     throws IOException
+/*      */   {
+/* 2711 */     if (toSkip < 0L) {
+/* 2712 */       throw new IllegalArgumentException("Bytes to skip must not be negative: " + toSkip);
+/*      */     }
+/* 2714 */     long skipped = skip(input, toSkip, skipBufferSupplier);
+/* 2715 */     if (skipped != toSkip) {
+/* 2716 */       throw new EOFException("Bytes to skip: " + toSkip + " actual: " + skipped);
 /*      */     }
 /*      */   }
 /*      */   
@@ -2268,16 +2728,15 @@
 /*      */   public static void skipFully(ReadableByteChannel input, long toSkip)
 /*      */     throws IOException
 /*      */   {
-/* 2271 */     if (toSkip < 0L) {
-/* 2272 */       throw new IllegalArgumentException("Bytes to skip must not be negative: " + toSkip);
+/* 2731 */     if (toSkip < 0L) {
+/* 2732 */       throw new IllegalArgumentException("Bytes to skip must not be negative: " + toSkip);
 /*      */     }
-/* 2274 */     long skipped = skip(input, toSkip);
-/* 2275 */     if (skipped != toSkip) {
-/* 2276 */       throw new EOFException("Bytes to skip: " + toSkip + " actual: " + skipped);
+/* 2734 */     long skipped = skip(input, toSkip);
+/* 2735 */     if (skipped != toSkip) {
+/* 2736 */       throw new EOFException("Bytes to skip: " + toSkip + " actual: " + skipped);
 /*      */     }
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2297,12 +2756,13 @@
 /*      */   public static void skipFully(Reader reader, long toSkip)
 /*      */     throws IOException
 /*      */   {
-/* 2300 */     long skipped = skip(reader, toSkip);
-/* 2301 */     if (skipped != toSkip) {
-/* 2302 */       throw new EOFException("Chars to skip: " + toSkip + " actual: " + skipped);
+/* 2759 */     long skipped = skip(reader, toSkip);
+/* 2760 */     if (skipped != toSkip) {
+/* 2761 */       throw new EOFException("Chars to skip: " + toSkip + " actual: " + skipped);
 /*      */     }
 /*      */   }
 /*      */   
+/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2325,9 +2785,10 @@
 /*      */   public static InputStream toBufferedInputStream(InputStream input)
 /*      */     throws IOException
 /*      */   {
-/* 2328 */     return ByteArrayOutputStream.toBufferedInputStream(input);
+/* 2788 */     return org.apache.commons.io.output.ByteArrayOutputStream.toBufferedInputStream(input);
 /*      */   }
 /*      */   
+/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2351,10 +2812,9 @@
 /*      */   public static InputStream toBufferedInputStream(InputStream input, int size)
 /*      */     throws IOException
 /*      */   {
-/* 2354 */     return ByteArrayOutputStream.toBufferedInputStream(input, size);
+/* 2815 */     return org.apache.commons.io.output.ByteArrayOutputStream.toBufferedInputStream(input, size);
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2365,10 +2825,9 @@
 /*      */ 
 /*      */   public static BufferedReader toBufferedReader(Reader reader)
 /*      */   {
-/* 2368 */     return (reader instanceof BufferedReader) ? (BufferedReader)reader : new BufferedReader(reader);
+/* 2828 */     return (reader instanceof BufferedReader) ? (BufferedReader)reader : new BufferedReader(reader);
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2380,7 +2839,7 @@
 /*      */ 
 /*      */   public static BufferedReader toBufferedReader(Reader reader, int size)
 /*      */   {
-/* 2383 */     return (reader instanceof BufferedReader) ? (BufferedReader)reader : new BufferedReader(reader, size);
+/* 2842 */     return (reader instanceof BufferedReader) ? (BufferedReader)reader : new BufferedReader(reader, size);
 /*      */   }
 /*      */   
 /*      */ 
@@ -2397,17 +2856,18 @@
 /*      */   public static byte[] toByteArray(InputStream inputStream)
 /*      */     throws IOException
 /*      */   {
-/* 2400 */     try (UnsynchronizedByteArrayOutputStream ubaOutput = new UnsynchronizedByteArrayOutputStream();
-/* 2401 */     ThresholdingOutputStream thresholdOuput = new ThresholdingOutputStream(Integer.MAX_VALUE,  os -> 
-/*      */     {
-/* 2403 */       throw new IllegalArgumentException(String.format("Cannot read more than %,d into a byte array", Integer.valueOf(Integer.MAX_VALUE))); }, 
-/* 2404 */     os -> ubaOutput);) {
-/* 2405 */       copy(inputStream, thresholdOuput);
-/* 2406 */       return ubaOutput.toByteArray();
+/* 2859 */     UnsynchronizedByteArrayOutputStream output = copyToOutputStream(inputStream, 2147483640L, 8192);
+/* 2860 */     if (output.size() > 2147483639) {
+/* 2861 */       throw new IOException(String.format("Cannot read more than %,d into a byte array", Integer.valueOf(2147483639)));
 /*      */     }
-/*      */     
+/* 2863 */     return output.toByteArray();
 /*      */   }
 /*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2420,30 +2880,46 @@
 /*      */   public static byte[] toByteArray(InputStream input, int size)
 /*      */     throws IOException
 /*      */   {
-/* 2423 */     if (size < 0) {
-/* 2424 */       throw new IllegalArgumentException("Size must be equal or greater than zero: " + size);
-/*      */     }
-/*      */     
-/* 2427 */     if (size == 0) {
-/* 2428 */       return EMPTY_BYTE_ARRAY;
-/*      */     }
-/*      */     
-/* 2431 */     byte[] data = byteArray(size);
-/* 2432 */     int offset = 0;
-/*      */     
-/*      */     int read;
-/* 2435 */     while (offset < size && (read = input.read(data, offset, size - offset)) != -1) {
-/* 2436 */       offset += read;
-/*      */     }
-/*      */     
-/* 2439 */     if (offset != size) {
-/* 2440 */       throw new IOException("Unexpected read size, current: " + offset + ", expected: " + size);
-/*      */     }
-/*      */     
-/* 2443 */     return data;
+/* 2883 */     return toByteArray(Objects.requireNonNull(input, "input")::read, size);
 /*      */   }
 /*      */   
 /*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static byte[] toByteArray(InputStream input, int size, int chunkSize)
+/*      */     throws IOException
+/*      */   {
+/* 2907 */     Objects.requireNonNull(input, "input");
+/* 2908 */     if (chunkSize <= 0) {
+/* 2909 */       throw new IllegalArgumentException(String.format("chunkSize <= 0, chunkSize = %,d", Integer.valueOf(chunkSize)));
+/*      */     }
+/* 2911 */     if (size <= chunkSize)
+/*      */     {
+/* 2913 */       return toByteArray(input::read, size);
+/*      */     }
+/* 2915 */     UnsynchronizedByteArrayOutputStream output = copyToOutputStream(input, size, chunkSize);
+/* 2916 */     int outSize = output.size();
+/* 2917 */     if (outSize != size) {
+/* 2918 */       throw new EOFException(String.format("Expected read size: %,d, actual: %,d", Integer.valueOf(size), Integer.valueOf(outSize)));
+/*      */     }
+/* 2920 */     return output.toByteArray();
+/*      */   }
+/*      */   
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2462,14 +2938,41 @@
 /*      */   public static byte[] toByteArray(InputStream input, long size)
 /*      */     throws IOException
 /*      */   {
-/* 2465 */     if (size > 2147483647L) {
-/* 2466 */       throw new IllegalArgumentException("Size cannot be greater than Integer max value: " + size);
+/* 2941 */     if (size > 2147483647L) {
+/* 2942 */       throw new IllegalArgumentException(String.format("size > Integer.MAX_VALUE, size = %,d", Long.valueOf(size)));
 /*      */     }
-/*      */     
-/* 2469 */     return toByteArray(input, (int)size);
+/* 2944 */     return toByteArray(input, (int)size);
 /*      */   }
 /*      */   
 /*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   static byte[] toByteArray(IOTriFunction<byte[], Integer, Integer, Integer> input, int size)
+/*      */     throws IOException
+/*      */   {
+/* 2958 */     if (size < 0) {
+/* 2959 */       throw new IllegalArgumentException(String.format("size < 0, size = %,d", Integer.valueOf(size)));
+/*      */     }
+/* 2961 */     if (size == 0) {
+/* 2962 */       return EMPTY_BYTE_ARRAY;
+/*      */     }
+/* 2964 */     byte[] data = byteArray(size);
+/* 2965 */     int offset = 0;
+/*      */     int read;
+/* 2967 */     while (offset < size && (read = input.apply(data, offset, size - offset).intValue()) != -1) {
+/* 2968 */       offset += read;
+/*      */     }
+/* 2970 */     if (offset != size) {
+/* 2971 */       throw new EOFException(String.format("Expected read size: %,d, actual: %,d", Integer.valueOf(size), Integer.valueOf(offset)));
+/*      */     }
+/* 2973 */     return data;
+/*      */   }
+/*      */   
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2484,10 +2987,9 @@
 /*      */   public static byte[] toByteArray(Reader reader)
 /*      */     throws IOException
 /*      */   {
-/* 2487 */     return toByteArray(reader, Charset.defaultCharset());
+/* 2990 */     return toByteArray(reader, Charset.defaultCharset());
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2502,16 +3004,13 @@
 /*      */   public static byte[] toByteArray(Reader reader, Charset charset)
 /*      */     throws IOException
 /*      */   {
-/* 2505 */     try (ByteArrayOutputStream output = new ByteArrayOutputStream()) {
-/* 2506 */       copy(reader, output, charset);
-/* 2507 */       return output.toByteArray();
+/* 3007 */     try (org.apache.commons.io.output.ByteArrayOutputStream output = new org.apache.commons.io.output.ByteArrayOutputStream()) {
+/* 3008 */       copy(reader, output, charset);
+/* 3009 */       return output.toByteArray();
 /*      */     }
 /*      */     
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2529,7 +3028,7 @@
 /*      */   public static byte[] toByteArray(Reader reader, String charsetName)
 /*      */     throws IOException
 /*      */   {
-/* 2532 */     return toByteArray(reader, Charsets.toCharset(charsetName));
+/* 3031 */     return toByteArray(reader, Charsets.toCharset(charsetName));
 /*      */   }
 /*      */   
 /*      */ 
@@ -2546,7 +3045,7 @@
 /*      */   @Deprecated
 /*      */   public static byte[] toByteArray(String input)
 /*      */   {
-/* 2549 */     return input.getBytes(Charset.defaultCharset());
+/* 3048 */     return input.getBytes(Charset.defaultCharset());
 /*      */   }
 /*      */   
 /*      */ 
@@ -2559,7 +3058,7 @@
 /*      */   public static byte[] toByteArray(URI uri)
 /*      */     throws IOException
 /*      */   {
-/* 2562 */     return toByteArray(uri.toURL());
+/* 3061 */     return toByteArray(uri.toURL());
 /*      */   }
 /*      */   
 /*      */ 
@@ -2572,12 +3071,10 @@
 /*      */   public static byte[] toByteArray(URL url)
 /*      */     throws IOException
 /*      */   {
-/* 2575 */     URLConnection conn = url.openConnection();
-/*      */     try {
-/* 2577 */       return toByteArray(conn);
-/*      */     } finally {
-/* 2579 */       close(conn);
+/* 3074 */     try (CloseableURLConnection urlConnection = CloseableURLConnection.open(url)) {
+/* 3075 */       return toByteArray(urlConnection);
 /*      */     }
+/*      */     
 /*      */   }
 /*      */   
 /*      */ 
@@ -2586,12 +3083,11 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
-/*      */   public static byte[] toByteArray(URLConnection urlConn)
+/*      */   public static byte[] toByteArray(URLConnection urlConnection)
 /*      */     throws IOException
 /*      */   {
-/* 2593 */     try (InputStream inputStream = urlConn.getInputStream()) {
-/* 2594 */       return toByteArray(inputStream);
+/* 3089 */     try (InputStream inputStream = urlConnection.getInputStream()) {
+/* 3090 */       return toByteArray(inputStream);
 /*      */     }
 /*      */     
 /*      */   }
@@ -2606,16 +3102,13 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
 /*      */   @Deprecated
 /*      */   public static char[] toCharArray(InputStream inputStream)
 /*      */     throws IOException
 /*      */   {
-/* 2614 */     return toCharArray(inputStream, Charset.defaultCharset());
+/* 3109 */     return toCharArray(inputStream, Charset.defaultCharset());
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2630,14 +3123,11 @@
 /*      */   public static char[] toCharArray(InputStream inputStream, Charset charset)
 /*      */     throws IOException
 /*      */   {
-/* 2633 */     CharArrayWriter writer = new CharArrayWriter();
-/* 2634 */     copy(inputStream, writer, charset);
-/* 2635 */     return writer.toCharArray();
+/* 3126 */     CharArrayWriter writer = new CharArrayWriter();
+/* 3127 */     copy(inputStream, writer, charset);
+/* 3128 */     return writer.toCharArray();
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2656,7 +3146,7 @@
 /*      */   public static char[] toCharArray(InputStream inputStream, String charsetName)
 /*      */     throws IOException
 /*      */   {
-/* 2659 */     return toCharArray(inputStream, Charsets.toCharset(charsetName));
+/* 3149 */     return toCharArray(inputStream, Charsets.toCharset(charsetName));
 /*      */   }
 /*      */   
 /*      */ 
@@ -2672,9 +3162,9 @@
 /*      */   public static char[] toCharArray(Reader reader)
 /*      */     throws IOException
 /*      */   {
-/* 2675 */     CharArrayWriter sw = new CharArrayWriter();
-/* 2676 */     copy(reader, sw);
-/* 2677 */     return sw.toCharArray();
+/* 3165 */     CharArrayWriter sw = new CharArrayWriter();
+/* 3166 */     copy(reader, sw);
+/* 3167 */     return sw.toCharArray();
 /*      */   }
 /*      */   
 /*      */ 
@@ -2688,10 +3178,9 @@
 /*      */   @Deprecated
 /*      */   public static InputStream toInputStream(CharSequence input)
 /*      */   {
-/* 2691 */     return toInputStream(input, Charset.defaultCharset());
+/* 3181 */     return toInputStream(input, Charset.defaultCharset());
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2701,12 +3190,9 @@
 /*      */ 
 /*      */   public static InputStream toInputStream(CharSequence input, Charset charset)
 /*      */   {
-/* 2704 */     return toInputStream(input.toString(), charset);
+/* 3193 */     return toInputStream(input.toString(), charset);
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2720,10 +3206,9 @@
 /*      */ 
 /*      */   public static InputStream toInputStream(CharSequence input, String charsetName)
 /*      */   {
-/* 2723 */     return toInputStream(input, Charsets.toCharset(charsetName));
+/* 3209 */     return toInputStream(input, Charsets.toCharset(charsetName));
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2734,10 +3219,9 @@
 /*      */   @Deprecated
 /*      */   public static InputStream toInputStream(String input)
 /*      */   {
-/* 2737 */     return toInputStream(input, Charset.defaultCharset());
+/* 3222 */     return toInputStream(input, Charset.defaultCharset());
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2747,12 +3231,9 @@
 /*      */ 
 /*      */   public static InputStream toInputStream(String input, Charset charset)
 /*      */   {
-/* 2750 */     return new ByteArrayInputStream(input.getBytes(Charsets.toCharset(charset)));
+/* 3234 */     return new ByteArrayInputStream(input.getBytes(Charsets.toCharset(charset)));
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2766,11 +3247,9 @@
 /*      */ 
 /*      */   public static InputStream toInputStream(String input, String charsetName)
 /*      */   {
-/* 2769 */     byte[] bytes = input.getBytes(Charsets.toCharset(charsetName));
-/* 2770 */     return new ByteArrayInputStream(bytes);
+/* 3250 */     return new ByteArrayInputStream(input.getBytes(Charsets.toCharset(charsetName)));
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2782,10 +3261,9 @@
 /*      */   @Deprecated
 /*      */   public static String toString(byte[] input)
 /*      */   {
-/* 2785 */     return new String(input, Charset.defaultCharset());
+/* 3264 */     return new String(input, Charset.defaultCharset());
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2798,10 +3276,9 @@
 /*      */ 
 /*      */   public static String toString(byte[] input, String charsetName)
 /*      */   {
-/* 2801 */     return new String(input, Charsets.toCharset(charsetName));
+/* 3279 */     return new String(input, Charsets.toCharset(charsetName));
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2816,11 +3293,9 @@
 /*      */   public static String toString(InputStream input)
 /*      */     throws IOException
 /*      */   {
-/* 2819 */     return toString(input, Charset.defaultCharset());
+/* 3296 */     return toString(input, Charset.defaultCharset());
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2835,17 +3310,13 @@
 /*      */   public static String toString(InputStream input, Charset charset)
 /*      */     throws IOException
 /*      */   {
-/* 2838 */     try (StringBuilderWriter sw = new StringBuilderWriter()) {
-/* 2839 */       copy(input, sw, charset);
-/* 2840 */       return sw.toString();
+/* 3313 */     try (StringBuilderWriter sw = new StringBuilderWriter()) {
+/* 3314 */       copy(input, sw, charset);
+/* 3315 */       return sw.toString();
 /*      */     }
 /*      */     
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2862,7 +3333,7 @@
 /*      */   public static String toString(InputStream input, String charsetName)
 /*      */     throws IOException
 /*      */   {
-/* 2865 */     return toString(input, Charsets.toCharset(charsetName));
+/* 3336 */     return toString(input, Charsets.toCharset(charsetName));
 /*      */   }
 /*      */   
 /*      */ 
@@ -2874,12 +3345,54 @@
 /*      */ 
 /*      */ 
 /*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static String toString(IOSupplier<InputStream> input, Charset charset)
+/*      */     throws IOException
+/*      */   {
+/* 3353 */     return toString(input, charset, () ->  {
+/* 3354 */       throw new NullPointerException("input");
+/*      */     });
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */   public static String toString(IOSupplier<InputStream> input, Charset charset, IOSupplier<String> defaultString)
+/*      */     throws IOException
+/*      */   {
+/* 3373 */     if (input == null) {
+/* 3374 */       return (String)defaultString.get();
+/*      */     }
+/* 3376 */     try (InputStream inputStream = (InputStream)input.get()) {
+/* 3377 */       return inputStream != null ? toString(inputStream, charset) : (String)defaultString.get();
+/*      */     }
+/*      */     
+/*      */   }
+/*      */   
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
+/*      */ 
 /*      */   public static String toString(Reader reader)
 /*      */     throws IOException
 /*      */   {
-/* 2880 */     try (StringBuilderWriter sw = new StringBuilderWriter()) {
-/* 2881 */       copy(reader, sw);
-/* 2882 */       return sw.toString();
+/* 3393 */     try (StringBuilderWriter sw = new StringBuilderWriter()) {
+/* 3394 */       copy(reader, sw);
+/* 3395 */       return sw.toString();
 /*      */     }
 /*      */     
 /*      */   }
@@ -2894,7 +3407,7 @@
 /*      */   public static String toString(URI uri)
 /*      */     throws IOException
 /*      */   {
-/* 2897 */     return toString(uri, Charset.defaultCharset());
+/* 3410 */     return toString(uri, Charset.defaultCharset());
 /*      */   }
 /*      */   
 /*      */ 
@@ -2907,11 +3420,9 @@
 /*      */   public static String toString(URI uri, Charset encoding)
 /*      */     throws IOException
 /*      */   {
-/* 2910 */     return toString(uri.toURL(), Charsets.toCharset(encoding));
+/* 3423 */     return toString(uri.toURL(), Charsets.toCharset(encoding));
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2923,7 +3434,7 @@
 /*      */   public static String toString(URI uri, String charsetName)
 /*      */     throws IOException
 /*      */   {
-/* 2926 */     return toString(uri, Charsets.toCharset(charsetName));
+/* 3437 */     return toString(uri, Charsets.toCharset(charsetName));
 /*      */   }
 /*      */   
 /*      */ 
@@ -2937,7 +3448,7 @@
 /*      */   public static String toString(URL url)
 /*      */     throws IOException
 /*      */   {
-/* 2940 */     return toString(url, Charset.defaultCharset());
+/* 3451 */     return toString(url, Charset.defaultCharset());
 /*      */   }
 /*      */   
 /*      */ 
@@ -2950,13 +3461,9 @@
 /*      */   public static String toString(URL url, Charset encoding)
 /*      */     throws IOException
 /*      */   {
-/* 2953 */     try (InputStream inputStream = url.openStream()) {
-/* 2954 */       return toString(inputStream, encoding);
-/*      */     }
-/*      */     
+/* 3464 */     return toString(url::openStream, encoding);
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2968,11 +3475,9 @@
 /*      */   public static String toString(URL url, String charsetName)
 /*      */     throws IOException
 /*      */   {
-/* 2971 */     return toString(url, Charsets.toCharset(charsetName));
+/* 3478 */     return toString(url, Charsets.toCharset(charsetName));
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -2983,12 +3488,11 @@
 /*      */   public static void write(byte[] data, OutputStream output)
 /*      */     throws IOException
 /*      */   {
-/* 2986 */     if (data != null) {
-/* 2987 */       output.write(data);
+/* 3491 */     if (data != null) {
+/* 3492 */       output.write(data);
 /*      */     }
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -3004,10 +3508,9 @@
 /*      */   public static void write(byte[] data, Writer writer)
 /*      */     throws IOException
 /*      */   {
-/* 3007 */     write(data, writer, Charset.defaultCharset());
+/* 3511 */     write(data, writer, Charset.defaultCharset());
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -3022,14 +3525,11 @@
 /*      */   public static void write(byte[] data, Writer writer, Charset charset)
 /*      */     throws IOException
 /*      */   {
-/* 3025 */     if (data != null) {
-/* 3026 */       writer.write(new String(data, Charsets.toCharset(charset)));
+/* 3528 */     if (data != null) {
+/* 3529 */       writer.write(new String(data, Charsets.toCharset(charset)));
 /*      */     }
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -3048,12 +3548,9 @@
 /*      */   public static void write(byte[] data, Writer writer, String charsetName)
 /*      */     throws IOException
 /*      */   {
-/* 3051 */     write(data, writer, Charsets.toCharset(charsetName));
+/* 3551 */     write(data, writer, Charsets.toCharset(charsetName));
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -3069,11 +3566,9 @@
 /*      */   public static void write(char[] data, OutputStream output)
 /*      */     throws IOException
 /*      */   {
-/* 3072 */     write(data, output, Charset.defaultCharset());
+/* 3569 */     write(data, output, Charset.defaultCharset());
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -3088,15 +3583,11 @@
 /*      */   public static void write(char[] data, OutputStream output, Charset charset)
 /*      */     throws IOException
 /*      */   {
-/* 3091 */     if (data != null) {
-/* 3092 */       output.write(new String(data).getBytes(Charsets.toCharset(charset)));
+/* 3586 */     if (data != null) {
+/* 3587 */       write(new String(data), output, charset);
 /*      */     }
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -3115,10 +3606,9 @@
 /*      */   public static void write(char[] data, OutputStream output, String charsetName)
 /*      */     throws IOException
 /*      */   {
-/* 3118 */     write(data, output, Charsets.toCharset(charsetName));
+/* 3609 */     write(data, output, Charsets.toCharset(charsetName));
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -3129,12 +3619,11 @@
 /*      */   public static void write(char[] data, Writer writer)
 /*      */     throws IOException
 /*      */   {
-/* 3132 */     if (data != null) {
-/* 3133 */       writer.write(data);
+/* 3622 */     if (data != null) {
+/* 3623 */       writer.write(data);
 /*      */     }
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -3151,10 +3640,9 @@
 /*      */   public static void write(CharSequence data, OutputStream output)
 /*      */     throws IOException
 /*      */   {
-/* 3154 */     write(data, output, Charset.defaultCharset());
+/* 3643 */     write(data, output, Charset.defaultCharset());
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -3169,13 +3657,11 @@
 /*      */   public static void write(CharSequence data, OutputStream output, Charset charset)
 /*      */     throws IOException
 /*      */   {
-/* 3172 */     if (data != null) {
-/* 3173 */       write(data.toString(), output, charset);
+/* 3660 */     if (data != null) {
+/* 3661 */       write(data.toString(), output, charset);
 /*      */     }
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -3194,7 +3680,7 @@
 /*      */   public static void write(CharSequence data, OutputStream output, String charsetName)
 /*      */     throws IOException
 /*      */   {
-/* 3197 */     write(data, output, Charsets.toCharset(charsetName));
+/* 3683 */     write(data, output, Charsets.toCharset(charsetName));
 /*      */   }
 /*      */   
 /*      */ 
@@ -3207,14 +3693,11 @@
 /*      */   public static void write(CharSequence data, Writer writer)
 /*      */     throws IOException
 /*      */   {
-/* 3210 */     if (data != null) {
-/* 3211 */       write(data.toString(), writer);
+/* 3696 */     if (data != null) {
+/* 3697 */       write(data.toString(), writer);
 /*      */     }
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -3230,9 +3713,10 @@
 /*      */   public static void write(String data, OutputStream output)
 /*      */     throws IOException
 /*      */   {
-/* 3233 */     write(data, output, Charset.defaultCharset());
+/* 3716 */     write(data, output, Charset.defaultCharset());
 /*      */   }
 /*      */   
+/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -3247,12 +3731,13 @@
 /*      */   public static void write(String data, OutputStream output, Charset charset)
 /*      */     throws IOException
 /*      */   {
-/* 3250 */     if (data != null) {
-/* 3251 */       output.write(data.getBytes(Charsets.toCharset(charset)));
+/* 3734 */     if (data == null) {
+/*      */       return;
 /*      */     }
+/*      */     
+/* 3738 */     Channels.newChannel(output).write(Charsets.toCharset(charset).encode(data));
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -3272,7 +3757,7 @@
 /*      */   public static void write(String data, OutputStream output, String charsetName)
 /*      */     throws IOException
 /*      */   {
-/* 3275 */     write(data, output, Charsets.toCharset(charsetName));
+/* 3760 */     write(data, output, Charsets.toCharset(charsetName));
 /*      */   }
 /*      */   
 /*      */ 
@@ -3285,12 +3770,11 @@
 /*      */   public static void write(String data, Writer writer)
 /*      */     throws IOException
 /*      */   {
-/* 3288 */     if (data != null) {
-/* 3289 */       writer.write(data);
+/* 3773 */     if (data != null) {
+/* 3774 */       writer.write(data);
 /*      */     }
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -3307,10 +3791,9 @@
 /*      */   public static void write(StringBuffer data, OutputStream output)
 /*      */     throws IOException
 /*      */   {
-/* 3310 */     write(data, output, (String)null);
+/* 3794 */     write(data, output, (String)null);
 /*      */   }
 /*      */   
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -3332,8 +3815,8 @@
 /*      */   public static void write(StringBuffer data, OutputStream output, String charsetName)
 /*      */     throws IOException
 /*      */   {
-/* 3335 */     if (data != null) {
-/* 3336 */       output.write(data.toString().getBytes(Charsets.toCharset(charsetName)));
+/* 3818 */     if (data != null) {
+/* 3819 */       write(data.toString(), output, Charsets.toCharset(charsetName));
 /*      */     }
 /*      */   }
 /*      */   
@@ -3350,14 +3833,11 @@
 /*      */   public static void write(StringBuffer data, Writer writer)
 /*      */     throws IOException
 /*      */   {
-/* 3353 */     if (data != null) {
-/* 3354 */       writer.write(data.toString());
+/* 3836 */     if (data != null) {
+/* 3837 */       writer.write(data.toString());
 /*      */     }
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -3369,20 +3849,18 @@
 /*      */   public static void writeChunked(byte[] data, OutputStream output)
 /*      */     throws IOException
 /*      */   {
-/* 3372 */     if (data != null) {
-/* 3373 */       int bytes = data.length;
-/* 3374 */       int offset = 0;
-/* 3375 */       while (bytes > 0) {
-/* 3376 */         int chunk = Math.min(bytes, 8192);
-/* 3377 */         output.write(data, offset, chunk);
-/* 3378 */         bytes -= chunk;
-/* 3379 */         offset += chunk;
+/* 3852 */     if (data != null) {
+/* 3853 */       int bytes = data.length;
+/* 3854 */       int offset = 0;
+/* 3855 */       while (bytes > 0) {
+/* 3856 */         int chunk = Math.min(bytes, 8192);
+/* 3857 */         output.write(data, offset, chunk);
+/* 3858 */         bytes -= chunk;
+/* 3859 */         offset += chunk;
 /*      */       }
 /*      */     }
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -3394,20 +3872,18 @@
 /*      */   public static void writeChunked(char[] data, Writer writer)
 /*      */     throws IOException
 /*      */   {
-/* 3397 */     if (data != null) {
-/* 3398 */       int bytes = data.length;
-/* 3399 */       int offset = 0;
-/* 3400 */       while (bytes > 0) {
-/* 3401 */         int chunk = Math.min(bytes, 8192);
-/* 3402 */         writer.write(data, offset, chunk);
-/* 3403 */         bytes -= chunk;
-/* 3404 */         offset += chunk;
+/* 3875 */     if (data != null) {
+/* 3876 */       int bytes = data.length;
+/* 3877 */       int offset = 0;
+/* 3878 */       while (bytes > 0) {
+/* 3879 */         int chunk = Math.min(bytes, 8192);
+/* 3880 */         writer.write(data, offset, chunk);
+/* 3881 */         bytes -= chunk;
+/* 3882 */         offset += chunk;
 /*      */       }
 /*      */     }
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -3422,9 +3898,10 @@
 /*      */   public static void writeLines(Collection<?> lines, String lineEnding, OutputStream output)
 /*      */     throws IOException
 /*      */   {
-/* 3425 */     writeLines(lines, lineEnding, output, Charset.defaultCharset());
+/* 3901 */     writeLines(lines, lineEnding, output, Charset.defaultCharset());
 /*      */   }
 /*      */   
+/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -3440,25 +3917,25 @@
 /*      */   public static void writeLines(Collection<?> lines, String lineEnding, OutputStream output, Charset charset)
 /*      */     throws IOException
 /*      */   {
-/* 3443 */     if (lines == null) {
-/* 3444 */       return;
+/* 3920 */     if (lines == null) {
+/* 3921 */       return;
 /*      */     }
-/* 3446 */     if (lineEnding == null) {
-/* 3447 */       lineEnding = System.lineSeparator();
+/* 3923 */     if (lineEnding == null) {
+/* 3924 */       lineEnding = System.lineSeparator();
 /*      */     }
-/* 3449 */     Charset cs = Charsets.toCharset(charset);
-/* 3450 */     for (Object line : lines) {
-/* 3451 */       if (line != null) {
-/* 3452 */         output.write(line.toString().getBytes(cs));
+/* 3926 */     if (StandardCharsets.UTF_16.equals(charset))
+/*      */     {
+/* 3928 */       charset = StandardCharsets.UTF_16BE;
+/*      */     }
+/* 3930 */     byte[] eolBytes = lineEnding.getBytes(charset);
+/* 3931 */     for (Object line : lines) {
+/* 3932 */       if (line != null) {
+/* 3933 */         write(line.toString(), output, charset);
 /*      */       }
-/* 3454 */       output.write(lineEnding.getBytes(cs));
+/* 3935 */       output.write(eolBytes);
 /*      */     }
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -3476,11 +3953,9 @@
 /*      */   public static void writeLines(Collection<?> lines, String lineEnding, OutputStream output, String charsetName)
 /*      */     throws IOException
 /*      */   {
-/* 3479 */     writeLines(lines, lineEnding, output, Charsets.toCharset(charsetName));
+/* 3956 */     writeLines(lines, lineEnding, output, Charsets.toCharset(charsetName));
 /*      */   }
 /*      */   
-/*      */ 
-/*      */ 
 /*      */ 
 /*      */ 
 /*      */ 
@@ -3492,17 +3967,17 @@
 /*      */   public static void writeLines(Collection<?> lines, String lineEnding, Writer writer)
 /*      */     throws IOException
 /*      */   {
-/* 3495 */     if (lines == null) {
-/* 3496 */       return;
+/* 3970 */     if (lines == null) {
+/* 3971 */       return;
 /*      */     }
-/* 3498 */     if (lineEnding == null) {
-/* 3499 */       lineEnding = System.lineSeparator();
+/* 3973 */     if (lineEnding == null) {
+/* 3974 */       lineEnding = System.lineSeparator();
 /*      */     }
-/* 3501 */     for (Object line : lines) {
-/* 3502 */       if (line != null) {
-/* 3503 */         writer.write(line.toString());
+/* 3976 */     for (Object line : lines) {
+/* 3977 */       if (line != null) {
+/* 3978 */         writer.write(line.toString());
 /*      */       }
-/* 3505 */       writer.write(lineEnding);
+/* 3980 */       writer.write(lineEnding);
 /*      */     }
 /*      */   }
 /*      */   
@@ -3513,16 +3988,15 @@
 /*      */ 
 /*      */ 
 /*      */ 
-/*      */ 
 /*      */   public static Writer writer(Appendable appendable)
 /*      */   {
-/* 3519 */     Objects.requireNonNull(appendable, "appendable");
-/* 3520 */     if ((appendable instanceof Writer)) {
-/* 3521 */       return (Writer)appendable;
+/* 3993 */     Objects.requireNonNull(appendable, "appendable");
+/* 3994 */     if ((appendable instanceof Writer)) {
+/* 3995 */       return (Writer)appendable;
 /*      */     }
-/* 3523 */     if ((appendable instanceof StringBuilder)) {
-/* 3524 */       return new StringBuilderWriter((StringBuilder)appendable);
+/* 3997 */     if ((appendable instanceof StringBuilder)) {
+/* 3998 */       return new StringBuilderWriter((StringBuilder)appendable);
 /*      */     }
-/* 3526 */     return new AppendableWriter<>(appendable);
+/* 4000 */     return new AppendableWriter<>(appendable);
 /*      */   }
 /*      */ }

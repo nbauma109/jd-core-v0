@@ -20,6 +20,7 @@ import org.apache.bcel.Const;
 import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 
+import java.util.Arrays;
 import java.util.List;
 
 import jd.core.model.classfile.ClassFile;
@@ -79,6 +80,17 @@ public final class InitStaticFieldsReconstructor
                 constants.getConstantNameAndType(cfr.getNameAndTypeIndex());
 
             int lengthBeforeSubstitution = list.size();
+
+            // The compiler initializes '$assertionsDisabled' first, but declares it after the other fields:
+            // it must not move the position from which the other fields are searched.
+            if ("$assertionsDisabled".equals(constants.getConstantUtf8(cnat.getNameIndex()))
+                && visitor.visit(putStatic.getValueref()) == null
+                && Arrays.stream(fields).filter(f -> isSameStaticField(f, cnat)).findFirst()
+                    .map(f -> { f.setValueAndMethod(putStatic.getValueref(), method); return true; }).orElse(false))
+            {
+                list.remove(indexInstruction);
+                continue;
+            }
 
             while (indexField < fields.length)
             {
@@ -173,5 +185,12 @@ public final class InitStaticFieldsReconstructor
                 }
             }
         }
+    }
+
+    private static boolean isSameStaticField(Field field, ConstantNameAndType cnat)
+    {
+        return field.isStatic() &&
+            cnat.getSignatureIndex() == field.getDescriptorIndex() &&
+            cnat.getNameIndex() == field.getNameIndex();
     }
 }

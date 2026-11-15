@@ -53,12 +53,14 @@
 /*  53 */     this.id = id;
 /*     */   }
 /*     */   
-/*     */   public static Matcher2 build(Pattern pattern, CharSequence input) {
-/*  57 */     long now = System.currentTimeMillis();
+/*     */   public static Matcher2 build(Pattern pattern, CharSequence input, int pos) {
+/*  57 */     long now = clock();
 /*  58 */     String id = pattern.pattern();
 /*     */     try {
-/*  60 */       Matcher matcher2 = pattern.matcher(input);
-/*  61 */       return new Matcher2(matcher2, id);
+/*  60 */       Matcher matcher = pattern.matcher(input);
+/*  61 */       if (pos > 0)
+/*  62 */         matcher.region(pos, input.length());
+/*  63 */       return new Matcher2(matcher, id);
 /*     */     }
 /*     */     finally {}
 /*     */   }
@@ -67,12 +69,17 @@
 /*     */ 
 /*     */   public boolean matches()
 /*     */   {
-/*  70 */     long now = System.currentTimeMillis();
+/*  72 */     long now = clock();
 /*     */     try {
-/*  72 */       return this.matcher.matches();
+/*  74 */       return this.matcher.matches();
 /*     */     } finally {
-/*  74 */       addTime(System.currentTimeMillis() - now);
+/*  76 */       addTime(now);
 /*     */     }
+/*     */   }
+/*     */   
+/*     */   private static long clock()
+/*     */   {
+/*  82 */     return 0L;
 /*     */   }
 /*     */   
 /*     */ 
@@ -80,92 +87,91 @@
 /*     */ 
 /*     */ 
 /*     */ 
-/*     */ 
-/*     */ 
-/*  85 */   private static final Map<String, Long> durations = new HashMap<>();
+/*  90 */   private static final Map<String, Long> durations = new HashMap<>();
 /*     */   
-/*     */   private void addTime(long duration) {}
+/*     */   private void addTime(long start) {}
 /*     */   
-/*  89 */   private static synchronized void addTime(String id, long duration) { Long total = (Long)durations.get(id);
-/*  90 */     if (total == null) {
-/*  91 */       total = Long.valueOf(0L);
+/*  94 */   private static synchronized void addTime(String id, long duration) { Long total = (Long)durations.get(id);
+/*  95 */     if (total == null) {
+/*  96 */       total = Long.valueOf(0L);
 /*     */     }
-/*  93 */     total = Long.valueOf(total.longValue() + duration);
-/*  94 */     durations.put(id, total);
-/*  95 */     String longest = getLongest();
-/*  96 */     if (longest == null) {
-/*  97 */       return;
+/*  98 */     total = Long.valueOf(total.longValue() + duration);
+/*  99 */     durations.put(id, total);
+/* 100 */     String longest = getLongest();
+/* 101 */     if (longest == null) {
+/* 102 */       return;
 /*     */     }
-/*  99 */     if (((Long)durations.get(longest)).longValue() > printed) {
-/* 100 */       Log.info("---------- Regex " + longest + " " + durations.get(longest) + "ms (" + durations.size() + ")");
-/* 101 */       printed = ((Long)durations.get(longest)).longValue();
+/* 104 */     if (((Long)durations.get(longest)).longValue() > printed) {
+/* 105 */       Log.info(() -> "---------- Regex " + longest + " " + durations.get(longest) + "ms (" + durations.size() + ")");
+/*     */       
+/* 107 */       printed = ((Long)durations.get(longest)).longValue();
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   private static String getLongest()
 /*     */   {
-/* 107 */     long max = 0L;
-/* 108 */     String result = null;
-/* 109 */     for (Entry<String, Long> ent : durations.entrySet()) {
-/* 110 */       if (((Long)ent.getValue()).longValue() > max) {
-/* 111 */         max = ((Long)ent.getValue()).longValue();
-/* 112 */         result = (String)ent.getKey();
+/* 113 */     long max = 0L;
+/* 114 */     String result = null;
+/* 115 */     for (Entry<String, Long> ent : durations.entrySet()) {
+/* 116 */       if (((Long)ent.getValue()).longValue() > max) {
+/* 117 */         max = ((Long)ent.getValue()).longValue();
+/* 118 */         result = (String)ent.getKey();
 /*     */       }
 /*     */     }
-/* 115 */     return result;
+/* 121 */     return result;
 /*     */   }
 /*     */   
 /*     */   public String group(int n) {
-/* 119 */     long now = System.currentTimeMillis();
+/* 125 */     long now = clock();
 /*     */     try {
-/* 121 */       return this.matcher.group(n);
+/* 127 */       return this.matcher.group(n);
 /*     */     } finally {
-/* 123 */       addTime(System.currentTimeMillis() - now);
+/* 129 */       addTime(now);
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   public String group() {
-/* 128 */     long now = System.currentTimeMillis();
+/* 134 */     long now = clock();
 /*     */     try {
-/* 130 */       return this.matcher.group();
+/* 136 */       return this.matcher.group();
 /*     */     } finally {
-/* 132 */       addTime(System.currentTimeMillis() - now);
+/* 138 */       addTime(now);
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   public int groupCount() {
-/* 137 */     long now = System.currentTimeMillis();
+/* 143 */     long now = clock();
 /*     */     try {
-/* 139 */       return this.matcher.groupCount();
+/* 145 */       return this.matcher.groupCount();
 /*     */     } finally {
-/* 141 */       addTime(System.currentTimeMillis() - now);
+/* 147 */       addTime(now);
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   public boolean find() {
-/* 146 */     long now = System.currentTimeMillis();
+/* 152 */     long now = clock();
 /*     */     try {
-/* 148 */       return this.matcher.find();
+/* 154 */       return this.matcher.find();
 /*     */     } finally {
-/* 150 */       addTime(System.currentTimeMillis() - now);
+/* 156 */       addTime(now);
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   public int end() {
-/* 155 */     long now = System.currentTimeMillis();
+/* 161 */     long now = clock();
 /*     */     try {
-/* 157 */       return this.matcher.end();
+/* 163 */       return this.matcher.end();
 /*     */     } finally {
-/* 159 */       addTime(System.currentTimeMillis() - now);
+/* 165 */       addTime(now);
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   public int start() {
-/* 164 */     long now = System.currentTimeMillis();
+/* 170 */     long now = clock();
 /*     */     try {
-/* 166 */       return this.matcher.start();
+/* 172 */       return this.matcher.start();
 /*     */     } finally {
-/* 168 */       addTime(System.currentTimeMillis() - now);
+/* 174 */       addTime(now);
 /*     */     }
 /*     */   }
 /*     */ }

@@ -1,0 +1,34 @@
+/*    */ package jd.core.test;
+/*    */ 
+/*    */ import java.io.IOException;
+/*    */ import java.io.InputStream;
+/*    */ import java.nio.file.Files;
+/*    */ import java.nio.file.OpenOption;
+/*    */ import java.nio.file.Path;
+/*    */ 
+/*    */ 
+/*    */ public class TryResourcesWithoutCloseAfterBody
+/*    */ {
+/*    */   static void nullResource()
+/*    */     throws IOException
+/*    */   {
+/* 15 */     try (InputStream in = null) {
+/* 16 */       System.out.println(in);
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   static void throwingBody(Path path) throws IOException {
+/* 21 */     try (InputStream in = Files.newInputStream(path)) {
+/* 22 */       throw new IllegalStateException("never completes normally");
+/*    */     }
+/*    */   }
+/*    */   
+/*    */   static void infiniteBody(Path path) throws IOException {
+/* 27 */     try (InputStream in = Files.newInputStream(path)) {
+/*    */       for (;;) {
+/* 29 */         in.read();
+/*    */       }
+/*    */     }
+/*    */     
+/*    */   }
+/*    */ }

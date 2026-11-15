@@ -22,6 +22,7 @@ import org.apache.bcel.classfile.ConstantFieldref;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.jd.core.v1.util.StringConstants;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import jd.core.model.classfile.ClassFile;
@@ -71,6 +72,7 @@ public final class AssertInstructionReconstructor
                 continue;
             }
             ComplexConditionalBranchInstruction cbl = null;
+            int guardIndex = 0;
             instruction = list.get(index-1);
             if (instruction.getOpcode() == ByteCodeConstants.COMPLEXIF) {
                 // ComplexConditionalBranchInstruction trouve
@@ -86,10 +88,11 @@ public final class AssertInstructionReconstructor
                     continue;
                 }
 
-                instruction = cbl.getInstructions().get(0);
-                if (instruction.getOpcode() != ByteCodeConstants.IF) {
+                guardIndex = findAssertionGuard(classFile, cbl.getInstructions());
+                if (guardIndex < 0) {
                     continue;
                 }
+                instruction = cbl.getInstructions().get(guardIndex);
             }
             if (!(instruction instanceof IfInstruction if1)) {
                 continue;
@@ -119,12 +122,32 @@ public final class AssertInstructionReconstructor
             list.remove(index--);
 
             if (cbl != null) {
-                // Remove first condition "!($assertionsDisabled)"
-                cbl.getInstructions().remove(0);
+                // Remove the test of the assertion field
+                cbl.getInstructions().remove(guardIndex);
+                Instruction enclosingCondition = null;
+                if (guardIndex > 0) {
+                    // Conditions before the test of the assertion field guard the assert: they become an enclosing if.
+                    // They keep the operator of the group: each one jumps to the same target, the code that skips the assert.
+                    List<Instruction> before = new ArrayList<>(cbl.getInstructions().subList(0, guardIndex));
+                    cbl.getInstructions().subList(0, guardIndex).clear();
+                    enclosingCondition = before.size() == 1 ? before.get(0)
+                            : new ComplexConditionalBranchInstruction(ByteCodeConstants.COMPLEXIF, cbl.getOffset(),
+                                    cbl.getLineNumber(), cbl.getCmp(), before, cbl.getBranch());
+                }
 
+                Instruction assertedCondition = cbl;
+                if (cbl.getInstructions().isEmpty()) {
+                    // Only conditions before the test of the assertion field: the assert is unconditional (assert false)
+                    IConst falseConst = new IConst(ByteCodeConstants.ICONST, athrow.getOffset(), cbl.getLineNumber(), 0);
+                    falseConst.setSignature("Z");
+                    assertedCondition = falseConst;
+                }
                 list.set(index, new AssertInstruction(
                     ByteCodeConstants.ASSERT, athrow.getOffset(),
-                    cbl.getLineNumber(), cbl, msg));
+                    cbl.getLineNumber(), assertedCondition, msg));
+                if (enclosingCondition != null) {
+                    list.add(index, enclosingCondition);
+                }
             } else {
                 // assert false
                 IConst falseConst = new IConst(ByteCodeConstants.ICONST,
@@ -142,6 +165,18 @@ public final class AssertInstructionReconstructor
             }
         }
     }
+    private static int findAssertionGuard(ClassFile classFile, List<Instruction> conditions) {
+        ConstantPool constants = classFile.getConstantPool();
+        for (int i = 0; i < conditions.size(); i++) {
+            if (conditions.get(i) instanceof IfInstruction guard && guard.getCmp() == 7
+                    && guard.getValue() instanceof GetStatic getStatic
+                    && isAssertionField(classFile, constants.getConstantFieldref(getStatic.getIndex()))) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     public static boolean isAssertionField(ClassFile classFile, ConstantFieldref reference) {
         ConstantPool constants = classFile.getConstantPool();
         ConstantNameAndType name = constants.getConstantNameAndType(reference.getNameAndTypeIndex());

@@ -163,6 +163,14 @@ public class SourceWriterVisitor extends AbstractTypeArgumentVisitor implements 
      *  - firstOffset <= offset
      *  - offset <= lastOffset.
      */
+    public ClassFile getClassFile() {
+        return this.classFile;
+    }
+
+    public LocalVariables getLocalVariables() {
+        return this.localVariables;
+    }
+
     public void init(
         ClassFile classFile, Method method, int firstOffset, int lastOffset)
     {
