@@ -37,6 +37,8 @@ import jd.core.model.instruction.bytecode.instruction.Goto;
 import jd.core.model.instruction.bytecode.instruction.IfInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.InvokeNoStaticInstruction;
+import jd.core.model.instruction.bytecode.instruction.LoadInstruction;
+import jd.core.process.analyzer.classfile.visitor.SearchInstructionByTypeVisitor;
 import jd.core.process.analyzer.util.InstructionUtil;
 
 /**
@@ -124,6 +126,12 @@ final class ModernTryWithResourcesNormalizer {
             return false;
         }
 
+        // The variable becomes the one of a resource specification: it cannot be used out of the try statement
+        if (isUsedOutside(list, localVariables, resource, handler.resourceIndex(), startIndex, handler.throwIndex(),
+                normalPathCloses)) {
+            return false;
+        }
+
         // Only the catch of Throwable that rethrows is kept: the closing code of the exceptional path is removed
         list.subList(handlerIndex + 1, handler.throwIndex()).clear();
         remaining.remove(handler.inner());
@@ -184,6 +192,24 @@ final class ModernTryWithResourcesNormalizer {
             Instruction instruction = list.get(i);
             if (instruction instanceof ReturnInstruction || instruction instanceof Return
                     || instruction instanceof BranchInstruction branch && branch.getJumpOffset() >= handlerPc) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * @return true if the variable is loaded out of the protected region and its handler, except by the closing code of
+     *         the normal path (and its null check), that is removed
+     */
+    private static boolean isUsedOutside(List<Instruction> list, LocalVariables localVariables, LocalVariable resource,
+            int index, int firstIndex, int lastIndex, List<Integer> normalPathCloses) {
+        SearchInstructionByTypeVisitor<LoadInstruction> loads = new SearchInstructionByTypeVisitor<>(LoadInstruction.class,
+                load -> load.getIndex() == index
+                        && localVariables.getLocalVariableWithIndexAndOffset(index, load.getOffset()) == resource);
+        for (int i = 0; i < list.size(); i++) {
+            boolean removed = normalPathCloses.contains(i) || normalPathCloses.contains(i + 1) && nullCheckedIndex(list.get(i)) == index;
+            if ((i < firstIndex || i > lastIndex) && !removed && loads.visit(list.get(i)) != null) {
                 return true;
             }
         }

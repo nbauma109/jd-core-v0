@@ -185,4 +185,23 @@ public class TryResourcesLookAlikes {
             throw t;
         }
     }
+
+    /** The variable is used out of the inner try statement, in the outer catch: it cannot be a resource. */
+    static InputStream usedInOuterCatch(InputStream input) throws Exception {
+        InputStream resource = input;
+        try {
+            try {
+                throw new Exception("never completes normally");
+            } catch (Throwable t) {
+                try {
+                    resource.close();
+                } catch (Throwable suppressed) {
+                    t.addSuppressed(suppressed);
+                }
+                throw t;
+            }
+        } catch (IOException e) {
+            return resource;
+        }
+    }
 }

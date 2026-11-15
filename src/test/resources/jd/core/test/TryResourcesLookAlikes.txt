@@ -186,6 +186,24 @@
 /*     */     }
 /*     */   }
 /*     */   
+/*     */   static InputStream usedInOuterCatch(InputStream input) throws Exception
+/*     */   {
+/* 191 */     InputStream resource = input;
+/*     */     try {
+/*     */       try {
+/* 194 */         throw new Exception("never completes normally");
+/*     */       } catch (Throwable t) {
+/*     */         try {
+/* 197 */           resource.close();
+/*     */         } catch (Throwable suppressed) {
+/* 199 */           t.addSuppressed(suppressed);
+/*     */         }
+/* 201 */         throw t;
+/*     */       }
+/*     */     } catch (IOException e) {}
+/* 204 */     return resource;
+/*     */   }
+/*     */   
 /*     */   static class NotCloseable
 /*     */   {
 /*     */     void close()
