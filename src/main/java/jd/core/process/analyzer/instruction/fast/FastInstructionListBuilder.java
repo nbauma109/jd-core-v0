@@ -164,7 +164,7 @@ public final class FastInstructionListBuilder {
             return;
         }
 
-        ModernTryWithResourcesNormalizer.normalize(method, classFile.getConstantPool(), list);
+        ModernTryWithResourcesNormalizer.normalize(method, classFile.getConstantPool(), classFile.getLoader(), list);
 
         // Aggregation des déclarations CodeException
         List<FastCodeExcepcion> lfce = FastCodeExceptionAnalyzer.aggregateCodeExceptions(method, list);

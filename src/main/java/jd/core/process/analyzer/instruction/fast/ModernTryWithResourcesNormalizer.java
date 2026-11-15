@@ -1,10 +1,22 @@
 package jd.core.process.analyzer.instruction.fast;
 
+import org.apache.bcel.classfile.ClassParser;
 import org.apache.bcel.classfile.CodeException;
 import org.apache.bcel.classfile.ConstantCP;
 import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantNameAndType;
+import org.apache.bcel.classfile.JavaClass;
 import org.apache.commons.lang3.ArrayUtils;
+import org.jd.core.v1.api.loader.Loader;
+import org.jd.core.v1.util.StringConstants;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.Set;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,11 +67,12 @@ import jd.core.process.analyzer.util.InstructionUtil;
 final class ModernTryWithResourcesNormalizer {
 
     private static final String THROWABLE = "java/lang/Throwable";
+    private static final String AUTO_CLOSEABLE = "java/lang/AutoCloseable";
 
     private ModernTryWithResourcesNormalizer() {
     }
 
-    static void normalize(Method method, ConstantPool cp, List<Instruction> list) {
+    static void normalize(Method method, ConstantPool cp, Loader loader, List<Instruction> list) {
         CodeException[] codeExceptions = method.getCodeExceptions();
         LocalVariables localVariables = method.getLocalVariables();
         if (ArrayUtils.getLength(codeExceptions) < 2 || localVariables == null) {
@@ -71,7 +84,7 @@ final class ModernTryWithResourcesNormalizer {
             if (!remaining.contains(outer) || !isThrowable(cp, outer)) {
                 continue;
             }
-            changed |= normalize(cp, list, localVariables, remaining, outer);
+            changed |= normalize(cp, loader, list, localVariables, remaining, outer);
         }
         if (changed) {
             method.setCodeExceptions(remaining.toArray(new CodeException[0]));
@@ -79,11 +92,11 @@ final class ModernTryWithResourcesNormalizer {
     }
 
     /** Position of the closing code in the handler of the protected region, and the variables it uses. */
-    private record Handler(int throwIndex, int resourceIndex, CodeException inner) {
+    private record Handler(int throwIndex, int resourceIndex, String resourceType, CodeException inner) {
     }
 
-    private static boolean normalize(ConstantPool cp, List<Instruction> list, LocalVariables localVariables,
-            List<CodeException> remaining, CodeException outer) {
+    private static boolean normalize(ConstantPool cp, Loader loader, List<Instruction> list,
+            LocalVariables localVariables, List<CodeException> remaining, CodeException outer) {
         int handlerIndex = indexOfOffset(list, outer.getHandlerPC());
         Handler handler = parseHandler(cp, list, remaining, handlerIndex);
         if (handler == null) {
@@ -99,6 +112,12 @@ final class ModernTryWithResourcesNormalizer {
         LocalVariable resource = localVariables.getLocalVariableWithIndexAndOffset(storeResource.getIndex(),
                 storeResource.getOffset());
         if (resource == null) {
+            return false;
+        }
+
+        // Cleanup written by hand: the resource is not an AutoCloseable, or it is another value when it is closed
+        if (isKnownNotAutoCloseable(loader, handler.resourceType())
+                || storesLocal(list, startIndex, handlerIndex, handler.resourceIndex())) {
             return false;
         }
 
@@ -142,6 +161,7 @@ final class ModernTryWithResourcesNormalizer {
         }
 
         // The close of the resource is protected by the inner exception table entry
+        int closeIndex = next;
         int closedIndex = closedResourceIndex(cp, at(list, next));
         if (closedIndex == -1 || resourceIndex != -1 && resourceIndex != closedIndex) {
             return null;
@@ -160,7 +180,7 @@ final class ModernTryWithResourcesNormalizer {
                 || loadedIndex(at(list, next + 1) instanceof AThrow athrow ? athrow.getValue() : null) != storeThrowable.getIndex()) {
             return null;
         }
-        return new Handler(next + 1, closedIndex, inner);
+        return new Handler(next + 1, closedIndex, closedOwner(cp, at(list, closeIndex)), inner);
     }
 
     /** A return, or a jump to the code after the handler, leaves the protected region without closing the resource. */
@@ -173,6 +193,64 @@ final class ModernTryWithResourcesNormalizer {
             }
         }
         return false;
+    }
+
+    /** @return the class on which close() is called, as the call names it */
+    private static String closedOwner(ConstantPool cp, Instruction close) {
+        return cp.getConstantClassName(cp.getConstantMethodref(((InvokeNoStaticInstruction) close).getIndex()).getClassIndex());
+    }
+
+    /** The resource is stored again in the protected region: it is not the variable of a resource specification. */
+    private static boolean storesLocal(List<Instruction> list, int startIndex, int handlerIndex, int index) {
+        for (int i = startIndex; i < handlerIndex; i++) {
+            if (list.get(i) instanceof AStore store && store.getIndex() == index) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * A resource is an AutoCloseable: code that closes an object of another class is hand written cleanup.
+     * A class that cannot be loaded is supposed to be the one that the compiler checked.
+     */
+    private static boolean isKnownNotAutoCloseable(Loader loader, String type) {
+        Deque<String> todo = new ArrayDeque<>();
+        Set<String> seen = new HashSet<>();
+        todo.push(type);
+        while (!todo.isEmpty()) {
+            String name = todo.pop();
+            if (!seen.add(name)) {
+                continue;
+            }
+            if (AUTO_CLOSEABLE.equals(name)) {
+                return false;
+            }
+            JavaClass javaClass = parse(loader, name);
+            if (javaClass == null) {
+                return false;
+            }
+            todo.push(javaClass.getSuperclassName().replace('.', '/'));
+            for (String implemented : javaClass.getInterfaceNames()) {
+                todo.push(implemented.replace('.', '/'));
+            }
+        }
+        return true;
+    }
+
+    private static JavaClass parse(Loader loader, String name) {
+        String entry = name + StringConstants.CLASS_FILE_SUFFIX;
+        try {
+            byte[] bytes = loader != null && loader.canLoad(entry) ? loader.load(entry) : null;
+            if (bytes == null) {
+                try (InputStream in = ClassLoader.getSystemResourceAsStream(entry)) {
+                    bytes = in == null ? null : in.readAllBytes();
+                }
+            }
+            return bytes == null ? null : new ClassParser(new ByteArrayInputStream(bytes), entry).parse();
+        } catch (IOException e) {
+            return null;
+        }
     }
 
     /** The body ends with a throw or a jump back (an endless loop): the code after the region is not reached. */

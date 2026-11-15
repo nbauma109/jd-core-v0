@@ -148,4 +148,40 @@ public class TryResourcesLookAlikes {
             throw t;
         }
     }
+
+    static class NotCloseable {
+        void close() throws Exception {
+        }
+    }
+
+    /** The class has a close() method but is not an AutoCloseable: it cannot be a resource. */
+    static void notAutoCloseable(NotCloseable input) throws Exception {
+        NotCloseable resource = input;
+        try {
+            throw new Exception("never completes normally");
+        } catch (Throwable t) {
+            try {
+                resource.close();
+            } catch (Throwable suppressed) {
+                t.addSuppressed(suppressed);
+            }
+            throw t;
+        }
+    }
+
+    /** The variable is assigned in the body: it cannot be the variable of a resource specification. */
+    static void reassigned(InputStream input, InputStream other) throws Exception {
+        InputStream resource = input;
+        try {
+            resource = other;
+            throw new Exception("never completes normally");
+        } catch (Throwable t) {
+            try {
+                resource.close();
+            } catch (Throwable suppressed) {
+                t.addSuppressed(suppressed);
+            }
+            throw t;
+        }
+    }
 }
