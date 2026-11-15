@@ -127,7 +127,7 @@ final class ModernTryWithResourcesNormalizer {
         }
 
         // The variable becomes the one of a resource specification: it cannot be used out of the try statement
-        if (isUsedOutside(list, localVariables, resource, handler.resourceIndex(), startIndex, handler.throwIndex(),
+        if (isUsedOutside(list, localVariables, resource, handler.resourceIndex(), startIndex - 1, handler.throwIndex(),
                 normalPathCloses)) {
             return false;
         }
@@ -199,8 +199,8 @@ final class ModernTryWithResourcesNormalizer {
     }
 
     /**
-     * @return true if the variable is loaded out of the protected region and its handler, except by the closing code of
-     *         the normal path (and its null check), that is removed
+     * @return true if the variable is loaded out of its store, the protected region and its handler, except by the
+     *         closing code of the normal path (and its null check), that is removed
      */
     private static boolean isUsedOutside(List<Instruction> list, LocalVariables localVariables, LocalVariable resource,
             int index, int firstIndex, int lastIndex, List<Integer> normalPathCloses) {
