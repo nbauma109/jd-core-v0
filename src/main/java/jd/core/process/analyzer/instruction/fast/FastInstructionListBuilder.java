@@ -1196,7 +1196,7 @@ public final class FastInstructionListBuilder {
                 tryInstructions, catches, finallyInstructions);
 
         // Reduce lists of instructions
-        FastCodeExceptionAnalyzer.formatFastTry(localVariables, fce, fastTry, returnOffset);
+        FastCodeExceptionAnalyzer.formatFastTry(classFile.getConstantPool(), localVariables, fce, fastTry, returnOffset);
 
         if (classFile.getMajorVersion() == Const.MAJOR_1_1 && tryInstructions.size() >= 4) {
             int length = tryInstructions.size() - 1;

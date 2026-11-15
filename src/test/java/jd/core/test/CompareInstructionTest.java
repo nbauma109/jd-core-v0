@@ -35,7 +35,7 @@ public class CompareInstructionTest {
     private static void test(String internalClassPath, Loader loader) {
         ClassFile cf1 = buildClass(internalClassPath, loader);
         ClassFile cf2 = buildClass(internalClassPath, loader);
-        FastCompareInstructionVisitor cmp = new FastCompareInstructionVisitor();
+        FastCompareInstructionVisitor cmp = new FastCompareInstructionVisitor(cf1.getConstantPool());
         for (int i = 0; i < cf1.getMethods().length; i++) {
             assertTrue(cmp.visit(cf1.getMethods()[i].getFastNodes(), cf2.getMethods()[i].getFastNodes()));
         }            

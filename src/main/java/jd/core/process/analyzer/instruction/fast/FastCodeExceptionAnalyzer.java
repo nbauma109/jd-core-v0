@@ -27,6 +27,7 @@ import java.util.List;
 import java.util.Objects;
 
 import jd.core.model.classfile.LocalVariable;
+import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariables;
 import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
@@ -1938,7 +1939,7 @@ public final class FastCodeExceptionAnalyzer
     }
 
     public static void formatFastTry(
-            LocalVariables localVariables, FastCodeExcepcion fce,
+            ConstantPool constants, LocalVariables localVariables, FastCodeExcepcion fce,
             FastTry fastTry, int returnOffset)
     {
         switch (fce.getType())
@@ -1962,7 +1963,7 @@ public final class FastCodeExceptionAnalyzer
             format131CatchFinally(localVariables, fce, fastTry);
             break;
         case FastConstants.TYPE_142:
-            format142(localVariables, fce, fastTry);
+            format142(constants, localVariables, fce, fastTry);
             break;
         case FastConstants.TYPE_142_FINALLY_THROW:
             format142FinallyThrow(fastTry);
@@ -2387,7 +2388,7 @@ public final class FastCodeExceptionAnalyzer
     }
 
     private static void format142(
-            LocalVariables localVariables, FastCodeExcepcion fce, FastTry fastTry)
+            ConstantPool constants, LocalVariables localVariables, FastCodeExcepcion fce, FastTry fastTry)
     {
         List<Instruction> finallyInstructions = fastTry.getFinallyInstructions();
         int finallyInstructionsSize = finallyInstructions.size();
@@ -2408,7 +2409,7 @@ public final class FastCodeExceptionAnalyzer
         if (finallyInstructionsSize > 0)
         {
             FastCompareInstructionVisitor visitor =
-                    new FastCompareInstructionVisitor();
+                    new FastCompareInstructionVisitor(constants);
 
             List<Instruction> tryInstructions = fastTry.getInstructions();
             int length = tryInstructions.size();
@@ -2427,7 +2428,7 @@ public final class FastCodeExceptionAnalyzer
 
             // Remove finally instructions in try block before 'return' instruction
             format142RemoveFinallyInstructionsBeforeReturnAndCompactStoreReturn(
-                    localVariables, visitor, tryInstructions, finallyInstructions);
+                    localVariables, visitor, tryInstructions, finallyInstructions, false);
 
             if (fastTry.getCatches() != null)
             {
@@ -2454,7 +2455,7 @@ public final class FastCodeExceptionAnalyzer
 
                     // Remove finally instructions before 'return' instruction
                     format142RemoveFinallyInstructionsBeforeReturnAndCompactStoreReturn(
-                            localVariables, visitor, catchInstructions, finallyInstructions);
+                            localVariables, visitor, catchInstructions, finallyInstructions, false);
                     // Remove first catch instruction in each catch block
                     if (!catchInstructions.isEmpty()) {
                         catchInstructions.remove(0);
@@ -2483,13 +2484,15 @@ public final class FastCodeExceptionAnalyzer
             LocalVariables localVariables,
             FastCompareInstructionVisitor visitor,
             List<Instruction> instructions,
-            List<Instruction> finallyInstructions)
+            List<Instruction> finallyInstructions,
+            boolean nested)
     {
         int index = instructions.size();
         int finallyInstructionsSize = finallyInstructions.size();
         int finallyInstructionsLineNumber = finallyInstructions.get(0).getLineNumber();
 
-        boolean match = index >= finallyInstructionsSize && visitor.visit(
+        // The copy of the finally block that ends the try block (or a catch block) is not at the end of a nested block
+        boolean match = !nested && index >= finallyInstructionsSize && visitor.visit(
                 instructions, finallyInstructions,
                 index-finallyInstructionsSize, 0, finallyInstructionsSize);
 
@@ -2561,7 +2564,7 @@ public final class FastCodeExceptionAnalyzer
 
                 format142RemoveFinallyInstructionsBeforeReturnAndCompactStoreReturn(
                         localVariables, visitor,
-                        ft.getInstructions(), finallyInstructions);
+                        ft.getInstructions(), finallyInstructions, true);
 
                 if (ft.getCatches() != null)
                 {
@@ -2570,7 +2573,7 @@ public final class FastCodeExceptionAnalyzer
                     {
                         format142RemoveFinallyInstructionsBeforeReturnAndCompactStoreReturn(
                                 localVariables, visitor,
-                                ft.getCatches().get(i).instructions(), finallyInstructions);
+                                ft.getCatches().get(i).instructions(), finallyInstructions, true);
                     }
                 }
 
@@ -2578,7 +2581,7 @@ public final class FastCodeExceptionAnalyzer
                 {
                     format142RemoveFinallyInstructionsBeforeReturnAndCompactStoreReturn(
                             localVariables, visitor,
-                            ft.getFinallyInstructions(), finallyInstructions);
+                            ft.getFinallyInstructions(), finallyInstructions, true);
                 }
             }
             break;
@@ -2589,7 +2592,7 @@ public final class FastCodeExceptionAnalyzer
 
                 format142RemoveFinallyInstructionsBeforeReturnAndCompactStoreReturn(
                         localVariables, visitor,
-                        fs.getInstructions(), finallyInstructions);
+                        fs.getInstructions(), finallyInstructions, true);
             }
             break;
             }
