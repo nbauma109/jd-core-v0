@@ -133,11 +133,22 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
         {
             return invoke;
         }
+        // The message of an assertion is an Object: the cast that the compiler adds to a generic result is useless
+        if (parentFound instanceof AssertInstruction assertion && assertion.getMsg() == instruction
+            && instruction instanceof CheckCast cast && cast.getObjectref() instanceof InvokeNoStaticInstruction invoke
+            && returnedTypeArgument(invoke) instanceof ObjectType resolved && resolved.getDimension() == 0
+            && resolved.getInternalName().equals(classFile.getConstantPool().getConstantClassName(cast.getIndex())))
+        {
+            return invoke;
+        }
         // An argument already has the type of the parameter: the compiler only erased its type variable
         if (parentFound instanceof InvokeNoStaticInstruction call && instruction instanceof CheckCast cast
             && cast.getObjectref() instanceof InvokeNoStaticInstruction invoke && isRedundantArgument(call, cast, invoke))
         {
             return invoke;
+        }
+        if (parentFound instanceof InvokeNoStaticInstruction call && instruction instanceof CheckCast cast) {
+            printGenericArrayCast(call, cast);
         }
         return null;
     }
@@ -211,6 +222,36 @@ public class ReplaceRedundantCastVisitor extends AbstractReplaceInstructionVisit
             }
         }
         return null;
+    }
+
+    /**
+     * The argument of a parameter typed as an array of a type variable, {@code void set(T[] value)} with a
+     * {@code Sink<R>}, is cast to the array of the type variable of the receiver: the cast is kept and written with it
+     * ({@code (R[])}), not with its erasure ({@code (Object[])}).
+     */
+    private void printGenericArrayCast(InvokeNoStaticInstruction call, CheckCast cast)
+    {
+        int index = -1;
+        for (int i = 0; i < call.getArgs().size(); i++) {
+            if (call.getArgs().get(i) == cast) {
+                index = i;
+            }
+        }
+        ConstantPool constants = classFile.getConstantPool();
+        ConstantCP methodref = constants.getConstantMethodref(call.getIndex());
+        ConstantNameAndType nameAndType = constants.getConstantNameAndType(methodref.getNameAndTypeIndex());
+        String owner = constants.getConstantClassName(methodref.getClassIndex());
+        MethodTypes methodTypes = typeMaker.makeMethodTypes(owner,
+            constants.getConstantUtf8(nameAndType.getNameIndex()), constants.getConstantUtf8(nameAndType.getSignatureIndex()));
+        if (index >= 0 && methodTypes != null && methodTypes.getParameterTypes() != null
+            && methodTypes.getParameterTypes().getList().get(index) instanceof GenericType parameter
+            && parameter.getDimension() > 0 && !declaresTypeParameter(methodTypes, parameter.getName())
+            && receiverType(call) instanceof ObjectType receiverType && owner.equals(receiverType.getInternalName())
+            && receiverType.getTypeArguments() != null
+            && typeArgument(owner, parameter.getName(), receiverType.getTypeArguments()) instanceof GenericType variable
+            && cast.getReturnedSignature(classFile, localVariables).startsWith("[".repeat(parameter.getDimension()))) {
+            cast.setIndex(constants.addConstantUtf8("[".repeat(parameter.getDimension()) + 'T' + variable.getName() + ';'));
+        }
     }
 
     private Type receiverType(InvokeNoStaticInstruction call)

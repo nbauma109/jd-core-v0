@@ -53,7 +53,7 @@
 /*     */   void asserted(int value, Integer boxed, List<String> names)
 /*     */   {
 /*  55 */     assert (value > 0) : boxed;
-/*  56 */     assert (value < 10) : ((String)names.get(0));
+/*  56 */     assert (value < 10) : names.get(0);
 /*  57 */     assert (value != 5) : Integer.valueOf(value);
 /*     */   }
 /*     */   
