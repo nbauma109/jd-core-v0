@@ -1,0 +1,19 @@
+/*    */ package jd.core.test.fallbacks;
+/*    */ 
+/*    */ import java.io.File;
+/*    */ 
+/*    */ 
+/*    */ 
+/*    */ public class LambdaTryWithResources
+/*    */ {
+/*    */   static Runnable inLambda(File file)
+/*    */   {
+/* 11 */     return () ->  {
+/* 12 */       try (java.io.InputStream in = new java.io.FileInputStream(file)) {
+/* 13 */         in.read();
+/*    */       } catch (java.io.IOException e) {
+/* 15 */         System.out.println(e);
+/*    */       }
+/*    */     };
+/*    */   }
+/*    */ }
