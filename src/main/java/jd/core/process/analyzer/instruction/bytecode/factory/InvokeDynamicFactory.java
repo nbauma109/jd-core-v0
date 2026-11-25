@@ -222,9 +222,9 @@ public class InvokeDynamicFactory implements InstructionFactory
     private static void nameCapturedParameters(ConstantPool constants, Method method, Method lambdaMethod,
             List<Instruction> capturedArguments) {
         LocalVariables enclosing = method.getLocalVariables();
-        LocalVariables parameters = lambdaMethod.getLocalVariables();
         // Without any entry, an instance method would also miss the entry of 'this'
-        if (enclosing == null || capturedArguments == null || parameters == null && !lambdaMethod.isStatic()) {
+        if (enclosing == null || capturedArguments == null
+                || lambdaMethod.getLocalVariables() == null && !lambdaMethod.isStatic()) {
             return;
         }
         List<String> signatures = SignatureUtil.getParameterSignatures(
@@ -234,20 +234,28 @@ public class InvokeDynamicFactory implements InstructionFactory
         int slot = first;
         for (int i = first; i < capturedArguments.size(); i++) {
             String signature = signatures.get(i - first);
-            if (capturedArguments.get(i) instanceof IndexInstruction load
-                    && (parameters == null || parameters.getLocalVariableWithIndexAndOffset(slot, 0) == null)) {
-                LocalVariable captured = enclosing.getLocalVariableWithIndexAndOffset(load.getIndex(), load.getOffset());
-                if (captured != null) {
-                    if (parameters == null) {
-                        parameters = new LocalVariables();
-                        lambdaMethod.setLocalVariables(parameters);
-                    }
-                    parameters.add(new LocalVariable(0, lambdaMethod.getCode().length, captured.getNameIndex(),
-                            constants.addConstantUtf8(signature), slot));
-                }
-            }
+            nameCapturedParameter(constants, enclosing, lambdaMethod, capturedArguments.get(i), signature, slot);
             slot += "J".equals(signature) || "D".equals(signature) ? 2 : 1;
         }
+    }
+
+    private static void nameCapturedParameter(ConstantPool constants, LocalVariables enclosing, Method lambdaMethod,
+            Instruction capturedArgument, String signature, int slot) {
+        LocalVariables parameters = lambdaMethod.getLocalVariables();
+        if (!(capturedArgument instanceof IndexInstruction load)
+                || parameters != null && parameters.getLocalVariableWithIndexAndOffset(slot, 0) != null) {
+            return;
+        }
+        LocalVariable captured = enclosing.getLocalVariableWithIndexAndOffset(load.getIndex(), load.getOffset());
+        if (captured == null) {
+            return;
+        }
+        if (parameters == null) {
+            parameters = new LocalVariables();
+            lambdaMethod.setLocalVariables(parameters);
+        }
+        parameters.add(new LocalVariable(0, lambdaMethod.getCode().length, captured.getNameIndex(),
+                constants.addConstantUtf8(signature), slot));
     }
 
     /**
