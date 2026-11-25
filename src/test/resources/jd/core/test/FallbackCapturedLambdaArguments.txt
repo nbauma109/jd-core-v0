@@ -1,0 +1,25 @@
+/*    */ package jd.core.test.fallbacks;
+/*    */ 
+/*    */ import java.util.List;
+/*    */ 
+/*    */ public class CapturedLambdaArguments
+/*    */ {
+/*    */   static void inStaticMethod(List<String> list, String prefix) {
+/*  8 */     list.removeIf(s ->  {
+/*  9 */       String text = prefix + s;
+/* 10 */       return text.isEmpty();
+/*    */     });
+/*    */   }
+/*    */   
+/*    */   void withoutAnyEntry(Object[] values, String name) {
+/* 15 */     Runnable r = () -> values[0] = new StringBuilder(name);
+/* 16 */     r.run();
+/*    */   }
+/*    */   
+/*    */   static Runnable withWideArgument(int[] counter, long step) {
+/* 20 */     return () ->  {
+/* 21 */       long next = counter[0] + step;
+/* 22 */       counter[0] = ((int)next);
+/*    */     };
+/*    */   }
+/*    */ }

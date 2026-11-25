@@ -4709,13 +4709,25 @@ public final class FastInstructionListBuilder {
         }
 
         // Remove synthetic local variable integer
-        localVariables.removeLocalVariableWithIndexAndOffset(tsKeyIloadIndex, s.getKey().getOffset());
+        removeSyntheticLocalVariable(localVariables, tsKeyIloadIndex, s.getKey().getOffset(), astore.getOffset());
         // Remove synthetic local variable string
-        localVariables.removeLocalVariableWithIndexAndOffset(astore.getIndex(), astore.getOffset());
+        removeSyntheticLocalVariable(localVariables, astore.getIndex(), astore.getOffset(), astore.getOffset());
         // Replace switch test
         s.setKey(astore.getValueref());
 
         return true;
+    }
+
+    /**
+     * Without debug information on a slot, a single variable may cover a synthetic variable of the switch and an
+     * earlier variable using the same slot, such as the iterator of a preceding loop: that variable must be kept.
+     */
+    private static void removeSyntheticLocalVariable(LocalVariables localVariables, int index, int offset,
+            int definitionOffset) {
+        LocalVariable lv = localVariables.getLocalVariableWithIndexAndOffset(index, offset);
+        if (lv != null && lv.getStartPc() >= definitionOffset) {
+            localVariables.removeLocalVariableWithIndexAndOffset(index, offset);
+        }
     }
 
     private static boolean analyzeSwitchStringTestInstructions(ConstantPool constants, ConstantCP cmr,

@@ -51,7 +51,8 @@ public class ArrayReference extends Instruction implements SourceWriteable {
 
     @Override
     public String getReturnedSignature(ClassFile classFile, LocalVariables localVariables) {
-        throw new UnsupportedOperationException();
+        // Like other method references, "int[]::new" has no type of its own: it takes the target type
+        return null;
     }
 
     @Override

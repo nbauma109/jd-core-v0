@@ -1,0 +1,85 @@
+/*    */ package jd.core.test.fallbacks;
+/*    */ 
+/*    */ import java.io.IOException;
+/*    */ 
+/*    */ public class ReturnInFinally {
+/*    */   volatile boolean closed;
+/*  7 */   final Object needToPoll = new Object();
+/*    */   
+/*    */   int threadExit(Runnable r, boolean replaceMe)
+/*    */   {
+/* 11 */     return 0;
+/*    */   }
+/*    */   
+/*    */   boolean isShutdown() {
+/* 15 */     return this.closed;
+/*    */   }
+/*    */   
+/*    */   void implClose() {}
+/*    */   
+/*    */   Object take()
+/*    */     throws InterruptedException
+/*    */   {
+/* 23 */     return null;
+/*    */   }
+/*    */   
+/*    */   Runnable pollTask() {
+/* 27 */     return null;
+/*    */   }
+/*    */   
+/*    */   class Task implements Runnable {
+/*    */     Object poll() throws IOException {
+/* 32 */       return null;
+/*    */     }
+/*    */     
+/*    */     public void run() {
+/* 36 */       Object group = Thread.currentThread().getThreadGroup();
+/* 37 */       boolean isPooledThread = group != null;
+/* 38 */       boolean replaceMe = false;
+/*    */       try
+/*    */       {
+/*    */         for (;;) {
+/* 42 */           if (isPooledThread)
+/* 43 */             System.gc();
+/*    */           Object ev;
+/* 45 */           try { replaceMe = false;
+/* 46 */             ev = ReturnInFinally.this.take();
+/* 47 */             if (ev == ReturnInFinally.this.needToPoll) {
+/*    */               try {
+/* 49 */                 ev = poll();
+/*    */               } catch (IOException x) {
+/* 51 */                 x.printStackTrace();
+/* 52 */                 return;
+/*    */               }
+/*    */             }
+/*    */           } catch (InterruptedException x) {
+/* 56 */             continue;
+/*    */           }
+/* 58 */           if (ev == group) {
+/* 59 */             Runnable task = ReturnInFinally.this.pollTask();
+/* 60 */             if (task == null) {
+/* 61 */               return;
+/*    */             }
+/* 63 */             replaceMe = true;
+/* 64 */             task.run();
+/* 65 */             continue;
+/*    */           }
+/*    */           try {
+/* 68 */             ev.notify();
+/*    */           } catch (Error x) {
+/* 70 */             replaceMe = true;
+/* 71 */             throw x;
+/*    */           } catch (RuntimeException x) {
+/* 73 */             replaceMe = true;
+/* 74 */             throw x;
+/*    */           }
+/*    */         }
+/*    */       } finally {
+/* 78 */         int remaining = ReturnInFinally.this.threadExit(this, replaceMe);
+/* 79 */         if (remaining == 0 && ReturnInFinally.this.isShutdown()) {
+/* 80 */           ReturnInFinally.this.implClose();
+/*    */         }
+/*    */       }
+/*    */     }
+/*    */   }
+/*    */ }

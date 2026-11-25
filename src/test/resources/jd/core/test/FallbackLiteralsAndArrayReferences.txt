@@ -1,0 +1,18 @@
+/*    */ package jd.core.test.fallbacks;
+/*    */ 
+/*    */ import java.util.function.IntFunction;
+/*    */ 
+/*    */ public class LiteralsAndArrayReferences {
+/*    */   static String concatenation(String suffix) {
+/*  7 */     return "descriptor [L[" + suffix;
+/*    */   }
+/*    */   
+/*    */   static IntFunction<String[]> returned() {
+/* 11 */     return String[]::new;
+/*    */   }
+/*    */   
+/*    */   static Object argument(IntFunction<int[][]> generator)
+/*    */   {
+/* 16 */     return argument(int[][]::new);
+/*    */   }
+/*    */ }

@@ -44,6 +44,9 @@ import static org.apache.bcel.Const.ACC_SYNTHETIC;
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.ConstantPool;
 import jd.core.model.classfile.LocalVariables;
+import jd.core.util.SignatureUtil;
+import jd.core.model.instruction.bytecode.instruction.IndexInstruction;
+import jd.core.model.classfile.LocalVariable;
 import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.instruction.ArrayReference;
 import jd.core.model.instruction.bytecode.instruction.ALoad;
@@ -175,6 +178,7 @@ public class InvokeDynamicFactory implements InstructionFactory
 
         if (lambdaMethod != null && lambdaMethod.isLambda(constants)) {
             bindEnclosingInstanceParameter(classFile, method, lambdaMethod, indyParameters);
+            nameCapturedParameters(constants, method, lambdaMethod, indyParameters);
             ClassFileAnalyzer.preAnalyzeSingleMethod(classFile, classFile.getVariableNameGenerator(), -1, lambdaMethod);
             ClassFileAnalyzer.analyzeSingleMethod(null, classFile, null, lambdaMethod);
             LocalVariables localVariables = lambdaMethod.getLocalVariables();
@@ -209,6 +213,49 @@ public class InvokeDynamicFactory implements InstructionFactory
         stack.push(new MethodReference(opcode, offset, lineNumber, indyParameters, typeName, name1, descriptor1));
 
         return Const.getNoOfOperands(opcode);
+    }
+
+    /**
+     * ECJ gives no local variable table entry to the captured arguments of a lambda: they take the names of the
+     * captured variables, which the body of the lambda is written with.
+     */
+    private static void nameCapturedParameters(ConstantPool constants, Method method, Method lambdaMethod,
+            List<Instruction> capturedArguments) {
+        LocalVariables enclosing = method.getLocalVariables();
+        // Without any entry, an instance method would also miss the entry of 'this'
+        if (enclosing == null || capturedArguments == null
+                || lambdaMethod.getLocalVariables() == null && !lambdaMethod.isStatic()) {
+            return;
+        }
+        List<String> signatures = SignatureUtil.getParameterSignatures(
+                constants.getConstantUtf8(lambdaMethod.getDescriptorIndex()));
+        // An instance lambda captures 'this' first, which is not one of its parameters
+        int first = lambdaMethod.isStatic() ? 0 : 1;
+        int slot = first;
+        for (int i = first; i < capturedArguments.size(); i++) {
+            String signature = signatures.get(i - first);
+            nameCapturedParameter(constants, enclosing, lambdaMethod, capturedArguments.get(i), signature, slot);
+            slot += "J".equals(signature) || "D".equals(signature) ? 2 : 1;
+        }
+    }
+
+    private static void nameCapturedParameter(ConstantPool constants, LocalVariables enclosing, Method lambdaMethod,
+            Instruction capturedArgument, String signature, int slot) {
+        LocalVariables parameters = lambdaMethod.getLocalVariables();
+        if (!(capturedArgument instanceof IndexInstruction load)
+                || parameters != null && parameters.getLocalVariableWithIndexAndOffset(slot, 0) != null) {
+            return;
+        }
+        LocalVariable captured = enclosing.getLocalVariableWithIndexAndOffset(load.getIndex(), load.getOffset());
+        if (captured == null) {
+            return;
+        }
+        if (parameters == null) {
+            parameters = new LocalVariables();
+            lambdaMethod.setLocalVariables(parameters);
+        }
+        parameters.add(new LocalVariable(0, lambdaMethod.getCode().length, captured.getNameIndex(),
+                constants.addConstantUtf8(signature), slot));
     }
 
     /**

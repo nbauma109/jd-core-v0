@@ -1,0 +1,28 @@
+/*    */ package jd.core.test.fallbacks;
+/*    */ 
+/*    */ public class ThrowingDefaultSwitch
+/*    */ {
+/*    */   static int assigned(int k, boolean trace)
+/*    */   {
+/*  7 */     if (trace) {
+/*  8 */       System.out.println(k);
+/*    */     }
+/* 10 */     int result = switch (k) {
+/* 11 */       case 0 -> 10;
+/* 12 */       case 1 -> 20;
+/* 13 */       default -> throw new IllegalStateException();
+/*    */     };
+/* 15 */     return result;
+/*    */   }
+/*    */   
+/*    */   static String returned(int k, boolean trace) {
+/* 19 */     if (trace) {
+/* 20 */       System.out.println(k);
+/*    */     }
+/* 22 */     return switch (k) {
+/* 23 */       case 0 -> "zero";
+/* 24 */       case 1 -> "one";
+/* 25 */       default -> throw new IllegalArgumentException();
+/*    */     };
+/*    */   }
+/*    */ }
