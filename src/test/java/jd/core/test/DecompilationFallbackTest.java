@@ -16,6 +16,7 @@ import org.junit.Test;
 public class DecompilationFallbackTest extends AbstractTestCase {
 
     private static final String PACKAGE = "jd/core/test/fallbacks/";
+    private static final String JAVAC_JAR = "/decompilation-fallbacks-javac17.jar";
 
     @Test
     public void testSwitchExpressionWithThrowingDefault() throws Exception {
@@ -43,22 +44,31 @@ public class DecompilationFallbackTest extends AbstractTestCase {
     }
 
     @Test
+    public void testLambdaArgumentsCapturedWithoutLocalVariableEntry() throws Exception {
+        assertDecompiles("CapturedLambdaArguments", "/decompilation-fallbacks-ecj17.jar");
+    }
+
+    @Test
     public void testFailedConstructorDoesNotFailItsClass() throws Exception {
-        String output = decompileFixture("FailedConstructor");
+        String output = decompileFixture("FailedConstructor", JAVAC_JAR);
         assertTrue(output, output.contains("// Byte code:"));
         assertTrue(output, output.contains("System.out.println();"));
         assertTrue(output, output.contains("int size = 3;"));
     }
 
     private void assertDecompiles(String simpleName) throws Exception {
-        String output = decompileFixture(simpleName);
+        assertDecompiles(simpleName, JAVAC_JAR);
+    }
+
+    private void assertDecompiles(String simpleName, String jar) throws Exception {
+        String output = decompileFixture(simpleName, jar);
         assertFalse(output, output.contains("// Byte code:"));
         assertRealignedLineNumbers(PACKAGE + simpleName, output);
         assertEquals(IOUtils.toString(getClass().getResource("Fallback" + simpleName + ".txt"), StandardCharsets.UTF_8), output);
     }
 
-    private String decompileFixture(String simpleName) throws IOException {
-        try (InputStream in = getClass().getResourceAsStream("/decompilation-fallbacks-javac17.jar")) {
+    private String decompileFixture(String simpleName, String jar) throws IOException {
+        try (InputStream in = getClass().getResourceAsStream(jar)) {
             return decompile(PACKAGE + simpleName, new ZipLoader(in), "17");
         }
     }
