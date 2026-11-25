@@ -66,7 +66,9 @@ public class EnumValuesThroughLocalVariableTest extends AbstractTestCase {
         String output = decompile(ENUM, loader);
 
         assertFalse(output, output.contains("// Byte code:"));
-        assertTrue(output, output.matches("(?s).*CURRENT,\\s.*CANDIDATE,\\s.*NIGHTLY.*"));
+        int current = output.indexOf("CURRENT,");
+        int candidate = output.indexOf("CANDIDATE,");
+        assertTrue(output, current >= 0 && candidate > current && output.indexOf("NIGHTLY", candidate) > candidate);
     }
 
     /** Only javac writes the "$values" method that this test rewrites, whichever compiler builds the tests. */

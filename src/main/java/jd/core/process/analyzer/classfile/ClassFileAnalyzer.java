@@ -30,7 +30,6 @@ import org.apache.bcel.classfile.RecordComponentInfo;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.ExceptionUtil;
 import org.jd.core.v1.util.StringConstants;
 
-import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -1438,6 +1437,6 @@ public final class ClassFileAnalyzer
         return instructions.stream()
                 .filter(ArrayStoreInstruction.class::isInstance)
                 .map(instruction -> ((ArrayStoreInstruction) instruction).getValueref())
-                .collect(Collectors.toList());
+                .toList();
     }
 }
