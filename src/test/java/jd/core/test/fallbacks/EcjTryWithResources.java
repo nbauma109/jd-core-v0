@@ -53,7 +53,7 @@ public class EcjTryWithResources {
         }
     }
 
-    static int exitsOfTheBody(File file, List<String> names) throws IOException {
+    static int exitsOfTheBody(List<String> names) throws IOException {
         for (String name : names) {
             try (InputStream in = new FileInputStream(name)) {
                 if (in.read() < 0) {

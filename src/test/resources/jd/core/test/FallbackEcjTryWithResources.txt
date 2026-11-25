@@ -53,7 +53,7 @@
 /*     */     }
 /*     */   }
 /*     */   
-/*     */   static int exitsOfTheBody(File file, List<String> names) throws IOException {
+/*     */   static int exitsOfTheBody(List<String> names) throws IOException {
 /*  57 */     for (String name : names) {
 /*  58 */       try (InputStream in = new FileInputStream(name)) {
 /*  59 */         if (in.read() < 0) {

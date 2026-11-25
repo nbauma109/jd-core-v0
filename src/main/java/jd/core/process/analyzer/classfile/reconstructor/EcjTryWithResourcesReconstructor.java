@@ -127,45 +127,37 @@ public final class EcjTryWithResourcesReconstructor {
      */
     private static Cleanup findCleanup(ConstantPool cp, List<Instruction> list, int from, int primary, int suppressed) {
         for (int start = from; start < list.size(); start++) {
-            if (!isCatch(list.get(start), primary)) {
-                continue;
+            Cleanup cleanup = readBodyHandler(cp, list, start, primary);
+            if (cleanup != null) {
+                return readOuterHandlers(cp, list, cleanup.end + 1, primary, suppressed, cleanup);
             }
-            Cleanup cleanup = new Cleanup();
-            cleanup.start = start;
-            cleanup.handlers.add(list.get(start).getOffset());
-            int index = readClose(cp, list, start + 1, cleanup.resources);
-            if (cleanup.resources.isEmpty() || !isThrow(list, index, primary)) {
-                continue;
-            }
-            if (list.get(start - 1) instanceof Goto jump && jump.getJumpOffset() > list.get(start).getOffset()) {
-                cleanup.exit = jump;
-                cleanup.start--;
-            }
-            return readOuterHandlers(cp, list, index + 1, primary, suppressed, cleanup);
         }
         return null;
     }
 
+    /** Reads the handler of the innermost resource, which may start at the given index. */
+    private static Cleanup readBodyHandler(ConstantPool cp, List<Instruction> list, int start, int primary) {
+        if (!isCatch(list.get(start), primary)) {
+            return null;
+        }
+        Cleanup cleanup = new Cleanup();
+        cleanup.end = readClose(cp, list, start + 1, cleanup.resources);
+        if (cleanup.resources.isEmpty() || !isThrow(list, cleanup.end, primary)) {
+            return null;
+        }
+        cleanup.start = start;
+        cleanup.handlers.add(list.get(start).getOffset());
+        if (list.get(start - 1) instanceof Goto jump && jump.getJumpOffset() > list.get(start).getOffset()) {
+            cleanup.exit = jump;
+            cleanup.start--;
+        }
+        return cleanup;
+    }
+
     private static Cleanup readOuterHandlers(ConstantPool cp, List<Instruction> list, int from, int primary,
             int suppressed, Cleanup cleanup) {
-        int index = from;
-        while (index < list.size()) {
-            // The calls of close() of the outer resources, when the body completes normally
-            while (index < list.size() && !isCatch(list.get(index), suppressed)) {
-                if (list.get(index) instanceof Goto jump) {
-                    cleanup.exit = jump;
-                    index++;
-                    continue;
-                }
-                int next = readClose(cp, list, index, new ArrayList<>());
-                if (next == index) {
-                    return null;
-                }
-                index = next;
-            }
-            if (!isMerge(cp, list, index, primary, suppressed)) {
-                return null;
-            }
+        int index = skipNormalExits(cp, list, from, suppressed, cleanup);
+        while (index >= 0 && isMerge(cp, list, index, primary, suppressed)) {
             cleanup.handlers.add(list.get(index).getOffset());
             List<Integer> closed = new ArrayList<>();
             index = readClose(cp, list, index + 6, closed);
@@ -177,9 +169,32 @@ public final class EcjTryWithResourcesReconstructor {
                 return cleanup;
             }
             cleanup.resources.add(closed.get(0));
-            index++;
+            index = skipNormalExits(cp, list, index + 1, suppressed, cleanup);
         }
         return null;
+    }
+
+    /**
+     * Skips the calls of close() of the outer resources, when the body completes normally.
+     *
+     * @return the index of the following handler, or -1 if other instructions come first
+     */
+    private static int skipNormalExits(ConstantPool cp, List<Instruction> list, int from, int suppressed,
+            Cleanup cleanup) {
+        int index = from;
+        while (index < list.size() && !isCatch(list.get(index), suppressed)) {
+            if (list.get(index) instanceof Goto jump) {
+                cleanup.exit = jump;
+                index++;
+            } else {
+                int next = readClose(cp, list, index, new ArrayList<>());
+                if (next == index) {
+                    return -1;
+                }
+                index = next;
+            }
+        }
+        return index;
     }
 
     /** Reads "if (resource != null) resource.close();", whose test is optional, and returns the following index. */
@@ -240,18 +255,19 @@ public final class EcjTryWithResourcesReconstructor {
     private static void removeExitCleanups(ConstantPool cp, CodeException[] exceptions, List<Instruction> list,
             int from, Cleanup cleanup) {
         int bodyHandler = cleanup.handlers.get(0);
-        for (int i = Math.min(list.size(), cleanup.start + 1) - 1; i >= from; i--) {
+        int i = Math.min(list.size(), cleanup.start + 1) - 1;
+        while (i >= from) {
             Instruction instruction = list.get(i);
             int offset = instruction.getOffset();
-            if (offset < bodyHandler
-                    && cleanup.resources.contains(TryWithResourcesReconstructor.closedResource(cp, instruction))
+            int resource = TryWithResourcesReconstructor.closedResource(cp, instruction);
+            if (offset < bodyHandler && cleanup.resources.contains(resource)
                     && !isProtected(exceptions, bodyHandler, offset)) {
-                int resource = TryWithResourcesReconstructor.closedResource(cp, instruction);
                 list.remove(i);
                 if (i > from && isTestOf(list.get(i - 1), resource)) {
                     list.remove(--i);
                 }
             }
+            i--;
         }
     }
 
