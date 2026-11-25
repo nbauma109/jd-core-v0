@@ -80,10 +80,10 @@ public class NullClassFileTest {
         iinc.getReturnedSignature(null, null);
     }
 
-    @Test(expected = UnsupportedOperationException.class)
-    public void testArrayReferenceThrowsUnsupportedOperationException() {
+    @Test
+    public void testArrayReferenceHasNoReturnedSignature() {
         ArrayReference arrayReference = new ArrayReference(0, 0, 0, null, null);
-        arrayReference.getReturnedSignature(null, null);
+        assertNull(arrayReference.getReturnedSignature(null, null));
     }
 
     @Test

@@ -1,0 +1,25 @@
+/*    */ package jd.core.test.fallbacks;
+/*    */ 
+/*    */ import java.util.List;
+/*    */ 
+/*    */ public class ReusedSwitchSlots
+/*    */ {
+/*    */   static String check(StringBuilder log, List<String> entries) {
+/*    */     try {
+/*  9 */       String name = (String)entries.get(0);
+/* 10 */       Class<?> type = Class.forName(name);
+/* 11 */       log.append(name).append(type);
+/* 12 */       for (String entry : entries) {
+/* 13 */         log.append(entry);
+/*    */       }
+/*    */     } catch (ClassNotFoundException e) {
+/* 16 */       throw new IllegalStateException(e);
+/*    */     }
+/* 18 */     String first = (String)entries.get(0);
+/* 19 */     String kind = switch (first) {
+/* 20 */       case "RSA", "DSA" -> first;
+/* 21 */       default -> "UNKNOWN";
+/*    */     };
+/* 23 */     return kind;
+/*    */   }
+/*    */ }

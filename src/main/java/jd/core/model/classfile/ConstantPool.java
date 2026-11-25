@@ -153,6 +153,11 @@ public class ConstantPool
 
         Validate.matchesPattern(s, "^((?!L\\[).)*$", "Constant string starts with L[");
 
+        return findOrAddConstantUtf8(s);
+    }
+
+    private int findOrAddConstantUtf8(String s)
+    {
         int index = this.constantUtf8ToIndex.get(s);
 
         if (index == -1)
@@ -169,7 +174,8 @@ public class ConstantPool
 
     public int addConstantString(String s)
     {
-        int utf8Index = addConstantUtf8(s);
+        // A string literal may hold any text, unlike the names and signatures checked by addConstantUtf8
+        int utf8Index = findOrAddConstantUtf8(Objects.requireNonNull(s, "Constant string is null"));
         ConstantString constantString = new ConstantString(utf8Index);
         int index = this.listOfConstants.size();
         this.listOfConstants.add(constantString);

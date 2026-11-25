@@ -414,7 +414,8 @@ public final class CheckCastAndConvertInstructionVisitor
                 }
                 if (typeArgsLeft != null && typeArgsLeft.isTypeArgumentList()
                 && typeArgsRight != null && typeArgsRight.isTypeArgumentList()) {
-                    for (int j = 0; j < typeArgsRight.getTypeArgumentList().size(); j++) {
+                    int count = Math.min(typeArgsLeft.getTypeArgumentList().size(), typeArgsRight.getTypeArgumentList().size());
+                    for (int j = 0; j < count; j++) {
                         TypeArgument typeArgumentLeft = typeArgsLeft.getTypeArgumentList().get(j);
                         TypeArgument typeArgumentRight = typeArgsRight.getTypeArgumentList().get(j);
                         if (typeArgumentLeft instanceof GenericType

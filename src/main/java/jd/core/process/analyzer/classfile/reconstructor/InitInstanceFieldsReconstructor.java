@@ -174,6 +174,10 @@ public final class InitInstanceFieldsReconstructor
             }
 
             List<Instruction> list = method.getFastNodes();
+            // A constructor whose analysis failed is written as byte code
+            if (method.containsError() || list == null) {
+                continue;
+            }
             int length = list.size();
 
             if (length > 0)
@@ -277,7 +281,7 @@ public final class InitInstanceFieldsReconstructor
 
                     List<Instruction> list = method.getFastNodes();
 
-                    if (!list.isEmpty())
+                    if (!method.containsError() && list != null && !list.isEmpty())
                     {
                         // Remove instructions
                         putFieldListIndex = 0;

@@ -20,6 +20,7 @@ import org.apache.bcel.Const;
 
 import java.util.Deque;
 import java.util.List;
+import java.util.stream.IntStream;
 
 import static jd.core.model.instruction.bytecode.ByteCodeConstants.ARRAYLOAD;
 import static jd.core.model.instruction.bytecode.ByteCodeConstants.ASSIGNMENT;
@@ -72,9 +73,14 @@ public class GotoFactory implements InstructionFactory
         final int value  =
             (short)((code[offset+1] & 255) << 8 | code[offset+2] & 255);
 
-        if (!stack.isEmpty() && !list.isEmpty()) {
+        // Only a switch expression whose value is stored or returned can be reconstructed
+        boolean assignsOrReturns = isStoreOrReturn(code, offset + value);
+
+        if (!stack.isEmpty() && !list.isEmpty()
+                && !(assignsOrReturns && startsSwitchBranch(list, offset + 3)
+                        && isFollowedByThrowingBranchOnly(code, offset, value))) {
             generateTernaryOpStore(
-                list, listForAnalyze, stack, code, offset, value);
+                list, listForAnalyze, stack, code, offset, value, assignsOrReturns);
         }
 
         list.add(new Goto(opcode, offset, lineNumber, value));
@@ -82,9 +88,76 @@ public class GotoFactory implements InstructionFactory
         return Const.getNoOfOperands(opcode);
     }
 
+    /**
+     * Javac lays out "default -> throw ..." as the last block of a switch expression: nothing falls through to the end of
+     * the switch, so the value pushed before the last jump is the one the following instructions consume.
+     */
+    private static boolean isFollowedByThrowingBranchOnly(byte[] code, int offset, int value)
+    {
+        int target = offset + value;
+        int lastOpcode = Const.NOP;
+
+        for (int pos = offset + 3; pos < target && pos < code.length; pos = followingOffset(code, pos))
+        {
+            lastOpcode = code[pos] & 255;
+
+            if (isBranchTo(code, pos, target)) {
+                return false;
+            }
+        }
+
+        return lastOpcode == Const.ATHROW;
+    }
+
+    private static int followingOffset(byte[] code, int pos)
+    {
+        int opcode = code[pos] & 255;
+        int next = ByteCodeUtil.nextInstructionOffset(code, pos);
+
+        // For variable length instructions, the offset of their last byte is returned
+        return Const.getNoOfOperands(opcode) == Const.UNPREDICTABLE ? next + 1 : next;
+    }
+
+    private static boolean startsSwitchBranch(List<Instruction> list, int branchOffset)
+    {
+        for (Instruction instruction : list)
+        {
+            if (instruction instanceof Switch sw
+                    && (sw.getOffset() + sw.getDefaultOffset() == branchOffset
+                        || IntStream.of(sw.getOffsets()).anyMatch(o -> sw.getOffset() + o == branchOffset))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean isStoreOrReturn(byte[] code, int pos)
+    {
+        if (pos < 0 || pos >= code.length) {
+            return false;
+        }
+        int opcode = code[pos] & 255;
+        if (opcode == Const.WIDE && pos + 1 < code.length) {
+            opcode = code[pos + 1] & 255;
+        }
+        return opcode >= Const.ISTORE && opcode <= Const.ASTORE_3
+            || opcode >= Const.IRETURN && opcode <= Const.ARETURN;
+    }
+
+    private static boolean isBranchTo(byte[] code, int pos, int target)
+    {
+        int opcode = code[pos] & 255;
+
+        if (opcode != Const.GOTO && !ByteCodeUtil.isIfInstruction(opcode, true)) {
+            return false;
+        }
+
+        return pos + (short) ((code[pos + 1] & 255) << 8 | code[pos + 2] & 255) == target;
+    }
+
     private static void generateTernaryOpStore(
         List<Instruction> list, List<Instruction> listForAnalyze,
-        Deque<Instruction> stack, byte[] code, int offset, int value)
+        Deque<Instruction> stack, byte[] code, int offset, int value, boolean assignsOrReturns)
     {
         int i = list.size();
 
@@ -92,7 +165,8 @@ public class GotoFactory implements InstructionFactory
         {
             Instruction previousInstruction = list.get(i);
 
-            if (previousInstruction instanceof Switch sw && sw.getKey() instanceof PatternSwitchSelector)
+            if (previousInstruction instanceof Switch sw
+                    && (assignsOrReturns || sw.getKey() instanceof PatternSwitchSelector))
             {
                 // The values left on the stack belong to the cases of a switch expression
                 return;

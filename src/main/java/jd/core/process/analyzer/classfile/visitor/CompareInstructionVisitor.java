@@ -155,7 +155,7 @@ public class CompareInstructionVisitor
             {
                 String rs1 = ((StoreInstruction)i1).getReturnedSignature(null, null);
                 String rs2 = ((StoreInstruction)i2).getReturnedSignature(null, null);
-                if (rs1 == null ? rs2 != null : rs1.compareTo(rs2) != 0) {
+                if (!Objects.equals(rs1, rs2)) {
                     return false;
                 }
 
