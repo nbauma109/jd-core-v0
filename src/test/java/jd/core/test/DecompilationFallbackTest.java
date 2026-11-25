@@ -49,6 +49,16 @@ public class DecompilationFallbackTest extends AbstractTestCase {
     }
 
     @Test
+    public void testTryWithResourcesOfEcj() throws Exception {
+        assertDecompiles("EcjTryWithResources", "/decompilation-fallbacks-ecj17.jar");
+    }
+
+    @Test
+    public void testTryWithResourcesInLambda() throws Exception {
+        assertDecompiles("LambdaTryWithResources");
+    }
+
+    @Test
     public void testFailedConstructorDoesNotFailItsClass() throws Exception {
         String output = decompileFixture("FailedConstructor", JAVAC_JAR);
         assertTrue(output, output.contains("// Byte code:"));

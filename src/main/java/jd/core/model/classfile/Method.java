@@ -50,6 +50,7 @@ public class Method extends Base implements SignatureInfo
     private byte[] code; // NO_UCD (use final)
     private LineNumber[] lineNumbers; // NO_UCD (use final)
     private CodeException[] codeExceptions;
+    private CodeException[] exceptionTable;
     private final List<int[]> tryResources = new ArrayList<>();
     private final java.util.Set<Integer> recordAccessOffsets = new java.util.HashSet<>();
     private final java.util.Set<jd.core.model.classfile.LocalVariable> recordTemporaries = new java.util.HashSet<>();
@@ -143,7 +144,8 @@ public class Method extends Base implements SignatureInfo
             this.lineNumbers = Optional.ofNullable(ant).map(LineNumberTable::getLineNumberTable).orElse(null);
 
             // codeExceptions
-            this.codeExceptions = ac.getExceptionTable();
+            this.exceptionTable = ac.getExceptionTable();
+            this.codeExceptions = this.exceptionTable;
         }
     }
 
@@ -226,6 +228,16 @@ public class Method extends Base implements SignatureInfo
     public CodeException[] getCodeExceptions()
     {
         return this.codeExceptions;
+    }
+
+    /**
+     * Forgets what a previous analysis removed: the analysis of a lambda runs once from the enclosing method, then
+     * again from the class, and both start from the byte code.
+     */
+    public void resetCodeExceptions()
+    {
+        this.codeExceptions = this.exceptionTable == null ? null : this.exceptionTable.clone();
+        this.tryResources.clear();
     }
 
     public void setCodeExceptions(CodeException[] codeExceptions)

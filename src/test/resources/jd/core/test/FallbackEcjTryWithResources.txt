@@ -1,0 +1,158 @@
+/*     */ package jd.core.test.fallbacks;
+/*     */ 
+/*     */ import java.io.BufferedInputStream;
+/*     */ import java.io.BufferedReader;
+/*     */ import java.io.File;
+/*     */ import java.io.FileInputStream;
+/*     */ import java.io.FileOutputStream;
+/*     */ import java.io.IOException;
+/*     */ import java.io.InputStream;
+/*     */ import java.util.List;
+/*     */ 
+/*     */ public class EcjTryWithResources
+/*     */ {
+/*     */   Object snapshot;
+/*     */   
+/*     */   static void single(File file) throws IOException
+/*     */   {
+/*  18 */     try (InputStream in = new FileInputStream(file)) {
+/*  19 */       in.read();
+/*     */     }
+/*  21 */     System.out.println();
+/*     */   }
+/*     */   
+/*     */   static int returned(File file) throws IOException {
+/*  25 */     try (InputStream in = new FileInputStream(file)) {
+/*  26 */       return in.read();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   static void three(File file) throws IOException {
+/*  31 */     try (InputStream first = new FileInputStream(file);
+/*  32 */     InputStream second = new BufferedInputStream(first);
+/*  33 */     InputStream third = new BufferedInputStream(second);) {
+/*  34 */       third.read();
+/*     */     }
+/*  36 */     System.out.println();
+/*     */   }
+/*     */   
+/*     */   static void caught(File file) {
+/*  40 */     try (FileOutputStream out = new FileOutputStream(file); java.io.OutputStream buffered = out;) {
+/*  41 */       buffered.flush();
+/*     */     } catch (IOException e) {
+/*  43 */       System.out.println(e);
+/*     */     }
+/*  45 */     System.out.println();
+/*     */   }
+/*     */   
+/*     */   static void withFinally(File file) throws IOException {
+/*  49 */     try (InputStream in = new FileInputStream(file)) {
+/*  50 */       in.read();
+/*     */     } finally {
+/*  52 */       System.out.println();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   static int exitsOfTheBody(File file, List<String> names) throws IOException {
+/*  57 */     for (String name : names) {
+/*  58 */       try (InputStream in = new FileInputStream(name)) {
+/*  59 */         if (in.read() < 0) {
+/*     */           continue;
+/*     */         }
+/*  62 */         if (in.read() == 0) {
+/*     */           break;
+/*     */         }
+/*  65 */         if (in.read() == 1) {
+/*  66 */           return 1;
+/*     */         }
+/*  68 */         System.out.println(name);
+/*     */       }
+/*     */     }
+/*  71 */     return 0;
+/*     */   }
+/*     */   
+/*     */   static void sequentialAndNested(File file) throws IOException {
+/*  75 */     try (InputStream in = new FileInputStream(file)) {
+/*  76 */       try (InputStream nested = new FileInputStream(file)) {
+/*  77 */         nested.read();
+/*     */       }
+/*  79 */       in.read();
+/*     */     }
+/*  81 */     try (InputStream in = new FileInputStream(file)) {
+/*  82 */       in.read();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   static void conditionAtTheEnd(File file) throws IOException {
+/*  87 */     try (InputStream in = new FileInputStream(file)) {
+/*  88 */       if (in.read() > 0) {
+/*  89 */         System.out.println();
+/*     */       }
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   static void closedByTheBody(File file) throws IOException {
+/*  95 */     try (InputStream in = new FileInputStream(file)) {
+/*  96 */       in.close();
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   static void thrown(File file) throws IOException {
+/* 101 */     try (InputStream in = new FileInputStream(file)) {
+/* 102 */       throw new IOException(String.valueOf(in.read()));
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   static int returnedFromNested(File file) throws IOException {
+/* 107 */     try (InputStream outer = new FileInputStream(file)) {
+/* 108 */       try (InputStream inner = new BufferedInputStream(outer)) {
+/* 109 */         if (inner.read() > 0) {
+/* 110 */           return outer.read();
+/*     */         }
+/*     */       }
+/* 113 */       System.out.println();
+/*     */     }
+/* 115 */     return -1;
+/*     */   }
+/*     */   
+/*     */   static void inSwitch(File file, int mode) {
+/* 119 */     for (int i = 0; i < mode; i++) {
+/* 120 */       switch (i) {
+/*     */       case 0: 
+/* 122 */         try (InputStream in = new FileInputStream(file)) {
+/* 123 */           in.read();
+/*     */         } catch (IOException e) {
+/* 125 */           System.out.println(e);
+/*     */           continue;
+/*     */         }
+/*     */         break;
+/* 129 */       default:  System.out.println(i);
+/*     */       }
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   List<String> loopFollowedByAssignment(File file)
+/*     */     throws IOException
+/*     */   {
+/* 137 */     Object name = file.getName();
+/* 138 */     List<String> lines = new java.util.ArrayList<>();
+/* 139 */     try (BufferedReader reader = new BufferedReader(new java.io.FileReader(file))) {
+/*     */       String line;
+/* 141 */       while ((line = reader.readLine()) != null) {
+/* 142 */         lines.add(line);
+/*     */       }
+/*     */     }
+/* 145 */     this.snapshot = name;
+/* 146 */     return lines;
+/*     */   }
+/*     */   
+/*     */   Runnable inLambda(File file) {
+/* 150 */     return () ->  {
+/* 151 */       try (InputStream in = new FileInputStream(file)) {
+/* 152 */         in.read();
+/*     */       } catch (IOException e) {
+/* 154 */         System.out.println(e);
+/*     */       }
+/*     */     };
+/*     */   }
+/*     */ }

@@ -258,7 +258,7 @@ public final class TryWithResourcesReconstructor {
     }
 
     /** Index of the local variable closed by a call of {@code close()}, or -1. */
-    private static int closedResource(ConstantPool cp, Instruction instruction) {
+    static int closedResource(ConstantPool cp, Instruction instruction) {
         if (instruction instanceof InvokeNoStaticInstruction invoke && invoke.getArgs().isEmpty()
                 && invoke.getObjectref() instanceof ALoad receiver
                 && "close".equals(methodName(cp, invoke)) && "()V".equals(methodDescriptor(cp, invoke))) {
@@ -267,7 +267,7 @@ public final class TryWithResourcesReconstructor {
         return -1;
     }
 
-    private static boolean isAddSuppressed(ConstantPool cp, Instruction instruction, int primary, int suppressed) {
+    static boolean isAddSuppressed(ConstantPool cp, Instruction instruction, int primary, int suppressed) {
         return instruction instanceof InvokeNoStaticInstruction invoke && invoke.getArgs().size() == 1
                 && invoke.getObjectref() instanceof ALoad receiver && receiver.getIndex() == primary
                 && invoke.getArgs().get(0) instanceof ALoad argument && argument.getIndex() == suppressed

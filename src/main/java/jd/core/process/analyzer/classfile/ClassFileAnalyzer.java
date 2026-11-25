@@ -69,6 +69,7 @@ import jd.core.process.analyzer.classfile.reconstructor.DotClass118AReconstructo
 import jd.core.process.analyzer.classfile.reconstructor.DotClass14Reconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.DotNewReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.DotSuperReconstructor;
+import jd.core.process.analyzer.classfile.reconstructor.EcjTryWithResourcesReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.DupStoreThisReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.InitDexEnumFieldsReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.InitInstanceFieldsReconstructor;
@@ -827,6 +828,7 @@ public final class ClassFileAnalyzer
         List<Instruction> list = new ArrayList<>();
         List<Instruction> listForAnalyze = new ArrayList<>();
 
+        method.resetCodeExceptions();
         InstructionListBuilder.build(
                 classFile, method, list, listForAnalyze);
         method.setInstructions(list);
@@ -976,6 +978,9 @@ public final class ClassFileAnalyzer
         List<Instruction> fastList =
                 new ArrayList<>(list);
         method.setFastNodes(fastList);
+        if (classFile.getMajorVersion() >= Const.MAJOR_1_7) {
+            EcjTryWithResourcesReconstructor.reconstruct(classFile, method, fastList);
+        }
         if (classFile.getMajorVersion() >= Const.MAJOR_11) {
             TryWithResourcesReconstructor.reconstruct(classFile, method, fastList);
         }
