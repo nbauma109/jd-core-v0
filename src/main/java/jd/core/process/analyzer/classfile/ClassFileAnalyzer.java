@@ -30,6 +30,7 @@ import org.apache.bcel.classfile.RecordComponentInfo;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.ExceptionUtil;
 import org.jd.core.v1.util.StringConstants;
 
+import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -1385,11 +1386,12 @@ public final class ClassFileAnalyzer
         // Recherche du champ statique possedant un acces ACC_ENUM et un
         // type '[LenumXXXX;'
         Instruction instruction;
-        String fieldName;
         for (Field field : classFile.getFields())
         {
+            // Other synthetic fields may be initialized by methods of libraries, such as "$ENTRIES" of Kotlin
             if ((field.getAccessFlags() & (Const.ACC_SYNTHETIC|Const.ACC_ENUM)) == 0 ||
-                    field.getValueAndMethod() == null) {
+                    field.getValueAndMethod() == null ||
+                    !isValuesArray(constants, field, enumArraySignature)) {
                 continue;
             }
 
@@ -1402,19 +1404,17 @@ public final class ClassFileAnalyzer
                 String signature = constants.getConstantUtf8(cnat.getSignatureIndex());
                 Method method = classFile.getMethod(name, signature);
                 InitArrayInstructionReconstructor.reconstruct(method.getInstructions());
-                ReturnInstruction returnInstruction = (ReturnInstruction) method.getInstructions().get(0);
-                instruction = returnInstruction.getValueref();
+                if (method.getInstructions().get(0) instanceof ReturnInstruction returnInstruction) {
+                    instruction = returnInstruction.getValueref();
+                } else {
+                    // Kotlin fills the array through a local variable
+                    classFile.setEnumValues(storedValues(method.getInstructions()));
+                    break;
+                }
             }
 
             if (instruction.getOpcode() != ByteCodeConstants.INITARRAY &&
-                    instruction.getOpcode() != ByteCodeConstants.NEWANDINITARRAY ||
-                    !constants.getConstantUtf8(field.getDescriptorIndex()).equals(enumArraySignature)) {
-                continue;
-            }
-
-            fieldName = constants.getConstantUtf8(field.getNameIndex());
-            if (! StringConstants.ENUM_VALUES_ARRAY_NAME.equals(fieldName) &&
-                    ! StringConstants.ENUM_VALUES_ARRAY_NAME_ECLIPSE.equals(fieldName)) {
+                    instruction.getOpcode() != ByteCodeConstants.NEWANDINITARRAY) {
                 continue;
             }
 
@@ -1422,5 +1422,22 @@ public final class ClassFileAnalyzer
             classFile.setEnumValues(((InitArrayInstruction)instruction).getValues());
             break;
         }
+    }
+
+    private static boolean isValuesArray(ConstantPool constants, Field field, String enumArraySignature)
+    {
+        String fieldName = constants.getConstantUtf8(field.getNameIndex());
+        return constants.getConstantUtf8(field.getDescriptorIndex()).equals(enumArraySignature)
+                && List.of(StringConstants.ENUM_VALUES_ARRAY_NAME, StringConstants.ENUM_VALUES_ARRAY_NAME_ECLIPSE)
+                        .contains(fieldName);
+    }
+
+    /** @return the elements stored by "T[] a = new T[n]; a[0] = X; ... return a;" */
+    private static List<Instruction> storedValues(List<Instruction> instructions)
+    {
+        return instructions.stream()
+                .filter(ArrayStoreInstruction.class::isInstance)
+                .map(instruction -> ((ArrayStoreInstruction) instruction).getValueref())
+                .collect(Collectors.toList());
     }
 }
