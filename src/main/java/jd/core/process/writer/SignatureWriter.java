@@ -180,6 +180,10 @@ public final class SignatureWriter
             varargsParameterIndex = SignatureUtil.getParameterSignatureCount(signature) - 1;
         }
 
+        // javac gives no annotation entry to the parameters it adds to constructors, such as the enclosing
+        // instance, the name and ordinal of an enum constant, or the captured variables of a local class
+        int parameterCount = SignatureUtil.getParameterSignatureCount(signature);
+
         char firstChar;
         while (caSignature[index] != ')') {
             firstChar = caSignature[index];
@@ -190,17 +194,19 @@ public final class SignatureWriter
                 }
 
                 // Affichage des annotations invisibles
-                if (invisibleParameterAnnotations != null) {
+                ParameterAnnotationEntry invisible = findParameterAnnotations(
+                        invisibleParameterAnnotations, parameterIndex, parameterCount, firstVisibleParameterIndex);
+                if (invisible != null) {
                     AnnotationWriter.writeParameterAnnotation(
-                        loader, printer, referenceMap, classFile,
-                        invisibleParameterAnnotations[parameterIndex]);
+                        loader, printer, referenceMap, classFile, invisible);
                 }
 
                 // Affichage des annotations visibles
-                if (visibleParameterAnnotations != null) {
+                ParameterAnnotationEntry visible = findParameterAnnotations(
+                        visibleParameterAnnotations, parameterIndex, parameterCount, firstVisibleParameterIndex);
+                if (visible != null) {
                     AnnotationWriter.writeParameterAnnotation(
-                        loader, printer, referenceMap, classFile,
-                        visibleParameterAnnotations[parameterIndex]);
+                        loader, printer, referenceMap, classFile, visible);
                 }
 
                 LocalVariable lv = null;
@@ -658,5 +664,17 @@ public final class SignatureWriter
 
         return endIndex-beginIndex == length && StringConstants.INTERNAL_OBJECT_SIGNATURE.equals(
                 CharArrayUtil.substring(caSignature, beginIndex, endIndex));
+    }
+
+    /** @return the annotations of the parameter, or null if the attribute has no entry for it */
+    private static ParameterAnnotationEntry findParameterAnnotations(ParameterAnnotationEntry[] annotations,
+            int parameterIndex, int parameterCount, int firstVisibleParameterIndex)
+    {
+        if (annotations == null) {
+            return null;
+        }
+        // A shorter table starts at the first parameter of the source
+        int index = annotations.length < parameterCount ? parameterIndex - firstVisibleParameterIndex : parameterIndex;
+        return index >= 0 && index < annotations.length ? annotations[index] : null;
     }
 }

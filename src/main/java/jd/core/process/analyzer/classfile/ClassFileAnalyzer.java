@@ -30,6 +30,7 @@ import org.apache.bcel.classfile.RecordComponentInfo;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.ExceptionUtil;
 import org.jd.core.v1.util.StringConstants;
 
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -145,7 +146,7 @@ public final class ClassFileAnalyzer
             Map<String, ClassFile> innerClassesMap,
             ClassFile classFile)
     {
-        if ((classFile.getAccessFlags() & Const.ACC_SYNTHETIC) != 0) {
+        if (isCompilerGenerated(classFile)) {
             // All switch maps must be available before analyzing nested consumers.
             analyzeSyntheticClass(classFile);
         }
@@ -169,12 +170,25 @@ public final class ClassFileAnalyzer
         }
     }
 
+    /**
+     * Compilers declare synthetic the classes holding their switch maps. Kotlin also declares synthetic classes whose
+     * methods are written in the source, and which are analyzed like any other class.
+     */
+    private static boolean isCompilerGenerated(ClassFile classFile)
+    {
+        ConstantPool constants = classFile.getConstantPool();
+        return (classFile.getAccessFlags() & Const.ACC_SYNTHETIC) != 0
+                && Arrays.stream(classFile.getMethods()).allMatch(method ->
+                        method.getNameIndex() == constants.getClassConstructorIndex()
+                        || (method.getAccessFlags() & (Const.ACC_SYNTHETIC|Const.ACC_BRIDGE)) != 0);
+    }
+
     private static void analyzeClass(
             ReferenceMap referenceMap,
             Map<String, ClassFile> innerClassesMap,
             ClassFile classFile)
     {
-        if ((classFile.getAccessFlags() & Const.ACC_SYNTHETIC) == 0)
+        if (!isCompilerGenerated(classFile))
         {
             // Analyse des classes internes avant l'analyse de la classe pour
             // afficher correctement des classes anonymes.
