@@ -6,6 +6,7 @@ public class ReturnInFinally {
     volatile boolean closed;
     final Object needToPoll = new Object();
 
+    @SuppressWarnings("java:S1172") // The call in the finally block must pass arguments
     int threadExit(Runnable r, boolean replaceMe) {
         return 0;
     }
@@ -15,6 +16,7 @@ public class ReturnInFinally {
     }
 
     void implClose() {
+        // Only the call matters
     }
 
     Object take() throws InterruptedException {

@@ -2,26 +2,27 @@
 /*    */ 
 /*    */ public class ThrowingDefaultSwitch
 /*    */ {
-/*    */   static int assigned(int k, boolean trace) {
-/*  6 */     if (trace) {
-/*  7 */       System.out.println(k);
+/*    */   static int assigned(int k, boolean trace)
+/*    */   {
+/*  7 */     if (trace) {
+/*  8 */       System.out.println(k);
 /*    */     }
-/*  9 */     int result = switch (k) {
-/* 10 */       case 0 -> 10;
-/* 11 */       case 1 -> 20;
-/* 12 */       default -> throw new IllegalStateException();
+/* 10 */     int result = switch (k) {
+/* 11 */       case 0 -> 10;
+/* 12 */       case 1 -> 20;
+/* 13 */       default -> throw new IllegalStateException();
 /*    */     };
-/* 14 */     return result;
+/* 15 */     return result;
 /*    */   }
 /*    */   
 /*    */   static String returned(int k, boolean trace) {
-/* 18 */     if (trace) {
-/* 19 */       System.out.println(k);
+/* 19 */     if (trace) {
+/* 20 */       System.out.println(k);
 /*    */     }
-/* 21 */     return switch (k) {
-/* 22 */       case 0 -> "zero";
-/* 23 */       case 1 -> "one";
-/* 24 */       default -> throw new IllegalArgumentException();
+/* 22 */     return switch (k) {
+/* 23 */       case 0 -> "zero";
+/* 24 */       case 1 -> "one";
+/* 25 */       default -> throw new IllegalArgumentException();
 /*    */     };
 /*    */   }
 /*    */ }

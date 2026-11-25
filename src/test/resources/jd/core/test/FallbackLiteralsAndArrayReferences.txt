@@ -11,7 +11,8 @@
 /* 11 */     return String[]::new;
 /*    */   }
 /*    */   
-/*    */   static Object argument(IntFunction<int[][]> generator) {
-/* 15 */     return argument(int[][]::new);
+/*    */   static Object argument(IntFunction<int[][]> generator)
+/*    */   {
+/* 16 */     return argument(int[][]::new);
 /*    */   }
 /*    */ }

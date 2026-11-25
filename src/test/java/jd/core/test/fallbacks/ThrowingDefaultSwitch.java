@@ -2,6 +2,7 @@ package jd.core.test.fallbacks;
 
 /** The value of the last case is only consumed if the default case, written after it, does not complete. */
 public class ThrowingDefaultSwitch {
+    @SuppressWarnings("java:S1488") // The switch expression must be stored, not returned
     static int assigned(int k, boolean trace) {
         if (trace) {
             System.out.println(k);

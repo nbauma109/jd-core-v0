@@ -133,11 +133,8 @@ public class GotoFactory implements InstructionFactory
 
     private static boolean isStoreOrReturn(byte[] code, int pos)
     {
-        if (pos < 0 || pos >= code.length) {
-            return false;
-        }
         int opcode = code[pos] & 255;
-        if (opcode == Const.WIDE && pos + 1 < code.length) {
+        if (opcode == Const.WIDE) {
             opcode = code[pos + 1] & 255;
         }
         return opcode >= Const.ISTORE && opcode <= Const.ASTORE_3

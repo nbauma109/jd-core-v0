@@ -11,6 +11,7 @@ public class LiteralsAndArrayReferences {
         return String[]::new;
     }
 
+    @SuppressWarnings("java:S1172") // The parameter gives the method reference its target type
     static Object argument(IntFunction<int[][]> generator) {
         return argument(int[][]::new);
     }

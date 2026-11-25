@@ -6,76 +6,78 @@
 /*    */   volatile boolean closed;
 /*  7 */   final Object needToPoll = new Object();
 /*    */   
-/*    */   int threadExit(Runnable r, boolean replaceMe) {
-/* 10 */     return 0;
+/*    */   int threadExit(Runnable r, boolean replaceMe)
+/*    */   {
+/* 11 */     return 0;
 /*    */   }
 /*    */   
 /*    */   boolean isShutdown() {
-/* 14 */     return this.closed;
+/* 15 */     return this.closed;
 /*    */   }
 /*    */   
 /*    */   void implClose() {}
 /*    */   
-/*    */   Object take() throws InterruptedException
+/*    */   Object take()
+/*    */     throws InterruptedException
 /*    */   {
-/* 21 */     return null;
+/* 23 */     return null;
 /*    */   }
 /*    */   
 /*    */   Runnable pollTask() {
-/* 25 */     return null;
+/* 27 */     return null;
 /*    */   }
 /*    */   
 /*    */   class Task implements Runnable {
 /*    */     Object poll() throws IOException {
-/* 30 */       return null;
+/* 32 */       return null;
 /*    */     }
 /*    */     
 /*    */     public void run() {
-/* 34 */       Object group = Thread.currentThread().getThreadGroup();
-/* 35 */       boolean isPooledThread = group != null;
-/* 36 */       boolean replaceMe = false;
+/* 36 */       Object group = Thread.currentThread().getThreadGroup();
+/* 37 */       boolean isPooledThread = group != null;
+/* 38 */       boolean replaceMe = false;
 /*    */       try
 /*    */       {
 /*    */         for (;;) {
-/* 40 */           if (isPooledThread)
-/* 41 */             System.gc();
+/* 42 */           if (isPooledThread)
+/* 43 */             System.gc();
 /*    */           Object ev;
-/* 43 */           try { replaceMe = false;
-/* 44 */             ev = ReturnInFinally.this.take();
-/* 45 */             if (ev == ReturnInFinally.this.needToPoll) {
+/* 45 */           try { replaceMe = false;
+/* 46 */             ev = ReturnInFinally.this.take();
+/* 47 */             if (ev == ReturnInFinally.this.needToPoll) {
 /*    */               try {
-/* 47 */                 ev = poll();
+/* 49 */                 ev = poll();
 /*    */               } catch (IOException x) {
-/* 49 */                 x.printStackTrace();
-/* 50 */                 return;
+/* 51 */                 x.printStackTrace();
+/* 52 */                 return;
 /*    */               }
 /*    */             }
 /*    */           } catch (InterruptedException x) {
-/* 54 */             continue;
+/* 56 */             continue;
 /*    */           }
-/* 56 */           if (ev == group) {
-/* 57 */             Runnable task = ReturnInFinally.this.pollTask();
-/* 58 */             if (task == null) {
-/* 59 */               return;
+/* 58 */           if (ev == group) {
+/* 59 */             Runnable task = ReturnInFinally.this.pollTask();
+/* 60 */             if (task == null) {
+/* 61 */               return;
 /*    */             }
-/* 61 */             replaceMe = true;
-/* 62 */             task.run();
-/* 63 */             continue;
+/* 63 */             replaceMe = true;
+/* 64 */             task.run();
+/* 65 */             continue;
 /*    */           }
 /*    */           try {
-/* 66 */             ev.notify();
+/* 68 */             ev.notify();
 /*    */           } catch (Error x) {
-/* 68 */             replaceMe = true;
-/* 69 */             throw x;
+/* 70 */             replaceMe = true;
+/* 71 */             throw x;
 /*    */           } catch (RuntimeException x) {
-/* 71 */             replaceMe = true;
-/* 72 */             throw x;
+/* 73 */             replaceMe = true;
+/* 74 */             throw x;
 /*    */           }
 /*    */         }
 /*    */       } finally {
-/* 76 */         int remaining = ReturnInFinally.this.threadExit(this, replaceMe);
-/* 77 */         if (remaining == 0 && ReturnInFinally.this.isShutdown()) {
-/* 78 */           ReturnInFinally.this.implClose();
+/* 78 */         int remaining = ReturnInFinally.this.threadExit(this, replaceMe);
+/* 79 */         if (remaining == 0 && ReturnInFinally.this.isShutdown()) {
+/* 80 */           ReturnInFinally.this.implClose();
 /*    */         }
 /*    */       }
 /*    */     }

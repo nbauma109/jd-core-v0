@@ -4,6 +4,7 @@ import java.util.List;
 
 /** The temporary variables of the switch reuse the slots of the loop variables, which have no entry of their own. */
 public class ReusedSwitchSlots {
+    @SuppressWarnings("java:S1488") // The variable keeps the slot layout under test
     static String check(StringBuilder log, List<String> entries) {
         try {
             String name = entries.get(0);
