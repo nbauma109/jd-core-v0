@@ -2423,6 +2423,7 @@ public final class FastCodeExceptionAnalyzer
                 {
                     tryInstructions.remove(length);
                     fce.setTryToOffset(g.getOffset());
+                    fastTry.setRemovedTryGoto(g.getOffset(), g.getJumpOffset());
                 }
             }
 
@@ -2450,6 +2451,7 @@ public final class FastCodeExceptionAnalyzer
                         if (g.getBranch() > 0)
                         {
                             catchInstructions.remove(length);
+                            fastTry.getCatches().get(i).setRemovedGoto(g.getOffset(), g.getJumpOffset());
                         }
                     }
 

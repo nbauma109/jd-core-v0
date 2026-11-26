@@ -123,10 +123,10 @@
 /* 123 */           in.read();
 /*     */         } catch (IOException e) {
 /* 125 */           System.out.println(e);
-/*     */           continue;
 /*     */         }
 /*     */         break;
-/* 129 */       default:  System.out.println(i);
+/*     */       default: 
+/* 129 */         System.out.println(i);
 /*     */       }
 /*     */     }
 /*     */   }
