@@ -40,89 +40,90 @@
 /*  40 */     work(5);
 /*     */   }
 /*     */   
-/*     */   static void returningFinally(int i) {
-/*  44 */     switch (i) {
+/*     */   static void returningFinally(int i)
+/*     */   {
+/*  45 */     switch (i) {
 /*     */     case 0: 
 /*     */       try {
-/*  47 */         work(1);
-/*  48 */         return;
+/*  48 */         work(1);
+/*  49 */         return;
 /*     */       } finally {
-/*  50 */         work(2);
+/*  51 */         work(2);
 /*     */       }
 /*     */     }
-/*  53 */     work(4);
+/*  54 */     work(4);
 /*     */     
-/*  55 */     work(5);
+/*  56 */     work(5);
 /*     */   }
 /*     */   
 /*     */   static void returningCatchRethrows(int i)
 /*     */   {
-/*  60 */     switch (i) {
+/*  61 */     switch (i) {
 /*     */     case 0: 
 /*     */       try {
-/*  63 */         work(1);
-/*  64 */         return;
+/*  64 */         work(1);
+/*  65 */         return;
 /*     */       } catch (RuntimeException e) {
-/*  66 */         throw e;
+/*  67 */         throw e;
 /*     */       }
 /*     */     }
-/*  69 */     work(4);
+/*  70 */     work(4);
 /*     */     
-/*  71 */     work(5);
+/*  72 */     work(5);
 /*     */   }
 /*     */   
 /*     */   static void returningCatchFinally(int i)
 /*     */   {
-/*  76 */     switch (i) {
+/*  77 */     switch (i) {
 /*     */     case 0: 
 /*     */       try {
-/*  79 */         work(1);
-/*  80 */         return;
+/*  80 */         work(1);
+/*  81 */         return;
 /*     */       } catch (RuntimeException e) {
-/*  82 */         throw e;
+/*  83 */         throw e;
 /*     */       } finally {
-/*  84 */         work(6);
+/*  85 */         work(6);
 /*     */       }
 /*     */     }
-/*  87 */     work(4);
+/*  88 */     work(4);
 /*     */     
-/*  89 */     work(5);
+/*  90 */     work(5);
 /*     */   }
 /*     */   
-/*     */   static void monitor(int i, Object lock) {
-/*  93 */     switch (i) {
+/*     */   static void monitor(int i) {
+/*  94 */     switch (i) {
 /*     */     case 0: 
-/*  95 */       synchronized (SwitchCaseShapes.class) {
-/*  96 */         work(1);
+/*  96 */       synchronized (SwitchCaseShapes.class) {
+/*  97 */         work(1);
 /*     */       }
-/*  98 */       break;
+/*  99 */       break;
 /*     */     default: 
-/* 100 */       work(4);
+/* 101 */       work(4);
 /*     */     }
-/* 102 */     work(5);
+/* 103 */     work(5);
 /*     */   }
 /*     */   
 /*     */   static void catchFinally(int i) {
-/* 106 */     switch (i) {
+/* 107 */     switch (i) {
 /*     */     case 0: 
 /*     */       try {
-/* 109 */         work(1);
+/* 110 */         work(1);
 /*     */       } catch (RuntimeException e) {
-/* 111 */         work(2);
+/* 112 */         work(2);
 /*     */       } finally {
-/* 113 */         work(6);
+/* 114 */         work(6);
 /*     */       }
-/* 115 */       break;
+/* 116 */       break;
 /*     */     default: 
-/* 117 */       work(4);
+/* 118 */       work(4);
 /*     */     }
-/* 119 */     work(5);
+/* 120 */     work(5);
 /*     */   }
 /*     */   
 /*     */   static void work(int i) {
-/* 123 */     System.out.println(i);
-/* 124 */     if ((failures & 1 << i) != 0) {
-/* 125 */       throw new IllegalStateException();
+/* 124 */     System.out.println(i);
+/* 125 */     if ((failures & 1 << i) != 0) {
+/* 126 */       throw new IllegalStateException();
 /*     */     }
 /*     */   }
 /*     */ }

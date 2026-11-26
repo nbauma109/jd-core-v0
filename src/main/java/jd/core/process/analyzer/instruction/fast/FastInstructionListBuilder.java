@@ -1044,20 +1044,15 @@ public final class FastInstructionListBuilder {
      * when the statement never completes normally on one of its paths.
      */
     private static int limitToSwitchCase(List<Instruction> list, int tryFromOffset, int afterOffset) {
-        int result = afterOffset;
-        for (Instruction instruction : list) {
-            if (instruction instanceof Switch s && s.getOffset() < tryFromOffset) {
-                int next = IntStream.concat(IntStream.of(s.getDefaultOffset()), IntStream.of(s.getOffsets()))
-                        .map(offset -> s.getOffset() + offset)
-                        .filter(offset -> offset > tryFromOffset)
-                        .min()
-                        .orElse(-1);
-                if (next != -1 && (result == -1 || next < result)) {
-                    result = next;
-                }
-            }
-        }
-        return result;
+        int next = list.stream()
+                .filter(instruction -> instruction instanceof Switch && instruction.getOffset() < tryFromOffset)
+                .map(Switch.class::cast)
+                .flatMapToInt(s -> IntStream.concat(IntStream.of(s.getDefaultOffset()), IntStream.of(s.getOffsets()))
+                        .map(offset -> s.getOffset() + offset))
+                .filter(offset -> offset > tryFromOffset)
+                .min()
+                .orElse(afterOffset);
+        return afterOffset == -1 ? next : Math.min(next, afterOffset);
     }
 
     private static void createFastTry(ReferenceMap referenceMap, ClassFile classFile,
@@ -5078,7 +5073,10 @@ public final class FastInstructionListBuilder {
     }
 
     private static boolean neverCompletes(List<Instruction> block) {
-        return !block.isEmpty() && isTerminalInstruction(block.get(block.size() - 1));
+        return block.stream()
+                .reduce((previous, next) -> next)
+                .filter(FastInstructionListBuilder::isTerminalInstruction)
+                .isPresent();
     }
 
     /** The cases ending with a 'try' statement leaving the switch need a 'break', which the statement does not hold. */

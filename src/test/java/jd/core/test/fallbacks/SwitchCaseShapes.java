@@ -40,6 +40,7 @@ public class SwitchCaseShapes {
         work(5);
     }
 
+    @SuppressWarnings("java:S128") // The missing "break" is the shape under test
     static void returningFinally(int i) {
         switch (i) {
             case 0:
@@ -71,7 +72,7 @@ public class SwitchCaseShapes {
         work(5);
     }
 
-    @SuppressWarnings("java:S2737") // The rethrowing "catch" block is the shape under test
+    @SuppressWarnings({"java:S2737", "java:S128"}) // The rethrowing "catch" block and the missing "break" are under test
     static void returningCatchFinally(int i) {
         switch (i) {
             case 0:
@@ -89,7 +90,7 @@ public class SwitchCaseShapes {
         work(5);
     }
 
-    static void monitor(int i, Object lock) {
+    static void monitor(int i) {
         switch (i) {
             case 0:
                 synchronized (SwitchCaseShapes.class) {
