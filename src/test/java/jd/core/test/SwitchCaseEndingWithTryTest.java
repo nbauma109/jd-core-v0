@@ -29,6 +29,16 @@ public class SwitchCaseEndingWithTryTest extends AbstractTestCase {
                 "SwitchCaseFallingThroughTryEcj17.txt");
     }
 
+    @Test
+    public void testShapesOfJavac() throws Exception {
+        assertDecompiles("/switch-case-try-javac17.jar", "SwitchCaseShapes", "SwitchCaseShapesJavac17.txt");
+    }
+
+    @Test
+    public void testShapesOfEcj() throws Exception {
+        assertDecompiles("/switch-case-try-ecj17.jar", "SwitchCaseShapes", "SwitchCaseShapesEcj17.txt");
+    }
+
     private void assertDecompiles(String jar, String expected) throws IOException {
         assertDecompiles(jar, "SwitchCaseEndingWithTry", expected);
     }

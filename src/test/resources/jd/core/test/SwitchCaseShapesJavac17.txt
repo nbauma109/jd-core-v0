@@ -1,0 +1,128 @@
+/*     */ package jd.core.test.fallbacks;
+/*     */ 
+/*     */ public class SwitchCaseShapes
+/*     */ {
+/*     */   static int failures;
+/*     */   
+/*     */   static void finallyFallsThrough(int i)
+/*     */   {
+/*   9 */     switch (i) {
+/*     */     case 0: 
+/*     */       try {
+/*  12 */         work(1);
+/*     */       } finally {
+/*  14 */         work(2);
+/*     */       }
+/*     */     case 1: 
+/*  17 */       work(3);
+/*  18 */       break;
+/*     */     default: 
+/*  20 */       work(4);
+/*     */     }
+/*  22 */     work(5);
+/*     */   }
+/*     */   
+/*     */   static void catchFallsThrough(int i)
+/*     */   {
+/*  27 */     switch (i) {
+/*     */     case 0: 
+/*     */       try {
+/*  30 */         work(1);
+/*     */       } catch (RuntimeException e) {
+/*  32 */         work(2);
+/*     */       }
+/*     */     case 1: 
+/*  35 */       work(3);
+/*  36 */       break;
+/*     */     default: 
+/*  38 */       work(4);
+/*     */     }
+/*  40 */     work(5);
+/*     */   }
+/*     */   
+/*     */   static void returningFinally(int i) {
+/*  44 */     switch (i) {
+/*     */     case 0: 
+/*     */       try {
+/*  47 */         work(1);
+/*  48 */         return;
+/*     */       } finally {
+/*  50 */         work(2);
+/*     */       }
+/*     */     }
+/*  53 */     work(4);
+/*     */     
+/*  55 */     work(5);
+/*     */   }
+/*     */   
+/*     */   static void returningCatchRethrows(int i)
+/*     */   {
+/*  60 */     switch (i) {
+/*     */     case 0: 
+/*     */       try {
+/*  63 */         work(1);
+/*  64 */         return;
+/*     */       } catch (RuntimeException e) {
+/*  66 */         throw e;
+/*     */       }
+/*     */     }
+/*  69 */     work(4);
+/*     */     
+/*  71 */     work(5);
+/*     */   }
+/*     */   
+/*     */   static void returningCatchFinally(int i)
+/*     */   {
+/*  76 */     switch (i) {
+/*     */     case 0: 
+/*     */       try {
+/*  79 */         work(1);
+/*  80 */         return;
+/*     */       } catch (RuntimeException e) {
+/*  82 */         throw e;
+/*     */       } finally {
+/*  84 */         work(6);
+/*     */       }
+/*     */     }
+/*  87 */     work(4);
+/*     */     
+/*  89 */     work(5);
+/*     */   }
+/*     */   
+/*     */   static void monitor(int i, Object lock) {
+/*  93 */     switch (i) {
+/*     */     case 0: 
+/*  95 */       synchronized (SwitchCaseShapes.class) {
+/*  96 */         work(1);
+/*     */       }
+/*  98 */       break;
+/*     */     default: 
+/* 100 */       work(4);
+/*     */     }
+/* 102 */     work(5);
+/*     */   }
+/*     */   
+/*     */   static void catchFinally(int i) {
+/* 106 */     switch (i) {
+/*     */     case 0: 
+/*     */       try {
+/* 109 */         work(1);
+/*     */       } catch (RuntimeException e) {
+/* 111 */         work(2);
+/*     */       } finally {
+/* 113 */         work(6);
+/*     */       }
+/* 115 */       break;
+/*     */     default: 
+/* 117 */       work(4);
+/*     */     }
+/* 119 */     work(5);
+/*     */   }
+/*     */   
+/*     */   static void work(int i) {
+/* 123 */     System.out.println(i);
+/* 124 */     if ((failures & 1 << i) != 0) {
+/* 125 */       throw new IllegalStateException();
+/*     */     }
+/*     */   }
+/*     */ }

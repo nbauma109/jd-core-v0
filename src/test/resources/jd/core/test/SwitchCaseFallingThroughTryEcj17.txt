@@ -1,31 +1,52 @@
 /*    */ package jd.core.test.fallbacks;
 /*    */ 
+/*    */ 
+/*    */ 
 /*    */ public class SwitchCaseFallingThroughTry
 /*    */ {
 /*    */   static int failures;
 /*    */   
+/*    */ 
 /*    */   static void afterFinally(int i)
 /*    */   {
-/*  9 */     switch (i) {
+/* 12 */     switch (i) {
 /*    */     case 0: 
 /*    */       try {
-/* 12 */         work(1);
+/* 15 */         work(1);
 /*    */       } finally {
-/* 14 */         work(2);
+/* 17 */         work(2);
 /*    */       }
 /*    */     case 1: 
-/* 17 */       work(3);
-/* 18 */       break;
+/* 20 */       work(3);
+/* 21 */       break;
 /*    */     default: 
-/* 20 */       work(4);
+/* 23 */       work(4);
 /*    */     }
-/* 22 */     work(5);
+/* 25 */     work(5);
+/*    */   }
+/*    */   
+/*    */   static void returningCatchBreaks(int i) {
+/* 29 */     switch (i) {
+/*    */     case 0: 
+/*    */       try {
+/* 32 */         work(1);
+/* 33 */         return;
+/*    */       } catch (RuntimeException localRuntimeException) {
+/* 35 */         work(2);
+/*    */       } finally {
+/* 37 */         work(6);
+/*    */       }
+/*    */       break;
+/*    */     default: 
+/* 41 */       work(4);
+/*    */     }
+/* 43 */     work(5);
 /*    */   }
 /*    */   
 /*    */   static void work(int i) {
-/* 26 */     System.out.println(i);
-/* 27 */     if ((failures & 1 << i) != 0) {
-/* 28 */       throw new IllegalStateException();
+/* 47 */     System.out.println(i);
+/* 48 */     if ((failures & 1 << i) != 0) {
+/* 49 */       throw new IllegalStateException();
 /*    */     }
 /*    */   }
 /*    */ }
