@@ -17,164 +17,166 @@
 /*  17 */     work(5);
 /*     */   }
 /*     */   
-/*     */   static void emptyCatch(int i) {
-/*  21 */     switch (i) {
+/*     */   static void emptyCatch(int i)
+/*     */   {
+/*  22 */     switch (i) {
 /*     */     case 0: 
 /*     */       try {
-/*  24 */         work(1);
+/*  25 */         work(1);
 /*     */       }
 /*     */       catch (RuntimeException localRuntimeException) {}
 /*     */       break;
 /*     */     default: 
-/*  29 */       work(4);
+/*  30 */       work(4);
 /*     */     }
-/*  31 */     work(5);
+/*  32 */     work(5);
 /*     */   }
 /*     */   
 /*     */   static void middle(int i) {
-/*  35 */     switch (i) {
+/*  36 */     switch (i) {
 /*     */     case 0: 
 /*     */       try {
-/*  38 */         work(1);
+/*  39 */         work(1);
 /*     */       } catch (RuntimeException localRuntimeException) {
-/*  40 */         work(2);
+/*  41 */         work(2);
 /*     */       }
 /*     */       break;
 /*     */     case 1: 
-/*  44 */       work(3);
-/*  45 */       break;
+/*  45 */       work(3);
+/*  46 */       break;
 /*     */     default: 
-/*  47 */       work(4);
+/*  48 */       work(4);
 /*     */     }
-/*  49 */     work(5);
+/*  50 */     work(5);
 /*     */   }
 /*     */   
 /*     */   static void afterTry(int i) {
-/*  53 */     switch (i) {
+/*  54 */     switch (i) {
 /*     */     case 0: 
 /*     */       try {
-/*  56 */         work(1);
+/*  57 */         work(1);
 /*     */       } catch (RuntimeException localRuntimeException) {
-/*  58 */         work(2);
+/*  59 */         work(2);
 /*     */       }
-/*  60 */       work(3);
-/*  61 */       break;
+/*  61 */       work(3);
+/*  62 */       break;
 /*     */     default: 
-/*  63 */       work(4);
+/*  64 */       work(4);
 /*     */     }
-/*  65 */     work(5);
+/*  66 */     work(5);
 /*     */   }
 /*     */   
 /*     */   static void fin(int i) {
-/*  69 */     switch (i) {
+/*  70 */     switch (i) {
 /*     */     case 0: 
 /*     */       try {
-/*  72 */         work(1);
+/*  73 */         work(1);
 /*     */       } finally {
-/*  74 */         work(2);
+/*  75 */         work(2);
 /*     */       }
-/*  76 */       break;
+/*  77 */       break;
 /*     */     default: 
-/*  78 */       work(4);
+/*  79 */       work(4);
 /*     */     }
-/*  80 */     work(5);
+/*  81 */     work(5);
 /*     */   }
 /*     */   
-/*     */   static void lastCase(int i) {
-/*  84 */     switch (i) {
+/*     */   static void lastCase(int i)
+/*     */   {
+/*  86 */     switch (i) {
 /*     */     case 1: 
-/*  86 */       work(3);
-/*  87 */       break;
+/*  88 */       work(3);
+/*  89 */       break;
 /*     */     case 0: 
 /*     */       try {
-/*  90 */         work(1);
+/*  92 */         work(1);
 /*     */       } catch (RuntimeException localRuntimeException) {
-/*  92 */         work(2);
+/*  94 */         work(2);
 /*     */       }
 /*     */       break;
 /*     */     }
-/*  96 */     work(5);
+/*  98 */     work(5);
 /*     */   }
 /*     */   
 /*     */   static void loopAround(int n) {
-/* 100 */     for (int i = 0; i < n; i++) {
-/* 101 */       switch (i) {
+/* 102 */     for (int i = 0; i < n; i++) {
+/* 103 */       switch (i) {
 /*     */       case 0: 
 /*     */         try {
-/* 104 */           work(1);
+/* 106 */           work(1);
 /*     */         } catch (RuntimeException localRuntimeException) {
-/* 106 */           work(2);
+/* 108 */           work(2);
 /*     */         }
 /*     */         break;
 /*     */       default: 
-/* 110 */         work(4);
+/* 112 */         work(4);
 /*     */       }
-/* 112 */       work(5);
+/* 114 */       work(5);
 /*     */     }
 /*     */   }
 /*     */   
 /*     */   static void nestedInCatch(int i) {
-/* 117 */     switch (i) {
+/* 119 */     switch (i) {
 /*     */     case 0: 
 /*     */       try {
-/* 120 */         work(1);
+/* 122 */         work(1);
 /*     */       } catch (RuntimeException localRuntimeException1) {
 /*     */         try {
-/* 123 */           work(2);
+/* 125 */           work(2);
 /*     */         } catch (RuntimeException localRuntimeException2) {
-/* 125 */           work(3);
+/* 127 */           work(3);
 /*     */         }
 /*     */         break;
 /*     */       }
 /*     */       break;
-/* 130 */     default:  work(4);
+/* 132 */     default:  work(4);
 /*     */     }
-/* 132 */     work(5);
+/* 134 */     work(5);
 /*     */   }
 /*     */   
 /*     */   static void throwingBody(int i) {
-/* 136 */     switch (i) {
+/* 138 */     switch (i) {
 /*     */     case 0: 
 /*     */       try {
-/* 139 */         work(1);
-/* 140 */         throw new IllegalStateException();
+/* 141 */         work(1);
+/* 142 */         throw new IllegalStateException();
 /*     */       } catch (RuntimeException localRuntimeException) {
-/* 142 */         work(2);
+/* 144 */         work(2);
 /*     */       }
 /*     */       break;
 /*     */     default: 
-/* 146 */       work(4);
+/* 148 */       work(4);
 /*     */     }
-/* 148 */     work(5);
+/* 150 */     work(5);
 /*     */   }
 /*     */   
 /*     */   static void conditionAroundTry(int[] values, int wanted) {
-/* 152 */     for (int j = 0; j < values.length; j++) {
-/* 153 */       if (values[j] == wanted) {
-/* 154 */         if (wanted == 0) {
-/* 155 */           work(1);
-/* 156 */           break; } if (wanted > 1) {
+/* 154 */     for (int j = 0; j < values.length; j++) {
+/* 155 */       if (values[j] == wanted) {
+/* 156 */         if (wanted == 0) {
+/* 157 */           work(1);
+/* 158 */           break; } if (wanted > 1) {
 /*     */           try {
-/* 158 */             work(2);
+/* 160 */             work(2);
 /*     */           } catch (RuntimeException localRuntimeException) {
-/* 160 */             work(3); }
+/* 162 */             work(3); }
 /*     */           break; }
-/* 162 */         if (wanted <= 0) break;
-/* 163 */         work(4);
+/* 164 */         if (wanted <= 0) break;
+/* 165 */         work(4);
 /*     */         
-/* 165 */         break;
+/* 167 */         break;
 /*     */       }
-/* 167 */       work(5);
+/* 169 */       work(5);
 /*     */     }
-/* 169 */     work(6);
+/* 171 */     work(6);
 /*     */   }
 /*     */   
 /*     */ 
 /*     */   static void work(int i)
 /*     */   {
-/* 175 */     System.out.println(i);
-/* 176 */     if ((failures & 1 << i) != 0) {
-/* 177 */       throw new IllegalStateException();
+/* 177 */     System.out.println(i);
+/* 178 */     if ((failures & 1 << i) != 0) {
+/* 179 */       throw new IllegalStateException();
 /*     */     }
 /*     */   }
 /*     */ }

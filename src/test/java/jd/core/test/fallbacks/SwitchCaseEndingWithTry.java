@@ -17,6 +17,7 @@ public class SwitchCaseEndingWithTry {
         work(5);
     }
 
+    @SuppressWarnings("java:S108") // The empty "catch" block is the shape under test
     static void emptyCatch(int i) {
         switch (i) {
             case 0:
@@ -80,6 +81,7 @@ public class SwitchCaseEndingWithTry {
         work(5);
     }
 
+    @SuppressWarnings("java:S131") // The "switch" without "default" is the shape under test
     static void lastCase(int i) {
         switch (i) {
             case 1:

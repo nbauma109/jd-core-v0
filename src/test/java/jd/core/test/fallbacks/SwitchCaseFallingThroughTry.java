@@ -4,6 +4,7 @@ package jd.core.test.fallbacks;
 public class SwitchCaseFallingThroughTry {
     static int failures;
 
+    @SuppressWarnings("java:S128") // Falling through is the shape under test
     static void afterFinally(int i) {
         switch (i) {
             case 0:

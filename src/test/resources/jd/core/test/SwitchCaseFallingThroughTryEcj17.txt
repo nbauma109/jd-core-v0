@@ -4,27 +4,28 @@
 /*    */ {
 /*    */   static int failures;
 /*    */   
-/*    */   static void afterFinally(int i) {
-/*  8 */     switch (i) {
+/*    */   static void afterFinally(int i)
+/*    */   {
+/*  9 */     switch (i) {
 /*    */     case 0: 
 /*    */       try {
-/* 11 */         work(1);
+/* 12 */         work(1);
 /*    */       } finally {
-/* 13 */         work(2);
+/* 14 */         work(2);
 /*    */       }
 /*    */     case 1: 
-/* 16 */       work(3);
-/* 17 */       break;
+/* 17 */       work(3);
+/* 18 */       break;
 /*    */     default: 
-/* 19 */       work(4);
+/* 20 */       work(4);
 /*    */     }
-/* 21 */     work(5);
+/* 22 */     work(5);
 /*    */   }
 /*    */   
 /*    */   static void work(int i) {
-/* 25 */     System.out.println(i);
-/* 26 */     if ((failures & 1 << i) != 0) {
-/* 27 */       throw new IllegalStateException();
+/* 26 */     System.out.println(i);
+/* 27 */     if ((failures & 1 << i) != 0) {
+/* 28 */       throw new IllegalStateException();
 /*    */     }
 /*    */   }
 /*    */ }
