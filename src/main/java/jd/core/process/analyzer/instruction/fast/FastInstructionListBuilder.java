@@ -26,6 +26,7 @@ import org.jd.core.v1.model.javasyntax.type.Type;
 import org.jd.core.v1.service.converter.classfiletojavasyntax.util.TypeMaker;
 import org.jd.core.v1.util.StringConstants;
 
+import java.util.stream.IntStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -1038,10 +1040,33 @@ public final class FastInstructionListBuilder {
         }
     }
 
+    /**
+     * A 'try' statement starting in a case of a 'switch' and handling its exceptions there ends before the following
+     * case, which no jump may announce when the statement never completes normally on one of its paths.
+     */
+    private static int limitToSwitchCase(List<Instruction> list, FastCodeExcepcion fce) {
+        int tryFromOffset = fce.getTryFromOffset();
+        int lastHandlerOffset = fce.getCatches().stream().mapToInt(FastCodeExceptionCatch::getFromOffset)
+                .reduce(fce.getFinallyFromOffset(), Math::max);
+        OptionalInt next = list.stream()
+                .filter(instruction -> instruction instanceof Switch && instruction.getOffset() < tryFromOffset)
+                .map(Switch.class::cast)
+                .flatMapToInt(s -> IntStream.concat(IntStream.of(s.getDefaultOffset()), IntStream.of(s.getOffsets()))
+                        .map(offset -> s.getOffset() + offset))
+                .filter(offset -> offset > tryFromOffset)
+                .min();
+        int afterOffset = fce.getAfterOffset();
+        if (next.isPresent() && next.getAsInt() > lastHandlerOffset
+                && (afterOffset == -1 || next.getAsInt() < afterOffset)) {
+            return next.getAsInt();
+        }
+        return afterOffset;
+    }
+
     private static void createFastTry(ReferenceMap referenceMap, ClassFile classFile,
             List<Instruction> list, LocalVariables localVariables, FastCodeExcepcion fce,
             int returnOffset) {
-        int afterListOffset = fce.getAfterOffset();
+        int afterListOffset = limitToSwitchCase(list, fce);
         int tryJumpOffset = -1;
         int lastIndex = list.size() - 1;
         int index;
@@ -4831,7 +4856,9 @@ public final class FastInstructionListBuilder {
                                 // Recherche de 'breakOffset'
                                 int breakOffsetTmp = searchMinusJumpOffset(instructions, 0, nbrInstructions,
                                         beforeCaseOffset, lastSwitchOffset);
-                                if (breakOffsetTmp != -1 && (breakOffset == -1 || breakOffset > breakOffsetTmp)) {
+                                // A jump to a following case lets the case fall through, unless it may be the end of the switch
+                                if (breakOffsetTmp != -1 && !startsCase(pairs, i + 1, pairLength, breakOffsetTmp)
+                                        && (breakOffset == -1 || breakOffset > breakOffsetTmp)) {
                                     breakOffset = breakOffsetTmp;
                                 }
 
@@ -5017,31 +5044,47 @@ public final class FastInstructionListBuilder {
     }
 
     /**
-     * @return where the 'try' statement jumps to when it completes normally, or -1 if it does not say: the jump of the
-     *         'try' block, else the common jump of the 'catch' blocks when the 'try' block never completes. javac writes
-     *         the jump of a 'try' statement with a 'finally' block after the copy of that block: the statement then
-     *         jumps to a 'goto'.
+     * @return where the statement jumps to when it completes normally, or -1 if it does not say: the jump of the
+     *         'try' block, else the jump of a 'catch' block. javac writes the jump of a 'try' statement with a
+     *         'finally' block after the copy of that block: the statement then jumps to a 'goto'. A 'synchronized'
+     *         block holds the jump leaving it.
      */
     private static int tryExitOffset(Method method, Instruction instruction) {
+        if (instruction instanceof FastSynchronized fs) {
+            return fs.getJumpOffset();
+        }
         if (!(instruction instanceof FastTry ft)) {
             return -1;
+        }
+        if (ft.getFinallyInstructions() != null) {
+            if (neverCompletes(ft.getInstructions())
+                    && ft.getCatches().stream().allMatch(fastCatch -> neverCompletes(fastCatch.instructions()))) {
+                return -1;
+            }
+            // ECJ writes this "goto" after the handlers: it is then the last instruction of the statement
+            byte[] code = method.getCode();
+            return IntStream.of(ft.getJumpOffset(), ft.getOffset())
+                    .filter(offset -> offset < code.length && (code[offset] & 255) == Const.GOTO)
+                    .map(offset -> offset + (short) ((code[offset + 1] & 255) << 8 | code[offset + 2] & 255))
+                    .findFirst()
+                    .orElse(ft.getJumpOffset());
         }
         if (ft.hasRemovedTryGoto()) {
             return ft.getRemovedTryGotoJumpOffset();
         }
-        if (ft.getFinallyInstructions() != null) {
-            byte[] code = method.getCode();
-            int offset = ft.getJumpOffset();
-            boolean jump = offset < code.length && (code[offset] & 255) == Const.GOTO;
-            return jump ? offset + (short) ((code[offset + 1] & 255) << 8 | code[offset + 2] & 255) : -1;
-        }
-        List<Instruction> body = ft.getInstructions();
-        boolean completes = body.isEmpty() || !isTerminalInstruction(body.get(body.size() - 1));
-        return completes ? -1 : ft.getCatches().stream()
+        // Without a jump of its own, the 'try' block never completes: compilers jump over the handlers otherwise
+        return ft.getCatches().stream()
                 .filter(FastCatch::hasRemovedGoto)
                 .mapToInt(FastCatch::getRemovedGotoJumpOffset)
                 .findFirst()
                 .orElse(-1);
+    }
+
+    private static boolean neverCompletes(List<Instruction> block) {
+        return block.stream()
+                .reduce((previous, next) -> next)
+                .filter(FastInstructionListBuilder::isTerminalInstruction)
+                .isPresent();
     }
 
     /** The cases ending with a 'try' statement leaving the switch need a 'break', which the statement does not hold. */
@@ -5060,11 +5103,22 @@ public final class FastInstructionListBuilder {
             // A jump to the following case lets the statement fall through
             if (exitOffset >= pairs[pairLength].getOffset()
                     && ByteCodeUtil.jumpTo(method.getCode(), exitOffset, breakOffset)) {
-                ((FastTry) last).clearRemovedTryGoto();
+                if (last instanceof FastTry ft) {
+                    ft.clearRemovedTryGoto();
+                }
                 instructions.add(new FastInstruction(FastConstants.GOTO_BREAK, last.getOffset() + 1,
                         Instruction.UNKNOWN_LINE_NUMBER, null));
             }
         }
+    }
+
+    /**
+     * @return whether a case from the given one starts at the offset. The offset of the last case is excluded, as the
+     *         cases missing from a table share it with the end of a switch without "default".
+     */
+    private static boolean startsCase(FastSwitch.Pair[] pairs, int from, int last, int offset) {
+        return offset < pairs[last].getOffset()
+                && Arrays.stream(pairs, from, last).anyMatch(pair -> pair.getOffset() == offset);
     }
 
     private static void removeLastInstruction(List<Instruction> instructions) {
