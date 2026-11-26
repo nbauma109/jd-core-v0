@@ -120,10 +120,46 @@
 /* 120 */     work(5);
 /*     */   }
 /*     */   
+/*     */   static void conditionEndingCatch(int i, boolean b) {
+/* 124 */     switch (i) {
+/*     */     case 0: 
+/*     */       try {
+/* 127 */         work(1);
+/*     */       } catch (IllegalStateException e) {
+/* 129 */         if (b) {
+/* 130 */           work(2);
+/*     */         }
+/*     */       }
+/*     */       break;
+/*     */     default: 
+/* 135 */       work(4);
+/*     */     }
+/* 137 */     work(5);
+/*     */   }
+/*     */   
+/*     */   static void catchBreakingEarly(int i, boolean b) {
+/* 141 */     switch (i) {
+/*     */     case 0: 
+/*     */       try {
+/* 144 */         work(1);
+/*     */       } catch (IllegalStateException e) {
+/* 146 */         if (b) {
+/*     */           break;
+/*     */         }
+/* 149 */         work(2);
+/*     */       }
+/* 151 */       work(3);
+/* 152 */       break;
+/*     */     default: 
+/* 154 */       work(4);
+/*     */     }
+/* 156 */     work(5);
+/*     */   }
+/*     */   
 /*     */   static void work(int i) {
-/* 124 */     System.out.println(i);
-/* 125 */     if ((failures & 1 << i) != 0) {
-/* 126 */       throw new IllegalStateException();
+/* 160 */     System.out.println(i);
+/* 161 */     if ((failures & 1 << i) != 0) {
+/* 162 */       throw new IllegalStateException();
 /*     */     }
 /*     */   }
 /*     */ }

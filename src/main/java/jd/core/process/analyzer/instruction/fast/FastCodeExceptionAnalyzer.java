@@ -1505,6 +1505,14 @@ public final class FastCodeExceptionAnalyzer
 
                         if (jumpOffsetTmp > instruction.getOffset())
                         {
+                            // In a 'switch', a condition of a 'catch' leaving the case does not end the 'catch' if
+                            // it jumps where the 'try' block does, or if the 'try' block jumps further than it
+                            if (jumpOffsetTmp > afterOffset && instruction.getOpcode() != Const.GOTO
+                                    && isInsideSwitchBlock(list, instruction.getOffset())
+                                    && (isExitOfTryBlock(list, fastCodeException, jumpOffsetTmp)
+                                            || isExitOfTryBlock(list, fastCodeException, afterOffset))) {
+                                break;
+                            }
                             // Saut positif
                             if (jumpOffsetTmp >= afterOffset) {
                                 if (instruction.getOpcode() == Const.GOTO ||
@@ -1642,6 +1650,15 @@ public final class FastCodeExceptionAnalyzer
         }
 
         return false;
+    }
+
+    /** @return true if the 'try' block of a statement without 'finally' ends with a jump to the offset */
+    private static boolean isExitOfTryBlock(List<Instruction> list, FastCodeExcepcion fce, int offset) {
+        // The jump ending the 'try' block precedes the first handler
+        return fce.getType() == FastConstants.TYPE_CATCH
+                && list.get(InstructionUtil.getIndexForOffset(list, fce.getCatches().get(0).getFromOffset())
+                        - 1) instanceof Goto exit
+                && exit.getJumpOffset() == offset;
     }
 
     private static int reduceAfterOffsetWithBranchInstructions(

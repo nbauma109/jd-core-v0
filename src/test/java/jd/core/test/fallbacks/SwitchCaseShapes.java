@@ -120,6 +120,42 @@ public class SwitchCaseShapes {
         work(5);
     }
 
+    static void conditionEndingCatch(int i, boolean b) {
+        switch (i) {
+            case 0:
+                try {
+                    work(1);
+                } catch (IllegalStateException e) {
+                    if (b) {
+                        work(2);
+                    }
+                }
+                break;
+            default:
+                work(4);
+        }
+        work(5);
+    }
+
+    static void catchBreakingEarly(int i, boolean b) {
+        switch (i) {
+            case 0:
+                try {
+                    work(1);
+                } catch (IllegalStateException e) {
+                    if (b) {
+                        break;
+                    }
+                    work(2);
+                }
+                work(3);
+                break;
+            default:
+                work(4);
+        }
+        work(5);
+    }
+
     static void work(int i) {
         System.out.println(i);
         if ((failures & 1 << i) != 0) {
