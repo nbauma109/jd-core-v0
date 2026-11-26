@@ -76,6 +76,7 @@ import jd.core.process.analyzer.classfile.reconstructor.InitInstanceFieldsRecons
 import jd.core.process.analyzer.classfile.reconstructor.InitStaticFieldsReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.NewInstructionReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.OuterReferenceReconstructor;
+import jd.core.process.analyzer.classfile.reconstructor.OuterReceiverCleanupReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.PostIncReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.PreIncReconstructor;
 import jd.core.process.analyzer.classfile.reconstructor.PatternMatchingReconstructor;
@@ -936,6 +937,7 @@ public final class ClassFileAnalyzer
         if (outerReferenceReconstructor != null) {
             outerReferenceReconstructor.reconstruct(method, list);
         }
+        OuterReceiverCleanupReconstructor.reconstruct(classFile, method, list);
         // Re-construct 'new' instruction
         NewInstructionReconstructor.reconstruct(classFile, method, list);
         SimpleNewInstructionReconstructor.reconstruct(classFile, method, list);
