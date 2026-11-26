@@ -1,0 +1,182 @@
+/*     */ package jd.core.test.fallbacks;
+/*     */ 
+/*     */ public class SwitchCaseEndingWithTry {
+/*     */   static int failures;
+/*     */   
+/*   6 */   static void single(int i) { switch (i) {
+/*     */     case 0: 
+/*     */       try {
+/*   9 */         work(1);
+/*     */       } catch (RuntimeException e) {
+/*  11 */         work(2);
+/*     */       }
+/*     */       break;
+/*     */     default: 
+/*  15 */       work(4);
+/*     */     }
+/*  17 */     work(5);
+/*     */   }
+/*     */   
+/*     */   static void emptyCatch(int i)
+/*     */   {
+/*  22 */     switch (i) {
+/*     */     case 0: 
+/*     */       try {
+/*  25 */         work(1);
+/*     */       }
+/*     */       catch (RuntimeException localRuntimeException) {}
+/*     */       break;
+/*     */     default: 
+/*  30 */       work(4);
+/*     */     }
+/*  32 */     work(5);
+/*     */   }
+/*     */   
+/*     */   static void middle(int i) {
+/*  36 */     switch (i) {
+/*     */     case 0: 
+/*     */       try {
+/*  39 */         work(1);
+/*     */       } catch (RuntimeException e) {
+/*  41 */         work(2);
+/*     */       }
+/*     */       break;
+/*     */     case 1: 
+/*  45 */       work(3);
+/*  46 */       break;
+/*     */     default: 
+/*  48 */       work(4);
+/*     */     }
+/*  50 */     work(5);
+/*     */   }
+/*     */   
+/*     */   static void afterTry(int i) {
+/*  54 */     switch (i) {
+/*     */     case 0: 
+/*     */       try {
+/*  57 */         work(1);
+/*     */       } catch (RuntimeException e) {
+/*  59 */         work(2);
+/*     */       }
+/*  61 */       work(3);
+/*  62 */       break;
+/*     */     default: 
+/*  64 */       work(4);
+/*     */     }
+/*  66 */     work(5);
+/*     */   }
+/*     */   
+/*     */   static void fin(int i) {
+/*  70 */     switch (i) {
+/*     */     case 0: 
+/*     */       try {
+/*  73 */         work(1);
+/*     */       } finally {
+/*  75 */         work(2);
+/*     */       }
+/*     */       break;
+/*     */     default: 
+/*  79 */       work(4);
+/*     */     }
+/*  81 */     work(5);
+/*     */   }
+/*     */   
+/*     */   static void lastCase(int i)
+/*     */   {
+/*  86 */     switch (i) {
+/*     */     case 1: 
+/*  88 */       work(3);
+/*  89 */       break;
+/*     */     case 0: 
+/*     */       try {
+/*  92 */         work(1);
+/*     */       } catch (RuntimeException e) {
+/*  94 */         work(2);
+/*     */       }
+/*     */       break;
+/*     */     }
+/*  98 */     work(5);
+/*     */   }
+/*     */   
+/*     */   static void loopAround(int n) {
+/* 102 */     for (int i = 0; i < n; i++) {
+/* 103 */       switch (i) {
+/*     */       case 0: 
+/*     */         try {
+/* 106 */           work(1);
+/*     */         } catch (RuntimeException e) {
+/* 108 */           work(2);
+/*     */         }
+/*     */         break;
+/*     */       default: 
+/* 112 */         work(4);
+/*     */       }
+/* 114 */       work(5);
+/*     */     }
+/*     */   }
+/*     */   
+/*     */   static void nestedInCatch(int i) {
+/* 119 */     switch (i) {
+/*     */     case 0: 
+/*     */       try {
+/* 122 */         work(1);
+/*     */       } catch (RuntimeException e) {
+/*     */         try {
+/* 125 */           work(2);
+/*     */         } catch (RuntimeException f) {
+/* 127 */           work(3);
+/*     */         }
+/*     */       }
+/*     */       break;
+/*     */     default: 
+/* 132 */       work(4);
+/*     */     }
+/* 134 */     work(5);
+/*     */   }
+/*     */   
+/*     */   static void throwingBody(int i) {
+/* 138 */     switch (i) {
+/*     */     case 0: 
+/*     */       try {
+/* 141 */         work(1);
+/* 142 */         throw new IllegalStateException();
+/*     */       } catch (RuntimeException e) {
+/* 144 */         work(2);
+/*     */       }
+/*     */       break;
+/*     */     default: 
+/* 148 */       work(4);
+/*     */     }
+/* 150 */     work(5);
+/*     */   }
+/*     */   
+/*     */   static void conditionAroundTry(int[] values, int wanted) {
+/* 154 */     for (int j = 0; j < values.length; j++) {
+/* 155 */       if (values[j] == wanted) {
+/* 156 */         if (wanted == 0) {
+/* 157 */           work(1); break; }
+/* 158 */         if (wanted > 1) {
+/*     */           try {
+/* 160 */             work(2);
+/*     */           } catch (RuntimeException e) {
+/* 162 */             work(3); }
+/*     */           break; }
+/* 164 */         if (wanted <= 0) break;
+/* 165 */         work(4); break;
+/*     */       }
+/*     */       
+/*     */ 
+/* 169 */       work(5);
+/*     */     }
+/* 171 */     work(6);
+/*     */   }
+/*     */   
+/*     */ 
+/*     */   static void work(int i)
+/*     */   {
+/* 177 */     System.out.println(i);
+/* 178 */     if ((failures & 1 << i) != 0) {
+/* 179 */       throw new IllegalStateException();
+/*     */     }
+/*     */   }
+/*     */ }

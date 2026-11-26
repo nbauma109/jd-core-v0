@@ -1,0 +1,31 @@
+/*    */ package jd.core.test.fallbacks;
+/*    */ 
+/*    */ public class SwitchCaseFallingThroughTry
+/*    */ {
+/*    */   static int failures;
+/*    */   
+/*    */   static void afterFinally(int i)
+/*    */   {
+/*  9 */     switch (i) {
+/*    */     case 0: 
+/*    */       try {
+/* 12 */         work(1);
+/*    */       } finally {
+/* 14 */         work(2);
+/*    */       }
+/*    */     case 1: 
+/* 17 */       work(3);
+/* 18 */       break;
+/*    */     default: 
+/* 20 */       work(4);
+/*    */     }
+/* 22 */     work(5);
+/*    */   }
+/*    */   
+/*    */   static void work(int i) {
+/* 26 */     System.out.println(i);
+/* 27 */     if ((failures & 1 << i) != 0) {
+/* 28 */       throw new IllegalStateException();
+/*    */     }
+/*    */   }
+/*    */ }

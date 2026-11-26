@@ -4835,6 +4835,13 @@ public final class FastInstructionListBuilder {
                                     breakOffset = breakOffsetTmp;
                                 }
 
+                                // A 'try' statement ending the case keeps its jump to the end of the switch
+                                breakOffsetTmp = tryExitOffset(method, instructions.get(nbrInstructions - 1));
+                                if (breakOffsetTmp > lastSwitchOffset && breakOffsetTmp >= pairs[pairLength].getOffset()
+                                        && (breakOffset == -1 || breakOffset > breakOffsetTmp)) {
+                                    breakOffset = breakOffsetTmp;
+                                }
+
                                 // Remplacement du dernier 'goto'
                                 instruction = instructions.get(nbrInstructions - 1);
                                 if (instruction.getOpcode() == Const.GOTO) {
@@ -4944,6 +4951,8 @@ public final class FastInstructionListBuilder {
                 pairs[pairLength].setInstructions(instructions);
             }
 
+            addBreakAfterTry(method, pairs, pairLength, breakOffset);
+
             // Analyze instructions (recursive analyze)
             int beforeListOffset = test.getOffset();
             if (index < list.size()) {
@@ -5007,6 +5016,57 @@ public final class FastInstructionListBuilder {
         list.set(switchIndex, new FastSwitch(switchOpcode, lastSwitchOffset, switchLineNumber, branch, test, pairs));
     }
 
+    /**
+     * @return where the 'try' statement jumps to when it completes normally, or -1 if it does not say: the jump of the
+     *         'try' block, else the common jump of the 'catch' blocks when the 'try' block never completes. javac writes
+     *         the jump of a 'try' statement with a 'finally' block after the copy of that block: the statement then
+     *         jumps to a 'goto'.
+     */
+    private static int tryExitOffset(Method method, Instruction instruction) {
+        if (!(instruction instanceof FastTry ft)) {
+            return -1;
+        }
+        if (ft.hasRemovedTryGoto()) {
+            return ft.getRemovedTryGotoJumpOffset();
+        }
+        if (ft.getFinallyInstructions() != null) {
+            byte[] code = method.getCode();
+            int offset = ft.getJumpOffset();
+            boolean jump = offset < code.length && (code[offset] & 255) == Const.GOTO;
+            return jump ? offset + (short) ((code[offset + 1] & 255) << 8 | code[offset + 2] & 255) : -1;
+        }
+        List<Instruction> body = ft.getInstructions();
+        boolean completes = body.isEmpty() || !isTerminalInstruction(body.get(body.size() - 1));
+        return completes ? -1 : ft.getCatches().stream()
+                .filter(FastCatch::hasRemovedGoto)
+                .mapToInt(FastCatch::getRemovedGotoJumpOffset)
+                .findFirst()
+                .orElse(-1);
+    }
+
+    /** The cases ending with a 'try' statement leaving the switch need a 'break', which the statement does not hold. */
+    private static void addBreakAfterTry(Method method, FastSwitch.Pair[] pairs, int pairLength, int breakOffset) {
+        if (breakOffset == -1) {
+            return;
+        }
+        for (int i = 0; i < pairLength; i++) {
+            List<Instruction> instructions = pairs[i].getInstructions();
+            // A case with instructions holds at least one
+            if (instructions == null) {
+                continue;
+            }
+            Instruction last = instructions.get(instructions.size() - 1);
+            int exitOffset = tryExitOffset(method, last);
+            // A jump to the following case lets the statement fall through
+            if (exitOffset >= pairs[pairLength].getOffset()
+                    && ByteCodeUtil.jumpTo(method.getCode(), exitOffset, breakOffset)) {
+                ((FastTry) last).clearRemovedTryGoto();
+                instructions.add(new FastInstruction(FastConstants.GOTO_BREAK, last.getOffset() + 1,
+                        Instruction.UNKNOWN_LINE_NUMBER, null));
+            }
+        }
+    }
+
     private static void removeLastInstruction(List<Instruction> instructions) {
         instructions.remove(instructions.size() - 1);
     }
@@ -5030,7 +5090,7 @@ public final class FastInstructionListBuilder {
                 || ft.getRemovedTryGotoJumpOffset() <= ft.getRemovedTryGotoOffset()) {
             return;
         }
-        if (!appendContinueToCatches(ft)) {
+        if (!appendContinueToCatches(ft, breakOffset)) {
             return;
         }
 
@@ -5039,7 +5099,7 @@ public final class FastInstructionListBuilder {
         list.add(1, breakInstruction);
     }
 
-    private static boolean appendContinueToCatches(FastTry ft) {
+    private static boolean appendContinueToCatches(FastTry ft, int breakOffset) {
         for (FastCatch fastCatch : ft.getCatches()) {
             List<Instruction> catchInstructions = fastCatch.instructions();
             if (catchInstructions.isEmpty() || hasControlFlow(catchInstructions)) {
@@ -5051,9 +5111,12 @@ public final class FastInstructionListBuilder {
                 return false;
             }
 
-            int continueOffset = lastInstruction.getOffset() + 1;
-            catchInstructions.add(new FastInstruction(FastConstants.GOTO_CONTINUE, continueOffset,
-                    Instruction.UNKNOWN_LINE_NUMBER, null));
+            // A block leaving the same way as the 'try' block reaches the 'break' following the statement
+            if (fastCatch.getRemovedGotoJumpOffset() != breakOffset) {
+                int continueOffset = lastInstruction.getOffset() + 1;
+                catchInstructions.add(new FastInstruction(FastConstants.GOTO_CONTINUE, continueOffset,
+                        Instruction.UNKNOWN_LINE_NUMBER, null));
+            }
         }
 
         return true;

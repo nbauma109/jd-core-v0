@@ -76,6 +76,12 @@ public class FastTry extends FastList {
         return removedTryGotoJumpOffset;
     }
 
+    /** Forgets the removed jump, once the statement is followed by an explicit "break". */
+    public void clearRemovedTryGoto() {
+        this.removedTryGotoOffset = -1;
+        this.removedTryGotoJumpOffset = -1;
+    }
+
     public static class FastCatch {
         int exceptionOffset;
         int exceptionTypeIndex;
@@ -111,6 +117,14 @@ public class FastTry extends FastList {
 
         public List<Instruction> instructions() {
             return instructions;
+        }
+
+        public boolean hasRemovedGoto() {
+            return removedGotoOffset != -1;
+        }
+
+        public int getRemovedGotoJumpOffset() {
+            return removedGotoJumpOffset;
         }
 
         public void setRemovedGoto(int offset, int jumpOffset) {
