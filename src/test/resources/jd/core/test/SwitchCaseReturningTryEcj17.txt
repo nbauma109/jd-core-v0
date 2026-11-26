@@ -1,0 +1,51 @@
+/*    */ package jd.core.test.fallbacks;
+/*    */ 
+/*    */ public class SwitchCaseReturningTry
+/*    */ {
+/*    */   static int failures;
+/*    */   
+/*    */   static void returnFinallyBreak(int i) {
+/*  8 */     switch (i) {
+/*    */     case 0: 
+/*    */       try {
+/* 11 */         work(1);
+/* 12 */         return;
+/*    */       } catch (IllegalStateException localIllegalStateException) {
+/* 14 */         work(2);
+/*    */       } finally {
+/* 16 */         work(3);
+/*    */       }
+/*    */       break;
+/*    */     default: 
+/* 20 */       work(4);
+/*    */     }
+/* 22 */     work(5);
+/*    */   }
+/*    */   
+/*    */   static void returnFinallyConditionInCatch(int i, boolean b) {
+/* 26 */     switch (i) {
+/*    */     case 0: 
+/*    */       try {
+/* 29 */         work(1);
+/* 30 */         return;
+/*    */       } catch (IllegalStateException localIllegalStateException) {
+/* 32 */         if (b) {
+/* 33 */           work(2);
+/*    */         }
+/*    */       } finally {
+/* 36 */         work(3);
+/*    */       }
+/*    */       break;
+/*    */     default: 
+/* 40 */       work(4);
+/*    */     }
+/* 42 */     work(5);
+/*    */   }
+/*    */   
+/*    */   static void work(int i) {
+/* 46 */     System.out.println(i);
+/* 47 */     if ((failures & 1 << i) != 0) {
+/* 48 */       throw new IllegalStateException();
+/*    */     }
+/*    */   }
+/*    */ }
