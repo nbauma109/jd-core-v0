@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.OptionalInt;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -1040,25 +1041,32 @@ public final class FastInstructionListBuilder {
     }
 
     /**
-     * A 'try' statement starting in a case of a 'switch' ends before the following case, which no jump may announce
-     * when the statement never completes normally on one of its paths.
+     * A 'try' statement starting in a case of a 'switch' and handling its exceptions there ends before the following
+     * case, which no jump may announce when the statement never completes normally on one of its paths.
      */
-    private static int limitToSwitchCase(List<Instruction> list, int tryFromOffset, int afterOffset) {
-        int next = list.stream()
+    private static int limitToSwitchCase(List<Instruction> list, FastCodeExcepcion fce) {
+        int tryFromOffset = fce.getTryFromOffset();
+        int lastHandlerOffset = fce.getCatches().stream().mapToInt(FastCodeExceptionCatch::getFromOffset)
+                .reduce(fce.getFinallyFromOffset(), Math::max);
+        OptionalInt next = list.stream()
                 .filter(instruction -> instruction instanceof Switch && instruction.getOffset() < tryFromOffset)
                 .map(Switch.class::cast)
                 .flatMapToInt(s -> IntStream.concat(IntStream.of(s.getDefaultOffset()), IntStream.of(s.getOffsets()))
                         .map(offset -> s.getOffset() + offset))
                 .filter(offset -> offset > tryFromOffset)
-                .min()
-                .orElse(afterOffset);
-        return afterOffset == -1 ? next : Math.min(next, afterOffset);
+                .min();
+        int afterOffset = fce.getAfterOffset();
+        if (next.isPresent() && next.getAsInt() > lastHandlerOffset
+                && (afterOffset == -1 || next.getAsInt() < afterOffset)) {
+            return next.getAsInt();
+        }
+        return afterOffset;
     }
 
     private static void createFastTry(ReferenceMap referenceMap, ClassFile classFile,
             List<Instruction> list, LocalVariables localVariables, FastCodeExcepcion fce,
             int returnOffset) {
-        int afterListOffset = limitToSwitchCase(list, fce.getTryFromOffset(), fce.getAfterOffset());
+        int afterListOffset = limitToSwitchCase(list, fce);
         int tryJumpOffset = -1;
         int lastIndex = list.size() - 1;
         int index;
