@@ -156,6 +156,83 @@ public class SwitchCaseShapes {
         work(5);
     }
 
+    static void catchConditionAfterReturn(int i, boolean b) {
+        switch (i) {
+            case 0:
+                try {
+                    work(1);
+                    return;
+                } catch (IllegalStateException e) {
+                    if (b) {
+                        work(2);
+                    }
+                }
+                break;
+            default:
+                work(4);
+        }
+        work(5);
+    }
+
+    static void catchBreakingEarlyBeforeFinally(int i, boolean b) {
+        switch (i) {
+            case 0:
+                try {
+                    work(1);
+                } catch (IllegalStateException e) {
+                    if (b) {
+                        break;
+                    }
+                    work(2);
+                } finally {
+                    work(6);
+                }
+                work(3);
+                break;
+            default:
+                work(4);
+        }
+        work(5);
+    }
+
+    static void conditionAfterTwoCatches(int i, boolean b) {
+        switch (i) {
+            case 0:
+                try {
+                    work(1);
+                    return;
+                } catch (IllegalStateException e) {
+                    work(2);
+                } catch (IllegalArgumentException e) {
+                    work(3);
+                }
+                if (b) {
+                    break;
+                }
+                work(6);
+                break;
+            default:
+                work(4);
+        }
+        work(5);
+    }
+
+    static void conditionAfterCatchInLoop(int i, boolean b) {
+        for (int k = i; k < 2; k++) {
+            try {
+                work(1);
+                return;
+            } catch (IllegalStateException e) {
+                work(2);
+            }
+            if (b) {
+                break;
+            }
+            work(3);
+        }
+        work(5);
+    }
+
     static void work(int i) {
         System.out.println(i);
         if ((failures & 1 << i) != 0) {
