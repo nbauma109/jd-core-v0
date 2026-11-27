@@ -24,18 +24,23 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.LineNumber;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.Method;
+import jd.core.model.instruction.bytecode.instruction.BranchInstruction;
+import jd.core.model.instruction.bytecode.instruction.Goto;
 import jd.core.model.instruction.bytecode.instruction.IConst;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.PatternSwitchSelector;
 import jd.core.model.instruction.bytecode.instruction.Pop;
 import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
+import jd.core.model.instruction.bytecode.instruction.TernaryOpStore;
+import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.model.instruction.fast.FastConstants;
 import jd.core.model.instruction.fast.instruction.FastDeclaration;
 import jd.core.model.instruction.fast.instruction.FastFor;
@@ -49,8 +54,11 @@ import jd.core.model.instruction.fast.instruction.FastTest2Lists;
 import jd.core.model.instruction.fast.instruction.FastTestList;
 import jd.core.model.instruction.fast.instruction.FastTry;
 import jd.core.model.instruction.fast.instruction.FastTry.FastCatch;
+import jd.core.process.analyzer.instruction.bytecode.ComparisonInstructionAnalyzer;
+import jd.core.process.analyzer.instruction.bytecode.factory.GotoFactory;
 import jd.core.process.analyzer.instruction.bytecode.factory.InstructionFactory;
 import jd.core.process.analyzer.instruction.bytecode.factory.InstructionFactoryConstants;
+import jd.core.process.analyzer.instruction.bytecode.util.ByteCodeUtil;
 import jd.core.process.analyzer.instruction.fast.visitor.ReplaceInstructionVisitor;
 
 public final class SwitchExpressionReconstructor {
@@ -157,7 +165,8 @@ public final class SwitchExpressionReconstructor {
                 continue;
             }
 
-            Instruction result = resolveCaseResultFromBytecode(classFile, method, bodyOffset(fs, pair), breakOffset);
+            int start = bodyOffset(fs, pair);
+            Instruction result = resolveCaseResultFromBytecode(classFile, method, start, breakOffset, branchEnd(fs, start));
             if (result == null) {
                 return List.of();
             }
@@ -170,11 +179,16 @@ public final class SwitchExpressionReconstructor {
     /** Writes the constants as booleans or characters, rather than as numbers, where such a value is expected. */
     private static void forceConstantSignature(String targetSignature, List<Instruction> results) {
         if ("Z".equals(targetSignature) || "C".equals(targetSignature)) {
-            for (Instruction result : results) {
-                if (result instanceof IConst iConst) {
-                    iConst.setSignature(targetSignature);
-                }
-            }
+            results.forEach(result -> setConstantSignature(targetSignature, result));
+        }
+    }
+
+    private static void setConstantSignature(String signature, Instruction value) {
+        if (value instanceof IConst iConst) {
+            iConst.setSignature(signature);
+        } else if (value instanceof TernaryOperator ternary) {
+            setConstantSignature(signature, ternary.getValue1());
+            setConstantSignature(signature, ternary.getValue2());
         }
     }
 
@@ -202,7 +216,8 @@ public final class SwitchExpressionReconstructor {
         return pair.getOffset();
     }
 
-    private static Instruction resolveCaseResultFromBytecode(ClassFile classFile, Method method, int startOffset, int breakOffset) {
+    private static Instruction resolveCaseResultFromBytecode(ClassFile classFile, Method method, int startOffset, int breakOffset,
+            int branchEnd) {
         byte[] code = method.getCode();
         if (code == null || startOffset < 0 || startOffset >= code.length) {
             return null;
@@ -218,8 +233,18 @@ public final class SwitchExpressionReconstructor {
         while (offset < code.length && offset < breakOffset) {
             int opcode = code[offset] & 255;
 
+            if (opcode == Const.GOTO && isTernaryGoto(list, offset) && !stack.isEmpty()) {
+                int target = offset + readBranchOffset(code, offset, opcode);
+                int end = Math.min(target, branchEnd);
+                list.add(GotoFactory.newTernaryOpStore(code, offset, end, stack.pop()));
+                list.add(new Goto(opcode, offset, lineNumbers.getLineNumber(offset), target - offset));
+                offset += Const.getNoOfOperands(opcode) + 1;
+                continue;
+            }
+
             if (opcode == Const.GOTO || opcode == Const.GOTO_W) {
-                return yieldedValue(stack, offset + readBranchOffset(code, offset, opcode), breakOffset);
+                Instruction value = yieldedValue(stack, offset + readBranchOffset(code, offset, opcode), breakOffset);
+                return value == null ? null : reconstructTernaryOperators(list, value);
             }
 
             if (opcode == Const.TABLESWITCH || opcode == Const.LOOKUPSWITCH) {
@@ -240,7 +265,33 @@ public final class SwitchExpressionReconstructor {
             }
         }
 
-        return stack.peek();
+        Instruction value = stack.peek();
+        return value == null ? null : reconstructTernaryOperators(list, value);
+    }
+
+    /** @return true if a condition jumps right after the jump, to the second value of a ternary operator */
+    private static boolean isTernaryGoto(List<Instruction> list, int offset) {
+        return list.stream().anyMatch(instruction -> ByteCodeUtil.isIfInstruction(instruction.getOpcode(), false)
+                && ((BranchInstruction) instruction).getJumpOffset() == offset + 3);
+    }
+
+    /** @return the value of the branch, made of the ternary operators ending with the one given */
+    private static Instruction reconstructTernaryOperators(List<Instruction> list, Instruction value) {
+        if (list.stream().noneMatch(TernaryOpStore.class::isInstance)) {
+            return value;
+        }
+        list.add(value);
+        ComparisonInstructionAnalyzer.aggregate(list);
+        TernaryOpReconstructor.reconstruct(list);
+        return list.get(list.size() - 1);
+    }
+
+    /** @return the offset of the jump ending the branch starting at the given offset, or the end of the switch */
+    private static int branchEnd(FastSwitch fs, int start) {
+        int next = Stream.of(fs.getPairs()).mapToInt(pair -> bodyOffset(fs, pair)).filter(o -> o > start)
+                .min().orElse(fs.getJumpOffset());
+        // The branch ends with a jump of three bytes
+        return next < fs.getJumpOffset() ? next - 3 : next;
     }
 
     /** @return the value left by a branch ending with a jump, if it jumps to the end of the switch */

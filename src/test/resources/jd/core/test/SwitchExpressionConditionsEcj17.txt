@@ -1,0 +1,168 @@
+/*     */ package jd.core.test.fallbacks;
+/*     */ 
+/*     */ 
+/*     */ public class SwitchExpressionConditions
+/*     */ {
+/*     */   static int failures;
+/*     */   
+/*   8 */   static StringBuilder log = new StringBuilder();
+/*     */   
+/*     */   static int work(int i) {
+/*  11 */     if ((failures & i) != 0) {
+/*  12 */       throw new IllegalStateException("w" + i);
+/*     */     }
+/*  14 */     log.append(i);
+/*  15 */     return i;
+/*     */   }
+/*     */   
+/*     */   static int compare(int k) {
+/*  19 */     return work(switch (k) {
+/*  20 */       case 0 -> k > 2 ? 1 : 2;
+/*  21 */       case 1 -> 4;
+/*  22 */       default -> 8;
+/*     */     });
+/*     */   }
+/*     */   
+/*     */   static boolean boolCase(int k) {
+/*  27 */     boolean r = switch (k) {
+/*  28 */       case 0 -> k > 2 ? true : false;
+/*  29 */       case 1 -> true;
+/*  30 */       default -> false;
+/*     */     };
+/*  32 */     return r;
+/*     */   }
+/*     */   
+/*     */   static boolean andCase(int k, boolean b) {
+/*  36 */     return switch (k) {
+/*  37 */       case 0 -> b && work(1) > 0 ? true : false;
+/*  38 */       case 1 -> !b && k <= 2 ? false : true;
+/*  39 */       default -> b ? false : true;
+/*     */     };
+/*     */   }
+/*     */   
+/*     */   static int ternaryAssign(int k, boolean b) {
+/*  44 */     int r = switch (k) {
+/*  45 */       case 0 -> b ? work(1) : work(2);
+/*  46 */       default -> 4;
+/*     */     };
+/*  48 */     return r;
+/*     */   }
+/*     */   
+/*     */   static int chain(int k, boolean b) {
+/*  52 */     return switch (k) {
+/*  53 */       case 0 -> b ? work(1) : k > 2 ? work(2) : work(4);
+/*  54 */       case 1 -> k > 0 ? b ? work(8) : work(16) : work(32);
+/*  55 */       default -> 3;
+/*     */     };
+/*     */   }
+/*     */   
+/*     */   static String strings(int k, boolean b) {
+/*  60 */     String s = switch (k) {
+/*  61 */       case 0 -> b ? "a" : "b";
+/*  62 */       case 1 -> "c";
+/*  63 */       default -> b ? "d" : "e";
+/*     */     };
+/*  65 */     return s;
+/*     */   }
+/*     */   
+/*     */   static int lastCase(int k, boolean b) {
+/*  69 */     return switch (k) {
+/*  70 */       default -> 3;
+/*  71 */       case 0 -> 4;
+/*  72 */       case 1 -> b ? 1 : 2;
+/*     */     };
+/*     */   }
+/*     */   
+/*     */   static int arithmetic(int k, boolean b) {
+/*  77 */     int r = switch (k) {
+/*  78 */       case 0 -> (b ? work(1) : work(2)) + 10;
+/*  79 */       case 1 -> work(4) * (k > 0 ? 3 : 5);
+/*  80 */       default -> 3;
+/*     */     };
+/*  82 */     return r;
+/*     */   }
+/*     */   
+/*     */   static int operand(int k, boolean b) {
+/*  86 */     return work(1) + switch (k) {
+/*  87 */       case 0 -> b ? work(2) : work(4);
+/*  88 */       default -> 8;
+/*     */     };
+/*     */   }
+/*     */   
+/*     */   static int argUnder(int k, boolean b) {
+/*  93 */     return Math.max(work(1), switch (k) {
+/*  94 */       case 0 -> b ? 2 : 4;
+/*  95 */       default -> 8;
+/*     */     });
+/*     */   }
+/*     */   
+/*     */   static int after(int k, boolean b) {
+/* 100 */     return work(switch (k) {
+/* 101 */       case 0 -> 1;
+/* 102 */       default -> 2;
+/*     */     }) + (b ? 4 : 8);
+/*     */   }
+/*     */   
+/*     */   static int statement(int k, boolean b) {
+/* 107 */     int r = 0;
+/* 108 */     switch (k) {
+/*     */     case 0: 
+/* 110 */       r = b ? 1 : 2;
+/* 111 */       break;
+/*     */     case 1: 
+/* 113 */       r = work(b ? 4 : 8);
+/* 114 */       break;
+/*     */     default: 
+/* 116 */       r = k > 3 ? 16 : 32;
+/*     */     }
+/* 118 */     return r;
+/*     */   }
+/*     */   
+/*     */   static int statementThen(int k, boolean b) {
+/* 122 */     switch (k) {
+/*     */     case 0: 
+/* 124 */       work(1);
+/* 125 */       break;
+/*     */     default: 
+/* 127 */       work(2);
+/*     */     }
+/* 129 */     return b ? 4 : 8;
+/*     */   }
+/*     */   
+/*     */   static int statementArgs(int k, boolean b) {
+/* 133 */     switch (k) {
+/*     */     case 0: 
+/* 135 */       work(b ? 1 : 2);
+/* 136 */       break;
+/*     */     default: 
+/* 138 */       work(k > 2 ? 4 : 8);
+/*     */     }
+/* 140 */     return 1;
+/*     */   }
+/*     */   
+/*     */   static int blocks(int k, boolean b) {
+/* 144 */     return switch (k) {
+/*     */       case 0 -> {
+/* 146 */         work(1);
+/* 147 */         yield b ? 2 : 4;
+/*     */       }
+/* 149 */       default -> 8;
+/*     */     };
+/*     */   }
+/*     */   
+/*     */   static int caseThrows(int k, boolean b) {
+/* 154 */     return switch (k) {
+/* 155 */       case 0 -> b ? 1 : 2;
+/* 156 */       case 1 -> throw new IllegalStateException();
+/* 157 */       default -> b ? 3 : 4;
+/*     */     };
+/*     */   }
+/*     */   
+/*     */   static boolean negated(int k, boolean b) {
+/* 162 */     return switch (k) {
+/* 163 */       case 0 -> k <= 2 && !b ? false : true;
+/* 164 */       case 1 -> k > 0 && b ? false : true;
+/* 165 */       default -> k == 3 ? true : false;
+/*     */     };
+/*     */   }
+/*     */ }
