@@ -75,14 +75,10 @@ public final class ByteCodeWriter
             }
             int end = (int) ((long) (row + 1) * records.length / rows);
             if (index < end) {
-                String first = records[index++];
                 // Without a following line, a line comment would hide the closing brace
-                printer.print(lineCount == 0 ? first.replace("//", "/*") : first);
-                while (index < end) {
-                    printer.print(" | ");
-                    String line = records[index++].stripLeading();
-                    printer.print(line.startsWith("//") ? line.substring(2).stripLeading() : line);
-                }
+                String first = lineCount == 0 ? records[index].replace("//", "/*") : records[index];
+                printRecords(printer, first, records, index + 1, end);
+                index = end;
             }
         }
         if (lineCount == 0) {
@@ -92,6 +88,16 @@ public final class ByteCodeWriter
             printer.startOfLine(Printer.UNKNOWN_LINE_NUMBER);
         }
         printer.endOfComment();
+    }
+
+    /** Prints on one line the first record, followed by the ones of the range without their comment marks. */
+    private static void printRecords(Printer printer, String first, String[] records, int from, int to) {
+        printer.print(first);
+        for (int i = from; i < to; i++) {
+            printer.print(" | ");
+            String line = records[i].stripLeading();
+            printer.print(line.startsWith("//") ? line.substring(2).stripLeading() : line);
+        }
     }
 
     public static void write(
