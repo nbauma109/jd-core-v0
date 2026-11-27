@@ -23,6 +23,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.stream.IntStream;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.LineNumber;
@@ -32,6 +33,7 @@ import jd.core.model.classfile.Method;
 import jd.core.model.instruction.bytecode.instruction.IConst;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.PatternSwitchSelector;
+import jd.core.model.instruction.bytecode.instruction.Pop;
 import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.model.instruction.fast.FastConstants;
@@ -92,18 +94,14 @@ public final class SwitchExpressionReconstructor {
             return false;
         }
 
-        if (target instanceof StoreInstruction si && si.getValueref().getOffset() == consumed.getOffset()) {
+        if (target instanceof StoreInstruction si && isComputedBySwitch(fs, si.getValueref())) {
             forceBooleanSignature(si.getReturnedSignature(classFile, method.getLocalVariables()), results);
             si.setValueref(fs);
-        } else if (target instanceof ReturnInstruction ri && ri.getValueref().getOffset() == consumed.getOffset()) {
+        } else if (target instanceof ReturnInstruction ri && isComputedBySwitch(fs, ri.getValueref())) {
             forceBooleanSignature(ri.getReturnedSignature(classFile, method.getLocalVariables()), results);
             ri.setValueref(fs);
-        } else {
-            ReplaceInstructionVisitor visitor = new ReplaceInstructionVisitor(consumed.getOffset(), fs);
-            visitor.visit(target);
-            if (visitor.getOldInstruction() == null) {
-                return false;
-            }
+        } else if (isDiscardedBySwitch(fs, target) || !replace(target, consumed.getOffset(), fs)) {
+            return false;
         }
 
         addCaseResults(fs, results);
@@ -124,13 +122,25 @@ public final class SwitchExpressionReconstructor {
         return instruction;
     }
 
+    /** @return true if the value of the switch is discarded at once, which a switch expression cannot be */
+    private static boolean isDiscardedBySwitch(FastSwitch fs, Instruction target) {
+        return target instanceof Pop pop && isComputedBySwitch(fs, pop.getObjectref());
+    }
+
+    private static boolean replace(Instruction target, int offset, FastSwitch fs) {
+        ReplaceInstructionVisitor visitor = new ReplaceInstructionVisitor(offset, fs);
+        visitor.visit(target);
+        return visitor.getOldInstruction() != null;
+    }
+
+    /** @return false if the value is computed after the switch, from the one it gives */
+    private static boolean isComputedBySwitch(FastSwitch fs, Instruction value) {
+        return value.getOffset() < fs.getJumpOffset();
+    }
+
     /** @return the value of each case, null for the cases throwing, or null if the switch is not an expression */
     private static List<Instruction> resolveCaseResults(ClassFile classFile, Method method, FastSwitch fs) {
         FastSwitch.Pair[] pairs = fs.getPairs();
-        if (pairs == null || pairs.length == 0) {
-            return null;
-        }
-
         int breakOffset = fs.getJumpOffset();
         List<Instruction> results = new ArrayList<>(pairs.length);
 
@@ -152,7 +162,7 @@ public final class SwitchExpressionReconstructor {
     }
 
     private static void forceBooleanSignature(String targetSignature, List<Instruction> results) {
-        if (targetSignature != null && targetSignature.startsWith("Z")) {
+        if ("Z".equals(targetSignature)) {
             for (Instruction result : results) {
                 if (result instanceof IConst iConst) {
                     iConst.setSignature("Z");
@@ -278,17 +288,10 @@ public final class SwitchExpressionReconstructor {
     }
 
     private static int findNextTargetIndex(List<Instruction> list, int startIndex) {
-        for (int i = startIndex; i < list.size(); i++) {
-            Instruction candidate = list.get(i);
-            Instruction unwrapped = unwrapTarget(candidate);
-            if (candidate instanceof FastLabel && !(unwrapped instanceof StoreInstruction)
-                    && !(unwrapped instanceof ReturnInstruction)
-                    || unwrapped instanceof FastInstruction fi && fi.getOpcode() == FastConstants.GOTO_BREAK) {
-                continue;
-            }
-            return unwrapped == null ? -1 : i;
-        }
-        return -1;
+        return IntStream.range(startIndex, list.size()).filter(i -> {
+            Instruction target = unwrapTarget(list.get(i));
+            return target != null && target.getOpcode() != FastConstants.GOTO_BREAK;
+        }).findFirst().orElse(-1);
     }
 
     static List<List<Instruction>> getBlocks(Instruction instruction) {

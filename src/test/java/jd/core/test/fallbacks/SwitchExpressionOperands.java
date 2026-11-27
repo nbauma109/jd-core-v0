@@ -181,4 +181,24 @@ public class SwitchExpressionOperands {
         };
         return r;
     }
+
+    static boolean assignedBoolean(int k) {
+        boolean r = switch (k) {
+            case 0 -> true;
+            case 1 -> throw new IllegalArgumentException();
+            default -> false;
+        };
+        return r;
+    }
+
+    static void statementThenStatement(int k) {
+        switch (k) {
+            case 0:
+                work(1);
+                break;
+            default:
+                work(2);
+        }
+        work(4);
+    }
 }

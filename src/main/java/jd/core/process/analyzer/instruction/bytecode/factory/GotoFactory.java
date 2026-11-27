@@ -76,9 +76,10 @@ public class GotoFactory implements InstructionFactory
         // Only a switch expression whose value is stored or returned can be reconstructed
         boolean assignsOrReturns = isStoreOrReturn(code, offset + value);
 
-        if (yieldsSwitchValue(list, stack, code, offset, offset + value)) {
-            // The value of this case must not be left under the ones of the following cases. The last value stays on
-            // the stack, for the instructions following the switch expression.
+        if (yieldsUnderOtherValues(list, stack, code, offset, offset + value)) {
+            // Left on the stack, the value of this case would hide the ones computed before the switch from the
+            // instructions following it
+            // The last value stays there, even when a branch throwing follows
             if (!isFollowedByThrowingBranchOnly(code, offset, value)) {
                 stack.pop();
             }
@@ -125,11 +126,12 @@ public class GotoFactory implements InstructionFactory
     }
 
     /**
-     * A jump ending a branch of a switch, after the branch pushed a value, yields it to a switch expression. Only the
-     * switches whose branches all jump to their end, without conditions, are handled.
+     * @return true if the jump ends a branch of a switch expression which pushed its value above values computed
+     * before the switch, and other branches give the value too. Only the switches whose branches all jump to their end,
+     * without conditions, are handled.
      */
-    private static boolean yieldsSwitchValue(List<Instruction> list, Deque<Instruction> stack, byte[] code, int offset,
-            int target)
+    private static boolean yieldsUnderOtherValues(List<Instruction> list, Deque<Instruction> stack, byte[] code,
+            int offset, int target)
     {
         for (Instruction instruction : list)
         {
@@ -137,9 +139,8 @@ public class GotoFactory implements InstructionFactory
                 int[] branches = IntStream.concat(IntStream.of(sw.getDefaultOffset()), IntStream.of(sw.getOffsets()))
                         .map(o -> sw.getOffset() + o).toArray();
                 if (IntStream.of(branches).anyMatch(o -> o == offset + 3)) {
-                    // The value is the last thing the branch computed
-                    int start = IntStream.of(branches).filter(o -> o <= offset).max().orElse(sw.getOffset());
-                    return !stack.isEmpty() && stack.peek().getOffset() >= start
+                    // The value is the last thing the branch computed, above the ones computed before the switch
+                    return stack.stream().anyMatch(v -> v.getOffset() < sw.getOffset())
                             && stack.peek().getOffset() > list.get(list.size() - 1).getOffset()
                             && onlyJumpsTo(code, IntStream.of(branches).min().orElse(offset), target);
                 }

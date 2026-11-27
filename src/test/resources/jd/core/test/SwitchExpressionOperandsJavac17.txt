@@ -183,4 +183,24 @@
 /*     */     };
 /* 182 */     return r;
 /*     */   }
+/*     */   
+/*     */   static boolean assignedBoolean(int k) {
+/* 186 */     boolean r = switch (k) {
+/* 187 */       case 0 -> true;
+/* 188 */       case 1 -> throw new IllegalArgumentException();
+/* 189 */       default -> false;
+/*     */     };
+/* 191 */     return r;
+/*     */   }
+/*     */   
+/*     */   static void statementThenStatement(int k) {
+/* 195 */     switch (k) {
+/*     */     case 0: 
+/* 197 */       work(1);
+/* 198 */       break;
+/*     */     default: 
+/* 200 */       work(2);
+/*     */     }
+/* 202 */     work(4);
+/*     */   }
 /*     */ }
