@@ -233,7 +233,7 @@ public final class SwitchExpressionReconstructor {
         while (offset < code.length && offset < breakOffset) {
             int opcode = code[offset] & 255;
 
-            if (opcode == Const.GOTO && isTernaryGoto(list, offset) && !stack.isEmpty()) {
+            if (opcode == Const.GOTO && isTernaryGoto(list, stack, offset)) {
                 int target = offset + readBranchOffset(code, offset, opcode);
                 int end = Math.min(target, branchEnd);
                 list.add(GotoFactory.newTernaryOpStore(code, offset, end, stack.pop()));
@@ -243,15 +243,11 @@ public final class SwitchExpressionReconstructor {
             }
 
             if (opcode == Const.GOTO || opcode == Const.GOTO_W) {
-                Instruction value = yieldedValue(stack, offset + readBranchOffset(code, offset, opcode), breakOffset);
-                return value == null ? null : reconstructTernaryOperators(list, value);
+                return reconstructTernaryOperators(list,
+                        yieldedValue(stack, offset + readBranchOffset(code, offset, opcode), breakOffset));
             }
 
-            if (opcode == Const.TABLESWITCH || opcode == Const.LOOKUPSWITCH) {
-                return null;
-            }
-
-            InstructionFactory factory = InstructionFactoryConstants.getInstructionFactory(opcode);
+            InstructionFactory factory = getBranchInstructionFactory(opcode);
             if (factory == null) {
                 return null;
             }
@@ -265,19 +261,24 @@ public final class SwitchExpressionReconstructor {
             }
         }
 
-        Instruction value = stack.peek();
-        return value == null ? null : reconstructTernaryOperators(list, value);
+        return reconstructTernaryOperators(list, stack.peek());
+    }
+
+    /** @return the factory of the instruction, null if a branch of a switch expression cannot be read through it */
+    private static InstructionFactory getBranchInstructionFactory(int opcode) {
+        return opcode == Const.TABLESWITCH || opcode == Const.LOOKUPSWITCH
+                ? null : InstructionFactoryConstants.getInstructionFactory(opcode);
     }
 
     /** @return true if a condition jumps right after the jump, to the second value of a ternary operator */
-    private static boolean isTernaryGoto(List<Instruction> list, int offset) {
-        return list.stream().anyMatch(instruction -> ByteCodeUtil.isIfInstruction(instruction.getOpcode(), false)
+    private static boolean isTernaryGoto(List<Instruction> list, Deque<Instruction> stack, int offset) {
+        return !stack.isEmpty() && list.stream().anyMatch(instruction -> ByteCodeUtil.isIfInstruction(instruction.getOpcode(), false)
                 && ((BranchInstruction) instruction).getJumpOffset() == offset + 3);
     }
 
-    /** @return the value of the branch, made of the ternary operators ending with the one given */
+    /** @return the value of the branch, made of the ternary operators ending with the one given, if any */
     private static Instruction reconstructTernaryOperators(List<Instruction> list, Instruction value) {
-        if (list.stream().noneMatch(TernaryOpStore.class::isInstance)) {
+        if (value == null || list.stream().noneMatch(TernaryOpStore.class::isInstance)) {
             return value;
         }
         list.add(value);
