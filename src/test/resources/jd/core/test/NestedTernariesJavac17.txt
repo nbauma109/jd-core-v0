@@ -1,0 +1,126 @@
+/*     */ package jd.core.test.fallbacks;
+/*     */ 
+/*     */ 
+/*     */ public class NestedTernaries
+/*     */ {
+/*     */   static int failures;
+/*     */   
+/*   8 */   static StringBuilder log = new StringBuilder();
+/*     */   
+/*     */   static int work(int i) {
+/*  11 */     if ((failures & i) != 0) {
+/*  12 */       throw new IllegalStateException("w" + i);
+/*     */     }
+/*  14 */     log.append(i);
+/*  15 */     return i;
+/*     */   }
+/*     */   
+/*     */   static String nested(int k) {
+/*  19 */     String s = k == 0 ? "a" : k == 1 ? "b" : "zz";
+/*  20 */     return s;
+/*     */   }
+/*     */   
+/*     */   static String nested3(int k) {
+/*  24 */     String s = k == 0 ? "a" : k == 1 ? "b" : k == 2 ? "c" : "d";
+/*  25 */     return s + s;
+/*     */   }
+/*     */   
+/*     */   static String nestedLeft(int k, boolean b) {
+/*  29 */     String s = k == 0 ? b ? "a" : "b" : "c";
+/*  30 */     return s;
+/*     */   }
+/*     */   
+/*     */   static int nestedInt(int k) {
+/*  34 */     int s = k == 0 ? work(1) : k == 1 ? work(2) : work(4);
+/*  35 */     return s;
+/*     */   }
+/*     */   
+/*     */   static int nested5(int k) {
+/*  39 */     int s = k == 0 ? work(1) : k == 1 ? work(2) : k == 2 ? work(4) : k == 3 ? work(8) : work(16);
+/*  40 */     return s;
+/*     */   }
+/*     */   
+/*     */   static int returned(int k) {
+/*  44 */     return k == 0 ? work(1) : k == 1 ? work(2) : work(4);
+/*     */   }
+/*     */   
+/*     */   static int argument(int k) {
+/*  48 */     return work(k == 0 ? work(1) : k == 1 ? work(2) : work(4));
+/*     */   }
+/*     */   
+/*     */   static int both(int k, boolean b) {
+/*  52 */     int r = k > 1 ? b ? work(1) : work(2) : k == 1 ? work(4) : work(8);
+/*  53 */     return r;
+/*     */   }
+/*     */   
+/*     */   static int deepLeft(int k, boolean b) {
+/*  57 */     int r = k > 1 ? b ? k > 2 ? work(1) : work(2) : work(4) : work(8);
+/*  58 */     return r;
+/*     */   }
+/*     */   
+/*     */   static int mixed(int k, boolean b) {
+/*  62 */     int r = k > 1 ? b ? work(1) : k > 2 ? work(2) : work(4) : k == 0 ? work(8) : b ? work(16) : work(32);
+/*  63 */     return r;
+/*     */   }
+/*     */   
+/*     */   static int complex(int k, boolean b) {
+/*  67 */     int r = k == 0 && b ? work(1) : k == 1 || b ? work(2) : k > 2 && !b ? work(4) : work(8);
+/*  68 */     return r;
+/*     */   }
+/*     */   
+/*     */   static int constants(int k) {
+/*  72 */     int r = k == 0 ? 10 : k == 1 ? 20 : k == 2 ? 30 : 40;
+/*  73 */     return r;
+/*     */   }
+/*     */   
+/*     */   static char chars(int k) {
+/*  77 */     char r = k == 0 ? 'a' : k == 1 ? 'b' : 'c';
+/*  78 */     return r;
+/*     */   }
+/*     */   
+/*     */   static boolean bools(int k, boolean b) {
+/*  82 */     boolean r = k == 0 ? b : k == 1 ? !b ? true : false : k > 2 ? true : false;
+/*  83 */     return r;
+/*     */   }
+/*     */   
+/*     */   static boolean boolConst(int k, boolean b) {
+/*  87 */     boolean r = k == 0 ? true : k == 1 ? false : b;
+/*  88 */     return r;
+/*     */   }
+/*     */   
+/*     */   static String arg(int k) {
+/*  92 */     return String.valueOf(k == 0 ? "a" : k == 1 ? "b" : "zz");
+/*     */   }
+/*     */   
+/*     */   static String concat(int k) {
+/*  96 */     return "<" + (k == 0 ? "a" : k == 1 ? "b" : "c") + ">";
+/*     */   }
+/*     */   
+/*     */   static int twice(int k) {
+/* 100 */     return (k == 0 ? 1 : k == 1 ? 2 : 3) * 10 + (k == 2 ? 4 : k == 3 ? 5 : 6);
+/*     */   }
+/*     */   
+/*     */   static int inner(int k, boolean b) {
+/* 104 */     int r = k == 0 ? work(1) : b ? k > 2 ? work(2) : work(4) : work(8);
+/* 105 */     return r;
+/*     */   }
+/*     */   
+/*     */   static int inner2(int k, boolean b) {
+/* 109 */     int r = k == 0 ? work(1) : k == 1 ? work(2) : b ? k > 2 ? k > 3 ? work(4) : work(8) : work(16) : k == 2 ? work(32) : work(1);
+/* 110 */     return r;
+/*     */   }
+/*     */   
+/*     */   static boolean boolMix(int k, boolean b) {
+/* 114 */     boolean r = k == 0 ? b : k == 1 ? true : false;
+/* 115 */     return r;
+/*     */   }
+/*     */   
+/*     */   static boolean boolMix2(int k, boolean b) {
+/* 119 */     boolean r = k == 0 ? false : b;
+/* 120 */     return r;
+/*     */   }
+/*     */   
+/*     */   static boolean boolMix3(int k, boolean b) {
+/* 124 */     return k == 0 ? true : k > 2 && b ? true : false;
+/*     */   }
+/*     */ }

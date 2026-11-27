@@ -1673,8 +1673,8 @@
 /*      */   
 /*      */   public static int _DTCMP(Globals zz, ST_dt_s dt, __ptr__ k1, __ptr__ k2, ST_dtdisc_s dc, CFunction cmpf, int sz)
 /*      */   {
-/* 1676 */     return 
-/* 1677 */       sz <= 0 ? cmpf != null ? cmpf.exeCmpInt(zz, dt, k1, k2, dc) : JUtils.strcmp((CString)k1, (CString)k2) : UNSUPPORTED_INT("memcmp(ok,nk,sz)");
+/* 1676 */     return cmpf != null ? cmpf.exeCmpInt(zz, dt, k1, k2, dc) : 
+/* 1677 */       sz <= 0 ? JUtils.strcmp((CString)k1, (CString)k2) : UNSUPPORTED_INT("memcmp(ok,nk,sz)");
 /*      */   }
 /*      */   
 /*      */ 
