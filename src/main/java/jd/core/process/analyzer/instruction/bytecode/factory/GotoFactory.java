@@ -216,22 +216,66 @@ public class GotoFactory implements InstructionFactory
 
             Switch active = activeSwitch(list);
             if (ByteCodeUtil.isIfInstruction(previousInstruction.getOpcode(), false)
-                && !(active != null && skipsBackwardJump(code, (BranchInstruction) previousInstruction, active)))
+                && !(active != null && skipsBackwardJump(code, (BranchInstruction) previousInstruction, active))
+                && !endsSwitchBranch(list, (BranchInstruction) previousInstruction, offset, stack.peek()))
             {
                 // Gestion de l'operateur ternaire
-                final int ternaryOp2ndValueOffset =
-                    search2ndValueOffset(code, offset, offset+value);
-
-                final Instruction value0 = stack.pop();
-                TernaryOpStore tos = new TernaryOpStore(
-                    ByteCodeConstants.TERNARYOPSTORE, offset-1,
-                    value0.getLineNumber(), value0, ternaryOp2ndValueOffset);
+                TernaryOpStore tos = newTernaryOpStore(
+                    code, offset, secondValueEnd(list, code, offset, offset+value), stack.pop());
 
                 list.add(tos);
                 listForAnalyze.add(tos);
                 return;
             }
         }
+    }
+
+    /**
+     * @return the instruction storing the first value of a ternary operator, before the jump at the offset, the code of
+     * the second value ending at the other offset
+     */
+    public static TernaryOpStore newTernaryOpStore(byte[] code, int offset, int secondValueEnd, Instruction firstValue)
+    {
+        return new TernaryOpStore(
+            ByteCodeConstants.TERNARYOPSTORE, offset-1, firstValue.getLineNumber(), firstValue,
+            search2ndValueOffset(code, offset, secondValueEnd));
+    }
+
+    /**
+     * @return the end of the code giving the second value of a ternary operator: the target of the jump over this code,
+     * or the jump to this target ending the branch of the switch holding the operator
+     */
+    private static int secondValueEnd(List<Instruction> list, byte[] code, int offset, int target)
+    {
+        int nextBranch = target;
+
+        for (Instruction instruction : list)
+        {
+            if (instruction instanceof Switch sw) {
+                nextBranch = IntStream.concat(IntStream.of(sw.getDefaultOffset()), IntStream.of(sw.getOffsets()))
+                        .map(o -> sw.getOffset() + o).filter(o -> o > offset + 3).reduce(nextBranch, Math::min);
+            }
+        }
+
+        // The branch ends with a jump of three bytes
+        int jump = nextBranch - 3;
+        return nextBranch < target && jump > offset && (code[jump] & 255) == Const.GOTO && isBranchTo(code, jump, target)
+                ? jump : target;
+    }
+
+    /**
+     * @return true if the jump ends a branch of a switch expression rather than the first value of a ternary operator:
+     * in "case 0 -> a ? b : c", the condition preceding the jump following "c" does not jump over it.
+     */
+    private static boolean endsSwitchBranch(List<Instruction> list, BranchInstruction branch, int offset,
+            Instruction value)
+    {
+        // The conditions preceding the last switch belong to no branch of it
+        int lastSwitchOffset = list.stream().filter(Switch.class::isInstance).mapToInt(Instruction::getOffset)
+                .max().orElse(Integer.MAX_VALUE);
+        return branch.getJumpOffset() <= offset
+            && lastSwitchOffset < branch.getOffset()
+            && branch.getOffset() < value.getOffset();
     }
 
     /** The selector of the last switch on patterns, whose cases may be restarted. */
