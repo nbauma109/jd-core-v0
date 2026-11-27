@@ -127,6 +127,7 @@ import jd.core.process.analyzer.instruction.fast.reconstructor.EmptyEnumSwitchRe
 import jd.core.process.analyzer.instruction.fast.reconstructor.TernaryOpInReturnReconstructor;
 import jd.core.process.analyzer.instruction.fast.reconstructor.TernaryOpReconstructor;
 import jd.core.process.analyzer.instruction.fast.visitor.CheckLocalVariableUsedVisitor;
+import jd.core.process.analyzer.instruction.fast.visitor.FastCompareInstructionVisitor;
 import jd.core.process.analyzer.util.InstructionUtil;
 import jd.core.process.layouter.visitor.MinMaxLineNumberVisitor;
 import jd.core.process.layouter.visitor.MinMaxLineNumberVisitor.MinMaxLineNumber;
@@ -1203,13 +1204,17 @@ public final class FastInstructionListBuilder {
             list.set(index + 1, null);
         }
 
+        Collections.reverse(tryInstructions);
+
+        if (fce.getType() == FastConstants.TYPE_142) {
+            removeFinallyCopies(classFile.getConstantPool(), fce, list, tryInstructions, finallyInstructions);
+        }
+
         int tryJumpOffsetTmp = searchMinusJumpOffset(tryInstructions, 0, tryInstructions.size(), fce.getTryFromOffset(),
                 fce.getTryToOffset());
         if (tryJumpOffsetTmp != -1 && (tryJumpOffset == -1 || tryJumpOffset > tryJumpOffsetTmp)) {
             tryJumpOffset = tryJumpOffsetTmp;
         }
-
-        Collections.reverse(tryInstructions);
 
         int lineNumber = tryInstructions.get(0).getLineNumber();
 
@@ -1337,6 +1342,52 @@ public final class FastInstructionListBuilder {
         if (!instructionsToMove.isEmpty()) {
             list.addAll(index + 2, instructionsToMove);
         }
+    }
+
+    /**
+     * Removes the copies of the 'finally' block that ECJ does not place at the end of the 'try' block: before the jumps
+     * leaving the block, where they would keep a 'break' or a 'continue' apart from its condition, and, if the block
+     * contains such jumps, after the handler, where it jumps to when it completes normally.
+     *
+     * @param handler the storage of the exception, the 'finally' block and the rethrow
+     */
+    private static void removeFinallyCopies(ConstantPool constants, FastCodeExcepcion fce, List<Instruction> list,
+            List<Instruction> tryInstructions, List<Instruction> handler) {
+        int length = handler.size() - 2;
+        if (length <= 0 || !(handler.get(length + 1) instanceof AThrow rethrow)) {
+            return;
+        }
+        FastCompareInstructionVisitor visitor = new FastCompareInstructionVisitor(constants);
+        int last = tryInstructions.size() - 1;
+        if (tryInstructions.get(last) instanceof Goto exit
+                && (last < length || !visitor.visit(tryInstructions, handler, last - length, 1, length))) {
+            IntStream.range(0, list.size() - length + 1)
+                    .filter(i -> list.get(i) != null && list.get(i).getOffset() >= exit.getJumpOffset())
+                    .findFirst()
+                    .ifPresent(i -> {
+                        if (visitor.visit(list, handler, i, 1, length)) {
+                            List<Instruction> copy = list.subList(i, i + length);
+                            // The instructions following the copy are as far from it as the rethrow from the original
+                            int shift = copy.get(length - 1).getOffset() - handler.get(length).getOffset();
+                            exit.setBranch(rethrow.getValue().getOffset() + shift - exit.getOffset());
+                            copy.clear();
+                        }
+                    });
+        }
+        int i = last - 1;
+        while (i >= length) {
+            if (tryInstructions.get(i) instanceof Goto jump && isLeavingTryBlock(fce, jump.getJumpOffset())
+                    && visitor.visit(tryInstructions, handler, i - length, 1, length)) {
+                tryInstructions.subList(i - length, i).clear();
+                // The jump is now at the place of the copy
+                i -= length;
+            }
+            i--;
+        }
+    }
+
+    private static boolean isLeavingTryBlock(FastCodeExcepcion fce, int jumpOffset) {
+        return jumpOffset < fce.getTryFromOffset() || jumpOffset > fce.getFinallyFromOffset();
     }
 
     /**
