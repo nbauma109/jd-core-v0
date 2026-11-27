@@ -20,7 +20,9 @@ import org.apache.bcel.Const;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import jd.core.model.instruction.bytecode.ByteCodeConstants;
 import jd.core.model.instruction.bytecode.instruction.ArrayStoreInstruction;
@@ -31,6 +33,7 @@ import jd.core.model.instruction.bytecode.instruction.IConst;
 import jd.core.model.instruction.bytecode.instruction.InitArrayInstruction;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.NewArray;
+import jd.core.model.instruction.bytecode.instruction.Switch;
 import jd.core.model.instruction.bytecode.instruction.SIPush;
 import jd.core.model.instruction.bytecode.instruction.TernaryOperator;
 import jd.core.process.analyzer.util.ReconstructorUtil;
@@ -76,6 +79,15 @@ public final class InitArrayInstructionReconstructor
 
             reconstructAInstruction(list, index, dupStore);
         }
+    }
+
+    /** @return true if a switch at the index precedes the next element stored in the array */
+    private static boolean isInterruptedBySwitch(List<Instruction> list, int index, DupStore lastDupStore)
+    {
+        return index < list.size() && list.get(index) instanceof Switch
+            && list.subList(index, list.size()).stream().anyMatch(instruction ->
+                instruction instanceof ArrayStoreInstruction asi
+                    && isDuplicate(asi.getArrayref(), Set.of(lastDupStore.getOffset())));
     }
 
     private static void reconstructAInstruction(
@@ -147,7 +159,13 @@ public final class InitArrayInstructionReconstructor
             lastDupStore = nextDupStore;
         }
 
-        if (lastAsi != null)
+        if (isInterruptedBySwitch(list, index, lastDupStore))
+        {
+            // The value of an element computed by a switch expression follows the switch in the instructions: the array
+            // cannot be initialized with only the elements preceding it, which are stored one by one
+            setElementTypes(dupStore.getObjectref(), getElementValues(list, firstDupStoreIndex));
+        }
+        else if (lastAsi != null)
         {
             // Instanciation d'une instruction InitArrayInstruction
             InitArrayInstruction iai = new InitArrayInstruction(
@@ -199,29 +217,57 @@ public final class InitArrayInstructionReconstructor
             }
 
             // Initialisation des types de constantes entieres
-            if (iai.getNewArray().getOpcode() == Const.NEWARRAY)
+            setElementTypes(iai.getNewArray(), iai.getValues());
+        }
+    }
+
+    private static void setElementTypes(Instruction newArray, List<Instruction> values)
+    {
+        if (newArray instanceof NewArray na)
+        {
+            switch (na.getType())
             {
-                NewArray na = (NewArray)iai.getNewArray();
-                switch (na.getType())
-                {
-                case Const.T_BOOLEAN:
-                    setContantTypes("Z", iai.getValues());
-                    break;
-                case Const.T_CHAR:
-                    setContantTypes("C", iai.getValues());
-                    break;
-                case Const.T_BYTE:
-                    setContantTypes("B", iai.getValues());
-                    break;
-                case Const.T_SHORT:
-                    setContantTypes("S", iai.getValues());
-                    break;
-                case Const.T_INT:
-                    setContantTypes("I", iai.getValues());
-                    break;
-                }
+            case Const.T_BOOLEAN:
+                setContantTypes("Z", values);
+                break;
+            case Const.T_CHAR:
+                setContantTypes("C", values);
+                break;
+            case Const.T_BYTE:
+                setContantTypes("B", values);
+                break;
+            case Const.T_SHORT:
+                setContantTypes("S", values);
+                break;
+            case Const.T_INT:
+                setContantTypes("I", values);
+                break;
             }
         }
+    }
+
+    /** @return the values stored in the array duplicated at the given index, and in its own duplicates */
+    private static List<Instruction> getElementValues(List<Instruction> list, int firstDupStoreIndex)
+    {
+        Set<Integer> duplicates = new HashSet<>();
+        duplicates.add(list.get(firstDupStoreIndex).getOffset());
+        List<Instruction> values = new ArrayList<>();
+
+        for (Instruction instruction : list.subList(firstDupStoreIndex + 1, list.size()))
+        {
+            if (instruction instanceof DupStore store && isDuplicate(store.getObjectref(), duplicates)) {
+                duplicates.add(store.getOffset());
+            } else if (instruction instanceof ArrayStoreInstruction asi && isDuplicate(asi.getArrayref(), duplicates)) {
+                values.add(asi.getValueref());
+            }
+        }
+
+        return values;
+    }
+
+    private static boolean isDuplicate(Instruction instruction, Set<Integer> duplicates)
+    {
+        return instruction.getOpcode() == ByteCodeConstants.DUPLOAD && duplicates.contains(instruction.getOffset());
     }
 
     private static void setContantTypes(
