@@ -1374,12 +1374,15 @@ public final class FastInstructionListBuilder {
                         }
                     });
         }
-        for (int i = last - 1; i >= length; i--) {
+        int i = last - 1;
+        while (i >= length) {
             if (tryInstructions.get(i) instanceof Goto jump && isLeavingTryBlock(fce, jump.getJumpOffset())
                     && visitor.visit(tryInstructions, handler, i - length, 1, length)) {
                 tryInstructions.subList(i - length, i).clear();
+                // The jump is now at the place of the copy
                 i -= length;
             }
+            i--;
         }
     }
 
