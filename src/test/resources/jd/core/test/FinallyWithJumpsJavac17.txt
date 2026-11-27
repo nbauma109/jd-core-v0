@@ -1,0 +1,76 @@
+/*    */ package jd.core.test.fallbacks;
+/*    */ 
+/*    */ public class FinallyWithJumps
+/*    */ {
+/*    */   static int failures;
+/*  6 */   static StringBuilder log = new StringBuilder();
+/*    */   
+/*    */   static void work(int i) {
+/*  9 */     if ((failures & i) != 0) {
+/* 10 */       throw new IllegalStateException("w" + i);
+/*    */     }
+/* 12 */     log.append(i);
+/*    */   }
+/*    */   
+/*    */   static void both(int n) {
+/* 16 */     for (int i = 0; i < n; i++) {
+/*    */       try {
+/* 18 */         if (i == 1) {
+/*    */           continue;
+/*    */         }
+/* 21 */         if (i == 3) {
+/*    */           break;
+/*    */         }
+/* 24 */         work(1);
+/*    */       } finally {
+/* 26 */         work(4);
+/*    */       }
+/*    */     }
+/* 29 */     work(8);
+/*    */   }
+/*    */   
+/*    */   static void onlyContinue(int n) {
+/* 33 */     for (int i = 0; i < n; i++) {
+/*    */       try {
+/* 35 */         if (i == 1) {
+/*    */           continue;
+/*    */         }
+/* 38 */         work(1);
+/*    */       } finally {
+/* 40 */         work(4);
+/*    */       }
+/*    */     }
+/* 43 */     work(8);
+/*    */   }
+/*    */   
+/*    */   static void onlyBreak(int n) {
+/* 47 */     for (int i = 0; i < n; i++) {
+/*    */       try {
+/* 49 */         if (i == 3) {
+/*    */           break;
+/*    */         }
+/* 52 */         work(1);
+/*    */       } finally {
+/* 54 */         work(4);
+/*    */       }
+/*    */     }
+/* 57 */     work(8);
+/*    */   }
+/*    */   
+/*    */   static void breakWhile(int n) {
+/* 61 */     int i = 0;
+/* 62 */     while (i < n) {
+/*    */       try {
+/* 64 */         i++;
+/* 65 */         if (i == 2) {
+/*    */           break;
+/*    */         }
+/* 68 */         work(1);
+/*    */       } finally {
+/* 70 */         work(4);
+/*    */       }
+/* 72 */       work(2);
+/*    */     }
+/* 74 */     work(8);
+/*    */   }
+/*    */ }
