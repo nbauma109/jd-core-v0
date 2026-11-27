@@ -120,10 +120,123 @@
 /* 120 */     work(5);
 /*     */   }
 /*     */   
+/*     */   static void conditionEndingCatch(int i, boolean b) {
+/* 124 */     switch (i) {
+/*     */     case 0: 
+/*     */       try {
+/* 127 */         work(1);
+/*     */       } catch (IllegalStateException localIllegalStateException) {
+/* 129 */         if (b) {
+/* 130 */           work(2);
+/*     */         }
+/*     */       }
+/*     */       break;
+/*     */     default: 
+/* 135 */       work(4);
+/*     */     }
+/* 137 */     work(5);
+/*     */   }
+/*     */   
+/*     */   static void catchBreakingEarly(int i, boolean b) {
+/* 141 */     switch (i) {
+/*     */     case 0: 
+/*     */       try {
+/* 144 */         work(1);
+/*     */       } catch (IllegalStateException localIllegalStateException) {
+/* 146 */         if (b) {
+/*     */           break;
+/*     */         }
+/* 149 */         work(2);
+/*     */       }
+/* 151 */       work(3);
+/* 152 */       break;
+/*     */     default: 
+/* 154 */       work(4);
+/*     */     }
+/* 156 */     work(5);
+/*     */   }
+/*     */   
+/*     */   static void catchConditionAfterReturn(int i, boolean b) {
+/* 160 */     switch (i) {
+/*     */     case 0: 
+/*     */       try {
+/* 163 */         work(1);
+/* 164 */         return;
+/*     */       } catch (IllegalStateException localIllegalStateException) {
+/* 166 */         if (b) {
+/* 167 */           work(2);
+/*     */         }
+/*     */       }
+/*     */       break;
+/*     */     default: 
+/* 172 */       work(4);
+/*     */     }
+/* 174 */     work(5);
+/*     */   }
+/*     */   
+/*     */   static void catchBreakingEarlyBeforeFinally(int i, boolean b) {
+/* 178 */     switch (i) {
+/*     */     case 0: 
+/*     */       try {
+/* 181 */         work(1);
+/*     */       } catch (IllegalStateException localIllegalStateException) {
+/* 183 */         if (b) {
+/*     */           break;
+/*     */         }
+/* 186 */         work(2);
+/*     */       } finally {
+/* 188 */         work(6);
+/*     */       }
+/* 190 */       work(3);
+/* 191 */       break;
+/*     */     default: 
+/* 193 */       work(4);
+/*     */     }
+/* 195 */     work(5);
+/*     */   }
+/*     */   
+/*     */   static void conditionAfterTwoCatches(int i, boolean b) {
+/* 199 */     switch (i) {
+/*     */     case 0: 
+/*     */       try {
+/* 202 */         work(1);
+/* 203 */         return;
+/*     */       } catch (IllegalStateException localIllegalStateException) {
+/* 205 */         work(2);
+/*     */       } catch (IllegalArgumentException localIllegalArgumentException) {
+/* 207 */         work(3);
+/*     */       }
+/* 209 */       if (!b)
+/*     */       {
+/*     */ 
+/* 212 */         work(6); }
+/* 213 */       break;
+/*     */     default: 
+/* 215 */       work(4);
+/*     */     }
+/* 217 */     work(5);
+/*     */   }
+/*     */   
+/*     */   static void conditionAfterCatchInLoop(int i, boolean b) {
+/* 221 */     for (int k = i; k < 2; k++) {
+/*     */       label22:
+/* 223 */        { try { work(1);
+/* 224 */           return;
+/*     */         } catch (IllegalStateException localIllegalStateException) {
+/* 226 */           work(2);
+/*     */           
+/* 228 */           if (!b) break label22; }
+/* 229 */         break;
+/*     */       }
+/* 231 */       work(3);
+/*     */     }
+/* 233 */     work(5);
+/*     */   }
+/*     */   
 /*     */   static void work(int i) {
-/* 124 */     System.out.println(i);
-/* 125 */     if ((failures & 1 << i) != 0) {
-/* 126 */       throw new IllegalStateException();
+/* 237 */     System.out.println(i);
+/* 238 */     if ((failures & 1 << i) != 0) {
+/* 239 */       throw new IllegalStateException();
 /*     */     }
 /*     */   }
 /*     */ }

@@ -1505,6 +1505,11 @@ public final class FastCodeExceptionAnalyzer
 
                         if (jumpOffsetTmp > instruction.getOffset())
                         {
+                            // Before the end of the statement, a condition leaving a 'switch' case belongs to the
+                            // 'catch' block: its jump does not bound the block
+                            if (jumpOffsetTmp > afterOffset && isInsideSwitchBlock(list, instruction.getOffset())) {
+                                break;
+                            }
                             // Saut positif
                             if (jumpOffsetTmp >= afterOffset) {
                                 if (instruction.getOpcode() == Const.GOTO ||
