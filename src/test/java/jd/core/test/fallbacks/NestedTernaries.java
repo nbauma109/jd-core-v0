@@ -2,7 +2,7 @@ package jd.core.test.fallbacks;
 
 /** Ternary operators nested in one another. */
 // Nested operators, redundant literals and values stored before being returned are the shapes under test
-@SuppressWarnings({ "java:S3358", "java:S1125", "java:S1488" })
+@SuppressWarnings({ "java:S3358", "java:S9358", "java:S1125", "java:S1488" })
 public class NestedTernaries {
     static int failures;
     static StringBuilder log = new StringBuilder();
