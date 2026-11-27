@@ -64,7 +64,8 @@ public final class ByteCodeWriter
         buffer.startOfLine(Printer.UNKNOWN_LINE_NUMBER);
         write(loader, buffer, referenceMap, classFile, method);
         String[] records = buffer.toString().split("\\r\\n|\\n|\\r", -1);
-        int rows = lineCount + 1;
+        // The last line stays empty, as the closing brace of the method may be written on it
+        int rows = Math.max(lineCount, 1);
         printer.startOfComment();
         int index = 0;
         for (int row = 0; row < rows; row++) {
@@ -74,13 +75,21 @@ public final class ByteCodeWriter
             }
             int end = (int) ((long) (row + 1) * records.length / rows);
             if (index < end) {
-                printer.print(records[index++]);
+                String first = records[index++];
+                // Without a following line, a line comment would hide the closing brace
+                printer.print(lineCount == 0 ? first.replace("//", "/*") : first);
                 while (index < end) {
                     printer.print(" | ");
                     String line = records[index++].stripLeading();
                     printer.print(line.startsWith("//") ? line.substring(2).stripLeading() : line);
                 }
             }
+        }
+        if (lineCount == 0) {
+            printer.print(" */");
+        } else {
+            printer.endOfLine();
+            printer.startOfLine(Printer.UNKNOWN_LINE_NUMBER);
         }
         printer.endOfComment();
     }
