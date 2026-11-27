@@ -1,0 +1,251 @@
+/*     */ package jd.core.test.fallbacks;
+/*     */ 
+/*     */ public class SwitchExpressionOperands { static int failures;
+/*     */   static int field;
+/*     */   static boolean flag;
+/*   6 */   int instanceField; static StringBuilder log = new StringBuilder();
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   static int work(int i)
+/*     */   {
+/*  12 */     if ((failures & i) != 0) {
+/*  13 */       throw new IllegalStateException("w" + i);
+/*     */     }
+/*  15 */     log.append(i);
+/*  16 */     return i;
+/*     */   }
+/*     */   
+/*     */   static int assigned(int k) {
+/*  20 */     int r = switch (k) {
+/*  21 */       case 0 -> work(1);
+/*  22 */       case 1 -> work(2);
+/*  23 */       default -> 7;
+/*     */     };
+/*  25 */     return r + 1;
+/*     */   }
+/*     */   
+/*     */   static int returned(int k) {
+/*  29 */     return switch (k) {
+/*  30 */       case 0 -> work(1);
+/*  31 */       case 1 -> work(2);
+/*  32 */       default -> 7;
+/*     */     };
+/*     */   }
+/*     */   
+/*     */   static int argument(int k) {
+/*  37 */     return work(switch (k) {
+/*  38 */       case 0 -> 1;
+/*  39 */       case 1 -> 2;
+/*  40 */       default -> 4;
+/*     */     });
+/*     */   }
+/*     */   
+/*     */   static void statementArgument(int k) {
+/*  45 */     work(switch (k) {
+/*  46 */       case 0 -> 1;
+/*  47 */       case 1 -> 2;
+/*  48 */       default -> 4;
+/*     */     });
+/*     */   }
+/*     */   
+/*     */   static int secondArgument(int k) {
+/*  53 */     return Math.max(work(8), switch (k) {
+/*  54 */       case 0 -> 1;
+/*  55 */       case 1 -> 2;
+/*  56 */       default -> 4;
+/*     */     });
+/*     */   }
+/*     */   
+/*     */   static int operand(int k) {
+/*  61 */     return work(1) + switch (k) {
+/*  62 */       case 0 -> work(2);
+/*  63 */       default -> 4;
+/*     */     };
+/*     */   }
+/*     */   
+/*     */   static String concat(int k) {
+/*  68 */     return "<" + switch (k) {
+/*  69 */       case 0 -> "a";
+/*  70 */       case 1 -> "b";
+/*  71 */       default -> "c";
+/*     */     } + ">";
+/*     */   }
+/*     */   
+/*     */   static int staticField(int k) {
+/*  76 */     field = switch (k) {
+/*  77 */       case 0 -> work(1);
+/*  78 */       case 1 -> work(2);
+/*  79 */       default -> 4;
+/*     */     };
+/*  81 */     return field;
+/*     */   }
+/*     */   
+/*     */   static int compound(int k) {
+/*  85 */     int r = work(8);
+/*  86 */     r = r + switch (k) {
+/*  87 */       case 0 -> work(1);
+/*  88 */       case 1 -> work(2);
+/*  89 */       default -> 4;
+/*     */     };
+/*  91 */     return r;
+/*     */   }
+/*     */   
+/*     */ 
+/*     */ 
+/*     */   static int condition(int k)
+/*     */   {
+/*  98 */     if (work(8) < switch (k) {case 0 -> work(1);case 1 -> work(2);default -> 4;
+/*     */     }) {
+/* 100 */       return work(16);
+/*     */     }
+/* 102 */     return work(32);
+/*     */   }
+/*     */   
+/*     */   static int throwingDefault(int k) {
+/* 106 */     return work(switch (k) {
+/* 107 */       case 0 -> 1;
+/* 108 */       case 1 -> 2;
+/* 109 */       case 2 -> 4;
+/* 110 */       default -> throw new IllegalArgumentException();
+/*     */     });
+/*     */   }
+/*     */   
+/*     */   static int throwingMiddle(int k) {
+/* 115 */     return work(switch (k) {
+/* 116 */       case 0 -> 1;
+/* 117 */       case 1 -> throw new IllegalArgumentException();
+/* 118 */       default -> 4;
+/*     */     });
+/*     */   }
+/*     */   
+/*     */   static int twice(int k) {
+/* 123 */     return Math.max(switch (k) {
+/* 124 */       case 0 -> 1;
+/* 125 */       case 1 -> 2;
+/* 126 */       default -> 4;
+/*     */     }, 0) * 10 + switch (k) {
+/* 128 */       case 0 -> 1;
+/* 129 */       case 1 -> 2;
+/* 130 */       default -> 4;
+/*     */     };
+/*     */   }
+/*     */   
+/*     */   static int inStatement(int k) {
+/* 135 */     switch (k) {
+/*     */     case 0: 
+/* 137 */       work(switch (k) {
+/* 138 */         case 0 -> 1;
+/* 139 */         default -> 2;
+/*     */       });
+/* 141 */       break;
+/*     */     default: 
+/* 143 */       work(4);
+/*     */     }
+/* 145 */     return work(8);
+/*     */   }
+/*     */   
+/*     */   static int inLoop(int k) {
+/* 149 */     int r = 0;
+/* 150 */     for (int i = 0; i < 3; i++) {
+/* 151 */       r = r * 10 + switch (k + i) {
+/* 152 */         case 1 -> 1;
+/* 153 */         case 2 -> 2;
+/* 154 */         default -> 3;
+/*     */       };
+/*     */     }
+/* 157 */     return r;
+/*     */   }
+/*     */   
+/*     */   static int fieldOfInstance(int k) {
+/* 161 */     SwitchExpressionOperands e = new SwitchExpressionOperands();
+/* 162 */     e.instanceField += switch (k) {
+/* 163 */       case 0 -> work(1);
+/* 164 */       default -> 4;
+/*     */     };
+/* 166 */     field += switch (k) {
+/* 167 */       case 0 -> work(2);
+/* 168 */       default -> 4;
+/*     */     };
+/* 170 */     return e.instanceField * 10 + field;
+/*     */   }
+/*     */   
+/*     */   static int minus(int k) {
+/* 174 */     int r = work(16);
+/* 175 */     r = r - switch (k) {
+/* 176 */       case 0 -> 1;
+/* 177 */       default -> 2;
+/*     */     };
+/* 179 */     r = r * switch (k) {
+/* 180 */       case 0 -> work(1);
+/* 181 */       default -> 3;
+/*     */     };
+/* 183 */     return r;
+/*     */   }
+/*     */   
+/*     */   static boolean assignedBoolean(int k)
+/*     */   {
+/* 188 */     boolean r = switch (k) {
+/* 189 */       case 0 -> true;
+/* 190 */       case 1 -> throw new IllegalArgumentException();
+/* 191 */       default -> false;
+/*     */     };
+/* 193 */     return r;
+/*     */   }
+/*     */   
+/*     */   static String booleans(int k) {
+/* 197 */     return String.valueOf(switch (k) {
+/* 198 */       case 0 -> true;
+/* 199 */       case 1 -> false;
+/* 200 */       default -> true;
+/*     */     });
+/*     */   }
+/*     */   
+/*     */   static String comparedBoolean(int k, boolean x) {
+/* 205 */     return String.valueOf(x == switch (k) {
+/* 206 */       case 0 -> true;
+/* 207 */       default -> false;
+/*     */     });
+/*     */   }
+/*     */   
+/*     */   static boolean storedBooleans(int k) {
+/* 212 */     flag = switch (k) {
+/* 213 */       case 0 -> true;
+/* 214 */       default -> false;
+/*     */     };
+/* 216 */     boolean[] flags = new boolean[1];
+/* 217 */     flags[0] = switch (k) {
+/* 218 */       case 1 -> true;
+/* 219 */       default -> false;
+/*     */     };
+/* 221 */     return flag ^ flags[0];
+/*     */   }
+/*     */   
+/*     */   static String concatenatedBoolean(int k) {
+/* 225 */     return "<" + switch (k) {
+/* 226 */       case 0 -> true;
+/* 227 */       default -> false;
+/*     */     } + ">";
+/*     */   }
+/*     */   
+/*     */   static String characters(int k) {
+/* 232 */     return "" + switch (k) {
+/* 233 */       case 0 -> 'a';
+/* 234 */       default -> 'b';
+/*     */     } + switch (k) {
+/* 236 */       case 1 -> 'c';
+/* 237 */       default -> 'd';
+/*     */     };
+/*     */   }
+/*     */   
+/*     */   static void statementThenStatement(int k) {
+/* 242 */     switch (k) {
+/*     */     case 0: 
+/* 244 */       work(1);
+/* 245 */       break;
+/*     */     default: 
+/* 247 */       work(2);
+/*     */     }
+/* 249 */     work(4);
+/*     */   }
+/*     */ }

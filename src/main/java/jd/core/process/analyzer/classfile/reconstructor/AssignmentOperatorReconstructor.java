@@ -134,7 +134,7 @@ public final class AssignmentOperatorReconstructor
         String newOperator = boi.getOperator() + "=";
 
         if (boi.getValue2() instanceof ConstInstruction ci
-            && isPlusOrMinusEqual(newOperator)) {
+            && isIncrement(list, index, getStatic, newOperator)) {
             int sign = "+=".equals(newOperator) ? 1 : -1;
             list.set(index, new IncInstruction(ByteCodeConstants.POSTINC,
                 putStatic.getOffset(), getStatic.getLineNumber(), getStatic,
@@ -181,7 +181,7 @@ public final class AssignmentOperatorReconstructor
         String newOperator = boi.getOperator() + "=";
 
         if (boi.getValue2() instanceof ConstInstruction ci
-            && isPlusOrMinusEqual(newOperator)) {
+            && isIncrement(list, index, getField, newOperator)) {
             int sign = "+=".equals(newOperator) ? 1 : -1;
             list.set(index, new IncInstruction(ByteCodeConstants.POSTINC,
                 putField.getOffset(), getField.getLineNumber(), getField,
@@ -213,7 +213,7 @@ public final class AssignmentOperatorReconstructor
         String newOperator = boi.getOperator() + "=";
 
         if (boi.getValue2() instanceof ConstInstruction ci
-            && isPlusOrMinusEqual(newOperator)) {
+            && isIncrement(list, index, li, newOperator)) {
             list.set(index, new IncInstruction(ByteCodeConstants.POSTINC,
                     si.getOffset(), li.getLineNumber(), li,
                     ci.getValue()));
@@ -225,8 +225,13 @@ public final class AssignmentOperatorReconstructor
         }
     }
 
-    private static boolean isPlusOrMinusEqual(String newOperator) {
-        return "+=".equals(newOperator) || "-=".equals(newOperator);
+    /**
+     * The constant ending a switch expression is only one of its values: it must remain an instruction. Such an
+     * expression leaves instructions between the load and the store.
+     */
+    private static boolean isIncrement(List<Instruction> list, int index, Instruction load, String operator) {
+        return ("+=".equals(operator) || "-=".equals(operator))
+            && (index == 0 || list.get(index - 1).getOffset() <= load.getOffset());
     }
 
     /*

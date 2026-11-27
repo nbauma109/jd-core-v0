@@ -76,7 +76,14 @@ public class GotoFactory implements InstructionFactory
         // Only a switch expression whose value is stored or returned can be reconstructed
         boolean assignsOrReturns = isStoreOrReturn(code, offset + value);
 
-        if (!stack.isEmpty() && !list.isEmpty()
+        if (yieldsUnderOtherValues(list, stack, code, offset, offset + value)) {
+            // Left on the stack, the value of this case would hide the ones computed before the switch from the
+            // instructions following it
+            // The last value stays there, even when a branch throwing follows
+            if (!isFollowedByThrowingBranchOnly(code, offset, value)) {
+                stack.pop();
+            }
+        } else if (!stack.isEmpty() && !list.isEmpty()
                 && !(assignsOrReturns && startsSwitchBranch(list, offset + 3)
                         && isFollowedByThrowingBranchOnly(code, offset, value))) {
             generateTernaryOpStore(
@@ -116,6 +123,44 @@ public class GotoFactory implements InstructionFactory
 
         // For variable length instructions, the offset of their last byte is returned
         return Const.getNoOfOperands(opcode) == Const.UNPREDICTABLE ? next + 1 : next;
+    }
+
+    /**
+     * @return true if the jump ends a branch of a switch expression which pushed its value above values computed
+     * before the switch, and other branches give the value too. Only the switches whose branches all jump to their end,
+     * without conditions, are handled.
+     */
+    private static boolean yieldsUnderOtherValues(List<Instruction> list, Deque<Instruction> stack, byte[] code,
+            int offset, int target)
+    {
+        for (Instruction instruction : list)
+        {
+            if (instruction instanceof Switch sw) {
+                int[] branches = IntStream.concat(IntStream.of(sw.getDefaultOffset()), IntStream.of(sw.getOffsets()))
+                        .map(o -> sw.getOffset() + o).toArray();
+                if (IntStream.of(branches).anyMatch(o -> o == offset + 3)) {
+                    // The value is the last thing the branch computed, above the ones computed before the switch
+                    return stack.stream().anyMatch(v -> v.getOffset() < sw.getOffset())
+                            && stack.peek().getOffset() > list.get(list.size() - 1).getOffset()
+                            && onlyJumpsTo(code, IntStream.of(branches).min().orElse(offset), target);
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean onlyJumpsTo(byte[] code, int start, int target)
+    {
+        for (int pos = start; pos < target && pos < code.length; pos = followingOffset(code, pos))
+        {
+            int opcode = code[pos] & 255;
+
+            if (ByteCodeUtil.isIfInstruction(opcode, true)
+                    || opcode == Const.GOTO && !isBranchTo(code, pos, target)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private static boolean startsSwitchBranch(List<Instruction> list, int branchOffset)

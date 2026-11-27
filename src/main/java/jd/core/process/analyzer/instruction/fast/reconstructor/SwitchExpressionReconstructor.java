@@ -18,16 +18,22 @@ package jd.core.process.analyzer.instruction.fast.reconstructor;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.stream.IntStream;
 
 import org.apache.bcel.Const;
 import org.apache.bcel.classfile.LineNumber;
 
 import jd.core.model.classfile.ClassFile;
 import jd.core.model.classfile.Method;
+import jd.core.model.instruction.bytecode.instruction.IConst;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.PatternSwitchSelector;
+import jd.core.model.instruction.bytecode.instruction.Pop;
 import jd.core.model.instruction.bytecode.instruction.ReturnInstruction;
 import jd.core.model.instruction.bytecode.instruction.StoreInstruction;
 import jd.core.model.instruction.fast.FastConstants;
@@ -45,6 +51,7 @@ import jd.core.model.instruction.fast.instruction.FastTry;
 import jd.core.model.instruction.fast.instruction.FastTry.FastCatch;
 import jd.core.process.analyzer.instruction.bytecode.factory.InstructionFactory;
 import jd.core.process.analyzer.instruction.bytecode.factory.InstructionFactoryConstants;
+import jd.core.process.analyzer.instruction.fast.visitor.ReplaceInstructionVisitor;
 
 public final class SwitchExpressionReconstructor {
 
@@ -56,7 +63,8 @@ public final class SwitchExpressionReconstructor {
             return;
         }
 
-        for (int index = 0; index < list.size(); index++) {
+        // From the last one, so that a switch expression precedes the one following it in the same statement
+        for (int index = list.size() - 1; index >= 0; index--) {
             Instruction instruction = list.get(index);
 
             if (instruction instanceof FastSwitch fs) {
@@ -65,7 +73,6 @@ public final class SwitchExpressionReconstructor {
                     Instruction targetInstruction = list.get(targetIndex);
                     if (tryReplaceWithSwitchExpression(classFile, method, fs, targetInstruction)) {
                         list.remove(index);
-                        index--;
                         continue;
                     }
                 }
@@ -79,26 +86,34 @@ public final class SwitchExpressionReconstructor {
 
     private static boolean tryReplaceWithSwitchExpression(ClassFile classFile, Method method, FastSwitch fs, Instruction targetInstruction) {
         Instruction target = unwrapTarget(targetInstruction);
-        if ((!(target instanceof StoreInstruction) && !(target instanceof ReturnInstruction))) {
+        List<Instruction> results = resolveCaseResults(classFile, method, fs);
+        // The instructions following the switch consume the value of the last case
+        Instruction consumed = results.stream().filter(Objects::nonNull)
+                .max(Comparator.comparingInt(Instruction::getOffset)).orElse(null);
+        if (consumed == null) {
             return false;
         }
 
-        String targetSignature = getTargetSignature(classFile, method, target);
-        if (!populateSwitchExpressionCases(classFile, method, fs, targetSignature)) {
-            return false;
+        if (target instanceof StoreInstruction si && isComputedBySwitch(fs, si.getValueref())) {
+            forceConstantSignature(si.getReturnedSignature(classFile, method.getLocalVariables()), results);
+            si.setValueref(fs);
+        } else if (target instanceof ReturnInstruction ri && isComputedBySwitch(fs, ri.getValueref())) {
+            forceConstantSignature(ri.getReturnedSignature(classFile, method.getLocalVariables()), results);
+            ri.setValueref(fs);
+        } else {
+            Instruction replaced = isDiscardedBySwitch(fs, target) ? null : replace(target, consumed.getOffset(), fs);
+            if (replaced == null) {
+                return false;
+            }
+            // The type expected by the instruction consuming the value has been given to the value it consumed
+            forceConstantSignature(replaced.getReturnedSignature(classFile, method.getLocalVariables()), results);
         }
 
+        addCaseResults(fs, results);
         alignTargetLineNumber(fs, targetInstruction);
         if (target != targetInstruction) {
             alignTargetLineNumber(fs, target);
         }
-
-        if (target instanceof StoreInstruction si) {
-            si.setValueref(fs);
-        } else {
-            ((ReturnInstruction) target).setValueref(fs);
-        }
-
         return true;
     }
 
@@ -112,43 +127,59 @@ public final class SwitchExpressionReconstructor {
         return instruction;
     }
 
-    private static String getTargetSignature(ClassFile classFile, Method method, Instruction target) {
-        if (target instanceof ReturnInstruction ri) {
-            return ri.getReturnedSignature(classFile, method.getLocalVariables());
-        }
-        if (target instanceof StoreInstruction si) {
-            return si.getReturnedSignature(classFile, method.getLocalVariables());
-        }
-        return null;
+    /** @return true if the value of the switch is discarded at once, which a switch expression cannot be */
+    private static boolean isDiscardedBySwitch(FastSwitch fs, Instruction target) {
+        return target instanceof Pop pop && isComputedBySwitch(fs, pop.getObjectref());
     }
 
-    private static boolean populateSwitchExpressionCases(ClassFile classFile, Method method, FastSwitch fs, String targetSignature) {
-        FastSwitch.Pair[] pairs = fs.getPairs();
-        if (pairs == null || pairs.length == 0) {
-            return false;
-        }
+    /** @return the instruction replaced by the switch, null if there is none */
+    private static Instruction replace(Instruction target, int offset, FastSwitch fs) {
+        ReplaceInstructionVisitor visitor = new ReplaceInstructionVisitor(offset, fs);
+        visitor.visit(target);
+        return visitor.getOldInstruction();
+    }
 
+    /** @return false if the value is computed after the switch, from the one it gives */
+    private static boolean isComputedBySwitch(FastSwitch fs, Instruction value) {
+        return value.getOffset() < fs.getJumpOffset();
+    }
+
+    /** @return the value of each case, null for the cases throwing; nothing if the switch is not an expression */
+    private static List<Instruction> resolveCaseResults(ClassFile classFile, Method method, FastSwitch fs) {
+        FastSwitch.Pair[] pairs = fs.getPairs();
         int breakOffset = fs.getJumpOffset();
-        List<Instruction> resolvedResults = new ArrayList<>(pairs.length);
+        List<Instruction> results = new ArrayList<>(pairs.length);
 
         for (FastSwitch.Pair pair : pairs) {
-            List<Instruction> instructions = pair.getInstructions();
-            Instruction last = findLastNonBreakInstruction(instructions);
+            Instruction last = findLastNonBreakInstruction(pair.getInstructions());
             if (last != null && last.getOpcode() == Const.ATHROW) {
-                resolvedResults.add(null);
+                results.add(null);
                 continue;
             }
 
             Instruction result = resolveCaseResultFromBytecode(classFile, method, bodyOffset(fs, pair), breakOffset);
             if (result == null) {
-                return false;
+                return List.of();
             }
-            if (shouldForceBooleanSignature(targetSignature, result)) {
-                ((jd.core.model.instruction.bytecode.instruction.IConst) result).setSignature("Z");
-            }
-            resolvedResults.add(result);
+            results.add(result);
         }
 
+        return results;
+    }
+
+    /** Writes the constants as booleans or characters, rather than as numbers, where such a value is expected. */
+    private static void forceConstantSignature(String targetSignature, List<Instruction> results) {
+        if ("Z".equals(targetSignature) || "C".equals(targetSignature)) {
+            for (Instruction result : results) {
+                if (result instanceof IConst iConst) {
+                    iConst.setSignature(targetSignature);
+                }
+            }
+        }
+    }
+
+    private static void addCaseResults(FastSwitch fs, List<Instruction> results) {
+        FastSwitch.Pair[] pairs = fs.getPairs();
         for (int i = 0; i < pairs.length; i++) {
             FastSwitch.Pair pair = pairs[i];
             List<Instruction> instructions = pair.getInstructions();
@@ -157,13 +188,11 @@ public final class SwitchExpressionReconstructor {
                 pair.setInstructions(instructions);
             }
             removeTrailingBreak(instructions);
-            Instruction result = resolvedResults.get(i);
+            Instruction result = results.get(i);
             if (result != null) {
                 instructions.add(result);
             }
         }
-
-        return true;
     }
 
     private static int bodyOffset(FastSwitch fs, FastSwitch.Pair pair) {
@@ -190,11 +219,7 @@ public final class SwitchExpressionReconstructor {
             int opcode = code[offset] & 255;
 
             if (opcode == Const.GOTO || opcode == Const.GOTO_W) {
-                int jumpOffset = offset + readBranchOffset(code, offset, opcode);
-                if (jumpOffset == breakOffset) {
-                    return stack.peek();
-                }
-                return null;
+                return yieldedValue(stack, offset + readBranchOffset(code, offset, opcode), breakOffset);
             }
 
             if (opcode == Const.TABLESWITCH || opcode == Const.LOOKUPSWITCH) {
@@ -207,11 +232,20 @@ public final class SwitchExpressionReconstructor {
             }
 
             int lineNumber = lineNumbers.getLineNumber(offset);
-            int consumed = factory.create(classFile, method, list, listForAnalyze, stack, code, offset, lineNumber, jumps);
-            offset += consumed + 1;
+            try {
+                offset += factory.create(classFile, method, list, listForAnalyze, stack, code, offset, lineNumber, jumps) + 1;
+            } catch (NoSuchElementException e) {
+                // The branch of a switch statement may use values computed before it, which are not known here
+                return null;
+            }
         }
 
         return stack.peek();
+    }
+
+    /** @return the value left by a branch ending with a jump, if it jumps to the end of the switch */
+    private static Instruction yieldedValue(Deque<Instruction> stack, int jumpOffset, int breakOffset) {
+        return jumpOffset == breakOffset ? stack.peek() : null;
     }
 
     private static int readBranchOffset(byte[] code, int offset, int opcode) {
@@ -250,16 +284,6 @@ public final class SwitchExpressionReconstructor {
         }
     }
 
-    private static boolean shouldForceBooleanSignature(String targetSignature, Instruction result) {
-        if (targetSignature == null || targetSignature.isEmpty()) {
-            return false;
-        }
-        if (targetSignature.charAt(0) != 'Z') {
-            return false;
-        }
-        return result instanceof jd.core.model.instruction.bytecode.instruction.IConst;
-    }
-
     private static void alignTargetLineNumber(FastSwitch fs, Instruction target) {
         int switchLine = fs.getLineNumber();
         if (switchLine == Instruction.UNKNOWN_LINE_NUMBER) {
@@ -272,24 +296,10 @@ public final class SwitchExpressionReconstructor {
     }
 
     private static int findNextTargetIndex(List<Instruction> list, int startIndex) {
-        for (int i = startIndex; i < list.size(); i++) {
-            Instruction candidate = list.get(i);
-            Instruction unwrapped = unwrapTarget(candidate);
-            if (unwrapped instanceof StoreInstruction || unwrapped instanceof ReturnInstruction) {
-                return i;
-            }
-            if (unwrapped == null) {
-                continue;
-            }
-            if (unwrapped instanceof FastInstruction fi && fi.getOpcode() == FastConstants.GOTO_BREAK) {
-                continue;
-            }
-            if (candidate instanceof FastLabel) {
-                continue;
-            }
-            return -1;
-        }
-        return -1;
+        return IntStream.range(startIndex, list.size()).filter(i -> {
+            Instruction target = unwrapTarget(list.get(i));
+            return target != null && target.getOpcode() != FastConstants.GOTO_BREAK;
+        }).findFirst().orElse(-1);
     }
 
     static List<List<Instruction>> getBlocks(Instruction instruction) {

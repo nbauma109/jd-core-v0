@@ -25,6 +25,7 @@ import org.apache.bcel.classfile.ConstantMethodHandle;
 import org.apache.bcel.classfile.ConstantMethodType;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.apache.bcel.classfile.ConstantString;
+import org.apache.bcel.generic.Type;
 import org.jd.core.v1.model.javasyntax.expression.ObjectTypeReferenceExpression;
 import org.jd.core.v1.model.javasyntax.type.BaseType;
 import org.jd.core.v1.model.javasyntax.type.ObjectType;
@@ -54,6 +55,7 @@ import jd.core.model.instruction.bytecode.instruction.ConstructorReference;
 import jd.core.model.instruction.bytecode.instruction.Instruction;
 import jd.core.model.instruction.bytecode.instruction.DupLoad;
 import jd.core.model.instruction.bytecode.instruction.DupStore;
+import jd.core.model.instruction.bytecode.instruction.IConst;
 import jd.core.model.instruction.bytecode.instruction.Invokestatic;
 import jd.core.model.instruction.bytecode.instruction.Invokevirtual;
 import jd.core.model.instruction.bytecode.instruction.LambdaInstruction;
@@ -108,6 +110,7 @@ public class InvokeDynamicFactory implements InstructionFactory
         BootstrapMethod bootstrapMethod = attributeBootstrapMethods.getBootstrapMethods()[cid.getClassIndex()];
         int[] bootstrapArguments = bootstrapMethod.getBootstrapArguments();
 //        BaseType parameterTypes = indyMethodTypes.getParameterTypes();
+        setConstantTypes(indyDescriptor, indyParameters);
 
         if ("makeConcatWithConstants".equals(indyMethodName)) {
             ConstantString constantString = (ConstantString) constants.getConstantValue(bootstrapArguments[0]);
@@ -382,4 +385,16 @@ public class InvokeDynamicFactory implements InstructionFactory
         return formalParameters.subList(formalParameters.size() - parameterCount, formalParameters.size());
     }
 
+    /** Gives the constants passed to the call site the type it expects, to write booleans and characters as such. */
+    private static void setConstantTypes(String indyDescriptor, List<Instruction> indyParameters) {
+        if (indyParameters == null) {
+            return;
+        }
+        Type[] types = Type.getArgumentTypes(indyDescriptor);
+        for (int i = 0; i < indyParameters.size(); i++) {
+            if (indyParameters.get(i) instanceof IConst iConst) {
+                iConst.setSignature(types[i].getSignature());
+            }
+        }
+    }
 }
