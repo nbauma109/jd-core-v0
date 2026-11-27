@@ -182,6 +182,7 @@ public class SwitchExpressionOperands {
         return r;
     }
 
+    @SuppressWarnings("java:S1488") // Storing the value of the switch expression is the shape under test
     static boolean assignedBoolean(int k) {
         boolean r = switch (k) {
             case 0 -> true;

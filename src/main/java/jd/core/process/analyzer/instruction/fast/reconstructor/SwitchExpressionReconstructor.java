@@ -88,8 +88,8 @@ public final class SwitchExpressionReconstructor {
         Instruction target = unwrapTarget(targetInstruction);
         List<Instruction> results = resolveCaseResults(classFile, method, fs);
         // The instructions following the switch consume the value of the last case
-        Instruction consumed = results == null ? null
-                : results.stream().filter(Objects::nonNull).max(Comparator.comparingInt(Instruction::getOffset)).orElse(null);
+        Instruction consumed = results.stream().filter(Objects::nonNull)
+                .max(Comparator.comparingInt(Instruction::getOffset)).orElse(null);
         if (consumed == null) {
             return false;
         }
@@ -138,7 +138,7 @@ public final class SwitchExpressionReconstructor {
         return value.getOffset() < fs.getJumpOffset();
     }
 
-    /** @return the value of each case, null for the cases throwing, or null if the switch is not an expression */
+    /** @return the value of each case, null for the cases throwing; nothing if the switch is not an expression */
     private static List<Instruction> resolveCaseResults(ClassFile classFile, Method method, FastSwitch fs) {
         FastSwitch.Pair[] pairs = fs.getPairs();
         int breakOffset = fs.getJumpOffset();
@@ -153,7 +153,7 @@ public final class SwitchExpressionReconstructor {
 
             Instruction result = resolveCaseResultFromBytecode(classFile, method, bodyOffset(fs, pair), breakOffset);
             if (result == null) {
-                return null;
+                return List.of();
             }
             results.add(result);
         }
@@ -212,11 +212,7 @@ public final class SwitchExpressionReconstructor {
             int opcode = code[offset] & 255;
 
             if (opcode == Const.GOTO || opcode == Const.GOTO_W) {
-                int jumpOffset = offset + readBranchOffset(code, offset, opcode);
-                if (jumpOffset == breakOffset) {
-                    return stack.peek();
-                }
-                return null;
+                return yieldedValue(stack, offset + readBranchOffset(code, offset, opcode), breakOffset);
             }
 
             if (opcode == Const.TABLESWITCH || opcode == Const.LOOKUPSWITCH) {
@@ -238,6 +234,11 @@ public final class SwitchExpressionReconstructor {
         }
 
         return stack.peek();
+    }
+
+    /** @return the value left by a branch ending with a jump, if it jumps to the end of the switch */
+    private static Instruction yieldedValue(Deque<Instruction> stack, int jumpOffset, int breakOffset) {
+        return jumpOffset == breakOffset ? stack.peek() : null;
     }
 
     private static int readBranchOffset(byte[] code, int offset, int opcode) {
