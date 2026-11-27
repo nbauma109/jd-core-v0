@@ -85,7 +85,7 @@
 /*  85 */       case 0 -> true;
 /*  86 */       default -> false;
 /*     */     }; boolean[] a = tmp7_3;
-/*  88 */     return a[0] & a[1];
+/*  88 */     return a[0] && a[1];
 /*     */   }
 /*     */   
 /*     */   static String arrayBefore(int k) {
@@ -95,13 +95,39 @@
 /*     */     };
 /*     */   }
 /*     */   
+/*     */   static int otherArrays(int k) {
+/*  99 */     int[] tmp3_1 = new int[2]; tmp3_1[0] = 1; int[] tmp7_3 = tmp3_1; tmp7_3[1] = switch (k) {
+/* 100 */       case 0 -> 2;
+/* 101 */       default -> 3;
+/*     */     }; int[] a = tmp7_3;
+/* 103 */     int[] b = { k, 4 };
+/* 104 */     b[0] = a[1];
+/* 105 */     return a[0] * 100 + b[0] * 10 + b[1];
+/*     */   }
+/*     */   
+/*     */   static String otherTypes(int k) {
+/* 109 */     char[] chars = { 'a', 'b' };
+/* 110 */     byte[] bytes = { 1, 2 };
+/* 111 */     short[] shorts = { 3, 4 };
+/* 112 */     long[] longs = { 5L, k };
+/* 113 */     return new String(chars) + bytes[1] + shorts[1] + longs[1];
+/*     */   }
+/*     */   
+/*     */   static String switchedCharacters(int k) {
+/* 117 */     char[] tmp3_1 = new char[2]; tmp3_1[0] = 'a'; char[] tmp8_3 = tmp3_1; tmp8_3[1] = switch (k) {
+/* 118 */       case 0 -> 'b';
+/* 119 */       default -> 'c';
+/*     */     }; char[] chars = tmp8_3;
+/* 121 */     return String.valueOf(chars);
+/*     */   }
+/*     */   
 /*     */   static int plain(int k) {
-/*  99 */     int[] a = { 1, k, k + 1 };
-/* 100 */     return a[0] + a[1] + a[2];
+/* 125 */     int[] a = { 1, k, k + 1 };
+/* 126 */     return a[0] + a[1] + a[2];
 /*     */   }
 /*     */   
 /*     */   static int ternary(int k) {
-/* 104 */     int[] a = { 1, k > 0 ? 2 : 3, k };
-/* 105 */     return a[0] + a[1] + a[2];
+/* 130 */     int[] a = { 1, k > 0 ? 2 : 3, k };
+/* 131 */     return a[0] + a[1] + a[2];
 /*     */   }
 /*     */ }

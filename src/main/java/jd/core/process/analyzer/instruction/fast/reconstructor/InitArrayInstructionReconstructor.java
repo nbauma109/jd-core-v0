@@ -84,10 +84,9 @@ public final class InitArrayInstructionReconstructor
     /** @return true if a switch at the index precedes the next element stored in the array */
     private static boolean isInterruptedBySwitch(List<Instruction> list, int index, DupStore lastDupStore)
     {
-        return index < list.size() && list.get(index) instanceof Switch
-            && list.subList(index, list.size()).stream().anyMatch(instruction ->
-                instruction instanceof ArrayStoreInstruction asi
-                    && isDuplicate(asi.getArrayref(), Set.of(lastDupStore.getOffset())));
+        List<Instruction> following = list.subList(index, list.size());
+        return following.stream().limit(1).anyMatch(Switch.class::isInstance)
+            && !getElementValues(following, lastDupStore).isEmpty();
     }
 
     private static void reconstructAInstruction(
@@ -163,7 +162,8 @@ public final class InitArrayInstructionReconstructor
         {
             // The value of an element computed by a switch expression follows the switch in the instructions: the array
             // cannot be initialized with only the elements preceding it, which are stored one by one
-            setElementTypes(dupStore.getObjectref(), getElementValues(list, firstDupStoreIndex));
+            setElementTypes(dupStore.getObjectref(),
+                    getElementValues(list.subList(firstDupStoreIndex + 1, list.size()), dupStore));
         }
         else if (lastAsi != null)
         {
@@ -246,14 +246,14 @@ public final class InitArrayInstructionReconstructor
         }
     }
 
-    /** @return the values stored in the array duplicated at the given index, and in its own duplicates */
-    private static List<Instruction> getElementValues(List<Instruction> list, int firstDupStoreIndex)
+    /** @return the values these instructions store in the array duplicated, and in its own duplicates */
+    private static List<Instruction> getElementValues(List<Instruction> instructions, DupStore dupStore)
     {
         Set<Integer> duplicates = new HashSet<>();
-        duplicates.add(list.get(firstDupStoreIndex).getOffset());
+        duplicates.add(dupStore.getOffset());
         List<Instruction> values = new ArrayList<>();
 
-        for (Instruction instruction : list.subList(firstDupStoreIndex + 1, list.size()))
+        for (Instruction instruction : instructions)
         {
             if (instruction instanceof DupStore store && isDuplicate(store.getObjectref(), duplicates)) {
                 duplicates.add(store.getOffset());

@@ -23,7 +23,7 @@ public class SwitchExpressionArrays {
     }
 
     static int array2(int k) {
-        int[] a = new int[] { 7, switch (k) {
+        int[] a = { 7, switch (k) {
             case 0 -> 1;
             default -> 2;
         }, switch (k) {
@@ -85,7 +85,7 @@ public class SwitchExpressionArrays {
             case 0 -> true;
             default -> false;
         } };
-        return a[0] & a[1];
+        return a[0] && a[1];
     }
 
     static String arrayBefore(int k) {
@@ -93,6 +93,32 @@ public class SwitchExpressionArrays {
             case 0 -> "a";
             default -> "b";
         };
+    }
+
+    static int otherArrays(int k) {
+        int[] a = { 1, switch (k) {
+            case 0 -> 2;
+            default -> 3;
+        } };
+        int[] b = { k, 4 };
+        b[0] = a[1];
+        return a[0] * 100 + b[0] * 10 + b[1];
+    }
+
+    static String otherTypes(int k) {
+        char[] chars = { 'a', 'b' };
+        byte[] bytes = { 1, 2 };
+        short[] shorts = { 3, 4 };
+        long[] longs = { 5L, k };
+        return new String(chars) + bytes[1] + shorts[1] + longs[1];
+    }
+
+    static String switchedCharacters(int k) {
+        char[] chars = { 'a', switch (k) {
+            case 0 -> 'b';
+            default -> 'c';
+        } };
+        return String.valueOf(chars);
     }
 
     static int plain(int k) {
