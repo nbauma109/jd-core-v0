@@ -104,10 +104,11 @@ public final class TernaryOpReconstructor
                 }
 
                 if (visitor.getOldInstruction() instanceof TernaryOperator op) {
-                    fto.setValue1(op);
-                    Instruction value2 = op.getValue2();
-                    op.setValue2(value1.getObjectref());
-                    fto.setValue2(value2);
+                    if (isInFalseBranch(test, op)) {
+                        nestInFalseBranch(fto, op);
+                    } else {
+                        encloseInTrueBranch(fto, op);
+                    }
                 } else {
                     fto.setValue2(visitor.getOldInstruction());
                 }
@@ -117,7 +118,9 @@ public final class TernaryOpReconstructor
                     iConst1.setSignature("Z");
                 }
 
-                if (isBooleanConstant(fto.getValue1()))
+                if (isBooleanConstant(fto.getValue1())
+                        && isOtherConstant(fto.getValue2(), (IConst)fto.getValue1())
+                        && !isNestedLater(list, index+2, value1.getTernaryOp2ndValueOffset()))
                 {
                     if (((IConst)fto.getValue1()).getValue() == 0) {
                         ComparisonInstructionAnalyzer.inverseComparison(fto.getTest());
@@ -142,6 +145,68 @@ public final class TernaryOpReconstructor
                 length -= 3;
             }
         }
+    }
+
+    /** @return true if the test follows the one of the operator, as in "a ? x : b ? y : z" */
+    private static boolean isInFalseBranch(Instruction test, TernaryOperator operator)
+    {
+        return test.getOffset() > operator.getTest().getOffset();
+    }
+
+    /**
+     * The condition of the new operator precedes the ones of the operator it replaces in the instructions, which is
+     * then the value given when it is true, as in "a ? b ? x : y : z". The new value is the last one the latter gives
+     * when its conditions are false.
+     */
+    private static void encloseInTrueBranch(TernaryOperator fto, TernaryOperator operator)
+    {
+        TernaryOperator last = operator;
+        while (last.getValue2() instanceof TernaryOperator child) {
+            last = child;
+        }
+        fto.setValue2(last.getValue2());
+        last.setValue2(fto.getValue1());
+        fto.setValue1(operator);
+    }
+
+    /**
+     * Gives the new operator, which has replaced the outer one in the instructions, the content of the outer one, and
+     * nests its own content in the last false branch testing a condition before its own.
+     */
+    private static void nestInFalseBranch(TernaryOperator fto, TernaryOperator outer)
+    {
+        TernaryOperator inner = new TernaryOperator(
+            ByteCodeConstants.TERNARYOP, fto.getOffset(), fto.getLineNumber(),
+            fto.getTest(), fto.getValue1(), null);
+
+        fto.setTest(outer.getTest());
+        fto.setValue1(outer.getValue1());
+        fto.setValue2(outer.getValue2());
+        fto.setLineNumber(outer.getLineNumber());
+
+        TernaryOperator parent = fto;
+        while (parent.getValue2() instanceof TernaryOperator child && isInFalseBranch(inner.getTest(), child)) {
+            parent = child;
+        }
+        if (parent.getValue2() instanceof TernaryOperator child) {
+            encloseInTrueBranch(inner, child);
+        } else {
+            inner.setValue2(parent.getValue2());
+        }
+        parent.setValue2(inner);
+    }
+
+    /** @return false if the values do not stand for "test ? true : false" or its opposite */
+    private static boolean isOtherConstant(Instruction instruction, IConst constant)
+    {
+        return instruction instanceof IConst other && other.getValue() != constant.getValue();
+    }
+
+    /** @return true if another operator, with the same last value, is still to be nested in the new one */
+    private static boolean isNestedLater(List<Instruction> list, int start, int ternaryOp2ndValueOffset)
+    {
+        return list.stream().skip(start).anyMatch(instruction -> instruction instanceof TernaryOpStore store
+                && store.getTernaryOp2ndValueOffset() == ternaryOp2ndValueOffset);
     }
 
     private static boolean isBooleanConstant(Instruction instruction)
