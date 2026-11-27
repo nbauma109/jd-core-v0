@@ -5,6 +5,7 @@ public class SwitchExpressionOperands {
     static int failures;
     static StringBuilder log = new StringBuilder();
     static int field;
+    static boolean flag;
     int instanceField;
 
     static int work(int i) {
@@ -190,6 +191,51 @@ public class SwitchExpressionOperands {
             default -> false;
         };
         return r;
+    }
+
+    static String booleans(int k) {
+        return String.valueOf(switch (k) {
+            case 0 -> true;
+            case 1 -> false;
+            default -> true;
+        });
+    }
+
+    static String comparedBoolean(int k, boolean x) {
+        return String.valueOf(x == switch (k) {
+            case 0 -> true;
+            default -> false;
+        });
+    }
+
+    static boolean storedBooleans(int k) {
+        flag = switch (k) {
+            case 0 -> true;
+            default -> false;
+        };
+        boolean[] flags = new boolean[1];
+        flags[0] = switch (k) {
+            case 1 -> true;
+            default -> false;
+        };
+        return flag ^ flags[0];
+    }
+
+    static String concatenatedBoolean(int k) {
+        return "<" + switch (k) {
+            case 0 -> true;
+            default -> false;
+        } + ">";
+    }
+
+    static String characters(int k) {
+        return String.valueOf(switch (k) {
+            case 0 -> 'a';
+            default -> 'b';
+        }) + switch (k) {
+            case 1 -> 'c';
+            default -> 'd';
+        };
     }
 
     static void statementThenStatement(int k) {

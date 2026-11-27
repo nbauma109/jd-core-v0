@@ -95,13 +95,18 @@ public final class SwitchExpressionReconstructor {
         }
 
         if (target instanceof StoreInstruction si && isComputedBySwitch(fs, si.getValueref())) {
-            forceBooleanSignature(si.getReturnedSignature(classFile, method.getLocalVariables()), results);
+            forceConstantSignature(si.getReturnedSignature(classFile, method.getLocalVariables()), results);
             si.setValueref(fs);
         } else if (target instanceof ReturnInstruction ri && isComputedBySwitch(fs, ri.getValueref())) {
-            forceBooleanSignature(ri.getReturnedSignature(classFile, method.getLocalVariables()), results);
+            forceConstantSignature(ri.getReturnedSignature(classFile, method.getLocalVariables()), results);
             ri.setValueref(fs);
-        } else if (isDiscardedBySwitch(fs, target) || !replace(target, consumed.getOffset(), fs)) {
-            return false;
+        } else {
+            Instruction replaced = isDiscardedBySwitch(fs, target) ? null : replace(target, consumed.getOffset(), fs);
+            if (replaced == null) {
+                return false;
+            }
+            // The type expected by the instruction consuming the value has been given to the value it consumed
+            forceConstantSignature(replaced.getReturnedSignature(classFile, method.getLocalVariables()), results);
         }
 
         addCaseResults(fs, results);
@@ -127,10 +132,11 @@ public final class SwitchExpressionReconstructor {
         return target instanceof Pop pop && isComputedBySwitch(fs, pop.getObjectref());
     }
 
-    private static boolean replace(Instruction target, int offset, FastSwitch fs) {
+    /** @return the instruction replaced by the switch, null if there is none */
+    private static Instruction replace(Instruction target, int offset, FastSwitch fs) {
         ReplaceInstructionVisitor visitor = new ReplaceInstructionVisitor(offset, fs);
         visitor.visit(target);
-        return visitor.getOldInstruction() != null;
+        return visitor.getOldInstruction();
     }
 
     /** @return false if the value is computed after the switch, from the one it gives */
@@ -161,11 +167,12 @@ public final class SwitchExpressionReconstructor {
         return results;
     }
 
-    private static void forceBooleanSignature(String targetSignature, List<Instruction> results) {
-        if ("Z".equals(targetSignature)) {
+    /** Writes the constants as booleans or characters, rather than as numbers, where such a value is expected. */
+    private static void forceConstantSignature(String targetSignature, List<Instruction> results) {
+        if ("Z".equals(targetSignature) || "C".equals(targetSignature)) {
             for (Instruction result : results) {
                 if (result instanceof IConst iConst) {
-                    iConst.setSignature("Z");
+                    iConst.setSignature(targetSignature);
                 }
             }
         }
