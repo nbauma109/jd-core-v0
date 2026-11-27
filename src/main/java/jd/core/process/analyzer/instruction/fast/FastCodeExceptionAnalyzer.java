@@ -1485,6 +1485,13 @@ public final class FastCodeExceptionAnalyzer
                         if (instruction.getOpcode() == Const.GOTO)
                         {
                             if (isInsideSwitchBlock(list, instruction.getOffset())) {
+                                // A 'break' reached from the 'try' or 'catch' blocks follows the statement
+                                if (!InstructionUtil.checkNoJumpToInterval(list,
+                                        InstructionUtil.getIndexForOffset(list, fastCodeException.getTryFromOffset()),
+                                        maxIndex, list.get(index - 1).getOffset(), instruction.getOffset())) {
+                                    fastCodeException.setAfterOffset(instruction.getOffset());
+                                    return;
+                                }
                                 break;
                             }
                             jumpOffsetTmp =
