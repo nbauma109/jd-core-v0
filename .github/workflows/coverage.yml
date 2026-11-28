@@ -15,13 +15,26 @@
 
 name: Coverage
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
 jobs:
+  prepare:
+    uses: ./.github/workflows/prepare-maven.yml
+
   build:
+    needs: prepare
     name: Build (Java ${{ matrix.java }}, ${{ matrix.compiler.name }})
     runs-on: ubuntu-latest
     strategy:
@@ -38,17 +51,19 @@ jobs:
     - uses: actions/checkout@v7
       with:
         persist-credentials: false
-    - uses: actions/cache@v6.1.0
-      with:
-        path: ~/.m2/repository
-        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-        restore-keys: |
-          ${{ runner.os }}-maven-
     - name: Set up JDK ${{ matrix.java }}
       uses: actions/setup-java@v6
       with:
         distribution: 'temurin'
         java-version: ${{ matrix.java }}
+    - name: Configure Maven repositories
+      run: install -D .github/maven-settings.xml "$HOME/.m2/settings.xml"
+    - name: Restore prepared Maven repository
+      uses: actions/cache/restore@v6
+      with:
+        path: ~/.m2/repository
+        key: ${{ needs.prepare.outputs.cache-key }}
+        fail-on-cache-miss: true
     - name: Build with Maven
       run: mvn -V -B ${{ matrix.compiler.profile }} test jacoco:report --no-transfer-progress
 
