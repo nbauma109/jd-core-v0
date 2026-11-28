@@ -159,7 +159,8 @@ public class ReplaceStringBuxxxerVisitor extends AbstractReplaceInstructionVisit
                             constants.getConstantNameAndType(cmr.getNameAndTypeIndex());
 
                         if (cnat.getNameIndex() == constants.getValueOfIndex() &&
-                            is.getArgs().size() == 1) {
+                            is.getArgs().size() == 1 &&
+                            !"([C)Ljava/lang/String;".equals(constants.getConstantUtf8(cnat.getSignatureIndex()))) {
                             signatureInfo.invokeNewSignature = StringConstants.INTERNAL_STRING_SIGNATURE;
                             return is.getArgs().get(0);
                         }
@@ -199,7 +200,9 @@ public class ReplaceStringBuxxxerVisitor extends AbstractReplaceInstructionVisit
         private Set<String> appendSignatures = new HashSet<>();
 
         private boolean accept() {
+            // A concatenation would give the address of an array of characters, not its content
             return !"I".equals(invokeNewSignature)
+                    && !appendSignatures.contains("[C")
                     && appendSignatures.contains(StringConstants.INTERNAL_STRING_SIGNATURE);
         }
 

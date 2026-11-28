@@ -1,0 +1,60 @@
+/*    */ package jd.core.test.fallbacks;
+/*    */ 
+/*    */ 
+/*    */ public class CharArrayConcatenations
+/*    */ {
+/*    */   static int failures;
+/*    */   
+/*  8 */   static StringBuilder log = new StringBuilder();
+/*    */   
+/*    */   static char[] work(int k) {
+/* 11 */     return new char[] { 'a', (char)(98 + k) };
+/*    */   }
+/*    */   
+/*    */   static String concat(int k) {
+/* 15 */     return String.valueOf(work(k)) + k;
+/*    */   }
+/*    */   
+/*    */   static String surrounded(int k) {
+/* 19 */     return "<" + String.valueOf(work(k)) + ">";
+/*    */   }
+/*    */   
+/*    */   static String local(int k) {
+/* 23 */     char[] chars = work(k);
+/* 24 */     String s = String.valueOf(chars) + chars.length;
+/* 25 */     return s;
+/*    */   }
+/*    */   
+/*    */   static String builder(int k) {
+/* 29 */     return new StringBuilder().append(work(k)).append(k).toString();
+/*    */   }
+/*    */   
+/*    */   static String appendAfterString(int k) {
+/* 33 */     return new StringBuilder().append("x").append(work(k)).toString();
+/*    */   }
+/*    */   
+/*    */   static String builderOfString(int k) {
+/* 37 */     return String.valueOf(work(k)) + "y" + k;
+/*    */   }
+/*    */   
+/*    */   static String others(int k) {
+/* 41 */     Object o = k > 0 ? "o" : null;
+/* 42 */     return "" + o + k + (k > 0);
+/*    */   }
+/*    */   
+/*    */   static String builderOfNumber(int k) {
+/* 46 */     return k + "z";
+/*    */   }
+/*    */   
+/*    */   static String builderOfRange(int k) {
+/* 50 */     return String.valueOf(work(k), 0, 1) + "w";
+/*    */   }
+/*    */   
+/*    */   static String copied(int k) {
+/* 54 */     return String.copyValueOf(work(k)) + k;
+/*    */   }
+/*    */   
+/*    */   static String range(int k) {
+/* 58 */     return String.valueOf(work(k), 0, 1) + k;
+/*    */   }
+/*    */ }

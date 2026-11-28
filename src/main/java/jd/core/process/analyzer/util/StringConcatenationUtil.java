@@ -224,7 +224,9 @@ public final class StringConcatenationUtil {
             return instruction;
         }
         String methodName = constants.getConstantUtf8(cnat.getNameIndex());
-        if (!"valueOf".equals(methodName)) {
+        // A concatenation would give the address of an array of characters, not its content
+        if (!"valueOf".equals(methodName)
+                || "([C)Ljava/lang/String;".equals(constants.getConstantUtf8(cnat.getSignatureIndex()))) {
             return instruction;
         }
         return invokestatic.getArgs().get(0);
