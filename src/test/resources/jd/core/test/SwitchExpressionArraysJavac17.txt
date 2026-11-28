@@ -1,0 +1,133 @@
+/*     */ package jd.core.test.fallbacks;
+/*     */ 
+/*     */ import java.util.Arrays;
+/*     */ 
+/*     */ public class SwitchExpressionArrays {
+/*     */   static int failures;
+/*   7 */   static StringBuilder log = new StringBuilder();
+/*     */   
+/*     */   static int work(int i) {
+/*  10 */     if ((failures & i) != 0) {
+/*  11 */       throw new IllegalStateException("w" + i);
+/*     */     }
+/*  13 */     log.append(i);
+/*  14 */     return i;
+/*     */   }
+/*     */   
+/*     */   static int array(int k) {
+/*  18 */     int[] tmp3_1 = new int[2]; tmp3_1[0] = switch (k) {
+/*  19 */       case 0 -> 1;
+/*  20 */       default -> 2;
+/*     */     }; int[] tmp30_3 = tmp3_1; tmp30_3[1] = 7; int[] a = tmp30_3;
+/*  22 */     return a[0] * 10 + a[1];
+/*     */   }
+/*     */   
+/*     */   static int array2(int k) {
+/*  26 */     int[] tmp3_1 = new int[3]; tmp3_1[0] = 7; int[] tmp8_3 = tmp3_1; tmp8_3[1] = switch (k) {
+/*  27 */       case 0 -> 1;
+/*  28 */       default -> 2;
+/*     */     }; int[] tmp34_8 = tmp8_3; tmp34_8[2] = switch (k) {
+/*  30 */       case 1 -> 3;
+/*  31 */       default -> 4;
+/*     */     }; int[] a = tmp34_8;
+/*  33 */     return a[0] * 100 + a[1] * 10 + a[2];
+/*     */   }
+/*     */   
+/*     */   static String strings(int k) {
+/*  37 */     String[] tmp4_1 = new String[2]; tmp4_1[0] = "x"; String[] tmp9_4 = tmp4_1; tmp9_4[1] = switch (k) {
+/*  38 */       case 0 -> "a";
+/*  39 */       default -> "b";
+/*     */     }; String[] a = tmp9_4;
+/*  41 */     return a[0] + a[1];
+/*     */   }
+/*     */   
+/*     */   static int varargs(int k) {
+/*  45 */     Object[] tmp6_3 = new Object[2]; tmp6_3[0] = switch (k) {
+/*  46 */       case 0 -> "a";
+/*  47 */       default -> "b";
+/*     */     }; Object[] tmp36_6 = tmp6_3; tmp36_6[1] = "c"; return String.format("%s%s", tmp36_6).charAt(0);
+/*     */   }
+/*     */   
+/*     */   static int lastOfMany(int k) {
+/*  52 */     int[] tmp3_1 = new int[3]; tmp3_1[0] = work(1); int[] tmp10_3 = tmp3_1; tmp10_3[1] = work(2); int[] tmp17_10 = tmp10_3; tmp17_10[2] = switch (k) {
+/*  53 */       case 0 -> work(4);
+/*  54 */       default -> work(8);
+/*     */     }; int[] a = tmp17_10;
+/*  56 */     return a[0] * 100 + a[1] * 10 + a[2];
+/*     */   }
+/*     */   
+/*     */   static int middle(int k) {
+/*  60 */     int[] tmp3_1 = new int[4]; tmp3_1[0] = work(1); int[] tmp10_3 = tmp3_1; tmp10_3[1] = switch (k) {
+/*  61 */       case 0 -> work(4);
+/*  62 */       default -> 3;
+/*     */     }; int[] tmp41_10 = tmp10_3; tmp41_10[2] = work(2); int[] tmp48_41 = tmp41_10; tmp48_41[3] = 9; int[] a = tmp48_41;
+/*  64 */     return a[0] * 1000 + a[1] * 100 + a[2] * 10 + a[3];
+/*     */   }
+/*     */   
+/*     */   static int zeros(int k) {
+/*  68 */     int[] tmp3_1 = new int[4]; tmp3_1[0] = 0; int[] tmp7_3 = tmp3_1; tmp7_3[1] = 5; int[] tmp11_7 = tmp7_3; tmp11_7[2] = switch (k) {
+/*  69 */       case 0 -> 1;
+/*  70 */       default -> 2;
+/*     */     }; int[] tmp38_11 = tmp11_7; tmp38_11[3] = 0; int[] a = tmp38_11;
+/*  72 */     return a[0] * 1000 + a[1] * 100 + a[2] * 10 + a[3] + a.length * 10000;
+/*     */   }
+/*     */   
+/*     */   static String format(int k) {
+/*  76 */     Object[] tmp6_3 = new Object[3]; tmp6_3[0] = "c"; Object[] tmp11_6 = tmp6_3; tmp11_6[1] = "d"; Object[] tmp16_11 = tmp11_6; tmp16_11[2] = switch (k) {
+/*  77 */       case 0 -> "a";
+/*  78 */       case 1 -> "e";
+/*  79 */       default -> "b";
+/*     */     }; return String.format("%s%s%s", tmp16_11);
+/*     */   }
+/*     */   
+/*     */   static boolean flags(int k) {
+/*  84 */     boolean[] tmp3_1 = new boolean[2]; tmp3_1[0] = true; boolean[] tmp7_3 = tmp3_1; tmp7_3[1] = switch (k) {
+/*  85 */       case 0 -> true;
+/*  86 */       default -> false;
+/*     */     }; boolean[] a = tmp7_3;
+/*  88 */     return a[0] && a[1];
+/*     */   }
+/*     */   
+/*     */   static String arrayBefore(int k) {
+/*  92 */     return Arrays.toString(new int[] { 1, 2 }) + switch (k) {
+/*  93 */       case 0 -> "a";
+/*  94 */       default -> "b";
+/*     */     };
+/*     */   }
+/*     */   
+/*     */   static int otherArrays(int k) {
+/*  99 */     int[] tmp3_1 = new int[2]; tmp3_1[0] = 1; int[] tmp7_3 = tmp3_1; tmp7_3[1] = switch (k) {
+/* 100 */       case 0 -> 2;
+/* 101 */       default -> 3;
+/*     */     }; int[] a = tmp7_3;
+/* 103 */     int[] b = { k, 4 };
+/* 104 */     b[0] = a[1];
+/* 105 */     return a[0] * 100 + b[0] * 10 + b[1];
+/*     */   }
+/*     */   
+/*     */   static String otherTypes(int k) {
+/* 109 */     char[] chars = { 'a', 'b' };
+/* 110 */     byte[] bytes = { 1, 2 };
+/* 111 */     short[] shorts = { 3, 4 };
+/* 112 */     long[] longs = { 5L, k };
+/* 113 */     return new String(chars) + bytes[1] + shorts[1] + longs[1];
+/*     */   }
+/*     */   
+/*     */   static String switchedCharacters(int k) {
+/* 117 */     char[] tmp3_1 = new char[2]; tmp3_1[0] = 'a'; char[] tmp8_3 = tmp3_1; tmp8_3[1] = switch (k) {
+/* 118 */       case 0 -> 'b';
+/* 119 */       default -> 'c';
+/*     */     }; char[] chars = tmp8_3;
+/* 121 */     return String.valueOf(chars);
+/*     */   }
+/*     */   
+/*     */   static int plain(int k) {
+/* 125 */     int[] a = { 1, k, k + 1 };
+/* 126 */     return a[0] + a[1] + a[2];
+/*     */   }
+/*     */   
+/*     */   static int ternary(int k) {
+/* 130 */     int[] a = { 1, k > 0 ? 2 : 3, k };
+/* 131 */     return a[0] + a[1] + a[2];
+/*     */   }
+/*     */ }
