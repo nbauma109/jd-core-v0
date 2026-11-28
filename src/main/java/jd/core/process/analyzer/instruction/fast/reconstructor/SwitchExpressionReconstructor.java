@@ -20,7 +20,9 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Deque;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.stream.IntStream;
@@ -94,19 +96,20 @@ public final class SwitchExpressionReconstructor {
 
     private static boolean tryReplaceWithSwitchExpression(ClassFile classFile, Method method, FastSwitch fs, Instruction targetInstruction) {
         Instruction target = unwrapTarget(targetInstruction);
-        List<Instruction> results = resolveCaseResults(classFile, method, fs);
+        // The results of the switch expressions which are the values of cases
+        Map<FastSwitch, List<Instruction>> nested = new IdentityHashMap<>();
+        List<Instruction> results = resolveCaseResults(classFile, method, fs, fs.getJumpOffset(), nested);
         // The instructions following the switch consume the value of the last case
-        Instruction consumed = results.stream().filter(Objects::nonNull)
-                .max(Comparator.comparingInt(Instruction::getOffset)).orElse(null);
+        Instruction consumed = lastValue(results, nested);
         if (consumed == null) {
             return false;
         }
 
         if (target instanceof StoreInstruction si && isComputedBySwitch(fs, si.getValueref())) {
-            forceConstantSignature(si.getReturnedSignature(classFile, method.getLocalVariables()), results);
+            forceConstantSignature(si.getReturnedSignature(classFile, method.getLocalVariables()), results, nested);
             si.setValueref(fs);
         } else if (target instanceof ReturnInstruction ri && isComputedBySwitch(fs, ri.getValueref())) {
-            forceConstantSignature(ri.getReturnedSignature(classFile, method.getLocalVariables()), results);
+            forceConstantSignature(ri.getReturnedSignature(classFile, method.getLocalVariables()), results, nested);
             ri.setValueref(fs);
         } else {
             Instruction replaced = isDiscardedBySwitch(fs, target) ? null : replace(target, consumed.getOffset(), fs);
@@ -114,10 +117,10 @@ public final class SwitchExpressionReconstructor {
                 return false;
             }
             // The type expected by the instruction consuming the value has been given to the value it consumed
-            forceConstantSignature(replaced.getReturnedSignature(classFile, method.getLocalVariables()), results);
+            forceConstantSignature(replaced.getReturnedSignature(classFile, method.getLocalVariables()), results, nested);
         }
 
-        addCaseResults(fs, results);
+        addCaseResults(fs, results, nested);
         alignTargetLineNumber(fs, targetInstruction);
         if (target != targetInstruction) {
             alignTargetLineNumber(fs, target);
@@ -153,9 +156,9 @@ public final class SwitchExpressionReconstructor {
     }
 
     /** @return the value of each case, null for the cases throwing; nothing if the switch is not an expression */
-    private static List<Instruction> resolveCaseResults(ClassFile classFile, Method method, FastSwitch fs) {
+    private static List<Instruction> resolveCaseResults(ClassFile classFile, Method method, FastSwitch fs, int breakOffset,
+            Map<FastSwitch, List<Instruction>> nested) {
         FastSwitch.Pair[] pairs = fs.getPairs();
-        int breakOffset = fs.getJumpOffset();
         List<Instruction> results = new ArrayList<>(pairs.length);
 
         for (FastSwitch.Pair pair : pairs) {
@@ -168,6 +171,9 @@ public final class SwitchExpressionReconstructor {
             int start = bodyOffset(fs, pair);
             Instruction result = resolveCaseResultFromBytecode(classFile, method, start, breakOffset, branchEnd(fs, start));
             if (result == null) {
+                result = resolveNestedSwitch(classFile, method, last, breakOffset, nested);
+            }
+            if (result == null) {
                 return List.of();
             }
             results.add(result);
@@ -176,10 +182,34 @@ public final class SwitchExpressionReconstructor {
         return results;
     }
 
+    /** @return the instruction if it is a switch expression giving the value of a case, null otherwise */
+    private static Instruction resolveNestedSwitch(ClassFile classFile, Method method, Instruction instruction, int breakOffset,
+            Map<FastSwitch, List<Instruction>> nested) {
+        if (!(instruction instanceof FastSwitch fs)) {
+            return null;
+        }
+        // The cases of the nested expression jump to the end of the enclosing one
+        List<Instruction> results = resolveCaseResults(classFile, method, fs, breakOffset, nested);
+        if (lastValue(results, nested) == null) {
+            return null;
+        }
+        nested.put(fs, results);
+        return fs;
+    }
+
+    /** @return the last value computed by these results, null if there is none */
+    private static Instruction lastValue(List<Instruction> results, Map<FastSwitch, List<Instruction>> nested) {
+        return results.stream().filter(Objects::nonNull)
+                .map(result -> nested.containsKey(result) ? lastValue(nested.get(result), nested) : result)
+                .max(Comparator.comparingInt(Instruction::getOffset)).orElse(null);
+    }
+
     /** Writes the constants as booleans or characters, rather than as numbers, where such a value is expected. */
-    private static void forceConstantSignature(String targetSignature, List<Instruction> results) {
+    private static void forceConstantSignature(String targetSignature, List<Instruction> results,
+            Map<FastSwitch, List<Instruction>> nested) {
         if ("Z".equals(targetSignature) || "C".equals(targetSignature)) {
             results.forEach(result -> setConstantSignature(targetSignature, result));
+            nested.values().forEach(values -> values.forEach(value -> setConstantSignature(targetSignature, value)));
         }
     }
 
@@ -192,7 +222,7 @@ public final class SwitchExpressionReconstructor {
         }
     }
 
-    private static void addCaseResults(FastSwitch fs, List<Instruction> results) {
+    private static void addCaseResults(FastSwitch fs, List<Instruction> results, Map<FastSwitch, List<Instruction>> nested) {
         FastSwitch.Pair[] pairs = fs.getPairs();
         for (int i = 0; i < pairs.length; i++) {
             FastSwitch.Pair pair = pairs[i];
@@ -203,7 +233,10 @@ public final class SwitchExpressionReconstructor {
             }
             removeTrailingBreak(instructions);
             Instruction result = results.get(i);
-            if (result != null) {
+            if (result instanceof FastSwitch inner && nested.containsKey(inner)) {
+                // The nested expression is already the last instruction of the case
+                addCaseResults(inner, nested.get(inner), nested);
+            } else if (result != null) {
                 instructions.add(result);
             }
         }
