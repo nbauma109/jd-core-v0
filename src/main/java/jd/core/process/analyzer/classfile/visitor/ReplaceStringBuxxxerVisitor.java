@@ -223,7 +223,7 @@ public class ReplaceStringBuxxxerVisitor extends AbstractReplaceInstructionVisit
         private String invokeNewSignature;
         private boolean rootIsNew;
         private Set<String> appendSignatures = new HashSet<>();
-        private List<String> operandSignatures = new ArrayList<>();
+        private final List<String> operandSignatures = new ArrayList<>();
 
         private boolean accept() {
             // A concatenation would give the address of an array of characters, not its content
