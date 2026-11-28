@@ -54,6 +54,31 @@ public class CharArrayConcatenations {
         return String.copyValueOf(work(k)) + k;
     }
 
+    static String leadingNumbers(int i, int j) {
+        return "" + i + j + String.valueOf(work(i));
+    }
+
+    static String leadingNumbersBeforeLiteral(int i, int j) {
+        return "" + i + j + "v";
+    }
+
+    static String builderOfNumbers(int i, int j) {
+        return new StringBuilder().append(i).append(j).append("u").toString();
+    }
+
+    static String builderOfCharacter(int i) {
+        char c = 'c';
+        return new StringBuilder().append(c).append(i).append("t").toString();
+    }
+
+    static String secondOperandString(int i) {
+        return new StringBuilder().append(i).append("s").append(i).toString();
+    }
+
+    static String sum(int i, int j) {
+        return (i + j) + "r";
+    }
+
     static String range(int k) {
         return String.valueOf(work(k), 0, 1) + k;
     }

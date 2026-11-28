@@ -22,6 +22,7 @@ import org.apache.bcel.classfile.ConstantClass;
 import org.apache.bcel.classfile.ConstantNameAndType;
 import org.jd.core.v1.util.StringConstants;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -87,7 +88,7 @@ public class ReplaceStringBuxxxerVisitor extends AbstractReplaceInstructionVisit
                         return null;
                     }
                     if (signatureInfo.accept()) {
-                        return result;
+                        return startAsConcatenation(result, signatureInfo.operandSignatures);
                     }
                     Instruction simplified = simplifySingleArgument(i, result, signatureInfo);
                     if (simplified != null) {
@@ -119,6 +120,7 @@ public class ReplaceStringBuxxxerVisitor extends AbstractReplaceInstructionVisit
                     String descriptor = constants.getConstantUtf8(cnat.getSignatureIndex());
                     List<String> parameterSignatures = SignatureUtil.getParameterSignatures(descriptor);
                     signatureInfo.appendSignatures.add(parameterSignatures.get(0));
+                    signatureInfo.operandSignatures.add(parameterSignatures.get(0));
                     Instruction result = match(insi.getObjectref(), cmr.getClassIndex(), signatureInfo);
 
                     if (result == null)
@@ -162,17 +164,46 @@ public class ReplaceStringBuxxxerVisitor extends AbstractReplaceInstructionVisit
                             is.getArgs().size() == 1 &&
                             !"([C)Ljava/lang/String;".equals(constants.getConstantUtf8(cnat.getSignatureIndex()))) {
                             signatureInfo.invokeNewSignature = StringConstants.INTERNAL_STRING_SIGNATURE;
+                            signatureInfo.operandSignatures.add(StringConstants.INTERNAL_STRING_SIGNATURE);
                             return is.getArgs().get(0);
                         }
                     }
                 }
 
                 signatureInfo.invokeNewSignature = arg0.getReturnedSignature(classFile, localVariables);
+                signatureInfo.operandSignatures.add(signatureInfo.invokeNewSignature);
                 return arg0;
             }
         }
 
         return null;
+    }
+
+    /**
+     * Precedes the first operand with an empty string if the "+" operator would add the first two operands, rather than
+     * concatenate them. The signatures are listed from the last operand to the first one.
+     */
+    private Instruction startAsConcatenation(Instruction result, List<String> operandSignatures) {
+        int count = operandSignatures.size();
+        if (count < 2 || operandSignatures.subList(count - 2, count).contains(StringConstants.INTERNAL_STRING_SIGNATURE)) {
+            return result;
+        }
+
+        BinaryOperatorInstruction first = (BinaryOperatorInstruction) result;
+        for (int i = 2; i < count; i++) {
+            first = (BinaryOperatorInstruction) first.getValue1();
+        }
+        first.setValue1(concatenateWithEmptyString(first, first.getValue1()));
+        return result;
+    }
+
+    private Instruction concatenateWithEmptyString(Instruction anchor, Instruction value) {
+        int emptyIndex = classFile.getConstantPool().addConstantString("");
+        Instruction emptyLiteral = new Ldc(Const.LDC, anchor.getOffset(), anchor.getLineNumber(), emptyIndex);
+        return new BinaryOperatorInstruction(
+                ByteCodeConstants.BINARYOP, anchor.getOffset(), anchor.getLineNumber(),
+                4, StringConstants.INTERNAL_STRING_SIGNATURE, "+",
+                emptyLiteral, value);
     }
 
     private Instruction simplifySingleArgument(Instruction anchor, Instruction result, SignatureInfo signatureInfo) {
@@ -185,19 +216,14 @@ public class ReplaceStringBuxxxerVisitor extends AbstractReplaceInstructionVisit
             return result;
         }
 
-        ConstantPool constants = classFile.getConstantPool();
-        int emptyIndex = constants.addConstantString("");
-        Instruction emptyLiteral = new Ldc(Const.LDC, anchor.getOffset(), anchor.getLineNumber(), emptyIndex);
-        return new BinaryOperatorInstruction(
-                ByteCodeConstants.BINARYOP, anchor.getOffset(), anchor.getLineNumber(),
-                4, StringConstants.INTERNAL_STRING_SIGNATURE, "+",
-                emptyLiteral, result);
+        return concatenateWithEmptyString(anchor, result);
     }
 
     private static class SignatureInfo {
         private String invokeNewSignature;
         private boolean rootIsNew;
         private Set<String> appendSignatures = new HashSet<>();
+        private List<String> operandSignatures = new ArrayList<>();
 
         private boolean accept() {
             // A concatenation would give the address of an array of characters, not its content

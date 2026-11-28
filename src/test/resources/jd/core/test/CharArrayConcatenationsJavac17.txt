@@ -54,7 +54,32 @@
 /* 54 */     return String.copyValueOf(work(k)) + k;
 /*    */   }
 /*    */   
+/*    */   static String leadingNumbers(int i, int j) {
+/* 58 */     return "" + i + j + String.valueOf(work(i));
+/*    */   }
+/*    */   
+/*    */   static String leadingNumbersBeforeLiteral(int i, int j) {
+/* 62 */     return "" + i + j + "v";
+/*    */   }
+/*    */   
+/*    */   static String builderOfNumbers(int i, int j) {
+/* 66 */     return "" + i + j + "u";
+/*    */   }
+/*    */   
+/*    */   static String builderOfCharacter(int i) {
+/* 70 */     char c = 'c';
+/* 71 */     return "" + c + i + "t";
+/*    */   }
+/*    */   
+/*    */   static String secondOperandString(int i) {
+/* 75 */     return i + "s" + i;
+/*    */   }
+/*    */   
+/*    */   static String sum(int i, int j) {
+/* 79 */     return i + j + "r";
+/*    */   }
+/*    */   
 /*    */   static String range(int k) {
-/* 58 */     return String.valueOf(work(k), 0, 1) + k;
+/* 83 */     return String.valueOf(work(k), 0, 1) + k;
 /*    */   }
 /*    */ }

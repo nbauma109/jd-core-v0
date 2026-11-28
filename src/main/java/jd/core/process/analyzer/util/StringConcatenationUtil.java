@@ -87,7 +87,7 @@ public final class StringConcatenationUtil {
     private static Instruction createFromRecipe(Context context, String recipe, List<Instruction> indyParameters) {
         RecipeParseResult parseResult = parseRecipe(context, recipe, indyParameters);
         List<Instruction> parts = normalizeParts(context, parseResult.parts);
-        if (!containsString(parts)) {
+        if (!startsAsConcatenation(parts)) {
             parts.add(0, createUtf8StringLiteral(context, ""));
         }
 
@@ -97,19 +97,15 @@ public final class StringConcatenationUtil {
     private static Instruction createWithoutRecipe(Context ctx, List<Instruction> indyParameters) {
         Objects.requireNonNull(indyParameters, "indyParameters");
         List<Instruction> parts = normalizeParts(ctx, indyParameters);
-        if (!containsString(parts)) {
+        if (!startsAsConcatenation(parts)) {
             parts.add(0, createUtf8StringLiteral(ctx, ""));
         }
         return foldConcatenation(ctx, parts);
     }
 
-    private static boolean containsString(List<Instruction> parts) {
-        for (Instruction part : parts) {
-            if (isString(part)) {
-                return true;
-            }
-        }
-        return false;
+    /** @return false if the "+" operator would add the first parts, rather than concatenate them */
+    private static boolean startsAsConcatenation(List<Instruction> parts) {
+        return parts.stream().limit(2).anyMatch(StringConcatenationUtil::isString);
     }
 
     private static boolean isString(Instruction instruction) {
